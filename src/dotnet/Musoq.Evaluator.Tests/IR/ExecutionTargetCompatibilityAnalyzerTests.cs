@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Plugins;
+using Musoq.Targets.Abstractions;
 using Musoq.Targets.Execution.Analysis;
 
 namespace Musoq.Evaluator.Tests.IR;
@@ -445,6 +446,139 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
         var readiness = ExecutionTargetReadinessAnalyzer.AnalyzeFutureTargets(report);
         AssertIssue(readiness, ExecutionTargetRuntimeFamily.BrowserSource, ExecutionTargetReadinessCategory.ReflectionMethodInfo, "Musoq.Plugins.LibraryBase.ToUpper");
         AssertIssue(readiness, ExecutionTargetRuntimeFamily.BytecodeVm, ExecutionTargetReadinessCategory.PluginInvocation, "row_number -> Musoq.Plugins.LibraryBase.WindowRowNumber");
+    }
+
+    [TestMethod]
+    public void Analyze_WhenTheSamePluginCallAppearsTwice_ShouldEmitOneRequirement()
+    {
+        var contains = ResolveLibraryMethod(nameof(LibraryBase.Contains), typeof(string), typeof(string));
+        var plan = new ExecutionPlan(
+            "Q_RepeatedPlugin",
+            [],
+            new ExecutionBlock(
+            [
+                new ExecutionLet(
+                    new ExecutionVariable("first", typeof(bool?)),
+                    new ExecutionMethodCall(
+                        contains,
+                        [new ExecutionLiteral("folder/file", typeof(string)), new ExecutionLiteral("/", typeof(string))],
+                        null,
+                        typeof(bool?))),
+                new ExecutionLet(
+                    new ExecutionVariable("second", typeof(bool?)),
+                    new ExecutionMethodCall(
+                        contains,
+                        [new ExecutionLiteral("folder/file", typeof(string)), new ExecutionLiteral("/", typeof(string))],
+                        null,
+                        typeof(bool?)))
+            ]));
+
+        var report = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
+
+        Assert.AreEqual(
+            1,
+            report.Requirements.Count(requirement =>
+                requirement.Kind == ExecutionTargetRequirementKind.PluginInvocation));
+        Assert.AreEqual(
+            1,
+            report.Requirements.Count(requirement =>
+                requirement.Kind == ExecutionTargetRequirementKind.MethodInfoCall));
+    }
+
+    [TestMethod]
+    public void Analyze_WhenTwoOverloadsAreUsed_ShouldKeepTheirStableCallableIdentitiesDistinct()
+    {
+        var startsWithTwoArguments = ResolveLibraryMethod(nameof(LibraryBase.StartsWith), typeof(string), typeof(string));
+        var startsWithThreeArguments = ResolveLibraryMethod(
+            nameof(LibraryBase.StartsWith),
+            typeof(string),
+            typeof(string),
+            typeof(string));
+        var plan = new ExecutionPlan(
+            "Q_OverloadedPlugin",
+            [],
+            new ExecutionBlock(
+            [
+                new ExecutionLet(
+                    new ExecutionVariable("two", typeof(bool?)),
+                    new ExecutionMethodCall(
+                        startsWithTwoArguments,
+                        [new ExecutionLiteral("abc", typeof(string)), new ExecutionLiteral("a", typeof(string))],
+                        null,
+                        typeof(bool?))),
+                new ExecutionLet(
+                    new ExecutionVariable("three", typeof(bool?)),
+                    new ExecutionMethodCall(
+                        startsWithThreeArguments,
+                        [
+                            new ExecutionLiteral("abc", typeof(string)),
+                            new ExecutionLiteral("a", typeof(string)),
+                            new ExecutionLiteral("Ordinal", typeof(string))
+                        ],
+                        null,
+                        typeof(bool?)))
+            ]));
+
+        var report = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
+        var pluginRequirements = report.Requirements
+            .Where(requirement => requirement.Kind == ExecutionTargetRequirementKind.PluginInvocation)
+            .ToArray();
+
+        Assert.HasCount(2, pluginRequirements);
+        Assert.AreNotEqual(
+            pluginRequirements[0].CallableSymbol!.StableName,
+            pluginRequirements[1].CallableSymbol!.StableName);
+    }
+
+    [TestMethod]
+    public void Analyze_WhenTheSameStableCallableHasConflictingMetadata_ShouldRejectThePlan()
+    {
+        const string stableName = "method:test.Call#0():primitive:boolean";
+        var first = new ExecutionCallableRef(
+            new ExecutionPortableCallableDescriptor(
+                ExecutionPortableCallableKind.HostPlugin,
+                stableName,
+                "test.Call")
+            {
+                MethodName = "Call",
+                Portability = ExecutionPortableSymbolPortability.HostImport
+            });
+        var second = new ExecutionCallableRef(
+            new ExecutionPortableCallableDescriptor(
+                ExecutionPortableCallableKind.HostPlugin,
+                stableName,
+                "test.Call")
+            {
+                MethodName = "Call",
+                Portability = ExecutionPortableSymbolPortability.ClrOnly
+            });
+        var plan = new ExecutionPlan(
+            "Q_ConflictingCallable",
+            [],
+            new ExecutionBlock(
+            [
+                new ExecutionLet(
+                    new ExecutionVariable("first", typeof(bool?)),
+                    new ExecutionMethodCall(
+                        first,
+                        [],
+                        null,
+                        ExecutionClrBindingFactory.FromClr(typeof(bool?)),
+                        null)),
+                new ExecutionLet(
+                    new ExecutionVariable("second", typeof(bool?)),
+                    new ExecutionMethodCall(
+                        second,
+                        [],
+                        null,
+                        ExecutionClrBindingFactory.FromClr(typeof(bool?)),
+                        null))
+            ]));
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            ExecutionTargetCompatibilityAnalyzer.Analyze(plan));
+
+        StringAssert.Contains(exception.Message, "conflicting symbol definitions");
     }
 
     [TestMethod]

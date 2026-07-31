@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Musoq.Evaluator.IR;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
@@ -171,11 +172,16 @@ internal sealed partial class PhysicalLoweringImplementation
             return LoweringAttempt<OptionalValue<ExecutionExpression>>.Built(OptionalValue<ExecutionExpression>.Some(parts[0]));
 
         var partTypes = parts.Select(part => part.ReturnType.ResolveClrType()).ToArray();
+        if (partTypes.Length is >= 2 and <= 7 &&
+            partTypes.All(WindowRegistrationLoweringHelpers.CanUseTypedWindowKeyElement) &&
+            ValueTupleTypeShape.TryCreate(partTypes, out var partitionKeyType))
+        {
+            return LoweringAttempt<OptionalValue<ExecutionExpression>>.Built(
+                OptionalValue<ExecutionExpression>.Some(new ExecutionValueTupleKey(parts, partitionKeyType)));
+        }
+
         return LoweringAttempt<OptionalValue<ExecutionExpression>>.Built(
-            OptionalValue<ExecutionExpression>.Some(
-                partTypes.Length is >= 2 and <= 7 && partTypes.All(WindowRegistrationLoweringHelpers.CanUseTypedWindowKeyElement)
-                    ? new ExecutionValueTupleKey(parts, CreateValueTupleType(partTypes))
-                    : new ExecutionCompositeKey(parts)));
+            OptionalValue<ExecutionExpression>.Some(new ExecutionCompositeKey(parts)));
     }
 
     private static LoweringAttempt<IReadOnlyList<ExecutionWindowOrderKey>> CreateWindowOrderKeys(

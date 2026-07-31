@@ -9,8 +9,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void NullsFirstLastOrderingSample_WhenCheckedIn_ShouldUseInlineTypedNullComparisons()
     {
-        var sample = ReadSamples().Single(static item =>
-            item.FileName == NullsFirstLastOrderingSampleFileName);
+        var sample = ReadSample(NullsFirstLastOrderingSampleFileName);
 
         Assert.Contains("NULLS LAST", sample.Content);
         Assert.Contains("NULLS FIRST", sample.Content);

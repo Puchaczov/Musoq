@@ -118,24 +118,146 @@ namespace GeneratedSample_P10_RecursiveUnionAll_Full
         public event QueryPhaseEventHandler PhaseChanged;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_0, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, null), token);
+            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_0, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
         public Table RunWithProfile(CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             ArgumentNullException.ThrowIfNull(profileRecorder);
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_0, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
+            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_0, (queryToken) => ComputeRows_compiled_0_Profiled(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
+        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, profileRecorder))
+            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
                 yield return new ResultRow0(__musoqShapeRow.Value);
             }
         }
 
-        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
+        private IEnumerable<ResultRow0> ComputeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
+        {
+            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0_Profiled(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, profileRecorder))
+            {
+                yield return new ResultRow0(__musoqShapeRow.Value);
+            }
+        }
+
+        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        {
+            OnPhaseChanged("compiled", QueryPhase.Begin);
+            OnPhaseChanged("compiled", QueryPhase.From);
+            OnPhaseChanged("compiled", QueryPhase.Where);
+            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+            OnPhaseChanged("compiled", QueryPhase.Select);
+            try
+            {
+                var _cteRowResults = new CteRowResults();
+                var __musoqExecutionState = ExecutionState.Capture(Parameters);
+                ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
+                var __musoqFinalShapeRows = new List<ResultShape0>();
+                var cte0 = new List<Cte0Row0>();
+                var cte0CurrentFrontier = new List<Cte0Row0>();
+                var cte0NextFrontier = new List<Cte0Row0>();
+                int __cte0Iteration = 0;
+                int __cte0CancellationCounter = 0;
+                seedValuesA380A8DARow0[] cte0CurrentFrontier_seedRows = new seedValuesA380A8DARow0[]
+                {
+                    new seedValuesA380A8DARow0(1)
+                };
+                foreach (var seed in cte0CurrentFrontier_seedRows)
+                {
+                    token.ThrowIfCancellationRequested();
+                    if (cte0.Count + cte0CurrentFrontier.Count >= 10000000)
+                    {
+                        throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("counter", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded, 10000000);
+                    }
+
+                    cte0CurrentFrontier.Add(new Cte0Row0(seed.Value));
+                }
+
+                cte0.AddRange(cte0CurrentFrontier);
+                while (cte0CurrentFrontier.Count > 0)
+                {
+                    if ((__cte0Iteration & 63) == 0)
+                    {
+                        token.ThrowIfCancellationRequested();
+                    }
+
+                    if (__cte0Iteration >= 1000)
+                    {
+                        throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("counter", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7007_RecursiveCteIterationLimitExceeded, 1000);
+                    }
+
+                    __cte0Iteration++;
+                    cte0NextFrontier.Clear();
+                    for (int cte0CurrentFrontierIndex = 0; cte0CurrentFrontierIndex < cte0CurrentFrontier.Count; ++cte0CurrentFrontierIndex)
+                    {
+                        if (cte0CurrentFrontierIndex != 0 && (cte0CurrentFrontierIndex & 1023) == 0)
+                        {
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        Cte0Row0 c = (Cte0Row0)cte0CurrentFrontier[cte0CurrentFrontierIndex];
+                        if ((c.Value < 4))
+                        {
+                            ++__cte0CancellationCounter;
+                            if ((__cte0CancellationCounter & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            if (cte0.Count + cte0NextFrontier.Count >= 10000000)
+                            {
+                                throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("counter", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded, 10000000);
+                            }
+
+                            cte0NextFrontier.Add(new Cte0Row0((c.Value + 1)));
+                        }
+                    }
+
+                    cte0.AddRange(cte0NextFrontier);
+                    var __cte0FrontierSwap = cte0CurrentFrontier;
+                    cte0CurrentFrontier = cte0NextFrontier;
+                    cte0NextFrontier = __cte0FrontierSwap;
+                }
+
+                _cteRowResults.Slot0 = cte0;
+                var result = new List<ResultShape0>();
+                var __storedTable0Rows = _cteRowResults.Slot0;
+                for (int __storedTable0Index = 0; __storedTable0Index < __storedTable0Rows.Count; ++__storedTable0Index)
+                {
+                    if ((__storedTable0Index & 1023) == 0)
+                    {
+                        token.ThrowIfCancellationRequested();
+                    }
+
+                    Cte0Row0 counter = __storedTable0Rows[__storedTable0Index];
+                    result.Add(new ResultShape0(counter.Value));
+                }
+
+                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                {
+                    var comparison = left.Value.CompareTo(right.Value);
+                    if (comparison != 0)
+                        return comparison;
+                    return 0;
+                }));
+                foreach (var resultSortedRowsRow in resultSortedRows)
+                {
+                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
+                }
+
+                return __musoqFinalShapeRows;
+            }
+            finally
+            {
+                OnPhaseChanged("compiled:cte0", QueryPhase.End);
+                OnPhaseChanged("compiled", QueryPhase.End);
+            }
+        }
+
+        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             var __profileScopeDepth = profileRecorder?.GetCurrentOperatorScopeDepth() ?? 0;
             try

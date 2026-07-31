@@ -52,6 +52,9 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
                 case UnaryNode unary:
                     stack.Push(unary.Expression);
                     break;
+                case CastNode cast:
+                    stack.Push(cast.Expression);
+                    break;
                 case FieldNode field:
                     stack.Push(field.Expression);
                     break;
@@ -91,6 +94,9 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
                     break;
                 case UnaryNode unary:
                     stack.Push(unary.Expression);
+                    break;
+                case CastNode cast:
+                    stack.Push(cast.Expression);
                     break;
                 case FieldNode field:
                     stack.Push(field.Expression);

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
+using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
@@ -21,13 +22,14 @@ internal sealed class SemanticMetadataSnapshotBuilder
         return new SemanticMetadataSnapshot
         {
             Root = input.Root,
-            InferredColumns = SemanticMetadataSnapshotFreezer.FreezeSchemaColumns(input.InferredColumns),
-            InferredColumnsByAlias = SemanticMetadataSnapshotFreezer.FreezeSchemaColumns(input.InferredColumnsByAlias),
-            UsedColumns = SemanticMetadataSnapshotFreezer.FreezeSchemaColumns(input.UsedColumns),
+            InferredColumns = MetadataSnapshotContractsFreezer.FreezeSchemaColumns(input.InferredColumns),
+            InferredColumnsByAlias = MetadataSnapshotContractsFreezer.FreezeSchemaColumns(input.InferredColumnsByAlias),
+            UsedColumns = MetadataSnapshotContractsFreezer.FreezeSchemaColumns(input.UsedColumns),
             UsedWhereNodes = SemanticMetadataSnapshotFreezer.FreezeDictionary(input.UsedWhereNodes),
             SourcePlanRequestsPerSchema = SemanticMetadataSnapshotFreezer.FreezeDictionary(input.SourcePlanRequestsPerSchema),
             SourceContractDiagnosticLocationsPerSchema = SemanticMetadataSnapshotFreezer.FreezeDictionary(
                 input.SourceContractDiagnosticLocationsPerSchema),
+            SourceContracts = MetadataSnapshotContractsFreezer.FreezeSourceContracts(input.SourceContracts),
             ScriptParameterDefinitions = SemanticMetadataSnapshotFreezer.FreezeList(input.ScriptParameterDefinitions),
             ScriptVariableDefinitions = SemanticMetadataSnapshotFreezer.FreezeList(input.ScriptVariableDefinitions),
             SourceRuntimeSettingsBySourceContextId = SemanticMetadataSnapshotFreezer.FreezeRuntimeSettings(
@@ -48,11 +50,11 @@ internal sealed record SemanticMetadataSnapshotInput
 {
     public required RootNode Root { get; init; }
 
-    public required IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; init; }
+    public required IEnumerable<KeyValuePair<SchemaFromNode, IEnumerable<ISchemaColumn>>> InferredColumns { get; init; }
 
-    public required IReadOnlyDictionary<string, ISchemaColumn[]> InferredColumnsByAlias { get; init; }
+    public required IEnumerable<KeyValuePair<string, IEnumerable<ISchemaColumn>>> InferredColumnsByAlias { get; init; }
 
-    public required IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> UsedColumns { get; init; }
+    public required IEnumerable<KeyValuePair<SchemaFromNode, IEnumerable<ISchemaColumn>>> UsedColumns { get; init; }
 
     public required IReadOnlyDictionary<SchemaFromNode, WhereNode> UsedWhereNodes { get; init; }
 
@@ -60,6 +62,8 @@ internal sealed record SemanticMetadataSnapshotInput
 
     public required IReadOnlyDictionary<SchemaFromNode, SourceContractDiagnosticLocationMap>
         SourceContractDiagnosticLocationsPerSchema { get; init; }
+
+    public required IEnumerable<BoundSourceContract> SourceContracts { get; init; }
 
     public required IReadOnlyList<ScriptParameterDefinition> ScriptParameterDefinitions { get; init; }
 

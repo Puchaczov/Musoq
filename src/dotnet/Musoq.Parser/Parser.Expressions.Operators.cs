@@ -4,12 +4,19 @@ namespace Musoq.Parser;
 
 public partial class Parser
 {
-    private static bool IsArithmeticBinaryOperator(Token currentToken)
+    private static short GetArithmeticPrecedence(TokenType tokenType)
     {
-        return currentToken.TokenType is TokenType.Star or TokenType.FSlash or TokenType.Mod or TokenType.Plus
-            or TokenType.Hyphen or TokenType.Dot or TokenType.Ampersand or TokenType.Pipe or TokenType.Caret
-            or TokenType.LeftShift or TokenType.RightShift or TokenType.NullCoalescing;
+        return tokenType switch
+        {
+            TokenType.Pipe or TokenType.Caret or TokenType.Ampersand or TokenType.NullCoalescing => 0,
+            TokenType.LeftShift or TokenType.RightShift => 1,
+            TokenType.Plus or TokenType.Hyphen => 2,
+            TokenType.Star or TokenType.FSlash or TokenType.Mod => 3,
+            TokenType.Dot => 4,
+            _ => -1
+        };
     }
+
 
 
     private static bool IsEqualityOperator(Token currentToken)

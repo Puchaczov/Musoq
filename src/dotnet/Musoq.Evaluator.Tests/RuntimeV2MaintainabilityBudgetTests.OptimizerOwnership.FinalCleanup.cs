@@ -142,7 +142,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var allowedPaths = new HashSet<string>(StringComparer.Ordinal)
         {
             "src/dotnet/Musoq.Targets.CSharpClr/Optimization/Codegen/HelperExtractionReadabilityPass.cs",
-            "src/dotnet/Musoq.Targets.CSharpClr/Optimization/Codegen/HelperExtractionReadabilityApproval.cs"
+            "src/dotnet/Musoq.Targets.CSharpClr/Optimization/Codegen/HelperExtractionReadabilityApproval.cs",
+            "src/dotnet/Musoq.Targets.CSharpClr/Optimization/Codegen/ExecutionCodegenOptimizationPass.cs"
         };
         var files = EnumerateProductionSourceFiles(repositoryRoot)
             .Where(file => !allowedPaths.Contains(

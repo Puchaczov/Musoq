@@ -4,11 +4,14 @@ using System.Linq;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
+using Musoq.Schema.DataSources;
+using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests.Architecture;
 
@@ -106,5 +109,102 @@ public sealed class SemanticPhaseArtifactTests : BasicEntityTestBase
                                               System.Reflection.BindingFlags.NonPublic)
             .SelectMany(method => method.GetParameters())
             .Any(parameter => parameter.ParameterType == visitorType));
+    }
+
+    [TestMethod]
+    public void SemanticMetadataSnapshot_ShouldCopyProviderOwnedColumnsIntoBoundContracts()
+    {
+        var providerColumn = new ProviderColumn("Value", 7, typeof(int));
+        var frozen = MetadataSnapshotContractsFreezer.FreezeSchemaColumns(
+            new[]
+            {
+                new KeyValuePair<string, IEnumerable<ISchemaColumn>>(
+                    "source",
+                    new[] { providerColumn })
+            });
+
+        var boundColumn = frozen["source"].Single();
+
+        Assert.AreNotSame(providerColumn, boundColumn);
+        Assert.IsInstanceOfType(boundColumn, typeof(BoundSchemaColumn));
+        Assert.AreEqual(providerColumn.ColumnName, boundColumn.ColumnName);
+        Assert.AreEqual(providerColumn.ColumnType, boundColumn.ColumnType);
+    }
+
+    [TestMethod]
+    public void SemanticScopeArtifact_ShouldMaterializeProviderNeutralTableContracts()
+    {
+        var providerTable = new ProviderTable(
+            [new ProviderColumn("Value", 0, typeof(int))],
+            typeof(int));
+        var providerSchema = new ProviderSchema(providerTable);
+        var source = new Scope(null, -1, "Root");
+        source.ScopeSymbolTable.AddSymbol(
+            "items",
+            new TableSymbol("items", providerSchema, providerTable, hasAlias: true));
+
+        var artifact = SemanticScopeArtifact.Capture(source);
+        var restored = artifact.CreateScope().ScopeSymbolTable.GetSymbol<TableSymbol>("items");
+        var (schema, table, _) = restored.GetTableByAlias("items");
+
+        Assert.AreNotSame(providerSchema, schema);
+        Assert.AreNotSame(providerTable, table);
+        Assert.IsInstanceOfType(schema, typeof(TransitionSchema));
+        Assert.IsFalse(restored.FullTable.Columns.Any(column => column is ProviderColumn));
+        Assert.AreEqual("Value", restored.GetColumnByAliasAndName("items", "Value")!.ColumnName);
+    }
+
+    [TestMethod]
+    public void SemanticMetadataSnapshot_ShouldExposeSourceIdentityAndRequiredMemberContracts()
+    {
+        var lexer = new Musoq.Parser.Lexing.Lexer("select e.Name from #A.Entities() e", true);
+        var root = new Musoq.Parser.Parser(lexer).ComposeAll();
+        var visitor = new BuildMetadataAndInferTypesVisitor(
+            new BasicSchemaProvider<BasicEntity>(
+                new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }),
+            new Dictionary<string, string[]>(),
+            new NullLogger<BuildMetadataAndInferTypesVisitor>());
+
+        root.Accept(new BuildMetadataAndInferTypesTraverseVisitor(visitor));
+        var snapshot = visitor.CreateSemanticMetadataSnapshot();
+        var source = snapshot.SourceContracts.Single();
+
+        Assert.AreEqual("#A", source.Identity.SchemaName);
+        Assert.AreEqual("Entities", source.Identity.MethodName);
+        Assert.AreEqual("e", source.Identity.Alias);
+        Assert.IsTrue(source.RequiredMethodSignature.Contains("#A.Entities", StringComparison.Ordinal));
+        Assert.IsTrue(source.RequiredMemberSignatures.Any(signature => signature.StartsWith("Name:", StringComparison.Ordinal)));
+        Assert.IsTrue(source.Columns.All(column => column is BoundSchemaColumn));
+    }
+
+    private sealed class ProviderSchema(ISchemaTable table)
+        : SchemaBase("provider", new MethodsAggregator(new MethodsManager()))
+    {
+        public override ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext metadataContext,
+            params object?[] parameters) => table;
+    }
+
+    private sealed class ProviderTable(ISchemaColumn[] columns, Type entityType) : ISchemaTable
+    {
+        public ISchemaColumn[] Columns { get; } = columns;
+
+        public SchemaTableMetadata Metadata { get; } = new(entityType);
+
+        public ISchemaColumn? GetColumnByName(string name) =>
+            Columns.SingleOrDefault(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+
+        public ISchemaColumn[] GetColumnsByName(string name) =>
+            Columns.Where(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
+    }
+
+    private sealed class ProviderColumn(string name, int index, Type type) : ISchemaColumn
+    {
+        public string ColumnName { get; } = name;
+
+        public int ColumnIndex { get; } = index;
+
+        public Type ColumnType { get; } = type;
     }
 }

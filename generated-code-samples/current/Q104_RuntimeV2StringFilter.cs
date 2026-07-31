@@ -9,7 +9,7 @@ SELECT FirstName, LastName, Email
 /*
 MultiStatement
   Project [ko3iko.FirstName as FirstName, ko3iko.LastName as LastName, ko3iko.Email as Email]
-    Filter [((Contains(ko3iko.Email, 'gmail') IS NOT NULL AND (Contains(ko3iko.Email, 'gmail') = TRUE)) AND (StartsWith(ko3iko.FirstName, 'A') IS NOT NULL AND (StartsWith(ko3iko.FirstName, 'A') = TRUE)))]
+    Filter [((Contains(ko3iko.Email, 'gmail') = TRUE) AND (StartsWith(ko3iko.FirstName, 'A') = TRUE))]
       SchemaScan [#test.entities() as ko3iko]
 */
 
@@ -17,7 +17,7 @@ MultiStatement
 /*
 PhysicalMultiStatement
   PhysicalProject [ko3iko.FirstName as FirstName, ko3iko.LastName as LastName, ko3iko.Email as Email]
-    PhysicalFilter [((Contains(ko3iko.Email, 'gmail') IS NOT NULL AND (Contains(ko3iko.Email, 'gmail') = TRUE)) AND (StartsWith(ko3iko.FirstName, 'A') IS NOT NULL AND (StartsWith(ko3iko.FirstName, 'A') = TRUE)))]
+    PhysicalFilter [((Contains(ko3iko.Email, 'gmail') = TRUE) AND (StartsWith(ko3iko.FirstName, 'A') = TRUE))]
       PhysicalSchemaScan [#test.entities() as ko3iko] [pushdown: Contains(ko3iko.Email, 'gmail'), StartsWith(ko3iko.FirstName, 'A')]
 */
 
@@ -37,12 +37,11 @@ ExecutionPlan [compiled]
   Body
     SourceScan [ko3iko: RuntimeV2RegressionEntity] -> ko3ikoRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
-    ParallelFilterProjectLoop [ko3iko in ko3ikoRows where ((Contains(ko3iko.Email, 'gmail') IS NOT NULL AND (Contains(ko3iko.Email, 'gmail') = TRUE)) AND (StartsWith(ko3iko.FirstName, 'A') IS NOT NULL AND (StartsWith(ko3iko.FirstName, 'A') = TRUE))); threshold 4096, maxDegree 24]
+    ParallelFilterProjectLoop [ko3iko in ko3ikoRows where ((Contains(ko3iko.Email, 'gmail') = TRUE) AND (StartsWith(ko3iko.FirstName, 'A') = TRUE)); threshold 4096, maxDegree 24]
       ParallelProject
         Let [email: string = ko3iko.Email]
         Let [firstName: string = ko3iko.FirstName]
-        Let [contains: bool? = Contains(email, 'gmail')]
-        If [((contains IS NOT NULL AND (contains = TRUE)) AND (StartsWith(firstName, 'A') IS NOT NULL AND (StartsWith(firstName, 'A') = TRUE)))]
+        If [((Contains(email, 'gmail') = TRUE) AND (StartsWith(firstName, 'A') = TRUE))]
           AppendShape [result <- ResultShape0(FirstName: firstName, LastName: ko3iko.LastName, Email: email)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
@@ -105,18 +104,7 @@ namespace GeneratedSample_Q104_RuntimeV2StringFilter
             var __musoqTableSourceRows = ko3ikoRows;
             if (__musoqTableSourceRows is not IReadOnlyList<IReadOnlyList<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity>> _)
             {
-                return new QueryTableEnumerable<ResultRow0>((_) => EvaluationHelper.ProjectChunkedRowsParallel<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity, ResultRow0>(__musoqTableSourceRows, 24, (ko3iko) =>
-                {
-                    string email = ko3iko.Email;
-                    string firstName = ko3iko.FirstName;
-                    bool? contains = ((email == null || "gmail" == null) ? (bool?)null : email.Contains("gmail", StringComparison.OrdinalIgnoreCase));
-                    if ((((contains != null) && (contains == true)) && ((((firstName == null || "A" == null) ? (bool?)null : firstName.StartsWith("A", StringComparison.OrdinalIgnoreCase)) != null) && (((firstName == null || "A" == null) ? (bool?)null : firstName.StartsWith("A", StringComparison.OrdinalIgnoreCase)) == true))))
-                    {
-                        return new ResultRow0(firstName, ko3iko.LastName, email);
-                    }
-
-                    return null;
-                }, token), token, onCompleted: () =>
+                return new QueryTableEnumerable<ResultRow0>((_) => EvaluationHelper.ProjectChunkedRowsParallel<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity, ResultRow0>(__musoqTableSourceRows, 24, (ko3iko) => ((((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase)) == true) && (((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase)) == true)), (ko3iko) => new ResultRow0(ko3iko.FirstName, ko3iko.LastName, ko3iko.Email), token), token, onCompleted: () =>
                 {
                     OnPhaseChanged("compiled", QueryPhase.End);
                 }, onDisposed: () =>
@@ -126,18 +114,7 @@ namespace GeneratedSample_Q104_RuntimeV2StringFilter
             }
 
             var __musoqTableParallelRows = EvaluationHelper.GetParallelProjectionRowsOrEmpty<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity>(__musoqTableSourceRows, 4096);
-            return new QueryTableEnumerable<ResultRow0>((_) => QueryRows.FromRowShards(EvaluationHelper.ProjectRowsParallel<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity, ResultRow0>(__musoqTableParallelRows, 24, (ko3iko) =>
-            {
-                string email = ko3iko.Email;
-                string firstName = ko3iko.FirstName;
-                bool? contains = ((email == null || "gmail" == null) ? (bool?)null : email.Contains("gmail", StringComparison.OrdinalIgnoreCase));
-                if ((((contains != null) && (contains == true)) && ((((firstName == null || "A" == null) ? (bool?)null : firstName.StartsWith("A", StringComparison.OrdinalIgnoreCase)) != null) && (((firstName == null || "A" == null) ? (bool?)null : firstName.StartsWith("A", StringComparison.OrdinalIgnoreCase)) == true))))
-                {
-                    return new ResultRow0(firstName, ko3iko.LastName, email);
-                }
-
-                return null;
-            }, token)), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => QueryRows.FromRowShards(EvaluationHelper.ProjectRowsParallel<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity, ResultRow0>(__musoqTableParallelRows, 24, (ko3iko) => ((((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase)) == true) && (((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase)) == true)), (ko3iko) => new ResultRow0(ko3iko.FirstName, ko3iko.LastName, ko3iko.Email), token)), token, onCompleted: () =>
             {
                 OnPhaseChanged("compiled", QueryPhase.End);
             }, onDisposed: () =>

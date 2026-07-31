@@ -163,7 +163,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             ["src/dotnet/Musoq.Evaluator/IR/Execution/PlanPrinterStreamNames.cs"] = 29,
             ["src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ChunkedLoopSyntaxFactory.cs"] = 266,
             ["src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionShapeResolver.BinarySchemas.cs"] = 198,
-            ["src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionShapeResolver.BinarySchemas.NestedColumns.cs"] = 88,
+            ["src/dotnet/Musoq.Evaluator/IR/Execution/BinarySchemaNestedColumns.cs"] = 88,
             ["src/dotnet/Musoq.Evaluator/Visitors/ConstantOperatorEvaluator.cs"] = 221,
             ["src/dotnet/Musoq.Evaluator/Visitors/ScriptVariableInitializerEvaluator.cs"] = 92,
             ["src/dotnet/Musoq.Evaluator/Visitors/ScriptVariableInitializerEvaluator.ArithmeticAndBitwise.cs"] = 90,

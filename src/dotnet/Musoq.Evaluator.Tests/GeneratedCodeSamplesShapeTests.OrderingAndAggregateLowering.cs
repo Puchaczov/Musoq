@@ -10,13 +10,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void OrderByGeneratedSamples_WhenCheckedIn_ShouldUseTypedRecordPipeline()
     {
-        var samples = ReadSamples()
-            .Where(static sample => sample.FileName is
-                OrderBySimpleSampleFileName or
-                OrderByMultipleKeysSampleFileName or
-                OrderByAliasSampleFileName or
-                OrderByHiddenComputedKeySampleFileName)
-            .ToArray();
+        var samples = ReadNamedSamples(
+            OrderBySimpleSampleFileName,
+            OrderByMultipleKeysSampleFileName,
+            OrderByAliasSampleFileName,
+            OrderByHiddenComputedKeySampleFileName);
 
         foreach (var sample in samples)
         {
@@ -38,7 +36,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void FramedPluginWindowSample_WhenCheckedIn_ShouldStreamWithoutValueBuffer()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, static sample => sample.Content);
+        var samples = ReadNamedSamples(WindowRunningProductFramedPluginSampleFileName)
+            .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
         var sample = samples[WindowRunningProductFramedPluginSampleFileName];
 
         Assert.Contains(
@@ -128,7 +127,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void GroupBySingleSample_WhenCheckedIn_ShouldReuseGroupKeyFieldReadForAggregateInput()
     {
-        var sample = ReadSamples().Single(static item => item.FileName == GroupBySingleSampleFileName).Content;
+        var sample = ReadSample(GroupBySingleSampleFileName).Content;
 
         Assert.Contains("string city = ko3iko.City;", sample);
         Assert.Contains("string groupKey = city;", sample);
@@ -172,7 +171,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void TypedValueTupleAggregateSamples_WhenCheckedIn_ShouldNotBuildLegacyParentGroupChains()
     {
-        var failures = ReadSamples()
+        var failures = ReadAllSamples()
             .Where(static sample =>
                 sample.Content.Contains("CreateValueTupleAggregateContext [groups:", StringComparison.Ordinal) &&
                 sample.Content.Contains("-> ResultAggregateGroup]", StringComparison.Ordinal))
@@ -196,7 +195,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void GroupByHavingOrderBySample_WhenCheckedIn_ShouldYieldFinalShapeRows()
     {
-        var sample = ReadSamples().Single(static item => item.FileName == GroupByHavingOrderBySampleFileName).Content;
+        var sample = ReadSample(GroupByHavingOrderBySampleFileName).Content;
 
         Assert.Contains(StaticColumnMetadataPattern, sample);
         Assert.IsFalse(sample.Contains("var resultSorted = new Table(\"resultSorted\", __columns_", StringComparison.Ordinal));
@@ -215,7 +214,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void OrderBySkipTakeSample_WhenCheckedIn_ShouldUseTopOffsetTable()
     {
-        var sample = ReadSamples().Single(static item => item.FileName == OrderBySkipTakeSampleFileName).Content;
+        var sample = ReadSample(OrderBySkipTakeSampleFileName).Content;
 
         Assert.Contains("CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by Population DESC, skip 2, take 5]", sample);
         Assert.Contains(
@@ -241,7 +240,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void OrderByTopOffsetHiddenKeySample_WhenCheckedIn_ShouldPruneHiddenOrderKeyFromFinalRows()
     {
-        var sample = ReadSamples().Single(static item => item.FileName == OrderByTopOffsetHiddenKeySampleFileName).Content;
+        var sample = ReadSample(OrderByTopOffsetHiddenKeySampleFileName).Content;
         var normalizedSample = sample.Replace("\r\n", "\n", StringComparison.Ordinal);
 
         Assert.Contains("GeneratedRecord [ResultRow0WithSortKeys]", sample);
@@ -261,7 +260,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CompilationPipelineSamples_WhenCheckedIn_ShouldExposeSimpleAndComplexCompileShapes()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, static sample => sample.Content);
+        var samples = ReadNamedSamples(CompilationSimpleSelectSampleFileName, CompilationComplexGroupedSortSampleFileName)
+            .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
         var simple = samples[CompilationSimpleSelectSampleFileName];
         var complex = samples[CompilationComplexGroupedSortSampleFileName];
 
@@ -301,7 +301,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void GroupBySkipTakeSample_WhenCheckedIn_ShouldFinalizeDirectlyIntoSlicedResult()
     {
-        var sample = ReadSamples().Single(static item => item.FileName == GroupBySkipTakeSampleFileName).Content;
+        var sample = ReadSample(GroupBySkipTakeSampleFileName).Content;
 
         Assert.Contains("SliceShapeRows [result -> resultSliced, skip 1, take 3]", sample);
         Assert.Contains("var resultSlicedRows = result.Skip(1).Take(3);", sample);

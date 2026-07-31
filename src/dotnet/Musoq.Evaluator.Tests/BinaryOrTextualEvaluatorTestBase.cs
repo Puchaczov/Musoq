@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Converter;
+using Musoq.Converter.Exceptions;
+using Musoq.Evaluator;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -18,6 +20,55 @@ public abstract class BinaryOrTextualEvaluatorTestBase
     protected static readonly ILoggerResolver LoggerResolver = new TestsLoggerResolver();
 
     protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
+
+    private readonly object _batchedQueryGate = new();
+    private readonly List<CompiledQuery> _batchedQueries = [];
+
+    [Microsoft.VisualStudio.TestTools.UnitTesting.TestCleanup]
+    public void DisposeBatchedCompiledQueries()
+    {
+        CompiledQuery[] queries;
+        lock (_batchedQueryGate)
+        {
+            queries = _batchedQueries.ToArray();
+            _batchedQueries.Clear();
+        }
+
+        foreach (var query in queries)
+            query.Dispose();
+    }
+
+    protected CompiledQuery CompileGeneratedQuery(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions compilationOptions)
+    {
+        _ = assemblyName;
+        var result = StableTypedExecutionCompilationCoordinator.Submit(
+            script,
+            schemaProvider,
+            loggerResolver,
+            compilationOptions,
+            consumerFamily: "stable-interpretation-specification",
+            batchOrigin: "binary-textual-specification");
+
+        if (!result.Result.Succeeded)
+        {
+            throw result.Result.CaughtException != null
+                ? new MusoqQueryException(result.Result.ToEnvelopes(), result.Result.CaughtException)
+                : new MusoqQueryException(result.Result.ToEnvelopes());
+        }
+
+        if (result.WasBatched)
+        {
+            lock (_batchedQueryGate)
+                _batchedQueries.Add(result.Result.CompiledQuery);
+        }
+
+        return result.Result.CompiledQuery;
+    }
 
     #region Test Entities and Schema Infrastructure
 

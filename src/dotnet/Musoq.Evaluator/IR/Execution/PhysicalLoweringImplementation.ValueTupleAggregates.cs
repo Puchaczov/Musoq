@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Musoq.Evaluator.IR;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -43,9 +44,11 @@ internal sealed partial class PhysicalLoweringImplementation
                 aggregateSource.Source.Shapes,
                 aggregateSource.Source.Setup,
                 body => CreateSourceLoop(sourceShape, aggregateSource.Source.Rows, aggregateSource.Source.Variable, body));
-            var distinctKey = new ExecutionValueTupleKey(
-                groupKeys,
-                CreateValueTupleType(groupKeys.Select(static key => key.ReturnType.ResolveClrType()).ToArray()));
+            var groupKeyTypes = groupKeys.Select(static key => key.ReturnType.ResolveClrType()).ToArray();
+            if (!ValueTupleTypeShape.TryCreate(groupKeyTypes, out var groupKeyType))
+                return TableBuildResult.Unsupported("Execution IR value-tuple aggregate lowering could not construct a typed group key.");
+
+            var distinctKey = new ExecutionValueTupleKey(groupKeys, groupKeyType);
 
             return BuildLeanDistinctTable(
                 pipeline.Project.Fields,

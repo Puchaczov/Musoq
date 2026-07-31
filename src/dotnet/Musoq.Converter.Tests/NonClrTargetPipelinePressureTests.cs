@@ -414,8 +414,8 @@ public sealed class NonClrTargetPipelinePressureTests
         var pluginImport = result.Package.HostAbiInventory.Imports.First(import =>
             import.Kind == TargetHostAbiImportKind.PluginInvocation &&
             import.Attributes["methodName"] == nameof(LibraryBase.ToUpper));
-        Assert.AreEqual("plugin-invocation-v1", pluginImport.Contract);
-        Assert.AreEqual(1, pluginImport.ContractVersion);
+        Assert.AreEqual("plugin-invocation-v2", pluginImport.Contract);
+        Assert.AreEqual(2, pluginImport.ContractVersion);
         var pluginDetails = Assert.IsInstanceOfType<TargetPluginInvocationAbiDetails>(pluginImport.Details);
         Assert.AreEqual(nameof(LibraryBase.ToUpper), pluginDetails.MethodName);
         Assert.AreEqual(ExecutionPortableSymbolPortability.HostImport, pluginDetails.CallablePortability);
@@ -627,6 +627,8 @@ public sealed class NonClrTargetPipelinePressureTests
         return new TargetRenderRequest
         {
             TargetId = TestExecutionTargetIds.TestOnlyNonClr,
+            Purpose = TargetRenderPurpose.Execution,
+            Profile = TargetRenderProfile.ExecutionFast,
             Identity = new TargetRenderIdentity("FakeNonClr"),
             Options = TargetRenderOptions.Empty,
             ScriptBinding = TargetScriptBindingContract.Empty,

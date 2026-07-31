@@ -45,7 +45,6 @@ public sealed partial class ExecutionShapeResolver
             context.ExpandedSchemas.Remove(schemaKey);
         }
     }
-
     private static List<ColumnSchema> CreateInlineBinaryColumns(
         InlineSchemaTypeNode inlineSchema,
         Type? generatedType,
@@ -56,7 +55,6 @@ public sealed partial class ExecutionShapeResolver
             generatedType,
             context with { GenericBindings = BinarySchemaGenericResolver.CreateEmptyBindings() });
     }
-
     private static List<ColumnSchema> CreateBinaryColumnsFromFields(
         IEnumerable<SchemaFieldNode> fields,
         Type? generatedType,
@@ -82,7 +80,11 @@ public sealed partial class ExecutionShapeResolver
                 fieldType = typeof(Nullable<>).MakeGenericType(fieldType);
             }
 
-            var column = new ColumnSchema(field.Name, fieldType, topLevelIndex);
+            var intendedTypeName = InterpretationPropertyTypeNameResolver.ResolveFieldTypeName(
+                field,
+                context.GenericBindings,
+                context.SchemaRegistry);
+            var column = new ColumnSchema(field.Name, fieldType, topLevelIndex, intendedTypeName);
             columns.Add(column);
             AddNestedBinaryColumns(field, columns, column, context);
             topLevelIndex++;
@@ -90,7 +92,6 @@ public sealed partial class ExecutionShapeResolver
 
         return columns;
     }
-
     private static Type ResolveBinaryFieldType(
         SchemaFieldNode field,
         Type? generatedType,
@@ -129,7 +130,6 @@ public sealed partial class ExecutionShapeResolver
         var fieldType = field.ReturnType;
         return fieldType == null || fieldType == typeof(void) ? typeof(object) : fieldType;
     }
-
     private static Type ResolveSchemaReferenceFieldType(
         SchemaReferenceTypeNode reference,
         BinaryColumnResolutionContext context)

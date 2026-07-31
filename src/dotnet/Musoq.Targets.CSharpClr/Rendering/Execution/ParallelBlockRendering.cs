@@ -298,22 +298,30 @@ public sealed partial class ExecutionCSharpRenderer
             0);
     }
 
-    private static string CreateParallelTaskBuildFunctionName(ExecutionParallelBlock parallel, int taskIndex)
+    private string CreateParallelTaskBuildFunctionName(ExecutionParallelBlock parallel, int taskIndex)
     {
-        return CreateIdentifierCandidate(
+        return AddGeneratedMemberSuffix(CreateIdentifierCandidate(
             $"Build{CreatePascalIdentifier(parallel.Name)}Task{taskIndex.ToString(CultureInfo.InvariantCulture)}",
-            0);
+            0));
     }
 
-    private static string CreateParallelRunnerTypeName(ExecutionParallelBlock parallel)
+    private string CreateParallelRunnerTypeName(ExecutionParallelBlock parallel)
     {
-        return CreateIdentifierCandidate($"{CreatePascalIdentifier(parallel.Name)}Runner", 0);
+        return AddGeneratedMemberSuffix(
+            CreateIdentifierCandidate($"{CreatePascalIdentifier(parallel.Name)}Runner", 0));
     }
 
-    private static string CreateParallelRunnerVariableName(ExecutionParallelBlock parallel)
+    private string CreateParallelRunnerVariableName(ExecutionParallelBlock parallel)
     {
         var typeName = CreateParallelRunnerTypeName(parallel);
         return char.ToLowerInvariant(typeName[0]) + typeName[1..];
+    }
+
+    private string AddGeneratedMemberSuffix(string memberName)
+    {
+        return string.IsNullOrEmpty(_renderOptions.GeneratedMemberSuffix)
+            ? memberName
+            : memberName + _renderOptions.GeneratedMemberSuffix;
     }
 
     private static string CreateParallelTaskResultPropertyName(int taskIndex)

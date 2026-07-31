@@ -4,6 +4,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Musoq.Converter;
 using Musoq.Converter.Build;
+using Musoq.Converter.Exceptions;
+using Musoq.Evaluator;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Plugins;
 using Musoq.Schema;
@@ -21,6 +23,23 @@ public class GenericEntityTestBase
     }
 
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
+
+    private readonly object _batchedQueryGate = new();
+    private readonly List<CompiledQuery> _batchedQueries = [];
+
+    [TestCleanup]
+    public void DisposeBatchedCompiledQueries()
+    {
+        CompiledQuery[] queries;
+        lock (_batchedQueryGate)
+        {
+            queries = _batchedQueries.ToArray();
+            _batchedQueries.Clear();
+        }
+
+        foreach (var query in queries)
+            query.Dispose();
+    }
 
     protected static T RequireParameter<T>(object?[] parameters, int index)
     {
@@ -157,15 +176,29 @@ public class GenericEntityTestBase
     {
         _ = SourceRuntimeSettingsBySourceContextId;
 
-        return InstanceCreator.CompileForExecution(
+        var result = StableTypedExecutionCompilationCoordinator.Submit(
             script,
-            Guid.NewGuid().ToString(),
             new GenericSchemaProvider(new Dictionary<string, ISchema>
             {
                 { "#schema", schema }
             }),
             LoggerResolver,
             TestCompilationOptions);
+
+        if (!result.Result.Succeeded)
+        {
+            throw result.Result.CaughtException != null
+                ? new MusoqQueryException(result.Result.ToEnvelopes(), result.Result.CaughtException)
+                : new MusoqQueryException(result.Result.ToEnvelopes());
+        }
+
+        if (result.WasBatched)
+        {
+            lock (_batchedQueryGate)
+                _batchedQueries.Add(result.Result.CompiledQuery);
+        }
+
+        return result.Result.CompiledQuery;
     }
 
     private BuildItems CreateBuildItems(string script, ISchema schema)

@@ -1,4 +1,5 @@
 using Musoq.Converter;
+using Musoq.Evaluator.Runtime;
 using Musoq.Targets.CSharpClr;
 using Musoq.Targets.Execution.Analysis;
 
@@ -6,16 +7,19 @@ namespace Musoq.Converter.Build;
 
 internal static class CSharpClrTargetComposition
 {
+    private static readonly EvaluatorRuntimeEnvironment RuntimeEnvironment = new();
+
     public static ExecutionTargetDescriptor CreateDescriptor()
     {
         return ExecutionTargetDescriptor.Create(
             ExecutionTargetIds.CSharpClr,
-            renderPhase: new CSharpClrExecutionBackend(),
+            renderPhase: new CSharpClrExecutionBackend(RuntimeEnvironment),
             finalizationPhase: new CSharpClrRenderedQueryFinalizer(),
             activationPhase: new ClrAssemblyExecutableActivator(),
             inspectionPhase: new CSharpRenderedQueryInspector(),
             createRenderInputs: CreateRenderInputs,
-            createFinalizationOptions: static context => new CSharpClrFinalizationOptions(context.EmitPdb),
+            createFinalizationOptions: static context =>
+                new CSharpClrFinalizationOptions(context.EmitPdb, context.Purpose),
             createRenderBuildContribution: CreateRenderBuildContribution,
             createArtifactPackage: CreateArtifactPackage);
     }
@@ -27,6 +31,7 @@ internal static class CSharpClrTargetComposition
         return new CSharpClrRenderInputs
         {
             CompilationOptions = context.CompilationOptions,
+            RenderProfile = context.Profile,
             ExecutionBindings = new CSharpClrExecutionBindingContext(),
             AssemblyName = compilerState.CompilationUnitName,
             NamespaceName = SanitizeNameForNamespace(compilerState.CompilationUnitName),
@@ -67,8 +72,7 @@ internal static class CSharpClrTargetComposition
 
         return new RenderedArtifactBuildContribution(
             CSharpClrArtifactCompatibility.GetQueryMethodRenderMetadata(artifact),
-            optimizationTrace,
-            CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(artifact));
+            optimizationTrace);
     }
 
     private static TargetArtifactPackage CreateArtifactPackage(TargetArtifactPackagingContext context)

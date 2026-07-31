@@ -367,16 +367,23 @@ public sealed partial class ExecutionCSharpRenderer
             .WithArgumentList(CreateArgumentList(value)));
     }
 
-    private ObjectCreationExpressionSyntax CreateFinalShapeCreationFromSetRow(
+    private ExpressionSyntax CreateFinalShapeCreationFromSetRow(
         string rowVariableName,
         ExecutionVariable source,
         ExecutionRenderContext context)
     {
-        if (!TryGetTypedRowBufferShape(source.Name, context, out var sourceShape))
-            return CreateFinalShapeCreationFromRow(rowVariableName, context);
-
         var sink = context.Session.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
+        if (sink.UsesGeneratedRowCarrier &&
+            TryGetTypedRowBufferShape(source.Name, context, out var sourceShape) &&
+            string.Equals(sourceShape.TypeName, sink.ShapeTypeName, StringComparison.Ordinal))
+        {
+            return SyntaxFactory.IdentifierName(rowVariableName);
+        }
+
+        if (!TryGetTypedRowBufferShape(source.Name, context, out sourceShape))
+            return CreateFinalShapeCreationFromRow(rowVariableName, context);
+
         var arguments = sink.Fields
             .Select((field, index) => SyntaxFactory.Argument(
                 CreateTypedSetFieldRead(rowVariableName, index, field.Type.RequireClrType(), sourceShape)))

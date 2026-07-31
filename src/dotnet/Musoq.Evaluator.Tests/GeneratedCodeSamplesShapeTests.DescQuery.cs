@@ -38,7 +38,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void DescQuerySample_WhenCheckedIn_ShouldReturnStaticQueryDescription()
     {
-        var sample = ReadSamples().Single(static item => item.FileName == DescQuerySampleFileName);
+        var sample = ReadSample(DescQuerySampleFileName);
 
         Assert.Contains("desc query (select Name as PersonName, Population + Money as Total from #A.entities())", sample.Content);
         Assert.Contains("DescQuery", sample.Content);

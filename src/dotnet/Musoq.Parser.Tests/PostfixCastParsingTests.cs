@@ -21,6 +21,69 @@ public class PostfixCastParsingTests
     }
 
     [TestMethod]
+    public void PostfixCast_OnMethodCall_ShouldCreateCastNodeAndPreserveSource()
+    {
+        var query = ParseSingleQuery("select SomeMethod(A, B)::int from schema.method()");
+
+        var cast = AssertExpression<CastNode>(query, 0);
+
+        Assert.AreEqual("int", cast.TargetTypeName);
+        Assert.IsInstanceOfType<AccessMethodNode>(cast.Expression);
+        Assert.AreEqual("SomeMethod(A, B)::int", cast.ToString());
+    }
+
+    [TestMethod]
+    public void PostfixCast_OnQualifiedMethodCall_ShouldPreserveQualifier()
+    {
+        var query = ParseSingleQuery("select entity.SomeMethod()::Int32 from schema.method() entity");
+
+        var cast = AssertExpression<CastNode>(query, 0);
+        var method = Assert.IsInstanceOfType<AccessMethodNode>(cast.Expression);
+
+        Assert.AreEqual("entity", method.Alias);
+        Assert.AreEqual("entity.SomeMethod()::Int32", cast.ToString());
+    }
+
+    [TestMethod]
+    public void PostfixCast_OnWindowMethodCall_ShouldWrapWindowFunction()
+    {
+        var query = ParseSingleQuery(
+            "select RowNumber() over (order by A)::int from schema.method()");
+
+        var cast = AssertExpression<CastNode>(query, 0);
+
+        Assert.IsInstanceOfType<WindowFunctionNode>(cast.Expression);
+        Assert.AreEqual("int", cast.TargetTypeName);
+    }
+
+    [TestMethod]
+    public void PostfixCast_OnMethodCallChain_ShouldParseLeftToRight()
+    {
+        var query = ParseSingleQuery("select SomeMethod()::string::Int32 from schema.method()");
+
+        var outer = AssertExpression<CastNode>(query, 0);
+        var inner = Assert.IsInstanceOfType<CastNode>(outer.Expression);
+
+        Assert.AreEqual("Int32", outer.TargetTypeName);
+        Assert.AreEqual("string", inner.TargetTypeName);
+        Assert.AreEqual("SomeMethod()::string::Int32", outer.ToString());
+    }
+
+    [TestMethod]
+    [DataRow("int")]
+    [DataRow("float")]
+    [DataRow("string")]
+    public void PostfixCast_CSharpAlias_ShouldPreserveRawTargetName(string targetTypeName)
+    {
+        var query = ParseSingleQuery($"select Population::{targetTypeName} from schema.method()");
+
+        var cast = AssertExpression<CastNode>(query, 0);
+
+        Assert.AreEqual(targetTypeName, cast.TargetTypeName);
+        Assert.AreEqual($"Population::{targetTypeName}", cast.ToString());
+    }
+
+    [TestMethod]
     public void PostfixCast_NestedCasts_ShouldParseLeftToRight()
     {
         var query = ParseSingleQuery("select Name::String::Int32 from schema.method()");

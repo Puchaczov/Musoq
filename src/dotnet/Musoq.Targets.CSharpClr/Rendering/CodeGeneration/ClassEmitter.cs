@@ -11,6 +11,7 @@ using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
 using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
+using Musoq.Targets.Execution;
 using Musoq.Schema;
 using Musoq.Schema.Optimization;
 
@@ -263,12 +264,41 @@ public static class ClassEmitter
     /// </summary>
     public static SyntaxTree CreateSyntaxTreeDirect(CompilationUnitSyntax compilationUnit)
     {
-        var cleaned = new RedundantParenthesisRewriter().Visit(compilationUnit);
-        var source = GeneratedCSharpCodeFormatter.Normalize(cleaned.NormalizeWhitespace().ToFullString());
+        return CreateSyntaxTreeDirect(compilationUnit, TargetRenderProfile.StableArtifact);
+    }
 
-        return SyntaxFactory.ParseSyntaxTree(
-            source,
-            new CSharpParseOptions(LanguageVersion.CSharp11));
+    internal static SyntaxTree CreateSyntaxTreeDirect(
+        CompilationUnitSyntax compilationUnit,
+        TargetRenderProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(compilationUnit);
+        if (profile == TargetRenderProfile.ExecutionFast)
+        {
+            using (TargetRenderTelemetry.BeginPhase("render.syntax-tree-direct"))
+            {
+                // The generated tree contains a few contextual syntax nodes
+                // (for example `var` and `ref var`) created by SyntaxFactory.
+                // Re-parsing normalized text restores the parser's
+                // contextual-keyword classification. We deliberately omit
+                // the workspace formatter and redundant-parenthesis pass.
+                return CSharpSyntaxTree.ParseText(
+                    compilationUnit.NormalizeWhitespace().ToFullString(),
+                    new CSharpParseOptions(LanguageVersion.CSharp11));
+            }
+        }
+
+        CompilationUnitSyntax cleaned;
+        using (TargetRenderTelemetry.BeginPhase("render.syntax-cleanup"))
+            cleaned = (CompilationUnitSyntax)new RedundantParenthesisRewriter().Visit(compilationUnit)!;
+
+        string source;
+        using (TargetRenderTelemetry.BeginPhase("render.formatting"))
+            source = GeneratedCSharpCodeFormatter.Normalize(cleaned.NormalizeWhitespace().ToFullString());
+
+        using (TargetRenderTelemetry.BeginPhase("render.reparse"))
+            return SyntaxFactory.ParseSyntaxTree(
+                source,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
     }
 
     /// <summary>
@@ -349,6 +379,7 @@ public static class ClassEmitter
     public static void AddProfiledTableViaRowsRunnableMembers(
         IList<SyntaxNode> members,
         string rowsMethodName,
+        string profiledRowsMethodName,
         TableViaRowsResultInfo resultInfo,
         IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions = null,
         bool forceTableResultMaterialization = false,
@@ -362,7 +393,7 @@ public static class ClassEmitter
             CreateTableViaRowsRunBody(
                 rowsMethodName,
                 resultInfo,
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression),
+                null,
                 forceTableResultMaterialization,
                 useContext: false));
         AddRunnableMembersCore(members, method, parameterDefinitions);
@@ -371,11 +402,14 @@ public static class ClassEmitter
                 CreateTableViaRowsRunBody(
                     rowsMethodName,
                     resultInfo,
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression),
+                    null,
                     forceTableResultMaterialization,
                     useContext: true)));
 
-        members.Add(CreateProfiledTableViaRowsRunMethod(rowsMethodName, resultInfo, forceTableResultMaterialization));
+        members.Add(CreateProfiledTableViaRowsRunMethod(
+            profiledRowsMethodName,
+            resultInfo,
+            forceTableResultMaterialization));
     }
 
     private static MethodDeclarationSyntax CreateProfiledTableViaRowsRunMethod(

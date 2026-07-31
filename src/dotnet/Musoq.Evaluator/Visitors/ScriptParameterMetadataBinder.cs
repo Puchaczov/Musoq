@@ -22,6 +22,8 @@ internal sealed class ScriptParameterMetadataBinder(
 
     public IReadOnlyList<ScriptParameterDefinition> Definitions => _definitions.ToArray();
 
+    internal IReadOnlyList<ScriptParameterDefinition> DefinitionsForSnapshot => _definitions;
+
     public IReadOnlyDictionary<string, ScriptParameterDefinition> DefinitionsByName => _definitionsByName;
 
     public bool TryBeginParameterBlock(ParameterBlockNode node, bool hasSeenNonParameterStatement)

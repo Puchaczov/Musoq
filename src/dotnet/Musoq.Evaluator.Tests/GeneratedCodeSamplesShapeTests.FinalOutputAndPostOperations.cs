@@ -10,13 +10,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void FinalOutputSamples_WhenCheckedIn_ShouldEmitPlainSelectShapes()
     {
-        var samples = ReadSamples()
-            .Where(static sample => sample.FileName is
-                "Q01_SimpleSelectWhere.cs" or
-                InnerJoinSampleFileName or
-                GroupBySingleSampleFileName or
-                MultipleWindowsSampleFileName)
-            .ToArray();
+        var samples = ReadNamedSamples(
+            "Q01_SimpleSelectWhere.cs",
+            InnerJoinSampleFileName,
+            GroupBySingleSampleFileName,
+            MultipleWindowsSampleFileName);
 
         Assert.HasCount(4, samples);
 
@@ -40,7 +38,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var sourceNamePattern = new Regex(
             @"var\s+[A-Za-z_][A-Za-z0-9_]*\s*=\s*new Table\([A-Za-z_][A-Za-z0-9_]*\.Name,\s*__columns_",
             RegexOptions.Compiled);
-        var offenders = ReadSamples()
+        var offenders = ReadAllSamples()
             .Where(sample => sourceNamePattern.IsMatch(sample.Content))
             .Select(static sample => sample.FileName)
             .ToArray();
@@ -53,13 +51,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SimpleFinalOutputSamples_WhenCheckedIn_ShouldNotRetainSourceContexts()
     {
-        var samples = ReadSamples()
-            .Where(static sample => sample.FileName is
-                "Q01_SimpleSelectWhere.cs" or
-                InnerJoinSampleFileName or
-                "Q08_Distinct.cs" or
-                "Q60_BinaryBitsRepeatUntilInterpret.cs")
-            .ToArray();
+        var samples = ReadNamedSamples(
+            "Q01_SimpleSelectWhere.cs",
+            InnerJoinSampleFileName,
+            "Q08_Distinct.cs",
+            "Q60_BinaryBitsRepeatUntilInterpret.cs");
 
         Assert.HasCount(4, samples);
 
@@ -77,8 +73,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CteJoinFrameQualifySample_WhenCheckedIn_ShouldNotRetainUnusedIntermediateContexts()
     {
-        var sample = ReadSamples()
-            .Single(static item => item.FileName == CteJoinFrameQualifySampleFileName)
+        var sample = ReadSample(CteJoinFrameQualifySampleFileName)
             .Content;
 
         Assert.DoesNotContain("__leftContext", sample, CteJoinFrameQualifySampleFileName);

@@ -29,7 +29,16 @@ public sealed partial class ExecutionShapeResolver
                 _ => typeof(string)
             };
 
-            columns.Add(new ColumnSchema(field.Name, columnType, columns.Count));
+            var intendedTypeName = field switch
+            {
+                { FieldType: TextFieldType.Pattern, CaptureGroups.Length: > 0 } =>
+                    $"Musoq.Generated.Interpreters.{text.Name}.CaptureResult_{field.Name}",
+                { FieldType: TextFieldType.Repeat } =>
+                    $"Musoq.Generated.Interpreters.{field.PrimaryValue ?? "object"}[]",
+                _ => null
+            };
+
+            columns.Add(new ColumnSchema(field.Name, columnType, columns.Count, intendedTypeName));
         }
 
         return columns;

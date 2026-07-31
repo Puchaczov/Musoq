@@ -587,16 +587,21 @@ select Name::String::Guid from A.entities()
 
 The cast operator has high postfix precedence. `a + b::Int32` is parsed as `a + (b::Int32)`, while `(a + b)::Int32` casts the parenthesized expression.
 
-Supported cast targets are CLR type names only, matched case-insensitively:
+Supported cast targets include CLR type names, matched case-insensitively:
 
 `Boolean`, `Byte`, `SByte`, `Int16`, `UInt16`, `Int32`, `UInt32`, `Int64`, `UInt64`, `Single`, `Double`, `Decimal`, `Char`, `String`, `DateTime`, `DateTimeOffset`, `TimeSpan`, `Guid`.
 
-SQL type aliases such as `INTEGER`, `VARCHAR`, and `DOUBLE PRECISION` are not supported. A cast target MUST be an identifier-like type name after `::`; a bare cast operator, a missing target, and a numeric target are syntax errors.
+C# primitive aliases are also supported and map to the corresponding CLR target:
+
+`bool` → `Boolean`, `byte` → `Byte`, `sbyte` → `SByte`, `short` → `Int16`, `ushort` → `UInt16`, `int` → `Int32`, `uint` → `UInt32`, `long` → `Int64`, `ulong` → `UInt64`, `float` → `Single`, `double` → `Double`, `decimal` → `Decimal`, `char` → `Char`, `string` → `String`.
+
+SQL type aliases such as `INTEGER`, `VARCHAR`, and `DOUBLE PRECISION` are not supported. `object`, `nint`, `nuint`, nullable suffixes, and other type names are not supported. A cast target MUST be an identifier-like type name after `::`; a bare cast operator, a missing target, and a numeric target are syntax errors.
 
 Strict cast behavior:
 - `null` input returns `null`.
 - Invalid text, overflow, and unsupported conversions throw.
 - Numeric, date/time, duration, and GUID parsing uses invariant-culture runtime conversion.
+- `::String` and `::string` convert non-null values with invariant-culture `ToString` behavior.
 
 The public `ToXxx(...)` helper functions remain available as library functions and keep their established behavior. They are not equivalent to strict postfix casts when a helper has softer conversion semantics, such as returning `null` for invalid text.
 
@@ -4663,7 +4668,7 @@ When an `object`-typed column is compared to a numeric literal, runtime conversi
 | Non-aggregated column in SELECT | Column not in GROUP BY and not aggregated | `NonAggregatedColumnInSelectException` |
 | Unknown column or alias | A referenced source column or eligible SELECT alias cannot be resolved | `UnknownColumnOrAliasException` |
 | GROUP BY ordinal out of range (MQ3024) | `GROUP BY 0` or an ordinal greater than the final SELECT-list width | `GroupByIndexOutOfRangeException` |
-| Unsupported strict cast target (MQ2030) | `expr::TypeName` uses a type name outside the supported CLR-name set | `UnsupportedSyntaxException` |
+| Unsupported strict cast target (MQ2030) | `expr::TypeName` uses a type name outside the supported CLR-name or C# alias set | `UnsupportedSyntaxException` |
 | Duplicate alias in join | Using the same alias for two tables | `AliasAlreadyUsedException` |
 | Division by zero (literal) | `10 / 0` with literal zero | `CompilationException` |
 | Modulo by zero (literal) | `10 % 0` with literal zero | `CompilationException` |
@@ -5344,7 +5349,8 @@ select City as c, Count(*) from A.entities() group by c
 ```
 
 Quick rules:
-- `expr::TypeName` performs a strict cast to a supported CLR type name.
+- `expr::TypeName` performs a strict cast to a supported CLR type name or C# primitive alias; aliases map to canonical CLR targets.
+- `expr::string` formats non-null values with invariant culture and preserves null as null.
 - Bare double-colon grouping references and bare cast targets are invalid syntax.
 - Direct positive integer literals in `GROUP BY` are SELECT-list ordinals.
 - `GROUP BY ALL` infers every non-aggregate, non-window SELECT expression after projection expansion.

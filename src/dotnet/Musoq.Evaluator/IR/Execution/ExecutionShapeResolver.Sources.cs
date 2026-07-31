@@ -42,9 +42,18 @@ public sealed partial class ExecutionShapeResolver
         ArgumentNullException.ThrowIfNull(interpret);
         var entityType = ResolveInterpretEntityType(interpret);
         var columns = ResolveInterpretColumns(interpret);
-
-        if (entityType == typeof(object) && HasGeneratedInterpreterTypeName(interpret.SchemaName))
-            return CreateClrMemberSourceShape(interpret.Alias, columns);
+        if (HasGeneratedInterpreterTypeName(interpret.SchemaName))
+        {
+            _schemaRegistry!.TryGetSchema(interpret.SchemaName, out var registration);
+            return CreateClrMemberSourceShape(
+                interpret.Alias,
+                columns,
+                registration?.GeneratedTypeName,
+                column => InterpretationPropertyTypeNameResolver.ResolvePropertyTypeName(
+                    interpret.SchemaName,
+                    column,
+                    _schemaRegistry));
+        }
 
         return CreateSourceShape(interpret.Alias, entityType, columns);
     }
@@ -53,7 +62,22 @@ public sealed partial class ExecutionShapeResolver
     {
         ArgumentNullException.ThrowIfNull(property);
         if (InterpretationPropertyTypeNameResolver.HasGeneratedEnumerableElementType(property, _schemaRegistry))
-            return CreateClrMemberSourceShape(property.Alias, property.OutputSchema.Columns);
+        {
+            var generatedTypeName = InterpretationPropertyTypeNameResolver.ResolveEnumerableTypeName(
+                property,
+                _schemaRegistry);
+            if (generatedTypeName?.EndsWith("[]", StringComparison.Ordinal) == true)
+                generatedTypeName = generatedTypeName[..^2];
+
+            return CreateClrMemberSourceShape(
+                property.Alias,
+                property.OutputSchema.Columns,
+                generatedTypeName,
+                column => InterpretationPropertyTypeNameResolver.ResolvePropertyTypeNameFromGeneratedType(
+                    generatedTypeName!,
+                    column,
+                    _schemaRegistry));
+        }
 
         return ResolveEnumerableSourceShape(property.Alias, property.ResultType, property.OutputSchema.Columns);
     }

@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Tables;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -19,13 +20,18 @@ public sealed partial class ExecutionCSharpRenderer
             return SyntaxFactory.ParseExpression(CreateNestedPropertyReadExpressionText(fieldRead, nestedProperty));
 
         if (fieldRead.AccessStrategy is GeneratedRowNestedAccess generatedNested)
-            return RenderGeneratedRowNestedFieldRead(fieldRead, generatedNested);
+            return RenderGeneratedRowNestedFieldRead(fieldRead, generatedNested, context);
 
-        if (fieldRead.AccessStrategy is NestedPositionalAccess nestedPositional)
-            return RenderNestedPositionalFieldRead(fieldRead, nestedPositional);
+        if (fieldRead.AccessStrategy is GeneratedDictionaryNestedAccess generatedDictionary)
+            return RenderGeneratedDictionaryNestedFieldRead(fieldRead, generatedDictionary);
 
-        if (fieldRead.AccessStrategy is ReflectedMemberAccess reflectedMember)
-            return RenderReflectedMemberFieldRead(fieldRead, reflectedMember, context);
+        if (fieldRead.AccessStrategy is NestedPositionalAccess)
+            throw new InvalidOperationException(
+                "Generated execution cannot render nested positional access without a typed row carrier.");
+
+        if (fieldRead.AccessStrategy is ReflectedMemberAccess)
+            throw new InvalidOperationException(
+                "Generated execution encountered a reflected member access after source policy validation.");
 
         if (fieldRead.AccessStrategy is ContextAccess contextAccess)
             return RenderContextFieldRead(fieldRead, contextAccess, context);
@@ -62,81 +68,119 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateIdentifierName(fieldRead.Alias);
     }
 
-    private static ExpressionSyntax RenderNestedPositionalFieldRead(
+    private ExpressionSyntax RenderGeneratedRowNestedFieldRead(
         ExecutionFieldRead fieldRead,
-        NestedPositionalAccess nestedPositional)
-    {
-        if (string.IsNullOrWhiteSpace(fieldRead.Alias))
-            throw new InvalidOperationException("Nested positional field reads require a source alias.");
-
-        var sourceValue = CreateElementAccess(
-            CreateIdentifierName(fieldRead.Alias),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(nestedPositional.Index)));
-        var value = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetNestedValue))))
-            .WithArgumentList(CreateArgumentList(
-                sourceValue,
-                CreateStringLiteral(nestedPositional.PropertyPath)));
-
-        if (fieldRead.ReturnType.RequireClrType() == typeof(object))
-            return value;
-
-        return SyntaxFactory.CastExpression(CreateTypeSyntax(fieldRead.ReturnType), value);
-    }
-
-    private static ExpressionSyntax RenderGeneratedRowNestedFieldRead(
-        ExecutionFieldRead fieldRead,
-        GeneratedRowNestedAccess generatedNested)
+        GeneratedRowNestedAccess generatedNested,
+        ExecutionRenderContext context)
     {
         if (string.IsNullOrWhiteSpace(fieldRead.Alias))
             throw new InvalidOperationException("Generated row nested field reads require a source alias.");
 
-        var typedRow = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
-            SyntaxFactory.IdentifierName(generatedNested.TypeName),
-            CreateIdentifierName(fieldRead.Alias)));
-        var sourceValue = SyntaxFactory.MemberAccessExpression(
-            SyntaxKind.SimpleMemberAccessExpression,
-            typedRow,
-            CreateIdentifierName(generatedNested.FieldName));
-        var value = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetNestedValue))))
-            .WithArgumentList(CreateArgumentList(
-                sourceValue,
-                CreateStringLiteral(generatedNested.PropertyPath)));
+        ExpressionSyntax typedRow;
+        if (generatedNested.ContextIndex is { } contextIndex)
+        {
+            var contextValue = TryCreateGeneratedRowContextStorageRead(
+                fieldRead.Alias,
+                new ContextAccess(contextIndex),
+                context,
+                out var generatedContextValue)
+                ? generatedContextValue
+                : CreateContextArrayElementRead(fieldRead.Alias, contextIndex);
+            typedRow = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
+                SyntaxFactory.ParseTypeName(generatedNested.TypeName),
+                contextValue));
+        }
+        else
+        {
+            var sourceIsKnownGeneratedRow =
+                context.Session.GeneratedRowVariableTypeNamesByName.TryGetValue(
+                    fieldRead.Alias,
+                    out var generatedRowTypeNames) &&
+                generatedRowTypeNames.Contains(generatedNested.TypeName);
+            typedRow = string.IsNullOrWhiteSpace(generatedNested.TypeName) ||
+                       generatedNested.IsRowCarrier ||
+                       sourceIsKnownGeneratedRow
+                ? CreateIdentifierName(fieldRead.Alias)
+                : SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
+                    SyntaxFactory.ParseTypeName(generatedNested.TypeName),
+                    CreateIdentifierName(fieldRead.Alias)));
+        }
 
-        if (fieldRead.ReturnType.RequireClrType() == typeof(object))
+        ExpressionSyntax sourceValue = generatedNested.FieldIndex is { } fieldIndex
+            ? CreateElementAccess(
+                typedRow,
+                SyntaxFactory.LiteralExpression(
+                    SyntaxKind.NumericLiteralExpression,
+                    SyntaxFactory.Literal(fieldIndex)))
+            : string.IsNullOrWhiteSpace(generatedNested.TypeName)
+                ? SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    typedRow,
+                    CreateIdentifierName(generatedNested.FieldName))
+                : SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                typedRow,
+                CreateIdentifierName(generatedNested.FieldName));
+
+        if (!string.IsNullOrWhiteSpace(generatedNested.ValueTypeName))
+        {
+            sourceValue = SyntaxFactory.ParenthesizedExpression(
+                SyntaxFactory.CastExpression(
+                    SyntaxFactory.ParseTypeName(generatedNested.ValueTypeName),
+                    sourceValue));
+        }
+
+        var separator = generatedNested.PropertyPath.StartsWith("[", StringComparison.Ordinal) ||
+                         generatedNested.PropertyPath.StartsWith(".", StringComparison.Ordinal)
+            ? string.Empty
+            : ".";
+        var value = SyntaxFactory.ParseExpression(
+            $"{sourceValue}{separator}{generatedNested.PropertyPath}");
+
+        if (generatedNested.IsRowCarrier ||
+            !string.IsNullOrWhiteSpace(generatedNested.ValueTypeName) ||
+            !string.IsNullOrWhiteSpace(fieldRead.GeneratedTypeName) ||
+            fieldRead.ReturnType.RequireClrType() == typeof(object))
             return value;
 
         return SyntaxFactory.CastExpression(CreateTypeSyntax(fieldRead.ReturnType), value);
     }
 
-    private ExpressionSyntax RenderReflectedMemberFieldRead(
+    private static ExpressionSyntax RenderGeneratedDictionaryNestedFieldRead(
         ExecutionFieldRead fieldRead,
-        ReflectedMemberAccess reflectedMember,
-        ExecutionRenderContext context)
+        GeneratedDictionaryNestedAccess generatedDictionary)
     {
         if (string.IsNullOrWhiteSpace(fieldRead.Alias))
-            throw new InvalidOperationException("Reflected member field reads require a source alias.");
+            throw new InvalidOperationException("Generated dictionary nested field reads require a source alias.");
 
-        var value = context.Session.ReflectedMemberAccessorNames.TryGetValue(
-            CreateReflectedMemberAccessorKey(fieldRead.Alias, reflectedMember.PropertyPath),
-            out var accessorName)
-            ? SyntaxFactory.InvocationExpression(CreateIdentifierName(accessorName))
-                .WithArgumentList(CreateArgumentList(CreateIdentifierName(fieldRead.Alias)))
-            : SyntaxFactory.InvocationExpression(
+        ExpressionSyntax value = generatedDictionary.FieldIndex is { } fieldIndex
+            ? CreateElementAccess(
+                CreateIdentifierName(fieldRead.Alias),
+                SyntaxFactory.LiteralExpression(
+                    SyntaxKind.NumericLiteralExpression,
+                    SyntaxFactory.Literal(fieldIndex)))
+            : string.IsNullOrWhiteSpace(generatedDictionary.FieldName)
+                ? CreateIdentifierName(fieldRead.Alias)
+                : SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    CreateIdentifierName(fieldRead.Alias),
+                    CreateIdentifierName(generatedDictionary.FieldName));
+
+        foreach (var segment in generatedDictionary.PropertyPath
+                     .Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            value = SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetNestedValue))))
-                .WithArgumentList(CreateArgumentList(
-                    CreateIdentifierName(fieldRead.Alias),
-                    CreateStringLiteral(reflectedMember.PropertyPath)));
+                        SyntaxFactory.IdentifierName("GeneratedDictionaryAccess"),
+                        SyntaxFactory.IdentifierName("GetValue")))
+                .WithArgumentList(SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SeparatedList(
+                    [
+                        SyntaxFactory.Argument(value),
+                        SyntaxFactory.Argument(CreateStringLiteral(segment))
+                    ])));
+        }
 
         if (fieldRead.ReturnType.RequireClrType() == typeof(object))
             return value;

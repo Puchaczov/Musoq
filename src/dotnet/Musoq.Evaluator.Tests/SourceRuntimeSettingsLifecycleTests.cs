@@ -615,5 +615,5 @@ public sealed class SourceRuntimeSettingsLifecycleTests
         }
     }
 
-    private sealed record SettingsEntity(string Token);
+    public sealed record SettingsEntity(string Token);
 }

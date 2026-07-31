@@ -44,6 +44,7 @@ internal static class BuildItemKeys
     public const string ExecutionSemanticsContract = "EXECUTION_SEMANTICS_CONTRACT";
     public const string OutputType = "OUTPUT_TYPE";
     public const string AdditionalReferenceTypes = "ADDITIONAL_REFERENCE_TYPES";
+    public const string CompilationPurpose = "COMPILATION_PURPOSE";
     public const string SchemaRegistry = "SCHEMA_REGISTRY";
     public const string InterpreterSourceCode = "INTERPRETER_SOURCE_CODE";
     public const string CteExecutionPlan = "CTE_EXECUTION_PLAN";

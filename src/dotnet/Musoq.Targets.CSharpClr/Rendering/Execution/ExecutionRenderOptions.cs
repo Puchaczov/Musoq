@@ -12,7 +12,8 @@ internal sealed class ExecutionRenderOptions
         IReadOnlyDictionary<string, string> scriptParameterLocalNames,
         IReadOnlyDictionary<string, string> scriptVariableLocalNames,
         QueryInstrumentationMode instrumentationMode,
-        CSharpClrExecutionBindingContext executionBindings)
+        CSharpClrExecutionBindingContext executionBindings,
+        string generatedMemberSuffix)
     {
         ScriptParameterDefinitions = scriptParameterDefinitions;
         ScriptVariableDefinitions = scriptVariableDefinitions;
@@ -20,6 +21,7 @@ internal sealed class ExecutionRenderOptions
         ScriptVariableLocalNames = scriptVariableLocalNames;
         InstrumentationMode = instrumentationMode;
         ExecutionBindings = executionBindings;
+        GeneratedMemberSuffix = generatedMemberSuffix;
     }
 
     internal IReadOnlyList<ScriptParameterDefinition> ScriptParameterDefinitions { get; }
@@ -34,11 +36,14 @@ internal sealed class ExecutionRenderOptions
 
     internal CSharpClrExecutionBindingContext ExecutionBindings { get; }
 
+    internal string GeneratedMemberSuffix { get; }
+
     internal static ExecutionRenderOptions Create(
         IReadOnlyList<ScriptParameterDefinition>? scriptParameterDefinitions,
         IReadOnlyList<ScriptVariableDefinition>? scriptVariableDefinitions,
         QueryInstrumentationMode instrumentationMode,
-        CSharpClrExecutionBindingContext? executionBindings = null)
+        CSharpClrExecutionBindingContext? executionBindings = null,
+        string generatedMemberSuffix = "")
     {
         var parameterDefinitions = (scriptParameterDefinitions ?? []).ToArray();
         var variableDefinitions = (scriptVariableDefinitions ?? []).ToArray();
@@ -49,6 +54,7 @@ internal sealed class ExecutionRenderOptions
             ScriptParameterLocalNameResolver.CreateLocalNameMap(parameterDefinitions),
             ScriptVariableLocalNameResolver.CreateLocalNameMap(variableDefinitions),
             instrumentationMode,
-            executionBindings ?? new CSharpClrExecutionBindingContext());
+            executionBindings ?? new CSharpClrExecutionBindingContext(),
+            generatedMemberSuffix);
     }
 }

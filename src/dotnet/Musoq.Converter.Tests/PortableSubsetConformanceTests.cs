@@ -186,6 +186,27 @@ public sealed class PortableSubsetConformanceTests
         StringAssert.Contains(diagnostics, nameof(LibraryBase.ToUpper));
     }
 
+    [TestMethod]
+    public void PortableSubset_WhenMethodCallIsWrappedInPostfixCast_ShouldKeepCallableUnsupported()
+    {
+        var backend = new RecordingPortableBackend();
+        using var registration = RegisterPortableTarget(backend);
+
+        var result = InstanceCreator.CompileTargetPackageWithDiagnostics(
+            "select ToUpper(d.Dummy)::string as Value from #system.dual() d",
+            $"PortableUnsupportedCastCallable{Guid.NewGuid():N}",
+            new SystemSchemaProvider(),
+            new TestsLoggerResolver(),
+            PortableSubsetTarget.TargetId,
+            PortableOptions);
+
+        Assert.IsFalse(result.Succeeded);
+        Assert.AreEqual(1, backend.RenderCount);
+        var diagnostics = string.Join(Environment.NewLine, result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()));
+        StringAssert.Contains(diagnostics, TargetDiagnosticCodes.UnsupportedLowering);
+        StringAssert.Contains(diagnostics, nameof(LibraryBase.ToUpper));
+    }
+
     private static void AssertConforms(
         string query,
         IReadOnlyDictionary<string, PortableValue> parameters,

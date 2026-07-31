@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Converter.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator;
@@ -56,6 +58,39 @@ public partial class QueryInspectionTests
 
         AssertGeneratedCSharpContains("BeginOperatorValue", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("AddOutputRows", result.GeneratedCSharpCode);
+    }
+
+    [TestMethod]
+    public void CompileForInspection_WhenFullInstrumentationIsEnabled_ShouldKeepNormalRunUnprofiled()
+    {
+        var result = Inspect(
+            "select d.Dummy from #system.dual() d",
+            new CompilationOptions(instrumentationMode: QueryInstrumentationMode.Full));
+        var methods = CSharpSyntaxTree.ParseText(result.GeneratedCSharpCode)
+            .GetRoot()
+            .DescendantNodes()
+            .OfType<MethodDeclarationSyntax>()
+            .ToArray();
+        var normalShapeMethod = methods.Single(method =>
+            method.Identifier.ValueText.StartsWith("ComputeShapeRows_", StringComparison.Ordinal) &&
+            !method.Identifier.ValueText.EndsWith("_Profiled", StringComparison.Ordinal));
+        var profiledShapeMethod = methods.Single(method =>
+            method.Identifier.ValueText.StartsWith("ComputeShapeRows_", StringComparison.Ordinal) &&
+            method.Identifier.ValueText.EndsWith("_Profiled", StringComparison.Ordinal));
+
+        Assert.IsFalse(normalShapeMethod.ToFullString().Contains("profileRecorder", StringComparison.Ordinal));
+        Assert.IsFalse(normalShapeMethod.ToFullString().Contains("QueryProfileRecorder", StringComparison.Ordinal));
+        StringAssert.Contains(profiledShapeMethod.ToFullString(), "profileRecorder");
+        StringAssert.Contains(profiledShapeMethod.ToFullString(), "BeginOperatorValue");
+
+        foreach (var runMethod in methods.Where(method => method.Identifier.ValueText == "Run"))
+        {
+            Assert.IsFalse(runMethod.ToFullString().Contains("_Profiled", StringComparison.Ordinal));
+            Assert.IsFalse(runMethod.ToFullString().Contains("profileRecorder", StringComparison.Ordinal));
+        }
+
+        var runWithProfileMethod = methods.Single(method => method.Identifier.ValueText == "RunWithProfile");
+        StringAssert.Contains(runWithProfileMethod.ToFullString(), "_Profiled");
     }
 
     [TestMethod]

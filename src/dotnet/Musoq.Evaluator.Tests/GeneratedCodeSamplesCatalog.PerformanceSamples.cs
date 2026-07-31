@@ -6,6 +6,7 @@ using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
+using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -16,79 +17,20 @@ internal static partial class GeneratedCodeSamplesCatalog
         return
         [
             PerformanceInspection(
-                "Q227_PerformanceReflectedJoinAggregate",
-                """
-                select a.City as City, Count(b.Name) as MatchCount
-                from #A.entities() a
-                inner join #B.entities() b on a.City = b.City
-                group by a.City
-                """,
-                CreatePerformanceReflectedSchemaProvider),
+                "Q227_PerformanceJoinAggregate",
+                EvaluatorPerformanceQueries.Q227,
+                CreatePerformanceJoinSchemaProvider),
             PerformanceInspection(
                 "Q228_PerformanceWideCorrelatedSubquery",
-                """
-                SELECT a.Name,
-                       CASE WHEN EXISTS (
-                           SELECT b.City FROM #B.entities() b
-                           WHERE b.Name = a.Name
-                             AND b.City = a.City
-                             AND b.Country = a.Country
-                             AND b.Population = a.Population
-                             AND b.Month = a.Month
-                             AND b.Money = a.Money
-                             AND b.Id = a.Id
-                             AND b.NullableValue = a.NullableValue
-                       ) THEN 'Y' ELSE 'N' END AS ExistsResult,
-                       CASE WHEN NOT EXISTS (
-                           SELECT b.City FROM #B.entities() b
-                           WHERE b.Name = a.Name
-                             AND b.City = a.City
-                             AND b.Country = a.Country
-                             AND b.Population = a.Population
-                             AND b.Month = a.Month
-                             AND b.Money = a.Money
-                             AND b.Id = a.Id
-                             AND b.NullableValue = a.NullableValue
-                       ) THEN 'Y' ELSE 'N' END AS NotExistsResult,
-                       (
-                           SELECT b.City FROM #B.entities() b
-                           WHERE b.Name = a.Name
-                             AND b.City = a.City
-                             AND b.Country = a.Country
-                             AND b.Population = a.Population
-                             AND b.Month = a.Month
-                             AND b.Money = a.Money
-                             AND b.Id = a.Id
-                             AND b.NullableValue = a.NullableValue
-                       ) AS Lookup
-                FROM #A.entities() a
-                ORDER BY a.Name
-                """,
+                EvaluatorPerformanceQueries.Q228,
                 CreateBasicSchemaProvider),
             PerformanceInspection(
                 "Q229_PerformanceWindowCteSetOperation",
-                """
-                with ranked as (
-                    select Name, Country
-                    from #A.entities()
-                )
-                select Name, Country,
-                       RowNumber() over (partition by Country order by Name) as BranchRank
-                from ranked
-                union (Name, Country, BranchRank)
-                    select Name, Country,
-                           RowNumber() over (partition by Country order by Name) as BranchRank
-                    from #B.entities()
-                order by Country, BranchRank, Name
-                """,
+                EvaluatorPerformanceQueries.Q229,
                 CreateBasicSchemaProvider),
             PerformanceInspection(
                 "Q230_PerformanceTableProjection",
-                """
-                select Name, City, Population
-                from #A.entities()
-                where Population > 0
-                """,
+                EvaluatorPerformanceQueries.Q230,
                 CreateBasicSchemaProvider,
                 new CompilationOptions().WithTableResultMaterialization())
         ];
@@ -112,10 +54,10 @@ internal static partial class GeneratedCodeSamplesCatalog
         };
     }
 
-    private static PerformanceReflectedSchemaProvider CreatePerformanceReflectedSchemaProvider()
+    private static PerformanceJoinSchemaProvider CreatePerformanceJoinSchemaProvider()
     {
-        return new PerformanceReflectedSchemaProvider(
-            new Dictionary<string, IReadOnlyList<PerformanceReflectedEntity>>(StringComparer.OrdinalIgnoreCase)
+        return new PerformanceJoinSchemaProvider(
+            new Dictionary<string, IReadOnlyList<PerformanceJoinEntity>>(StringComparer.OrdinalIgnoreCase)
             {
                 ["A"] = [],
                 ["#A"] = [],
@@ -124,34 +66,21 @@ internal static partial class GeneratedCodeSamplesCatalog
             });
     }
 
-    private sealed class PerformanceReflectedEntity
-    {
-        public int Id { get; init; }
-
-        public string Name { get; init; } = string.Empty;
-
-        public string City { get; init; } = string.Empty;
-
-        public string Country { get; init; } = string.Empty;
-
-        public int Population { get; init; }
-    }
-
-    private sealed class PerformanceReflectedSchemaProvider(
-        IReadOnlyDictionary<string, IReadOnlyList<PerformanceReflectedEntity>> rowsBySchema) : ISchemaProvider
+    private sealed class PerformanceJoinSchemaProvider(
+        IReadOnlyDictionary<string, IReadOnlyList<PerformanceJoinEntity>> rowsBySchema) : ISchemaProvider
     {
         public ISchema GetSchema(string schema)
         {
             if (!rowsBySchema.TryGetValue(schema, out var rows))
                 throw new NotSupportedException(schema);
 
-            return new PerformanceReflectedSchema(schema.TrimStart('#'), rows);
+            return new PerformanceJoinSchema(schema.TrimStart('#'), rows);
         }
     }
 
-    private sealed class PerformanceReflectedSchema(
+    private sealed class PerformanceJoinSchema(
         string name,
-        IReadOnlyList<PerformanceReflectedEntity> rows) : SchemaBase(name, CreatePerformanceLibrary())
+        IReadOnlyList<PerformanceJoinEntity> rows) : SchemaBase(name, CreatePerformanceLibrary())
     {
         public override ISchemaTable GetTableByName(
             string name,
@@ -159,7 +88,7 @@ internal static partial class GeneratedCodeSamplesCatalog
             params object?[] parameters)
         {
             if (string.Equals(name, "entities", StringComparison.OrdinalIgnoreCase))
-                return new PerformanceReflectedTable();
+                return new PerformanceJoinTable();
 
             throw new NotSupportedException(name);
         }
@@ -170,26 +99,26 @@ internal static partial class GeneratedCodeSamplesCatalog
             params object?[] parameters)
         {
             if (string.Equals(name, "entities", StringComparison.OrdinalIgnoreCase))
-                return EnsureSourceType<T, PerformanceReflectedEntity>(
+                return EnsureSourceType<T, PerformanceJoinEntity>(
                     name,
-                    new PerformanceReflectedRowSource(rows));
+                    new PerformanceJoinRowSource(rows));
 
             throw new NotSupportedException(name);
         }
     }
 
-    private sealed class PerformanceReflectedTable : ISchemaTable
+    private sealed class PerformanceJoinTable : ISchemaTable
     {
         public ISchemaColumn[] Columns { get; } =
         [
-            new SchemaColumn(nameof(PerformanceReflectedEntity.Id), 0, typeof(int)),
-            new SchemaColumn(nameof(PerformanceReflectedEntity.Name), 1, typeof(string)),
-            new SchemaColumn(nameof(PerformanceReflectedEntity.City), 2, typeof(string)),
-            new SchemaColumn(nameof(PerformanceReflectedEntity.Country), 3, typeof(string)),
-            new SchemaColumn(nameof(PerformanceReflectedEntity.Population), 4, typeof(int))
+            new SchemaColumn(nameof(PerformanceJoinEntity.Id), 0, typeof(int)),
+            new SchemaColumn(nameof(PerformanceJoinEntity.Name), 1, typeof(string)),
+            new SchemaColumn(nameof(PerformanceJoinEntity.City), 2, typeof(string)),
+            new SchemaColumn(nameof(PerformanceJoinEntity.Country), 3, typeof(string)),
+            new SchemaColumn(nameof(PerformanceJoinEntity.Population), 4, typeof(int))
         ];
 
-        public SchemaTableMetadata Metadata { get; } = new(typeof(PerformanceReflectedEntity));
+        public SchemaTableMetadata Metadata { get; } = new(typeof(PerformanceJoinEntity));
 
         public ISchemaColumn? GetColumnByName(string name)
         {
@@ -202,10 +131,10 @@ internal static partial class GeneratedCodeSamplesCatalog
         }
     }
 
-    private sealed class PerformanceReflectedRowSource(
-        IReadOnlyList<PerformanceReflectedEntity> rows) : RowSourceBase<PerformanceReflectedEntity>
+    private sealed class PerformanceJoinRowSource(
+        IReadOnlyList<PerformanceJoinEntity> rows) : RowSourceBase<PerformanceJoinEntity>
     {
-        protected override void CollectChunks(IChunkWriter<PerformanceReflectedEntity> writer)
+        protected override void CollectChunks(IChunkWriter<PerformanceJoinEntity> writer)
         {
             writer.Write(rows.ToArray());
         }
@@ -219,4 +148,17 @@ internal static partial class GeneratedCodeSamplesCatalog
     }
 
     private sealed class PerformanceLibrary : LibraryBase;
+}
+
+public sealed class PerformanceJoinEntity
+{
+    public int Id { get; init; }
+
+    public string Name { get; init; } = string.Empty;
+
+    public string City { get; init; } = string.Empty;
+
+    public string Country { get; init; } = string.Empty;
+
+    public int Population { get; init; }
 }

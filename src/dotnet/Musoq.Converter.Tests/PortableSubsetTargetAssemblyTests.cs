@@ -356,6 +356,8 @@ public sealed class PortableSubsetTargetAssemblyTests
         return new TargetRenderRequest
         {
             TargetId = PortableSubsetTarget.TargetId,
+            Purpose = TargetRenderPurpose.Inspection,
+            Profile = TargetRenderProfile.StableArtifact,
             Identity = new TargetRenderIdentity("PortableSubset"),
             Options = TargetRenderOptions.Empty,
             ScriptBinding = TargetScriptBindingContract.Empty,

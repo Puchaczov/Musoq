@@ -88,7 +88,7 @@ public sealed partial class ExecutionShapeResolver
 
     private static bool IsDynamicEntity(Type entityType)
     {
-        return DynamicEntityBoundary.IsDynamicEntity(entityType);
+        return ExecutionSourceCodeGenerationPolicy.IsSupportedDictionary(entityType);
     }
 
     private static bool IsScalar(Type type)
@@ -118,29 +118,6 @@ public sealed partial class ExecutionShapeResolver
 
     private static bool CanReferenceType(Type type)
     {
-        if (type.IsByRef || type.IsPointer)
-            return false;
-
-        if (type.IsArray)
-            return type.GetElementType() is { } elementType && CanReferenceType(elementType);
-
-        var nullableType = Nullable.GetUnderlyingType(type);
-        if (nullableType != null)
-            return CanReferenceType(nullableType);
-
-        if (type.IsGenericType)
-            return CanReferencePublicType(type.GetGenericTypeDefinition()) &&
-                   type.GetGenericArguments().All(CanReferenceType);
-
-        return CanReferencePublicType(type);
-    }
-
-    private static bool CanReferencePublicType(Type type)
-    {
-        if (!type.IsNested)
-            return type.IsPublic;
-
-        return type is { IsNestedPublic: true, DeclaringType: not null } &&
-               CanReferencePublicType(type.DeclaringType);
+        return ExecutionSourceCodeGenerationPolicy.CanReferenceType(type);
     }
 }

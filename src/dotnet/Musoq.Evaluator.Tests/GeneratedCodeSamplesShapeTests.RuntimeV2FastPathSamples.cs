@@ -9,7 +9,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CompilationCseDisabledSample_WhenCheckedIn_ShouldKeepRepeatedFieldReadsInline()
     {
-        var sample = ReadSamples().Single(static item => item.FileName == CompilationCseDisabledSampleFileName).Content;
+        var sample = ReadSample(CompilationCseDisabledSampleFileName).Content;
 
         Assert.Contains("If [(ko3iko.Population = ko3iko.Population)]", sample);
         Assert.Contains("(ko3iko) => (ko3iko.Population == ko3iko.Population)", sample);
@@ -22,7 +22,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CompilationCseEnabledSample_WhenCheckedIn_ShouldHoistRepeatedFieldReads()
     {
-        var sample = ReadSamples().Single(static item => item.FileName == CompilationCseEnabledSampleFileName).Content;
+        var sample = ReadSample(CompilationCseEnabledSampleFileName).Content;
 
         Assert.Contains("Let [population: decimal = ko3iko.Population]", sample);
         Assert.Contains("If [(population = population)]", sample);
@@ -35,8 +35,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2CseNoDuplicateRegressionSample_WhenCheckedIn_ShouldExposeDirectLoopProjectionPath()
     {
-        var sample = ReadSamples()
-            .Single(static item => item.FileName == RuntimeV2CseNoDuplicateRegressionSampleFileName)
+        var sample = ReadSample(RuntimeV2CseNoDuplicateRegressionSampleFileName)
             .Content;
 
         Assert.Contains("SELECT Value * 2, Name", sample);
@@ -58,8 +57,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2WeatherSingleAggregateSample_WhenCheckedIn_ShouldStreamCastAndFuseInlineAggregates()
     {
-        var sample = ReadSamples()
-            .Single(static item => item.FileName == RuntimeV2WeatherSingleAggregateSampleFileName)
+        var sample = ReadSample(RuntimeV2WeatherSingleAggregateSampleFileName)
             .Content;
 
         Assert.Contains("ParallelSingleKeyAggregate_0(ko3ikoRows, 24, token);", sample);
@@ -78,8 +76,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2WindowRunningSumSample_WhenCheckedIn_ShouldUseRenderedAggregateKernel()
     {
-        var sample = ReadSamples()
-            .Single(static item => item.FileName == RuntimeV2WindowRunningSumSampleFileName)
+        var sample = ReadSample(RuntimeV2WindowRunningSumSampleFileName)
             .Content;
 
         Assert.Contains("Sum(ToDecimal(Salary)) over (partition by Department order by Salary)", sample);
@@ -103,8 +100,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2WindowQualifyRankSample_WhenCheckedIn_ShouldRenderRankingAndFilter()
     {
-        var sample = ReadSamples()
-            .Single(static item => item.FileName == RuntimeV2WindowQualifyRankSampleFileName)
+        var sample = ReadSample(RuntimeV2WindowQualifyRankSampleFileName)
             .Content;
 
         Assert.Contains("QUALIFY Rank() over (partition by Department order by Salary desc) <= 3", sample);
@@ -132,7 +128,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2BenchmarkParitySamples_WhenCheckedIn_ShouldCoverSlowerGeneratedShapes()
     {
-        var samples = ReadSamples().ToDictionary(static item => item.FileName, static item => item.Content);
+        var samples = ReadNamedSamples(
+                RuntimeV2WindowBenchmarkRowNumberNoPartitionSampleFileName,
+                RuntimeV2WindowBenchmarkRowNumberPartitionedSampleFileName,
+                RuntimeV2WindowBenchmarkRankPartitionedSampleFileName,
+                RuntimeV2WindowBenchmarkDenseRankPartitionedSampleFileName,
+                RuntimeV2WindowBenchmarkCountWholePartitionSampleFileName,
+                RuntimeV2ParallelTableAddBenchmarkSampleFileName)
+            .ToDictionary(static item => item.FileName, static item => item.Content);
         var rowNumberNoPartition = samples[RuntimeV2WindowBenchmarkRowNumberNoPartitionSampleFileName];
         var rowNumberPartitioned = samples[RuntimeV2WindowBenchmarkRowNumberPartitionedSampleFileName];
         var rankPartitioned = samples[RuntimeV2WindowBenchmarkRankPartitionedSampleFileName];
@@ -194,7 +197,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ValuesSamples_WhenCheckedIn_ShouldUseTypedRowsAndReuseCteMaterialization()
     {
-        var samples = ReadSamples().ToDictionary(static item => item.FileName, static item => item.Content);
+        var samples = ReadNamedSamples(ValuesRowLiteralsSampleFileName, ValuesCteReuseSampleFileName, ValuesNumericLiteralsSampleFileName)
+            .ToDictionary(static item => item.FileName, static item => item.Content);
         var rowLiteralSample = samples[ValuesRowLiteralsSampleFileName];
         var cteReuseSample = samples[ValuesCteReuseSampleFileName];
         var numericLiteralSample = samples[ValuesNumericLiteralsSampleFileName];
@@ -242,8 +246,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2SkipTakeNoOrderSample_WhenCheckedIn_ShouldStreamPaginationBeforeRowCreation()
     {
-        var sample = ReadSamples()
-            .Single(static item => item.FileName == RuntimeV2SkipTakeNoOrderSampleFileName)
+        var sample = ReadSample(RuntimeV2SkipTakeNoOrderSampleFileName)
             .Content;
 
         Assert.Contains("SELECT FirstName, LastName, Email", sample);
@@ -273,15 +276,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2StringFilterSample_WhenCheckedIn_ShouldUseDirectStreamingPredicate()
     {
-        var sample = ReadSamples()
-            .Single(static item => item.FileName == RuntimeV2StringFilterSampleFileName)
+        var sample = ReadSample(RuntimeV2StringFilterSampleFileName)
             .Content;
 
         Assert.Contains("WHERE Contains(Email, 'gmail') AND StartsWith(FirstName, 'A')", sample);
         Assert.Contains("PhysicalSchemaScan [#test.entities() as ko3iko] [pushdown: Contains(ko3iko.Email, 'gmail'), StartsWith(ko3iko.FirstName, 'A')]", sample);
-        Assert.Contains("email.Contains(\"gmail\", StringComparison.OrdinalIgnoreCase)", sample);
-        Assert.Contains("firstName.StartsWith(\"A\", StringComparison.OrdinalIgnoreCase)", sample);
-        Assert.Contains("new ResultRow0(firstName, ko3iko.LastName, email)", sample);
+        Assert.Contains("Contains(\"gmail\", StringComparison.OrdinalIgnoreCase)", sample);
+        Assert.Contains("StartsWith(\"A\", StringComparison.OrdinalIgnoreCase)", sample);
+        Assert.Contains("new ResultRow0(ko3iko.FirstName, ko3iko.LastName, ko3iko.Email)", sample);
         Assert.Contains("QueryRows.FromRowShards(", sample);
         Assert.Contains("EvaluationHelper.ProjectRowsParallel<", sample);
         Assert.DoesNotContain("TableProjectionRows.ProjectOptionalRowsSerial<", sample);
@@ -301,8 +303,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2DeterministicMethodCseSample_WhenCheckedIn_ShouldUseRowLocalHoistedMethod()
     {
-        var sample = ReadSamples()
-            .Single(static item => item.FileName == RuntimeV2DeterministicMethodCseSampleFileName)
+        var sample = ReadSample(RuntimeV2DeterministicMethodCseSampleFileName)
             .Content;
 
         Assert.Contains("SELECT ExpensiveCompute(Value) as Computed", sample);
@@ -330,8 +331,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2DeterministicMethodCseDisabledSample_WhenCheckedIn_ShouldKeepRepeatedMethodCallsInline()
     {
-        var sample = ReadSamples()
-            .Single(static item => item.FileName == RuntimeV2DeterministicMethodCseDisabledSampleFileName)
+        var sample = ReadSample(RuntimeV2DeterministicMethodCseDisabledSampleFileName)
             .Content;
 
         Assert.Contains("SELECT ExpensiveCompute(Value) as Computed", sample);

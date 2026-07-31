@@ -9,8 +9,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SelectStarRenameSample_WhenCheckedIn_ShouldUseTypedProjectionFields()
     {
-        var sample = ReadSamples().Single(static item =>
-            item.FileName == SelectStarRenameSampleFileName);
+        var sample = ReadSample(SelectStarRenameSampleFileName);
 
         Assert.Contains("rename (Name as EntityName, Population as WeightedPopulation)", sample.Content);
         Assert.Contains("new Column(\"EntityName\", typeof(string), 0)", sample.Content);

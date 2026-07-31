@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
+using Musoq.Evaluator.IR;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Parser.Nodes;
@@ -86,8 +87,9 @@ internal static partial class CteSidecarIndexPlanner
         if (join.BuildKeys.Length == 1)
             return ResolveCommonKeyType(join.BuildKeys[0].ReturnType, join.ProbeKeys[0].ReturnType);
 
-        if (TryResolveValueTupleHashJoinKeyTypes(join, out var keyTypes))
-            return CreateValueTupleType(keyTypes);
+        if (TryResolveValueTupleHashJoinKeyTypes(join, out var keyTypes) &&
+            ValueTupleTypeShape.TryCreate(keyTypes, out var tupleType))
+            return tupleType;
 
         return typeof(object);
     }
@@ -98,7 +100,7 @@ internal static partial class CteSidecarIndexPlanner
     {
         keyTypes = [];
 
-        if (join.BuildKeys.Length is < 2 or > 7)
+        if (join.BuildKeys.Length < 2)
             return false;
 
         var types = new Type[join.BuildKeys.Length];
@@ -120,20 +122,6 @@ internal static partial class CteSidecarIndexPlanner
     {
         return type != typeof(object) &&
                type is not NullNode.NullType;
-    }
-
-    private static Type CreateValueTupleType(Type[] keyTypes)
-    {
-        return keyTypes.Length switch
-        {
-            2 => typeof(ValueTuple<,>).MakeGenericType(keyTypes.ToArray()),
-            3 => typeof(ValueTuple<,,>).MakeGenericType(keyTypes.ToArray()),
-            4 => typeof(ValueTuple<,,,>).MakeGenericType(keyTypes.ToArray()),
-            5 => typeof(ValueTuple<,,,,>).MakeGenericType(keyTypes.ToArray()),
-            6 => typeof(ValueTuple<,,,,,>).MakeGenericType(keyTypes.ToArray()),
-            7 => typeof(ValueTuple<,,,,,,>).MakeGenericType(keyTypes.ToArray()),
-            _ => throw new NotSupportedException($"CTE sidecar hash join value-tuple keys support 2 through 7 parts. Found {keyTypes.Length}.")
-        };
     }
 
     private static Type ResolveCommonKeyType(Type buildType, Type probeType)

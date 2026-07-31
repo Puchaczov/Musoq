@@ -23,9 +23,32 @@ public partial class CteTests
     ];
 
     public static IEnumerable<object[]> RecursiveSupportedOptionCases =>
-        from testCase in RecursiveCteSupportedCaseCatalog.Cases
         from profile in RecursiveOptionProfiles
+        from testCase in RecursiveCteSupportedCaseCatalog.Cases
         select new object[] { testCase, profile };
+
+    [TestMethod]
+    public void RecursiveSupportedOptionCases_ShouldRemainProfileMajorAndComplete()
+    {
+        var cases = RecursiveSupportedOptionCases.ToArray();
+
+        Assert.HasCount(
+            RecursiveOptionProfiles.Length * RecursiveCteSupportedCaseCatalog.Cases.Count,
+            cases);
+        for (var profileIndex = 0; profileIndex < RecursiveOptionProfiles.Length; profileIndex++)
+        {
+            var offset = profileIndex * RecursiveCteSupportedCaseCatalog.Cases.Count;
+            for (var caseIndex = 0; caseIndex < RecursiveCteSupportedCaseCatalog.Cases.Count; caseIndex++)
+            {
+                Assert.AreSame(
+                    RecursiveCteSupportedCaseCatalog.Cases[caseIndex],
+                    cases[offset + caseIndex][0]);
+                Assert.AreSame(
+                    RecursiveOptionProfiles[profileIndex],
+                    cases[offset + caseIndex][1]);
+            }
+        }
+    }
 
     [TestMethod]
     [DynamicData(nameof(RecursiveSupportedOptionCases))]
@@ -33,16 +56,14 @@ public partial class CteTests
         RecursiveCteSupportedCase testCase,
         RecursiveOptionProfile profile)
     {
-        var options = ApplyProfile(testCase.CompilationOptions, profile);
-        var vm = testCase.CreateSchemaProvider == null
-            ? CreateAndRunVirtualMachine(testCase.Query, CreateSingleSource(), options)
-            : InstanceCreator.CompileForExecution(
-                testCase.Query,
-                Guid.NewGuid().ToString(),
-                testCase.CreateSchemaProvider(),
-                LoggerResolver,
-                options);
-        var table = vm.Run(TestContext.CancellationToken);
+        using var measurement = EvaluatorTestCaseMeasurement.Begin(
+            nameof(RecursiveSupportedCase_AcrossCompatibleOptimizerModes_ShouldReturnDeclaredResult),
+            $"{testCase.Name}|{profile.Name}",
+            testCase.Name,
+            profile.Name);
+        using var vm = measurement.MeasureCompilation(() => GetRecursiveOptionQuery(testCase, profile));
+        using var table = measurement.MeasureExecution(() => vm.Run(TestContext.CancellationToken));
+        measurement.MeasureMaterialization(() => TableMaterializationTestHelper.Materialize(table));
 
         TableMaterializationTestHelper.AssertColumns(
             table,

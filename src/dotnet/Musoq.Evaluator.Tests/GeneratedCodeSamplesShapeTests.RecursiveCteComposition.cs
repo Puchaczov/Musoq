@@ -84,15 +84,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
     private static string ReadExecutionPlan(string fileName)
     {
-        var content = ReadSamples().Single(item =>
-            string.Equals(item.FileName, fileName, StringComparison.Ordinal)).Content;
+        var content = ReadSample(fileName).Content;
         return ReadGeneratedSampleSection(content, "Execution Plan", "Generated C#");
     }
 
     private static string ReadGeneratedCode(string fileName)
     {
-        var content = ReadSamples().Single(item =>
-            string.Equals(item.FileName, fileName, StringComparison.Ordinal)).Content;
+        var content = ReadSample(fileName).Content;
         return ReadGeneratedSampleSection(content, "Generated C#", null);
     }
 }

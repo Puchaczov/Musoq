@@ -9,7 +9,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ScalarHashSingleSample_ShouldKeepCarrierHotPathOptimizations()
     {
-        var sample = ReadSamples().Single(item => item.FileName == ScalarSubqueryJoinOnSampleFileName).Content;
+        var sample = ReadSample(ScalarSubqueryJoinOnSampleFileName).Content;
 
         Assert.Contains("ParallelSingleKeyAggregateLoop", sample);
         Assert.Contains("CorrelatedScalarSubqueryResultExtractor.GetValue", sample);

@@ -19,7 +19,7 @@ public sealed class GeneratedCodeSamplesManifestTests
     public void Catalog_WhenGenerated_ShouldMatchTrackedManifest()
     {
         var expected = ReadManifestLines(GetManifestPath());
-        var actual = CreateManifestLines();
+        var actual = CreateManifestLines(useCache: true);
 
         CollectionAssert.AreEqual(
             expected,
@@ -28,7 +28,7 @@ public sealed class GeneratedCodeSamplesManifestTests
     }
 
     [TestMethod]
-    [Ignore("Local manifest refresh utility. Run intentionally when generated-code changes are expected.")]
+    [Ignore("Local snapshot refresh utility. Run intentionally when generated-code changes are expected.")]
     public void Refresh_Tracked_Generated_Code_Sample_Manifest()
     {
         File.WriteAllLines(GetManifestPath(), CreateManifestLinesWithHeader(), new UTF8Encoding(false));
@@ -36,13 +36,20 @@ public sealed class GeneratedCodeSamplesManifestTests
 
     internal static string[] CreateManifestLines()
     {
+        return CreateManifestLines(useCache: true);
+    }
+
+    private static string[] CreateManifestLines(bool useCache)
+    {
         var loggerResolver = new TestsLoggerResolver();
 
         return GeneratedCodeSamplesCatalog.Samples
             .OrderBy(static sample => sample.FileName, StringComparer.Ordinal)
             .Select(sample =>
             {
-                var generated = GeneratedCodeSampleArtifacts.Generate(sample, loggerResolver);
+                var generated = useCache
+                    ? GeneratedCodeSampleArtifacts.Generate(sample, loggerResolver)
+                    : GeneratedCodeSampleArtifacts.GenerateUncachedForRefresh(sample, loggerResolver);
                 var normalized = GeneratedCodeSampleArtifacts.NormalizeForComparison(generated);
                 var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(normalized))).ToLowerInvariant();
 
@@ -58,7 +65,7 @@ public sealed class GeneratedCodeSamplesManifestTests
             "# Generated-code sample manifest.",
             "# Format: file-name<TAB>category<TAB>sha256(normalized generated sample)",
             "# Refresh intentionally through GeneratedCodeSamplesManifestTests.Refresh_Tracked_Generated_Code_Sample_Manifest.",
-            .. CreateManifestLines()
+            .. CreateManifestLines(useCache: false)
         ];
     }
 

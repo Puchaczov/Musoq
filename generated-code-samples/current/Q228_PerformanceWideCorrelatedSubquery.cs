@@ -154,16 +154,6 @@ ExecutionPlan [compiled]
       Month: string <- property Month
       Id: int <- property Id
       NullableValue: int? <- property NullableValue
-    HashPayload [_sq_1HashPayload0]
-      _sq_1_key: int <- field _sq_1_key
-      _sq_1_corr_0: string <- field _sq_1_corr_0
-      _sq_1_corr_1: string <- field _sq_1_corr_1
-      _sq_1_corr_2: string <- field _sq_1_corr_2
-      _sq_1_corr_3: decimal <- field _sq_1_corr_3
-      _sq_1_corr_4: string <- field _sq_1_corr_4
-      _sq_1_corr_5: decimal <- field _sq_1_corr_5
-      _sq_1_corr_6: int <- field _sq_1_corr_6
-      _sq_1_corr_7: int? <- field _sq_1_corr_7
     TableRow [_sq_1]
       _sq_1_key: int <- field _sq_1_key
       _sq_1_corr_0: string <- field _sq_1_corr_0
@@ -219,16 +209,6 @@ ExecutionPlan [compiled]
       Month: string <- property Month
       Id: int <- property Id
       NullableValue: int? <- property NullableValue
-    HashPayload [_sq_2HashPayload0]
-      _sq_2_key: int <- field _sq_2_key
-      _sq_2_corr_0: string <- field _sq_2_corr_0
-      _sq_2_corr_1: string <- field _sq_2_corr_1
-      _sq_2_corr_2: string <- field _sq_2_corr_2
-      _sq_2_corr_3: decimal <- field _sq_2_corr_3
-      _sq_2_corr_4: string <- field _sq_2_corr_4
-      _sq_2_corr_5: decimal <- field _sq_2_corr_5
-      _sq_2_corr_6: int <- field _sq_2_corr_6
-      _sq_2_corr_7: int? <- field _sq_2_corr_7
     TableRow [_sq_2]
       _sq_2_key: int <- field _sq_2_key
       _sq_2_corr_0: string <- field _sq_2_corr_0
@@ -398,42 +378,50 @@ ExecutionPlan [compiled]
     SourceScan [a: BasicEntity] -> statement0_aRows
     SourceScan [b: BasicEntity] -> cte0_bRows
     CreateTable [statement0: Statement0Row0]
-    CreateHash [statement0_sq_1Hash: object -> Row]
+    CreateKeySet [statement0_sq_1Keys: ValueTuple<int?, string, string, string, decimal?, string, decimal?, ValueTuple<int?, int?>>]
     ChunkedForEach [b in cte0_bRows]
-      CreateHashPayload [_sq_1 <- _sq_1HashPayload0(_sq_1_key: 1, _sq_1_corr_0: b.Name, _sq_1_corr_1: b.City, _sq_1_corr_2: b.Country, _sq_1_corr_3: b.Population, _sq_1_corr_4: b.Month, _sq_1_corr_5: b.Money, _sq_1_corr_6: b.Id, _sq_1_corr_7: b.NullableValue)]
-      HashAdd [statement0_sq_1Hash[CreateNullableHashJoinKey(_sq_1._sq_1_key, _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7)] += _sq_1]
+      KeySetAdd [statement0_sq_1Keys += (1, b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue)]
     ChunkedForEach [a in statement0_aRows]
-      HashProbe [statement0_sq_1Hash[CreateNullableHashJoinKey(1, a.Name, a.City, a.Country, a.Population, a.Month, a.Money, a.Id, a.NullableValue)] -> statement0_sq_1HashMatches] [match: statement0_sq_1HashHasMatch]
-        ForEach [_sq_1 in statement0_sq_1HashMatches]
-          Assign [statement0_sq_1HashHasMatch = TRUE]
-          AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, a.City: a.City, a.Country: a.Country, a.Population: a.Population, a.Money: a.Money, a.Month: a.Month, a.Id: a.Id, a.NullableValue: a.NullableValue, _sq_1._sq_1_key: _sq_1._sq_1_key, _sq_1._sq_1_corr_0: _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1: _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2: _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3: _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4: _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5: _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6: _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7: _sq_1._sq_1_corr_7)]
-          Break
-      HashProbeNoMatch
+      KeySetProbe [statement0_sq_1Keys[(1, a.Name, a.City, a.Country, a.Population, a.Month, a.Money, a.Id, a.NullableValue)]]
+        Let [name: string = a.Name]
+        Let [city: string = a.City]
+        Let [country: string = a.Country]
+        Let [population: decimal = a.Population]
+        Let [money: decimal = a.Money]
+        Let [month: string = a.Month]
+        Let [id: int = a.Id]
+        Let [nullableValue: int? = a.NullableValue]
+        AppendRow [statement0 <- Statement0Row0(a.Name: name, a.City: city, a.Country: country, a.Population: population, a.Money: money, a.Month: month, a.Id: id, a.NullableValue: nullableValue, _sq_1._sq_1_key: 1, _sq_1._sq_1_corr_0: name, _sq_1._sq_1_corr_1: city, _sq_1._sq_1_corr_2: country, _sq_1._sq_1_corr_3: population, _sq_1._sq_1_corr_4: month, _sq_1._sq_1_corr_5: money, _sq_1._sq_1_corr_6: id, _sq_1._sq_1_corr_7: nullableValue)]
+      KeySetProbeNoMatch
         AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, a.City: a.City, a.Country: a.Country, a.Population: a.Population, a.Money: a.Money, a.Month: a.Month, a.Id: a.Id, a.NullableValue: a.NullableValue, _sq_1._sq_1_key: NULL, _sq_1._sq_1_corr_0: NULL, _sq_1._sq_1_corr_1: NULL, _sq_1._sq_1_corr_2: NULL, _sq_1._sq_1_corr_3: NULL, _sq_1._sq_1_corr_4: NULL, _sq_1._sq_1_corr_5: NULL, _sq_1._sq_1_corr_6: NULL, _sq_1._sq_1_corr_7: NULL)]
     StoreTable [statement0 -> _cteRowResults.Slot3: List<Statement0Row0>]
     SourceScan [b: BasicEntity] -> cte1_bRows
     CreateTable [statement1: Statement1Row0]
-    CreateHash [statement1_sq_2Hash: object -> Row]
+    CreateKeySet [statement1_sq_2Keys: ValueTuple<int?, string, string, string, decimal?, string, decimal?, ValueTuple<int?, int?>>]
     ChunkedForEach [b in cte1_bRows]
-      CreateHashPayload [_sq_2 <- _sq_2HashPayload0(_sq_2_key: 1, _sq_2_corr_0: b.Name, _sq_2_corr_1: b.City, _sq_2_corr_2: b.Country, _sq_2_corr_3: b.Population, _sq_2_corr_4: b.Month, _sq_2_corr_5: b.Money, _sq_2_corr_6: b.Id, _sq_2_corr_7: b.NullableValue)]
-      HashAdd [statement1_sq_2Hash[CreateNullableHashJoinKey(_sq_2._sq_2_key, _sq_2._sq_2_corr_0, _sq_2._sq_2_corr_1, _sq_2._sq_2_corr_2, _sq_2._sq_2_corr_3, _sq_2._sq_2_corr_4, _sq_2._sq_2_corr_5, _sq_2._sq_2_corr_6, _sq_2._sq_2_corr_7)] += _sq_2]
+      KeySetAdd [statement1_sq_2Keys += (1, b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue)]
     ForEach [a_sq_1 in _cteRowResults.Slot3]
-      HashProbe [statement1_sq_2Hash[CreateNullableHashJoinKey(1, a_sq_1.a.Name, a_sq_1.a.City, a_sq_1.a.Country, a_sq_1.a.Population, a_sq_1.a.Month, a_sq_1.a.Money, a_sq_1.a.Id, a_sq_1.a.NullableValue)] -> statement1_sq_2HashMatches] [match: statement1_sq_2HashHasMatch]
-        ForEach [_sq_2 in statement1_sq_2HashMatches]
-          Assign [statement1_sq_2HashHasMatch = TRUE]
-          AppendRow [statement1 <- Statement1Row0(a.Name: a_sq_1.a.Name, a.City: a_sq_1.a.City, a.Country: a_sq_1.a.Country, a.Population: a_sq_1.a.Population, a.Money: a_sq_1.a.Money, a.Month: a_sq_1.a.Month, a.Id: a_sq_1.a.Id, a.NullableValue: a_sq_1.a.NullableValue, _sq_1._sq_1_key: a_sq_1._sq_1._sq_1_key, _sq_1._sq_1_corr_0: a_sq_1._sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1: a_sq_1._sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2: a_sq_1._sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3: a_sq_1._sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4: a_sq_1._sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5: a_sq_1._sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6: a_sq_1._sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7: a_sq_1._sq_1._sq_1_corr_7, _sq_2._sq_2_key: _sq_2._sq_2_key, _sq_2._sq_2_corr_0: _sq_2._sq_2_corr_0, _sq_2._sq_2_corr_1: _sq_2._sq_2_corr_1, _sq_2._sq_2_corr_2: _sq_2._sq_2_corr_2, _sq_2._sq_2_corr_3: _sq_2._sq_2_corr_3, _sq_2._sq_2_corr_4: _sq_2._sq_2_corr_4, _sq_2._sq_2_corr_5: _sq_2._sq_2_corr_5, _sq_2._sq_2_corr_6: _sq_2._sq_2_corr_6, _sq_2._sq_2_corr_7: _sq_2._sq_2_corr_7)]
-          Break
-      HashProbeNoMatch
+      KeySetProbe [statement1_sq_2Keys[(1, a_sq_1.a.Name, a_sq_1.a.City, a_sq_1.a.Country, a_sq_1.a.Population, a_sq_1.a.Month, a_sq_1.a.Money, a_sq_1.a.Id, a_sq_1.a.NullableValue)]]
+        Let [a_Name: string = a_sq_1.a.Name]
+        Let [a_City: string = a_sq_1.a.City]
+        Let [a_Country: string = a_sq_1.a.Country]
+        Let [a_Population: decimal = a_sq_1.a.Population]
+        Let [a_Money: decimal = a_sq_1.a.Money]
+        Let [a_Month: string = a_sq_1.a.Month]
+        Let [a_Id: int = a_sq_1.a.Id]
+        Let [a_NullableValue: int? = a_sq_1.a.NullableValue]
+        AppendRow [statement1 <- Statement1Row0(a.Name: a_Name, a.City: a_City, a.Country: a_Country, a.Population: a_Population, a.Money: a_Money, a.Month: a_Month, a.Id: a_Id, a.NullableValue: a_NullableValue, _sq_1._sq_1_key: a_sq_1._sq_1._sq_1_key, _sq_1._sq_1_corr_0: a_sq_1._sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1: a_sq_1._sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2: a_sq_1._sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3: a_sq_1._sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4: a_sq_1._sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5: a_sq_1._sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6: a_sq_1._sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7: a_sq_1._sq_1._sq_1_corr_7, _sq_2._sq_2_key: 1, _sq_2._sq_2_corr_0: a_Name, _sq_2._sq_2_corr_1: a_City, _sq_2._sq_2_corr_2: a_Country, _sq_2._sq_2_corr_3: a_Population, _sq_2._sq_2_corr_4: a_Month, _sq_2._sq_2_corr_5: a_Money, _sq_2._sq_2_corr_6: a_Id, _sq_2._sq_2_corr_7: a_NullableValue)]
+      KeySetProbeNoMatch
         AppendRow [statement1 <- Statement1Row0(a.Name: a_sq_1.a.Name, a.City: a_sq_1.a.City, a.Country: a_sq_1.a.Country, a.Population: a_sq_1.a.Population, a.Money: a_sq_1.a.Money, a.Month: a_sq_1.a.Month, a.Id: a_sq_1.a.Id, a.NullableValue: a_sq_1.a.NullableValue, _sq_1._sq_1_key: a_sq_1._sq_1._sq_1_key, _sq_1._sq_1_corr_0: a_sq_1._sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1: a_sq_1._sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2: a_sq_1._sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3: a_sq_1._sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4: a_sq_1._sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5: a_sq_1._sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6: a_sq_1._sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7: a_sq_1._sq_1._sq_1_corr_7, _sq_2._sq_2_key: NULL, _sq_2._sq_2_corr_0: NULL, _sq_2._sq_2_corr_1: NULL, _sq_2._sq_2_corr_2: NULL, _sq_2._sq_2_corr_3: NULL, _sq_2._sq_2_corr_4: NULL, _sq_2._sq_2_corr_5: NULL, _sq_2._sq_2_corr_6: NULL, _sq_2._sq_2_corr_7: NULL)]
     StoreTable [statement1 -> _cteRowResults.Slot4: List<Statement1Row0>]
     CreateTable [statement2: Statement2Row0]
     CreateObject [statement2_sq_3HashEmptyState: State<string>]
     Let [statement2_sq_3HashEmptyValue: CorrelatedScalarSubqueryResult<string> = Get(statement2_sq_3HashEmptyState)]
-    CreateHash [statement2_sq_3Hash: object -> Row; capacity: _cteRowResults.Slot2.Count]
+    CreateHash [statement2_sq_3Hash: ValueTuple<string, string, string, decimal?, string, decimal?, int?, ValueTuple<int?>> -> Row; capacity: _cteRowResults.Slot2.Count]
     ForEach [_sq_3 in _cteRowResults.Slot2]
-      HashAdd [statement2_sq_3Hash[CreateNullableHashJoinKey(_sq_3._sq_3_corr_0, _sq_3._sq_3_corr_1, _sq_3._sq_3_corr_2, _sq_3._sq_3_corr_3, _sq_3._sq_3_corr_4, _sq_3._sq_3_corr_5, _sq_3._sq_3_corr_6, _sq_3._sq_3_corr_7)] += _sq_3]
+      HashAdd [statement2_sq_3Hash[(_sq_3._sq_3_corr_0, _sq_3._sq_3_corr_1, _sq_3._sq_3_corr_2, _sq_3._sq_3_corr_3, _sq_3._sq_3_corr_4, _sq_3._sq_3_corr_5, _sq_3._sq_3_corr_6, _sq_3._sq_3_corr_7)] += _sq_3]
     ForEach [a_sq_1_sq_2 in _cteRowResults.Slot4]
-      HashProbe [statement2_sq_3Hash[CreateNullableHashJoinKey(a_sq_1_sq_2.a.Name, a_sq_1_sq_2.a.City, a_sq_1_sq_2.a.Country, a_sq_1_sq_2.a.Population, a_sq_1_sq_2.a.Month, a_sq_1_sq_2.a.Money, a_sq_1_sq_2.a.Id, a_sq_1_sq_2.a.NullableValue)] -> statement2_sq_3HashMatches] [match: statement2_sq_3HashHasMatch]
+      HashProbe [statement2_sq_3Hash[(a_sq_1_sq_2.a.Name, a_sq_1_sq_2.a.City, a_sq_1_sq_2.a.Country, a_sq_1_sq_2.a.Population, a_sq_1_sq_2.a.Month, a_sq_1_sq_2.a.Money, a_sq_1_sq_2.a.Id, a_sq_1_sq_2.a.NullableValue)] -> statement2_sq_3HashMatches] [match: statement2_sq_3HashHasMatch]
         ForEach [_sq_3 in statement2_sq_3HashMatches]
           Assign [statement2_sq_3HashHasMatch = TRUE]
           AppendRow [statement2 <- Statement2Row0(a.Name: a_sq_1_sq_2.a.Name, a.City: a_sq_1_sq_2.a.City, a.Country: a_sq_1_sq_2.a.Country, a.Population: a_sq_1_sq_2.a.Population, a.Money: a_sq_1_sq_2.a.Money, a.Month: a_sq_1_sq_2.a.Month, a.Id: a_sq_1_sq_2.a.Id, a.NullableValue: a_sq_1_sq_2.a.NullableValue, _sq_1._sq_1_key: a_sq_1_sq_2._sq_1._sq_1_key, _sq_1._sq_1_corr_0: a_sq_1_sq_2._sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1: a_sq_1_sq_2._sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2: a_sq_1_sq_2._sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3: a_sq_1_sq_2._sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4: a_sq_1_sq_2._sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5: a_sq_1_sq_2._sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6: a_sq_1_sq_2._sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7: a_sq_1_sq_2._sq_1._sq_1_corr_7, _sq_2._sq_2_key: a_sq_1_sq_2._sq_2._sq_2_key, _sq_2._sq_2_corr_0: a_sq_1_sq_2._sq_2._sq_2_corr_0, _sq_2._sq_2_corr_1: a_sq_1_sq_2._sq_2._sq_2_corr_1, _sq_2._sq_2_corr_2: a_sq_1_sq_2._sq_2._sq_2_corr_2, _sq_2._sq_2_corr_3: a_sq_1_sq_2._sq_2._sq_2_corr_3, _sq_2._sq_2_corr_4: a_sq_1_sq_2._sq_2._sq_2_corr_4, _sq_2._sq_2_corr_5: a_sq_1_sq_2._sq_2._sq_2_corr_5, _sq_2._sq_2_corr_6: a_sq_1_sq_2._sq_2._sq_2_corr_6, _sq_2._sq_2_corr_7: a_sq_1_sq_2._sq_2._sq_2_corr_7, _sq_3_corr_0: _sq_3._sq_3_corr_0, _sq_3_corr_1: _sq_3._sq_3_corr_1, _sq_3_corr_2: _sq_3._sq_3_corr_2, _sq_3_corr_3: _sq_3._sq_3_corr_3, _sq_3_corr_4: _sq_3._sq_3_corr_4, _sq_3_corr_5: _sq_3._sq_3_corr_5, _sq_3_corr_6: _sq_3._sq_3_corr_6, _sq_3_corr_7: _sq_3._sq_3_corr_7, _sq_3_value: _sq_3._sq_3_value)]
@@ -803,7 +791,7 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
             var cte0_bRowsSource = __cte0_bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), Array.Empty<object>());
             var cte0_bRows = cte0_bRowsSource.Chunks;
             var statement0 = new List<Statement0Row0>();
-            var statement0_sq_1Hash = new Dictionary<object, HashJoinBucket<_sq_1HashPayload0>>();
+            var statement0_sq_1Keys = new HashSet<ValueTuple<int?, string, string, string, decimal?, string, decimal?, ValueTuple<int?, int?>>>();
             foreach (var bChunk in cte0_bRows)
             {
                 if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
@@ -819,21 +807,19 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                             }
 
                             var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                            _sq_1HashPayload0 _sq_1 = new _sq_1HashPayload0(1, b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue);
-                            object key = (object)Musoq.Evaluator.Helpers.EvaluationHelper.CreateNullableHashJoinKey(_sq_1._sq_1_key, _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7);
-                            if (key == null)
+                            var key0 = 1;
+                            var key1 = b.Name;
+                            var key2 = b.City;
+                            var key3 = b.Country;
+                            var key4 = b.Population;
+                            var key5 = b.Month;
+                            var key6 = b.Money;
+                            var key7 = b.Id;
+                            var key8 = b.NullableValue;
+                            if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
                                 continue;
-                            {
-                                ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0_sq_1Hash, key, out var matchesExists);
-                                if (!matchesExists)
-                                {
-                                    matches = new HashJoinBucket<_sq_1HashPayload0>(_sq_1);
-                                }
-                                else
-                                {
-                                    matches.Add(_sq_1);
-                                }
-                            }
+                            var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                            statement0_sq_1Keys.Add(key);
                         }
 
                         continue;
@@ -850,21 +836,19 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                             }
 
                             var b = bChunkViewList[bChunkViewOffset + bIndex];
-                            _sq_1HashPayload0 _sq_1 = new _sq_1HashPayload0(1, b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue);
-                            object key = (object)Musoq.Evaluator.Helpers.EvaluationHelper.CreateNullableHashJoinKey(_sq_1._sq_1_key, _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7);
-                            if (key == null)
+                            var key0 = 1;
+                            var key1 = b.Name;
+                            var key2 = b.City;
+                            var key3 = b.Country;
+                            var key4 = b.Population;
+                            var key5 = b.Month;
+                            var key6 = b.Money;
+                            var key7 = b.Id;
+                            var key8 = b.NullableValue;
+                            if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
                                 continue;
-                            {
-                                ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0_sq_1Hash, key, out var matchesExists);
-                                if (!matchesExists)
-                                {
-                                    matches = new HashJoinBucket<_sq_1HashPayload0>(_sq_1);
-                                }
-                                else
-                                {
-                                    matches.Add(_sq_1);
-                                }
-                            }
+                            var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                            statement0_sq_1Keys.Add(key);
                         }
 
                         continue;
@@ -879,21 +863,19 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                     }
 
                     var b = bChunk[bIndex];
-                    _sq_1HashPayload0 _sq_1 = new _sq_1HashPayload0(1, b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue);
-                    object key = (object)Musoq.Evaluator.Helpers.EvaluationHelper.CreateNullableHashJoinKey(_sq_1._sq_1_key, _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7);
-                    if (key == null)
+                    var key0 = 1;
+                    var key1 = b.Name;
+                    var key2 = b.City;
+                    var key3 = b.Country;
+                    var key4 = b.Population;
+                    var key5 = b.Month;
+                    var key6 = b.Money;
+                    var key7 = b.Id;
+                    var key8 = b.NullableValue;
+                    if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
                         continue;
-                    {
-                        ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0_sq_1Hash, key, out var matchesExists);
-                        if (!matchesExists)
-                        {
-                            matches = new HashJoinBucket<_sq_1HashPayload0>(_sq_1);
-                        }
-                        else
-                        {
-                            matches.Add(_sq_1);
-                        }
-                    }
+                    var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                    statement0_sq_1Keys.Add(key);
                 }
             }
 
@@ -912,20 +894,29 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                             }
 
                             var a = aChunkViewArray[aChunkViewOffset + aIndex];
-                            bool statement0_sq_1HashHasMatch = false;
-                            object key = (object)Musoq.Evaluator.Helpers.EvaluationHelper.CreateNullableHashJoinKey(1, a.Name, a.City, a.Country, a.Population, a.Month, a.Money, a.Id, a.NullableValue);
-                            if (key != null && statement0_sq_1Hash.TryGetValue(key, out var statement0_sq_1HashMatches))
+                            var key0 = 1;
+                            var key1 = a.Name;
+                            var key2 = a.City;
+                            var key3 = a.Country;
+                            var key4 = a.Population;
+                            var key5 = a.Month;
+                            var key6 = a.Money;
+                            var key7 = a.Id;
+                            var key8 = a.NullableValue;
+                            var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                            if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement0_sq_1Keys.Contains(key))
                             {
-                                foreach (var _sq_1 in statement0_sq_1HashMatches)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                    statement0_sq_1HashHasMatch = true;
-                                    statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, _sq_1._sq_1_key, _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7));
-                                    break;
-                                }
+                                string name = a.Name;
+                                string city = a.City;
+                                string country = a.Country;
+                                decimal population = a.Population;
+                                decimal money = a.Money;
+                                string month = a.Month;
+                                int id = a.Id;
+                                int? nullableValue = a.NullableValue;
+                                statement0.Add(new Statement0Row0(name, city, country, population, money, month, id, nullableValue, 1, name, city, country, population, month, money, id, nullableValue));
                             }
-
-                            if (!statement0_sq_1HashHasMatch)
+                            else
                             {
                                 statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, null));
                             }
@@ -945,20 +936,29 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                             }
 
                             var a = aChunkViewList[aChunkViewOffset + aIndex];
-                            bool statement0_sq_1HashHasMatch = false;
-                            object key = (object)Musoq.Evaluator.Helpers.EvaluationHelper.CreateNullableHashJoinKey(1, a.Name, a.City, a.Country, a.Population, a.Month, a.Money, a.Id, a.NullableValue);
-                            if (key != null && statement0_sq_1Hash.TryGetValue(key, out var statement0_sq_1HashMatches))
+                            var key0 = 1;
+                            var key1 = a.Name;
+                            var key2 = a.City;
+                            var key3 = a.Country;
+                            var key4 = a.Population;
+                            var key5 = a.Month;
+                            var key6 = a.Money;
+                            var key7 = a.Id;
+                            var key8 = a.NullableValue;
+                            var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                            if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement0_sq_1Keys.Contains(key))
                             {
-                                foreach (var _sq_1 in statement0_sq_1HashMatches)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                    statement0_sq_1HashHasMatch = true;
-                                    statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, _sq_1._sq_1_key, _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7));
-                                    break;
-                                }
+                                string name = a.Name;
+                                string city = a.City;
+                                string country = a.Country;
+                                decimal population = a.Population;
+                                decimal money = a.Money;
+                                string month = a.Month;
+                                int id = a.Id;
+                                int? nullableValue = a.NullableValue;
+                                statement0.Add(new Statement0Row0(name, city, country, population, money, month, id, nullableValue, 1, name, city, country, population, month, money, id, nullableValue));
                             }
-
-                            if (!statement0_sq_1HashHasMatch)
+                            else
                             {
                                 statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, null));
                             }
@@ -976,20 +976,29 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                     }
 
                     var a = aChunk[aIndex];
-                    bool statement0_sq_1HashHasMatch = false;
-                    object key = (object)Musoq.Evaluator.Helpers.EvaluationHelper.CreateNullableHashJoinKey(1, a.Name, a.City, a.Country, a.Population, a.Month, a.Money, a.Id, a.NullableValue);
-                    if (key != null && statement0_sq_1Hash.TryGetValue(key, out var statement0_sq_1HashMatches))
+                    var key0 = 1;
+                    var key1 = a.Name;
+                    var key2 = a.City;
+                    var key3 = a.Country;
+                    var key4 = a.Population;
+                    var key5 = a.Month;
+                    var key6 = a.Money;
+                    var key7 = a.Id;
+                    var key8 = a.NullableValue;
+                    var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                    if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement0_sq_1Keys.Contains(key))
                     {
-                        foreach (var _sq_1 in statement0_sq_1HashMatches)
-                        {
-                            token.ThrowIfCancellationRequested();
-                            statement0_sq_1HashHasMatch = true;
-                            statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, _sq_1._sq_1_key, _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7));
-                            break;
-                        }
+                        string name = a.Name;
+                        string city = a.City;
+                        string country = a.Country;
+                        decimal population = a.Population;
+                        decimal money = a.Money;
+                        string month = a.Month;
+                        int id = a.Id;
+                        int? nullableValue = a.NullableValue;
+                        statement0.Add(new Statement0Row0(name, city, country, population, money, month, id, nullableValue, 1, name, city, country, population, month, money, id, nullableValue));
                     }
-
-                    if (!statement0_sq_1HashHasMatch)
+                    else
                     {
                         statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, null));
                     }
@@ -1006,7 +1015,7 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
             var cte1_bRowsSource = __cte1_bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:3", sourceExecutionPlans["b:3"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:3"], logger, OnDataSourceProgress), Array.Empty<object>());
             var cte1_bRows = cte1_bRowsSource.Chunks;
             var statement1 = new List<Statement1Row0>(_cteRowResults.Slot3.Count);
-            var statement1_sq_2Hash = new Dictionary<object, HashJoinBucket<_sq_2HashPayload0>>();
+            var statement1_sq_2Keys = new HashSet<ValueTuple<int?, string, string, string, decimal?, string, decimal?, ValueTuple<int?, int?>>>();
             foreach (var bChunk in cte1_bRows)
             {
                 if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
@@ -1022,21 +1031,19 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                             }
 
                             var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                            _sq_2HashPayload0 _sq_2 = new _sq_2HashPayload0(1, b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue);
-                            object key = (object)Musoq.Evaluator.Helpers.EvaluationHelper.CreateNullableHashJoinKey(_sq_2._sq_2_key, _sq_2._sq_2_corr_0, _sq_2._sq_2_corr_1, _sq_2._sq_2_corr_2, _sq_2._sq_2_corr_3, _sq_2._sq_2_corr_4, _sq_2._sq_2_corr_5, _sq_2._sq_2_corr_6, _sq_2._sq_2_corr_7);
-                            if (key == null)
+                            var key0 = 1;
+                            var key1 = b.Name;
+                            var key2 = b.City;
+                            var key3 = b.Country;
+                            var key4 = b.Population;
+                            var key5 = b.Month;
+                            var key6 = b.Money;
+                            var key7 = b.Id;
+                            var key8 = b.NullableValue;
+                            if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
                                 continue;
-                            {
-                                ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement1_sq_2Hash, key, out var matchesExists);
-                                if (!matchesExists)
-                                {
-                                    matches = new HashJoinBucket<_sq_2HashPayload0>(_sq_2);
-                                }
-                                else
-                                {
-                                    matches.Add(_sq_2);
-                                }
-                            }
+                            var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                            statement1_sq_2Keys.Add(key);
                         }
 
                         continue;
@@ -1053,21 +1060,19 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                             }
 
                             var b = bChunkViewList[bChunkViewOffset + bIndex];
-                            _sq_2HashPayload0 _sq_2 = new _sq_2HashPayload0(1, b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue);
-                            object key = (object)Musoq.Evaluator.Helpers.EvaluationHelper.CreateNullableHashJoinKey(_sq_2._sq_2_key, _sq_2._sq_2_corr_0, _sq_2._sq_2_corr_1, _sq_2._sq_2_corr_2, _sq_2._sq_2_corr_3, _sq_2._sq_2_corr_4, _sq_2._sq_2_corr_5, _sq_2._sq_2_corr_6, _sq_2._sq_2_corr_7);
-                            if (key == null)
+                            var key0 = 1;
+                            var key1 = b.Name;
+                            var key2 = b.City;
+                            var key3 = b.Country;
+                            var key4 = b.Population;
+                            var key5 = b.Month;
+                            var key6 = b.Money;
+                            var key7 = b.Id;
+                            var key8 = b.NullableValue;
+                            if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
                                 continue;
-                            {
-                                ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement1_sq_2Hash, key, out var matchesExists);
-                                if (!matchesExists)
-                                {
-                                    matches = new HashJoinBucket<_sq_2HashPayload0>(_sq_2);
-                                }
-                                else
-                                {
-                                    matches.Add(_sq_2);
-                                }
-                            }
+                            var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                            statement1_sq_2Keys.Add(key);
                         }
 
                         continue;
@@ -1082,21 +1087,19 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                     }
 
                     var b = bChunk[bIndex];
-                    _sq_2HashPayload0 _sq_2 = new _sq_2HashPayload0(1, b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue);
-                    object key = (object)Musoq.Evaluator.Helpers.EvaluationHelper.CreateNullableHashJoinKey(_sq_2._sq_2_key, _sq_2._sq_2_corr_0, _sq_2._sq_2_corr_1, _sq_2._sq_2_corr_2, _sq_2._sq_2_corr_3, _sq_2._sq_2_corr_4, _sq_2._sq_2_corr_5, _sq_2._sq_2_corr_6, _sq_2._sq_2_corr_7);
-                    if (key == null)
+                    var key0 = 1;
+                    var key1 = b.Name;
+                    var key2 = b.City;
+                    var key3 = b.Country;
+                    var key4 = b.Population;
+                    var key5 = b.Month;
+                    var key6 = b.Money;
+                    var key7 = b.Id;
+                    var key8 = b.NullableValue;
+                    if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
                         continue;
-                    {
-                        ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement1_sq_2Hash, key, out var matchesExists);
-                        if (!matchesExists)
-                        {
-                            matches = new HashJoinBucket<_sq_2HashPayload0>(_sq_2);
-                        }
-                        else
-                        {
-                            matches.Add(_sq_2);
-                        }
-                    }
+                    var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                    statement1_sq_2Keys.Add(key);
                 }
             }
 
@@ -1109,20 +1112,29 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                 }
 
                 Statement0Row0 a_sq_1 = __storedTable3Rows[__storedTable3Index];
-                bool statement1_sq_2HashHasMatch = false;
-                object key = (object)Musoq.Evaluator.Helpers.EvaluationHelper.CreateNullableHashJoinKey(1, a_sq_1.a_Name, a_sq_1.a_City, a_sq_1.a_Country, a_sq_1.a_Population, a_sq_1.a_Month, a_sq_1.a_Money, a_sq_1.a_Id, a_sq_1.a_NullableValue);
-                if (key != null && statement1_sq_2Hash.TryGetValue(key, out var statement1_sq_2HashMatches))
+                var key0 = 1;
+                var key1 = a_sq_1.a_Name;
+                var key2 = a_sq_1.a_City;
+                var key3 = a_sq_1.a_Country;
+                var key4 = a_sq_1.a_Population;
+                var key5 = a_sq_1.a_Month;
+                var key6 = a_sq_1.a_Money;
+                var key7 = a_sq_1.a_Id;
+                var key8 = a_sq_1.a_NullableValue;
+                var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement1_sq_2Keys.Contains(key))
                 {
-                    foreach (var _sq_2 in statement1_sq_2HashMatches)
-                    {
-                        token.ThrowIfCancellationRequested();
-                        statement1_sq_2HashHasMatch = true;
-                        statement1.Add(new Statement1Row0(a_sq_1.a_Name, a_sq_1.a_City, a_sq_1.a_Country, a_sq_1.a_Population, a_sq_1.a_Money, a_sq_1.a_Month, a_sq_1.a_Id, a_sq_1.a_NullableValue, a_sq_1._sq_1__sq_1_key, a_sq_1._sq_1__sq_1_corr_0, a_sq_1._sq_1__sq_1_corr_1, a_sq_1._sq_1__sq_1_corr_2, a_sq_1._sq_1__sq_1_corr_3, a_sq_1._sq_1__sq_1_corr_4, a_sq_1._sq_1__sq_1_corr_5, a_sq_1._sq_1__sq_1_corr_6, a_sq_1._sq_1__sq_1_corr_7, _sq_2._sq_2_key, _sq_2._sq_2_corr_0, _sq_2._sq_2_corr_1, _sq_2._sq_2_corr_2, _sq_2._sq_2_corr_3, _sq_2._sq_2_corr_4, _sq_2._sq_2_corr_5, _sq_2._sq_2_corr_6, _sq_2._sq_2_corr_7));
-                        break;
-                    }
+                    string a_Name = a_sq_1.a_Name;
+                    string a_City = a_sq_1.a_City;
+                    string a_Country = a_sq_1.a_Country;
+                    decimal a_Population = a_sq_1.a_Population;
+                    decimal a_Money = a_sq_1.a_Money;
+                    string a_Month = a_sq_1.a_Month;
+                    int a_Id = a_sq_1.a_Id;
+                    int? a_NullableValue = a_sq_1.a_NullableValue;
+                    statement1.Add(new Statement1Row0(a_Name, a_City, a_Country, a_Population, a_Money, a_Month, a_Id, a_NullableValue, a_sq_1._sq_1__sq_1_key, a_sq_1._sq_1__sq_1_corr_0, a_sq_1._sq_1__sq_1_corr_1, a_sq_1._sq_1__sq_1_corr_2, a_sq_1._sq_1__sq_1_corr_3, a_sq_1._sq_1__sq_1_corr_4, a_sq_1._sq_1__sq_1_corr_5, a_sq_1._sq_1__sq_1_corr_6, a_sq_1._sq_1__sq_1_corr_7, 1, a_Name, a_City, a_Country, a_Population, a_Month, a_Money, a_Id, a_NullableValue));
                 }
-
-                if (!statement1_sq_2HashHasMatch)
+                else
                 {
                     statement1.Add(new Statement1Row0(a_sq_1.a_Name, a_sq_1.a_City, a_sq_1.a_Country, a_sq_1.a_Population, a_sq_1.a_Money, a_sq_1.a_Month, a_sq_1.a_Id, a_sq_1.a_NullableValue, a_sq_1._sq_1__sq_1_key, a_sq_1._sq_1__sq_1_corr_0, a_sq_1._sq_1__sq_1_corr_1, a_sq_1._sq_1__sq_1_corr_2, a_sq_1._sq_1__sq_1_corr_3, a_sq_1._sq_1__sq_1_corr_4, a_sq_1._sq_1__sq_1_corr_5, a_sq_1._sq_1__sq_1_corr_6, a_sq_1._sq_1__sq_1_corr_7, null, null, null, null, null, null, null, null, null));
                 }
@@ -1137,7 +1149,7 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
             var statement2 = new List<Statement2Row0>(_cteRowResults.Slot4.Count);
             var statement2_sq_3HashEmptyState = new Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.State();
             Musoq.Plugins.CorrelatedScalarSubqueryResult<string> statement2_sq_3HashEmptyValue = (Musoq.Plugins.CorrelatedScalarSubqueryResult<string>)Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Get(statement2_sq_3HashEmptyState);
-            var statement2_sq_3Hash = new Dictionary<object, HashJoinBucket<Cte2Row0>>(_cteRowResults.Slot2.Count);
+            var statement2_sq_3Hash = new Dictionary<ValueTuple<string, string, string, decimal?, string, decimal?, int?, ValueTuple<int?>>, HashJoinBucket<Cte2Row0>>(_cteRowResults.Slot2.Count);
             var __storedTable2Rows = _cteRowResults.Slot2;
             for (int __storedTable2Index = 0; __storedTable2Index < __storedTable2Rows.Count; ++__storedTable2Index)
             {
@@ -1147,9 +1159,17 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                 }
 
                 Cte2Row0 _sq_3 = __storedTable2Rows[__storedTable2Index];
-                object key = (object)Musoq.Evaluator.Helpers.EvaluationHelper.CreateNullableHashJoinKey(_sq_3._sq_3_corr_0, _sq_3._sq_3_corr_1, _sq_3._sq_3_corr_2, _sq_3._sq_3_corr_3, _sq_3._sq_3_corr_4, _sq_3._sq_3_corr_5, _sq_3._sq_3_corr_6, _sq_3._sq_3_corr_7);
-                if (key == null)
+                var key0 = _sq_3._sq_3_corr_0;
+                var key1 = _sq_3._sq_3_corr_1;
+                var key2 = _sq_3._sq_3_corr_2;
+                var key3 = _sq_3._sq_3_corr_3;
+                var key4 = _sq_3._sq_3_corr_4;
+                var key5 = _sq_3._sq_3_corr_5;
+                var key6 = _sq_3._sq_3_corr_6;
+                var key7 = _sq_3._sq_3_corr_7;
+                if (key0 == null || key1 == null || key2 == null || key3 == null || key4 == null || key5 == null || key6 == null || key7 == null)
                     continue;
+                var key = (key0, key1, key2, key3, key4, key5, key6, key7);
                 {
                     ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement2_sq_3Hash, key, out var matchesExists);
                     if (!matchesExists)
@@ -1173,8 +1193,16 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
 
                 Statement1Row0 a_sq_1_sq_2 = __storedTable4Rows[__storedTable4Index];
                 bool statement2_sq_3HashHasMatch = false;
-                object key = (object)Musoq.Evaluator.Helpers.EvaluationHelper.CreateNullableHashJoinKey(a_sq_1_sq_2.a_Name, a_sq_1_sq_2.a_City, a_sq_1_sq_2.a_Country, a_sq_1_sq_2.a_Population, a_sq_1_sq_2.a_Month, a_sq_1_sq_2.a_Money, a_sq_1_sq_2.a_Id, a_sq_1_sq_2.a_NullableValue);
-                if (key != null && statement2_sq_3Hash.TryGetValue(key, out var statement2_sq_3HashMatches))
+                var key0 = a_sq_1_sq_2.a_Name;
+                var key1 = a_sq_1_sq_2.a_City;
+                var key2 = a_sq_1_sq_2.a_Country;
+                var key3 = a_sq_1_sq_2.a_Population;
+                var key4 = a_sq_1_sq_2.a_Month;
+                var key5 = a_sq_1_sq_2.a_Money;
+                var key6 = a_sq_1_sq_2.a_Id;
+                var key7 = a_sq_1_sq_2.a_NullableValue;
+                var key = (key0, key1, key2, key3, key4, key5, key6, key7);
+                if (key0 != null && key1 != null && key2 != null && key4 != null && key7 != null && statement2_sq_3Hash.TryGetValue(key, out var statement2_sq_3HashMatches))
                 {
                     foreach (var _sq_3 in statement2_sq_3HashMatches)
                     {
@@ -1515,56 +1543,6 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
             public string a_Name { get; }
             public int? a_NullableValue { get; }
             public decimal a_Population { get; }
-        }
-
-        private readonly struct _sq_1HashPayload0
-        {
-            public readonly int _sq_1_key;
-            public readonly string _sq_1_corr_0;
-            public readonly string _sq_1_corr_1;
-            public readonly string _sq_1_corr_2;
-            public readonly decimal _sq_1_corr_3;
-            public readonly string _sq_1_corr_4;
-            public readonly decimal _sq_1_corr_5;
-            public readonly int _sq_1_corr_6;
-            public readonly int? _sq_1_corr_7;
-            public _sq_1HashPayload0(int _sq_1_key, string _sq_1_corr_0, string _sq_1_corr_1, string _sq_1_corr_2, decimal _sq_1_corr_3, string _sq_1_corr_4, decimal _sq_1_corr_5, int _sq_1_corr_6, int? _sq_1_corr_7)
-            {
-                this._sq_1_key = _sq_1_key;
-                this._sq_1_corr_0 = _sq_1_corr_0;
-                this._sq_1_corr_1 = _sq_1_corr_1;
-                this._sq_1_corr_2 = _sq_1_corr_2;
-                this._sq_1_corr_3 = _sq_1_corr_3;
-                this._sq_1_corr_4 = _sq_1_corr_4;
-                this._sq_1_corr_5 = _sq_1_corr_5;
-                this._sq_1_corr_6 = _sq_1_corr_6;
-                this._sq_1_corr_7 = _sq_1_corr_7;
-            }
-        }
-
-        private readonly struct _sq_2HashPayload0
-        {
-            public readonly int _sq_2_key;
-            public readonly string _sq_2_corr_0;
-            public readonly string _sq_2_corr_1;
-            public readonly string _sq_2_corr_2;
-            public readonly decimal _sq_2_corr_3;
-            public readonly string _sq_2_corr_4;
-            public readonly decimal _sq_2_corr_5;
-            public readonly int _sq_2_corr_6;
-            public readonly int? _sq_2_corr_7;
-            public _sq_2HashPayload0(int _sq_2_key, string _sq_2_corr_0, string _sq_2_corr_1, string _sq_2_corr_2, decimal _sq_2_corr_3, string _sq_2_corr_4, decimal _sq_2_corr_5, int _sq_2_corr_6, int? _sq_2_corr_7)
-            {
-                this._sq_2_key = _sq_2_key;
-                this._sq_2_corr_0 = _sq_2_corr_0;
-                this._sq_2_corr_1 = _sq_2_corr_1;
-                this._sq_2_corr_2 = _sq_2_corr_2;
-                this._sq_2_corr_3 = _sq_2_corr_3;
-                this._sq_2_corr_4 = _sq_2_corr_4;
-                this._sq_2_corr_5 = _sq_2_corr_5;
-                this._sq_2_corr_6 = _sq_2_corr_6;
-                this._sq_2_corr_7 = _sq_2_corr_7;
-            }
         }
     }
 }

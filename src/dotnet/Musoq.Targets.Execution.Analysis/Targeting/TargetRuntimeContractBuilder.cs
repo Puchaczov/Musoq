@@ -22,6 +22,8 @@ internal static class TargetRuntimeContractBuilder
             .Where(static requirement => requirement.Kind == ExecutionTargetRequirementKind.PluginInvocation)
             .Where(static requirement => requirement.CallableSymbol != null)
             .Select(static requirement => new TargetPluginInvocationContract(requirement.Detail, requirement.CallableSymbol!))
+            .GroupBy(static invocation => (invocation.Detail, StableName: invocation.Callable.StableName))
+            .Select(static group => group.First())
             .OrderBy(static invocation => invocation.Detail, StringComparer.Ordinal)
             .ThenBy(static invocation => invocation.Callable.StableName, StringComparer.Ordinal)
             .ToArray();

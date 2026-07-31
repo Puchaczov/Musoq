@@ -61,9 +61,9 @@ internal static class TargetHostAbiInventoryBuilder
         {
             imports.Add(new TargetHostAbiImport(
                 TargetHostAbiImportKind.PluginInvocation,
-                invocation.Detail,
-                "plugin-invocation-v1",
-                1,
+                $"{invocation.Detail} [{invocation.Callable.StableName}]",
+                "plugin-invocation-v2",
+                2,
                 new TargetPluginInvocationAbiDetails(
                     invocation.Detail,
                     invocation.Callable.StableName,

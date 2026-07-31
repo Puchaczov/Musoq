@@ -54,6 +54,7 @@
   </Target>
   <ItemGroup>
     <InternalsVisibleTo Include="Musoq.Converter.Tests" />
+    <InternalsVisibleTo Include="Musoq.Evaluator.Tests" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Build\BuildItems.Access.cs">
@@ -90,6 +91,9 @@
       <DependentUpon>InstanceCreator.cs</DependentUpon>
     </Compile>
     <Compile Update="InstanceCreator.ExecutionCompilationCache.Build.cs">
+      <DependentUpon>InstanceCreator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="InstanceCreator.ExecutionCompilationCache.Contract.cs">
       <DependentUpon>InstanceCreator.cs</DependentUpon>
     </Compile>
     <Compile Update="InstanceCreator.ExecutionCompilationCache.cs">

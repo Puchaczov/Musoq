@@ -12,7 +12,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var expression = PopSemanticNode(nameof(Visit) + nameof(CastNode));
 
-        if (!StrictCastRuntime.TryGetReturnType(node.TargetTypeName, out var returnType))
+        if (!StrictCastRuntime.TryResolveTarget(node.TargetTypeName, out var canonicalTypeName, out var returnType))
         {
             if (TryReportSemanticError<NotSupportedException>(
                     DiagnosticCode.MQ2030_UnsupportedSyntax,
@@ -24,6 +24,6 @@ public partial class BuildMetadataAndInferTypesVisitor
             }
         }
 
-        PushSemanticNode(new CastNode(expression, node.TargetTypeName, returnType).WithSpan(node.Span));
+        PushSemanticNode(new CastNode(expression, canonicalTypeName, returnType).WithSpan(node.Span));
     }
 }

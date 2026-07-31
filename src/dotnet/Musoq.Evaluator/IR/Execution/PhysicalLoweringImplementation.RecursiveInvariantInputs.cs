@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Musoq.Evaluator.IR;
 using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.Tables;
@@ -261,7 +262,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var types = invariant.HashKeys.Select((key, index) =>
                 ResolveCommonKeyType(key.ReturnType, invariant.HashProbeKeys[index].ReturnType))
             .ToArray();
-        return types.Length <= 7 ? CreateValueTupleType(types) : typeof(object);
+        return ValueTupleTypeShape.TryCreate(types, out var tupleType) ? tupleType : typeof(object);
     }
 }
 

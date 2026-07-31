@@ -9,7 +9,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2BenchmarkMaterializedSamples_WhenCheckedIn_ShouldExposeSlowerBenchmarkShapes()
     {
-        var samples = ReadSamples().ToDictionary(static item => item.FileName, static item => item.Content);
+        var samples = ReadNamedSamples(BenchmarkMaterializedSampleFileNames)
+            .ToDictionary(static item => item.FileName, static item => item.Content);
         var cseNoDuplicate = samples[BenchmarkCseNoDuplicateMaterializedSampleFileName];
         var cseCaseNoDuplicate = samples[BenchmarkCseCaseNoDuplicateMaterializedSampleFileName];
         var parallelTableAdd = samples[BenchmarkParallelTableAddMaterializedSampleFileName];
@@ -65,7 +66,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void InterpretationBenchmarkMaterializedSamples_WhenCheckedIn_ShouldExposeScalarInterpretationShape()
     {
-        var samples = ReadSamples().ToDictionary(static item => item.FileName, static item => item.Content);
+        var samples = ReadNamedSamples(BenchmarkInterpretationMaterializedSampleFileNames)
+            .ToDictionary(static item => item.FileName, static item => item.Content);
         var multipleFiles = samples[BenchmarkInterpretationMultipleFilesMaterializedSampleFileName];
         var highThroughput = samples[BenchmarkInterpretationHighThroughputMaterializedSampleFileName];
 
@@ -95,8 +97,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void OptimizedMixedColumnBenchmarkSample_WhenCheckedIn_ShouldExposeRowLocalMethodCseWithoutSharedCache()
     {
-        var sample = ReadSamples()
-            .Single(static item => item.FileName == BenchmarkOptimizedMixedColumnMethodMaterializedSampleFileName)
+        var sample = ReadSample(BenchmarkOptimizedMixedColumnMethodMaterializedSampleFileName)
             .Content;
 
         Assert.Contains("Name + '_' + StringTransform(Name)", sample);

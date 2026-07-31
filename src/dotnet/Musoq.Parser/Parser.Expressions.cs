@@ -35,12 +35,11 @@ public partial class Parser
 
         if (IsNumericToken(Current)) left = new AddNode(left, ComposePostfixExpression(minPrecedence));
 
-        while (IsArithmeticBinaryOperator(Current) &&
-               _precedenceDictionary[Current.TokenType].Precendence >= minPrecedence)
+        while (GetArithmeticPrecedence(Current.TokenType) >= minPrecedence)
         {
             var curr = Current;
-            var op = _precedenceDictionary[Current.TokenType];
-            var nextMinPrecedence = op.Associativity == Associativity.Left ? op.Precendence + 1 : op.Precendence;
+            var precedence = GetArithmeticPrecedence(curr.TokenType);
+            var nextMinPrecedence = curr.TokenType == TokenType.NullCoalescing ? precedence : precedence + 1;
             Consume(Current.TokenType);
 
 

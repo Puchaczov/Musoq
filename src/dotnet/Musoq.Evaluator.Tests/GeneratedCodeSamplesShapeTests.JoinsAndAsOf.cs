@@ -56,7 +56,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SimpleInnerHashJoinSample_WhenCheckedIn_ShouldKeepSingleUseFusionShape()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == InnerJoinSampleFileName).Content;
+        var sample = ReadSample(InnerJoinSampleFileName).Content;
 
         Assert.Contains("CtePhase [cte0]", sample);
         Assert.Contains("OnPhaseChanged(\"compiled:cte0\", QueryPhase.Begin);", sample);
@@ -74,7 +74,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SimpleInnerHashJoinSample_WhenCheckedIn_ShouldUseHashJoinBucketAndEnumerableCapacity()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == InnerJoinSampleFileName).Content;
+        var sample = ReadSample(InnerJoinSampleFileName).Content;
         var computeMethod = GetComputeMethod(sample);
 
         Assert.Contains("CreateHash [bHash: int -> BasicEntity]", sample);
@@ -104,9 +104,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SimpleOuterHashJoinSamples_WhenCheckedIn_ShouldUseExecutionIrNullExtendedHashProbe()
     {
-        var samples = ReadSamples()
-            .Where(static sample => SimpleOuterHashJoinSampleFileNames.Contains(sample.FileName))
-            .ToArray();
+        var samples = ReadNamedSamples(SimpleOuterHashJoinSampleFileNames);
 
         Assert.HasCount(SimpleOuterHashJoinSampleFileNames.Length, samples);
 
@@ -120,7 +118,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void LeftJoinTwoSchemasSameKeySample_WhenCheckedIn_ShouldExtractHashJoinLoopsIntoHelpers()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == LeftJoinTwoSchemasSameKeySampleFileName).Content;
+        var sample = ReadSample(LeftJoinTwoSchemasSameKeySampleFileName).Content;
         var computeMethod = GetComputeMethod(sample);
 
         Assert.Contains("foreach (var bChunk in bRows)", computeMethod);
@@ -163,7 +161,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void AsOfJoinSample_WhenCheckedIn_ShouldUseExecutionIrAsOfProbe()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == AsOfJoinSampleFileName);
+        var sample = ReadSample(AsOfJoinSampleFileName);
         var failures = GetAsOfJoinShapeFailures(sample.Content);
 
         Assert.IsEmpty(failures, $"{AsOfJoinSampleFileName} has stale resolver shape: {string.Join(", ", failures)}");
@@ -200,7 +198,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void AsOfTieBreakSample_WhenCheckedIn_ShouldUseTypedTieBreakIndex()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == AsOfTieBreakSampleFileName);
+        var sample = ReadSample(AsOfTieBreakSampleFileName);
         var failures = GetAsOfTieBreakShapeFailures(sample.Content);
 
         Assert.IsEmpty(failures, $"{AsOfTieBreakSampleFileName} has stale tie-break shape: {string.Join(", ", failures)}");
@@ -235,7 +233,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CteBackedAsOfJoinSample_WhenCheckedIn_ShouldUseExecutionIrTableBackedAsOfProbe()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == CteBackedAsOfJoinSampleFileName);
+        var sample = ReadSample(CteBackedAsOfJoinSampleFileName);
         var failures = GetCteBackedAsOfJoinShapeFailures(sample.Content);
 
         Assert.IsEmpty(
@@ -282,7 +280,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void DynamicCteBackedAsOfJoinSample_WhenCheckedIn_ShouldUseExecutionIrDynamicTypedAsOfProbe()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == DynamicCteBackedAsOfJoinSampleFileName);
+        var sample = ReadSample(DynamicCteBackedAsOfJoinSampleFileName);
         var failures = GetDynamicCteBackedAsOfJoinShapeFailures(sample.Content);
 
         Assert.IsEmpty(

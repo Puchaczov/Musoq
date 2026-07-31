@@ -9,7 +9,8 @@ public sealed record ExecutionFieldRead(
     string? Alias,
     string FieldName,
     ExecutionTypeRef ReturnType,
-    FieldAccessStrategy? AccessStrategy = null) : ExecutionExpression(ReturnType)
+    FieldAccessStrategy? AccessStrategy = null,
+    string? GeneratedTypeName = null) : ExecutionExpression(ReturnType)
 {
     internal ExecutionFieldRead(
         string? alias,

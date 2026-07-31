@@ -35,15 +35,31 @@ internal sealed class BoundedRuntimeCache<TKey, TValue>
     {
         ArgumentNullException.ThrowIfNull(factory);
 
+        return GetOrAdd(key, factory, static _ => true);
+    }
+
+    public TValue GetOrAdd(TKey key, Func<TKey, TValue> factory, Func<TValue, bool> isCurrent)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        ArgumentNullException.ThrowIfNull(isCurrent);
+
         lock (_gate)
         {
-            if (_values.TryGetValue(key, out var existing))
+            if (_values.TryGetValue(key, out var existing) && isCurrent(existing))
                 return existing;
 
             var value = factory(key);
-            EvictOneIfFull();
-            _values.Add(key, value);
-            _insertionOrder.Enqueue(key);
+            if (_values.ContainsKey(key))
+            {
+                _values[key] = value;
+            }
+            else
+            {
+                EvictOneIfFull();
+                _values.Add(key, value);
+                _insertionOrder.Enqueue(key);
+            }
+
             PublishReadSnapshot();
             return value;
         }

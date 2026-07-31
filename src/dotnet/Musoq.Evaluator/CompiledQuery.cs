@@ -191,10 +191,10 @@ public class CompiledQuery : IDisposable
         {
             if (admissionOpen)
                 EndAdmission();
-            if (executionStarted)
-                EndExecution();
             if (gateAcquired)
                 _executionGate.Release();
+            if (executionStarted)
+                EndExecution();
         }
     }
 
@@ -257,10 +257,10 @@ public class CompiledQuery : IDisposable
         {
             if (admissionOpen)
                 EndAdmission();
-            if (executionStarted)
-                EndExecution();
             if (gateAcquired)
                 _executionGate.Release();
+            if (executionStarted)
+                EndExecution();
         }
     }
 
@@ -330,10 +330,10 @@ public class CompiledQuery : IDisposable
         {
             if (admissionOpen)
                 EndAdmission();
-            if (executionStarted)
-                EndExecution();
             if (gateAcquired)
                 _executionGate.Release();
+            if (executionStarted)
+                EndExecution();
         }
     }
 

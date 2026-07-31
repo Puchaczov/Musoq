@@ -10,11 +10,16 @@ public static partial class ExecutionPlanPrinter
             return null;
 
         var shapeTypeName = FinalSelectShapeNaming.CreateTypeName(plan.FinalResult);
+        var usesGeneratedRowCarrier = FinalGeneratedRowSinkPolicy.CanUse(
+            plan,
+            plan.FinalResult.TableName);
         return new FinalShapePrintContext(
             plan.FinalResult.TableName,
             plan.FinalResult.Shape.TypeName,
-            shapeTypeName,
-            CreateFinalShapeSourceBuffers(plan.Body, plan.FinalResult.TableName, shapeTypeName, plan.FinalResult.Shape.Fields));
+            usesGeneratedRowCarrier ? plan.FinalResult.Shape.TypeName : shapeTypeName,
+            usesGeneratedRowCarrier
+                ? new Dictionary<string, string>(StringComparer.Ordinal)
+                : CreateFinalShapeSourceBuffers(plan.Body, plan.FinalResult.TableName, shapeTypeName, plan.FinalResult.Shape.Fields));
     }
 
     private static IReadOnlyDictionary<string, string> CreateFinalShapeSourceBuffers(

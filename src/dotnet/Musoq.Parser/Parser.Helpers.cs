@@ -1,5 +1,6 @@
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
+using Musoq.Parser.Lexing;
 using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser;
@@ -39,6 +40,12 @@ public partial class Parser
                 Current.Span);
 
         _hasReplacedToken = false;
+        if (_lexer is Lexer lexer)
+        {
+            lexer.NextColumn();
+            return;
+        }
+
         _lexer.NextOf(ColumnRegex,
             value => new ColumnToken(value, new TextSpan(_lexer.Position, _lexer.Position + value.Length)));
     }

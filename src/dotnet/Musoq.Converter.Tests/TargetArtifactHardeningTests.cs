@@ -81,15 +81,127 @@ public sealed class TargetArtifactHardeningTests
     }
 
     [TestMethod]
-    public void TargetHostAbiInventory_ShouldRejectDuplicateImportsAndInvalidVersion()
+    public void TargetArtifactPackageManifest_ShouldFingerprintCompleteAbiDefinitions()
+    {
+        var first = CreatePackageWithAbiAttribute("first");
+        var second = CreatePackageWithAbiAttribute("second");
+
+        var firstManifest = TargetArtifactPackageManifestSerializer.Serialize(first);
+        var secondManifest = TargetArtifactPackageManifestSerializer.Serialize(second);
+
+        Assert.AreNotEqual(firstManifest, secondManifest);
+        StringAssert.Contains(firstManifest, "abi-definition:");
+        StringAssert.Contains(secondManifest, "abi-definition:");
+    }
+
+    [TestMethod]
+    public void TargetHostAbiInventory_ShouldCollapseEquivalentImportsAndRejectConflicts()
     {
         var import = TargetHostAbiImport.CreateCustom(
             TargetHostAbiImportKind.Diagnostics,
             "diagnostics",
             "diagnostics-v1");
 
-        Assert.Throws<ArgumentException>(() => new TargetHostAbiInventory([import, import]));
+        var inventory = new TargetHostAbiInventory([import, import]);
+        Assert.HasCount(1, inventory.Imports);
+
+        var conflicting = TargetHostAbiImport.CreateCustom(
+            TargetHostAbiImportKind.Diagnostics,
+            "diagnostics",
+            "diagnostics-v1",
+            attributes: new Dictionary<string, string> { ["mode"] = "conflicting" });
+        var exception = Assert.Throws<ArgumentException>(() =>
+            new TargetHostAbiInventory([import, conflicting]));
+        StringAssert.Contains(exception.Message, "conflicting ABI import definitions");
+        StringAssert.Contains(exception.Message, "canonical definition");
         Assert.Throws<ArgumentOutOfRangeException>(() => new TargetHostAbiInventory([], contractVersion: 0));
+    }
+
+    [TestMethod]
+    public void TargetHostAbiInventory_ShouldCollapseEquivalentCustomImportsForEveryImportKind()
+    {
+        foreach (var kind in Enum.GetValues<TargetHostAbiImportKind>())
+        {
+            var import = TargetHostAbiImport.CreateCustom(
+                kind,
+                $"{kind}:same",
+                $"{kind}-v1",
+                attributes: new Dictionary<string, string>
+                {
+                    ["z"] = "last",
+                    ["a"] = "first"
+                });
+            var equivalent = TargetHostAbiImport.CreateCustom(
+                kind,
+                $"{kind}:same",
+                $"{kind}-v1",
+                attributes: new Dictionary<string, string>
+                {
+                    ["a"] = "first",
+                    ["z"] = "last"
+                });
+
+            var inventory = new TargetHostAbiInventory([import, equivalent]);
+
+            Assert.HasCount(1, inventory.Imports, $"Duplicate {kind} import was not collapsed.");
+        }
+    }
+
+    [TestMethod]
+    public void TargetHostAbiInventory_ShouldDetectConflictsHiddenBehindSummaryAttributes()
+    {
+        var stringType = new ExecutionPortableTypeDescriptor(
+            ExecutionPortableTypeKind.Primitive,
+            "string",
+            "string");
+        var intType = new ExecutionPortableTypeDescriptor(
+            ExecutionPortableTypeKind.Primitive,
+            "primitive:int32",
+            "int");
+        var firstDetails = new TargetSourceAccessAbiDetails(
+            "schema-source",
+            "source:1",
+            "schema",
+            "rows",
+            "rows:type",
+            ExecutionPortableSymbolPortability.Portable,
+            "source:type",
+            ExecutionPortableSymbolPortability.Portable,
+            [],
+            [new TargetSourceFieldAbiContract(0, "Value", stringType, stringType, "Unknown", null)],
+            [],
+            []);
+        var secondDetails = new TargetSourceAccessAbiDetails(
+            "schema-source",
+            "source:1",
+            "schema",
+            "rows",
+            "rows:type",
+            ExecutionPortableSymbolPortability.Portable,
+            "source:type",
+            ExecutionPortableSymbolPortability.Portable,
+            [],
+            [new TargetSourceFieldAbiContract(0, "Value", intType, intType, "Unknown", null)],
+            [],
+            []);
+
+        var first = new TargetHostAbiImport(
+            TargetHostAbiImportKind.SourceAccess,
+            "source-access",
+            "source-access-v1",
+            1,
+            firstDetails);
+        var second = new TargetHostAbiImport(
+            TargetHostAbiImportKind.SourceAccess,
+            "source-access",
+            "source-access-v1",
+            1,
+            secondDetails);
+
+        var exception = Assert.Throws<ArgumentException>(() => new TargetHostAbiInventory([first, second]));
+
+        StringAssert.Contains(exception.Message, "conflicting ABI import definitions");
+        StringAssert.Contains(exception.Message, "canonical definition");
     }
 
     private static TargetArtifactPackage CreatePackage(bool reverse)
@@ -119,5 +231,29 @@ public sealed class TargetArtifactHardeningTests
             export,
             ExecutionSemanticsContract.Version1,
             metadata);
+    }
+
+    private static TargetArtifactPackage CreatePackageWithAbiAttribute(string value)
+    {
+        var inventory = new TargetHostAbiInventory(
+        [
+            TargetHostAbiImport.CreateCustom(
+                TargetHostAbiImportKind.Diagnostics,
+                "diagnostics",
+                "diagnostics-v1",
+                attributes: new Dictionary<string, string> { ["mode"] = value })
+        ]);
+        var export = TargetExportArtifact.Create(
+            TestExecutionTargetIds.TestOnlyNonClr,
+            sourceFiles: [new TargetExportSourceFile("query.js", "javascript", "export {}")],
+            entrypoints: [new TargetRuntimeEntrypoint("run", TargetRuntimeEntrypointKind.TableQuery, "run")],
+            runtimeServices: TargetRuntimeServiceRequirements.Create(TargetRuntimeServiceRequirementKind.Diagnostics),
+            hostAbiInventory: inventory);
+
+        return TargetArtifactPackage.CreatePortableExportPackage(
+            TestExecutionTargetIds.TestOnlyNonClr,
+            "PortableManifest",
+            export,
+            ExecutionSemanticsContract.Version1);
     }
 }

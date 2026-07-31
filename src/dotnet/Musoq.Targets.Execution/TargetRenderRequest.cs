@@ -58,6 +58,10 @@ internal sealed record TargetRenderRequest
 {
     public required ExecutionTargetId TargetId { get; init; }
 
+    public required TargetRenderPurpose Purpose { get; init; }
+
+    public required TargetRenderProfile Profile { get; init; }
+
     public required TargetRenderIdentity Identity { get; init; }
 
     public required TargetRenderOptions Options { get; init; }

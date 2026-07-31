@@ -103,6 +103,9 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ExpressionSyntax CreateRowsCountRead(ExecutionVariable rowsOwner, ExecutionRenderContext context)
     {
+        if (context.Session.DirectSortedRowBufferSources.TryGetValue(rowsOwner.Name, out var sourceName))
+            return CreateRowsCountRead(new ExecutionVariable(sourceName, rowsOwner.Type), context);
+
         var rowsExpression = TryGetTypedRowBufferShape(rowsOwner.Name, context, out _)
             ? (ExpressionSyntax)SyntaxFactory.IdentifierName(rowsOwner.Name)
             : CreateTableRowsRead(rowsOwner.Name);
@@ -118,8 +121,7 @@ public sealed partial class ExecutionCSharpRenderer
         return shape switch
         {
             SourceEntityShape source => (CanReferenceType(source.EntityType) ||
-                                         source.Fields.Count == 0 ||
-                                         UsesReflectedMemberAccess(source)) &&
+                                         source.Fields.Count == 0) &&
                                         CanRenderFieldTypes(source.Fields),
             ExpandoAdapterShape expando => CanRenderExpandoAdapterShape(expando),
             GeneratedRowShape generated => CanRenderGeneratedRowShape(generated),
@@ -130,11 +132,6 @@ public sealed partial class ExecutionCSharpRenderer
             TableRowShape => true,
             _ => false
         };
-    }
-
-    private static bool UsesReflectedMemberAccess(SourceEntityShape source)
-    {
-        return source.Fields.Any(static field => field.AccessStrategy is ReflectedMemberAccess);
     }
 
     private static bool CanRenderExpandoAdapterShape(ExpandoAdapterShape shape)

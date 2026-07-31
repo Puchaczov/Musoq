@@ -12,4 +12,4 @@ internal sealed record TypedProjectionLoop(
     bool CanUseParallel,
     int Threshold,
     int MaxDegreeOfParallelism,
-    ExecutionParallelFilterProjectLoop? OptionalProjectorLoop = null);
+    ExecutionBlock? OptionalProjectionBody = null);

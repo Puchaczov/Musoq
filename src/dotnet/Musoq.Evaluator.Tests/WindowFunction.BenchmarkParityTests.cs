@@ -237,12 +237,18 @@ public class WindowFunctionBenchmarkParityTests
         string query,
         int expectedRows)
     {
+        using var measurement = EvaluatorTestCaseMeasurement.Begin(
+            nameof(BenchmarkWindowScenario_WhenEntityTypeIsPrivate_ShouldCompileAndRunWithExecutionIr),
+            scenario,
+            scenario);
         var entities = CreateEntities();
-        var inspection = CompileForInspection(query, entities);
+        var inspection = measurement.MeasureCompilation(() => CompileForInspection(query, entities));
 
         AssertExecutionIrWindowSupported(scenario, inspection.ExecutionPlanText);
 
-        var table = Compile(query, entities).Run();
+        var compiled = measurement.MeasureCompilation(() => Compile(query, entities));
+        var table = measurement.MeasureExecution(compiled.Run);
+        table = measurement.MeasureMaterialization(() => TableMaterializationTestHelper.Materialize(table));
 
         Assert.AreEqual(expectedRows, table.Count, scenario);
     }
@@ -360,7 +366,7 @@ public class WindowFunctionBenchmarkParityTests
         ];
     }
 
-    private sealed class WinEntity
+    public sealed class WinEntity
     {
         public string Name { get; init; } = string.Empty;
         public string Department { get; init; } = string.Empty;

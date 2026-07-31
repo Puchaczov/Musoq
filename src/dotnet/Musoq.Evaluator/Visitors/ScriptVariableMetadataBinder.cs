@@ -17,6 +17,8 @@ internal sealed class ScriptVariableMetadataBinder(
 
     public IReadOnlyList<ScriptVariableDefinition> Definitions => _definitions.ToArray();
 
+    internal IReadOnlyList<ScriptVariableDefinition> DefinitionsForSnapshot => _definitions;
+
     public IReadOnlyDictionary<string, ScriptVariableDefinition> DefinitionsByName => _definitionsByName;
 
     public void TryAddDefinition(

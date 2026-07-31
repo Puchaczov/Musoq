@@ -9,7 +9,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void UnpivotSamples_WhenCheckedIn_ShouldUseStreamedGeneratedRows()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName);
+        var samples = ReadNamedSamples(UnpivotSampleFileNames).ToDictionary(static sample => sample.FileName);
 
         foreach (var fileName in UnpivotSampleFileNames)
         {
@@ -29,7 +29,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void UnpivotCompositionSamples_WhenCheckedIn_ShouldExposeCompositionShapes()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName);
+        var samples = ReadNamedSamples(
+                UnpivotCteNullableOrderingSampleFileName,
+                UnpivotSetOperatorSampleFileName)
+            .ToDictionary(static sample => sample.FileName);
         var cte = samples[UnpivotCteNullableOrderingSampleFileName].Content;
         var setOperator = samples[UnpivotSetOperatorSampleFileName].Content;
 

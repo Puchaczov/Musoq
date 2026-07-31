@@ -90,6 +90,127 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
     }
 
     [TestMethod]
+    public void PostfixCast_AllSupportedCSharpAliases_ShouldMapToClrTargets()
+    {
+        var table = CreateAndRunVirtualMachine(
+            @"
+                select
+                    BooleanText::bool as BoolValue,
+                    ByteText::byte as ByteValue,
+                    SByteText::sbyte as SByteValue,
+                    Int16Text::short as Int16Value,
+                    UInt16Text::ushort as UInt16Value,
+                    Int32Text::int as Int32Value,
+                    UInt32Text::uint as UInt32Value,
+                    Int64Text::long as Int64Value,
+                    UInt64Text::ulong as UInt64Value,
+                    SingleText::float as SingleValue,
+                    DoubleText::double as DoubleValue,
+                    DecimalText::decimal as DecimalValue,
+                    CharText::char as CharValue,
+                    ObjectValue::string as StringValue
+                from #schema.first()",
+            [CreateFullCastEntity()]).Run();
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("BoolValue", typeof(bool?)),
+            ("ByteValue", typeof(byte?)),
+            ("SByteValue", typeof(sbyte?)),
+            ("Int16Value", typeof(short?)),
+            ("UInt16Value", typeof(ushort?)),
+            ("Int32Value", typeof(int?)),
+            ("UInt32Value", typeof(uint?)),
+            ("Int64Value", typeof(long?)),
+            ("UInt64Value", typeof(ulong?)),
+            ("SingleValue", typeof(float?)),
+            ("DoubleValue", typeof(double?)),
+            ("DecimalValue", typeof(decimal?)),
+            ("CharValue", typeof(char?)),
+            ("StringValue", typeof(string)));
+
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [
+                true,
+                (byte)255,
+                (sbyte)-12,
+                (short)-1234,
+                (ushort)1234,
+                -123456,
+                (uint)123456,
+                -1234567890123L,
+                1234567890123UL,
+                1.5f,
+                2.25d,
+                123.45m,
+                'Z',
+                "42"
+            ]);
+    }
+
+    [TestMethod]
+    public void PostfixCast_CSharpAliases_ShouldMatchCaseInsensitively()
+    {
+        var table = CreateAndRunVirtualMachine(
+            "select Int32Text::INT as IntValue, SingleText::Float as FloatValue, ObjectValue::STRING as StringValue from #schema.first()",
+            [CreateFullCastEntity()]).Run();
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("IntValue", typeof(int?)),
+            ("FloatValue", typeof(float?)),
+            ("StringValue", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [-123456, 1.5f, "42"]);
+    }
+
+    [TestMethod]
+    public void PostfixCast_StringAlias_ShouldUseInvariantToStringAndPreserveNull()
+    {
+        var originalCulture = CultureInfo.CurrentCulture;
+        var originalUiCulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            var culture = CultureInfo.GetCultureInfo("fr-FR");
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = culture;
+
+            var table = CreateAndRunVirtualMachine(
+                "select ObjectValue::string as TextValue, NullText::string as NullValue from #schema.first()",
+                [new CastEntity { ObjectValue = 1234.5m, NullText = null }]).Run();
+
+            TableMaterializationTestHelper.AssertColumns(
+                table,
+                ("TextValue", typeof(string)),
+                ("NullValue", typeof(string)));
+            TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { "1234.5", null });
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUiCulture;
+        }
+    }
+
+    [TestMethod]
+    public void PostfixCast_CSharpAliases_ShouldWorkInFiltersAndNestedCasts()
+    {
+        var rows = new[]
+        {
+            new CastEntity { Int32Text = "1" },
+            new CastEntity { Int32Text = "2" }
+        };
+
+        var table = CreateAndRunVirtualMachine(
+            "select Int32Text::int::string as Value from #schema.first() where Int32Text::int > 1",
+            rows).Run();
+
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["2"]);
+    }
+
+    [TestMethod]
     public void PostfixCast_TargetNameMatching_ShouldBeCaseInsensitive()
     {
         var table = CreateAndRunVirtualMachine(
@@ -180,7 +301,7 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
             "select Int32Text::INTEGER from #schema.first()",
             [CreateFullCastEntity()]));
 
-        AssertSingleError(ex, DiagnosticCode.MQ2030_UnsupportedSyntax, DiagnosticPhase.Parse, "CLR type names only");
+        AssertSingleError(ex, DiagnosticCode.MQ2030_UnsupportedSyntax, DiagnosticPhase.Parse, "CLR type names and C# aliases only");
     }
 
     [TestMethod]

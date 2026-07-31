@@ -25,6 +25,7 @@ public static partial class InstanceCreator
     {
         var diagnosticContext = new DiagnosticContext(new SourceText(script));
         var items = CreateBuildItems(script, assemblyName, provider, diagnosticContext);
+        items.CompilationPurpose = CompilationPurpose.Inspection;
         items.EmitExecutionPlanText = true;
         if (compilationOptions != null)
             items.CompilationOptions = compilationOptions;
@@ -45,6 +46,7 @@ public static partial class InstanceCreator
     {
         var diagnosticContext = new DiagnosticContext(new SourceText(script));
         var items = CreateBuildItems(script, assemblyName, schemaProvider, diagnosticContext);
+        items.CompilationPurpose = CompilationPurpose.Inspection;
         items.EmitExecutionPlanText = true;
 
         if (compilationOptions != null)

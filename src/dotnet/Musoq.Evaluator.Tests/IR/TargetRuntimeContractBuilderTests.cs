@@ -5,6 +5,7 @@ using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Plugins;
+using Musoq.Plugins.Attributes;
 using Musoq.Targets.Execution.Analysis;
 
 namespace Musoq.Evaluator.Tests.IR;
@@ -207,6 +208,139 @@ public sealed class TargetRuntimeContractBuilderTests
     }
 
     [TestMethod]
+    public void Build_WhenTheSamePluginCallIsRepeated_ShouldProduceOneInvocationAndOneOverloadSafeImport()
+    {
+        var contains = ResolveLibraryMethod(nameof(LibraryBase.Contains), typeof(string), typeof(string));
+        var plan = new ExecutionPlan(
+            "Q_RepeatedPluginContract",
+            [],
+            new ExecutionBlock(
+            [
+                new ExecutionLet(
+                    new ExecutionVariable("first", typeof(bool?)),
+                    new ExecutionMethodCall(
+                        contains,
+                        [new ExecutionLiteral("folder/file", typeof(string)), new ExecutionLiteral("/", typeof(string))],
+                        null,
+                        typeof(bool?))),
+                new ExecutionLet(
+                    new ExecutionVariable("second", typeof(bool?)),
+                    new ExecutionMethodCall(
+                        contains,
+                        [new ExecutionLiteral("folder/file", typeof(string)), new ExecutionLiteral("/", typeof(string))],
+                        null,
+                        typeof(bool?)))
+            ]));
+
+        var contract = Build(plan);
+        var inventory = TargetHostAbiInventoryBuilder.Build(contract);
+        var import = inventory.Imports.Single(item => item.Kind == TargetHostAbiImportKind.PluginInvocation);
+
+        Assert.HasCount(1, contract.PluginInvocations);
+        Assert.Contains(contract.PluginInvocations[0].Callable.StableName, import.Name);
+    }
+
+    [TestMethod]
+    public void Build_WhenOverloadedPluginMethodsAreUsed_ShouldProduceDistinctInvocationsAndImports()
+    {
+        var startsWithTwoArguments = ResolveLibraryMethod(nameof(LibraryBase.StartsWith), typeof(string), typeof(string));
+        var startsWithThreeArguments = ResolveLibraryMethod(
+            nameof(LibraryBase.StartsWith),
+            typeof(string),
+            typeof(string),
+            typeof(string));
+        var plan = new ExecutionPlan(
+            "Q_OverloadedPluginContract",
+            [],
+            new ExecutionBlock(
+            [
+                new ExecutionLet(
+                    new ExecutionVariable("two", typeof(bool?)),
+                    new ExecutionMethodCall(
+                        startsWithTwoArguments,
+                        [new ExecutionLiteral("abc", typeof(string)), new ExecutionLiteral("a", typeof(string))],
+                        null,
+                        typeof(bool?))),
+                new ExecutionLet(
+                    new ExecutionVariable("three", typeof(bool?)),
+                    new ExecutionMethodCall(
+                        startsWithThreeArguments,
+                        [
+                            new ExecutionLiteral("abc", typeof(string)),
+                            new ExecutionLiteral("a", typeof(string)),
+                            new ExecutionLiteral("Ordinal", typeof(string))
+                        ],
+                        null,
+                        typeof(bool?)))
+            ]));
+
+        var contract = Build(plan);
+        var inventory = TargetHostAbiInventoryBuilder.Build(contract);
+        var imports = inventory.Imports
+            .Where(item => item.Kind == TargetHostAbiImportKind.PluginInvocation)
+            .ToArray();
+
+        Assert.HasCount(2, contract.PluginInvocations);
+        Assert.HasCount(2, imports);
+        Assert.AreNotEqual(imports[0].Name, imports[1].Name);
+    }
+
+    [TestMethod]
+    public void LibraryBaseBindableMethods_ShouldHaveCollisionFreePluginAbiIdentities()
+    {
+        var methods = typeof(LibraryBase)
+            .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)
+            .Where(static method => method.IsDefined(typeof(BindableMethodAttribute), inherit: true))
+            .ToArray();
+        var identities = methods
+            .Select(static method =>
+                $"{method.Name} [{ExecutionPortableSymbolFactory.FromMethod(method).StableName}]")
+            .ToArray();
+
+        Assert.AreEqual(identities.Length, identities.Distinct(StringComparer.Ordinal).Count());
+    }
+
+    [TestMethod]
+    public void HostAbiInventory_WhenEveryTypedImportIsRepeated_ShouldCollapseEachImportKind()
+    {
+        var stringType = ExecutionPortableSymbolFactory.FromType(typeof(string));
+        var pluginMethod = ResolveLibraryMethod(nameof(LibraryBase.Contains), typeof(string), typeof(string));
+        var contract = new TargetRuntimeContract(
+            "Q_AllAbiKinds",
+            [new TargetSourceAccessContract(
+                "schema-source",
+                "source:1",
+                "schema",
+                "rows",
+                stringType,
+                stringType,
+                [],
+                [new TargetFieldContract(0, "Value", "Value", stringType, stringType, "Unknown", null)],
+                [TargetSourcePlanOperation.Columns],
+                [])],
+            [new TargetPluginInvocationContract(
+                "Contains -> Musoq.Plugins.LibraryBase.Contains",
+                ExecutionPortableSymbolFactory.FromMethod(pluginMethod))],
+            [new TargetRowShapeContract(
+                "GeneratedRowShape",
+                "Result",
+                stringType,
+                [new TargetFieldContract(0, "Value", "Value", stringType, stringType, "Unknown", null)])],
+            new TargetNullBehaviorContract(true, true, true, "test-null-semantics"),
+            new TargetCancellationContract(true, true),
+            new TargetDiagnosticsContract(true, true, true),
+            new TargetProfilingContract(true, true, 1, 1));
+
+        var inventory = TargetHostAbiInventoryBuilder.Build(contract);
+        var repeated = new TargetHostAbiInventory(inventory.Imports.Concat(inventory.Imports));
+
+        Assert.AreEqual(inventory.Imports.Count, repeated.Imports.Count);
+        CollectionAssert.AreEqual(
+            inventory.Imports.Select(static import => $"{import.Kind}:{import.Name}").ToArray(),
+            repeated.Imports.Select(static import => $"{import.Kind}:{import.Name}").ToArray());
+    }
+
+    [TestMethod]
     public void HostAbiInventoryBuilder_WhenPlanCallsHostAggregate_ShouldUseSharedCallableClassification()
     {
         var average = ResolveLibraryMethod(nameof(LibraryBase.Avg), typeof(int?), typeof(int));
@@ -277,8 +411,8 @@ public sealed class TargetRuntimeContractBuilderTests
         Assert.IsTrue(inventory.Requires(TargetHostAbiImportKind.RowShapeTransfer));
         var pluginImport = inventory.Imports.Single(import => import.Kind == TargetHostAbiImportKind.PluginInvocation);
         Assert.IsTrue(pluginImport.Name.Contains("Musoq.Plugins.LibraryBase.ToUpper", StringComparison.Ordinal));
-        Assert.AreEqual("plugin-invocation-v1", pluginImport.Contract);
-        Assert.AreEqual(1, pluginImport.ContractVersion);
+        Assert.AreEqual("plugin-invocation-v2", pluginImport.Contract);
+        Assert.AreEqual(2, pluginImport.ContractVersion);
         var pluginDetails = Assert.IsInstanceOfType<TargetPluginInvocationAbiDetails>(pluginImport.Details);
         Assert.AreEqual(nameof(LibraryBase.ToUpper), pluginDetails.MethodName);
         Assert.AreEqual(1, pluginDetails.ParameterCount);

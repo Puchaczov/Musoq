@@ -70,13 +70,13 @@ public class SymbolTable
     internal IReadOnlyList<ScopeSymbolSnapshot> Snapshot()
     {
         return _symbols
-            .Select(static pair => new ScopeSymbolSnapshot(pair.Key, SymbolSnapshotCloner.Clone(pair.Value)))
+            .Select(static pair => new ScopeSymbolSnapshot(pair.Key, SymbolSnapshotCloner.Capture(pair.Value)))
             .ToArray();
     }
 
     internal void Restore(IEnumerable<ScopeSymbolSnapshot> symbols)
     {
         foreach (var symbol in symbols)
-            _symbols.Add(symbol.Key, SymbolSnapshotCloner.Clone(symbol.Value));
+            _symbols.Add(symbol.Key, SymbolSnapshotCloner.Restore(symbol.Value));
     }
 }

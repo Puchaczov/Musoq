@@ -230,14 +230,14 @@ cross apply source.Items item with ordinality";
             yield return value;
     }
 
-    private sealed class PrimitiveArrayRow
+    public sealed class PrimitiveArrayRow
     {
         public string City { get; init; } = string.Empty;
 
         public double[] Values { get; init; } = [];
     }
 
-    private sealed class ObjectArrayRow
+    public sealed class ObjectArrayRow
     {
         [BindablePropertyAsTable]
         public ChildRow[] Children { get; init; } = [];
@@ -250,7 +250,7 @@ cross apply source.Items item with ordinality";
         public int Score { get; init; }
     }
 
-    private sealed class ChainedArrayRow
+    public sealed class ChainedArrayRow
     {
         public string City { get; init; } = string.Empty;
 
@@ -259,14 +259,14 @@ cross apply source.Items item with ordinality";
         public double[] RightValues { get; init; } = [];
     }
 
-    private sealed class EnumerableRow
+    public sealed class EnumerableRow
     {
         public string City { get; init; } = string.Empty;
 
         public IEnumerable<double> Values { get; init; } = [];
     }
 
-    private sealed class OrdinalCollisionSource
+    public sealed class OrdinalCollisionSource
     {
         [BindablePropertyAsTable]
         public OrdinalCollisionItem[] Items { get; init; } = [];

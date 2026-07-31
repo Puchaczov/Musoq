@@ -58,6 +58,7 @@ public sealed class TargetRequestAndExportImmutabilityTests
         {
             ExecutionBindings = new CSharpClrExecutionBindingContext(),
             CompilationOptions = new CompilationOptions(),
+            RenderProfile = TargetRenderProfile.StableArtifact,
             AssemblyName = "TargetInputs",
             NamespaceName = "TargetInputs",
             QueryResultMode = QueryResultMode.Table,

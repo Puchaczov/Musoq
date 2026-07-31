@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
@@ -63,7 +64,7 @@ public partial class SubqueryTests
     }
 
     [TestMethod]
-    public void WhenEightPartCorrelationUsesObjectKey_ShouldMatchDefaultAndFallbackExecution()
+    public void WhenEightPartCorrelationUsesNestedTupleKey_ShouldMatchDefaultAndFallbackExecution()
     {
         const string query = @"
             SELECT a.Name,
@@ -126,7 +127,8 @@ public partial class SubqueryTests
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("PredicateHashMark", inspection.PlanningText);
         Assert.Contains("ScalarHashSingle", inspection.PlanningText);
-        Assert.Contains("CreateNullableHashJoinKey", inspection.GeneratedCSharpCode);
+        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("CreateNullableHashJoinKey", StringComparison.Ordinal));
+        Assert.Contains("ValueTuple<", inspection.GeneratedCSharpCode);
         AssertNoPerRowSubqueryExecution(inspection);
     }
 

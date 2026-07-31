@@ -241,6 +241,9 @@ public static class FieldProcessingHelper
                         if (unary.Expression is not null)
                             subNodes.Push(unary.Expression);
                         break;
+                    case CastNode cast:
+                        subNodes.Push(cast.Expression);
+                        break;
                 }
             }
 

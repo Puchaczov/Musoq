@@ -12,7 +12,15 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeHotPathIndexSamples_WhenCheckedIn_ShouldUseSharedCapacityShapes()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, static sample => sample.Content);
+        var samples = ReadNamedSamples(
+                "Q08_Distinct.cs",
+                UnionSampleFileName,
+                ExceptSampleFileName,
+                IntersectSampleFileName,
+                InSubqueryBasicSampleFileName,
+                InnerJoinSampleFileName,
+                CteSidecarHashJoinSampleFileName)
+            .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
 
         var distinct = samples["Q08_Distinct.cs"];
         Assert.Contains("CreateKeySet [distinctKeys: ValueTuple<string, string>]", distinct);
@@ -38,13 +46,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeHotPathSidecarSamples_WhenCheckedIn_ShouldAvoidRetiredInternalShapes()
     {
-        var samples = ReadSamples()
-            .Where(static sample => sample.FileName is
-                CteSidecarHashJoinSampleFileName or
-                CteSidecarKeySetSemiJoinSampleFileName or
-                CteSidecarFanoutThreeHashesSampleFileName or
-                CteSidecarStagedGraphMixedSampleFileName)
-            .ToArray();
+        var samples = ReadNamedSamples(
+            CteSidecarHashJoinSampleFileName,
+            CteSidecarKeySetSemiJoinSampleFileName,
+            CteSidecarFanoutThreeHashesSampleFileName,
+            CteSidecarStagedGraphMixedSampleFileName);
 
         Assert.HasCount(4, samples);
 
@@ -64,8 +70,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ChunkedSourceSamples_WhenCheckedIn_ShouldUseCachedCountLoopsAndCancellationChecks()
     {
-        var simpleSelect = ReadSamples()
-            .Single(static sample => sample.FileName == "Q01_SimpleSelectWhere.cs")
+        var simpleSelect = ReadSample("Q01_SimpleSelectWhere.cs")
             .Content;
 
         Assert.Contains("foreach (var ko3ikoChunk in ko3ikoRows)", simpleSelect);
@@ -84,7 +89,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void HelperChunkLoops_WhenCheckedIn_ShouldPassCancellationTokenAndEmitChecks()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, static sample => sample.Content);
+        var samples = ReadNamedSamples(CteBackedAsOfJoinSampleFileName, InnerJoinSampleFileName)
+            .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
         var cteGeneratedCode = ExtractGeneratedCodeSection(samples[CteBackedAsOfJoinSampleFileName]);
         var cteMethod = CSharpSyntaxTree.ParseText(cteGeneratedCode)
             .GetRoot()
@@ -111,7 +117,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void EnumerableResultSamples_WhenCheckedIn_ShouldUseExplicitResultChunkHelperName()
     {
-        var samples = ReadSamples();
+        var samples = ReadAllSamples();
 
         Assert.IsFalse(samples.Any(static sample =>
             sample.Content.Contains("EvaluationHelper.ConvertEnumerableToChunks", StringComparison.Ordinal)));
@@ -122,7 +128,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ForeachStatements_WhenCheckedIn_ShouldAlwaysUseBraces()
     {
-        var offenders = ReadSamples()
+        var offenders = ReadAllSamples()
             .SelectMany(static sample =>
             {
                 var generatedCode = ExtractGeneratedCodeSection(sample.Content);

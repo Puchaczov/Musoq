@@ -73,7 +73,7 @@ public sealed partial class ExecutionCSharpRendererTests
         AssertAccepted(sinkPlan);
         Assert.AreEqual(QueryResultRowPathKind.ShardRows, sinkPlan.ResultMetadata.RowPathKind);
         Assert.IsTrue(sinkPlan.ProjectionLoop!.CanUseParallel);
-        Assert.IsNotNull(sinkPlan.ProjectionLoop.OptionalProjectorLoop);
+        Assert.IsNotNull(sinkPlan.ProjectionLoop.OptionalProjectionBody);
     }
 
     [TestMethod]

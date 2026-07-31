@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tests.Schema.RuntimeV2;
 using Musoq.Plugins;
@@ -17,6 +18,9 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
 {
+    private static readonly CompiledQueryBatchRepository<string> RecursiveSampleQueries =
+        new(CreateRecursiveSampleQueries);
+
     public TestContext TestContext { get; set; }
 
     public static IEnumerable<object[]> RecursiveSampleData => RecursiveCteSupportedCaseCatalog.Cases
@@ -48,10 +52,14 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
     [DynamicData(nameof(RecursiveSampleData))]
     public void RecursiveSample_WhenExecuted_ShouldReturnItsCatalogResult(RecursiveCteSupportedCase testCase)
     {
-        var vm = CompileSample(
-            $"{testCase.GeneratedSampleName}.cs",
-            testCase.CreateSchemaProvider?.Invoke() ?? CreateBasicProvider([], []));
-        var table = vm.Run(TestContext.CancellationToken);
+        using var measurement = EvaluatorTestCaseMeasurement.Begin(
+            nameof(RecursiveSample_WhenExecuted_ShouldReturnItsCatalogResult),
+            testCase.GeneratedSampleName ?? testCase.Name,
+            testCase.GeneratedSampleName ?? testCase.Name);
+        using var vm = measurement.MeasureCompilation(() =>
+            RecursiveSampleQueries.Take(testCase.GeneratedSampleName!));
+        using var table = measurement.MeasureExecution(() => vm.Run(TestContext.CancellationToken));
+        measurement.MeasureMaterialization(() => TableMaterializationTestHelper.Materialize(table));
 
         TableMaterializationTestHelper.AssertColumns(
             table,
@@ -60,6 +68,12 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
             TableMaterializationTestHelper.AssertRowsInOrder(table, testCase.ExpectedRows.ToArray());
         else
             TableMaterializationTestHelper.AssertRowsUnordered(table, testCase.ExpectedRows.ToArray());
+    }
+
+    [ClassCleanup]
+    public static void DisposeRecursiveSampleBatch()
+    {
+        RecursiveSampleQueries.Dispose();
     }
 
     [TestMethod]
@@ -235,6 +249,61 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
             provider,
             LoggerResolver,
             options);
+    }
+
+    private static IReadOnlyDictionary<string, CompiledQuery> CreateRecursiveSampleQueries()
+    {
+        var cases = RecursiveCteSupportedCaseCatalog.Cases
+            .Where(static item => item.GeneratedSampleName != null)
+            .ToArray();
+        var requests = cases
+            .Select((testCase, index) =>
+            {
+                var sample = GeneratedCodeSamplesCatalog.GetByFileName($"{testCase.GeneratedSampleName}.cs");
+                return new ExecutionBatchCompilationRequest(
+                    testCase.GeneratedSampleName!,
+                    sample.Query,
+                    $"RecursiveSampleBatch_{index}",
+                    testCase.CreateSchemaProvider?.Invoke() ?? CreateBasicProvider([], []),
+                    new TestsLoggerResolver(),
+                    sample.CompilationOptions ?? TestCompilationOptions,
+                    ConsumerFamily: "recursive-generated-samples",
+                    ConsumerTestName: testCase.GeneratedSampleName,
+                    BatchOrigin: "recursive-generated-samples");
+            })
+            .ToArray();
+
+        var results = InstanceCreator.CompileForExecutionBatch(requests);
+        var queries = new Dictionary<string, CompiledQuery>(StringComparer.Ordinal);
+        try
+        {
+            foreach (var result in results)
+            {
+                if (!result.Result.Succeeded)
+                    throw new InvalidOperationException(
+                        $"Recursive generated-sample '{result.Key}' failed to compile.",
+                        result.Result.CaughtException);
+
+                queries.Add(result.Key, result.Result.CompiledQuery);
+            }
+
+            return queries;
+        }
+        catch
+        {
+            DisposeSuccessfulBatchResults(results);
+            throw;
+        }
+    }
+
+    private static void DisposeSuccessfulBatchResults(
+        IReadOnlyList<ExecutionBatchCompilationResult> results)
+    {
+        foreach (var result in results)
+        {
+            if (result.Result.Succeeded)
+                result.Result.CompiledQuery.Dispose();
+        }
     }
 
     private static BasicSchemaProvider<BasicEntity> CreateBasicProvider(

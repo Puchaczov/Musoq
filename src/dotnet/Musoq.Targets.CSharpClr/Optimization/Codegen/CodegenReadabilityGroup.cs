@@ -19,6 +19,13 @@ internal static class CodegenReadabilityGroup
             new(new ReadabilityDecisionTracePass(), "Record readability decisions into the trace.")
         ]);
 
+    public static OptimizationPassPipeline<CompilationUnitSyntax> ExecutionPipeline { get; } = new(
+        OptimizationStage.CodegenReadability,
+        OptimizationPassRunMode.Once,
+        [
+            new(new ExecutionCodegenOptimizationPass(), "Fuse safe execution cleanup and approved helper extraction.")
+        ]);
+
     public static IReadOnlyList<IPlanOptimizationPass<CompilationUnitSyntax>> Passes => Pipeline.Passes;
 }
 

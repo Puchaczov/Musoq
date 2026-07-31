@@ -20,10 +20,10 @@ public sealed record OutputSchema(ColumnSchema[] Columns)
         var index = 0;
 
         foreach (var col in Columns)
-            merged[index] = new ColumnSchema(col.Name, col.Type, index++);
+            merged[index] = new ColumnSchema(col.Name, col.Type, index++, col.IntendedTypeName);
 
         foreach (var col in other.Columns)
-            merged[index] = new ColumnSchema(col.Name, col.Type, index++);
+            merged[index] = new ColumnSchema(col.Name, col.Type, index++, col.IntendedTypeName);
 
         return new OutputSchema(merged);
     }

@@ -1,20 +1,18 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography;
 using Microsoft.CodeAnalysis;
 
 namespace Musoq.Evaluator.Runtime;
 
 internal sealed class DefaultMetadataReferenceCache : IMetadataReferenceCache
 {
-    private readonly BoundedRuntimeCache<MetadataReferenceCacheKey, MetadataReference> _cache;
+    private readonly BoundedRuntimeCache<string, MetadataReferenceEntry> _cache;
 
     public DefaultMetadataReferenceCache(int maxSize = RuntimeCacheOptions.MetadataReferenceCacheSize)
     {
-        _cache = new BoundedRuntimeCache<MetadataReferenceCacheKey, MetadataReference>(
+        _cache = new BoundedRuntimeCache<string, MetadataReferenceEntry>(
             maxSize,
-            MetadataReferenceCacheKeyComparer.Instance);
+            StringComparer.OrdinalIgnoreCase);
     }
 
     public int Count => _cache.Count;
@@ -24,8 +22,27 @@ internal sealed class DefaultMetadataReferenceCache : IMetadataReferenceCache
         if (string.IsNullOrWhiteSpace(assemblyPath))
             throw new ArgumentNullException(nameof(assemblyPath));
 
-        var key = MetadataReferenceCacheKey.Create(assemblyPath);
-        return _cache.GetOrAdd(key, static cacheKey => MetadataReference.CreateFromFile(cacheKey.Path));
+        var path = Path.GetFullPath(assemblyPath);
+        var fileInfo = new FileInfo(path);
+        var length = fileInfo.Length;
+        var lastWriteTimeUtcTicks = fileInfo.LastWriteTimeUtc.Ticks;
+
+        if (_cache.TryGetValue(path, out var cached) &&
+            cached.Matches(length, lastWriteTimeUtcTicks))
+            return cached.Reference;
+
+        var entry = _cache.GetOrAdd(
+            path,
+            static cachePath =>
+            {
+                var info = new FileInfo(cachePath);
+                return new MetadataReferenceEntry(
+                    info.Length,
+                    info.LastWriteTimeUtc.Ticks,
+                    MetadataReference.CreateFromFile(cachePath));
+            },
+            candidate => candidate.Matches(length, lastWriteTimeUtcTicks));
+        return entry.Reference;
     }
 
     public void Clear()
@@ -33,41 +50,12 @@ internal sealed class DefaultMetadataReferenceCache : IMetadataReferenceCache
         _cache.Clear();
     }
 
-    private readonly record struct MetadataReferenceCacheKey(
-        string Path,
+    private readonly record struct MetadataReferenceEntry(
         long Length,
         long LastWriteTimeUtcTicks,
-        string ContentHash)
+        MetadataReference Reference)
     {
-        public static MetadataReferenceCacheKey Create(string path)
-        {
-            var fullPath = System.IO.Path.GetFullPath(path);
-            var fileInfo = new FileInfo(fullPath);
-            using var stream = File.OpenRead(fullPath);
-            var contentHash = Convert.ToHexString(SHA256.HashData(stream));
-            return new MetadataReferenceCacheKey(
-                fullPath,
-                fileInfo.Length,
-                fileInfo.LastWriteTimeUtc.Ticks,
-                contentHash);
-        }
-    }
-
-    private sealed class MetadataReferenceCacheKeyComparer : IEqualityComparer<MetadataReferenceCacheKey>
-    {
-        public static MetadataReferenceCacheKeyComparer Instance { get; } = new();
-
-        public bool Equals(MetadataReferenceCacheKey x, MetadataReferenceCacheKey y) =>
-            x.Length == y.Length &&
-            x.LastWriteTimeUtcTicks == y.LastWriteTimeUtcTicks &&
-            StringComparer.Ordinal.Equals(x.ContentHash, y.ContentHash) &&
-            StringComparer.OrdinalIgnoreCase.Equals(x.Path, y.Path);
-
-        public int GetHashCode(MetadataReferenceCacheKey obj) =>
-            HashCode.Combine(
-                StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Path),
-                obj.Length,
-                obj.LastWriteTimeUtcTicks,
-                StringComparer.Ordinal.GetHashCode(obj.ContentHash));
+        public bool Matches(long length, long lastWriteTimeUtcTicks) =>
+            Length == length && LastWriteTimeUtcTicks == lastWriteTimeUtcTicks;
     }
 }

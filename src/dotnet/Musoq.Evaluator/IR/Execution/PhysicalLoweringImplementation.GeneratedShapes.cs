@@ -50,7 +50,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var columnType = ResolveProjectedFieldType(expression);
         var storageType = ResolveProjectedFieldStorageType(expression, columnType);
 
-        return new FieldBinding(
+        var binding = new FieldBinding(
             field.OutputName,
             field.OutputName,
             field.OutputIndex,
@@ -58,7 +58,57 @@ internal sealed partial class PhysicalLoweringImplementation
             FieldNullability.Unknown,
             new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)),
             storageType == columnType ? null : columnType);
+
+        var generatedTypeName = TryResolveGeneratedTypeName(expression, sourceLookup);
+        return generatedTypeName is { } resolvedGeneratedTypeName
+            ? binding with { GeneratedTypeName = resolvedGeneratedTypeName }
+            : binding;
     }
+
+    private static string? TryResolveGeneratedTypeName(
+        ExecutionExpression expression,
+        IReadOnlyDictionary<string, RowShape> sourceLookup)
+    {
+        var returnType = expression.ReturnType.ResolveClrType();
+        if (returnType != typeof(object) && !returnType.IsArray)
+            return null;
+
+        if (expression is ExecutionFieldRead { AccessStrategy: GeneratedRowNestedAccess })
+            return null;
+
+        if (expression is not ExecutionFieldRead { Alias: { } alias, FieldName: { } fieldName } ||
+            !sourceLookup.TryGetValue(alias, out var sourceShape))
+        {
+            return expression is ExecutionFieldRead { GeneratedTypeName: { Length: > 0 } generatedTypeName } &&
+                   IsCompatibleGeneratedTypeName(returnType, generatedTypeName)
+                ? generatedTypeName
+                : null;
+        }
+
+        if (expression is ExecutionFieldRead { GeneratedTypeName: { Length: > 0 } expressionGeneratedTypeName })
+            return IsCompatibleGeneratedTypeName(returnType, expressionGeneratedTypeName)
+                ? expressionGeneratedTypeName
+                : null;
+
+        var sourceRelativeName = fieldName.StartsWith($"{alias}.", StringComparison.OrdinalIgnoreCase)
+            ? fieldName[(alias.Length + 1)..]
+            : fieldName;
+
+        var resolvedGeneratedTypeName = sourceShape.Fields
+            .FirstOrDefault(field =>
+                string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(field.Name, sourceRelativeName, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(field.QualifiedName, $"{alias}.{sourceRelativeName}", StringComparison.OrdinalIgnoreCase))
+            ?.GeneratedTypeName;
+
+        return resolvedGeneratedTypeName is not null && IsCompatibleGeneratedTypeName(returnType, resolvedGeneratedTypeName)
+            ? resolvedGeneratedTypeName
+            : null;
+    }
+
+    private static bool IsCompatibleGeneratedTypeName(Type returnType, string generatedTypeName) =>
+        returnType == typeof(object) ||
+        (returnType.IsArray && generatedTypeName.EndsWith("[]", StringComparison.Ordinal));
 
     private static List<FieldBinding> CreateContextBindings(
         IReadOnlyDictionary<string, RowShape> sourceLookup)
@@ -101,13 +151,31 @@ internal sealed partial class PhysicalLoweringImplementation
         }
 
         var alias = RowShapeLookup.ResolveSourceAlias(sourceShape);
-        yield return new FieldBinding(
+        var generatedContextBinding = new FieldBinding(
             alias,
             alias,
             startIndex,
             RowShapeLookup.ResolveSourceRuntimeType(sourceShape),
             FieldNullability.Unknown,
             new ContextAccess(startIndex));
+
+        if (sourceShape is SourceEntityShape { GeneratedTypeName: { } generatedTypeName })
+        {
+            var generatedMemberTypeNames = sourceShape.Fields
+                .Where(static field => field.GeneratedTypeName is { Length: > 0 })
+                .GroupBy(static field => field.Name, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(
+                    static group => group.Key,
+                    static group => group.First().GeneratedTypeName!,
+                    StringComparer.OrdinalIgnoreCase);
+            generatedContextBinding = generatedContextBinding with
+            {
+                GeneratedTypeName = generatedTypeName,
+                GeneratedMemberTypeNames = generatedMemberTypeNames
+            };
+        }
+
+        yield return generatedContextBinding;
     }
 
     private static Type ResolveProjectedFieldType(ExecutionExpression expression)

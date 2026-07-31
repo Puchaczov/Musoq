@@ -420,14 +420,14 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["System.Int32"]);
     }
 
-    private sealed class CrossApplyClass1
+    public sealed class CrossApplyClass1
     {
         public string City { get; set; } = string.Empty;
 
         public double[] Values { get; set; } = [];
     }
 
-    private sealed class CrossApplyClass2
+    public sealed class CrossApplyClass2
     {
         public string City { get; set; } = string.Empty;
 
@@ -442,21 +442,21 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         public int Value2 { get; set; }
     }
 
-    private sealed class CrossApplyClass3
+    public sealed class CrossApplyClass3
     {
         public string City { get; set; } = string.Empty;
 
         [BindablePropertyAsTable] public ComplexType1[] Values { get; set; } = [];
     }
 
-    private sealed class CrossApplyClass4
+    public sealed class CrossApplyClass4
     {
         public string City { get; set; } = string.Empty;
 
         [BindablePropertyAsTable] public List<ComplexType1> Values { get; set; } = [];
     }
 
-    private sealed class CrossApplyClass5
+    public sealed class CrossApplyClass5
     {
         public string City { get; set; } = string.Empty;
 
@@ -480,12 +480,12 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         [BindablePropertyAsTable] public List<ComplexType3> Values { get; } = [];
     }
 
-    private sealed class CrossApplyClass6
+    public sealed class CrossApplyClass6
     {
         [BindablePropertyAsTable] public List<ComplexType2> Values { get; set; } = [];
     }
 
-    private sealed class CrossApplyClass7
+    public sealed class CrossApplyClass7
     {
         public ComplexType5? ComplexType { get; set; }
     }

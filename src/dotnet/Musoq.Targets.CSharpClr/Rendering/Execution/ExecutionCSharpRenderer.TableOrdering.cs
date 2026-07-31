@@ -314,6 +314,14 @@ public sealed partial class ExecutionCSharpRenderer
                 out var finalShapeRows))
             return finalShapeRows;
 
+        if (context.Session.DirectSortedRowBufferSources.ContainsKey(operation.Target.Name))
+        {
+            return
+            [
+                CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), operation.Target.Name, rowsExpression)
+            ];
+        }
+
         var statements = new List<StatementSyntax>
         {
             CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), rowsVariableName, rowsExpression)

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
@@ -130,6 +131,206 @@ public sealed class TargetPipelineEndToEndTests
         Assert.IsNotNull(second.BuildItems);
         Assert.IsTrue(second.BuildItems.StopAfterPlanning);
         Assert.AreEqual("single", second.CompiledQuery.Run()[0][0]);
+    }
+
+    [TestMethod]
+    public void CanonicalExecutionCache_WhenWhitespaceChanges_ShouldReuseArtifactButRebindCurrentProvider()
+    {
+        if (Debugger.IsAttached)
+            return;
+
+        var suffix = Guid.NewGuid().ToString("N");
+        var first = InstanceCreator.CompileWithDiagnostics(
+            "select i.Value from #artifact.items() i",
+            $"CanonicalWhitespaceFirst_{suffix}",
+            new ArtifactSchemaProvider(new ArtifactSchema("first")),
+            _loggerResolver,
+            new CompilationOptions());
+        Assert.IsTrue(first.Succeeded, FormatDiagnostics(first.Diagnostics));
+        Assert.IsNotNull(first.BuildItems);
+
+        var firstEntryIdentity = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(
+            first.BuildItems!,
+            new ArtifactSchemaProvider(new ArtifactSchema("first")));
+        Assert.AreNotEqual(0, firstEntryIdentity);
+
+        var secondProvider = new ArtifactSchemaProvider(new ArtifactSchema("second"));
+        var second = InstanceCreator.CompileWithDiagnostics(
+            "select  i.Value  from  #artifact.items()  i",
+            $"CanonicalWhitespaceSecond_{suffix}",
+            secondProvider,
+            _loggerResolver,
+            new CompilationOptions());
+        Assert.IsTrue(second.Succeeded, FormatDiagnostics(second.Diagnostics));
+        Assert.IsNotNull(second.BuildItems);
+
+        var secondEntryIdentity = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(
+            second.BuildItems,
+            secondProvider);
+        var firstContract = InstanceCreator.CreateCanonicalExecutionContractForTests(
+            first.BuildItems!,
+            new ArtifactSchemaProvider(new ArtifactSchema("first")));
+        var secondContract = InstanceCreator.CreateCanonicalExecutionContractForTests(
+            second.BuildItems!,
+            secondProvider);
+        Assert.AreEqual(firstContract.NormalizedGeneratedSyntax, secondContract.NormalizedGeneratedSyntax);
+        Assert.AreEqual(firstContract.RuntimeContractFingerprint, secondContract.RuntimeContractFingerprint);
+        Assert.AreEqual(firstContract.ExecutionSemanticsFingerprint, secondContract.ExecutionSemanticsFingerprint);
+        Assert.AreEqual(firstContract.ExecutionTarget, secondContract.ExecutionTarget);
+        Assert.AreEqual(firstContract.ResultMode, secondContract.ResultMode);
+        Assert.AreEqual(firstContract.OutputType, secondContract.OutputType);
+        Assert.AreEqual(firstContract.CompilationOptionsFingerprint, secondContract.CompilationOptionsFingerprint);
+        Assert.AreEqual(firstContract.OrderedReferenceIdentities, secondContract.OrderedReferenceIdentities);
+        Assert.AreEqual(firstContract.ProviderContractFingerprint, secondContract.ProviderContractFingerprint);
+        Assert.AreEqual(firstContract.InterpreterState, secondContract.InterpreterState);
+        Assert.AreEqual(firstContract.SemanticContractFingerprint, secondContract.SemanticContractFingerprint);
+        Assert.AreEqual(firstEntryIdentity, secondEntryIdentity);
+
+        using var firstTable = first.CompiledQuery!.Run();
+        using var secondTable = second.CompiledQuery!.Run();
+        Assert.AreEqual("first", firstTable[0][0]);
+        Assert.AreEqual("second", secondTable[0][0]);
+    }
+
+    [TestMethod]
+    public async Task CanonicalExecutionCache_WhenEquivalentRendersStartTogether_ShouldSingleFlight()
+    {
+        if (Debugger.IsAttached)
+            return;
+
+        var suffix = Guid.NewGuid().ToString("N");
+        var providers = new[]
+        {
+            new ArtifactSchemaProvider(new ArtifactSchema("concurrent-first")),
+            new ArtifactSchemaProvider(new ArtifactSchema("concurrent-second"))
+        };
+        var queries = new[]
+        {
+            $"select i.Value from #artifact.items() i where i.Value = '{suffix}'",
+            $"select  i.Value  from  #artifact.items()  i  where  i.Value = '{suffix}'"
+        };
+
+        var results = await Task.WhenAll(Enumerable.Range(0, 2).Select(index => Task.Run(() =>
+            InstanceCreator.CompileWithDiagnostics(
+                queries[index],
+                $"CanonicalConcurrent_{suffix}_{index}",
+                providers[index],
+                _loggerResolver,
+                new CompilationOptions()))));
+
+        Assert.IsTrue(results.All(static result => result.Succeeded));
+        Assert.IsNotNull(results[0].BuildItems);
+        Assert.IsNotNull(results[1].BuildItems);
+        var firstIdentity = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(results[0].BuildItems!, providers[0]);
+        var secondIdentity = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(results[1].BuildItems!, providers[1]);
+        Assert.AreNotEqual(0, firstIdentity);
+        Assert.AreEqual(firstIdentity, secondIdentity);
+
+        using var firstTable = results[0].CompiledQuery!.Run();
+        using var secondTable = results[1].CompiledQuery!.Run();
+        Assert.AreEqual(0, firstTable.Count);
+        Assert.AreEqual(0, secondTable.Count);
+    }
+
+    [TestMethod]
+    public void CanonicalExecutionCache_WhenGeneratedLiteralChanges_ShouldNotReuseArtifact()
+    {
+        if (Debugger.IsAttached)
+            return;
+
+        var suffix = Guid.NewGuid().ToString("N");
+        var provider = new ArtifactSchemaProvider(new ArtifactSchema("literal"));
+        var first = InstanceCreator.CompileWithDiagnostics(
+            $"select i.Value from #artifact.items() i where i.Value = 'literal-a-{suffix}'",
+            $"CanonicalLiteralFirst_{suffix}",
+            provider,
+            _loggerResolver,
+            new CompilationOptions());
+        var second = InstanceCreator.CompileWithDiagnostics(
+            $"select i.Value from #artifact.items() i where i.Value = 'literal-b-{suffix}'",
+            $"CanonicalLiteralSecond_{suffix}",
+            provider,
+            _loggerResolver,
+            new CompilationOptions());
+
+        Assert.IsTrue(first.Succeeded, FormatDiagnostics(first.Diagnostics));
+        Assert.IsTrue(second.Succeeded, FormatDiagnostics(second.Diagnostics));
+        Assert.IsNotNull(first.BuildItems);
+        Assert.IsNotNull(second.BuildItems);
+        var firstIdentity = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(first.BuildItems!, provider);
+        var secondIdentity = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(second.BuildItems!, provider);
+        Assert.AreNotEqual(0, firstIdentity);
+        Assert.AreNotEqual(firstIdentity, secondIdentity);
+    }
+
+    [TestMethod]
+    public void CanonicalExecutionCache_WhenInstrumentationIsEnabled_ShouldStayIneligible()
+    {
+        if (Debugger.IsAttached)
+            return;
+
+        var result = InstanceCreator.CompileWithDiagnostics(
+            "select i.Value from #artifact.items() i",
+            $"CanonicalInstrumentation_{Guid.NewGuid():N}",
+            new ArtifactSchemaProvider(new ArtifactSchema("instrumented")),
+            _loggerResolver,
+            new CompilationOptions().WithInstrumentationMode(QueryInstrumentationMode.SourceBoundaries));
+
+        Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
+        Assert.IsNotNull(result.BuildItems);
+        Assert.AreEqual(
+            0,
+            InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(
+                result.BuildItems!,
+                new ArtifactSchemaProvider(new ArtifactSchema("instrumented"))));
+    }
+
+    [TestMethod]
+    public async Task ExecutionCompilationCache_WhenIdenticalCompilationsStartTogether_ShouldEmitOnce()
+    {
+        if (Debugger.IsAttached)
+            return;
+
+        var query = $"select d.Dummy from #system.dual() d where d.Dummy = '{Guid.NewGuid():N}'";
+        var results = await Task.WhenAll(
+            Enumerable.Range(0, 4).Select(index => Task.Run(() => InstanceCreator.CompileWithDiagnostics(
+                query,
+                $"TargetPipelineConcurrent{index}",
+                new SystemSchemaProvider(),
+                _loggerResolver,
+                new CompilationOptions()))));
+
+        Assert.IsTrue(results.All(static result => result.Succeeded));
+        Assert.AreEqual(1, results.Count(static result => result.BuildItems is { StopAfterPlanning: false }));
+        Assert.IsTrue(results.All(static result => result.CompiledQuery!.Run().Count == 0));
+    }
+
+    [TestMethod]
+    public async Task ExecutionCompilationCache_WhenBindingsDifferConcurrently_ShouldKeepRowsIsolated()
+    {
+        if (Debugger.IsAttached)
+            return;
+
+        const string query = "select i.Value from #artifact.items() i";
+        var results = await Task.WhenAll(
+            Enumerable.Range(0, 8).Select(index => Task.Run(() =>
+            {
+                var provider = new ArtifactSchemaProvider(new ArtifactSchema($"binding-{index}"));
+                var result = InstanceCreator.CompileWithDiagnostics(
+                    query,
+                    $"TargetPipelineBindingIsolation{index}",
+                    provider,
+                    _loggerResolver,
+                    new CompilationOptions());
+
+                Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
+                using var table = result.CompiledQuery!.Run();
+                return (Index: index, Value: (string)table[0][0]);
+            })));
+
+        Assert.HasCount(8, results);
+        foreach (var result in results)
+            Assert.AreEqual($"binding-{result.Index}", result.Value);
     }
 
     [TestMethod]

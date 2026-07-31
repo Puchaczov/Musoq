@@ -20,7 +20,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
     private static void AssertCheckedInTableApplySample(string fileName)
     {
-        var sample = ReadSamples().Single(sample => sample.FileName == fileName);
+        var sample = ReadSample(fileName);
         var failures = GetTableApplyShapeFailures(sample.FileName, sample.Content, sample.Content);
         Assert.IsEmpty(failures, $"{fileName} has stale table-apply shape: {string.Join(", ", failures)}");
     }

@@ -12,12 +12,14 @@ public sealed record TableRowShape : RowShape
     public TableRowShape(
         string alias,
         IReadOnlyList<FieldBinding> fields,
-        IReadOnlyList<FieldBinding> contexts)
+        IReadOnlyList<FieldBinding> contexts,
+        string? generatedRowTypeName = null)
         : base(alias, fields)
     {
         Alias = alias;
         Fields = ExecutionIrCollections.Freeze(fields);
         Contexts = ExecutionIrCollections.Freeze(contexts);
+        GeneratedRowTypeName = generatedRowTypeName;
     }
 
     public string Alias { get; init; }
@@ -33,6 +35,8 @@ public sealed record TableRowShape : RowShape
         get => _contexts;
         init => _contexts = ExecutionIrCollections.Freeze(value);
     }
+
+    public string? GeneratedRowTypeName { get; init; }
 
     public TableRowShape(
         string alias,

@@ -158,7 +158,7 @@ namespace GeneratedSample_Q57_BinaryInlineRepeatUntilInterpret
                     }
 
                     Statement0Row0 fp = __storedTable0Rows[__storedTable0Index];
-                    var itRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.Inline_Items>((Musoq.Generated.Interpreters.Inline_Items[])fp.p_Items);
+                    var itRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.Inline_Items>(fp.p_Items);
                     foreach (var itChunk in itRows)
                     {
                         for (int itIndex = 0, itIndexCount = itChunk.Count; itIndex < itIndexCount; ++itIndex)
@@ -350,14 +350,14 @@ namespace GeneratedSample_Q57_BinaryInlineRepeatUntilInterpret
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(byte[] __value0, object[] __value1)
+            public Statement0Row0(byte[] __value0, Musoq.Generated.Interpreters.Inline_Items[] __value1)
             {
                 f_Content = __value0;
                 p_Items = __value1;
             }
 
             public byte[] f_Content { get; }
-            public object[] p_Items { get; }
+            public Musoq.Generated.Interpreters.Inline_Items[] p_Items { get; }
         }
     }
 }

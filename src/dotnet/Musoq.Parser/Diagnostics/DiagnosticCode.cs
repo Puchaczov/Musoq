@@ -1,6 +1,5 @@
 // ReSharper disable InconsistentNaming
 namespace Musoq.Parser.Diagnostics;
-
 /// <summary>
 ///     Enumeration of all diagnostic codes used in Musoq.
 /// </summary>
@@ -127,6 +126,7 @@ public enum DiagnosticCode
     MQ3081_MissingRequiredSourceArgument = 3081,
     MQ3082_AmbiguousSourceInvocation = 3082,
     MQ3083_NamedSourceArgumentsRequireMetadata = 3083,
+    MQ3084_SourceEntityRequiresRuntimeReflection = 3084,
 
     // Schema Definition Errors (MQ4xxx)
     MQ4001_InvalidBinarySchemaField = 4001,

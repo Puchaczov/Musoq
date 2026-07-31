@@ -61,6 +61,11 @@ public sealed record FieldBinding
 
     public ExecutionTypeRef? PublicType { get; init; }
 
+    public string? GeneratedTypeName { get; init; }
+
+    public IReadOnlyDictionary<string, string> GeneratedMemberTypeNames { get; init; } =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
     public IReadOnlyDictionary<string, string> ReadModifiers { get; init; }
 
     public ExecutionTypeRef ColumnType => PublicType ?? Type;

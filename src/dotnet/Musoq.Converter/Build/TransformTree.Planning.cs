@@ -10,6 +10,7 @@ using Musoq.Evaluator.IR.Planning.Printing;
 using Musoq.Evaluator.Visitors;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using Musoq.Parser.Nodes;
+using Musoq.Schema;
 using PlanningContext = Musoq.Evaluator.IR.Planning.PlanningContext;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
@@ -49,18 +50,12 @@ public partial class TransformTree
         try
         {
             var aliasKeyedColumns = CreateAliasKeyedInferredColumns(semantic.Phase.Metadata);
-            var logicalBuilder = new LogicalPlanBuilder(aliasKeyedColumns);
-            var logicalTraverser = new LogicalPlanBuildTraverseVisitor(logicalBuilder);
-            semantic.TransformedQueryTree.Accept(logicalTraverser);
-
-            if (logicalTraverser.Result is null)
+            var logicalArtifacts = BuildLogicalPlanMeasured(
+                semantic.TransformedQueryTree,
+                aliasKeyedColumns,
+                context);
+            if (logicalArtifacts is null)
                 return null;
-
-            var logicalOptimizer = new LogicalOptimizer(
-                context.CompilationOptions.UseConstantFolding,
-                context.DiagnosticContext);
-            var logicalOptimizationResult = logicalOptimizer.Optimize(logicalTraverser.Result);
-            var logicalArtifacts = new LogicalPlanningArtifacts(logicalOptimizationResult.InitialPlan, logicalOptimizationResult.OptimizedPlan, logicalOptimizationResult.Trace);
             var planningScope = semantic.ScopeArtifact.CreateScope();
             var planningContext = new PlanningContext(
                 logicalArtifacts,
@@ -80,7 +75,16 @@ public partial class TransformTree
             };
 
             var planner = new QueryPlanner();
-            var planningResult = planner.Plan(planningContext);
+            var physicalPhase = global::Musoq.Converter.EvaluatorPerformanceTelemetry.BeginPhase("semantic.physical-plan");
+            PlanningResult planningResult;
+            try
+            {
+                planningResult = planner.Plan(planningContext);
+            }
+            finally
+            {
+                physicalPhase.Dispose();
+            }
             SourceContractDiagnosticReporter.Report(
                 planningResult,
                 context.DiagnosticContext);
@@ -96,13 +100,27 @@ public partial class TransformTree
                 UsedWhereNodes = ApplyPlannedWhereNodes(semantic.UsedWhereNodes, planningResult.Properties.SourcePredicatePlansBySourceId)
             };
 
+            string? planningText = null;
+            if (context.EmitExecutionPlanText)
+            {
+                var planningTextPhase = global::Musoq.Converter.EvaluatorPerformanceTelemetry.BeginPhase("semantic.planning-text");
+                try
+                {
+                    planningText = PlanningTextPrinter.Print(planningResult);
+                }
+                finally
+                {
+                    planningTextPhase.Dispose();
+                }
+            }
+
             var artifacts = new PlanningBuildArtifacts
             {
                 InitialLogicalPlan = logicalArtifacts.InitialLogicalPlan,
                 OptimizedLogicalPlan = logicalArtifacts.OptimizedLogicalPlan,
                 LogicalPlan = logicalArtifacts.OptimizedLogicalPlan,
                 PlanningResult = planningResult,
-                PlanningText = PlanningTextPrinter.Print(planningResult),
+                PlanningText = planningText,
                 InitialPhysicalPlan = planningResult.PhysicalArtifacts.InitialPhysicalPlan,
                 OptimizedPhysicalPlan = planningResult.PhysicalArtifacts.OptimizedPhysicalPlan,
                 PhysicalPlan = planningResult.PhysicalArtifacts.OptimizedPhysicalPlan
@@ -127,6 +145,36 @@ public partial class TransformTree
         {
             context.DiagnosticContext.ReportException(ex);
             return null;
+        }
+    }
+
+    private static LogicalPlanningArtifacts? BuildLogicalPlanMeasured(
+        RootNode queryTree,
+        Dictionary<string, ISchemaColumn[]> aliasKeyedColumns,
+        TransformPipelineContext context)
+    {
+        var phase = global::Musoq.Converter.EvaluatorPerformanceTelemetry.BeginPhase("semantic.logical-plan");
+        try
+        {
+            var logicalBuilder = new LogicalPlanBuilder(aliasKeyedColumns);
+            var logicalTraverser = new LogicalPlanBuildTraverseVisitor(logicalBuilder);
+            queryTree.Accept(logicalTraverser);
+
+            if (logicalTraverser.Result is null)
+                return null;
+
+            var logicalOptimizer = new LogicalOptimizer(
+                context.CompilationOptions.UseConstantFolding,
+                context.DiagnosticContext);
+            var logicalOptimizationResult = logicalOptimizer.Optimize(logicalTraverser.Result);
+            return new LogicalPlanningArtifacts(
+                logicalOptimizationResult.InitialPlan,
+                logicalOptimizationResult.OptimizedPlan,
+                logicalOptimizationResult.Trace);
+        }
+        finally
+        {
+            phase.Dispose();
         }
     }
 

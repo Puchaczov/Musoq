@@ -20,7 +20,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CteDownstreamSample_WhenCheckedIn_ShouldFuseReadOnceProjectionCte()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == CteDownstreamSampleFileName);
+        var sample = ReadSample(CteDownstreamSampleFileName);
 
         Assert.Contains("CtePhase [cte0]", sample.Content);
         Assert.Contains("ForEach [ko3iko in ko3ikoRows]", sample.Content);
@@ -39,7 +39,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void MultipleCteChainedSample_WhenCheckedIn_ShouldFuseLinearReadOnceCteChain()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == MultipleCteChainedSampleFileName);
+        var sample = ReadSample(MultipleCteChainedSampleFileName);
 
         Assert.Contains("private sealed class ResultRow0", sample.Content);
         Assert.Contains("CtePhase [cte0]", sample.Content);
@@ -89,7 +89,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CteDistinctJoinByCountrySample_WhenCheckedIn_ShouldUseExecutionIrCteDistinctJoin()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == CteDistinctJoinByCountrySampleFileName);
+        var sample = ReadSample(CteDistinctJoinByCountrySampleFileName);
 
         Assert.Contains("private sealed class Cte0Row0", sample.Content);
         Assert.IsFalse(sample.Content.Contains("private sealed class Cte0Statement0Row0", StringComparison.Ordinal));
@@ -142,7 +142,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void InSubqueryBasicSample_WhenCheckedIn_ShouldUseExecutionIrSubqueryJoin()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == InSubqueryBasicSampleFileName);
+        var sample = ReadSample(InSubqueryBasicSampleFileName);
 
         Assert.Contains("PhysicalHashJoin [LeftSemi]", sample.Content);
         Assert.Contains("private sealed class ResultRow0", sample.Content);
@@ -201,9 +201,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void GroupedSetOperationSamples_WhenCheckedIn_ShouldUseExecutionIrAggregateArms()
     {
-        var samples = ReadSamples()
-            .Where(static sample => GroupedSetOperationSampleFileNames.Contains(sample.FileName))
-            .ToArray();
+        var samples = ReadNamedSamples(GroupedSetOperationSampleFileNames);
 
         Assert.HasCount(GroupedSetOperationSampleFileNames.Length, samples);
 
@@ -222,7 +220,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         string fileName,
         int helperReferenceCount)
     {
-        var sample = ReadSamples().Single(sample => sample.FileName == fileName).Content;
+        var sample = ReadSample(fileName).Content;
 
         Assert.Contains("private sealed class AggregateGroup0", sample);
         Assert.AreEqual(1, CountOccurrences(sample, "private sealed class AggregateGroup0"));

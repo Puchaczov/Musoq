@@ -54,6 +54,12 @@ internal static class QueryMethodNameResolver
         return $"{baseName}_{methodIndex}";
     }
 
+    public static string ResolveProfiled(string methodName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(methodName);
+        return $"{methodName}_Profiled";
+    }
+
     private static bool TryResolveScopeMethodName(RenderContext context, out string methodName)
     {
         methodName = string.Empty;

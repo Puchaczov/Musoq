@@ -72,8 +72,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SubquerySamples_WhenCheckedIn_ShouldShowDecorrelatedGeneratedCodeShapes()
     {
-        var samples = ReadSamples()
-            .Where(sample => SubquerySampleFileNames.Contains(sample.FileName, StringComparer.Ordinal))
+        var samples = ReadNamedSamples(SubquerySampleFileNames)
             .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
 
         Assert.HasCount(SubquerySampleFileNames.Length, samples);
@@ -295,8 +294,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     public void SubquerySamples_WhenCheckedIn_ShouldAvoidObjectKeyAllocationPatternsForTypedDecorrelatedHashJoins()
     {
         var generatedCode = string.Concat(
-            ReadSamples()
-                .Where(sample => SubquerySampleFileNames.Contains(sample.FileName, StringComparer.Ordinal))
+            ReadNamedSamples(SubquerySampleFileNames)
                 .Select(static sample => ExtractGeneratedCodeSection(sample.Content)));
 
         Assert.AreEqual(0, CountOccurrences(generatedCode, NullableHashJoinKeyPattern));
@@ -308,9 +306,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SubquerySamples_WhenCheckedIn_ShouldUseSingleLookupHashBuilds()
     {
-        var samples = ReadSamples()
-            .Where(sample => SubquerySampleFileNames.Contains(sample.FileName, StringComparer.Ordinal))
-            .ToArray();
+        var samples = ReadNamedSamples(SubquerySampleFileNames);
 
         foreach (var sample in samples)
         {

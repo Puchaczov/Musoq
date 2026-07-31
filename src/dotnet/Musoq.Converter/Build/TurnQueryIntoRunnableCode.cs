@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Text;
 using Musoq.Converter.Exceptions;
+using Musoq.Targets.Abstractions;
 
 namespace Musoq.Converter.Build;
 
@@ -9,20 +10,28 @@ public class TurnQueryIntoRunnableCode(BuildChain? successor) : BuildChain(succe
     public override void Build(BuildItems items)
     {
         ArgumentNullException.ThrowIfNull(items);
-        var artifacts = Finalize(items.RenderingArtifacts, items.EmitPdb);
-        items.CompilationArtifacts = artifacts;
+        var phase = global::Musoq.Converter.EvaluatorPerformanceTelemetry.BeginPhase("emission");
+        try
+        {
+            var artifacts = Finalize(items.RenderingArtifacts, items.EmitPdb, items.FinalizationPurpose);
+            items.CompilationArtifacts = artifacts;
 
-        if (!artifacts.FinalizationResult.Success)
-            throw new CompilationException(CreateCompilationErrorText(artifacts.FinalizationResult));
+            if (!artifacts.FinalizationResult.Success)
+                throw new CompilationException(CreateCompilationErrorText(artifacts.FinalizationResult));
+        }
+        finally
+        {
+            phase.Dispose();
+        }
 
         Successor?.Build(items);
     }
 
-    private static CompilationBuildArtifacts Finalize(RenderingBuildArtifacts rendering, bool emitPdb)
+    private static CompilationBuildArtifacts Finalize(RenderingBuildArtifacts rendering, bool emitPdb, TargetFinalizationPurpose purpose)
     {
         var options = ExecutionTargetCatalog.CreateFinalizationOptions(
             rendering.Artifact.TargetId,
-            new TargetFinalizationOptionsContext(emitPdb));
+            purpose == TargetFinalizationPurpose.Execution ? new TargetFinalizationOptionsContext(emitPdb) : new TargetFinalizationOptionsContext(emitPdb, purpose));
         return CompilationBuildArtifacts.From(
             ExecutionTargetCatalog.FinalizeArtifact(rendering.Artifact, options));
     }

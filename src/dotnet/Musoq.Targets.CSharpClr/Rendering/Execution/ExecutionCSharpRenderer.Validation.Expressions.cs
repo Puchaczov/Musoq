@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.IR;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.Tables;
 
@@ -18,6 +19,11 @@ public sealed partial class ExecutionCSharpRenderer
 
         if (expression is ExecutionMethodTargetReuseCandidate candidate)
             return GetUnsupportedMethodCallReason(candidate.MethodCall);
+
+        if (expression is ExecutionFieldRead fieldRead)
+        {
+            return $"Execution field '{fieldRead.Alias}.{fieldRead.FieldName}' uses unsupported access strategy '{fieldRead.AccessStrategy?.GetType().Name ?? "<null>"}'.";
+        }
 
         return $"Execution IR C# backend cannot render expression {expression.GetType().Name}.";
     }
@@ -83,8 +89,9 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionContextArray contextArray => contextArray.Segments.All(static segment => segment.Count >= 0) &&
                                                   contextArray.Segments.Select(static segment => segment.Value).All(CanRenderExpression),
             ExecutionCompositeKey compositeKey => compositeKey.Parts.All(CanRenderExpression),
-            ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts.Count is >= 2 and <= 7 &&
-                                                    IsValueTupleType(valueTupleKey.ReturnType.RequireClrType(), valueTupleKey.Parts.Count) &&
+            ExecutionValueTupleKey valueTupleKey =>
+                                                    ValueTupleTypeShape.TryGetElementTypes(valueTupleKey.ReturnType.RequireClrType(), out var tupleElementTypes) &&
+                                                    tupleElementTypes.Length == valueTupleKey.Parts.Count &&
                                                     valueTupleKey.Parts.All(CanRenderExpression),
             ExecutionWindowValueRead => true,
             ExecutionAggregateCall aggregateCall => CanReferenceType(aggregateCall.Accumulator.InputType) &&
@@ -100,15 +107,16 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool CanRenderFieldRead(ExecutionFieldRead fieldRead)
     {
+        if (fieldRead.AccessStrategy is ReflectedMemberAccess or NestedPositionalAccess)
+            return false;
+
         return fieldRead.AccessStrategy is not (
                    PositionalAccess or
                    ContextAccess or
                    GeneratedRowContextAccess or
                    GeneratedRowTypeAccess or
                    GeneratedRowNestedAccess or
-                   ReflectedMemberAccess or
-                   NestedClrPropertyAccess or
-                   NestedPositionalAccess) ||
+                   NestedClrPropertyAccess) ||
                !string.IsNullOrWhiteSpace(fieldRead.Alias);
     }
 

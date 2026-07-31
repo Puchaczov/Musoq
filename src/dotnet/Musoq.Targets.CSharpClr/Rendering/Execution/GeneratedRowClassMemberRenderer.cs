@@ -194,7 +194,7 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         CreateIdentifierName(GetGeneratedFieldName(field)),
-                        CastValueForAssignment(field.Type.RequireClrType()))),
+                        CastValueForAssignment(field))),
                     SyntaxFactory.BreakStatement()
                 ])))
             .Concat(
@@ -228,9 +228,9 @@ public sealed partial class ExecutionCSharpRenderer
         var assigners = fields.Select(field =>
         {
             var fieldName = EscapeIdentifier(GetGeneratedFieldName(field));
-            var value = field.Type.RequireClrType() == typeof(object)
+            var value = string.IsNullOrWhiteSpace(field.GeneratedTypeName) && field.Type.RequireClrType() == typeof(object)
                 ? "value"
-                : $"({CreateTypeSyntax(field.Type).ToFullString()})value";
+                : $"({CreateGeneratedFieldTypeSyntax(field).ToFullString()})value";
             return $"                static (row, value) => row.{fieldName} = {value}";
         });
         var code =
@@ -254,12 +254,12 @@ public sealed partial class ExecutionCSharpRenderer
             """)!;
     }
 
-    private static ExpressionSyntax CastValueForAssignment(Type targetType)
+    private static ExpressionSyntax CastValueForAssignment(FieldBinding field)
     {
         var value = SyntaxFactory.IdentifierName("value");
-        return targetType == typeof(object)
+        return string.IsNullOrWhiteSpace(field.GeneratedTypeName) && field.Type.RequireClrType() == typeof(object)
             ? value
-            : SyntaxFactory.CastExpression(CreateTypeSyntax(targetType), value);
+            : SyntaxFactory.CastExpression(CreateGeneratedFieldTypeSyntax(field), value);
     }
 
     private static IEnumerable<(string Key, int Index)> CreateGeneratedRowStringKeys(

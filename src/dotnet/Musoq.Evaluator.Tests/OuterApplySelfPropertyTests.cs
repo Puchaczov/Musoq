@@ -351,14 +351,14 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         TableMaterializationTestHelper.AssertRowsUnordered(table, [1], [2]);
     }
 
-    private sealed class OuterApplyClass1
+    public sealed class OuterApplyClass1
     {
         public string City { get; set; } = string.Empty;
 
         public double[] Values { get; set; } = [];
     }
 
-    private sealed class OuterApplyClass2
+    public sealed class OuterApplyClass2
     {
         public string City { get; set; } = string.Empty;
 
@@ -373,21 +373,21 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         public int Value2 { get; set; }
     }
 
-    private sealed class OuterApplyClass3
+    public sealed class OuterApplyClass3
     {
         public string City { get; set; } = string.Empty;
 
         [BindablePropertyAsTable] public ComplexType1[] Values { get; set; } = [];
     }
 
-    private sealed class OuterApplyClass4
+    public sealed class OuterApplyClass4
     {
         public string City { get; set; } = string.Empty;
 
         [BindablePropertyAsTable] public List<ComplexType1> Values { get; set; } = [];
     }
 
-    private sealed class OuterApplyClass5
+    public sealed class OuterApplyClass5
     {
         public string City { get; set; } = string.Empty;
 
@@ -396,7 +396,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         public double[] Values2 { get; set; } = [];
     }
 
-    private sealed class OuterApplyClass7
+    public sealed class OuterApplyClass7
     {
         public ComplexType5? ComplexType { get; set; }
     }

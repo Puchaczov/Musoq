@@ -24,6 +24,8 @@ internal sealed record CSharpClrRenderInputs : TargetBackendRenderInputs
 
     public required CompilationOptions CompilationOptions { get; init; }
 
+    public required TargetRenderProfile RenderProfile { get; init; }
+
     public required string AssemblyName { get; init; }
 
     public required string NamespaceName { get; init; }

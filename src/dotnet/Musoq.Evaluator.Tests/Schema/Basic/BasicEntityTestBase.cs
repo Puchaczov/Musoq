@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Musoq.Converter;
 using Musoq.Converter.Build;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Schema;
@@ -29,6 +30,9 @@ public class BasicEntityTestBase
 
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 
+    private readonly object _batchedQueryGate = new();
+    private readonly List<CompiledQuery> _batchedQueries = [];
+
     protected BuildItems CreateBuildItems<T>(string script)
     {
         return InstanceCreator.CreateForAnalyze(
@@ -46,12 +50,40 @@ public class BasicEntityTestBase
         IDictionary<string, IEnumerable<T>> sources)
         where T : BasicEntity
     {
-        return InstanceCreator.CompileForExecution(
+        var result = StableTypedExecutionCompilationCoordinator.Submit(
             script,
-            Guid.NewGuid().ToString(),
             new BasicSchemaProvider<T>(sources),
             LoggerResolver,
             TestCompilationOptions);
+
+        if (!result.Result.Succeeded)
+        {
+            throw result.Result.CaughtException != null
+                ? new MusoqQueryException(result.Result.ToEnvelopes(), result.Result.CaughtException)
+                : new MusoqQueryException(result.Result.ToEnvelopes());
+        }
+
+        if (result.WasBatched)
+        {
+            lock (_batchedQueryGate)
+                _batchedQueries.Add(result.Result.CompiledQuery);
+        }
+
+        return result.Result.CompiledQuery;
+    }
+
+    [TestCleanup]
+    public void DisposeBatchedCompiledQueries()
+    {
+        CompiledQuery[] queries;
+        lock (_batchedQueryGate)
+        {
+            queries = _batchedQueries.ToArray();
+            _batchedQueries.Clear();
+        }
+
+        foreach (var query in queries)
+            query.Dispose();
     }
 
     protected CompiledQuery CreateAndRunVirtualMachine<T>(
@@ -97,6 +129,33 @@ public class BasicEntityTestBase
         Assert.AreEqual(typeof(TResult), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(score, table[0][0]);
+    }
+
+    protected void TestMethodBatchTemplate(params (string Operation, object Expected)[] cases)
+    {
+        ArgumentNullException.ThrowIfNull(cases);
+        Assert.IsNotEmpty(cases);
+
+        var projection = string.Join(
+            ", ",
+            cases.Select((item, index) => $"{item.Operation} as Result{index}"));
+        var query = $"select {projection} from #A.Entities()";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [new BasicEntity("ABCAACBA")] }
+        };
+
+        var table = TableMaterializationTestHelper.Materialize(
+            CreateAndRunVirtualMachine(query, sources).Run());
+
+        Assert.AreEqual(1, table.Count);
+        Assert.HasCount(cases.Length, table.Columns);
+
+        for (var index = 0; index < cases.Length; index++)
+        {
+            Assert.AreEqual(cases[index].Expected.GetType(), table.Columns.ElementAt(index).ColumnType);
+            Assert.AreEqual(cases[index].Expected, table[0][index]);
+        }
     }
 
     protected static IDictionary<string, IEnumerable<BasicEntity>> CreateSingleSource(

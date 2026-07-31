@@ -197,9 +197,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CteSidecarSamples_WhenCheckedIn_ShouldShowStoredSidecarIndexes()
     {
-        var samples = ReadSamples()
-            .Where(static sample => sample.FileName is CteSidecarHashJoinSampleFileName or CteSidecarKeySetSemiJoinSampleFileName)
-            .ToArray();
+        var samples = ReadNamedSamples(CteSidecarHashJoinSampleFileName, CteSidecarKeySetSemiJoinSampleFileName);
 
         Assert.HasCount(2, samples);
 
@@ -242,8 +240,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CteSidecarComplexSamples_WhenCheckedIn_ShouldShowMultipleStoredSidecarIndexes()
     {
-        var samples = ReadSamples()
-            .Where(static sample => sample.FileName is CteSidecarFanoutThreeHashesSampleFileName or CteSidecarStagedGraphMixedSampleFileName)
+        var samples = ReadNamedSamples(CteSidecarFanoutThreeHashesSampleFileName, CteSidecarStagedGraphMixedSampleFileName)
             .ToDictionary(static sample => sample.FileName, StringComparer.Ordinal);
 
         Assert.HasCount(2, samples);

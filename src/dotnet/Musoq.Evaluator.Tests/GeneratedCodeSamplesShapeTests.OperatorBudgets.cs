@@ -8,7 +8,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void OperatorFamilyBudgets_WhenCheckedIn_ShouldCoverEveryCatalogCategory()
     {
-        var actualCategories = ReadSamples()
+        var actualCategories = ReadAllSamples()
             .Select(static sample => sample.Category)
             .Distinct()
             .OrderBy(static category => category)
@@ -23,6 +23,6 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void OperatorFamilies_WhenCheckedIn_ShouldStayWithinRuntimeV2ShapeBudgets()
     {
-        AssertOperatorFamilyBudgets(ReadSamples());
+        AssertOperatorFamilyBudgets(ReadAllSamples());
     }
 }

@@ -67,6 +67,10 @@ internal static class TargetArtifactPackageManifestSerializer
                 builder,
                 $"abi:{import.Kind}:{Encode(import.Name)}",
                 $"contract={Encode(import.Contract)};version={import.ContractVersion.ToString(CultureInfo.InvariantCulture)};attributes={attributes}");
+            Append(
+                builder,
+                $"abi-definition:{import.Kind}:{Encode(import.Name)}",
+                Hash(Encoding.UTF8.GetBytes(import.CanonicalDefinition)));
         }
 
         return builder.ToString();

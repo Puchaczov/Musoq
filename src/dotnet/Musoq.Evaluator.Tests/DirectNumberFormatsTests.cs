@@ -297,35 +297,34 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
     [TestMethod]
     public void PowersOfTwo_AllFormats()
     {
-        TestMethodTemplate("0x1", 1L);
-        TestMethodTemplate("0x2", 2L);
-        TestMethodTemplate("0x4", 4L);
-        TestMethodTemplate("0x8", 8L);
-        TestMethodTemplate("0x10", 16L);
-        TestMethodTemplate("0x20", 32L);
-        TestMethodTemplate("0x40", 64L);
-        TestMethodTemplate("0x80", 128L);
-        TestMethodTemplate("0x100", 256L);
-
-        TestMethodTemplate("0b1", 1L);
-        TestMethodTemplate("0b10", 2L);
-        TestMethodTemplate("0b100", 4L);
-        TestMethodTemplate("0b1000", 8L);
-        TestMethodTemplate("0b10000", 16L);
-        TestMethodTemplate("0b100000", 32L);
-        TestMethodTemplate("0b1000000", 64L);
-        TestMethodTemplate("0b10000000", 128L);
-        TestMethodTemplate("0b100000000", 256L);
-
-        TestMethodTemplate("0o1", 1L);
-        TestMethodTemplate("0o2", 2L);
-        TestMethodTemplate("0o4", 4L);
-        TestMethodTemplate("0o10", 8L);
-        TestMethodTemplate("0o20", 16L);
-        TestMethodTemplate("0o40", 32L);
-        TestMethodTemplate("0o100", 64L);
-        TestMethodTemplate("0o200", 128L);
-        TestMethodTemplate("0o400", 256L);
+        TestMethodBatchTemplate(
+            ("0x1", 1L),
+            ("0x2", 2L),
+            ("0x4", 4L),
+            ("0x8", 8L),
+            ("0x10", 16L),
+            ("0x20", 32L),
+            ("0x40", 64L),
+            ("0x80", 128L),
+            ("0x100", 256L),
+            ("0b1", 1L),
+            ("0b10", 2L),
+            ("0b100", 4L),
+            ("0b1000", 8L),
+            ("0b10000", 16L),
+            ("0b100000", 32L),
+            ("0b1000000", 64L),
+            ("0b10000000", 128L),
+            ("0b100000000", 256L),
+            ("0o1", 1L),
+            ("0o2", 2L),
+            ("0o4", 4L),
+            ("0o10", 8L),
+            ("0o20", 16L),
+            ("0o40", 32L),
+            ("0o100", 64L),
+            ("0o200", 128L),
+            ("0o400", 256L));
     }
 
 

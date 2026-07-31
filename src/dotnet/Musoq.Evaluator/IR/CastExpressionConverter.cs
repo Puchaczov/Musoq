@@ -8,12 +8,12 @@ public sealed partial class ExpressionConverter
 {
     private StrictCast ConvertCast(CastNode node)
     {
-        if (!StrictCastRuntime.TryGetReturnType(node.TargetTypeName, out _))
+        if (!StrictCastRuntime.TryResolveTarget(node.TargetTypeName, out var canonicalTypeName, out _))
             throw new NotSupportedException(StrictCastRuntime.CreateUnsupportedTargetMessage(node.TargetTypeName));
 
         return new StrictCast(
             Convert(node.Expression),
-            node.TargetTypeName,
+            canonicalTypeName,
             Expressions.ExpressionConverter.RequireReturnType(node));
     }
 }

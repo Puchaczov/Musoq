@@ -1,6 +1,7 @@
 ﻿using Musoq.Converter.Exceptions;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
+using Musoq.Parser.Nodes;
 
 namespace Musoq.Converter.Build;
 
@@ -14,12 +15,14 @@ public class CreateTree(BuildChain successor) : BuildChain(successor)
         if (string.IsNullOrWhiteSpace(items.RawQuery))
             throw AstValidationException.ForInvalidNodeStructure("Query", "CreateTree", "RawQuery is null or empty");
 
+        var phase = global::Musoq.Converter.EvaluatorPerformanceTelemetry.BeginPhase("parse");
         try
         {
-            var lexer = new Lexer(items.RawQuery, true);
-            var parser = new Parser.Parser(lexer);
-
-            var rootNode = parser.ComposeAll();
+            var script = items.RawQuery;
+            var rootNode = ParsedQueryTemplateCache.GetOrAdd(
+                script,
+                ParsedQueryTemplateCache.DefaultParserContract,
+                () => Parse(script));
 
             if (rootNode == null)
                 throw AstValidationException.ForNullNode("RootNode", "CreateTree after parsing");
@@ -31,7 +34,18 @@ public class CreateTree(BuildChain successor) : BuildChain(successor)
         {
             throw new AstValidationException("Query", "CreateTree", $"Failed to parse SQL query: {ex.Message}", ex);
         }
+        finally
+        {
+            phase.Dispose();
+        }
 
         Successor?.Build(items);
+    }
+
+    private static RootNode Parse(string script)
+    {
+        var lexer = new Lexer(script, true);
+        var parser = new Parser.Parser(lexer);
+        return parser.ComposeAll();
     }
 }

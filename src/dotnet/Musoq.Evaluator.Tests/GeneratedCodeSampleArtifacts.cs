@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Converter;
 using Musoq.Converter.Build;
+using Musoq.Evaluator;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Physical;
@@ -19,7 +21,9 @@ namespace Musoq.Evaluator.Tests;
 internal static class GeneratedCodeSampleArtifacts
 {
     private const int SnapshotMaxDegreeOfParallelism = 24;
+    private const int CacheGenerationVersion = 1;
 
+    private static readonly GeneratedCodeArtifactCache<GeneratedCodeSampleCacheKey, string> Cache = new();
     private static readonly Encoding Utf8WithBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
     private static readonly Regex GeneratedNamespaceRegex = new(
@@ -49,6 +53,45 @@ internal static class GeneratedCodeSampleArtifacts
     }
 
     public static string Generate(GeneratedCodeSample sample, ILoggerResolver loggerResolver)
+    {
+        var key = CreateCacheKey(sample);
+        var generated = Cache.GetOrAdd(
+            key,
+            _ => GenerateCoreWithTiming(sample, loggerResolver),
+            out var cacheHit);
+
+        if (cacheHit)
+            GeneratedCodeSampleTiming.RecordCacheHit(sample);
+
+        return generated;
+    }
+
+    internal static string GenerateUncachedForRefresh(GeneratedCodeSample sample, ILoggerResolver loggerResolver)
+    {
+        return GenerateCoreWithTiming(sample, loggerResolver);
+    }
+
+    private static string GenerateCoreWithTiming(GeneratedCodeSample sample, ILoggerResolver loggerResolver)
+    {
+        var startedUtc = DateTimeOffset.UtcNow;
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            return GenerateCore(sample, loggerResolver);
+        }
+        finally
+        {
+            stopwatch.Stop();
+            GeneratedCodeSampleTiming.RecordGeneration(
+                sample,
+                startedUtc,
+                DateTimeOffset.UtcNow,
+                stopwatch.Elapsed);
+        }
+    }
+
+    private static string GenerateCore(GeneratedCodeSample sample, ILoggerResolver loggerResolver)
     {
         var compilationOptions = CreateSnapshotCompilationOptions(sample.CompilationOptions);
 
@@ -112,6 +155,20 @@ internal static class GeneratedCodeSampleArtifacts
             .WithRecursiveCteLimits(options.RecursiveCteLimits);
     }
 
+    private static GeneratedCodeSampleCacheKey CreateCacheKey(GeneratedCodeSample sample)
+    {
+        var snapshotOptions = CreateSnapshotCompilationOptions(sample.CompilationOptions);
+
+        return new GeneratedCodeSampleCacheKey(
+            CacheGenerationVersion,
+            sample.Name,
+            sample.FileName,
+            sample.Query,
+            sample.Category,
+            sample.Format,
+            CompilationOptionsFingerprint.Compute(snapshotOptions));
+    }
+
     public static void Write(GeneratedCodeSample sample, ILoggerResolver loggerResolver)
     {
         Write(sample, loggerResolver, SamplesDirectory);
@@ -130,7 +187,7 @@ internal static class GeneratedCodeSampleArtifacts
         Directory.CreateDirectory(samplesDirectory);
         File.WriteAllText(
             Path.Combine(samplesDirectory, sample.FileName),
-            NormalizeLineEndingsForSnapshot(Generate(sample, loggerResolver)),
+            NormalizeLineEndingsForSnapshot(GenerateUncachedForRefresh(sample, loggerResolver)),
             Utf8WithBom);
     }
 
@@ -370,4 +427,13 @@ internal static class GeneratedCodeSampleArtifacts
             return node.WithCloseBraceToken(closeBrace);
         }
     }
+
+    private readonly record struct GeneratedCodeSampleCacheKey(
+        int GenerationVersion,
+        string Name,
+        string FileName,
+        string Query,
+        string Category,
+        GeneratedCodeSampleFormat Format,
+        string CompilationOptionsFingerprint);
 }

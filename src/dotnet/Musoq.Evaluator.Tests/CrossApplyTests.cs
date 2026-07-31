@@ -360,7 +360,7 @@ public class CrossApplyTests : GenericEntityTestBase
             ["Country2", 3000m, "March"]);
     }
 
-    private sealed class CrossApplyClass1
+    public sealed class CrossApplyClass1
     {
         public string City { get; set; } = string.Empty;
 
@@ -369,7 +369,7 @@ public class CrossApplyTests : GenericEntityTestBase
         public int Population { get; set; }
     }
 
-    private sealed class CrossApplyClass2
+    public sealed class CrossApplyClass2
     {
         public string Country { get; set; } = string.Empty;
 
@@ -378,7 +378,7 @@ public class CrossApplyTests : GenericEntityTestBase
         public string Month { get; set; } = string.Empty;
     }
 
-    private sealed class CrossApplyClass3
+    public sealed class CrossApplyClass3
     {
         public string Country { get; set; } = string.Empty;
 

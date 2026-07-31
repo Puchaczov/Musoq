@@ -22,11 +22,7 @@ public static partial class InstanceCreator
         var activator = ExecutionTargetCatalog.ResolveActivator(executable.TargetId);
         return activator.ActivateTable(
             executable,
-            new QueryRuntimeBinding(
-                items.SchemaProvider,
-                items.SourceRuntimeSettingsBySourceContextId,
-                items.SourceRuntimeSettingDescriptionsBySourceContextId,
-                CreateSourceExecutionPlans(items)));
+            CreateRuntimeBinding(items));
     }
 
     private static ITableRunnable CreateRunnable(BuildItems items, Func<Assembly> createAssembly)
@@ -40,25 +36,17 @@ public static partial class InstanceCreator
         var clrActivator = RequireClrActivator(executable.TargetId);
         return clrActivator.ActivateTable(
             executable,
-            new QueryRuntimeBinding(
-                items.SchemaProvider,
-                items.SourceRuntimeSettingsBySourceContextId,
-                items.SourceRuntimeSettingDescriptionsBySourceContextId,
-                CreateSourceExecutionPlans(items)),
+            CreateRuntimeBinding(items),
             createAssembly);
     }
 
     private static ITableRunnable CreateRunnable(CachedExecutionCompilation cachedCompilation, BuildItems items)
     {
-        var executable = cachedCompilation.ExecutableArtifact;
+        var executable = cachedCompilation.Template.ExecutableArtifact;
         var activator = ExecutionTargetCatalog.ResolveActivator(executable.TargetId);
         return activator.ActivateTable(
             executable,
-            new QueryRuntimeBinding(
-                items.SchemaProvider,
-                items.SourceRuntimeSettingsBySourceContextId,
-                items.SourceRuntimeSettingDescriptionsBySourceContextId,
-                CreateSourceExecutionPlans(items)));
+            CreateRuntimeBinding(items));
     }
 
     private static ITypedRunnable<TOut> CreateTypedRunnable<TOut>(BuildItems items)
@@ -72,11 +60,7 @@ public static partial class InstanceCreator
         var activator = ExecutionTargetCatalog.ResolveActivator(executable.TargetId);
         return activator.ActivateTyped<TOut>(
             executable,
-            new QueryRuntimeBinding(
-                items.SchemaProvider,
-                items.SourceRuntimeSettingsBySourceContextId,
-                items.SourceRuntimeSettingDescriptionsBySourceContextId,
-                CreateSourceExecutionPlans(items)));
+            CreateRuntimeBinding(items));
     }
 
     private static Type LoadRunnableType(BuildItems items)
@@ -121,6 +105,15 @@ public static partial class InstanceCreator
     private static ITableRunnable CreateRunnable(Type runnableType, QueryRuntimeBinding binding)
     {
         return RequireClrActivator(ExecutionTargetIds.CSharpClr).ActivateTable(runnableType, binding);
+    }
+
+    private static QueryRuntimeBinding CreateRuntimeBinding(BuildItems items)
+    {
+        return new QueryRuntimeBinding(
+            items.SchemaProvider,
+            items.SourceRuntimeSettingsBySourceContextId,
+            items.SourceRuntimeSettingDescriptionsBySourceContextId,
+            CreateSourceExecutionPlans(items));
     }
 
     private static ExecutableQueryArtifact GetExecutableArtifact(

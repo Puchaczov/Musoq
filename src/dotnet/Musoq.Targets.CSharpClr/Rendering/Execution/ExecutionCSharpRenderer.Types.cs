@@ -46,12 +46,6 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionEnsureTableCapacity EnsureCapacity,
         ExecutionForEach FinalizationLoop);
 
-    private sealed record ReflectedMemberAccessor(
-        string Key,
-        string VariableName,
-        Type SourceType,
-        string PropertyPath);
-
     private readonly record struct GeneratedRowOrderComparerInput(
         string SourceName,
         string TargetName,

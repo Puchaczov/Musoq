@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Planning;
 
@@ -96,10 +97,13 @@ internal sealed partial class PhysicalLoweringImplementation
             return TableBuildResult.Unsupported(left.UnsupportedReason);
 
         var rightSchemaFromIndex = CountSchemaScans(leftArm);
+        var rightShapeName = CanShareSetOperationCarrier(leftArm, rightArm)
+            ? armNames.LeftShapeName
+            : armNames.RightShapeName;
         var right = BuildPlanTable(
             rightArm,
             armNames.RightTableName,
-            armNames.RightShapeName,
+            rightShapeName,
             cteIndexes,
             cteShapesByName,
             schemaFromIndex + rightSchemaFromIndex,
@@ -124,6 +128,43 @@ internal sealed partial class PhysicalLoweringImplementation
 
         var resultShape = left.RowShape with { Contexts = [], SupportsGeneratedFieldAccess = false };
         return TableBuildResult.Success([..left.Shapes, ..right.Shapes], nodes, result, resultShape);
+    }
+
+    private static bool CanShareSetOperationCarrier(PhysicalNode left, PhysicalNode right)
+    {
+        if (!ContainsPhysicalNode<PhysicalWindowNode>(left) ||
+            !ContainsPhysicalNode<PhysicalWindowNode>(right) ||
+            !ContainsPhysicalNode<PhysicalCteRefNode>(left) ||
+            !ContainsPhysicalNode<PhysicalSchemaScanNode>(right))
+        {
+            return false;
+        }
+
+        var leftColumns = left.OutputSchema.Columns;
+        var rightColumns = right.OutputSchema.Columns;
+        if (leftColumns.Length != rightColumns.Length)
+            return false;
+
+        for (var index = 0; index < leftColumns.Length; index++)
+        {
+            var leftColumn = leftColumns[index];
+            var rightColumn = rightColumns[index];
+            if (leftColumn.Index != rightColumn.Index ||
+                !string.Equals(leftColumn.Name, rightColumn.Name, StringComparison.Ordinal) ||
+                leftColumn.Type != rightColumn.Type ||
+                !string.Equals(leftColumn.IntendedTypeName, rightColumn.IntendedTypeName, StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool ContainsPhysicalNode<TNode>(PhysicalNode node)
+        where TNode : PhysicalNode
+    {
+        return node is TNode || node.Children.Any(ContainsPhysicalNode<TNode>);
     }
 
     private TableBuildResult? TryBuildStreamingUnionAllTable(

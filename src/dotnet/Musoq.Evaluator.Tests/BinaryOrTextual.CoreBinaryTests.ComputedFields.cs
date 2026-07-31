@@ -34,7 +34,7 @@ public partial class BinaryOrTextualCoreBinaryTests
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
 
         // Act
-        var vm = InstanceCreator.CompileForExecution(
+        var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
@@ -80,7 +80,7 @@ public partial class BinaryOrTextualCoreBinaryTests
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
 
         // Act
-        var vm = InstanceCreator.CompileForExecution(
+        var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
@@ -128,7 +128,7 @@ public partial class BinaryOrTextualCoreBinaryTests
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
 
         // Act
-        var vm = InstanceCreator.CompileForExecution(
+        var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,

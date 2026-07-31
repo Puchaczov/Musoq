@@ -61,7 +61,9 @@ internal static class AggregateCallIdentity
             return;
         }
 
-        writer.Add(node.GetType().FullName ?? node.GetType().Name);
+        writer.Add(node is CastNode
+            ? typeof(StrictCast).FullName ?? nameof(StrictCast)
+            : node.GetType().FullName ?? node.GetType().Name);
         writer.Add(TypeName(node.ReturnType));
 
         switch (node)
@@ -107,6 +109,9 @@ internal static class AggregateCallIdentity
                 break;
             case UnaryNode unary:
                 WriteNode(unary.Expression, writer);
+                break;
+            case CastNode cast:
+                writer.Add(cast.ToString());
                 break;
             default:
                 writer.Add(node.Id);

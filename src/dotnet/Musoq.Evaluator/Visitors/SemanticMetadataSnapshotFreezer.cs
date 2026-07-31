@@ -28,16 +28,6 @@ internal static class SemanticMetadataSnapshotFreezer
         };
     }
 
-    public static IReadOnlyDictionary<TKey, IReadOnlyList<ISchemaColumn>> FreezeSchemaColumns<TKey>(
-        IReadOnlyDictionary<TKey, ISchemaColumn[]> values)
-        where TKey : notnull
-    {
-        return new ReadOnlyDictionary<TKey, IReadOnlyList<ISchemaColumn>>(
-            values.ToDictionary(
-                pair => pair.Key,
-                pair => (IReadOnlyList<ISchemaColumn>)Array.AsReadOnly(pair.Value.ToArray())));
-    }
-
     public static IReadOnlyDictionary<TKey, TValue> FreezeDictionary<TKey, TValue>(
         IReadOnlyDictionary<TKey, TValue> values)
         where TKey : notnull

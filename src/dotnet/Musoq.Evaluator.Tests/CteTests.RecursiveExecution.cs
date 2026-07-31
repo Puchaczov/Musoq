@@ -19,18 +19,13 @@ public partial class CteTests
     public void RecursiveUnionAllSupportedCase_ShouldReturnDeclaredColumnsAndRows(
         RecursiveCteSupportedCase testCase)
     {
-        var vm = testCase.CreateSchemaProvider == null
-            ? CreateAndRunVirtualMachine(
-                testCase.Query,
-                CreateSingleSource(),
-                testCase.CompilationOptions)
-            : InstanceCreator.CompileForExecution(
-                testCase.Query,
-                Guid.NewGuid().ToString(),
-                testCase.CreateSchemaProvider(),
-                LoggerResolver,
-                testCase.CompilationOptions);
-        var table = vm.Run(TestContext.CancellationToken);
+        using var measurement = EvaluatorTestCaseMeasurement.Begin(
+            nameof(RecursiveUnionAllSupportedCase_ShouldReturnDeclaredColumnsAndRows),
+            testCase.Name,
+            testCase.Name);
+        using var vm = measurement.MeasureCompilation(() => GetRecursiveUnionAllQuery(testCase));
+        using var table = measurement.MeasureExecution(() => vm.Run(TestContext.CancellationToken));
+        measurement.MeasureMaterialization(() => TableMaterializationTestHelper.Materialize(table));
 
         TableMaterializationTestHelper.AssertColumns(
             table,

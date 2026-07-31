@@ -111,7 +111,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ChainedApplyWindowSample_WhenCheckedIn_ShouldUseExecutionIrWindowedChainedApply()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == ChainedApplyWindowSampleFileName);
+        var sample = ReadSample(ChainedApplyWindowSampleFileName);
         var failures = GetChainedApplyWindowShapeFailures(sample.Content);
 
         Assert.IsEmpty(
@@ -156,8 +156,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ChainedApplyMixedDistinctAggregateSortSample_WhenCheckedIn_ShouldUseExecutionIrDistinctAggregateSort()
     {
-        var sample = ReadSamples()
-            .Single(static sample => sample.FileName == ChainedApplyMixedDistinctAggregateSortSampleFileName);
+        var sample = ReadSample(ChainedApplyMixedDistinctAggregateSortSampleFileName);
         var failures = GetChainedApplyMixedDistinctAggregateSortShapeFailures(sample.Content);
 
         Assert.IsEmpty(
@@ -206,8 +205,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ChainedApplyMixedDistinctMinMaxAggregateSortSample_WhenCheckedIn_ShouldUseExecutionIrDistinctAggregateSort()
     {
-        var sample = ReadSamples()
-            .Single(static sample => sample.FileName == ChainedApplyMixedDistinctMinMaxAggregateSortSampleFileName);
+        var sample = ReadSample(ChainedApplyMixedDistinctMinMaxAggregateSortSampleFileName);
         var failures = GetChainedApplyMixedDistinctMinMaxAggregateSortShapeFailures(sample.Content);
 
         Assert.IsEmpty(
@@ -253,8 +251,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ChainedApplyMixedDistinctAvgAggregateSortSample_WhenCheckedIn_ShouldUseExecutionIrDistinctAggregateSort()
     {
-        var sample = ReadSamples()
-            .Single(static sample => sample.FileName == ChainedApplyMixedDistinctAvgAggregateSortSampleFileName);
+        var sample = ReadSample(ChainedApplyMixedDistinctAvgAggregateSortSampleFileName);
         var failures = GetChainedApplyMixedDistinctAvgAggregateSortShapeFailures(sample.Content);
 
         Assert.IsEmpty(
@@ -299,8 +296,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ChainedApplyMixedDistinctMinMaxAggregateWindowSample_WhenCheckedIn_ShouldUseExecutionIrDistinctAggregateWindow()
     {
-        var sample = ReadSamples()
-            .Single(static sample => sample.FileName == ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName);
+        var sample = ReadSample(ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName);
         var failures = GetChainedApplyMixedDistinctMinMaxAggregateWindowShapeFailures(sample.Content);
 
         Assert.IsEmpty(
@@ -341,8 +337,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ChainedApplyMixedDistinctAvgAggregateWindowSample_WhenCheckedIn_ShouldUseExecutionIrDistinctAggregateWindow()
     {
-        var sample = ReadSamples()
-            .Single(static sample => sample.FileName == ChainedApplyMixedDistinctAvgAggregateWindowSampleFileName);
+        var sample = ReadSample(ChainedApplyMixedDistinctAvgAggregateWindowSampleFileName);
         var failures = GetChainedApplyMixedDistinctAvgAggregateWindowShapeFailures(sample.Content);
 
         Assert.IsEmpty(

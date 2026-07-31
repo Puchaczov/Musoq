@@ -71,7 +71,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         if (!string.IsNullOrWhiteSpace(enumerable.EnumerableTypeName))
         {
-            return sourceExpression is CastExpressionSyntax explicitCast &&
+            return sourceExpression is not CastExpressionSyntax explicitCast ||
                    SyntaxFactory.AreEquivalent(explicitCast.Type, enumerableType);
         }
 

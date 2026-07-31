@@ -4,6 +4,29 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.4-alpha.1
+
+See [release-notes/v17.0.4-alpha.1.md](release-notes/v17.0.4-alpha.1.md) for the curated full-train release notes.
+
+### Musoq.Parser
+
+- Added C# postfix cast alias parsing and expanded lexer span/string-escape handling while preserving diagnostics and existing SQL syntax.
+
+### Musoq.Evaluator
+
+- Reduced repeated compilation work with parsed-query, semantic-template, and canonical execution artifact caches.
+- Added typed execution shapes, direct projections, reusable row carriers, reflection-free field access, and stricter cast behavior for scalar, method, aggregate, and window expressions.
+
+### Musoq.Converter
+
+- Added batched execution compilation, shared C# compilation and assembly-loading infrastructure, purpose-aware rendering, artifact telemetry, and generated-code optimization paths.
+- Raised the host ABI contract to v2 with canonical portable symbol comparison, equivalent-import deduplication, and conflicting-contract detection.
+
+### Tooling and verification
+
+- Added evaluator performance samples, benchmarks, phase measurements, cache/batch safety tests, generated-code guardrails, and release packaging coverage.
+- Release validation passed with 16,923 total tests: 16,919 passed, 4 skipped, and 0 failed.
+
 ## 17.0.3-alpha.3
 
 See the curated package release notes for [Musoq.Evaluator](release-notes/evaluator/v17.0.3-alpha.3.md) and [Musoq.Converter](release-notes/converter/v17.0.3-alpha.3.md).

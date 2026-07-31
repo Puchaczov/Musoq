@@ -10,18 +10,31 @@ using System.Text;
 using System.Threading;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
+using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.Optimization;
+using Musoq.Targets.Execution;
 
 namespace Musoq.Converter;
 
 public static partial class InstanceCreator
 {
     private const int ExecutionCompilationCacheLimit = 512;
+    private const int CanonicalExecutionCompilationAliasLimit = 2048;
 
     private static readonly ConcurrentDictionary<ExecutionCompilationCacheKey, CachedExecutionCompilation>
         ExecutionCompilationCache = new();
+    private static readonly ConcurrentDictionary<CanonicalExecutionArtifactContract, CachedExecutionCompilation>
+        CanonicalExecutionCompilationCache = new();
+    private static readonly object ExecutionCompilationCacheMutationSync = new();
+    private static readonly List<CachedExecutionCompilation> ExecutionCompilationEntries = [];
+    private static readonly object ExecutionCompilationFlightSync = new();
+    private static readonly Dictionary<ExecutionCompilationCacheKey, ExecutionCompilationFlight>
+        ExecutionCompilationFlights = new();
+    private static readonly object CanonicalExecutionCompilationFlightSync = new();
+    private static readonly Dictionary<CanonicalExecutionArtifactContract, ExecutionCompilationFlight>
+        CanonicalExecutionCompilationFlights = new();
 
     private static long _executionCompilationAccessTick;
 
@@ -30,9 +43,43 @@ public static partial class InstanceCreator
         return Interlocked.Increment(ref _executionCompilationAccessTick);
     }
 
+    private static IDisposable AcquireExecutionCompilationFlight(ExecutionCompilationCacheKey cacheKey)
+    {
+        ExecutionCompilationFlight flight;
+        lock (ExecutionCompilationFlightSync)
+        {
+            if (!ExecutionCompilationFlights.TryGetValue(cacheKey, out flight!))
+            {
+                flight = new ExecutionCompilationFlight();
+                ExecutionCompilationFlights.Add(cacheKey, flight);
+            }
+
+            flight.Waiters++;
+        }
+
+        Monitor.Enter(flight.Gate);
+        return new ExecutionCompilationFlightLease(cacheKey, flight);
+    }
+
+    private static void ReleaseExecutionCompilationFlight(
+        ExecutionCompilationCacheKey cacheKey,
+        ExecutionCompilationFlight flight)
+    {
+        Monitor.Exit(flight.Gate);
+        lock (ExecutionCompilationFlightSync)
+        {
+            flight.Waiters--;
+            if (flight.Waiters == 0)
+                ExecutionCompilationFlights.Remove(cacheKey);
+        }
+    }
+
     private static void StoreExecutionCompilation(
         ExecutionCompilationCacheKey cacheKey,
-        ExecutableQueryArtifact executableArtifact)
+        ExecutableQueryArtifact executableArtifact,
+        string semanticContractFingerprint,
+        string runnableTypeName,
+        CanonicalExecutionArtifactContract? canonicalContract)
     {
         ArgumentNullException.ThrowIfNull(executableArtifact);
         if (cacheKey.ExecutionTarget != executableArtifact.TargetId)
@@ -41,10 +88,48 @@ public static partial class InstanceCreator
                 $"Execution compilation cache key targets '{cacheKey.ExecutionTarget}', but executable artifact targets '{executableArtifact.TargetId}'.");
         }
 
-        EvictColdestExecutionCompilations();
-        ExecutionCompilationCache.TryAdd(
-            cacheKey,
-            new CachedExecutionCompilation(executableArtifact));
+        var template = new PreparedExecutableTemplate(
+            executableArtifact,
+            cacheKey.ExecutionTarget,
+            runnableTypeName,
+            semanticContractFingerprint);
+
+        lock (ExecutionCompilationCacheMutationSync)
+        {
+            if (ExecutionCompilationCache.TryGetValue(cacheKey, out var existing))
+            {
+                AddCanonicalExecutionAliasLocked(existing, canonicalContract);
+                return;
+            }
+
+            EnsureExecutionCompilationCapacityLocked();
+            var entry = new CachedExecutionCompilation(template);
+            ExecutionCompilationEntries.Add(entry);
+            ExecutionCompilationCache[cacheKey] = entry;
+            AddCanonicalExecutionAliasLocked(entry, canonicalContract);
+        }
+    }
+
+    private static void StoreCanonicalExecutionAlias(
+        ExecutionCompilationCacheKey cacheKey,
+        CachedExecutionCompilation cachedCompilation,
+        CanonicalExecutionArtifactContract canonicalContract)
+    {
+        lock (ExecutionCompilationCacheMutationSync)
+        {
+            if (!ExecutionCompilationEntries.Contains(cachedCompilation))
+                return;
+
+            if (ExecutionCompilationCache.TryGetValue(cacheKey, out var existing))
+            {
+                AddCanonicalExecutionAliasLocked(existing, canonicalContract);
+                return;
+            }
+
+            EnsureExecutionCompilationCapacityLocked();
+            ExecutionCompilationCache[cacheKey] = cachedCompilation;
+            AddCanonicalExecutionAliasLocked(cachedCompilation, canonicalContract);
+        }
     }
 
     private static ExecutableQueryArtifact CreateCachedExecutableArtifact(
@@ -56,29 +141,97 @@ public static partial class InstanceCreator
             .CreateLoadedExecutableArtifact(runnableType);
     }
 
-    private static void EvictColdestExecutionCompilations()
+    private static void EnsureExecutionCompilationCapacityLocked()
     {
-        while (ExecutionCompilationCache.Count >= ExecutionCompilationCacheLimit)
+        while (ExecutionCompilationEntries.Count >= ExecutionCompilationCacheLimit)
         {
-            var coldestKey = default(ExecutionCompilationCacheKey);
-            var coldestTick = long.MaxValue;
-            var foundColdest = false;
-
-            foreach (var entry in ExecutionCompilationCache)
-            {
-                var tick = entry.Value.LastAccessTick;
-                if (foundColdest && tick >= coldestTick)
-                    continue;
-
-                coldestKey = entry.Key;
-                coldestTick = tick;
-                foundColdest = true;
-            }
-
-            if (!foundColdest)
+            var coldest = ExecutionCompilationEntries
+                .OrderBy(static entry => entry.LastAccessTick)
+                .FirstOrDefault();
+            if (coldest is null)
                 return;
 
-            ExecutionCompilationCache.TryRemove(coldestKey, out _);
+            RemoveExecutionCompilationEntryLocked(coldest);
+        }
+    }
+
+    private static void RemoveExecutionCompilationEntryLocked(CachedExecutionCompilation entry)
+    {
+        foreach (var exact in ExecutionCompilationCache
+                     .Where(pair => ReferenceEquals(pair.Value, entry))
+                     .Select(static pair => pair.Key)
+                     .ToArray())
+            ExecutionCompilationCache.TryRemove(exact, out _);
+
+        foreach (var canonical in CanonicalExecutionCompilationCache
+                     .Where(pair => ReferenceEquals(pair.Value, entry))
+                     .Select(static pair => pair.Key)
+                     .ToArray())
+            CanonicalExecutionCompilationCache.TryRemove(canonical, out _);
+
+        ExecutionCompilationEntries.Remove(entry);
+    }
+
+    private static void AddCanonicalExecutionAliasLocked(
+        CachedExecutionCompilation entry,
+        CanonicalExecutionArtifactContract? canonicalContract)
+    {
+        if (canonicalContract is null ||
+            CanonicalExecutionCompilationCache.ContainsKey(canonicalContract))
+            return;
+
+        while (CanonicalExecutionCompilationCache.Count >= CanonicalExecutionCompilationAliasLimit)
+        {
+            var coldestAlias = CanonicalExecutionCompilationCache
+                .OrderBy(static pair => pair.Value.LastAccessTick)
+                .Select(static pair => pair.Key)
+                .FirstOrDefault();
+            if (coldestAlias is null)
+                break;
+
+            CanonicalExecutionCompilationCache.TryRemove(coldestAlias, out _);
+        }
+
+        CanonicalExecutionCompilationCache[canonicalContract] = entry;
+    }
+
+    private static CachedExecutionCompilation? TryGetCanonicalExecutionCompilation(
+        CanonicalExecutionArtifactContract canonicalContract)
+    {
+        return CanonicalExecutionCompilationCache.TryGetValue(canonicalContract, out var cachedCompilation)
+            ? cachedCompilation
+            : null;
+    }
+
+    private static IDisposable AcquireCanonicalExecutionCompilationFlight(
+        CanonicalExecutionArtifactContract canonicalContract)
+    {
+        ExecutionCompilationFlight flight;
+        lock (CanonicalExecutionCompilationFlightSync)
+        {
+            if (!CanonicalExecutionCompilationFlights.TryGetValue(canonicalContract, out flight!))
+            {
+                flight = new ExecutionCompilationFlight();
+                CanonicalExecutionCompilationFlights.Add(canonicalContract, flight);
+            }
+
+            flight.Waiters++;
+        }
+
+        Monitor.Enter(flight.Gate);
+        return new CanonicalExecutionCompilationFlightLease(canonicalContract, flight);
+    }
+
+    private static void ReleaseCanonicalExecutionCompilationFlight(
+        CanonicalExecutionArtifactContract canonicalContract,
+        ExecutionCompilationFlight flight)
+    {
+        Monitor.Exit(flight.Gate);
+        lock (CanonicalExecutionCompilationFlightSync)
+        {
+            flight.Waiters--;
+            if (flight.Waiters == 0)
+                CanonicalExecutionCompilationFlights.Remove(canonicalContract);
         }
     }
 
@@ -92,14 +245,27 @@ public static partial class InstanceCreator
     private static bool CanUseExecutionCompilationCache(BuildItems items)
     {
         return !items.HasDeclaredSourceRuntimeSettings &&
-               !items.HasSourceRuntimeSettingValues;
+               !items.HasSourceRuntimeSettingValues &&
+               items.CompilationOptions.InstrumentationMode == QueryInstrumentationMode.Disabled &&
+               items.InterpreterSourceCode is null;
+    }
+
+    private static bool CanUseCanonicalExecutionCompilationCache(BuildItems items)
+    {
+        return CanUseExecutionCompilationCache(items) &&
+               !Debugger.IsAttached &&
+               items.ExecutionTarget == ExecutionTargetIds.CSharpClr &&
+               items.QueryResultMode == QueryResultMode.Table &&
+               items.OutputType is null &&
+               !items.EmitPdb;
     }
 
     private static ExecutionCompilationCacheKey CreateExecutionCompilationCacheKey(
         string script,
         ISchemaProvider schemaProvider,
         CompilationOptions options,
-        ExecutionTargetId executionTarget)
+        ExecutionTargetId executionTarget,
+        TargetRenderProfile renderProfile = TargetRenderProfile.ExecutionFast)
     {
         var providerType = schemaProvider.GetType();
 
@@ -109,8 +275,10 @@ public static partial class InstanceCreator
             ExecutionSemanticsContract.Version1.Fingerprint,
             executionTarget,
             providerType.AssemblyQualifiedName ?? providerType.FullName ?? providerType.Name,
-            CreateProviderSignature(schemaProvider),
-            CompilationOptionsFingerprint.Compute(options));
+            CreateProviderContractSignature(schemaProvider),
+            CompilationOptionsFingerprint.Compute(options),
+            renderProfile,
+            TargetRenderProfileContract.Version);
     }
 
     internal static string CreateExecutionCompilationCacheKeyTestSignature(
@@ -136,6 +304,47 @@ public static partial class InstanceCreator
             schemaProvider,
             options,
             executionTarget).ToString();
+    }
+
+    internal static string CreateExecutionCompilationCacheKeyTestSignature(
+        string script,
+        ISchemaProvider schemaProvider,
+        CompilationOptions options,
+        ExecutionTargetId executionTarget,
+        TargetRenderProfile renderProfile)
+    {
+        return CreateExecutionCompilationCacheKey(
+            script,
+            schemaProvider,
+            options,
+            executionTarget,
+            renderProfile).ToString();
+    }
+
+    internal static int GetCanonicalExecutionEntryIdentityForTests(
+        BuildItems items,
+        ISchemaProvider schemaProvider)
+    {
+        if (!CanUseCanonicalExecutionCompilationCache(items))
+            return 0;
+
+        var contract = CreateCanonicalExecutionArtifactContract(
+            items,
+            schemaProvider,
+            items.CompilationOptions);
+        return TryGetCanonicalExecutionCompilation(contract) is { } entry
+            ? RuntimeHelpers.GetHashCode(entry)
+            : 0;
+    }
+
+    internal static CanonicalExecutionArtifactContract CreateCanonicalExecutionContractForTests(
+        BuildItems items,
+        ISchemaProvider schemaProvider)
+    {
+        return CreateCanonicalExecutionArtifactContract(
+            items,
+            schemaProvider,
+            items.CompilationOptions);
     }
 
     private static string CreateProviderSignature(ISchemaProvider schemaProvider)
@@ -270,23 +479,68 @@ public static partial class InstanceCreator
         string ExecutionSemanticsFingerprint,
         ExecutionTargetId ExecutionTarget,
         string ProviderType,
-        string ProviderSignature,
-        string CompilationOptionsFingerprint);
+        string ProviderContractBucket,
+        string CompilationOptionsFingerprint,
+        TargetRenderProfile RenderProfile,
+        int RenderProfileVersion);
+
+    private sealed class ExecutionCompilationFlight
+    {
+        public object Gate { get; } = new();
+
+        public int Waiters { get; set; }
+    }
+
+    private sealed class ExecutionCompilationFlightLease(
+        ExecutionCompilationCacheKey cacheKey,
+        ExecutionCompilationFlight flight) : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+            ReleaseExecutionCompilationFlight(cacheKey, flight);
+        }
+    }
+
+    private sealed class CanonicalExecutionCompilationFlightLease(
+        CanonicalExecutionArtifactContract canonicalContract,
+        ExecutionCompilationFlight flight) : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+            ReleaseCanonicalExecutionCompilationFlight(canonicalContract, flight);
+        }
+    }
 
     private sealed class CachedExecutionCompilation
     {
         private long _lastAccessTick;
 
-        public CachedExecutionCompilation(ExecutableQueryArtifact executableArtifact)
+        public CachedExecutionCompilation(
+            PreparedExecutableTemplate template)
         {
-            ExecutableArtifact = executableArtifact ?? throw new ArgumentNullException(nameof(executableArtifact));
-            TargetId = executableArtifact.TargetId;
+            Template = template ?? throw new ArgumentNullException(nameof(template));
+            SemanticContractFingerprint = template.SemanticContractFingerprint ?? string.Empty;
+            TargetId = template.TargetId;
             Touch();
         }
 
         public ExecutionTargetId TargetId { get; }
 
-        public ExecutableQueryArtifact ExecutableArtifact { get; }
+        public PreparedExecutableTemplate Template { get; }
+
+        public string SemanticContractFingerprint { get; }
 
         public long LastAccessTick => Volatile.Read(ref _lastAccessTick);
 

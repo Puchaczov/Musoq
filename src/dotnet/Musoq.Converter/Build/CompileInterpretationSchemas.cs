@@ -2,8 +2,6 @@
 using Musoq.Evaluator;
 using Musoq.Evaluator.Visitors;
 using Musoq.Evaluator.Visitors.Helpers.InterpretationSchemaDependencyGraph;
-using Musoq.Parser.Nodes;
-using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Converter.Build;
 
@@ -17,74 +15,35 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
     {
         ArgumentNullException.ThrowIfNull(items);
 
-        var queryTree = items.RawQueryTree;
-
-        var registry = ExtractSchemaDefinitions(queryTree);
-        var eliminationResult = DeadInterpretationSchemaEliminator.Eliminate(queryTree, registry);
-        var usedRegistry = eliminationResult.ResultRegistry;
-
-
-        if (usedRegistry.Schemas.Any())
+        var phase = global::Musoq.Converter.EvaluatorPerformanceTelemetry.BeginPhase("interpretation-schema");
+        try
         {
-            var sourceCode = GenerateInterpreterSourceCode(usedRegistry);
-            items.InterpreterSourceCode = sourceCode;
+            var queryTree = items.RawQueryTree;
+
+            var partition = InterpretationSchemaPartition.Create(queryTree);
+            var usedRegistry = partition.HasDefinitions
+                ? DeadInterpretationSchemaEliminator.Eliminate(partition.UsageTree, partition.Registry).ResultRegistry
+                : partition.Registry;
+
+
+            if (usedRegistry.Count > 0)
+            {
+                var sourceCode = GenerateInterpreterSourceCode(usedRegistry);
+                items.InterpreterSourceCode = sourceCode;
+            }
+
+            if (partition.HasDefinitions)
+                items.RawQueryTree = partition.QueryWithoutDefinitions;
+
+
+            items.SchemaRegistry = usedRegistry;
         }
-
-        if (registry.Schemas.Any())
-            items.RawQueryTree = RemoveSchemaDefinitions(queryTree);
-
-
-        items.SchemaRegistry = usedRegistry;
+        finally
+        {
+            phase.Dispose();
+        }
 
         Successor?.Build(items);
-    }
-
-    private static RootNode RemoveSchemaDefinitions(RootNode queryTree)
-    {
-        if (queryTree.Expression is StatementsArrayNode statementsArray)
-        {
-            var filteredStatements = statementsArray.Statements
-                .Where(s => s.Node is not BinarySchemaNode and not TextSchemaNode)
-                .ToArray();
-
-            if (filteredStatements.Length == 0) return queryTree;
-
-            if (filteredStatements.Length != statementsArray.Statements.Length)
-            {
-                var newStatementsArray = new StatementsArrayNode(filteredStatements);
-                return new RootNode(newStatementsArray);
-            }
-        }
-
-        return queryTree;
-    }
-
-    private static SchemaRegistry ExtractSchemaDefinitions(RootNode queryTree)
-    {
-        var registry = new SchemaRegistry();
-
-        if (queryTree.Expression is StatementsArrayNode statementsArray)
-        {
-            var hasSchemaNodes = false;
-            foreach (var statement in statementsArray.Statements)
-            {
-                if (statement.Node is BinarySchemaNode or TextSchemaNode)
-                {
-                    hasSchemaNodes = true;
-                    break;
-                }
-            }
-
-            if (!hasSchemaNodes)
-                return registry;
-        }
-
-        var visitor = new SchemaDefinitionVisitor(registry);
-        var traverseVisitor = new SchemaDefinitionTraverseVisitor(visitor);
-
-        traverseVisitor.Walk(queryTree);
-
-        return registry;
     }
 
     private static string? GenerateInterpreterSourceCode(SchemaRegistry registry)

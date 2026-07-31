@@ -27,6 +27,7 @@ public sealed partial class ExecutionCSharpRenderer
         ArgumentException.ThrowIfNullOrWhiteSpace(shapeTypeName);
         var context = InitializeRenderContext(plan);
         var session = context.Session;
+        session.UseDirectTypedStoredRowsAlias = CanUseGeneratedFinalRowSink(plan, finalTableName);
         var previousUseQueryRunContext = session.UseQueryRunContext;
         if (useQueryRunContext)
             session.UseQueryRunContext = true;
@@ -43,21 +44,35 @@ public sealed partial class ExecutionCSharpRenderer
             session.GeneratedRowConstructorUsagesByType = ExecutionCSharpRenderer.CollectGeneratedRowConstructorUsages(
                 plan.Body,
                 session.TypedStoredTableResults);
-            var finalShapeBufferName = bufferFinalShapes ? "__musoqFinalShapeRows" : null;
+            var usesGeneratedRowCarrier = CanUseGeneratedFinalRowSink(plan, finalTableName);
+            session.DirectSortedRowBufferSources = usesGeneratedRowCarrier
+                ? plan.Body.Nodes
+                    .OfType<ExecutionSortTable>()
+                    .ToDictionary(static sort => sort.Target.Name, static sort => sort.Source.Name, StringComparer.Ordinal)
+                : new Dictionary<string, string>(StringComparer.Ordinal);
+            var sinkTypeName = usesGeneratedRowCarrier && plan.FinalResult is { } finalResult
+                ? finalResult.Shape.TypeName
+                : shapeTypeName;
+            var finalShapeBufferName = usesGeneratedRowCarrier
+                ? null
+                : bufferFinalShapes
+                    ? "__musoqFinalShapeRows"
+                    : null;
             var finalShapeSourceBuffers = CreateFinalShapeSourceBuffers(plan.Body, finalTableName, shapeTypeName, shapeFields);
             session.FinalShapeYieldSink = new FinalShapeYieldSink(
                 finalTableName,
-                shapeTypeName,
+                sinkTypeName,
                 shapeFields,
                 finalShapeBufferName,
-                finalShapeSourceBuffers);
+                usesGeneratedRowCarrier ? null : finalShapeSourceBuffers,
+                usesGeneratedRowCarrier);
             session.SingleKeyAggregateUpdateHelpersByBlock = CollectSingleKeyAggregateUpdateHelpersByBlock(plan.Body);
             session.EnumerableTraversalHelpersByBlock = Enumerable
                 .Where<KeyValuePair<ExecutionBlock, ExecutionCSharpRenderer.EnumerableTraversalHelper>>(CollectEnumerableTraversalHelpersByBlock(plan.Body, context), pair => !CapturesCurrentFinalShapeTargetOrSourceBuffer(pair.Value, context))
                 .ToDictionary(static pair => pair.Key, static pair => pair.Value);
 
             return SyntaxFactory.MethodDeclaration(
-                    SyntaxFactory.ParseTypeName($"IEnumerable<{shapeTypeName}>"),
+                    SyntaxFactory.ParseTypeName($"IEnumerable<{sinkTypeName}>"),
                     SyntaxFactory.Identifier(methodName))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
                 .WithParameterList(CreateFinalShapeRowsParameterList(useQueryRunContext, includeProfileRecorderParameter))
@@ -65,7 +80,7 @@ public sealed partial class ExecutionCSharpRenderer
                     plan,
                     queryIdentifier,
                     finalTableName,
-                    shapeTypeName,
+                    sinkTypeName,
                     finalShapeBufferName,
                     context));
         }
@@ -98,13 +113,8 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var session = context.Session;
         var block = plan.Body;
-        var reflectedAccessors = ExecutionCSharpRenderer.CollectReflectedMemberAccessors(plan);
         session.StoredRowsCacheNames = ExecutionCSharpRenderer.CreateStoredRowsCacheNames(block);
         session.DeclaredStoredRowsCaches = [];
-        session.ReflectedMemberAccessorNames = reflectedAccessors.ToDictionary(
-            static accessor => accessor.Key,
-            static accessor => accessor.VariableName,
-            StringComparer.Ordinal);
         session.TableRowShapesByVariableName = ExecutionCSharpRenderer.CreateTableRowShapeMap(block);
         session.GeneratedRowVariableTypeNamesByName = ExecutionCSharpRenderer.CollectGeneratedRowVariableTypeNames(
             block,
@@ -124,7 +134,6 @@ public sealed partial class ExecutionCSharpRenderer
             tryStatements.AddRange(CreateExecutionStateDeclarations(plan, context));
             tryStatements.AddRange(CreateScriptParameterBindingStatements());
             tryStatements.AddRange(CreateScriptVariableBindingStatements());
-            tryStatements.AddRange(reflectedAccessors.Select(ExecutionCSharpRenderer.CreateReflectedMemberAccessorDeclaration));
             tryStatements.AddRange(ExecutionCSharpRenderer.CollectMethodCallCaches(block)
                 .Select(cache => ExecutionCSharpRenderer.RenderCreateObject(new ExecutionCreateObject(cache))));
             if (finalShapeBufferName != null)
@@ -133,7 +142,7 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName("var"),
                     finalShapeBufferName,
                     SyntaxFactory.ObjectCreationExpression(
-                            SyntaxFactory.ParseTypeName($"List<{shapeTypeName}>"))
+                            SyntaxFactory.ParseTypeName($"List<{context.Session.FinalShapeYieldSink?.ShapeTypeName ?? shapeTypeName}>"))
                         .WithArgumentList(SyntaxFactory.ArgumentList())));
             }
 

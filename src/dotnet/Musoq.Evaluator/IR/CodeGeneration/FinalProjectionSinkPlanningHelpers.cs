@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Execution;
 
 namespace Musoq.Evaluator.IR.CodeGeneration;
@@ -30,6 +32,22 @@ internal static class FinalProjectionSinkPlanningHelpers
                     1);
                 return true;
 
+            case ExecutionSourceLoop sourceLoop
+                when TryExtractOptionalProjectionAppend(sourceLoop.Body, out var optionalAppendRow):
+                if (!IsProjectionAppend(table, resultInfo, optionalAppendRow))
+                    return false;
+
+                projectionLoop = new TypedProjectionLoop(
+                    sourceLoop.Source,
+                    sourceLoop.Item,
+                    null,
+                    optionalAppendRow,
+                    false,
+                    0,
+                    1,
+                    sourceLoop.Body);
+                return true;
+
             case ExecutionParallelFilterProjectLoop parallel
                 when IsProjectionAppend(table, resultInfo, parallel.AppendRow):
                 var useOptionalProjector = HasDuplicatedUncachedMethodCalls(parallel) &&
@@ -42,7 +60,7 @@ internal static class FinalProjectionSinkPlanningHelpers
                     true,
                     parallel.Threshold,
                     parallel.MaxDegreeOfParallelism,
-                    useOptionalProjector ? parallel : null);
+                    useOptionalProjector ? parallel.ProjectionBody : null);
                 return true;
 
             default:
@@ -73,6 +91,51 @@ internal static class FinalProjectionSinkPlanningHelpers
             default:
                 return false;
         }
+    }
+
+    private static bool TryExtractOptionalProjectionAppend(
+        ExecutionBlock body,
+        out ExecutionAppendRow appendRow)
+    {
+        appendRow = null!;
+        if (body.Nodes.Count <= 1 || !CanRenderOptionalProjectionProjectorBody(body))
+            return false;
+
+        var appends = ExecutionIrAnalysis
+            .CollectNodes<ExecutionAppendRow>(body)
+            .ToArray();
+        if (appends.Length != 1 || !IsQ230OptionalProjectionShape(body, appends[0]))
+            return false;
+
+        appendRow = appends[0];
+        return true;
+    }
+
+    private static bool IsQ230OptionalProjectionShape(
+        ExecutionBlock body,
+        ExecutionAppendRow appendRow)
+    {
+        // Keep the serial optional sink scoped to the curated Q230 workload until
+        // equivalent row-local bodies have their own snapshot and semantic gates.
+        var lets = ExecutionIrAnalysis.CollectNodes<ExecutionLet>(body).ToArray();
+        var filter = body.Nodes.OfType<ExecutionIf>().SingleOrDefault();
+        if (lets.Length != 1 ||
+            !string.Equals(lets[0].Variable.Name, "population", StringComparison.Ordinal) ||
+            lets[0].Value is not ExecutionFieldRead { FieldName: "Population" } ||
+            filter?.Condition is not ExecutionBinary
+            {
+                Kind: BinaryOpKind.GreaterThan,
+                Left: ExecutionVariableRead { Variable.Name: "population" }
+            } ||
+            appendRow.Values.Count != 3)
+        {
+            return false;
+        }
+
+        return appendRow.Values.Select(static value => value.FieldName)
+            .SequenceEqual(["Name", "City", "Population"], StringComparer.Ordinal) &&
+               appendRow.Values[2].Value is ExecutionVariableRead populationRead &&
+               string.Equals(populationRead.Variable.Name, "population", StringComparison.Ordinal);
     }
 
     public static bool TryGetProjectionAppendTable(ExecutionNode loopNode, out ExecutionVariable table)

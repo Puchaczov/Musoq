@@ -28,39 +28,92 @@ public static class StrictCastRuntime
         "Guid"
     ];
 
+    private static IReadOnlyList<string> SupportedCSharpAliasNames { get; } =
+    [
+        "bool",
+        "byte",
+        "sbyte",
+        "short",
+        "ushort",
+        "int",
+        "uint",
+        "long",
+        "ulong",
+        "float",
+        "double",
+        "decimal",
+        "char",
+        "string"
+    ];
+
     public static string SupportedClrTypeNames => string.Join(", ", SupportedTypeNames);
+
+    private static string SupportedCSharpAliasNamesText => string.Join(", ", SupportedCSharpAliasNames);
+
+    private static readonly IReadOnlyDictionary<string, CastTarget> CastTargets =
+        new Dictionary<string, CastTarget>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Boolean"] = new("Boolean", typeof(bool?)),
+            ["bool"] = new("Boolean", typeof(bool?)),
+            ["Byte"] = new("Byte", typeof(byte?)),
+            ["byte"] = new("Byte", typeof(byte?)),
+            ["SByte"] = new("SByte", typeof(sbyte?)),
+            ["sbyte"] = new("SByte", typeof(sbyte?)),
+            ["Int16"] = new("Int16", typeof(short?)),
+            ["short"] = new("Int16", typeof(short?)),
+            ["UInt16"] = new("UInt16", typeof(ushort?)),
+            ["ushort"] = new("UInt16", typeof(ushort?)),
+            ["Int32"] = new("Int32", typeof(int?)),
+            ["int"] = new("Int32", typeof(int?)),
+            ["UInt32"] = new("UInt32", typeof(uint?)),
+            ["uint"] = new("UInt32", typeof(uint?)),
+            ["Int64"] = new("Int64", typeof(long?)),
+            ["long"] = new("Int64", typeof(long?)),
+            ["UInt64"] = new("UInt64", typeof(ulong?)),
+            ["ulong"] = new("UInt64", typeof(ulong?)),
+            ["Single"] = new("Single", typeof(float?)),
+            ["float"] = new("Single", typeof(float?)),
+            ["Double"] = new("Double", typeof(double?)),
+            ["double"] = new("Double", typeof(double?)),
+            ["Decimal"] = new("Decimal", typeof(decimal?)),
+            ["decimal"] = new("Decimal", typeof(decimal?)),
+            ["Char"] = new("Char", typeof(char?)),
+            ["char"] = new("Char", typeof(char?)),
+            ["String"] = new("String", typeof(string)),
+            ["string"] = new("String", typeof(string)),
+            ["DateTime"] = new("DateTime", typeof(DateTime?)),
+            ["DateTimeOffset"] = new("DateTimeOffset", typeof(DateTimeOffset?)),
+            ["TimeSpan"] = new("TimeSpan", typeof(TimeSpan?)),
+            ["Guid"] = new("Guid", typeof(Guid?))
+        };
+
+    private readonly record struct CastTarget(string CanonicalName, Type ReturnType);
+
+    internal static bool TryResolveTarget(
+        string typeName,
+        out string canonicalTypeName,
+        [NotNullWhen(true)] out Type? returnType)
+    {
+        if (CastTargets.TryGetValue(typeName, out var target))
+        {
+            canonicalTypeName = target.CanonicalName;
+            returnType = target.ReturnType;
+            return true;
+        }
+
+        canonicalTypeName = string.Empty;
+        returnType = null;
+        return false;
+    }
 
     public static bool TryGetReturnType(string typeName, [NotNullWhen(true)] out Type? returnType)
     {
-        returnType = typeName switch
-        {
-            _ when IsTarget(typeName, "Boolean") => typeof(bool?),
-            _ when IsTarget(typeName, "Byte") => typeof(byte?),
-            _ when IsTarget(typeName, "SByte") => typeof(sbyte?),
-            _ when IsTarget(typeName, "Int16") => typeof(short?),
-            _ when IsTarget(typeName, "UInt16") => typeof(ushort?),
-            _ when IsTarget(typeName, "Int32") => typeof(int?),
-            _ when IsTarget(typeName, "UInt32") => typeof(uint?),
-            _ when IsTarget(typeName, "Int64") => typeof(long?),
-            _ when IsTarget(typeName, "UInt64") => typeof(ulong?),
-            _ when IsTarget(typeName, "Single") => typeof(float?),
-            _ when IsTarget(typeName, "Double") => typeof(double?),
-            _ when IsTarget(typeName, "Decimal") => typeof(decimal?),
-            _ when IsTarget(typeName, "Char") => typeof(char?),
-            _ when IsTarget(typeName, "String") => typeof(string),
-            _ when IsTarget(typeName, "DateTime") => typeof(DateTime?),
-            _ when IsTarget(typeName, "DateTimeOffset") => typeof(DateTimeOffset?),
-            _ when IsTarget(typeName, "TimeSpan") => typeof(TimeSpan?),
-            _ when IsTarget(typeName, "Guid") => typeof(Guid?),
-            _ => null
-        };
-
-        return returnType != null;
+        return TryResolveTarget(typeName, out _, out returnType);
     }
 
     public static string CreateUnsupportedTargetMessage(string typeName)
     {
-        return $"Cast target '{typeName}' is not supported. Postfix casts support CLR type names only: {SupportedClrTypeNames}.";
+        return $"Cast target '{typeName}' is not supported. Postfix casts support CLR type names and C# aliases only: {SupportedClrTypeNames}; aliases: {SupportedCSharpAliasNamesText}.";
     }
 
     public static bool? ToBoolean(object? value) =>
@@ -165,8 +218,4 @@ public static class StrictCastRuntime
         return value is null or DBNull;
     }
 
-    private static bool IsTarget(string actual, string expected)
-    {
-        return string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase);
-    }
 }

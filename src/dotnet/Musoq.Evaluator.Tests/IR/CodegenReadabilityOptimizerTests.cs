@@ -7,12 +7,29 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Optimization;
 using Musoq.Targets.CSharpClr.Optimization.Codegen;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
+using Musoq.Targets.Execution;
 
 namespace Musoq.Evaluator.Tests.IR;
 
 [TestClass]
 public sealed class CodegenReadabilityOptimizerTests
 {
+    [TestMethod]
+    public void Optimize_WhenExecutionFastProfileRuns_ShouldKeepOnlyExecutionTransforms()
+    {
+        var initial = SyntaxFactory.ParseCompilationUnit("public class Generated { public void Run() {} }");
+
+        var result = new CodegenReadabilityOptimizer().Optimize(
+            initial,
+            TargetRenderProfile.ExecutionFast);
+        var syntaxTree = ClassEmitter.CreateSyntaxTreeDirect(initial, TargetRenderProfile.ExecutionFast);
+
+        Assert.HasCount(1, result.Trace.Entries);
+        Assert.AreEqual("ExecutionCodegenOptimization", result.Trace.Entries[0].PassName);
+        Assert.IsNotNull(syntaxTree.GetRoot());
+    }
+
     [TestMethod]
     public void Optimize_WhenDefaultReadabilityPassesRun_ShouldReturnInitialCodeAsOptimizedCode()
     {

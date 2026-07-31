@@ -1,4 +1,6 @@
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Parser;
 using Musoq.Evaluator.Visitors.Helpers;
 using Musoq.Parser.Nodes;
 
@@ -29,6 +31,27 @@ public class QueryRewriteUtilitiesTests
 
 
         Assert.AreEqual(binaryNode, result);
+    }
+
+    [TestMethod]
+    public void RewriteNullableBoolExpressions_WhenNodeIsNullableBool_ShouldCompareTheNodeWithTrueOnce()
+    {
+        var node = new TestNode(typeof(bool?), "probe");
+
+        var result = QueryRewriteUtilities.RewriteNullableBoolExpressions(node);
+
+        var equality = Assert.IsInstanceOfType<EqualityNode>(result);
+        Assert.AreSame(node, equality.Left);
+        Assert.IsInstanceOfType<BooleanNode>(equality.Right);
+        Assert.AreEqual("true", equality.Right.ToString(), ignoreCase: true);
+        Assert.IsFalse(result is AndNode);
+        Assert.IsFalse(result is IsNullNode);
+    }
+
+    [TestMethod]
+    public void RewriteNullableBoolExpressions_WhenNodeIsNull_ShouldRejectIt()
+    {
+        Assert.Throws<ArgumentNullException>(() => QueryRewriteUtilities.RewriteNullableBoolExpressions(null!));
     }
 
     [TestMethod]
@@ -68,5 +91,19 @@ public class QueryRewriteUtilitiesTests
 
         // Assert
         Assert.AreEqual("test_field", result);
+    }
+
+    private sealed class TestNode(Type returnType, string id) : Node
+    {
+        public override Type ReturnType { get; } = returnType;
+
+        public override string Id { get; } = id;
+
+        public override void Accept(IExpressionVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
+
+        public override string ToString() => Id;
     }
 }

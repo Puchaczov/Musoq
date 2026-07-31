@@ -54,6 +54,21 @@ public sealed class ExecutionTargetPhaseDispatchTests
     }
 
     [TestMethod]
+    public void Render_WhenHostAbiVersionIsOld_ShouldRejectBeforeBackendRendering()
+    {
+        var backend = new CapturingBackend();
+        using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
+            TestOnlyExecutionTarget.CreateDescriptor(backend: backend));
+        var request = CreateMinimalRequest() with { HostAbiVersion = 1 };
+
+        var result = ExecutionTargetCatalog.Render(request);
+
+        Assert.IsFalse(result.Success);
+        Assert.AreEqual(TargetDiagnosticCodes.UnsupportedLowering, result.Diagnostics.Single().Code);
+        Assert.IsFalse(backend.WasCalled);
+    }
+
+    [TestMethod]
     public void RenderResult_WhenSuccessOrFailureInvariantsAreViolated_ShouldReject()
     {
         var artifact = new TestRenderedArtifact(TestExecutionTargetIds.TestOnlyNonClr);
@@ -128,6 +143,8 @@ public sealed class ExecutionTargetPhaseDispatchTests
         return new TargetRenderRequest
         {
             TargetId = TestExecutionTargetIds.TestOnlyNonClr,
+            Purpose = TargetRenderPurpose.Execution,
+            Profile = TargetRenderProfile.ExecutionFast,
             Identity = new TargetRenderIdentity("PhaseDispatch"),
             Options = TargetRenderOptions.Empty,
             ScriptBinding = TargetScriptBindingContract.Empty,

@@ -7,6 +7,80 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static class InterpretationPropertyTypeNameResolver
 {
+    public static string? ResolvePropertyTypeName(
+        string schemaName,
+        string propertyPath,
+        SchemaRegistry? schemaRegistry)
+    {
+        if (schemaRegistry == null || string.IsNullOrWhiteSpace(schemaName))
+            return null;
+
+        var currentTypeName = CreateGeneratedTypeName(
+            new SchemaReferenceTypeNode(schemaName),
+            schemaRegistry);
+        var properties = CreatePropertyPathSegments(propertyPath);
+        if (properties.Length == 0)
+            return currentTypeName;
+
+        foreach (var property in properties)
+        {
+            currentTypeName = ResolveFieldTypeName(currentTypeName, property, schemaRegistry);
+            if (string.IsNullOrWhiteSpace(currentTypeName))
+                return null;
+        }
+
+        return currentTypeName;
+    }
+
+    public static string? ResolvePropertyTypeNameFromGeneratedType(
+        string generatedTypeName,
+        string propertyPath,
+        SchemaRegistry? schemaRegistry)
+    {
+        if (string.IsNullOrWhiteSpace(generatedTypeName))
+            return null;
+
+        var properties = CreatePropertyPathSegments(propertyPath);
+        if (properties.Length == 0)
+            return null;
+
+        var currentTypeName = generatedTypeName;
+        foreach (var property in properties)
+        {
+            currentTypeName = ResolveFieldTypeName(currentTypeName, property, schemaRegistry);
+            if (string.IsNullOrWhiteSpace(currentTypeName))
+                return null;
+        }
+
+        return currentTypeName;
+    }
+
+    private static string[] CreatePropertyPathSegments(string propertyPath)
+    {
+        return propertyPath
+            .Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(static property =>
+            {
+                var indexStart = property.IndexOf('[', StringComparison.Ordinal);
+                return indexStart >= 0 ? property[..indexStart] : property;
+            })
+            .Where(static property => !string.IsNullOrWhiteSpace(property))
+            .ToArray();
+    }
+
+    public static string? ResolveRootTypeName(PhysicalPropertySourceNode property)
+    {
+        foreach (var propertyPart in property.PropertiesChain)
+        {
+            if (!string.IsNullOrWhiteSpace(propertyPart.IntendedTypeName))
+                return RemoveArraySuffix(propertyPart.IntendedTypeName);
+
+            break;
+        }
+
+        return null;
+    }
+
     public static string? ResolveEnumerableTypeName(
         PhysicalPropertySourceNode property,
         SchemaRegistry? schemaRegistry)
@@ -41,7 +115,7 @@ internal static class InterpretationPropertyTypeNameResolver
         return !string.IsNullOrWhiteSpace(ResolveEnumerableTypeName(property, schemaRegistry));
     }
 
-    private static string? ResolveFieldTypeName(
+    internal static string? ResolveFieldTypeName(
         string typeName,
         string fieldName,
         SchemaRegistry? schemaRegistry)
@@ -94,7 +168,7 @@ internal static class InterpretationPropertyTypeNameResolver
             field => string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase));
     }
 
-    private static string? ResolveFieldTypeName(
+    internal static string? ResolveFieldTypeName(
         SchemaFieldNode field,
         IReadOnlyDictionary<string, SchemaReferenceTypeNode> bindings,
         SchemaRegistry? schemaRegistry)
@@ -115,6 +189,12 @@ internal static class InterpretationPropertyTypeNameResolver
             InlineSchemaTypeNode => CreateInlineTypeName(field.Name),
             ArrayTypeNode { ElementType: InlineSchemaTypeNode } => $"{CreateInlineTypeName(field.Name)}[]",
             RepeatUntilTypeNode { ElementType: InlineSchemaTypeNode } => $"{CreateInlineTypeName(field.Name)}[]",
+            StringTypeNode { AsTextSchemaName: { } textSchemaName } =>
+                CreateGeneratedTypeName(new SchemaReferenceTypeNode(textSchemaName), schemaRegistry),
+            BinarySwitchTypeNode => $"Musoq.Generated.Interpreters.Switch_{field.Name}",
+            SubstreamTypeNode { Target: InlineSchemaTypeNode } => CreateInlineTypeName(field.Name),
+            SubstreamTypeNode { Target: SchemaReferenceTypeNode reference } =>
+                CreateGeneratedTypeName(reference, schemaRegistry),
             _ => null
         };
     }

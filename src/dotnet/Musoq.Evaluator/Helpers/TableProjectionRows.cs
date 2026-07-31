@@ -1,5 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.Helpers;
@@ -65,14 +67,59 @@ public static class TableProjectionRows
         ArgumentNullException.ThrowIfNull(chunks);
         ArgumentNullException.ThrowIfNull(project);
 
-        foreach (var chunk in chunks)
+        return new OptionalChunkProjectionRows<TSource, TRow>(chunks, project, cancellationToken);
+    }
+
+    private sealed class OptionalChunkProjectionRows<TSource, TRow>(
+        IEnumerable<IReadOnlyList<TSource>> chunks,
+        Func<TSource, TRow> project,
+        CancellationToken cancellationToken) : ITableRowBatchSource<TRow>
+        where TRow : Row
+    {
+        public void AddTo(Table table)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            for (var index = 0; index < chunk.Count; index++)
+            ArgumentNullException.ThrowIfNull(table);
+
+            var capacity = table.Count;
+            foreach (var chunk in chunks)
             {
-                var projected = project(chunk[index]);
-                if (projected != null)
-                    yield return projected;
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // A chunk is an upper bound for the number of projected rows. Reserving it here
+                // avoids List<Row>'s geometric growth without creating an intermediate result list.
+                capacity += chunk.Count;
+                table.EnsureCapacity(capacity);
+
+                for (var index = 0; index < chunk.Count; index++)
+                {
+                    var projected = project(chunk[index]);
+                    if (projected != null)
+                        table.AddDirect(projected);
+                }
+            }
+        }
+
+        public IEnumerator<TRow> GetEnumerator()
+        {
+            return Enumerate().GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        private IEnumerable<TRow> Enumerate()
+        {
+            foreach (var chunk in chunks)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                for (var index = 0; index < chunk.Count; index++)
+                {
+                    var projected = project(chunk[index]);
+                    if (projected != null)
+                        yield return projected;
+                }
             }
         }
     }

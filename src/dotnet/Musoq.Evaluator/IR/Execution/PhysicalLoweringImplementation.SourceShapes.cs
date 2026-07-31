@@ -12,28 +12,41 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         return new TableRowShape(
             cteRef.Alias,
-            cteRef.OutputSchema.Columns.Select(column => new FieldBinding(
-                column.Name,
-                $"{cteRef.Alias}.{column.Name}",
-                column.Index,
-                column.Type,
-                FieldNullability.Unknown,
-                new PositionalAccess(column.Index))).ToArray());
+            cteRef.OutputSchema.Columns.Select(column =>
+            {
+                var field = new FieldBinding(
+                    column.Name,
+                    $"{cteRef.Alias}.{column.Name}",
+                    column.Index,
+                    column.Type,
+                    FieldNullability.Unknown,
+                    new PositionalAccess(column.Index));
+                return column.IntendedTypeName is { Length: > 0 } generatedTypeName
+                    ? field with { GeneratedTypeName = generatedTypeName }
+                    : field;
+            }).ToArray());
     }
 
     private static TableRowShape CreateTypedTableRowShape(PhysicalCteRefNode cteRef, GeneratedRowShape cteShape)
     {
         return new TableRowShape(
             cteRef.Alias,
-            cteShape.Fields.Select(field => new FieldBinding(
-                field.Name,
-                $"{cteRef.Alias}.{field.Name}",
-                field.OutputIndex,
-                field.Type,
-                field.Nullability,
-                CreateTypedStoredGeneratedRowAccess(cteShape, field),
-                field.PublicType)).ToArray(),
-            CreateTypedStoredGeneratedRowContextBindings(cteShape));
+            cteShape.Fields.Select(field =>
+            {
+                var binding = new FieldBinding(
+                    field.Name,
+                    $"{cteRef.Alias}.{field.Name}",
+                    field.OutputIndex,
+                    field.Type,
+                    field.Nullability,
+                    CreateTypedStoredGeneratedRowAccess(cteShape, field),
+                    field.PublicType);
+                return field.GeneratedTypeName is { Length: > 0 } generatedTypeName
+                    ? binding with { GeneratedTypeName = generatedTypeName }
+                    : binding;
+            }).ToArray(),
+            CreateTypedStoredGeneratedRowContextBindings(cteShape),
+            cteShape.TypeName);
     }
 
     private static ExecutionVariable CreateSourceVariable(

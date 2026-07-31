@@ -272,7 +272,7 @@ internal static class ExecutionTargetCompatibilityAnalyzer
 
     private sealed class RequirementSink
     {
-        private readonly HashSet<ExecutionTargetRequirement> _seen = [];
+        private readonly Dictionary<RequirementIdentity, ExecutionTargetRequirement> _seen = [];
         private readonly List<ExecutionTargetRequirement> _requirements = [];
 
         public void Add(
@@ -282,9 +282,23 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             ExecutionPortableCallableDescriptor? callableSymbol = null)
         {
             var requirement = new ExecutionTargetRequirement(kind, detail, typeSymbol, callableSymbol);
-            if (!_seen.Add(requirement))
-                return;
+            var identity = new RequirementIdentity(
+                kind,
+                detail,
+                typeSymbol?.StableName,
+                callableSymbol?.StableName);
+            if (_seen.TryGetValue(identity, out var existing))
+            {
+                if (!RequirementDefinitionsMatch(existing, requirement))
+                {
+                    throw new InvalidOperationException(
+                        $"Execution target requirement '{kind}:{detail}' has conflicting symbol definitions.");
+                }
 
+                return;
+            }
+
+            _seen.Add(identity, requirement);
             _requirements.Add(requirement);
         }
 
@@ -311,5 +325,21 @@ internal static class ExecutionTargetCompatibilityAnalyzer
         {
             return _requirements.ToArray();
         }
+
+        private static bool RequirementDefinitionsMatch(
+            ExecutionTargetRequirement left,
+            ExecutionTargetRequirement right)
+        {
+            return left.Kind == right.Kind &&
+                   string.Equals(left.Detail, right.Detail, StringComparison.Ordinal) &&
+                   ExecutionPortableSymbolDefinitionComparer.AreEquivalent(left.TypeSymbol, right.TypeSymbol) &&
+                   ExecutionPortableSymbolDefinitionComparer.AreEquivalent(left.CallableSymbol, right.CallableSymbol);
+        }
+
+        private readonly record struct RequirementIdentity(
+            ExecutionTargetRequirementKind Kind,
+            string Detail,
+            string? TypeStableName,
+            string? CallableStableName);
     }
 }

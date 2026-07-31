@@ -581,7 +581,7 @@ public partial class QueryInspectionTests
         }
     }
 
-    private sealed class PlanningEntity
+    public sealed class PlanningEntity
     {
         public string Name { get; init; } = string.Empty;
 

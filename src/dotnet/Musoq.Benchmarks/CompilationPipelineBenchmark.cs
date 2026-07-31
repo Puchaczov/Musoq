@@ -69,7 +69,7 @@ public class CompilationPipelineBenchmark : BenchmarkBase
     [Benchmark(Description = "Simple query compile")]
     public CompiledQuery CompileSimpleQuery_Cold()
     {
-        return CreateForCountryWithOptions(SimpleQuery, _sources, new CompilationOptions());
+        return CreateForCountryWithOptions(CreateColdSimpleQuery(), _sources, new CompilationOptions());
     }
 
     [Benchmark(Description = "Simple query compile (eligible cache hit)")]
@@ -86,7 +86,7 @@ public class CompilationPipelineBenchmark : BenchmarkBase
     [Benchmark(Description = "Complex query compile")]
     public CompiledQuery CompileComplexQuery_Cold()
     {
-        return CreateForCountryWithOptions(ComplexQuery, _sources, new CompilationOptions());
+        return CreateForCountryWithOptions(CreateColdComplexQuery(), _sources, new CompilationOptions());
     }
 
     [Benchmark(Description = "Simple query compile (cache-ineligible)")]
@@ -165,6 +165,21 @@ public class CompilationPipelineBenchmark : BenchmarkBase
             BenchmarkSourceChunks.FromRows(_sources),
             CountryEntity.KNameToIndexMap,
             CountryEntity.KIndexToObjectAccessMap);
+    }
+
+    private static string CreateColdSimpleQuery()
+    {
+        var value = Guid.NewGuid().ToString("N");
+        return $"{SimpleQuery} and '{value}' = '{value}'";
+    }
+
+    private static string CreateColdComplexQuery()
+    {
+        var value = Guid.NewGuid().ToString("N");
+        return ComplexQuery.Replace(
+            " group by",
+            $" and '{value}' = '{value}' group by",
+            StringComparison.Ordinal);
     }
 
     internal static CompilationPipelineMetricSnapshot GetMetricSnapshot(string benchmarkMethodName)

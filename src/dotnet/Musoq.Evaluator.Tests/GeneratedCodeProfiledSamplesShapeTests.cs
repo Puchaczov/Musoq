@@ -350,7 +350,10 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         var matchLoop = ResolveOperator(sample, InnerJoinFullFileName, "ForEach", "b in bHashMatches");
         var appendRow = ResolveOperator(sample, InnerJoinFullFileName, "AppendShape", "ResultShape0(a.Name: a.Name");
 
-        var shapeRowsMethod = ExtractMethod(sample, InnerJoinFullFileName, "private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(");
+        var shapeRowsMethod = ExtractMethod(
+            sample,
+            InnerJoinFullFileName,
+            "private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0_Profiled(");
 
         AssertContainsCounterOutputRows(shapeRowsMethod, InnerJoinFullFileName, hashAdd, "1");
         AssertContainsCounterInputRows(shapeRowsMethod, InnerJoinFullFileName, hashProbe, "1");
@@ -425,15 +428,16 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                 "ParallelBlock [cte-level-0, tasks 2, maxDegree 2]",
                 "var _cteRowResults = new CteRowResults();",
                 "var _cteIndexResults = new CteIndexResults();",
-                "var cteLevel0Runner = new CteLevel0Runner(",
+                "var cteLevel0Runner_Profiled = new CteLevel0Runner_Profiled(",
+                "private sealed class CteLevel0Runner_Profiled",
                 "private readonly Musoq.Evaluator.Diagnostics.QueryProfileRecorder _profileRecorder;",
-                "private static List<Cte0Row0> BuildCteLevel0Task0",
-                "private static object BuildCteLevel0Task1",
+                "private static List<Cte0Row0> BuildCteLevel0Task0_Profiled",
+                "private static object BuildCteLevel0Task1_Profiled",
                 "Musoq.Evaluator.Diagnostics.QueryProfileRecorder profileRecorder",
                 "CteRowResults _cteRowResults",
                 "CteIndexResults _cteIndexResults",
-                "BuildCteLevel0Task0(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _onDataSourceProgress, _profileRecorder",
-                "BuildCteLevel0Task1(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _onDataSourceProgress, _profileRecorder",
+                "BuildCteLevel0Task0_Profiled(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _onDataSourceProgress, _profileRecorder",
+                "BuildCteLevel0Task1_Profiled(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _onDataSourceProgress, _profileRecorder",
                 "_cteRowResults.Slot0 = __parallelCteLevel0Task0Result",
                 "_cteIndexResults.Slot0 = cte1HashSidecar0Name",
                 "var __storedTable0Rows = _cteRowResults.Slot0;",

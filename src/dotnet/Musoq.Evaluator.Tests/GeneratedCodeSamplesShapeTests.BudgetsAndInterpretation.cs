@@ -9,13 +9,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SampleCorpus_WhenCheckedIn_ShouldStayWithinRuntimeV2ShapeBudget()
     {
-        AssertShapeBudget("generated-code sample corpus", CorpusBudget, CountShapes(ReadSamples()));
+        AssertShapeBudget("generated-code sample corpus", CorpusBudget, CountShapes(ReadAllSamples()));
     }
 
     [TestMethod]
     public void SourceScanSamples_WhenCheckedIn_ShouldUseTypedRowSourceBridge()
     {
-        var samplesByFileName = ReadSamples()
+        var samplesByFileName = ReadNamedSamples(SourceScanShapeExpectations.Select(static expectation => expectation.FileName).Distinct(StringComparer.Ordinal).ToArray())
             .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
         var failures = SourceScanShapeExpectations
             .SelectMany(expectation => GetSourceScanShapeFailures(samplesByFileName, expectation))
@@ -27,7 +27,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void Contexts_WhenCheckedIn_ShouldStayWithinRuntimeV2ShapeBudget()
     {
-        var failures = ReadSamples()
+        var failures = ReadAllSamples()
             .Where(static sample => sample.Content.Contains(ContextsAccessPattern, StringComparison.Ordinal))
             .SelectMany(static sample => GetRetiredHelperShapeFailures(sample.FileName, sample.Content))
             .ToArray();
@@ -38,7 +38,6 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ChainedApplyWindowSamples_WhenCheckedIn_ShouldStayWithinGeneratedCodeSizeBudgets()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, static sample => sample.Content);
         var budgets = new[]
         {
             (ChainedApplyGroupedAggregateWindowSampleFileName, MaxLines: 1100),
@@ -51,6 +50,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             (ChainedApplyQualifyWindowSampleFileName, MaxLines: 850),
             (ChainedApplyGroupedAggregateQualifyWindowSampleFileName, MaxLines: 950)
         };
+        var samples = ReadNamedSamples(budgets.Select(static budget => budget.Item1).ToArray())
+            .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
 
         var failures = budgets
             .Select(budget =>
@@ -69,7 +70,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ChainedApplyAggregateSamples_WhenCheckedIn_ShouldExtractTraversalAndUpdateHelpers()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, static sample => sample.Content);
+        var samples = ReadNamedSamples(
+                ChainedApplyGroupedAggregateWindowSampleFileName,
+                ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName,
+                ChainedApplyGroupedAggregateQualifyWindowSampleFileName)
+            .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
 
         AssertChainedApplyTraversalHelperShape(
             samples[ChainedApplyGroupedAggregateWindowSampleFileName],
@@ -91,7 +96,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void AggregateHelperSamples_WhenCheckedIn_ShouldPassCancellationTokenThroughHelperLoops()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, static sample => sample.Content);
+        var samples = ReadNamedSamples(
+                ChainedApplyGroupedAggregateWindowSampleFileName,
+                ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName,
+                CorrelatedScalarAggregateSubquerySampleFileName)
+            .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
         var q61 = samples[ChainedApplyGroupedAggregateWindowSampleFileName];
         var q72 = samples[ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName];
         var q140 = samples[CorrelatedScalarAggregateSubquerySampleFileName];
@@ -111,7 +120,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void DistinctSample_WhenCheckedIn_ShouldUseLeanDistinctSet()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == "Q08_Distinct.cs");
+        var sample = ReadSample("Q08_Distinct.cs");
 
         Assert.Contains("CreateKeySet [distinctKeys: ValueTuple<string, string>]", sample.Content);
         Assert.Contains("If [Add((city, country))]", sample.Content);
@@ -173,7 +182,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SetOperationSamples_WhenCheckedIn_ShouldUseStreamingUnionAllAndHashSetKeys()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, static sample => sample.Content);
+        var samples = ReadNamedSamples(UnionSampleFileName, ExceptSampleFileName, UnionAllSampleFileName, IntersectSampleFileName)
+            .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
         var union = samples[UnionSampleFileName];
         var except = samples[ExceptSampleFileName];
         var unionAll = samples[UnionAllSampleFileName];
@@ -244,7 +254,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void DirectInterpretationSamples_WhenCheckedIn_ShouldFuseFinalProjection()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, static sample => sample.Content);
+        var samples = ReadNamedSamples(DirectInterpretationProjectionSampleFileNames)
+            .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
 
         foreach (var fileName in DirectInterpretationProjectionSampleFileNames)
         {
@@ -273,7 +284,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void NestedInterpretationExpansionSamples_WhenCheckedIn_ShouldFuseFinalProjectionBoundary()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, static sample => sample.Content);
+        var samples = ReadNamedSamples(NestedInterpretationExpansionSampleFileNames)
+            .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
 
         foreach (var fileName in NestedInterpretationExpansionSampleFileNames)
         {

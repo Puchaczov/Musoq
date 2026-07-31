@@ -13,6 +13,50 @@ public class HashJoinCompositeKeysTests : BasicEntityTestBase
     public TestContext TestContext { get; set; }
 
     [TestMethod]
+    public void InnerJoin_WithWideCompositeKeys_ShouldUseNestedTypedTuples()
+    {
+        foreach (var keyWidth in new[] { 8, 9, 15 })
+        {
+            var fields = new[]
+            {
+                "Name", "City", "Country", "Population", "Month", "Money", "Id", "NullableValue"
+            };
+            var conditions = Enumerable.Range(0, keyWidth)
+                .Select(index =>
+                {
+                    var field = fields[index % fields.Length];
+                    return $"a.{field} = b.{field}";
+                });
+            var query = $"select a.Name, b.Name from #A.entities() a inner join #B.entities() b on {string.Join(" AND ", conditions)}";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                ["#A"] = [new BasicEntity { Name = "match", City = "NY", Country = "PL", Population = 10m, Month = "Jan", Money = 20m, Id = 1, NullableValue = 2 }],
+                ["#B"] = [new BasicEntity { Name = "match", City = "NY", Country = "PL", Population = 10m, Month = "Jan", Money = 20m, Id = 1, NullableValue = 2 }]
+            };
+
+            var inspection = InstanceCreator.CompileForInspection(
+                query,
+                Guid.NewGuid().ToString(),
+                new BasicSchemaProvider<BasicEntity>(sources),
+                LoggerResolver,
+                new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+            Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("CreateNullableHashJoinKey", StringComparison.Ordinal));
+            Assert.Contains("ValueTuple<", inspection.GeneratedCSharpCode);
+
+            var table = InstanceCreator.CompileForExecution(
+                query,
+                Guid.NewGuid().ToString(),
+                new BasicSchemaProvider<BasicEntity>(sources),
+                LoggerResolver,
+                new CompilationOptions(useHashJoin: true, useSortMergeJoin: false))
+                .Run(TestContext.CancellationToken);
+            Assert.AreEqual(1, table.Count, $"key width {keyWidth}");
+            Assert.AreEqual("match", table[0][0]);
+            Assert.AreEqual("match", table[0][1]);
+        }
+    }
+
+    [TestMethod]
     public void InnerJoin_WithCompositeKey_ShouldUseHashJoin()
     {
         const string query = @"

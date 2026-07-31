@@ -44,7 +44,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var schemaProvider = new TextSchemaProvider(
             new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
 
-        var vm = InstanceCreator.CompileForExecution(
+        var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
@@ -92,7 +92,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var schemaProvider = new TextSchemaProvider(
             new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
 
-        var vm = InstanceCreator.CompileForExecution(
+        var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
@@ -140,7 +140,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            InstanceCreator.CompileForExecution(
+            CompileGeneratedQuery(
                 query,
                 Guid.NewGuid().ToString(),
                 schemaProvider,

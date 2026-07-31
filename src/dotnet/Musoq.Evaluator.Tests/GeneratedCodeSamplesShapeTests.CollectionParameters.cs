@@ -9,8 +9,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CollectionParameterInMembershipSample_WhenCheckedIn_ShouldUseTypedIndexedLoop()
     {
-        var sample = ReadSamples().Single(static item =>
-            item.FileName == CollectionParameterInMembershipSampleFileName);
+        var sample = ReadSample(CollectionParameterInMembershipSampleFileName);
 
         Assert.Contains("param(ids: int[])", sample.Content);
         Assert.Contains(

@@ -21,11 +21,14 @@ public sealed partial class Lexer
             var next = char.ToLowerInvariant(Input[Position + 1]);
             if (next == 'x')
             {
-                var hexMatch = HexIntegerRegex.Match(Input, Position);
-                if (hexMatch.Success && hexMatch.Index == Position)
+                var end = Position + 2;
+                while (end < Input.Length && IsHexDigit(Input[end]))
+                    end++;
+
+                if (end > Position + 2)
                 {
-                    Position += hexMatch.Length;
-                    return AssignToken(new HexIntegerToken(hexMatch.Value, new TextSpan(start, hexMatch.Length)));
+                    Position = end;
+                    return AssignToken(new HexIntegerToken(Input[start..end], new TextSpan(start, end - start)));
                 }
 
                 return HandleInvalidBaseNumber(start, DiagnosticCode.MQ1006_InvalidHexNumber, "hexadecimal", "0x");
@@ -33,11 +36,14 @@ public sealed partial class Lexer
 
             if (next == 'b')
             {
-                var binMatch = BinaryIntegerRegex.Match(Input, Position);
-                if (binMatch.Success && binMatch.Index == Position)
+                var end = Position + 2;
+                while (end < Input.Length && (Input[end] == '0' || Input[end] == '1'))
+                    end++;
+
+                if (end > Position + 2)
                 {
-                    Position += binMatch.Length;
-                    return AssignToken(new BinaryIntegerToken(binMatch.Value, new TextSpan(start, binMatch.Length)));
+                    Position = end;
+                    return AssignToken(new BinaryIntegerToken(Input[start..end], new TextSpan(start, end - start)));
                 }
 
                 return HandleInvalidBaseNumber(start, DiagnosticCode.MQ1007_InvalidBinaryNumber, "binary", "0b");
@@ -45,11 +51,14 @@ public sealed partial class Lexer
 
             if (next == 'o')
             {
-                var octMatch = OctalIntegerRegex.Match(Input, Position);
-                if (octMatch.Success && octMatch.Index == Position)
+                var end = Position + 2;
+                while (end < Input.Length && Input[end] is >= '0' and <= '7')
+                    end++;
+
+                if (end > Position + 2)
                 {
-                    Position += octMatch.Length;
-                    return AssignToken(new OctalIntegerToken(octMatch.Value, new TextSpan(start, octMatch.Length)));
+                    Position = end;
+                    return AssignToken(new OctalIntegerToken(Input[start..end], new TextSpan(start, end - start)));
                 }
 
                 return HandleInvalidBaseNumber(start, DiagnosticCode.MQ1008_InvalidOctalNumber, "octal", "0o");
@@ -140,29 +149,39 @@ public sealed partial class Lexer
     private Token ScanStringLiteral()
     {
         var start = Position;
-        var match = StringLiteralRegex.Match(Input, Position);
-
-        if (match.Success && match.Index == Position)
+        var end = start + 1;
+        while (end < Input.Length)
         {
-            Position += match.Length;
-            var fullText = match.Value;
-            var innerText = fullText[1..^1];
-
-            if (TryFindInvalidEscapeSequence(innerText.AsSpan(), out var invalidEscape, out var invalidEscapeSpan))
+            var current = Input[end];
+            if (current == '\\')
             {
-                var absoluteSpan = new TextSpan(start + 1 + invalidEscapeSpan.Start, invalidEscapeSpan.Length);
-                var message = $"Invalid escape sequence '{invalidEscape}'.";
-
-                if (RecoverOnError)
-                    Diagnostics.AddError(DiagnosticCode.MQ1004_InvalidEscapeSequence, message, absoluteSpan);
-                else
-                    throw new LexerException(message, absoluteSpan.Start, DiagnosticCode.MQ1004_InvalidEscapeSequence);
+                end += Math.Min(2, Input.Length - end);
+                continue;
             }
 
-            var unescaped = innerText.Unescape();
-            return AssignToken(new StringLiteralToken(unescaped, new TextSpan(start, match.Length)));
-        }
+            if (current == '\'')
+            {
+                var innerText = Input.AsSpan(start + 1, end - start - 1);
+                var length = end - start + 1;
 
+                if (TryFindInvalidEscapeSequence(innerText, out var invalidEscape, out var invalidEscapeSpan))
+                {
+                    var absoluteSpan = new TextSpan(start + 1 + invalidEscapeSpan.Start, invalidEscapeSpan.Length);
+                    var message = $"Invalid escape sequence '{invalidEscape}'.";
+
+                    if (RecoverOnError)
+                        Diagnostics.AddError(DiagnosticCode.MQ1004_InvalidEscapeSequence, message, absoluteSpan);
+                    else
+                        throw new LexerException(message, absoluteSpan.Start, DiagnosticCode.MQ1004_InvalidEscapeSequence);
+                }
+
+                Position = end + 1;
+                var unescaped = innerText.ToString().Unescape();
+                return AssignToken(new StringLiteralToken(unescaped, new TextSpan(start, length)));
+            }
+
+            end++;
+        }
 
         if (Position + 1 < Input.Length && Input[Position + 1] == '\'')
         {
@@ -173,95 +192,19 @@ public sealed partial class Lexer
 
         if (RecoverOnError)
         {
-            var end = Position + 1;
-            while (end < Input.Length && Input[end] != '\n' && Input[end] != '\r')
-                end++;
+            var recoveryEnd = Position + 1;
+            while (recoveryEnd < Input.Length && Input[recoveryEnd] != '\n' && Input[recoveryEnd] != '\r')
+                recoveryEnd++;
 
-            var span = new TextSpan(start, end - start);
+            var span = new TextSpan(start, recoveryEnd - start);
             Diagnostics.AddError(DiagnosticCode.MQ1002_UnterminatedString,
                 "Unterminated string literal: missing closing '", span);
 
-            Position = end;
-            return AssignToken(new ErrorToken(Input[start..end], span));
+            Position = recoveryEnd;
+            return AssignToken(new ErrorToken(Input[start..recoveryEnd], span));
         }
 
         throw new LexerException("Unterminated string literal: missing closing '", start, DiagnosticCode.MQ1002_UnterminatedString);
     }
 
-    private static bool TryFindInvalidEscapeSequence(ReadOnlySpan<char> value, out string invalidEscape,
-        out TextSpan span)
-    {
-        for (var i = 0; i < value.Length; i++)
-        {
-            if (value[i] != '\\')
-                continue;
-
-            if (i + 1 >= value.Length)
-            {
-                invalidEscape = "\\";
-                span = new TextSpan(i, 1);
-                return true;
-            }
-
-            var next = value[i + 1];
-
-            if (IsSimpleEscape(next))
-            {
-                i += 1;
-                continue;
-            }
-
-            if (next == 'u')
-                return TryValidateFixedLengthEscape(value, i, 4, out invalidEscape, out span);
-
-            if (next == 'x')
-                return TryValidateFixedLengthEscape(value, i, 2, out invalidEscape, out span);
-
-            i += 1;
-        }
-
-        invalidEscape = string.Empty;
-        span = TextSpan.Empty;
-        return false;
-    }
-
-    private static bool TryValidateFixedLengthEscape(ReadOnlySpan<char> value, int start, int digitsLength,
-        out string invalidEscape, out TextSpan span)
-    {
-        var availableDigits = Math.Min(digitsLength, value.Length - (start + 2));
-
-        if (availableDigits == 0)
-        {
-            invalidEscape = string.Empty;
-            span = TextSpan.Empty;
-            return false;
-        }
-
-        if (availableDigits < digitsLength)
-        {
-            var invalidLength = Math.Min(2 + availableDigits, value.Length - start);
-            invalidEscape = value.Slice(start, invalidLength).ToString();
-            span = new TextSpan(start, invalidLength);
-            return true;
-        }
-
-        for (var i = 0; i < digitsLength; i++)
-        {
-            if (Uri.IsHexDigit(value[start + 2 + i]))
-                continue;
-
-            invalidEscape = value.Slice(start, 2 + digitsLength).ToString();
-            span = new TextSpan(start, 2 + digitsLength);
-            return true;
-        }
-
-        invalidEscape = string.Empty;
-        span = TextSpan.Empty;
-        return false;
-    }
-
-    private static bool IsSimpleEscape(char value)
-    {
-        return value is '\\' or '\'' or '"' or 'n' or 'r' or 't' or 'b' or 'f' or 'e' or '0';
-    }
 }

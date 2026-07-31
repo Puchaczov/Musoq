@@ -7,4 +7,5 @@ internal sealed record FinalShapeYieldSink(
     string ShapeTypeName,
     IReadOnlyList<FieldBinding> Fields,
     string? BufferName = null,
-    IReadOnlyDictionary<string, FinalShapeSourceBuffer>? SourceBuffers = null);
+    IReadOnlyDictionary<string, FinalShapeSourceBuffer>? SourceBuffers = null,
+    bool UsesGeneratedRowCarrier = false);

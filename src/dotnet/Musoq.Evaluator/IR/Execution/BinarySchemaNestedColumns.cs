@@ -5,7 +5,8 @@ using Musoq.Parser.Nodes.InterpretationSchema;
 namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionShapeResolver
-{    private static void AddNestedBinaryColumns(
+{
+    private static void AddNestedBinaryColumns(
         SchemaFieldNode field,
         List<ColumnSchema> columns,
         ColumnSchema parentColumn,
@@ -24,7 +25,8 @@ public sealed partial class ExecutionShapeResolver
                 columns.Add(new ColumnSchema(
                     $"{field.Name}.{nestedColumn.Name}",
                     nestedColumn.Type,
-                    parentColumn.Index));
+                    parentColumn.Index,
+                    nestedColumn.IntendedTypeName));
             }
 
             return;
@@ -51,7 +53,8 @@ public sealed partial class ExecutionShapeResolver
             columns.Add(new ColumnSchema(
                 $"{field.Name}.{nestedColumn.Name}",
                 nestedColumn.Type,
-                parentColumn.Index));
+                parentColumn.Index,
+                nestedColumn.IntendedTypeName));
         }
     }
 
@@ -62,9 +65,7 @@ public sealed partial class ExecutionShapeResolver
         if (context.SchemaRegistry == null ||
             !context.SchemaRegistry.TryGetSchema(reference.SchemaName, out var registration) ||
             registration?.Node is not BinarySchemaNode nestedBinary)
-        {
             return null;
-        }
 
         if (!reference.IsGenericInstantiation)
         {
@@ -81,7 +82,6 @@ public sealed partial class ExecutionShapeResolver
             nestedBinary,
             reference,
             context.GenericBindings);
-
         return new NestedBinarySchema(registration, nestedBinary, nestedBindings);
     }
 }

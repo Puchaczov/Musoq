@@ -109,6 +109,7 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
         int cteIndexResultCount)
     {
         var members = new List<SyntaxNode>();
+        var profiledComputeMethodName = QueryMethodNameResolver.ResolveProfiled(computeMethodName);
 
         foreach (var classMember in _context.ClassMembers)
         {
@@ -141,6 +142,7 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
                 ClassEmitter.AddProfiledTableViaRowsRunnableMembers(
                     members,
                     computeMethodName,
+                    profiledComputeMethodName,
                     resultInfo,
                     _context.ScriptParameterDefinitions,
                     _context.ForceTableResultMaterialization,
@@ -164,6 +166,7 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
                 ClassEmitter.AddProfiledTableViaRowsRunnableMembers(
                     members,
                     computeMethodName,
+                    profiledComputeMethodName,
                     _context.TableViaRowsResult,
                     _context.ScriptParameterDefinitions,
                     _context.ForceTableResultMaterialization,
@@ -185,10 +188,10 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
         {
             ClassEmitter.AddProfiledRunnableMembers(
                 members,
-                $"{computeMethodName}(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token, null)",
-                $"{computeMethodName}(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token, profileRecorder)",
+                $"{computeMethodName}(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token)",
+                $"{profiledComputeMethodName}(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token, profileRecorder)",
                 _context.ScriptParameterDefinitions,
-                $"{computeMethodName}(queryContext.Provider!, queryContext.SourceRuntimeSettingsBySourceContextId, queryContext.SourceExecutionPlans, queryContext.Logger!, queryContext.CancellationToken, null)",
+                $"{computeMethodName}(queryContext.Provider!, queryContext.SourceRuntimeSettingsBySourceContextId, queryContext.SourceExecutionPlans, queryContext.Logger!, queryContext.CancellationToken)",
                 _context.EnableContextualExecution);
         }
         else

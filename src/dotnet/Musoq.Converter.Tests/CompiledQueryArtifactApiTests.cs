@@ -498,7 +498,7 @@ public class CompiledQueryArtifactApiTests
     }
 
     [TestMethod]
-    public void CreateExecutionCompilationCacheKey_WhenProviderIdentityChanges_ShouldChangeSignature()
+    public void CreateExecutionCompilationCacheKey_WhenProviderContractChanges_ShouldUseDifferentBucket()
     {
         const string query = "select i.Value from #artifact.items() i";
 

@@ -9,8 +9,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void IsDistinctFromSample_WhenCheckedIn_ShouldUseDirectTypedComparisons()
     {
-        var sample = ReadSamples().Single(static item =>
-            item.FileName == IsDistinctFromNullSafeComparisonSampleFileName);
+        var sample = ReadSample(IsDistinctFromNullSafeComparisonSampleFileName);
 
         Assert.Contains("IS DISTINCT FROM", sample.Content);
         Assert.Contains("IS NOT DISTINCT FROM", sample.Content);

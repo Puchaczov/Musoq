@@ -30,13 +30,13 @@ public partial class BuildItems : Dictionary<string, object>
 {
     public byte[]? DllFile
     {
-        get => GetOptional<byte[]>(BuildItemKeys.DllFile) is { } value ? (byte[])value.Clone() : null;
+        get => GetDllFileValue();
         set => SetOptional(BuildItemKeys.DllFile, value is null ? null : (byte[])value.Clone());
     }
 
     public byte[]? PdbFile
     {
-        get => GetOptional<byte[]>(BuildItemKeys.PdbFile) is { } value ? (byte[])value.Clone() : null;
+        get => GetPdbFileValue();
         set => SetOptional(BuildItemKeys.PdbFile, value is null ? null : (byte[])value.Clone());
     }
 

@@ -138,6 +138,9 @@ public sealed class BuildItemKeyOwnershipGuardrailTests
             return text.Contains("Build(BuildItems items)", System.StringComparison.Ordinal) ||
                    text.Contains("From(BuildItems items)", System.StringComparison.Ordinal);
 
+        if (relativePath == "src/dotnet/Musoq.Converter/TransformTree.Pipeline.cs")
+            return text.Contains("Build(BuildItems items)", System.StringComparison.Ordinal);
+
         if (relativePath.StartsWith("src/dotnet/Musoq.Converter/InstanceCreator", System.StringComparison.Ordinal))
             return true;
 

@@ -76,7 +76,7 @@ ExecutionPlan [compiled]
     SourceEntity [gougbq: BasicEntity]
       Name: string <- property Name
       Country: string <- property Country
-    Generated [RightRow0]
+    Generated [LeftRow0]
       Name: string <- field Name
       Country: string <- field Country
       BranchRank: long <- field BranchRank
@@ -95,12 +95,12 @@ ExecutionPlan [compiled]
     SourceScan [gougbq: BasicEntity] -> right_gougbqRows
     MaterializeChunked [right_gougbqRows -> rightWindowRows]
     ComputeRowNumberWindow [rightRowNumbers <- rightWindowRows partition by gougbq.Country order by gougbq.Name ASC]
-    CreateRowBuffer [right: List<RightRow0>]
+    CreateRowBuffer [right: List<LeftRow0>]
     ForEachIndexed [windowIndex, gougbq in rightWindowRows]
-      AppendRowBuffer [right <- RightRow0(Name: gougbq.Name, Country: gougbq.Country, BranchRank: rightRowNumbers[windowIndex])]
+      AppendRowBuffer [right <- LeftRow0(Name: gougbq.Name, Country: gougbq.Country, BranchRank: rightRowNumbers[windowIndex])]
     SortRowBuffer [right -> rightSorted by Country ASC, BranchRank ASC, Name ASC]
     SetOperation [result = left Union rightSorted, HashSet]
-    ReturnDeferredTable [result: LeftRow0 <- LeftShape0]
+    ReturnDeferredTable [result: LeftRow0 <- LeftRow0]
 */
 
 // === Generated C# ===
@@ -154,13 +154,10 @@ namespace GeneratedSample_Q229_PerformanceWindowCteSetOperation
 
         private IEnumerable<LeftRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
-            {
-                yield return new LeftRow0(__musoqShapeRow.Name, __musoqShapeRow.Country, __musoqShapeRow.BranchRank);
-            }
+            return ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token);
         }
 
-        private IEnumerable<LeftShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        private IEnumerable<LeftRow0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             OnPhaseChanged("compiled", QueryPhase.Begin);
             OnPhaseChanged("compiled", QueryPhase.From);
@@ -173,9 +170,8 @@ namespace GeneratedSample_Q229_PerformanceWindowCteSetOperation
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<LeftShape0>();
                 _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults);
-                var leftWindowRows = EvaluationHelper.MaterializeGeneratedRows<Cte0Row0>(_cteRowResults.Slot0);
+                var leftWindowRows = _cteRowResults.Slot0;
                 var leftRowNumbersPartitionKeys = new string[leftWindowRows.Count];
                 var leftRowNumbersOrderKeys = new WindowLeftRowNumbersOrderKeysKey[leftWindowRows.Count];
                 ExtractLeftRowNumbersWindowKeys(leftWindowRows, leftRowNumbersPartitionKeys, leftRowNumbersOrderKeys);
@@ -220,32 +216,23 @@ namespace GeneratedSample_Q229_PerformanceWindowCteSetOperation
                     }
                 }
 
-                var right = new List<RightRow0>(rightWindowRows.Count);
+                var right = new List<LeftRow0>(rightWindowRows.Count);
                 AppendRightWindowRows1(rightWindowRows, right, rightRowNumbers);
-                var rightSortedRows = right.OrderBy((row) => row, RightRow0OrderBy_1A_2A_0AComparer.Instance);
-                var rightSorted = new List<RightRow0>();
-                rightSorted.EnsureCapacity(right.Count);
-                foreach (var copiedRow in rightSortedRows)
-                {
-                    rightSorted.Add(copiedRow);
-                }
-
-                var resultKeys = new HashSet<ValueTuple<string, string, long>>(left.Count + rightSorted.Count);
+                var rightSorted = right.OrderBy((row) => row, LeftRow0OrderBy_1A_2A_0AComparer.Instance);
+                var resultKeys = new HashSet<ValueTuple<string, string, long>>(left.Count + right.Count);
                 foreach (var resultLeftRow in left)
                 {
                     resultKeys.Add(((string)resultLeftRow.Name, (string)resultLeftRow.Country, (long)resultLeftRow.BranchRank));
-                    __musoqFinalShapeRows.Add(new LeftShape0((string)resultLeftRow.Name, (string)resultLeftRow.Country, (long)resultLeftRow.BranchRank));
+                    yield return resultLeftRow;
                 }
 
                 foreach (var resultRightRow in rightSorted)
                 {
                     if (resultKeys.Add(((string)resultRightRow.Name, (string)resultRightRow.Country, (long)resultRightRow.BranchRank)))
                     {
-                        __musoqFinalShapeRows.Add(new LeftShape0((string)resultRightRow.Name, (string)resultRightRow.Country, (long)resultRightRow.BranchRank));
+                        yield return resultRightRow;
                     }
                 }
-
-                return __musoqFinalShapeRows;
             }
             finally
             {
@@ -279,12 +266,12 @@ namespace GeneratedSample_Q229_PerformanceWindowCteSetOperation
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static void AppendRightWindowRows1(IReadOnlyList<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> rightWindowRows, List<RightRow0> right, long[] rightRowNumbers)
+        private static void AppendRightWindowRows1(IReadOnlyList<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> rightWindowRows, List<LeftRow0> right, long[] rightRowNumbers)
         {
             for (int windowIndex = 0; windowIndex < rightWindowRows.Count; ++windowIndex)
             {
                 Musoq.Evaluator.Tests.Schema.Basic.BasicEntity gougbq = rightWindowRows[windowIndex];
-                right.Add(new RightRow0(gougbq.Name, gougbq.Country, (long)rightRowNumbers[windowIndex]));
+                right.Add(new LeftRow0(gougbq.Name, gougbq.Country, (long)rightRowNumbers[windowIndex]));
             }
         }
 
@@ -441,77 +428,10 @@ namespace GeneratedSample_Q229_PerformanceWindowCteSetOperation
                 _ => throw new KeyNotFoundException(name)};
         }
 
-        private sealed class LeftShape0
+        private sealed class LeftRow0OrderBy_1A_2A_0AComparer : IComparer<LeftRow0>
         {
-            public LeftShape0(string Name, string Country, long BranchRank)
-            {
-                this.Name = Name;
-                this.Country = Country;
-                this.BranchRank = BranchRank;
-            }
-
-            public long BranchRank { get; }
-            public string Country { get; }
-            public string Name { get; }
-        }
-
-        private sealed class RightRow0 : Row
-        {
-            public RightRow0(string __value0, string __value1, long __value2)
-            {
-                Name = __value0;
-                Country = __value1;
-                BranchRank = __value2;
-            }
-
-            public long BranchRank { get; private set; }
-            public override int Count => 3;
-            public string Country { get; private set; }
-            public string Name { get; private set; }
-
-            public override void AssignValue(int columnNumber, object value)
-            {
-                switch (columnNumber)
-                {
-                    case 0:
-                        Name = (string)value;
-                        break;
-                    case 1:
-                        Country = (string)value;
-                        break;
-                    case 2:
-                        BranchRank = (long)value;
-                        break;
-                    default:
-                        throw new IndexOutOfRangeException();
-                }
-            }
-
-            public override bool HasColumn(string name) => name switch
-            {
-                "Name" => true,
-                "Country" => true,
-                "BranchRank" => true,
-                _ => false
-            };
-            public override object this[int columnNumber] => columnNumber switch
-            {
-                0 => (object)Name,
-                1 => (object)Country,
-                2 => (object)BranchRank,
-                _ => throw new IndexOutOfRangeException()};
-            public override object this[string name] => name switch
-            {
-                "Name" => (object)Name,
-                "Country" => (object)Country,
-                "BranchRank" => (object)BranchRank,
-                _ => throw new KeyNotFoundException(name)};
-        }
-
-        private sealed class RightRow0OrderBy_1A_2A_0AComparer : IComparer<RightRow0>
-        {
-            public static readonly RightRow0OrderBy_1A_2A_0AComparer Instance = new RightRow0OrderBy_1A_2A_0AComparer();
-            public int Compare(RightRow0 left, RightRow0 right)
+            public static readonly LeftRow0OrderBy_1A_2A_0AComparer Instance = new LeftRow0OrderBy_1A_2A_0AComparer();
+            public int Compare(LeftRow0 left, LeftRow0 right)
             {
                 var comparison = StringComparer.Ordinal.Compare(left.Country, right.Country);
                 if (comparison != 0)

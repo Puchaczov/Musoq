@@ -88,7 +88,6 @@ public sealed class QueryAnalyzer
 
         try
         {
-            RecursiveCtePrevalidator.Validate(rootNode);
             rootNode = new PreLogicalNormalizer().Normalize(rootNode).NormalizedRoot;
         }
         catch (OperationCanceledException)

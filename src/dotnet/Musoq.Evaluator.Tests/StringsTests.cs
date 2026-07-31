@@ -1,6 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter;
+using Musoq.Evaluator;
+using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
@@ -8,6 +13,15 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class StringsTests : BasicEntityTestBase
 {
+    private static readonly char[] SpecialCharacterCases =
+    [
+        '{', '}', '(', ')', '-', '/', '*', '+', '=', '!', '<', '>', '&', '|', '^', '%', '~', '`',
+        '[', ']', ';', ':', ',', '.', '?', '@', '#', '$', ' ', '"'
+    ];
+
+    private static readonly CompiledQueryBatchRepository<char> SpecialCharacterQueries =
+        new(CreateSpecialCharacterQueries);
+
     public TestContext TestContext { get; set; }
 
     [TestMethod]
@@ -236,24 +250,71 @@ public class StringsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenSpecialCharacterStartBracketUsedInTextWith_MustNotThrow(char specialCharacter)
     {
-        var query = $"select '{specialCharacter}' from #A.entities()";
+        using var measurement = EvaluatorTestCaseMeasurement.Begin(
+            nameof(WhenSpecialCharacterStartBracketUsedInTextWith_MustNotThrow),
+            specialCharacter.ToString());
+        using var vm = measurement.MeasureCompilation(() => SpecialCharacterQueries.Take(specialCharacter));
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-
-        var table = vm.Run(TestContext.CancellationToken);
+        using var table = measurement.MeasureExecution(() => vm.Run(TestContext.CancellationToken));
+        measurement.MeasureMaterialization(() => TableMaterializationTestHelper.Materialize(table));
 
         Assert.AreEqual(1, table.Columns.Count());
 
         Assert.AreEqual(specialCharacter.ToString(), table[0].Values[0]);
+    }
+
+    [ClassCleanup]
+    public static void DisposeSpecialCharacterBatch()
+    {
+        SpecialCharacterQueries.Dispose();
+    }
+
+    private static IReadOnlyDictionary<char, CompiledQuery> CreateSpecialCharacterQueries()
+    {
+        var requests = SpecialCharacterCases
+            .Select((specialCharacter, index) => new ExecutionBatchCompilationRequest(
+                specialCharacter.ToString(),
+                $"select '{specialCharacter}' from #A.entities()",
+                $"SpecialCharacterBatch_{index}",
+                new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>
+                {
+                    ["#A"] = [new BasicEntity("test")]
+                }),
+                new TestsLoggerResolver(),
+                TestCompilationOptions,
+                ConsumerFamily: "string-format-cases",
+                ConsumerTestName: nameof(CreateSpecialCharacterQueries),
+                BatchOrigin: "string-format-cases"))
+            .ToArray();
+
+        var results = InstanceCreator.CompileForExecutionBatch(requests);
+        var queries = new Dictionary<char, CompiledQuery>();
+        try
+        {
+            foreach (var result in results)
+            {
+                if (!result.Result.Succeeded)
+                    throw new InvalidOperationException(
+                        $"Special-character query '{result.Key}' failed to compile.",
+                        result.Result.CaughtException);
+
+                queries.Add(result.Key[0], result.Result.CompiledQuery);
+            }
+
+            return queries;
+        }
+        catch
+        {
+            foreach (var query in queries.Values)
+                query.Dispose();
+            foreach (var result in results)
+            {
+                if (result.Result.Succeeded && !queries.ContainsKey(result.Key[0]))
+                    result.Result.CompiledQuery.Dispose();
+            }
+
+            throw;
+        }
     }
 
     [TestMethod]

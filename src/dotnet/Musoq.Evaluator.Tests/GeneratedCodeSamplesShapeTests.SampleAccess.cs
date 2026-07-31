@@ -12,23 +12,25 @@ namespace Musoq.Evaluator.Tests;
 
 public sealed partial class GeneratedCodeSamplesShapeTests
 {
-    private static readonly Lazy<GeneratedCodeSampleFile[]> GeneratedSamples = new(CreateGeneratedSamples);
+    private static readonly TestsLoggerResolver LoggerResolver = new();
 
-    private static GeneratedCodeSampleFile[] ReadSamples()
+    private static GeneratedCodeSampleFile ReadSample(string fileName)
     {
-        return GeneratedSamples.Value;
+        var sample = GeneratedCodeSamplesCatalog.GetByFileName(fileName);
+        return new GeneratedCodeSampleFile(
+            sample.FileName,
+            sample.Category,
+            GeneratedCodeSampleArtifacts.Generate(sample, LoggerResolver));
     }
 
-    private static GeneratedCodeSampleFile[] CreateGeneratedSamples()
+    private static GeneratedCodeSampleFile[] ReadAllSamples()
     {
-        var loggerResolver = new TestsLoggerResolver();
+        return GeneratedCodeSampleCorpus.ReadAll();
+    }
 
-        return GeneratedCodeSamplesCatalog.Samples
-            .Select(sample => new GeneratedCodeSampleFile(
-                sample.FileName,
-                sample.Category,
-                GeneratedCodeSampleArtifacts.Generate(sample, loggerResolver)))
-            .ToArray();
+    private static GeneratedCodeSampleFile[] ReadNamedSamples(params string[] fileNames)
+    {
+        return fileNames.Select(ReadSample).ToArray();
     }
 
     private static string ReadGeneratedSampleSection(

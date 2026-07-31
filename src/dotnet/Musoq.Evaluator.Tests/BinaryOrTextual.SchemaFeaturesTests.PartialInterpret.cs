@@ -34,7 +34,7 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
 
-        var vm = InstanceCreator.CompileForExecution(
+        var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
@@ -78,7 +78,7 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
 
-        var vm = InstanceCreator.CompileForExecution(
+        var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
@@ -114,7 +114,7 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            InstanceCreator.CompileForExecution(
+            CompileGeneratedQuery(
                 query,
                 Guid.NewGuid().ToString(),
                 schemaProvider,

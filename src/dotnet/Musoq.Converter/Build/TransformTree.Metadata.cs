@@ -18,7 +18,7 @@ public partial class TransformTree
         SemanticMetadataSnapshot metadata,
         SemanticScopeArtifact scopeArtifact,
         CteExecutionPlan? cteExecutionPlan,
-        IReadOnlyList<Diagnostic> diagnostics)
+        IEnumerable<Diagnostic> diagnostics)
     {
         var phase = new SemanticPhaseArtifacts
         {

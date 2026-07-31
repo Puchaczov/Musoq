@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Musoq.Evaluator.IR;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -171,7 +172,6 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool IsValueTupleType(Type type)
     {
-        return type.IsGenericType &&
-               type.GetGenericTypeDefinition().FullName?.StartsWith("System.ValueTuple`", StringComparison.Ordinal) == true;
+        return ValueTupleTypeShape.IsValueTuple(type);
     }
 }

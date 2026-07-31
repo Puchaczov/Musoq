@@ -1,6 +1,8 @@
+using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
-using System;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Runtime.CompilerServices;
@@ -14,6 +16,17 @@ using Musoq.Schema;
 using Musoq.Schema.Optimization;
 
 namespace Musoq.Targets.CSharpClr;
+
+internal sealed record ClrBatchTableActivationRequest(
+    string RunnableTypeName,
+    QueryRuntimeBinding Binding);
+
+internal sealed record ClrBatchTableActivationResult(
+    ITableRunnable? Runnable,
+    Exception? Exception)
+{
+    public bool Succeeded => Runnable is not null && Exception is null;
+}
 
 internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActivator
 {
@@ -51,6 +64,59 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
     public ITypedRunnable<TOut> ActivateTyped<TOut>(ExecutableQueryArtifact executable, QueryRuntimeBinding binding)
     {
         return ActivateTyped<TOut>(LoadRunnableType(executable), binding);
+    }
+
+    internal IReadOnlyList<ClrBatchTableActivationResult> ActivateTableBatch(
+        ExecutableQueryArtifact executable,
+        IReadOnlyList<ClrBatchTableActivationRequest> requests)
+    {
+        ArgumentNullException.ThrowIfNull(executable);
+        ArgumentNullException.ThrowIfNull(requests);
+        if (requests.Count == 0)
+            return Array.Empty<ClrBatchTableActivationResult>();
+
+        var artifact = executable as ClrAssemblyExecutableArtifact ??
+                       throw CreateUnsupportedArtifactException(executable);
+        var loadContext = new RuntimeQueryAssemblyLoadContext($"musoq-query-batch-{Guid.NewGuid():N}");
+        var lifetime = new SharedAssemblyLoadContextLifetime(loadContext);
+        try
+        {
+            var assembly = LoadAssembly(artifact, loadContext);
+            var results = new ClrBatchTableActivationResult[requests.Count];
+            for (var index = 0; index < requests.Count; index++)
+            {
+                var request = requests[index];
+                IDisposable? lease = null;
+                ITableRunnable? runnable = null;
+                try
+                {
+                    if (string.IsNullOrWhiteSpace(request.RunnableTypeName))
+                        throw new ArgumentException("Runnable type name cannot be empty.", nameof(requests));
+
+                    var runnableType = assembly.GetType(request.RunnableTypeName) ??
+                                       throw new InvalidOperationException(
+                                           $"Type {request.RunnableTypeName} was not found in assembly {assembly.FullName}.");
+                    runnable = ActivateTable(runnableType, request.Binding);
+                    lease = lifetime.Acquire();
+                    runnable = OwnedTableRunnable.Wrap(runnable, lease);
+                    lease = null;
+                    results[index] = new ClrBatchTableActivationResult(runnable, null);
+                    runnable = null;
+                }
+                catch (Exception exception)
+                {
+                    (runnable as IDisposable)?.Dispose();
+                    lease?.Dispose();
+                    results[index] = new ClrBatchTableActivationResult(null, exception);
+                }
+            }
+
+            return results;
+        }
+        finally
+        {
+            lifetime.Dispose();
+        }
     }
 
     internal ITableRunnable ActivateTable(Type runnableType, QueryRuntimeBinding binding)
@@ -140,12 +206,21 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
         ClrAssemblyExecutableArtifact artifact,
         AssemblyLoadContext loadContext)
     {
-        using var assemblyStream = new MemoryStream(artifact.DllFile, writable: false);
-        if (artifact.PdbFile is not { Length: > 0 } pdbFile)
-            return loadContext.LoadFromStream(assemblyStream);
-
-        using var symbolsStream = new MemoryStream(pdbFile, writable: false);
-        return loadContext.LoadFromStream(assemblyStream, symbolsStream);
+        var assemblyStream = artifact.OpenDllStream(out var disposeAssemblyStream);
+        var symbolsStream = artifact.OpenPdbStream(out var disposeSymbolsStream);
+        try
+        {
+            return symbolsStream is null
+                ? loadContext.LoadFromStream(assemblyStream)
+                : loadContext.LoadFromStream(assemblyStream, symbolsStream);
+        }
+        finally
+        {
+            if (disposeSymbolsStream)
+                symbolsStream?.Dispose();
+            if (disposeAssemblyStream)
+                assemblyStream.Dispose();
+        }
     }
 
     private ITableRunnable ActivateAssemblyTable(
@@ -186,15 +261,36 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
 
     private sealed class RuntimeQueryAssemblyLoadContext(string name) : AssemblyLoadContext(name, isCollectible: true)
     {
+        private static readonly FrozenDictionary<string, Assembly> DefaultAssembliesByName =
+            Default.Assemblies
+                .Where(static assembly => assembly.GetName().Name is not null)
+                .GroupBy(static assembly => assembly.GetName().Name!, StringComparer.OrdinalIgnoreCase)
+                .ToFrozenDictionary(
+                    static group => group.Key,
+                    static group => group.First(),
+                    StringComparer.OrdinalIgnoreCase);
+
         protected override Assembly? Load(AssemblyName assemblyName)
         {
-            foreach (var assembly in Default.Assemblies)
+            if (assemblyName.Name is { } simpleName &&
+                DefaultAssembliesByName.TryGetValue(simpleName, out var assembly) &&
+                AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), assemblyName))
             {
-                if (AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), assemblyName))
-                    return assembly;
+                return assembly;
             }
 
-            return null;
+            try
+            {
+                return Default.LoadFromAssemblyName(assemblyName);
+            }
+            catch (FileNotFoundException)
+            {
+                return null;
+            }
+            catch (FileLoadException)
+            {
+                return null;
+            }
         }
     }
 
@@ -213,6 +309,63 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
             {
                 context.Unload();
                 GC.SuppressFinalize(this);
+            }
+        }
+    }
+
+    private sealed class SharedAssemblyLoadContextLifetime(AssemblyLoadContext loadContext) : IDisposable
+    {
+        private readonly object _gate = new();
+        private AssemblyLoadContext? _loadContext = loadContext;
+        private int _referenceCount = 1;
+
+        public IDisposable Acquire()
+        {
+            lock (_gate)
+            {
+                if (_loadContext is null)
+                    throw new ObjectDisposedException(nameof(SharedAssemblyLoadContextLifetime));
+
+                _referenceCount++;
+                return new SharedAssemblyLoadContextLease(this);
+            }
+        }
+
+        public void Dispose()
+        {
+            AssemblyLoadContext? context = null;
+            lock (_gate)
+            {
+                if (_referenceCount == 0)
+                    return;
+
+                _referenceCount--;
+                if (_referenceCount == 0)
+                {
+                    context = _loadContext;
+                    _loadContext = null;
+                }
+            }
+
+            context?.Unload();
+        }
+
+        private sealed class SharedAssemblyLoadContextLease(SharedAssemblyLoadContextLifetime owner) : IDisposable
+        {
+            private SharedAssemblyLoadContextLifetime? _owner = owner;
+
+            ~SharedAssemblyLoadContextLease()
+            {
+                Dispose();
+            }
+
+            public void Dispose()
+            {
+                if (Interlocked.Exchange(ref _owner, null) is { } current)
+                {
+                    current.Dispose();
+                    GC.SuppressFinalize(this);
+                }
             }
         }
     }

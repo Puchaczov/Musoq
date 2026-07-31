@@ -94,7 +94,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static ParameterSyntax CreateGeneratedRowValueParameter(FieldBinding field, int index)
     {
-        return CreateParameter(CreateGeneratedRowValueParameterName(index), CreateTypeSyntax(field.Type));
+        return CreateParameter(CreateGeneratedRowValueParameterName(index), CreateGeneratedFieldTypeSyntax(field));
     }
 
     private static StatementSyntax CreateGeneratedRowFieldAssignment(FieldBinding field, int index)

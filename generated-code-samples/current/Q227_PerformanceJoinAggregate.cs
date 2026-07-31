@@ -38,20 +38,20 @@ PhysicalMultiStatement
 /*
 ExecutionPlan [compiled]
   Shapes
-    SourceEntity [a: PerformanceReflectedEntity]
-      City: string <- reflected member City
-    SourceEntity [b: PerformanceReflectedEntity]
-      Name: string <- reflected member Name
-      City: string <- reflected member City
+    SourceEntity [a: PerformanceJoinEntity]
+      City: string <- property City
+    SourceEntity [b: PerformanceJoinEntity]
+      Name: string <- property Name
+      City: string <- property City
     AggregateGroup [ResultAggregateGroup; keys: 1; typed aggs: 1]
     Generated [ResultRow0]
       City: string <- field City
       MatchCount: long <- field MatchCount
 
   Body
-    SourceScan [a: object] -> aRows
-    SourceScan [b: object] -> bRows
-    CreateHash [bHash: string -> object]
+    SourceScan [a: PerformanceJoinEntity] -> aRows
+    SourceScan [b: PerformanceJoinEntity] -> bRows
+    CreateHash [bHash: string -> PerformanceJoinEntity]
     ChunkedForEach [b in bRows]
       HashAdd [bHash[b.City] += b]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
@@ -71,7 +71,7 @@ ExecutionPlan [compiled]
 // === Generated C# ===
 
 // === SyntaxTree:  ===
-namespace GeneratedSample_Q227_PerformanceReflectedJoinAggregate
+namespace GeneratedSample_Q227_PerformanceJoinAggregate
 {
     using System;
     using System.Collections.Generic;
@@ -130,17 +130,79 @@ namespace GeneratedSample_Q227_PerformanceReflectedJoinAggregate
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
-                var __reflected_b_City_0 = EvaluationHelper.GetNestedValueAccessor(EvaluationHelper.GetRequiredType("Musoq.Evaluator.Tests.GeneratedCodeSamplesCatalog+PerformanceReflectedEntity, Musoq.Evaluator.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"), "City");
-                var __reflected_a_City_1 = EvaluationHelper.GetNestedValueAccessor(EvaluationHelper.GetRequiredType("Musoq.Evaluator.Tests.GeneratedCodeSamplesCatalog+PerformanceReflectedEntity, Musoq.Evaluator.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"), "City");
-                var __reflected_b_Name_2 = EvaluationHelper.GetNestedValueAccessor(EvaluationHelper.GetRequiredType("Musoq.Evaluator.Tests.GeneratedCodeSamplesCatalog+PerformanceReflectedEntity, Musoq.Evaluator.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"), "Name");
                 var __musoqFinalShapeRows = new List<ResultShape0>();
                 var __aSchema = provider.GetSchema("#A");
-                var aRows = EvaluationHelper.GetRowSourceChunks(__aSchema, EvaluationHelper.GetRequiredType("Musoq.Evaluator.Tests.GeneratedCodeSamplesCatalog+PerformanceReflectedEntity, Musoq.Evaluator.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"), "entities", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var aRowsSource = __aSchema.GetRowSource<Musoq.Evaluator.Tests.PerformanceJoinEntity>("entities", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var aRows = aRowsSource.Chunks;
                 var __bSchema = provider.GetSchema("#B");
-                var bRows = EvaluationHelper.GetRowSourceChunks(__bSchema, EvaluationHelper.GetRequiredType("Musoq.Evaluator.Tests.GeneratedCodeSamplesCatalog+PerformanceReflectedEntity, Musoq.Evaluator.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"), "entities", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var bHash = new Dictionary<string, HashJoinBucket<object>>();
+                var bRowsSource = __bSchema.GetRowSource<Musoq.Evaluator.Tests.PerformanceJoinEntity>("entities", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var bRows = bRowsSource.Chunks;
+                var bHash = new Dictionary<string, HashJoinBucket<Musoq.Evaluator.Tests.PerformanceJoinEntity>>();
                 foreach (var bChunk in bRows)
                 {
+                    if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.PerformanceJoinEntity> bChunkView)
+                    {
+                        if (bChunkView.Source is Musoq.Evaluator.Tests.PerformanceJoinEntity[] bChunkViewArray)
+                        {
+                            int bChunkViewOffset = bChunkView.Offset;
+                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                            {
+                                if ((bIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var b = bChunkViewArray[bChunkViewOffset + bIndex];
+                                string key = b.City;
+                                if (key == null)
+                                    continue;
+                                {
+                                    ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(bHash, key, out var matchesExists);
+                                    if (!matchesExists)
+                                    {
+                                        matches = new HashJoinBucket<Musoq.Evaluator.Tests.PerformanceJoinEntity>(b);
+                                    }
+                                    else
+                                    {
+                                        matches.Add(b);
+                                    }
+                                }
+                            }
+
+                            continue;
+                        }
+
+                        if (bChunkView.Source is List<Musoq.Evaluator.Tests.PerformanceJoinEntity> bChunkViewList)
+                        {
+                            int bChunkViewOffset = bChunkView.Offset;
+                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                            {
+                                if ((bIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var b = bChunkViewList[bChunkViewOffset + bIndex];
+                                string key = b.City;
+                                if (key == null)
+                                    continue;
+                                {
+                                    ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(bHash, key, out var matchesExists);
+                                    if (!matchesExists)
+                                    {
+                                        matches = new HashJoinBucket<Musoq.Evaluator.Tests.PerformanceJoinEntity>(b);
+                                    }
+                                    else
+                                    {
+                                        matches.Add(b);
+                                    }
+                                }
+                            }
+
+                            continue;
+                        }
+                    }
+
                     for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
                     {
                         if ((bIndex & 1023) == 0)
@@ -149,14 +211,14 @@ namespace GeneratedSample_Q227_PerformanceReflectedJoinAggregate
                         }
 
                         var b = bChunk[bIndex];
-                        string key = (string)EvaluationHelper.GetNestedValue(b, "City");
+                        string key = b.City;
                         if (key == null)
                             continue;
                         {
                             ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(bHash, key, out var matchesExists);
                             if (!matchesExists)
                             {
-                                matches = new HashJoinBucket<object>(b);
+                                matches = new HashJoinBucket<Musoq.Evaluator.Tests.PerformanceJoinEntity>(b);
                             }
                             else
                             {
@@ -171,6 +233,59 @@ namespace GeneratedSample_Q227_PerformanceReflectedJoinAggregate
                 ResultAggregateGroup nullGroup = null;
                 foreach (var aChunk in aRows)
                 {
+                    if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.PerformanceJoinEntity> aChunkView)
+                    {
+                        if (aChunkView.Source is Musoq.Evaluator.Tests.PerformanceJoinEntity[] aChunkViewArray)
+                        {
+                            int aChunkViewOffset = aChunkView.Offset;
+                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            {
+                                if ((aIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var a = aChunkViewArray[aChunkViewOffset + aIndex];
+                                string key = a.City;
+                                if (key != null && bHash.TryGetValue(key, out var bHashMatches))
+                                {
+                                    foreach (var b in bHashMatches)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                        UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, b, a);
+                                    }
+                                }
+                            }
+
+                            continue;
+                        }
+
+                        if (aChunkView.Source is List<Musoq.Evaluator.Tests.PerformanceJoinEntity> aChunkViewList)
+                        {
+                            int aChunkViewOffset = aChunkView.Offset;
+                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            {
+                                if ((aIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var a = aChunkViewList[aChunkViewOffset + aIndex];
+                                string key = a.City;
+                                if (key != null && bHash.TryGetValue(key, out var bHashMatches))
+                                {
+                                    foreach (var b in bHashMatches)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                        UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, b, a);
+                                    }
+                                }
+                            }
+
+                            continue;
+                        }
+                    }
+
                     for (int aIndex = 0, aIndexCount = aChunk.Count; aIndex < aIndexCount; ++aIndex)
                     {
                         if ((aIndex & 1023) == 0)
@@ -179,7 +294,7 @@ namespace GeneratedSample_Q227_PerformanceReflectedJoinAggregate
                         }
 
                         var a = aChunk[aIndex];
-                        string key = (string)EvaluationHelper.GetNestedValue(a, "City");
+                        string key = a.City;
                         if (key != null && bHash.TryGetValue(key, out var bHashMatches))
                         {
                             foreach (var b in bHashMatches)
@@ -218,10 +333,10 @@ namespace GeneratedSample_Q227_PerformanceReflectedJoinAggregate
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static void UpdateGroupsAggregates(List<ResultAggregateGroup> groupsToFinalize, Dictionary<string, ResultAggregateGroup> groups, ref ResultAggregateGroup nullGroup, object b, object a)
+        private static void UpdateGroupsAggregates(List<ResultAggregateGroup> groupsToFinalize, Dictionary<string, ResultAggregateGroup> groups, ref ResultAggregateGroup nullGroup, Musoq.Evaluator.Tests.PerformanceJoinEntity b, Musoq.Evaluator.Tests.PerformanceJoinEntity a)
         {
-            string name = (string)EvaluationHelper.GetNestedValue(b, "Name");
-            string groupKey = (string)EvaluationHelper.GetNestedValue(a, "City");
+            string name = b.Name;
+            string groupKey = a.City;
             ResultAggregateGroup group = null;
             if (groupKey != null)
             {

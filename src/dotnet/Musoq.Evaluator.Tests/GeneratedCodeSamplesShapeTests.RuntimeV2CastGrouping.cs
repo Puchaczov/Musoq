@@ -9,9 +9,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2CastGroupingFeatureSamples_WhenCheckedIn_ShouldExistAsContiguousBlock()
     {
-        var featureFiles = ReadSamples()
-            .Where(static sample => sample.Category == "RuntimeV2CastGrouping")
-            .Select(static sample => sample.FileName)
+        var featureFiles = RuntimeV2CastGroupingFeatureSampleFileNames
             .OrderBy(static fileName => fileName)
             .ToArray();
 
@@ -139,8 +137,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
     private static System.Collections.Generic.IReadOnlyDictionary<string, string> ReadRuntimeV2CastGroupingFeatureSamples()
     {
-        var samples = ReadSamples()
-            .Where(static sample => RuntimeV2CastGroupingFeatureSampleFileNames.Contains(sample.FileName, StringComparer.Ordinal))
+        var samples = ReadNamedSamples(RuntimeV2CastGroupingFeatureSampleFileNames)
             .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
 
         foreach (var fileName in RuntimeV2CastGroupingFeatureSampleFileNames)

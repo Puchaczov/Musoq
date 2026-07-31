@@ -229,6 +229,16 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         BenchmarkInterpretationMultipleFilesMaterializedSampleFileName,
         BenchmarkInterpretationHighThroughputMaterializedSampleFileName
     ];
+    private static readonly string[] BenchmarkMaterializedSampleFileNames =
+    [
+        BenchmarkCseNoDuplicateMaterializedSampleFileName,
+        BenchmarkCseCaseNoDuplicateMaterializedSampleFileName,
+        BenchmarkParallelTableAddMaterializedSampleFileName,
+        BenchmarkOptimizedHeavyMixedMaterializedSampleFileName,
+        BenchmarkOptimizedMixedColumnMethodMaterializedSampleFileName,
+        BenchmarkCompilationSimpleMaterializedSampleFileName,
+        BenchmarkCompilationComplexMaterializedSampleFileName
+    ];
     private static readonly string[] RuntimeV2CastGroupingFeatureSampleFileNames =
     [
         RuntimeV2CastProjectionSampleFileName,

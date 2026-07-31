@@ -102,6 +102,7 @@ public sealed partial class CSharpRenderer
         }
 
         var bufferFinalShapes = RequiresBufferedFinalShapeRows(plan, resultInfo);
+        var usesGeneratedRowCarrier = ExecutionCSharpRenderer.CanUseGeneratedFinalRowSink(plan, resultInfo.TableName);
         shapeRowsMethod = executionRenderer.RenderFinalShapeRowsMethod(
             plan,
             shapeRowsMethodName,
@@ -111,15 +112,35 @@ public sealed partial class CSharpRenderer
             resultInfo.ShapeFields,
             includeProfileRecorderParameter: includeProfileRecorderParameter,
             bufferFinalShapes: bufferFinalShapes);
-        rowsAdapterMethod = CreateTableRowsAdapterMethod(
-            rowsMethodName,
-            shapeRowsMethodName,
-            resultInfo,
-            includeProfileRecorderParameter,
-            wrapProfiledShapeRows: includeProfileRecorderParameter &&
-                                   !bufferFinalShapes &&
-                                   executionRenderer.IsFullProfilingEnabledForGeneratedCode);
+        rowsAdapterMethod = usesGeneratedRowCarrier
+            ? CreateTableRowsForwardingMethod(rowsMethodName, shapeRowsMethodName, resultInfo.RowTypeName, includeProfileRecorderParameter)
+            : CreateTableRowsAdapterMethod(
+                rowsMethodName,
+                shapeRowsMethodName,
+                resultInfo,
+                includeProfileRecorderParameter,
+                wrapProfiledShapeRows: includeProfileRecorderParameter &&
+                                       !bufferFinalShapes &&
+                                       executionRenderer.IsFullProfilingEnabledForGeneratedCode);
         return true;
+    }
+
+    private static MethodDeclarationSyntax CreateTableRowsForwardingMethod(
+        string rowsMethodName,
+        string shapeRowsMethodName,
+        string rowTypeName,
+        bool includeProfileRecorderParameter)
+    {
+        var shapeRowsCall = includeProfileRecorderParameter
+            ? $"{shapeRowsMethodName}(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, profileRecorder)"
+            : $"{shapeRowsMethodName}(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token)";
+
+        return SyntaxFactory.MethodDeclaration(
+                SyntaxFactory.ParseTypeName($"IEnumerable<{rowTypeName}>"),
+                SyntaxFactory.Identifier(rowsMethodName))
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
+            .WithParameterList(CreateTableRowsAdapterParameterList(includeProfileRecorderParameter))
+            .WithBody(SyntaxFactory.Block(SyntaxFactory.ReturnStatement(SyntaxFactory.ParseExpression(shapeRowsCall))));
     }
 
     private static bool TryCreateTypedShapeStreamingMethod(
@@ -342,7 +363,7 @@ public sealed partial class CSharpRenderer
         string parallelRowsName,
         ExecutionRenderContext renderContext)
     {
-        return projectionLoop.OptionalProjectorLoop == null
+        return projectionLoop.OptionalProjectionBody == null
             ? CreateRowShardedReturnExpression(resultInfo, executionRenderer, projectionLoop, parallelRowsName, renderContext)
             : CreateOptionalRowShardedReturnExpression(resultInfo, executionRenderer, projectionLoop, parallelRowsName, renderContext);
     }
@@ -354,7 +375,7 @@ public sealed partial class CSharpRenderer
         string sourceRowsName,
         ExecutionRenderContext renderContext)
     {
-        return projectionLoop.OptionalProjectorLoop == null
+        return projectionLoop.OptionalProjectionBody == null
             ? CreateProjectRowsChunkedParallelInvocation(resultInfo, executionRenderer, projectionLoop, sourceRowsName, renderContext)
             : CreateProjectOptionalRowsChunkedParallelInvocation(resultInfo, executionRenderer, projectionLoop, sourceRowsName, renderContext);
     }
@@ -366,7 +387,7 @@ public sealed partial class CSharpRenderer
         string sourceRowsName,
         ExecutionRenderContext renderContext)
     {
-        return projectionLoop.OptionalProjectorLoop == null
+        return projectionLoop.OptionalProjectionBody == null
             ? CreateProjectRowsSerialInvocation(resultInfo, executionRenderer, projectionLoop, sourceRowsName, renderContext)
             : CreateProjectOptionalRowsSerialInvocation(resultInfo, executionRenderer, projectionLoop, sourceRowsName, renderContext);
     }
@@ -485,8 +506,8 @@ public sealed partial class CSharpRenderer
         string parallelRowsName,
         ExecutionRenderContext renderContext)
     {
-        var optionalProjectorLoop = projectionLoop.OptionalProjectorLoop ??
-            throw new InvalidOperationException("Optional row projection requires a parallel projector loop.");
+        var optionalProjectionBody = projectionLoop.OptionalProjectionBody ??
+            throw new InvalidOperationException("Optional row projection requires an optional projection body.");
 
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -503,7 +524,11 @@ public sealed partial class CSharpRenderer
                 SyntaxFactory.LiteralExpression(
                     SyntaxKind.NumericLiteralExpression,
                     SyntaxFactory.Literal(projectionLoop.MaxDegreeOfParallelism)),
-                RenderFinalSinkOptionalGeneratedRowProjection(executionRenderer, optionalProjectorLoop, renderContext),
+                RenderFinalSinkOptionalGeneratedRowProjection(
+                    executionRenderer,
+                    optionalProjectionBody,
+                    projectionLoop.Source,
+                    renderContext),
                 SyntaxFactory.IdentifierName("token")));
     }
 
@@ -514,8 +539,8 @@ public sealed partial class CSharpRenderer
         string sourceRowsName,
         ExecutionRenderContext renderContext)
     {
-        var optionalProjectorLoop = projectionLoop.OptionalProjectorLoop ??
-            throw new InvalidOperationException("Optional row projection requires a parallel projector loop.");
+        var optionalProjectionBody = projectionLoop.OptionalProjectionBody ??
+            throw new InvalidOperationException("Optional row projection requires an optional projection body.");
 
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -532,7 +557,11 @@ public sealed partial class CSharpRenderer
                 SyntaxFactory.LiteralExpression(
                     SyntaxKind.NumericLiteralExpression,
                     SyntaxFactory.Literal(projectionLoop.MaxDegreeOfParallelism)),
-                RenderFinalSinkOptionalGeneratedRowProjection(executionRenderer, optionalProjectorLoop, renderContext),
+                RenderFinalSinkOptionalGeneratedRowProjection(
+                    executionRenderer,
+                    optionalProjectionBody,
+                    projectionLoop.Source,
+                    renderContext),
                 SyntaxFactory.IdentifierName("token")));
     }
 
@@ -543,8 +572,8 @@ public sealed partial class CSharpRenderer
         string sourceRowsName,
         ExecutionRenderContext renderContext)
     {
-        var optionalProjectorLoop = projectionLoop.OptionalProjectorLoop ??
-            throw new InvalidOperationException("Optional row projection requires a parallel projector loop.");
+        var optionalProjectionBody = projectionLoop.OptionalProjectionBody ??
+            throw new InvalidOperationException("Optional row projection requires an optional projection body.");
 
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -558,7 +587,11 @@ public sealed partial class CSharpRenderer
                         ])))))
             .WithArgumentList(CreateArgumentList(
                 SyntaxFactory.IdentifierName(sourceRowsName),
-                RenderFinalSinkOptionalGeneratedRowProjection(executionRenderer, optionalProjectorLoop, renderContext),
+                RenderFinalSinkOptionalGeneratedRowProjection(
+                    executionRenderer,
+                    optionalProjectionBody,
+                    projectionLoop.Source,
+                    renderContext),
                 SyntaxFactory.IdentifierName("token")));
     }
 

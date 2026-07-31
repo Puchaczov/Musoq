@@ -23,7 +23,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ScriptVariableSamples_WhenCheckedIn_ShouldUseCompileTimeLocals()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName);
+        var samples = ReadNamedSamples(
+                ScriptVariableWhereSelectSampleFileName,
+                ScriptVariablePrimitiveValuesSampleFileName,
+                ScriptVariableSourceArgumentSampleFileName)
+            .ToDictionary(static sample => sample.FileName);
         var whereSelect = samples[ScriptVariableWhereSelectSampleFileName].Content;
         var primitiveValues = samples[ScriptVariablePrimitiveValuesSampleFileName].Content;
         var sourceArgument = samples[ScriptVariableSourceArgumentSampleFileName].Content;
@@ -59,7 +63,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ScriptVariableHelperCaptureSamples_WhenCheckedIn_ShouldPassCompileTimeLocalsToHelpers()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName);
+        var samples = ReadNamedSamples(
+                ScriptVariableGroupByHavingCaptureSampleFileName,
+                ScriptVariableJoinHelperCaptureSampleFileName,
+                ScriptVariableCteHelperCaptureSampleFileName,
+                ScriptVariableWindowHelperCaptureSampleFileName,
+                ScriptVariableParallelHelperCaptureSampleFileName)
+            .ToDictionary(static sample => sample.FileName);
         var groupBy = samples[ScriptVariableGroupByHavingCaptureSampleFileName].Content;
         var join = samples[ScriptVariableJoinHelperCaptureSampleFileName].Content;
         var cte = samples[ScriptVariableCteHelperCaptureSampleFileName].Content;

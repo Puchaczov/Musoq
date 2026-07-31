@@ -355,7 +355,7 @@ select a.Name, b.Value from first a cross apply a.Skills b";
             ["Skill3", "one"], ["Skill3", "two"]);
     }
 
-    private sealed class CrossApplyClass1
+    public sealed class CrossApplyClass1
     {
         public string City { get; set; } = string.Empty;
 
@@ -364,7 +364,7 @@ select a.Name, b.Value from first a cross apply a.Skills b";
         public int Population { get; set; }
     }
 
-    private sealed class CrossApplyClass2
+    public sealed class CrossApplyClass2
     {
         public string Country { get; set; } = string.Empty;
 
@@ -373,7 +373,7 @@ select a.Name, b.Value from first a cross apply a.Skills b";
         public string Month { get; set; } = string.Empty;
     }
 
-    private sealed class CrossApplyClass3
+    public sealed class CrossApplyClass3
     {
         public string Name { get; set; } = string.Empty;
 

@@ -11,8 +11,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2ParallelFilterProjectSample_WhenCheckedIn_ShouldUsePartitionLocalParallelBuffers()
     {
-        var sample = ReadSamples()
-            .Single(static item => item.FileName == RuntimeV2ParallelFilterProjectSampleFileName)
+        var sample = ReadSample(RuntimeV2ParallelFilterProjectSampleFileName)
             .Content;
 
         Assert.Contains("SELECT Id, Name, Value, Category, HeavyComputation(Value) as Heavy", sample);
@@ -40,8 +39,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2LexerManyColumnsSample_WhenCheckedIn_ShouldStayOnSimpleDirectProjectionPath()
     {
-        var sample = ReadSamples()
-            .Single(static item => item.FileName == RuntimeV2LexerManyColumnsSampleFileName)
+        var sample = ReadSample(RuntimeV2LexerManyColumnsSampleFileName)
             .Content;
 
         Assert.Contains("SELECT Id as C01", sample);
@@ -73,8 +71,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2DecimalConversionSample_WhenCheckedIn_ShouldUseTypedDecimalComparison()
     {
-        var sample = ReadSamples()
-            .Single(static item => item.FileName == RuntimeV2DecimalConversionSampleFileName)
+        var sample = ReadSample(RuntimeV2DecimalConversionSampleFileName)
             .Content;
 
         Assert.Contains("WHERE TryConvertToDecimalComparison(Amount) > 100.50d", sample);
@@ -102,8 +99,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2CompositeRegressionCanarySample_WhenCheckedIn_ShouldUseAllRuntimeV2FastPaths()
     {
-        var sample = ReadSamples()
-            .Single(static item => item.FileName == RuntimeV2CompositeRegressionCanarySampleFileName)
+        var sample = ReadSample(RuntimeV2CompositeRegressionCanarySampleFileName)
             .Content;
 
         Assert.Contains("ExpensiveCompute(Value) as Computed", sample);
@@ -153,7 +149,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SampleCorpus_WhenCheckedIn_ShouldUseGeneratedRowsWithoutObjectsRowValueArrays()
     {
-        var failures = ReadSamples()
+        var failures = ReadAllSamples()
             .Select(sample =>
             {
                 var stagingLocals = GeneratedRowStagingLocalPattern
@@ -197,7 +193,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SampleCorpus_WhenCheckedIn_ShouldNotEmitLocalHelperFunctionsOrNullableCastWhitespace()
     {
-        var failures = ReadSamples()
+        var failures = ReadAllSamples()
             .Select(sample =>
             {
                 var reasons = new List<string>();
@@ -224,7 +220,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SampleCorpus_WhenCheckedIn_ShouldNotEmitRetiredAggregateAndRowPatterns()
     {
-        var samples = ReadSamples().ToArray();
+        var samples = ReadAllSamples().ToArray();
         var failures = RetiredGeneratedCodePatterns
             .Select(budget => new
             {
@@ -244,7 +240,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SampleCorpus_WhenCheckedIn_ShouldNotUseInlineGeneratedRowCasts()
     {
-        var occurrences = ReadSamples()
+        var occurrences = ReadAllSamples()
             .SelectMany(CreateGeneratedRowCastOccurrences)
             .ToArray();
         var failures = occurrences
@@ -259,7 +255,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SampleCorpus_WhenCheckedIn_ShouldNotUseTableBackedStoredRowsInGeneratedCode()
     {
-        var failures = ReadSamples()
+        var failures = ReadAllSamples()
             .Select(sample =>
             {
                 var generatedCode = ExtractGeneratedCodeSection(sample.Content);

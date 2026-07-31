@@ -25,7 +25,7 @@ internal sealed partial class PhysicalLoweringImplementation
         return outputSchema.Columns
             .Select(column => new ProjectedField(
                 column.Name,
-                new ColumnRef(string.Empty, column.Name, column.Type),
+                new ColumnRef(string.Empty, column.Name, column.Type, column.IntendedTypeName),
                 column.Index))
             .ToArray();
     }

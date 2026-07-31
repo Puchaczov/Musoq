@@ -81,17 +81,39 @@ internal sealed class ScopeSnapshot
     }
 }
 
-internal sealed record ScopeSymbolSnapshot(object Key, Symbol Value);
+internal sealed record ScopeSymbolSnapshot(object Key, object Value);
 
 internal static class SymbolSnapshotCloner
 {
+    public static object Capture(Symbol symbol)
+    {
+        ArgumentNullException.ThrowIfNull(symbol);
+
+        return symbol is TableSymbol table
+            ? BoundTableSymbolContract.Capture(table)
+            : Clone(symbol);
+    }
+
+    public static Symbol Restore(object snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+
+        return snapshot switch
+        {
+            BoundTableSymbolContract table => table.Restore(),
+            Symbol symbol => Clone(symbol),
+            _ => throw new InvalidOperationException(
+                $"Unsupported semantic scope symbol snapshot '{snapshot.GetType().FullName}'.")
+        };
+    }
+
     public static Symbol Clone(Symbol symbol)
     {
         ArgumentNullException.ThrowIfNull(symbol);
 
         return symbol switch
         {
-            TableSymbol table => table.WithFullTableName(string.Concat(table.CompoundTables)),
+            TableSymbol table => BoundTableSymbolContract.Capture(table).Restore(),
             AliasesSymbol aliases => aliases.Clone(),
             AliasesPositionsSymbol positions => positions.Clone(),
             FieldsNamesSymbol fields => fields.Clone(),

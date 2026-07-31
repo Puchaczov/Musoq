@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -6,6 +7,7 @@ using Musoq.Converter;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.Tests.Components;
+using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -50,6 +52,40 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             castLikeMethodCalls,
             "Postfix casts must remain ExecutionStrictCast nodes, not execution MethodCall nodes: " +
             string.Join(", ", castLikeMethodCalls));
+    }
+
+    [TestMethod]
+    public void StrictCastCSharpAliases_WhenCompiled_ShouldNormalizeAndUseDedicatedLowering()
+    {
+        const string query =
+            "select Population::int as IntValue, Money::float as FloatValue, Self::string as TextValue from #A.entities()";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            ["#A"] = [new BasicEntity("A", 1)]
+        };
+
+        var inspection = InstanceCreator.CompileForInspection(
+            query,
+            Guid.NewGuid().ToString(),
+            new BasicSchemaProvider<BasicEntity>(sources),
+            new TestsLoggerResolver());
+
+        Assert.IsNotNull(inspection.ExecutionPlan);
+
+        var strictCasts = ExecutionIrAnalysis
+            .FlattenExpressions(inspection.ExecutionPlan.Body)
+            .OfType<ExecutionStrictCast>()
+            .ToArray();
+
+        Assert.HasCount(3, strictCasts);
+        CollectionAssert.AreEquivalent(
+            new[] { "Int32", "Single", "String" },
+            strictCasts.Select(static cast => cast.TargetTypeName).ToArray());
+        Assert.Contains("StrictCastRuntime.ToInt32", inspection.GeneratedCSharpCode);
+        Assert.Contains("StrictCastRuntime.ToSingle", inspection.GeneratedCSharpCode);
+        Assert.Contains("StrictCastRuntime.ToString", inspection.GeneratedCSharpCode);
+        Assert.DoesNotContain("System.Reflection", inspection.GeneratedCSharpCode);
+        Assert.DoesNotContain("Convert.ChangeType", inspection.GeneratedCSharpCode);
     }
 
     [TestMethod]

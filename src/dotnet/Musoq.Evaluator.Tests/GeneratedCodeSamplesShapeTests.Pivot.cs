@@ -9,7 +9,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void PivotSamples_WhenCheckedIn_ShouldLowerToAggregateProjection()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName);
+        var samples = ReadNamedSamples(PivotSampleFileNames).ToDictionary(static sample => sample.FileName);
 
         foreach (var fileName in PivotSampleFileNames)
         {
@@ -28,7 +28,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void PivotSamples_WhenCheckedIn_ShouldExposeSingleMultipleAndCteShapes()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName);
+        var samples = ReadNamedSamples(
+                PivotGroupedSingleMeasureSampleFileName,
+                PivotMultipleMeasuresSampleFileName,
+                PivotCteNoGroupBySampleFileName)
+            .ToDictionary(static sample => sample.FileName);
         var single = samples[PivotGroupedSingleMeasureSampleFileName].Content;
         var multiple = samples[PivotMultipleMeasuresSampleFileName].Content;
         var cte = samples[PivotCteNoGroupBySampleFileName].Content;

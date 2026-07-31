@@ -79,13 +79,8 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var session = context.Session;
         var block = plan.Body;
-        var reflectedAccessors = CollectReflectedMemberAccessors(plan);
         session.StoredRowsCacheNames = CreateStoredRowsCacheNames(block);
         session.DeclaredStoredRowsCaches = [];
-        session.ReflectedMemberAccessorNames = reflectedAccessors.ToDictionary(
-            static accessor => accessor.Key,
-            static accessor => accessor.VariableName,
-            StringComparer.Ordinal);
         session.TableRowShapesByVariableName = CreateTableRowShapeMap(block);
         session.GeneratedRowVariableTypeNamesByName = CollectGeneratedRowVariableTypeNames(block, session.TypedStoredTableResults);
         session.StoredGeneratedRowsLoopNameCounts = [];
@@ -101,7 +96,6 @@ public sealed partial class ExecutionCSharpRenderer
         statements.AddRange(CreateExecutionStateDeclarations(plan, context));
         statements.AddRange(CreateScriptParameterBindingStatements());
         statements.AddRange(CreateScriptVariableBindingStatements());
-        statements.AddRange(reflectedAccessors.Select(CreateReflectedMemberAccessorDeclaration));
         statements.AddRange(CollectMethodCallCaches(block)
             .Select(cache => RenderCreateObject(new ExecutionCreateObject(cache))));
 

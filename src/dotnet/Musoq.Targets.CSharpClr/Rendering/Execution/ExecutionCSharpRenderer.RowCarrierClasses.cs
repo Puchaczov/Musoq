@@ -64,7 +64,7 @@ public sealed partial class ExecutionCSharpRenderer
         Func<FieldBinding, string> resolvePropertyName)
     {
         var parameters = fields.Select(field => SyntaxFactory.Parameter(SyntaxFactory.Identifier(EscapeIdentifier(resolvePropertyName(field))))
-            .WithType(CreateTypeSyntax(field.Type)));
+            .WithType(CreateGeneratedFieldTypeSyntax(field)));
         var assignments = fields.Select(field =>
         {
             var propertyName = resolvePropertyName(field);
@@ -102,7 +102,7 @@ public sealed partial class ExecutionCSharpRenderer
                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
         }
 
-        return SyntaxFactory.PropertyDeclaration(CreateTypeSyntax(field.Type), EscapeIdentifier(resolvePropertyName(field)))
+        return SyntaxFactory.PropertyDeclaration(CreateGeneratedFieldTypeSyntax(field), EscapeIdentifier(resolvePropertyName(field)))
             .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
             .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.List(accessors)));
     }

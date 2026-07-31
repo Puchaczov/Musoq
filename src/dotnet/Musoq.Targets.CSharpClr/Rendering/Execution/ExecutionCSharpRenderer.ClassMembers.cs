@@ -6,11 +6,17 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
+    internal static bool CanUseGeneratedFinalRowSink(ExecutionPlan plan, string finalTableName)
+    {
+        return FinalGeneratedRowSinkPolicy.CanUse(plan, finalTableName);
+    }
+
     public IReadOnlyList<MemberDeclarationSyntax> RenderClassMembers(
         ExecutionPlan plan,
         string? finalShapeTableName = null,
         string? finalShapeTypeName = null,
-        IReadOnlyList<FieldBinding>? finalShapeFields = null)
+        IReadOnlyList<FieldBinding>? finalShapeFields = null,
+        bool omitFinalShapeClass = false)
     {
         ArgumentNullException.ThrowIfNull(plan);
         var context = InitializeRenderContext(plan);
@@ -20,7 +26,8 @@ public sealed partial class ExecutionCSharpRenderer
             finalShapeTableName,
             finalShapeTypeName,
             finalShapeFields,
-            context);
+            context,
+            omitFinalShapeClass);
     }
 
     private IReadOnlyList<MemberDeclarationSyntax> RenderClassMembers(
@@ -28,20 +35,27 @@ public sealed partial class ExecutionCSharpRenderer
         string? finalShapeTableName,
         string? finalShapeTypeName,
         IReadOnlyList<FieldBinding>? finalShapeFields,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context,
+        bool omitFinalShapeClass)
     {
         var session = context.Session;
+        session.UseDirectTypedStoredRowsAlias = CanUseGeneratedFinalRowSink(plan, finalShapeTableName ?? string.Empty);
         if (finalShapeTableName != null)
         {
+            var usesGeneratedRowCarrier = CanUseGeneratedFinalRowSink(plan, finalShapeTableName);
+            var sinkTypeName = usesGeneratedRowCarrier && plan.FinalResult is { } finalResult
+                ? finalResult.Shape.TypeName
+                : finalShapeTypeName ?? string.Empty;
             var sourceBuffers = finalShapeTypeName != null && finalShapeFields != null
                 ? CreateFinalShapeSourceBuffers(plan.Body, finalShapeTableName, finalShapeTypeName, finalShapeFields)
                 : null;
             session.FinalShapeYieldSink = new FinalShapeYieldSink(
                 finalShapeTableName,
-                finalShapeTypeName ?? string.Empty,
+                sinkTypeName,
                 finalShapeFields ?? [],
                 null,
-                sourceBuffers);
+                usesGeneratedRowCarrier ? null : sourceBuffers,
+                usesGeneratedRowCarrier);
         }
 
         session.TypedStoredTableResults = CreateTypedStoredTableResults(plan);
@@ -108,7 +122,9 @@ public sealed partial class ExecutionCSharpRenderer
                 }
             }
 
-            if (plan.FinalResult != null)
+            if (plan.FinalResult != null &&
+                !omitFinalShapeClass &&
+                (session.FinalShapeYieldSink is null || !session.FinalShapeYieldSink.UsesGeneratedRowCarrier))
                 members.Add(RenderFinalSelectShapeClass(plan.FinalResult));
 
             members.AddRange(CreateCteIndexResultMembers(plan));

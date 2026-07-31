@@ -12,6 +12,17 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionMaterializeList materialize,
         ExecutionRenderContext context)
     {
+        if (context.Session.UseDirectTypedStoredRowsAlias &&
+            materialize.GeneratedRowShape != null &&
+            materialize.Source is ExecutionStoredTableRows storedRows &&
+            TryGetTypedStoredTableResult(storedRows.TableIndex, materialize.GeneratedRowShape, context, out _))
+        {
+            return CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                materialize.Buffer.Name,
+                RenderExpression(materialize.Source, context));
+        }
+
         if (materialize.GeneratedRowShape != null)
         {
             return CreateLocalDeclaration(

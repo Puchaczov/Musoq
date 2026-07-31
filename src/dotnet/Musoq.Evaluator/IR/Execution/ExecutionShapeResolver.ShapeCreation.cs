@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Plugins;
 using Musoq.Schema;
@@ -35,7 +36,9 @@ public sealed partial class ExecutionShapeResolver
 
     private static SourceEntityShape CreateClrMemberSourceShape(
         string alias,
-        IReadOnlyList<ColumnSchema> columns)
+        IReadOnlyList<ColumnSchema> columns,
+        string? generatedTypeName = null,
+        Func<string, string?>? generatedFieldTypeNameResolver = null)
     {
         var resolvedColumns = ResolveColumns(typeof(object), columns);
         var fields = CreateFieldBindings(
@@ -45,7 +48,18 @@ public sealed partial class ExecutionShapeResolver
                 ? new NestedClrPropertyAccess(column.ColumnName)
                 : new ClrPropertyAccess(column.ColumnName));
 
-        return new SourceEntityShape(alias, typeof(object), fields);
+        if (generatedFieldTypeNameResolver != null)
+        {
+            fields = fields
+                .Select(field => field with
+                {
+                    GeneratedTypeName = generatedFieldTypeNameResolver(field.Name) ?? field.GeneratedTypeName
+                })
+                .ToArray();
+
+        }
+
+        return new SourceEntityShape(alias, typeof(object), fields, generatedTypeName);
     }
 
     private static SourceEntityShape CreateReflectedSourceShape(

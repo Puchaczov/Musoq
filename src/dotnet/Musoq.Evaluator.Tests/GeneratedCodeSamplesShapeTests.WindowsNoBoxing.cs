@@ -20,7 +20,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "SetArguments(Array.Empty<object?>())",
             "new bool[]"
         };
-        var failures = ReadSamples()
+        var failures = ReadAllSamples()
             .Where(static sample => sample.Content.Contains("Window", StringComparison.Ordinal))
             .SelectMany(sample => CreateBoxedWindowFallbackFailures(sample, forbiddenPatterns))
             .ToArray();

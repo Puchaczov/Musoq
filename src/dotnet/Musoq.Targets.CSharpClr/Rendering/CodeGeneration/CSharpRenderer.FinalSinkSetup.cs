@@ -79,6 +79,16 @@ public sealed partial class CSharpRenderer
             ? executionRenderer.RenderFinalSinkOptionalGeneratedRowProjection(optionalProjectorLoop)
             : executionRenderer.RenderFinalSinkOptionalGeneratedRowProjection(optionalProjectorLoop, renderContext);
 
+    private static ParenthesizedLambdaExpressionSyntax RenderFinalSinkOptionalGeneratedRowProjection(
+        ExecutionCSharpRenderer executionRenderer,
+        ExecutionBlock optionalProjectionBody,
+        ExecutionVariable source,
+        ExecutionRenderContext renderContext) =>
+        executionRenderer.RenderFinalSinkOptionalGeneratedRowProjection(
+            optionalProjectionBody,
+            source,
+            renderContext);
+
     private static LocalDeclarationStatementSyntax CreateParallelRowsProbeDeclaration(
         TypedProjectionLoop projectionLoop,
         string sourceRowsName,

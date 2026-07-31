@@ -38,8 +38,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void OrdinaryCteColumnListSample_ShouldUseExportedNamesAcrossEveryPlanLayer()
     {
-        var sample = ReadSamples().Single(item =>
-            string.Equals(item.FileName, OrdinaryCteColumnListSampleFileName, StringComparison.Ordinal));
+        var sample = ReadSample(OrdinaryCteColumnListSampleFileName);
         var logical = ReadGeneratedSampleSection(sample.Content, "Logical Plan", "Physical Plan");
         var physical = ReadGeneratedSampleSection(sample.Content, "Physical Plan", "Execution Plan");
         var execution = ReadExecutionPlan(OrdinaryCteColumnListSampleFileName);
@@ -57,8 +56,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [DynamicData(nameof(RecursiveUnionAllSampleData))]
     public void RecursiveUnionAllSample_ShouldUseReusableTypedFrontiersAndDirectEmission(string fileName)
     {
-        var sample = ReadSamples().Single(item =>
-            string.Equals(item.FileName, fileName, StringComparison.Ordinal));
+        var sample = ReadSample(fileName);
         var logical = ReadGeneratedSampleSection(sample.Content, "Logical Plan", "Physical Plan");
         var physical = ReadGeneratedSampleSection(sample.Content, "Physical Plan", "Execution Plan");
         var execution = ReadExecutionPlan(fileName);
@@ -97,8 +95,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [DynamicData(nameof(RecursiveIdentitySampleData))]
     public void RecursiveIdentitySample_ShouldUseOneTypedGlobalSeenSet(string fileName)
     {
-        var sample = ReadSamples().Single(item =>
-            string.Equals(item.FileName, fileName, StringComparison.Ordinal));
+        var sample = ReadSample(fileName);
         var execution = ReadExecutionPlan(fileName);
         var code = ReadGeneratedCode(fileName);
         var root = CSharpSyntaxTree.ParseText(code).GetRoot();
@@ -121,8 +118,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RecursiveCompositeIdentitySample_ShouldUseTypedValueTupleKey()
     {
-        var sample = ReadSamples().Single(item =>
-            string.Equals(item.FileName, "Q194_RecursiveUnionCompositeKey.cs", StringComparison.Ordinal));
+        var sample = ReadSample("Q194_RecursiveUnionCompositeKey.cs");
 
         var code = ReadGeneratedCode(sample.FileName);
         Assert.Contains("new HashSet<ValueTuple<int, string>>()", code);

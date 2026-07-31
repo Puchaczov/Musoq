@@ -154,25 +154,8 @@ public sealed partial class LogicalPlanBuilder
             return;
         }
 
-        switch (expression)
-        {
-            case BinaryOp binaryOp:
-                CollectBindingsFromExpression(binaryOp.Left, outputName, refreshLookup, bindings, bindingsByIdentifier);
-                CollectBindingsFromExpression(binaryOp.Right, outputName, refreshLookup, bindings, bindingsByIdentifier);
-                break;
-            case UnaryOp unaryOp:
-                CollectBindingsFromExpression(unaryOp.Operand, outputName, refreshLookup, bindings, bindingsByIdentifier);
-                break;
-            case CaseWhen caseWhen:
-                foreach (var branch in caseWhen.Branches)
-                {
-                    CollectBindingsFromExpression(branch.Condition, outputName, refreshLookup, bindings, bindingsByIdentifier);
-                    CollectBindingsFromExpression(branch.Result, outputName, refreshLookup, bindings, bindingsByIdentifier);
-                }
-                if (caseWhen.ElseExpression is not null)
-                    CollectBindingsFromExpression(caseWhen.ElseExpression, outputName, refreshLookup, bindings, bindingsByIdentifier);
-                break;
-        }
+        foreach (var child in IrExpressionTraversal.Children(expression))
+            CollectBindingsFromExpression(child, outputName, refreshLookup, bindings, bindingsByIdentifier);
     }
 
     private static string ResolveAggregateColumnName(

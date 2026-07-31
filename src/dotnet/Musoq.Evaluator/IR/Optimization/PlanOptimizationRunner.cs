@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace Musoq.Evaluator.IR.Optimization;
 
@@ -44,7 +45,10 @@ internal sealed class PlanOptimizationRunner<TPlan>
     {
     }
 
-    public OptimizationResult<TPlan> Run(TPlan plan, OptimizationContext? context = null)
+    public OptimizationResult<TPlan> Run(
+        TPlan plan,
+        OptimizationContext? context = null,
+        Func<string, IDisposable>? beginPassPhase = null)
     {
         ArgumentNullException.ThrowIfNull(plan);
 
@@ -63,6 +67,7 @@ internal sealed class PlanOptimizationRunner<TPlan>
 
             foreach (var pass in _passes)
             {
+                using var passPhase = beginPassPhase?.Invoke(pass.Name);
                 runContext.AnalysisFacts.BeginPass(_stage, pass.Name, iteration);
                 var result = pass.Optimize(current, runContext) ??
                              throw new InvalidOperationException($"Optimization pass {pass.Name} returned null.");

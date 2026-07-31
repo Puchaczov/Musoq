@@ -28,23 +28,6 @@ public partial class Parser
 
     private readonly ILexer _lexer;
 
-    private readonly Dictionary<TokenType, (short Precendence, Associativity Associativity)> _precedenceDictionary =
-        new()
-        {
-            { TokenType.Pipe, (0, Associativity.Left) }, // Bitwise OR - lowest bitwise precedence
-            { TokenType.Caret, (0, Associativity.Left) }, // Bitwise XOR
-            { TokenType.Ampersand, (0, Associativity.Left) }, // Bitwise AND
-            { TokenType.NullCoalescing, (0, Associativity.Right) },
-            { TokenType.LeftShift, (1, Associativity.Left) }, // Left shift
-            { TokenType.RightShift, (1, Associativity.Left) }, // Right shift
-            { TokenType.Plus, (2, Associativity.Left) },
-            { TokenType.Hyphen, (2, Associativity.Left) },
-            { TokenType.Star, (3, Associativity.Left) },
-            { TokenType.FSlash, (3, Associativity.Left) },
-            { TokenType.Mod, (3, Associativity.Left) },
-            { TokenType.Dot, (4, Associativity.Left) }
-        };
-
     private int _fromPosition;
 
     private bool _hasReplacedToken;

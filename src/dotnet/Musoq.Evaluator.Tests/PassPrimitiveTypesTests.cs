@@ -138,5 +138,5 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
         public SchemaTableMetadata Metadata { get; } = new(typeof(TestEntity));
     }
 
-    private sealed class TestEntity;
+    public sealed class TestEntity;
 }

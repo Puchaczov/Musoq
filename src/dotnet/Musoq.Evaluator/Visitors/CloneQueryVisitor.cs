@@ -16,9 +16,7 @@ public partial class CloneQueryVisitor : DefensiveVisitorBase
     public RootNode Root => SafeCast<RootNode>(SafePeek(Nodes, VisitorOperationNames.GettingRoot),
         VisitorOperationNames.GettingRoot);
 
-    public override void Visit(Node node)
-    {
-    }
+    public override void Visit(Node node) => SemanticNodeCloneSupport.Visit(node, Nodes);
 
     public override void Visit(StarNode node) =>
         CloneBinaryNodeWithSpan(node ?? throw new ArgumentNullException(nameof(node)), VisitorOperationNames.VisitStarNode, (l, r) => new StarNode(l, r));

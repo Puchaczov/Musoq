@@ -19,8 +19,8 @@ internal sealed class CSharpClrRenderedQueryFinalizer : IRenderedQueryFinalizer
                 $"C# CLR finalizer expected options type '{nameof(CSharpClrFinalizationOptions)}', but received '{options.GetType().Name}'.");
 
         var emitPdb = csharpOptions.EmitPdb;
-        using var dllStream = new MemoryStream();
-        using var pdbStream = emitPdb ? new MemoryStream() : null;
+        var dllStream = new MemoryStream();
+        var pdbStream = emitPdb ? new MemoryStream() : null;
 
         var result = emitPdb
             ? csharp.Compilation.Emit(dllStream, pdbStream,
@@ -28,27 +28,43 @@ internal sealed class CSharpClrRenderedQueryFinalizer : IRenderedQueryFinalizer
             : csharp.Compilation.Emit(dllStream);
 
         if (!result.Success)
+        {
+            pdbStream?.Dispose();
+            dllStream.Dispose();
             return new CSharpClrFinalizationResult(result, null);
-
-        byte[]? pdbFile;
-        if (emitPdb)
-        {
-            if (!pdbStream!.TryGetBuffer(out var pdbBuffer))
-                pdbBuffer = new ArraySegment<byte>(pdbStream.ToArray());
-
-            pdbFile = pdbBuffer.Count == pdbBuffer.Array!.Length ? pdbBuffer.Array : pdbBuffer.ToArray();
-        }
-        else
-        {
-            pdbFile = null;
         }
 
-        if (!dllStream.TryGetBuffer(out var dllBuffer))
-            dllBuffer = new ArraySegment<byte>(dllStream.ToArray());
+        if (csharpOptions.Purpose == TargetFinalizationPurpose.Execution)
+        {
+            return new CSharpClrFinalizationResult(
+                result,
+                new ClrAssemblyExecutableArtifact(dllStream, pdbStream, csharp.AccessToClassPath));
+        }
 
-        var dllFile = dllBuffer.Count == dllBuffer.Array!.Length ? dllBuffer.Array : dllBuffer.ToArray();
-        var executable = new ClrAssemblyExecutableArtifact(dllFile, pdbFile, csharp.AccessToClassPath);
+        try
+        {
+            var dllFile = ToByteArray(dllStream);
+            var pdbFile = pdbStream is null ? null : ToByteArray(pdbStream);
+            return new CSharpClrFinalizationResult(
+                result,
+                new ClrAssemblyExecutableArtifact(dllFile, pdbFile, csharp.AccessToClassPath));
+        }
+        finally
+        {
+            pdbStream?.Dispose();
+            dllStream.Dispose();
+        }
+    }
 
-        return new CSharpClrFinalizationResult(result, executable);
+    private static byte[] ToByteArray(MemoryStream stream)
+    {
+        if (stream.TryGetBuffer(out var buffer) &&
+            buffer.Offset == 0 &&
+            buffer.Count == buffer.Array!.Length)
+        {
+            return buffer.Array;
+        }
+
+        return stream.ToArray();
     }
 }

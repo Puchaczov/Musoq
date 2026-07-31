@@ -320,13 +320,6 @@ internal static partial class GeneratedCodeSamplesCatalog
         }
     }
 
-    private sealed class ScriptParameterSampleEntity
-    {
-        public string Key { get; init; } = string.Empty;
-
-        public string Value { get; init; } = string.Empty;
-    }
-
     private sealed class InterpretationSchemaProviderFactory : BinaryOrTextualEvaluatorTestBase
     {
         public static ISchemaProvider CreateBinary()
@@ -347,4 +340,11 @@ internal static partial class GeneratedCodeSamplesCatalog
                 });
         }
     }
+}
+
+public sealed class ScriptParameterSampleEntity
+{
+    public string Key { get; init; } = string.Empty;
+
+    public string Value { get; init; } = string.Empty;
 }

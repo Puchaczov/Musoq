@@ -312,7 +312,7 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
             from testX t
             cross apply t.Split(t.Text, ' ') unused";
 
-        var firstSource = new object[1] { new { } };
+        var firstSource = new EmptySourceEntity[1] { new() };
         var vm = CreateAndRunVirtualMachine(query, firstSource);
         var table = vm.Run(TestContext.CancellationToken);
 

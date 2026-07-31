@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
@@ -32,6 +33,8 @@ internal sealed record TransformPipelineContext
 
     public required ExecutionTargetId ExecutionTarget { get; init; }
 
+    public required CompilationPurpose CompilationPurpose { get; init; }
+    public required bool EmitPdb { get; init; }
     public required QueryMethodRenderMetadata QueryMethodRenderMetadata { get; init; }
 
     public Type? OutputType { get; init; }
@@ -40,7 +43,11 @@ internal sealed record TransformPipelineContext
 
     public string? InterpreterSourceCode { get; init; }
 
-    public string? OptimizerTraceText { get; init; }
+    public IReadOnlyList<OptimizationTrace> OptimizerTraces { get; init; } = [];
+
+    public string? OptimizerTraceText => EmitExecutionPlanText
+        ? OptimizationTraceTextPrinter.Print(OptimizerTraces.ToArray())
+        : null;
 
     public Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions, SchemaRegistry?, ILogger<BuildMetadataAndInferTypesVisitor>, BuildMetadataAndInferTypesVisitor>?
         CreateBuildMetadataAndInferTypesVisitor { get; init; }
@@ -61,20 +68,30 @@ internal sealed record TransformPipelineContext
             EnableContextualExecution = items.EnableContextualExecution,
             QueryResultMode = items.QueryResultMode,
             ExecutionTarget = items.ExecutionTarget,
+            CompilationPurpose = items.CompilationPurpose,
+            EmitPdb = items.EmitPdb,
             QueryMethodRenderMetadata = items.QueryMethodRenderMetadata,
             OutputType = items.OutputType,
             AdditionalReferenceTypes = items.AdditionalReferenceTypes,
             InterpreterSourceCode = items.InterpreterSourceCode,
-            OptimizerTraceText = items.OptimizerTraceText,
+            OptimizerTraces = [],
             CreateBuildMetadataAndInferTypesVisitor = items.CreateBuildMetadataAndInferTypesVisitor
         };
     }
 
     public TransformPipelineContext AppendTrace(OptimizationTrace trace)
     {
+        if (!EmitExecutionPlanText || trace == null)
+            return this;
+
+        var traces = new OptimizationTrace[OptimizerTraces.Count + 1];
+        for (var index = 0; index < OptimizerTraces.Count; index++)
+            traces[index] = OptimizerTraces[index];
+        traces[^1] = trace;
+
         return this with
         {
-            OptimizerTraceText = OptimizationTraceTextPrinter.Append(OptimizerTraceText, trace)
+            OptimizerTraces = traces
         };
     }
 }

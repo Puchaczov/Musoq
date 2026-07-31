@@ -45,7 +45,7 @@ public sealed class RoslynRuntimeSeamTests
         var second = cache.GetOrCreate(assemblyPath);
 
         Assert.AreNotSame(first, second);
-        Assert.AreEqual(2, cache.Count);
+        Assert.AreEqual(1, cache.Count);
     }
 
     [TestMethod]

@@ -163,7 +163,7 @@ namespace GeneratedSample_Q58_BinaryGenericInterpret
                     }
 
                     Statement0Row0 fc = __storedTable0Rows[__storedTable0Index];
-                    var dRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.GenericItem>((Musoq.Generated.Interpreters.GenericItem[])(object[])EvaluationHelper.GetNestedValue(fc[1], "Data"));
+                    var dRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.GenericItem>(fc.c_Items.Data);
                     foreach (var dChunk in dRows)
                     {
                         for (int dIndex = 0, dIndexCount = dChunk.Count; dIndex < dIndexCount; ++dIndex)
@@ -335,57 +335,16 @@ namespace GeneratedSample_Q58_BinaryGenericInterpret
             public byte ItemValue { get; }
         }
 
-        private sealed class Statement0Row0 : Row
+        private sealed class Statement0Row0
         {
-            public Statement0Row0(byte[] __value0, object __value1)
+            public Statement0Row0(byte[] __value0, Musoq.Generated.Interpreters.LengthPrefixed<Musoq.Generated.Interpreters.GenericItem> __value1)
             {
                 f_Content = __value0;
                 c_Items = __value1;
             }
 
-            public override int Count => 2;
-            public object c_Items { get; private set; }
-            public byte[] f_Content { get; private set; }
-
-            public override void AssignValue(int columnNumber, object value)
-            {
-                switch (columnNumber)
-                {
-                    case 0:
-                        f_Content = (byte[])value;
-                        break;
-                    case 1:
-                        c_Items = value;
-                        break;
-                    default:
-                        throw new IndexOutOfRangeException();
-                }
-            }
-
-            public override bool HasColumn(string name) => name switch
-            {
-                "f.Content" => true,
-                "f_Content" => true,
-                "Content" => true,
-                "c.Items" => true,
-                "c_Items" => true,
-                "Items" => true,
-                _ => false
-            };
-            public override object this[int columnNumber] => columnNumber switch
-            {
-                0 => (object)f_Content,
-                1 => (object)c_Items,
-                _ => throw new IndexOutOfRangeException()};
-            public override object this[string name] => name switch
-            {
-                "f.Content" => (object)f_Content,
-                "f_Content" => (object)f_Content,
-                "Content" => (object)f_Content,
-                "c.Items" => (object)c_Items,
-                "c_Items" => (object)c_Items,
-                "Items" => (object)c_Items,
-                _ => throw new KeyNotFoundException(name)};
+            public Musoq.Generated.Interpreters.LengthPrefixed<Musoq.Generated.Interpreters.GenericItem> c_Items { get; }
+            public byte[] f_Content { get; }
         }
     }
 }

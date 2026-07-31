@@ -25,14 +25,14 @@ PhysicalMultiStatement
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: ScriptParameterSampleEntity]
-      Key: string <- reflected member Key
-      Value: string <- reflected member Value
+      Key: string <- property Key
+      Value: string <- property Value
     Generated [ResultRow0]
       Key: string <- field Key
       Value: string <- field Value
 
   Body
-    SourceScan [ko3iko: object] -> ko3ikoRows
+    SourceScan [ko3iko: ScriptParameterSampleEntity] -> ko3ikoRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ChunkedForEach [ko3iko in ko3ikoRows]
       AppendShape [result <- ResultShape0(Key: ko3iko.Key, Value: ko3iko.Value)]
@@ -90,12 +90,11 @@ namespace GeneratedSample_Q132_ScriptVariableSourceArgument
             var __musoqExecutionState = ExecutionState.Capture(Parameters);
             ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
             const string letKey = "KEY_1";
-            var __reflected_ko3iko_Key_0 = EvaluationHelper.GetNestedValueAccessor(EvaluationHelper.GetRequiredType("Musoq.Evaluator.Tests.GeneratedCodeSamplesCatalog+ScriptParameterSampleEntity, Musoq.Evaluator.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"), "Key");
-            var __reflected_ko3iko_Value_1 = EvaluationHelper.GetNestedValueAccessor(EvaluationHelper.GetRequiredType("Musoq.Evaluator.Tests.GeneratedCodeSamplesCatalog+ScriptParameterSampleEntity, Musoq.Evaluator.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"), "Value");
             var __ko3ikoSchema = provider.GetSchema("#parameterized");
-            var ko3ikoRows = EvaluationHelper.GetRowSourceChunks(__ko3ikoSchema, EvaluationHelper.GetRequiredType("Musoq.Evaluator.Tests.GeneratedCodeSamplesCatalog+ScriptParameterSampleEntity, Musoq.Evaluator.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"), "items", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), new object[] { letKey });
+            var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.ScriptParameterSampleEntity>("items", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), new object[] { letKey });
+            var ko3ikoRows = ko3ikoRowsSource.Chunks;
             var __musoqTableSourceRows = ko3ikoRows;
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<object, ResultRow0>(__musoqTableSourceRows, (ko3iko) => true, (ko3iko) => new ResultRow0((string)__reflected_ko3iko_Key_0(ko3iko), (string)__reflected_ko3iko_Value_1(ko3iko)), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.ScriptParameterSampleEntity, ResultRow0>(__musoqTableSourceRows, (ko3iko) => true, (ko3iko) => new ResultRow0(ko3iko.Key, ko3iko.Value), token), token, onCompleted: () =>
             {
                 OnPhaseChanged("compiled", QueryPhase.End);
             }, onDisposed: () =>

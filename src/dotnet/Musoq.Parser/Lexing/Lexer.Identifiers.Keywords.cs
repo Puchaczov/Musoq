@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Lexing;
@@ -64,51 +63,79 @@ public sealed partial class Lexer
 
         return char.ToLowerInvariant(Input[Position]) switch
         {
-            'n' => TryMatchRegex(NotInRegex, start, span => new NotInToken(span)) ??
-                   TryMatchRegex(NotLikeRegex, start, span => new NotLikeToken(span)) ??
-                   TryMatchRegex(NotRLikeRegex, start, span => new NotRLikeToken(span)),
-            'u' => TryMatchRegex(UnionAllRegex, start, span => new UnionAllToken(span)),
-            'g' => TryMatchRegex(GroupByRegex, start, span => new GroupByToken(span)),
-            'o' => TryMatchRegex(OrderByRegex, start, span => new OrderByToken(span)) ??
-                   TryMatchRegex(OuterApplyRegex, start, span => new OuterApplyToken(span)),
-            'p' => TryMatchRegex(PartitionByRegex, start, span => new PartitionByToken(span)),
-            'j' or 'i' => TryMatchRegex(InnerJoinRegex, start, span => new InnerJoinToken(span)),
-            'l' => TryMatchRegex(AntiJoinRegex, start, span => new AntiJoinToken(span)) ??
-                   TryMatchRegex(SemiJoinRegex, start, span => new SemiJoinToken(span)) ??
-                   TryMatchRegex(OuterJoinRegex, start, span => new OuterJoinToken(OuterJoinType.Left, span)),
-            'r' => TryMatchRegex(OuterJoinRegex, start, span => new OuterJoinToken(OuterJoinType.Right, span)),
-            'c' => TryMatchRegex(CurrentRowRegex, start, span => new CurrentRowToken(span)) ??
-                   TryMatchRegex(CrossApplyRegex, start, span => new CrossApplyToken(span)) ??
-                   TryMatchRegex(CrossJoinRegex, start, span => new CrossJoinToken(span)),
-            'f' => TryMatchRegex(OuterJoinRegex, start, span => new OuterJoinToken(OuterJoinType.Full, span)),
-            's' => TryMatchRegex(SemiJoinRegex, start, span => new SemiJoinToken(span)),
-            'a' => TryMatchRegex(AntiJoinRegex, start, span => new AntiJoinToken(span)) ??
-                   TryMatchAsOfJoin(start),
+            'n' => TryMatchTwoWords("not", "in", PhraseBoundary.WhitespaceOrEnd, out var end)
+                ? new NotInToken(new TextSpan(start, end - start))
+                : TryMatchTwoWords("not", "like", PhraseBoundary.WhitespaceOrEnd, out end)
+                    ? new NotLikeToken(new TextSpan(start, end - start))
+                    : TryMatchTwoWords("not", "rlike", PhraseBoundary.WhitespaceOrEnd, out end)
+                        ? new NotRLikeToken(new TextSpan(start, end - start))
+                        : null,
+            'u' => TryMatchTwoWords("union", "all", PhraseBoundary.WhitespaceOrEnd, out var unionEnd)
+                ? new UnionAllToken(new TextSpan(start, unionEnd - start))
+                : null,
+            'g' => TryMatchTwoWords("group", "by", PhraseBoundary.WhitespaceOrEnd, out var groupEnd)
+                ? new GroupByToken(new TextSpan(start, groupEnd - start))
+                : null,
+            'o' => TryMatchTwoWords("order", "by", PhraseBoundary.WhitespaceOrEnd, out var orderEnd)
+                ? new OrderByToken(new TextSpan(start, orderEnd - start))
+                : TryMatchTwoWords("outer", "apply", PhraseBoundary.WhitespaceOrEnd, out orderEnd)
+                    ? new OuterApplyToken(new TextSpan(start, orderEnd - start))
+                    : null,
+            'p' => TryMatchTwoWords("partition", "by", PhraseBoundary.WhitespaceOrEnd, out var partitionEnd)
+                ? new PartitionByToken(new TextSpan(start, partitionEnd - start))
+                : null,
+            'j' or 'i' => TryMatchTwoWords("inner", "join", PhraseBoundary.WordBoundary, out var innerEnd)
+                ? new InnerJoinToken(new TextSpan(start, innerEnd - start))
+                : TryMatchWord("join", PhraseBoundary.WordBoundary, out innerEnd)
+                    ? new InnerJoinToken(new TextSpan(start, innerEnd - start))
+                    : null,
+            'l' => TryMatchFourWords("left", "anti", "semi", "join", PhraseBoundary.WordBoundary, out var leftEnd)
+                ? new AntiJoinToken(new TextSpan(start, leftEnd - start))
+                : TryMatchThreeWords("left", "semi", "join", PhraseBoundary.WordBoundary, out leftEnd)
+                    ? new SemiJoinToken(new TextSpan(start, leftEnd - start))
+                    : TryMatchThreeWords("left", "outer", "join", PhraseBoundary.WordBoundary, out leftEnd)
+                        ? new OuterJoinToken(OuterJoinType.Left, new TextSpan(start, leftEnd - start))
+                        : TryMatchTwoWords("left", "join", PhraseBoundary.WordBoundary, out leftEnd)
+                            ? new OuterJoinToken(OuterJoinType.Left, new TextSpan(start, leftEnd - start))
+                            : null,
+            'r' => TryMatchThreeWords("right", "outer", "join", PhraseBoundary.WordBoundary, out var rightEnd)
+                ? new OuterJoinToken(OuterJoinType.Right, new TextSpan(start, rightEnd - start))
+                : TryMatchTwoWords("right", "join", PhraseBoundary.WordBoundary, out rightEnd)
+                    ? new OuterJoinToken(OuterJoinType.Right, new TextSpan(start, rightEnd - start))
+                    : null,
+            'c' => TryMatchTwoWords("current", "row", PhraseBoundary.WhitespaceRightParenOrEnd, out var currentEnd)
+                ? new CurrentRowToken(new TextSpan(start, currentEnd - start))
+                : TryMatchTwoWords("cross", "apply", PhraseBoundary.WhitespaceOrEnd, out currentEnd)
+                    ? new CrossApplyToken(new TextSpan(start, currentEnd - start))
+                    : TryMatchTwoWords("cross", "join", PhraseBoundary.WordBoundary, out currentEnd)
+                        ? new CrossJoinToken(new TextSpan(start, currentEnd - start))
+                        : null,
+            'f' => TryMatchThreeWords("full", "outer", "join", PhraseBoundary.WordBoundary, out var fullEnd)
+                ? new OuterJoinToken(OuterJoinType.Full, new TextSpan(start, fullEnd - start))
+                : TryMatchTwoWords("full", "join", PhraseBoundary.WordBoundary, out fullEnd)
+                    ? new OuterJoinToken(OuterJoinType.Full, new TextSpan(start, fullEnd - start))
+                    : null,
+            's' => TryMatchTwoWords("semi", "join", PhraseBoundary.WordBoundary, out var semiEnd)
+                    ? new SemiJoinToken(new TextSpan(start, semiEnd - start))
+                    : null,
+            'a' => TryMatchThreeWords("anti", "semi", "join", PhraseBoundary.WordBoundary, out var antiEnd)
+                    ? new AntiJoinToken(new TextSpan(start, antiEnd - start))
+                    : TryMatchTwoWords("anti", "join", PhraseBoundary.WordBoundary, out antiEnd)
+                        ? new AntiJoinToken(new TextSpan(start, antiEnd - start))
+                        : TryMatchAsOfJoin(start),
             _ => null
         };
     }
 
     private AsOfJoinToken? TryMatchAsOfJoin(int start)
     {
-        var match = AsOfJoinRegex.Match(Input, Position);
+        if (TryMatchFourWords("asof", "left", "outer", "join", PhraseBoundary.WordBoundary, out var end) ||
+            TryMatchThreeWords("asof", "left", "join", PhraseBoundary.WordBoundary, out end))
+            return new AsOfJoinToken(true, new TextSpan(start, end - start));
 
-        if (!match.Success || match.Index != Position)
-            return null;
-
-        Position += match.Length;
-        var isLeft = match.Groups[1].Success;
-        return new AsOfJoinToken(isLeft, new TextSpan(start, match.Length));
-    }
-
-    private Token? TryMatchRegex(Regex regex, int start, Func<TextSpan, Token> tokenFactory)
-    {
-        var match = regex.Match(Input, Position);
-
-        if (!match.Success || match.Index != Position)
-            return null;
-
-        Position += match.Length;
-        return tokenFactory(new TextSpan(start, match.Length));
+        return TryMatchTwoWords("asof", "join", PhraseBoundary.WordBoundary, out end)
+            ? new AsOfJoinToken(false, new TextSpan(start, end - start))
+            : null;
     }
 
 }

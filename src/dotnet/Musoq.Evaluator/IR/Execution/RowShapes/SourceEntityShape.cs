@@ -11,11 +11,13 @@ public sealed record SourceEntityShape : RowShape
     public SourceEntityShape(
         string alias,
         ExecutionTypeRef entityType,
-        IReadOnlyList<FieldBinding> fields)
+        IReadOnlyList<FieldBinding> fields,
+        string? generatedTypeName = null)
         : base(alias, fields)
     {
         Alias = alias;
         EntityType = entityType;
+        GeneratedTypeName = generatedTypeName;
         Fields = ExecutionIrCollections.Freeze(fields);
     }
 
@@ -23,14 +25,16 @@ public sealed record SourceEntityShape : RowShape
 
     public ExecutionTypeRef EntityType { get; init; }
 
+    public string? GeneratedTypeName { get; init; }
+
     public override IReadOnlyList<FieldBinding> Fields
     {
         get => _fields;
         init => _fields = ExecutionIrCollections.Freeze(value);
     }
 
-    internal SourceEntityShape(string alias, Type entityType, IReadOnlyList<FieldBinding> fields)
-        : this(alias, ExecutionClrBindingFactory.FromClr(entityType), fields)
+    internal SourceEntityShape(string alias, Type entityType, IReadOnlyList<FieldBinding> fields, string? generatedTypeName = null)
+        : this(alias, ExecutionClrBindingFactory.FromClr(entityType), fields, generatedTypeName)
     {
     }
 }

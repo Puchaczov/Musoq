@@ -28,7 +28,11 @@ public static class QueryRewriteUtilities
         if (node.ReturnType != nullableBoolType)
             return node;
 
-        return new AndNode(new IsNullNode(node, true), new EqualityNode(node, new BooleanNode(true)));
+        // A nullable Boolean is a valid predicate only when it is explicitly true.
+        // Comparing with true already maps both false and null to a failed predicate;
+        // spelling this as `node IS NOT NULL AND node = TRUE` would evaluate the
+        // expression twice and duplicate any callable requirements it contributes.
+        return new EqualityNode(node, new BooleanNode(true));
     }
 
     /// <summary>

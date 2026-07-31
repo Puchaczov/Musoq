@@ -22,7 +22,7 @@ MultiStatement
       Sort [ko3iko.Department, ko3iko.Salary DESC, ExpensiveCompute(ko3iko.Value) DESC]
         Project [ko3iko.Name as Name, ko3iko.Department as Department, ko3iko.Salary as Salary, ExpensiveCompute(ko3iko.Value) as Computed, WindowRef(0) as RunningSalary, WindowRef(1) as SalaryRank]
           Window [Sum(idx:0; partition: ko3iko.Department; order: ko3iko.Salary; args: ToDecimal(ko3iko.Salary)), Rank(idx:1; partition: ko3iko.Department; order: ko3iko.Salary DESC)]
-            Filter [(((Contains(ko3iko.Email, 'gmail') IS NOT NULL AND (Contains(ko3iko.Email, 'gmail') = TRUE)) AND (StartsWith(ko3iko.FirstName, 'A') IS NOT NULL AND (StartsWith(ko3iko.FirstName, 'A') = TRUE))) AND (ExpensiveCompute(ko3iko.Value) > 50))]
+            Filter [(((Contains(ko3iko.Email, 'gmail') = TRUE) AND (StartsWith(ko3iko.FirstName, 'A') = TRUE)) AND (ExpensiveCompute(ko3iko.Value) > 50))]
               SchemaScan [#test.entities() as ko3iko]
 */
 
@@ -33,7 +33,7 @@ PhysicalMultiStatement
     PhysicalProject [ko3iko.Name as Name, ko3iko.Department as Department, ko3iko.Salary as Salary, ExpensiveCompute(ko3iko.Value) as Computed, WindowRef(0) as RunningSalary, WindowRef(1) as SalaryRank]
       PhysicalWindow [Sum(idx:0; partition: ko3iko.Department; order: ko3iko.Salary; args: ToDecimal(ko3iko.Salary)), Rank(idx:1; partition: ko3iko.Department; order: ko3iko.Salary DESC)]
         PhysicalMaterialize
-          PhysicalFilter [(((Contains(ko3iko.Email, 'gmail') IS NOT NULL AND (Contains(ko3iko.Email, 'gmail') = TRUE)) AND (StartsWith(ko3iko.FirstName, 'A') IS NOT NULL AND (StartsWith(ko3iko.FirstName, 'A') = TRUE))) AND (ExpensiveCompute(ko3iko.Value) > 50))]
+          PhysicalFilter [(((Contains(ko3iko.Email, 'gmail') = TRUE) AND (StartsWith(ko3iko.FirstName, 'A') = TRUE)) AND (ExpensiveCompute(ko3iko.Value) > 50))]
             PhysicalSchemaScan [#test.entities() as ko3iko] [pushdown: Contains(ko3iko.Email, 'gmail'), StartsWith(ko3iko.FirstName, 'A')]
 */
 
@@ -59,7 +59,7 @@ ExecutionPlan [compiled]
   Body
     SourceScan [ko3iko: RuntimeV2RegressionEntity] -> ko3ikoRows
     CreateObject [__resultRuntimeV2RegressionLibrary0: RuntimeV2RegressionLibrary]
-    MaterializeFilteredChunked [ko3ikoRows where (((Contains(ko3iko.Email, 'gmail') IS NOT NULL AND (Contains(ko3iko.Email, 'gmail') = TRUE)) AND (StartsWith(ko3iko.FirstName, 'A') IS NOT NULL AND (StartsWith(ko3iko.FirstName, 'A') = TRUE))) AND (ExpensiveCompute(ko3iko.Value) > 50)) -> resultWindowRows]
+    MaterializeFilteredChunked [ko3ikoRows where (((Contains(ko3iko.Email, 'gmail') = TRUE) AND (StartsWith(ko3iko.FirstName, 'A') = TRUE)) AND (ExpensiveCompute(ko3iko.Value) > 50)) -> resultWindowRows]
     ComputeSumWindowKernel[Running] [resultSums0 <- resultWindowRows value ToDecimal(ko3iko.Salary) partition by ko3iko.Department order by ko3iko.Salary ASC]
     ComputeRankWindow [resultRanks1 <- resultWindowRows partition by ko3iko.Department order by ko3iko.Salary DESC]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
@@ -155,7 +155,7 @@ namespace GeneratedSample_Q109_RuntimeV2CompositeRegressionCanary
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 {
-                                    if (((((((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase)) != null) && (((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase)) == true)) && ((((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase)) != null) && (((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase)) == true))) && ((int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(ko3iko.Value) > 50)))
+                                    if ((((((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase)) == true) && (((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase)) == true)) && ((int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(ko3iko.Value) > 50)))
                                     {
                                         resultWindowRows.Add(ko3iko);
                                     }
@@ -177,7 +177,7 @@ namespace GeneratedSample_Q109_RuntimeV2CompositeRegressionCanary
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 {
-                                    if (((((((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase)) != null) && (((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase)) == true)) && ((((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase)) != null) && (((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase)) == true))) && ((int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(ko3iko.Value) > 50)))
+                                    if ((((((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase)) == true) && (((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase)) == true)) && ((int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(ko3iko.Value) > 50)))
                                     {
                                         resultWindowRows.Add(ko3iko);
                                     }
@@ -197,7 +197,7 @@ namespace GeneratedSample_Q109_RuntimeV2CompositeRegressionCanary
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
                         {
-                            if (((((((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase)) != null) && (((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase)) == true)) && ((((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase)) != null) && (((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase)) == true))) && ((int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(ko3iko.Value) > 50)))
+                            if ((((((ko3iko.Email == null || "gmail" == null) ? (bool?)null : ko3iko.Email.Contains("gmail", StringComparison.OrdinalIgnoreCase)) == true) && (((ko3iko.FirstName == null || "A" == null) ? (bool?)null : ko3iko.FirstName.StartsWith("A", StringComparison.OrdinalIgnoreCase)) == true)) && ((int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(ko3iko.Value) > 50)))
                             {
                                 resultWindowRows.Add(ko3iko);
                             }

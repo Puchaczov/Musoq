@@ -10,6 +10,7 @@ using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
+using Musoq.Targets.Abstractions;
 using Musoq.Targets.CSharpClr;
 
 namespace Musoq.Converter;
@@ -126,7 +127,9 @@ public static partial class InstanceCreator
         var diagnosticContext = new DiagnosticContext(new SourceText(script));
         var items = CreateBuildItems(script, assemblyName, schemaProvider, diagnosticContext);
         items.ExecutionTarget = executionTarget;
+        items.CompilationPurpose = CompilationPurpose.PortableArtifactPackaging;
         items.EmitPdb = Debugger.IsAttached;
+        items.FinalizationPurpose = TargetFinalizationPurpose.PortableArtifactPackaging;
         items.CompilationOptions = effectiveCompilationOptions;
         ConfigureReusableArtifactRendering(items);
         configureItems?.Invoke(items);
@@ -332,6 +335,7 @@ public static partial class InstanceCreator
 
         var diagnosticContext = new DiagnosticContext(new SourceText(script));
         var items = CreateBuildItems(script, assemblyName, schemaProvider, diagnosticContext);
+        items.CompilationPurpose = CompilationPurpose.ArtifactValidation;
         items.EmitPdb = false;
         items.CompilationOptions = effectiveCompilationOptions;
         ConfigureReusableArtifactRendering(items);

@@ -114,7 +114,7 @@ public sealed class ThirdRoundApplyResultTests : GenericEntityTestBase
             ["B", 2]);
     }
 
-    private sealed class ChainedApplyRow
+    public sealed class ChainedApplyRow
     {
         public string Name { get; init; } = string.Empty;
 
@@ -123,7 +123,7 @@ public sealed class ThirdRoundApplyResultTests : GenericEntityTestBase
         public int[] SecondValues { get; init; } = [];
     }
 
-    private sealed class ObjectApplyRow
+    public sealed class ObjectApplyRow
     {
         public string Name { get; init; } = string.Empty;
 
@@ -136,7 +136,7 @@ public sealed class ThirdRoundApplyResultTests : GenericEntityTestBase
         public string Value { get; init; } = string.Empty;
     }
 
-    private sealed class NullableApplyRow
+    public sealed class NullableApplyRow
     {
         public string Name { get; init; } = string.Empty;
 

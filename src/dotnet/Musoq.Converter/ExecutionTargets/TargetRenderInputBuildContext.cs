@@ -13,6 +13,8 @@ internal sealed record TargetRenderInputBuildContext
         TargetScriptBindingContract scriptBinding,
         TargetReferenceInventory references,
         TargetRenderOptions options,
+        TargetRenderPurpose purpose,
+        TargetRenderProfile profile,
         TargetRenderInputCompilerState compilerState)
     {
         CompilationOptions = compilationOptions ?? throw new ArgumentNullException(nameof(compilationOptions));
@@ -20,6 +22,8 @@ internal sealed record TargetRenderInputBuildContext
         ScriptBinding = scriptBinding ?? TargetScriptBindingContract.Empty;
         References = references ?? TargetReferenceInventory.Empty;
         Options = options ?? TargetRenderOptions.Empty;
+        Purpose = purpose;
+        Profile = profile;
         CompilerState = compilerState ?? throw new ArgumentNullException(nameof(compilerState));
     }
 
@@ -32,6 +36,10 @@ internal sealed record TargetRenderInputBuildContext
     public TargetReferenceInventory References { get; }
 
     public TargetRenderOptions Options { get; }
+
+    public TargetRenderPurpose Purpose { get; }
+
+    public TargetRenderProfile Profile { get; }
 
     internal TargetRenderInputCompilerState CompilerState { get; }
 }

@@ -26,6 +26,8 @@ internal static class GeneratedRowContextPruner
             .SelectMany(GetGeneratedRowShapes)
             .Where(shape => contextCarryingTypeNames.Contains(shape.TypeName) &&
                             !contextConsumerTypeNames.Contains(shape.TypeName))
+            .GroupBy(static shape => shape.TypeName, StringComparer.Ordinal)
+            .Select(static group => group.First())
             .ToDictionary(
                 static shape => shape.TypeName,
                 static shape => shape with { Contexts = [] },

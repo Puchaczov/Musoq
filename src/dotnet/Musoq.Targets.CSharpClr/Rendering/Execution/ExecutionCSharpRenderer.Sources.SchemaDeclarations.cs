@@ -51,31 +51,8 @@ public sealed partial class ExecutionCSharpRenderer
             IsInstrumentationEnabled ? CreateSourceDiagnosticsExpression(sourceProfileName) : null);
         var sourceType = sourceScan.Binding.SourceType?.RequireClrType() ?? sourceScan.Source.Type.RequireClrType();
         if (!CanReferenceType(sourceType))
-        {
-            var reflectedRows = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetRowSourceChunks))))
-                .WithArgumentList(CreateArgumentList(
-                    SyntaxFactory.IdentifierName(schemaVariableName),
-                    CreateRequiredTypeExpression(sourceType),
-                    CreateStringLiteral(sourceScan.Binding.MethodName),
-                    runtimeContext,
-                    argsExpression));
-
-            statements.Add(CreateLocalDeclaration(
-                    SyntaxFactory.IdentifierName("var"),
-                    sourceScan.Rows.Name,
-                    IsInstrumentationEnabled
-                    ? CreateProfiledChunksExpression(
-                        reflectedRows,
-                        sourceProfileName,
-                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
-                    : reflectedRows));
-
-            return statements;
-        }
+            throw new InvalidOperationException(
+                $"Generated execution source '{sourceScan.Binding.MethodName}' has non-referenceable type '{sourceType.FullName ?? sourceType.Name}'.");
 
         var getRowSourceName = SyntaxFactory.GenericName("GetRowSource")
             .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
@@ -104,20 +81,6 @@ public sealed partial class ExecutionCSharpRenderer
                 : rows));
 
         return statements;
-    }
-
-    private static InvocationExpressionSyntax CreateRequiredTypeExpression(Type type)
-    {
-        var typeName = type.AssemblyQualifiedName;
-        if (string.IsNullOrWhiteSpace(typeName))
-            throw new InvalidOperationException($"Type '{type.FullName}' does not have an assembly-qualified name.");
-
-        return SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetRequiredType))))
-            .WithArgumentList(CreateArgumentList(CreateStringLiteral(typeName)));
     }
 
     private static SchemaColumn[] CreateSchemaColumns(IEnumerable<FieldBinding> fields)

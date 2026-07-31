@@ -21,12 +21,14 @@ public sealed partial class ExecutionCSharpRenderer
         IReadOnlyList<ScriptParameterDefinition>? scriptParameterDefinitions,
         IReadOnlyList<ScriptVariableDefinition>? scriptVariableDefinitions,
         QueryInstrumentationMode instrumentationMode,
-        CSharpClrExecutionBindingContext executionBindings)
+        CSharpClrExecutionBindingContext executionBindings,
+        string generatedMemberSuffix = "")
     {
         _renderOptions = ExecutionRenderOptions.Create(
             scriptParameterDefinitions,
             scriptVariableDefinitions,
             instrumentationMode,
-            executionBindings);
+            executionBindings,
+            generatedMemberSuffix);
     }
 }

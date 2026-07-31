@@ -218,14 +218,27 @@ public sealed partial class ExecutionCSharpRenderer
         Func<ExecutionAppendRow, ExpressionSyntax> createProjection,
         ExecutionRenderContext context)
     {
-        var statements = CreateParallelProjectionProjectorStatements(
+        return CreateOptionalProjectionProjector(
             parallelProject.ProjectionBody,
+            parallelProject.Source,
+            createProjection,
+            context);
+    }
+
+    private ParenthesizedLambdaExpressionSyntax CreateOptionalProjectionProjector(
+        ExecutionBlock projectionBody,
+        ExecutionVariable source,
+        Func<ExecutionAppendRow, ExpressionSyntax> createProjection,
+        ExecutionRenderContext context)
+    {
+        var statements = CreateParallelProjectionProjectorStatements(
+            projectionBody,
             createProjection,
             context).ToList();
         statements.Add(SyntaxFactory.ReturnStatement(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
 
         return SyntaxFactory.ParenthesizedLambdaExpression()
-            .WithParameterList(CreateParallelSourceParameterList(parallelProject.Source))
+            .WithParameterList(CreateParallelSourceParameterList(source))
             .WithBlock(StatementEmitter.CreateBlock(statements));
     }
 

@@ -373,7 +373,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         vm.Run(TestContext.CancellationToken);
     }
 
-    private sealed class CrossApplyClass1
+    public sealed class CrossApplyClass1
     {
         public string City { get; set; } = string.Empty;
 
@@ -390,21 +390,21 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; } = [];
     }
 
-    private sealed class CrossApplyClass2
+    public sealed class CrossApplyClass2
     {
         public string Country { get; set; } = string.Empty;
 
         [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; } = [];
     }
 
-    private sealed class CrossApplyClass3
+    public sealed class CrossApplyClass3
     {
         public string Department { get; set; } = string.Empty;
 
         public int Budget { get; set; }
     }
 
-    private sealed class CrossApplyClass4
+    public sealed class CrossApplyClass4
     {
         public string Department { get; set; } = string.Empty;
 
@@ -415,7 +415,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         public string[] Skills { get; set; } = [];
     }
 
-    private sealed class CrossApplyClass5
+    public sealed class CrossApplyClass5
     {
         public string Department { get; set; } = string.Empty;
         public int Budget { get; set; }
@@ -431,7 +431,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         public string[] Skills { get; set; } = [];
     }
 
-    private sealed class CrossApplyClass6
+    public sealed class CrossApplyClass6
     {
         public string Name { get; set; } = string.Empty;
 
@@ -440,7 +440,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         public int Id { get; set; }
     }
 
-    private sealed class CrossApplyClass7
+    public sealed class CrossApplyClass7
     {
         public int Id { get; set; }
 

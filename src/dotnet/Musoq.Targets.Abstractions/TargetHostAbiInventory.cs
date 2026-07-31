@@ -59,6 +59,8 @@ internal sealed record TargetHostAbiImport
 
     public IReadOnlyDictionary<string, string> Attributes => Details.Attributes;
 
+    internal string CanonicalDefinition => Details.CanonicalDefinition;
+
     private static string RequireText(string value, string parameterName)
     {
         return string.IsNullOrWhiteSpace(value)
@@ -77,25 +79,60 @@ internal sealed record TargetHostAbiInventory
             throw new ArgumentOutOfRangeException(nameof(contractVersion), "ABI contract version must be positive.");
 
         ContractVersion = contractVersion;
-        var values = (imports ?? []).ToArray();
-        var duplicate = values
+        var values = (imports ?? [])
             .GroupBy(static import => (import.Kind, import.Name))
-            .FirstOrDefault(static group => group.Count() > 1);
-        if (duplicate != null)
-        {
-            throw new ArgumentException(
-                $"ABI import '{duplicate.Key.Kind}:{duplicate.Key.Name}' is duplicated.",
-                nameof(imports));
-        }
+            .Select(static group => SelectCanonicalImport(group.Key, group))
+            .ToArray();
 
         Imports = Array.AsReadOnly(
             values
-            .OrderBy(static import => import.Kind)
-            .ThenBy(static import => import.Name, StringComparer.Ordinal)
-            .ThenBy(static import => import.Contract, StringComparer.Ordinal)
-            .ThenBy(static import => import.ContractVersion)
-            .ThenBy(static import => FormatAttributes(import.Attributes), StringComparer.Ordinal)
-            .ToArray());
+                .OrderBy(static import => import.Kind)
+                .ThenBy(static import => import.Name, StringComparer.Ordinal)
+                .ThenBy(static import => import.Contract, StringComparer.Ordinal)
+                .ThenBy(static import => import.ContractVersion)
+                .ThenBy(static import => FormatAttributes(import.Attributes), StringComparer.Ordinal)
+                .ToArray());
+    }
+
+    private static TargetHostAbiImport SelectCanonicalImport(
+        (TargetHostAbiImportKind Kind, string Name) identity,
+        IEnumerable<TargetHostAbiImport> candidates)
+    {
+        var first = candidates.First();
+        foreach (var candidate in candidates.Skip(1))
+        {
+            if (string.Equals(first.Contract, candidate.Contract, StringComparison.Ordinal) &&
+                first.ContractVersion == candidate.ContractVersion &&
+                first.Details.GetType() == candidate.Details.GetType() &&
+                string.Equals(first.Details.CanonicalDefinition, candidate.Details.CanonicalDefinition, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            throw new ArgumentException(
+                $"ABI import '{identity.Kind}:{identity.Name}' has conflicting ABI import definitions " +
+                $"({FormatConflictComponents(first, candidate)}).",
+                "imports");
+        }
+
+        return first;
+    }
+
+    private static string FormatConflictComponents(
+        TargetHostAbiImport first,
+        TargetHostAbiImport candidate)
+    {
+        var components = new List<string>();
+        if (!string.Equals(first.Contract, candidate.Contract, StringComparison.Ordinal))
+            components.Add("contract");
+        if (first.ContractVersion != candidate.ContractVersion)
+            components.Add("contract version");
+        if (first.Details.GetType() != candidate.Details.GetType())
+            components.Add("details type");
+        if (!string.Equals(first.Details.CanonicalDefinition, candidate.Details.CanonicalDefinition, StringComparison.Ordinal))
+            components.Add("canonical definition");
+
+        return string.Join(", ", components);
     }
 
     public IReadOnlyList<TargetHostAbiImport> Imports { get; }

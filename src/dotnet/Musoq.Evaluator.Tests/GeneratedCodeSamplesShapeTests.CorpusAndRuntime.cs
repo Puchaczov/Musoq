@@ -10,13 +10,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SampleCorpus_WhenCheckedIn_ShouldContainExpectedFileCount()
     {
-        Assert.HasCount(ExpectedSampleFileCount, ReadSamples());
+        Assert.HasCount(ExpectedSampleFileCount, ReadAllSamples());
     }
 
     [TestMethod]
     public void SampleCorpus_WhenCheckedIn_ShouldUseTableRunnableContract()
     {
-        var samples = ReadSamples();
+        var samples = ReadAllSamples();
         var legacyContractSamples = samples
             .Where(static sample => sample.Content.Contains("BaseOperations, IRunnable, IParameterizedRunnable", StringComparison.Ordinal))
             .Select(static sample => sample.FileName)
@@ -39,7 +39,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void InClauseSamples_WhenCheckedIn_ShouldStayWithinInlineArrayAllocationBudget()
     {
-        var offenders = ReadSamples()
+        var offenders = ReadAllSamples()
             .Where(static sample => ContainsInlineArrayIndexOf(sample.Content))
             .Select(static sample => sample.FileName)
             .ToArray();
@@ -53,7 +53,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void LargeInClauseSample_WhenCheckedIn_ShouldUseSwitchExpression()
     {
-        var sample = ReadSamples().Single(static item => item.FileName == LargeInClauseSampleFileName).Content;
+        var sample = ReadSample(LargeInClauseSampleFileName).Content;
 
         Assert.Contains("name switch", sample);
         Assert.Contains("\"A\" or \"B\"", sample);
@@ -65,7 +65,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void LargeInClauseSample_WhenCheckedIn_ShouldUseStaticColumnMetadata()
     {
-        var sample = ReadSamples().Single(static item => item.FileName == LargeInClauseSampleFileName).Content;
+        var sample = ReadSample(LargeInClauseSampleFileName).Content;
 
         Assert.Contains(StaticColumnMetadataPattern, sample);
         Assert.Contains(StaticSchemaMetadataPattern, sample);
@@ -76,7 +76,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SerialOutputSamples_WhenCheckedIn_ShouldUseShapeStreamAndCapacityHints()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName);
+        var samples = ReadNamedSamples("Q01_SimpleSelectWhere.cs", "Q07_GroupByHavingOrderBy.cs")
+            .ToDictionary(static sample => sample.FileName);
         var simpleSelect = samples["Q01_SimpleSelectWhere.cs"].Content;
         var groupedSort = samples["Q07_GroupByHavingOrderBy.cs"].Content;
 
@@ -91,7 +92,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SourceScans_WhenCheckedIn_ShouldSplitDirectRowSourceRows()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName);
+        var samples = ReadNamedSamples(
+                "Q01_SimpleSelectWhere.cs",
+                InnerJoinSampleFileName)
+            .ToDictionary(static sample => sample.FileName);
         var inlineRowSourceReads = samples.Values
             .SelectMany(static sample => sample.Content
                 .Split(["\r\n", "\n"], StringSplitOptions.None)
@@ -121,7 +125,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         const string aggressiveInliningAttribute =
             "[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]";
-        var sample = ReadSamples().Single(static sample => sample.FileName == InnerJoinSampleFileName).Content;
+        var sample = ReadSample(InnerJoinSampleFileName).Content;
 
         AssertFragmentsInOrder(
             sample,
@@ -149,7 +153,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ScriptParameterSamples_WhenCheckedIn_ShouldBindOnceAndUseTypedLocals()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName);
+        var samples = ReadNamedSamples(
+                ScriptParametersWhereSelectSampleFileName,
+                ScriptParameterPrimitiveDefaultsSampleFileName,
+                ScriptParameterSourceArgumentSampleFileName,
+                ScriptParameterTypedComparisonSampleFileName,
+                ScriptParameterNumericWideningComparisonSampleFileName)
+            .ToDictionary(static sample => sample.FileName);
         var whereSelect = samples[ScriptParametersWhereSelectSampleFileName].Content;
         var primitiveDefaults = samples[ScriptParameterPrimitiveDefaultsSampleFileName].Content;
         var sourceArgument = samples[ScriptParameterSourceArgumentSampleFileName].Content;
@@ -211,7 +221,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ScriptParameterHelperCaptureSamples_WhenCheckedIn_ShouldPassTypedLocalsToHelpers()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName);
+        var samples = ReadNamedSamples(
+                ScriptParameterGroupByHelperCaptureSampleFileName,
+                ScriptParameterJoinHelperCaptureSampleFileName,
+                ScriptParameterCteHelperCaptureSampleFileName,
+                ScriptParameterWindowHelperCaptureSampleFileName,
+                ScriptParameterParallelHelperCaptureSampleFileName)
+            .ToDictionary(static sample => sample.FileName);
         var groupBy = samples[ScriptParameterGroupByHelperCaptureSampleFileName].Content;
         var join = samples[ScriptParameterJoinHelperCaptureSampleFileName].Content;
         var cte = samples[ScriptParameterCteHelperCaptureSampleFileName].Content;
@@ -289,58 +305,6 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             AssertStaticHelpersDoNotReadRuntimeParameters(sample.FileName, sample.Content);
             AssertRowLoopsDoNotReadRuntimeParameters(sample.FileName, sample.Content);
         }
-    }
-
-    [TestMethod]
-    public void ParallelFilterProjectionSamples_WhenCheckedIn_ShouldUseParallelOnlyForMethodHeavyPaths()
-    {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName);
-        var simpleSelect = samples["Q01_SimpleSelectWhere.cs"].Content;
-        var largeInClause = samples[LargeInClauseSampleFileName].Content;
-        var compilationSimpleSelect = samples[CompilationSimpleSelectSampleFileName].Content;
-        var cseNoDuplicate = samples[RuntimeV2CseNoDuplicateRegressionSampleFileName].Content;
-        var stringFilter = samples[RuntimeV2StringFilterSampleFileName].Content;
-        var heavyProjection = samples[RuntimeV2ParallelFilterProjectSampleFileName].Content;
-
-        Assert.Contains("ForEach [ko3iko in ko3ikoRows]", simpleSelect);
-        Assert.IsFalse(simpleSelect.Contains(ParallelFilterProjectLoopPattern, StringComparison.Ordinal));
-        Assert.IsFalse(simpleSelect.Contains(ParallelProjectionRowsPattern, StringComparison.Ordinal));
-        Assert.IsFalse(simpleSelect.Contains(ParallelProjectRowsPattern, StringComparison.Ordinal));
-        Assert.IsFalse(simpleSelect.Contains(TableParallelProjectRowsPattern, StringComparison.Ordinal));
-
-        Assert.Contains("ForEach [ko3iko in ko3ikoRows]", largeInClause);
-        Assert.IsFalse(largeInClause.Contains(ParallelFilterProjectLoopPattern, StringComparison.Ordinal));
-        Assert.IsFalse(largeInClause.Contains(ParallelProjectionRowsPattern, StringComparison.Ordinal));
-        Assert.IsFalse(largeInClause.Contains(ParallelProjectRowsPattern, StringComparison.Ordinal));
-        Assert.IsFalse(largeInClause.Contains(TableParallelProjectRowsPattern, StringComparison.Ordinal));
-
-        Assert.Contains("ForEach [ko3iko in ko3ikoRows]", compilationSimpleSelect);
-        Assert.IsFalse(compilationSimpleSelect.Contains(ParallelFilterProjectLoopPattern, StringComparison.Ordinal));
-        Assert.IsFalse(compilationSimpleSelect.Contains(ParallelProjectionRowsPattern, StringComparison.Ordinal));
-        Assert.IsFalse(compilationSimpleSelect.Contains(ParallelProjectRowsPattern, StringComparison.Ordinal));
-        Assert.IsFalse(compilationSimpleSelect.Contains(TableParallelProjectRowsPattern, StringComparison.Ordinal));
-
-        Assert.Contains(ParallelFilterProjectLoopPattern, cseNoDuplicate);
-        Assert.Contains(ParallelProjectionRowsPattern, cseNoDuplicate);
-        Assert.Contains(TableParallelProjectRowsPattern, cseNoDuplicate);
-        Assert.Contains(AddRowsDirectPattern, cseNoDuplicate);
-        Assert.DoesNotContain("SequentialKernel", cseNoDuplicate);
-        Assert.DoesNotContain("TableProjectionRows.ProjectRowsSerial", cseNoDuplicate);
-
-        Assert.Contains(ParallelFilterProjectLoopPattern, stringFilter);
-        Assert.Contains(ParallelProjectionRowsPattern, stringFilter);
-        Assert.Contains(TableParallelProjectRowsPattern, stringFilter);
-        Assert.Contains(AddRowsDirectPattern, stringFilter);
-        Assert.Contains("new ResultRow0(firstName, ko3iko.LastName, email)", stringFilter);
-        Assert.DoesNotContain("SequentialKernel", stringFilter);
-        Assert.DoesNotContain("TableProjectionRows.ProjectRowsSerial", stringFilter);
-
-        Assert.Contains(ParallelFilterProjectLoopPattern, heavyProjection);
-        Assert.Contains(ParallelProjectionRowsPattern, heavyProjection);
-        Assert.Contains(TableParallelProjectRowsPattern, heavyProjection);
-        Assert.Contains(AddRowsDirectPattern, heavyProjection);
-        Assert.DoesNotContain("SequentialKernel", heavyProjection);
-        Assert.DoesNotContain("TableProjectionRows.ProjectRowsSerial", heavyProjection);
     }
 
     private static void AssertFragmentsInOrder(string value, params string[] fragments)

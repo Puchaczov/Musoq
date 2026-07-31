@@ -342,7 +342,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
             ["Alice", "Johnson", "Negotiation"]);
     }
 
-    private sealed class OuterApplyClass1
+    public sealed class OuterApplyClass1
     {
         public string City { get; set; } = string.Empty;
 
@@ -359,21 +359,21 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; } = [];
     }
 
-    private sealed class OuterApplyClass2
+    public sealed class OuterApplyClass2
     {
         public string Country { get; set; } = string.Empty;
 
         [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; } = [];
     }
 
-    private sealed class OuterApplyClass3
+    public sealed class OuterApplyClass3
     {
         public string Department { get; set; } = string.Empty;
 
         public int Budget { get; set; }
     }
 
-    private sealed class OuterApplyClass4
+    public sealed class OuterApplyClass4
     {
         public string Department { get; set; } = string.Empty;
 
@@ -384,7 +384,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         public string[] Skills { get; set; } = [];
     }
 
-    private sealed class OuterApplyClass5
+    public sealed class OuterApplyClass5
     {
         public string Department { get; set; } = string.Empty;
         public int Budget { get; set; }
@@ -400,7 +400,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         public string[] Skills { get; set; } = [];
     }
 
-    private sealed class OuterApplyClass6
+    public sealed class OuterApplyClass6
     {
         public string Name { get; set; } = string.Empty;
 
@@ -409,7 +409,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         public int Id { get; set; }
     }
 
-    private sealed class OuterApplyClass7
+    public sealed class OuterApplyClass7
     {
         public int Id { get; set; }
 

@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.IR.Execution;
 internal sealed partial class PhysicalLoweringImplementation
 {
 
-    private static ExecutionExpression CreatePropertySourceExpression(
+    private ExecutionExpression CreatePropertySourceExpression(
         PhysicalPropertySourceNode property,
         IReadOnlyDictionary<string, RowShape> sourceLookup)
     {
@@ -21,9 +21,30 @@ internal sealed partial class PhysicalLoweringImplementation
 
         var propertyPath = string.Join(".", property.PropertiesChain.Select(item => item.PropertyName));
 
-        return ExecutionExpressionConverter.Convert(
+        var expression = ExecutionExpressionConverter.Convert(
             new ColumnRef(property.SourceAlias, propertyPath, property.ResultType),
             sourceLookup);
+
+        if (expression is ExecutionFieldRead fieldRead &&
+            sourceLookup.TryGetValue(property.SourceAlias, out var sourceShape) &&
+            sourceShape is TableRowShape tableRow &&
+            tableRow.GeneratedRowTypeName != null &&
+            fieldRead.AccessStrategy is NestedPositionalAccess nestedPositional &&
+            InterpretationPropertyTypeNameResolver.ResolveRootTypeName(property) is { } rootTypeName &&
+            ExecutionFieldAccessResolver.ResolveGeneratedRowFieldName(tableRow, nestedPositional.Index) is { } fieldName)
+        {
+            return fieldRead with
+            {
+                AccessStrategy = new GeneratedRowNestedAccess(
+                    tableRow.GeneratedRowTypeName,
+                    fieldName,
+                    nestedPositional.PropertyPath,
+                    rootTypeName,
+                    IsRowCarrier: true)
+            };
+        }
+
+        return expression;
     }
 
     private static bool IsRowSourceType(Type type)

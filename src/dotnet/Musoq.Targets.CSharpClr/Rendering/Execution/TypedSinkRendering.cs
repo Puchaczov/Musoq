@@ -62,15 +62,12 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         var statements = new List<StatementSyntax>();
-        var reflectedAccessors = CollectReflectedMemberAccessors(plan);
-
         if (context.Session.UseQueryRunContext)
             statements.AddRange(CreateQueryRunContextAliasStatements());
 
         statements.AddRange(CreateExecutionStateDeclarations(plan, context));
         statements.AddRange(CreateScriptParameterBindingStatements());
         statements.AddRange(CreateScriptVariableBindingStatements());
-        statements.AddRange(reflectedAccessors.Select(CreateReflectedMemberAccessorDeclaration));
         statements.AddRange(CollectMethodCallCaches(plan.Body)
             .Select(cache => RenderCreateObject(new ExecutionCreateObject(cache))));
 
@@ -185,8 +182,20 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionParallelFilterProjectLoop parallelProject,
         ExecutionRenderContext context)
     {
-        return CreateParallelProjectionProjector(
-            parallelProject,
+        return RenderFinalSinkOptionalGeneratedRowProjection(
+            parallelProject.ProjectionBody,
+            parallelProject.Source,
+            context);
+    }
+
+    internal ParenthesizedLambdaExpressionSyntax RenderFinalSinkOptionalGeneratedRowProjection(
+        ExecutionBlock optionalProjectionBody,
+        ExecutionVariable source,
+        ExecutionRenderContext context)
+    {
+        return CreateOptionalProjectionProjector(
+            optionalProjectionBody,
+            source,
             appendRow => RenderFinalSinkGeneratedRowCreation(appendRow, context),
             context);
     }
@@ -224,7 +233,6 @@ public sealed partial class ExecutionCSharpRenderer
             Context = renderer.InitializeRenderContext(plan, useQueryRunContext);
             var session = Context.Session;
 
-            var reflectedAccessors = CollectReflectedMemberAccessors(plan);
             session.TypedStoredTableResults = CreateTypedStoredTableResults(plan);
             session.IncludeCteIndexResults = PlanUsesCteIndexResults(plan);
             session.IncludeCteRowResults = session.TypedStoredTableResults.Count > 0;
@@ -233,10 +241,6 @@ public sealed partial class ExecutionCSharpRenderer
             session.GeneratedRowConstructorUsagesByType = CollectGeneratedRowConstructorUsages(plan.Body, session.TypedStoredTableResults);
             session.StoredRowsCacheNames = CreateStoredRowsCacheNames(plan.Body);
             session.DeclaredStoredRowsCaches = [];
-            session.ReflectedMemberAccessorNames = reflectedAccessors.ToDictionary(
-                static accessor => accessor.Key,
-                static accessor => accessor.VariableName,
-                StringComparer.Ordinal);
             session.TableRowShapesByVariableName = CreateTableRowShapeMap(plan.Body);
             session.GeneratedRowVariableTypeNamesByName = CollectGeneratedRowVariableTypeNames(plan.Body, session.TypedStoredTableResults);
             session.StoredGeneratedRowsLoopNameCounts = [];

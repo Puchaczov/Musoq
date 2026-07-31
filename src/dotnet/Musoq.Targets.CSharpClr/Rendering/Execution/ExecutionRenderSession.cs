@@ -15,8 +15,6 @@ internal sealed class ExecutionRenderSession
     internal bool ProfileRecorderInScope { get; set; }
     internal IReadOnlyDictionary<int, string> StoredRowsCacheNames { get; set; } = new Dictionary<int, string>();
     internal HashSet<int> DeclaredStoredRowsCaches { get; set; } = [];
-    internal IReadOnlyDictionary<string, string> ReflectedMemberAccessorNames { get; set; } =
-        new Dictionary<string, string>(StringComparer.Ordinal);
     internal IReadOnlyDictionary<string, GeneratedRowShape> TableRowShapesByVariableName { get; set; } =
         new Dictionary<string, GeneratedRowShape>(StringComparer.Ordinal);
     internal IReadOnlyDictionary<string, HashSet<string>> GeneratedRowVariableTypeNamesByName { get; set; } =
@@ -44,5 +42,8 @@ internal sealed class ExecutionRenderSession
     internal bool SkipInitialLoopCancellationCheck { get; set; }
     internal string? RecursiveCteCancellationCounterName { get; set; }
     internal bool SuppressSingleKeyAggregateUpdateHelpers { get; set; }
+    internal bool UseDirectTypedStoredRowsAlias { get; set; }
+    internal IReadOnlyDictionary<string, string> DirectSortedRowBufferSources { get; set; } =
+        new Dictionary<string, string>(StringComparer.Ordinal);
     internal FinalShapeYieldSink? FinalShapeYieldSink { get; set; }
 }

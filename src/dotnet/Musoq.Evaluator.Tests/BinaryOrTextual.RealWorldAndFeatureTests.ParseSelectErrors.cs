@@ -29,7 +29,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            InstanceCreator.CompileForExecution(
+            CompileGeneratedQuery(
                 query,
                 Guid.NewGuid().ToString(),
                 schemaProvider,
@@ -60,7 +60,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            InstanceCreator.CompileForExecution(
+            CompileGeneratedQuery(
                 query,
                 Guid.NewGuid().ToString(),
                 schemaProvider,
@@ -89,7 +89,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            InstanceCreator.CompileForExecution(
+            CompileGeneratedQuery(
                 query,
                 Guid.NewGuid().ToString(),
                 schemaProvider,
@@ -120,7 +120,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            InstanceCreator.CompileForExecution(
+            CompileGeneratedQuery(
                 query,
                 Guid.NewGuid().ToString(),
                 schemaProvider,

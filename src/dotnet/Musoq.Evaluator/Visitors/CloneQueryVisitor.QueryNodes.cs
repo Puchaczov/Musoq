@@ -131,13 +131,13 @@ public partial class CloneQueryVisitor
         for (var i = node.InnerExpression.Length - 1; i >= 0; --i)
             sets[i] = (CteInnerExpressionNode)Nodes.Pop();
 
-        Nodes.Push(new CteExpressionNode(sets, Nodes.Pop(), node.IsRecursive));
+        Nodes.Push(new CteExpressionNode(sets, Nodes.Pop(), node.IsRecursive).CopySpansFrom(node));
     }
 
     public override void Visit(CteInnerExpressionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new CteInnerExpressionNode(Nodes.Pop(), node.Name, node.Columns, node.IsRecursiveDefinition));
+        Nodes.Push(new CteInnerExpressionNode(Nodes.Pop(), node.Name, (CteColumnName[])node.Columns.Clone(), node.IsRecursiveDefinition).CopySpansFrom(node));
     }
 
     public override void Visit(JoinNode node)

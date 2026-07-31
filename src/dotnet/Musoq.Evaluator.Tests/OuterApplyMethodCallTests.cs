@@ -180,14 +180,14 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
             words.SelectMany(first => words.Select(second => new object?[] { first, second })).ToArray());
     }
 
-    private sealed class OuterApplyClass1
+    public sealed class OuterApplyClass1
     {
         public int Value1 { get; set; }
 
         public string Value2 { get; set; } = string.Empty;
     }
 
-    private sealed class OuterApplyClass2
+    public sealed class OuterApplyClass2
     {
         public string Text { get; set; } = string.Empty;
     }

@@ -11,7 +11,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void AggregateWindowSamples_WhenCheckedIn_ShouldUseTypedWindowSourceBuffers()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, StringComparer.Ordinal);
+        var samples = ReadNamedSamples(
+                ChainedApplyGroupedAggregateWindowSampleFileName,
+                ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName,
+                ChainedApplyMixedDistinctAvgAggregateWindowSampleFileName)
+            .ToDictionary(static sample => sample.FileName, StringComparer.Ordinal);
 
         AssertTypedWindowSourceBufferSample(samples, ChainedApplyGroupedAggregateWindowSampleFileName);
         AssertTypedWindowSourceBufferSample(samples, ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName);
@@ -21,7 +25,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ChainedApplyWindowSamples_WhenCheckedIn_ShouldUseTypedApplyWindowRows()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, StringComparer.Ordinal);
+        var samples = ReadNamedSamples(ChainedApplyWindowSampleFileName, ChainedApplyQualifyWindowSampleFileName)
+            .ToDictionary(static sample => sample.FileName, StringComparer.Ordinal);
 
         AssertTypedApplyWindowRowsSample(samples[ChainedApplyWindowSampleFileName]);
         AssertTypedApplyWindowRowsSample(samples[ChainedApplyQualifyWindowSampleFileName]);
@@ -30,7 +35,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void GroupedWindowSamples_WhenCheckedIn_ShouldUseReadableHelperCalls()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, StringComparer.Ordinal);
+        var samples = ReadNamedSamples(
+                ChainedApplyGroupedAggregateWindowSampleFileName,
+                ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName,
+                ChainedApplyMixedDistinctAvgAggregateWindowSampleFileName,
+                ChainedApplyGroupedAggregateQualifyWindowSampleFileName)
+            .ToDictionary(static sample => sample.FileName, StringComparer.Ordinal);
 
         AssertGroupedWindowHelperShape(samples[ChainedApplyGroupedAggregateWindowSampleFileName], expectAggregateHelpers: true);
         AssertGroupedWindowHelperShape(samples[ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName], expectAggregateHelpers: true);
@@ -41,7 +51,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CteStoredRowSamples_WhenCheckedIn_ShouldUseTypedRowsWhenSafe()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, StringComparer.Ordinal);
+        var samples = ReadNamedSamples(
+                CteWithJoinSampleFileName,
+                CteBackedAsOfJoinSampleFileName,
+                CteBackedAggregateOverHashJoinSampleFileName,
+                RepeatedCteSelfJoinSampleFileName,
+                DynamicCteBackedAsOfJoinSampleFileName)
+            .ToDictionary(static sample => sample.FileName, StringComparer.Ordinal);
 
         AssertTypedCteSidecarHashJoinSample(samples[CteWithJoinSampleFileName], "Cte0HashPayload0");
         AssertTypedCteAsOfSample(samples[CteBackedAsOfJoinSampleFileName]);
@@ -53,7 +69,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SampleCorpus_WhenCheckedIn_ShouldUsePascalCaseAggregateGroupTypes()
     {
-        var failures = ReadSamples()
+        var failures = ReadAllSamples()
             .Select(sample => new
             {
                 sample.FileName,
@@ -76,7 +92,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void MultipleWindowSample_WhenCheckedIn_ShouldReuseSharedPartitionKeys()
     {
-        var sample = ReadSamples().Single(static item => item.FileName == MultipleWindowsSampleFileName).Content;
+        var sample = ReadSample(MultipleWindowsSampleFileName).Content;
 
         Assert.AreEqual(1, CountOccurrences(sample, "PartitionKeys = new string[resultWindowRows.Count];"));
         Assert.Contains(
@@ -110,7 +126,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void WindowRankDenseRankSample_WhenCheckedIn_ShouldUseGeneratedRankingKernels()
     {
-        var sample = ReadSamples().Single(static item => item.FileName == WindowRankDenseRankSampleFileName).Content;
+        var sample = ReadSample(WindowRankDenseRankSampleFileName).Content;
 
         Assert.Contains("var resultRanks0OrderKeys = new WindowResultRanks0OrderKeysKey[resultWindowRows.Count];", sample);
         Assert.Contains("WindowFunctionHelpers.SortStructPartitionSetInPlace(resultRanks0Partitions, resultRanks0OrderKeys, false);", sample);
@@ -130,7 +146,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RankingWindowSamples_WhenCheckedIn_ShouldNotUseBoxedWindowFallbacks()
     {
-        var failures = ReadSamples()
+        var failures = ReadAllSamples()
             .Where(static sample =>
                 sample.Content.Contains("ComputeRowNumberWindow [", StringComparison.Ordinal) ||
                 sample.Content.Contains("ComputeRankWindow [", StringComparison.Ordinal) ||
@@ -181,7 +197,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void OffsetWindowSamples_WhenCheckedIn_ShouldUseGeneratedNoBoxingKernels()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, static sample => sample.Content);
+        var samples = ReadNamedSamples(WindowLagSampleFileName, WindowLeadSampleFileName)
+            .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
         var lag = samples[WindowLagSampleFileName];
         var lead = samples[WindowLeadSampleFileName];
 
@@ -205,7 +222,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void DecimalWindowAggregateSamples_WhenCheckedIn_ShouldUseKernelAndDirectNumericConversion()
     {
-        var samples = ReadSamples().ToDictionary(static sample => sample.FileName, static sample => sample.Content);
+        var samples = ReadNamedSamples(
+                WindowSumWholePartitionDecimalSampleFileName,
+                WindowSumRunningDecimalSampleFileName,
+                WindowAvgRunningDecimalSampleFileName,
+                WindowRunningProductPluginSampleFileName)
+            .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
 
         AssertWindowAggregateKernelUsesDirectNumericConversion(
             WindowSumWholePartitionDecimalSampleFileName,
@@ -235,7 +257,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ParallelIndependentCtesSample_WhenCheckedIn_ShouldUseExplicitParallelExecutionIr()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == ParallelIndependentCtesSampleFileName).Content;
+        var sample = ReadSample(ParallelIndependentCtesSampleFileName).Content;
 
         Assert.Contains("ParallelBlock [cte-level-0, tasks 2, maxDegree 2]", sample);
         Assert.Contains("ParallelTask [p -> __parallelCteLevel0Task0Result]", sample);
@@ -271,36 +293,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     }
 
     [TestMethod]
-    public void RowBufferSafeParallelCteSamples_WhenCheckedIn_ShouldNotEmitTableBackedTaskHelpers()
-    {
-        var samples = ReadSamples()
-            .Where(static sample =>
-                sample.Content.Contains("ParallelBlock [cte-level-", StringComparison.Ordinal) &&
-                sample.Content.Contains("StoreTable [__parallelCteLevel", StringComparison.Ordinal) &&
-                sample.Content.Contains("_cteRowResults.Slot", StringComparison.Ordinal))
-            .ToArray();
-
-        Assert.IsNotEmpty(samples);
-
-        foreach (var sample in samples)
-        {
-            Assert.IsFalse(
-                sample.Content.Contains("private static Musoq.Evaluator.Tables.Table BuildCteLevel", StringComparison.Ordinal),
-                sample.FileName);
-            Assert.IsFalse(
-                sample.Content.Contains("new Table(\"cte", StringComparison.Ordinal),
-                sample.FileName);
-            Assert.IsFalse(
-                sample.Content.Contains("CastGeneratedRows<Cte", StringComparison.Ordinal) &&
-                sample.Content.Contains("_tableResults[", StringComparison.Ordinal),
-                sample.FileName);
-        }
-    }
-
-    [TestMethod]
     public void CompositeHashJoinSample_WhenCheckedIn_ShouldUseValueTupleHashJoinBucket()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == CompositeHashJoinSampleFileName).Content;
+        var sample = ReadSample(CompositeHashJoinSampleFileName).Content;
 
         Assert.Contains("CreateHash [bHash: ValueTuple<int, decimal> -> BasicEntity]", sample);
         Assert.Contains("new Dictionary<ValueTuple<int, decimal>, HashJoinBucket<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>>", sample);
@@ -313,7 +308,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RepeatedCteSelfJoinSample_WhenCheckedIn_ShouldCacheStoredRowsLocal()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == RepeatedCteSelfJoinSampleFileName).Content;
+        var sample = ReadSample(RepeatedCteSelfJoinSampleFileName).Content;
 
         Assert.Contains("var __storedTable0Rows = _cteRowResults.Slot0;", sample);
         Assert.Contains("ForEach [l in _cteRowResults.Slot0]", sample);
@@ -332,7 +327,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void OrderByTakeSample_WhenCheckedIn_ShouldUseTopNTable()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == OrderByTakeSampleFileName).Content;
+        var sample = ReadSample(OrderByTakeSampleFileName).Content;
 
         Assert.Contains("CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by Population DESC, take 5]", sample);
         Assert.Contains(

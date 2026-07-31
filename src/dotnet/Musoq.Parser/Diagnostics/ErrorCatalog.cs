@@ -108,6 +108,7 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ3081_MissingRequiredSourceArgument] = "Required datasource argument '{0}' was not supplied.",
         [DiagnosticCode.MQ3082_AmbiguousSourceInvocation] = "Datasource invocation is ambiguous: {0}",
         [DiagnosticCode.MQ3083_NamedSourceArgumentsRequireMetadata] = "Named datasource arguments require reflected source metadata for '{0}'.",
+        [DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection] = "Source entity '{0}' for '{1}.{2}' cannot be emitted as generated execution code: {3}",
 
         // Schema Definition Errors (MQ4xxx)
         [DiagnosticCode.MQ4001_InvalidBinarySchemaField] = "Invalid binary schema field '{0}'",

@@ -60,7 +60,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
+        var vm = CompileGeneratedQuery(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
@@ -136,7 +136,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
+        var vm = CompileGeneratedQuery(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
@@ -201,7 +201,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
+        var vm = CompileGeneratedQuery(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
@@ -267,7 +267,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
+        var vm = CompileGeneratedQuery(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
@@ -321,7 +321,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
+        var vm = CompileGeneratedQuery(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
@@ -389,7 +389,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
+        var vm = CompileGeneratedQuery(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
@@ -463,7 +463,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
+        var vm = CompileGeneratedQuery(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 

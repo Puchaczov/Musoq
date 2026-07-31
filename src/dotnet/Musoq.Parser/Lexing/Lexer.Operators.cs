@@ -112,12 +112,14 @@ public sealed partial class Lexer
     private Token ScanHashFrom()
     {
         var start = Position;
-        var match = HFromRegex.Match(Input, Position);
+        var end = start + 1;
+        while (end < Input.Length && IsHashSourceCharacter(Input[end]))
+            end++;
 
-        if (match.Success && match.Index == Position)
+        if (end > start + 1)
         {
-            Position += match.Length;
-            return AssignToken(new WordToken(match.Value, new TextSpan(start, match.Length)));
+            Position = end;
+            return AssignToken(new WordToken(Input[start..end], new TextSpan(start, end - start)));
         }
 
         Position++;
@@ -131,12 +133,11 @@ public sealed partial class Lexer
 
         if (Position + 1 < Input.Length && Input[Position + 1] == '-')
         {
-            var match = LineCommentRegex.Match(Input, Position);
-            if (match.Success && match.Index == Position)
-            {
-                Position += match.Length;
-                return AssignToken(new CommentToken(match.Value, new TextSpan(start, match.Length)));
-            }
+            Position += 2;
+            while (Position < Input.Length && Input[Position] is not '\r' and not '\n')
+                Position++;
+
+            return AssignToken(new CommentToken(Input[start..Position], new TextSpan(start, Position - start)));
         }
 
 
@@ -167,11 +168,14 @@ public sealed partial class Lexer
 
         if (Position + 1 < Input.Length && Input[Position + 1] == '*')
         {
-            var match = BlockCommentRegex.Match(Input, Position);
-            if (match.Success && match.Index == Position)
+            Position += 2;
+            while (Position + 1 < Input.Length && !(Input[Position] == '*' && Input[Position + 1] == '/'))
+                Position++;
+
+            if (Position + 1 < Input.Length)
             {
-                Position += match.Length;
-                return AssignToken(new CommentToken(match.Value, new TextSpan(start, match.Length)));
+                Position += 2;
+                return AssignToken(new CommentToken(Input[start..Position], new TextSpan(start, Position - start)));
             }
 
             var span = new TextSpan(start, Input.Length - start);
@@ -220,13 +224,14 @@ public sealed partial class Lexer
     private Token ScanSquareBracket()
     {
         var start = Position;
+        var end = start + 1;
+        while (end < Input.Length && Input[end] != ']')
+            end++;
 
-
-        var match = BracketedColumnRegex.Match(Input, Position);
-        if (match.Success && match.Index == Position)
+        if (end < Input.Length && end > start + 1)
         {
-            Position += match.Length;
-            var text = match.Value;
+            Position = end + 1;
+            var text = Input[start..Position];
 
 
             if (IsSchemaContext)
@@ -236,7 +241,7 @@ public sealed partial class Lexer
                     int.TryParse(innerValue, out _)
                         ? new IntegerToken(innerValue, new TextSpan(start + 1, innerValue.Length), "i")
                         : new WordToken(innerValue, new TextSpan(start + 1, innerValue.Length)));
-                _pendingSchemaTokens.Enqueue(new RightSquareBracketToken(new TextSpan(start + text.Length - 1, 1)));
+                _pendingSchemaTokens.Enqueue(new RightSquareBracketToken(new TextSpan(Position - 1, 1)));
                 return AssignToken(new LeftSquareBracketToken(new TextSpan(start, 1)));
             }
 

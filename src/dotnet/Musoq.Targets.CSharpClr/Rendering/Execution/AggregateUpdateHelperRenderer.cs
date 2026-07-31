@@ -123,9 +123,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool HasHelperSafeObjectFieldAccess(FieldAccessStrategy? strategy)
     {
-        return strategy is ReflectedMemberAccess or
-            NestedPositionalAccess or
-            GeneratedRowNestedAccess or
+        return strategy is GeneratedRowNestedAccess or
             GeneratedRowTypeAccess or
             GeneratedFieldAccess or
             PositionalAccess or

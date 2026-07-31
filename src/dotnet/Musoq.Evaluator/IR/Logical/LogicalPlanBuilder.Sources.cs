@@ -184,7 +184,11 @@ public sealed partial class LogicalPlanBuilder
 
             var schemaColumns = new ColumnSchema[columns.Length];
             for (var i = 0; i < columns.Length; i++)
-                schemaColumns[i] = new ColumnSchema(columns[i].ColumnName, columns[i].ColumnType, columns[i].ColumnIndex);
+                schemaColumns[i] = new ColumnSchema(
+                    columns[i].ColumnName,
+                    columns[i].ColumnType,
+                    columns[i].ColumnIndex,
+                    columns[i].IntendedTypeName);
 
             return new OutputSchema(schemaColumns);
         }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Musoq.Evaluator.IR;
 using Musoq.Evaluator.IR.Planning;
 
 namespace Musoq.Evaluator.IR.Execution;
@@ -41,7 +42,7 @@ internal sealed partial class PhysicalLoweringImplementation
         if (keyParts.Length == 1)
             return keyParts[0];
 
-        if (IsValueTupleHashJoinKeyType(spec.KeyType))
+        if (ValueTupleTypeShape.IsValueTuple(spec.KeyType))
             return new ExecutionValueTupleKey(keyParts, spec.KeyType);
 
         return new ExecutionMethodCall(

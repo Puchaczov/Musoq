@@ -661,6 +661,7 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
             converterFiles,
             "ClrAssemblyExecutableActivator",
             "src/dotnet/Musoq.Converter/ExecutionTargets/CSharpClrTargetComposition.cs",
+            "src/dotnet/Musoq.Converter/ExecutionTargets/BuildItems.Rendering.cs",
             "src/dotnet/Musoq.Converter/InstanceCreator.Runnables.cs");
         AssertTextOnlyAppearsIn(
             repositoryRoot,
@@ -724,7 +725,7 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
     }
 
     [TestMethod]
-    public void ExecutionCompilationCache_ShouldStoreTargetExecutableArtifacts()
+    public void ExecutionCompilationCache_ShouldStorePreparedExecutableTemplates()
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var cacheFile = Path.Combine(
@@ -738,7 +739,11 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
         StringAssert.Contains(text, "ExecutionTargetId ExecutionTarget");
         StringAssert.Contains(text, "ExecutableQueryArtifact executableArtifact");
         StringAssert.Contains(text, "public ExecutionTargetId TargetId");
-        StringAssert.Contains(text, "public ExecutableQueryArtifact ExecutableArtifact");
+        StringAssert.Contains(text, "PreparedExecutableTemplate Template");
+        StringAssert.Contains(text, "new PreparedExecutableTemplate");
+        Assert.IsFalse(
+            text.Contains("QueryRuntimeBinding", StringComparison.Ordinal),
+            "Execution compilation cache entries must not retain per-activation runtime bindings.");
         Assert.IsFalse(
             Regex.IsMatch(
                 text,

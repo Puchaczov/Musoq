@@ -9,8 +9,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ValuesStaticParametersAndLetsSample_WhenCheckedIn_ShouldUseTypedParameterAndLetReads()
     {
-        var sample = ReadSamples().Single(static item =>
-            item.FileName == ValuesStaticParametersAndLetsSampleFileName);
+        var sample = ReadSample(ValuesStaticParametersAndLetsSampleFileName);
 
         Assert.Contains("var paramBaseScore = ScriptParameterBinder.GetRequired<int>(__musoqExecutionState.Parameters, \"baseScore\");", sample.Content);
         Assert.Contains("var paramSuffix = ScriptParameterBinder.GetOptional<string>(__musoqExecutionState.Parameters, \"suffix\", \"-ok\");", sample.Content);

@@ -16,12 +16,18 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
         CompilationOptions compilationOptions,
-        ExecutionCompilationCacheKey cacheKey)
+        ExecutionCompilationCacheKey cacheKey,
+        EvaluatorPerformanceTelemetry.CompilationScope telemetry)
     {
+        var lookupStarted = Stopwatch.GetTimestamp();
         if (!ExecutionCompilationCache.TryGetValue(cacheKey, out var cachedCompilation))
+        {
+            telemetry.AddPhase("cache-lookup", lookupStarted);
             return null;
+        }
 
         cachedCompilation.Touch();
+        telemetry.AddPhase("cache-lookup", lookupStarted);
 
         var diagnosticContext = new DiagnosticContext(new SourceText(script));
         var items = CreateBuildItems(script, assemblyName, schemaProvider, diagnosticContext);
@@ -31,6 +37,7 @@ public static partial class InstanceCreator
         items.StopAfterPlanning = true;
 
         Exception? caughtException = null;
+        var cachedBuildStarted = Stopwatch.GetTimestamp();
         try
         {
             Build(items, CreateExecutableBuildChain(loggerResolver));
@@ -55,10 +62,22 @@ public static partial class InstanceCreator
             caughtException = ex;
             diagnosticContext.ReportException(ex);
         }
+        finally
+        {
+            telemetry.AddPhase("cache-hit-planning", cachedBuildStarted);
+        }
 
         var diagnostics = diagnosticContext.Diagnostics.ToList();
         if (diagnosticContext.HasErrors)
             return BuildResult.Failure(diagnostics, script, caughtException, items);
+
+        var semanticContractFingerprint = CreateSemanticExecutionContractFingerprint(items, schemaProvider);
+        telemetry.SetSemanticContractFingerprint(semanticContractFingerprint);
+        if (!string.Equals(
+                cachedCompilation.SemanticContractFingerprint,
+                semanticContractFingerprint,
+                StringComparison.Ordinal))
+            return null;
 
         if (!CanUseExecutionCompilationCache(items) ||
             !ExecutionCompilationCache.TryGetValue(cacheKey, out cachedCompilation))
@@ -68,8 +87,15 @@ public static partial class InstanceCreator
 
         cachedCompilation.Touch();
 
+        var runnableStarted = Stopwatch.GetTimestamp();
         var runnable = CreateRunnable(cachedCompilation, items);
         runnable.Logger = loggerResolver.ResolveLogger();
+        telemetry.AddPhase("cache-hit-runnable", runnableStarted);
+        telemetry.SetArtifactIdentity(
+            cachedCompilation.Template.RunnableTypeName,
+            emitted: false,
+            loaded: false);
+        telemetry.SetBindingIdentity($"{schemaProvider.GetType().AssemblyQualifiedName}|{items.QueryResultMode}");
 
         return BuildResult.Success(new CompiledQuery(runnable), diagnostics, script, items);
     }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -167,18 +168,10 @@ internal static class CSharpClrCompiledArtifactLoader
 
         if (validationMode == CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash)
         {
-            var contribution = ExecutionTargetCatalog.CreateRenderBuildContribution(items.RenderingArtifact);
-            if (string.IsNullOrWhiteSpace(contribution.GeneratedCodeSha256))
-            {
-                diagnostics.Add(CreateArtifactDiagnostic(
-                    $"Compiled artifact strict generated-code validation is not supported for execution target '{items.RenderingArtifact.TargetId}'."));
-                return;
-            }
-
             ValidateMetadataValue(
                 artifact,
                 CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256,
-                contribution.GeneratedCodeSha256,
+                CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(items.RenderingArtifact),
                 diagnostics);
         }
 
@@ -276,15 +269,37 @@ internal static class CSharpClrCompiledArtifactLoader
     private sealed class CompiledQueryArtifactAssemblyLoadContext(string name)
         : AssemblyLoadContext(name, isCollectible: true)
     {
+        private static readonly FrozenDictionary<string, Assembly> DefaultAssembliesByName =
+            Default.Assemblies
+                .Where(static assembly => assembly.GetName().Name is not null)
+                .GroupBy(static assembly => assembly.GetName().Name!, StringComparer.OrdinalIgnoreCase)
+                .ToFrozenDictionary(
+                    static group => group.Key,
+                    static group => group.First(),
+                    StringComparer.OrdinalIgnoreCase);
+
         protected override Assembly? Load(AssemblyName assemblyName)
         {
-            foreach (var assembly in Default.Assemblies)
+            if (assemblyName.Name is { } simpleName &&
+                DefaultAssembliesByName.TryGetValue(simpleName, out var assembly) &&
+                AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), assemblyName))
             {
-                if (AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), assemblyName))
-                    return assembly;
+                return assembly;
             }
 
-            return null;
+            try
+            {
+                return Default.LoadFromAssemblyName(assemblyName);
+            }
+            catch (FileNotFoundException)
+            {
+                return null;
+            }
+            catch (FileLoadException)
+            {
+                return null;
+            }
+
         }
     }
 

@@ -1,17 +1,31 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Targets.CSharpClr.Optimization.Codegen;
 using Musoq.Evaluator.Runtime;
 using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
+using Musoq.Targets.Execution;
 
 namespace Musoq.Targets.CSharpClr;
 
 internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
 {
+    private readonly EvaluatorRuntimeEnvironment _runtimeEnvironment;
+
+    internal CSharpClrExecutionBackend()
+        : this(new EvaluatorRuntimeEnvironment())
+    {
+    }
+
+    internal CSharpClrExecutionBackend(EvaluatorRuntimeEnvironment runtimeEnvironment)
+    {
+        _runtimeEnvironment = runtimeEnvironment ?? throw new ArgumentNullException(nameof(runtimeEnvironment));
+    }
+
     public ExecutionTargetId TargetId => ExecutionTargetIds.CSharpClr;
 
     public ExecutionTargetCapabilities Capabilities { get; } = ExecutionTargetCapabilities.CSharpClr;
@@ -21,8 +35,7 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
         var inputs = RequireInputs(request);
         var assemblyName = inputs.AssemblyName;
         var safeNamespaceName = inputs.NamespaceName;
-        using var runtimeEnvironment = new EvaluatorRuntimeEnvironment();
-        var generator = runtimeEnvironment.Generator;
+        var generator = _runtimeEnvironment.Generator;
 
         var renderContext = new RenderContext(
             generator,
@@ -41,7 +54,9 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
         var renderer = new CSharpRenderer(renderContext, inputs.ExecutionBindings);
         const string queryIdentifier = "compiled";
         var executionPlan = request.ExecutionPlan;
-        var renderOutcome = renderer.TryRenderExecutionQueryMethod(executionPlan, queryIdentifier);
+        ExecutionQueryRenderOutcome renderOutcome;
+        using (TargetRenderTelemetry.BeginPhase("render.execution-method"))
+            renderOutcome = renderer.TryRenderExecutionQueryMethod(executionPlan, queryIdentifier);
         if (renderOutcome.Method is not { } executionQueryResult)
         {
             var reason = string.IsNullOrWhiteSpace(renderOutcome.UnsupportedReason)
@@ -52,17 +67,23 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
                 [TargetDiagnostic.Error(TargetDiagnosticCodes.UnsupportedLowering, reason)]);
         }
 
-        renderContext.AddClassMember(executionQueryResult.MethodDeclaration);
-        var compilationUnit = renderer.RenderCompilationUnit(
-            queryIdentifier,
-            ExecutionPlanInventory.CountTableSlots(executionPlan),
-            ExecutionPlanInventory.CountCteIndexSlots(executionPlan));
-        var readabilityResult = new CodegenReadabilityOptimizer().Optimize(compilationUnit);
+        CompilationUnitSyntax compilationUnit;
+        using (TargetRenderTelemetry.BeginPhase("render.class-assembly"))
+        {
+            renderContext.AddClassMember(executionQueryResult.MethodDeclaration);
+            compilationUnit = renderer.RenderCompilationUnit(
+                queryIdentifier,
+                ExecutionPlanInventory.CountTableSlots(executionPlan),
+                ExecutionPlanInventory.CountCteIndexSlots(executionPlan));
+        }
+        var readabilityResult = new CodegenReadabilityOptimizer().Optimize(
+            compilationUnit,
+            inputs.RenderProfile);
         compilationUnit = readabilityResult.OptimizedCode;
 
         var compilationContext = new CompilationContextManager(
-            runtimeEnvironment.CreateCompilation(assemblyName),
-            runtimeEnvironment);
+            _runtimeEnvironment.CreateCompilation(assemblyName),
+            _runtimeEnvironment);
         compilationContext.InitializeDefaults();
         var referenceAssemblies = inputs.ReferenceAssemblies.ToList();
         foreach (var referenceType in inputs.AdditionalReferenceTypes)
@@ -75,7 +96,7 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
             referenceAssemblies.Add(outputAssembly);
 
         compilationContext.InitializeCoreReferences(referenceAssemblies);
-        compilationContext.AddSyntaxTree(ClassEmitter.CreateSyntaxTreeDirect(compilationUnit));
+            compilationContext.AddSyntaxTree(ClassEmitter.CreateSyntaxTreeDirect(compilationUnit, inputs.RenderProfile));
         if (!string.IsNullOrEmpty(inputs.InterpreterSourceCode))
         {
             compilationContext.TrackNamespace("Musoq.Generated.Interpreters");

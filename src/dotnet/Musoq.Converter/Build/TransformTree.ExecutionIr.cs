@@ -6,10 +6,10 @@ using Musoq.Evaluator.IR.Optimization.Execution;
 using Musoq.Evaluator.Visitors;
 using Musoq.Schema;
 using Musoq.Targets.Execution.Analysis;
+using Musoq.Targets.Execution;
 using PhysicalToExecutionPlanBuilder = Musoq.Evaluator.IR.Execution.PhysicalToExecutionPlanBuilder;
 
 namespace Musoq.Converter.Build;
-
 public partial class TransformTree
 {
     private static RenderingStageBuildResult? BuildWithIrRenderer(
@@ -25,6 +25,10 @@ public partial class TransformTree
             planning,
             execution,
             scopeArtifact);
+        Func<string, IDisposable>? beginTargetPhase = EvaluatorPerformanceTelemetry.IsEnabled
+            ? static name => EvaluatorPerformanceTelemetry.BeginPhase(name)
+            : null;
+        using var targetTelemetry = TargetRenderTelemetry.Push(beginTargetPhase);
         var result = ExecutionTargetCatalog.Render(renderRequest);
         if (!result.Success)
         {
@@ -35,10 +39,7 @@ public partial class TransformTree
         var renderedArtifact = result.Artifact ??
                                throw new InvalidOperationException("Successful target rendering did not produce an artifact.");
         var contribution = ExecutionTargetCatalog.CreateRenderBuildContribution(renderedArtifact);
-        var readinessReport = ExecutionTargetReadinessAnalyzer.AnalyzeFutureTargets(
-            renderRequest.CompatibilityReport,
-            renderRequest.RuntimeContract,
-            renderRequest.SemanticsContract);
+        var readinessReport = CreateReadinessReport(context, renderRequest);
         var updatedContext = contribution.OptimizationTrace is null
             ? context
             : context.AppendTrace(contribution.OptimizationTrace);
@@ -75,10 +76,13 @@ public partial class TransformTree
             executionPlan,
             compatibilityReport,
             TargetSourceRuntimeMetadataFactory.Create(semantic, planning));
-
+        var renderPurpose = TargetRenderPurposeFactory.CreatePurpose(context.CompilationPurpose);
+        var renderProfile = TargetRenderPurposeFactory.CreateProfile(context.CompilationPurpose, context.EmitPdb);
         return new TargetRenderRequest
         {
             TargetId = context.ExecutionTarget,
+            Purpose = renderPurpose,
+            Profile = renderProfile,
             Identity = new TargetRenderIdentity(context.AssemblyName),
             Options = TargetRenderOptionsFactory.Create(context.EnableContextualExecution),
             ScriptBinding = scriptBinding,
@@ -99,6 +103,8 @@ public partial class TransformTree
                     scriptBinding,
                     references,
                     TargetRenderOptionsFactory.Create(context.EnableContextualExecution),
+                    renderPurpose,
+                    renderProfile,
                     new TargetRenderInputCompilerState(
                         context.AssemblyName,
                         context.OutputType,

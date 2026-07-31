@@ -24,8 +24,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CorrelatedCompositeRangeSample_WhenCheckedIn_ShouldRetainTypedHotPath()
     {
-        var sample = ReadSamples().Single(sample =>
-            sample.FileName == CorrelatedCompositeRangeMarkSampleFileName);
+        var sample = ReadSample(CorrelatedCompositeRangeMarkSampleFileName);
 
         Assert.Contains("PhysicalSortMergeJoin [LeftMark]", sample.Content);
         Assert.Contains("ValueTuple<string, string>?", sample.Content);

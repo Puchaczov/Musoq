@@ -248,19 +248,19 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
             [5, 5L], [3, 1L], [11, 1L], [10, 1L]);
     }
 
-    private sealed class CrossApplyClass1
+    public sealed class CrossApplyClass1
     {
         public int Value1 { get; set; }
 
         public string Value2 { get; set; } = string.Empty;
     }
 
-    private sealed class CrossApplyClass2
+    public sealed class CrossApplyClass2
     {
         public string Text { get; set; } = string.Empty;
     }
 
-    private sealed class CrossApplyClass3
+    public sealed class CrossApplyClass3
     {
         public string Numbers { get; set; } = string.Empty;
 

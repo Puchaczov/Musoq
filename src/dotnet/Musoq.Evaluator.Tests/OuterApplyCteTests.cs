@@ -181,7 +181,7 @@ select a.Name, b.Value from first a outer apply a.Skills b";
             ["Name3", "Skill7"], ["Name3", "Skill8"], ["Name3", "Skill9"]);
     }
 
-    private sealed class OuterApplyClass1
+    public sealed class OuterApplyClass1
     {
         public string City { get; set; } = string.Empty;
 
@@ -190,7 +190,7 @@ select a.Name, b.Value from first a outer apply a.Skills b";
         public int Population { get; set; }
     }
 
-    private sealed class OuterApplyClass2
+    public sealed class OuterApplyClass2
     {
         public string Country { get; set; } = string.Empty;
 
@@ -199,7 +199,7 @@ select a.Name, b.Value from first a outer apply a.Skills b";
         public string Month { get; set; } = string.Empty;
     }
 
-    private sealed class OuterApplyClass3
+    public sealed class OuterApplyClass3
     {
         public string Name { get; set; } = string.Empty;
 

@@ -41,7 +41,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ApplyWithOrdinalitySample_WhenCheckedIn_ShouldUseIndexedLoopWithoutLinqProjection()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == ApplyWithOrdinalitySampleFileName);
+        var sample = ReadSample(ApplyWithOrdinalitySampleFileName);
 
         Assert.Contains("EvaluationHelper.ConvertScalarEnumerableToTypedChunks<int>", sample.Content);
         Assert.Contains("foreach (var nChunk in statement0_nRows)", sample.Content);

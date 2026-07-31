@@ -291,7 +291,7 @@ public class OuterApplyTests : GenericEntityTestBase
             ["City3", "Country3", null, null]);
     }
 
-    private sealed class OuterApplyClass1
+    public sealed class OuterApplyClass1
     {
         public string City { get; set; } = string.Empty;
 
@@ -300,7 +300,7 @@ public class OuterApplyTests : GenericEntityTestBase
         public int Population { get; set; }
     }
 
-    private sealed class OuterApplyClass2
+    public sealed class OuterApplyClass2
     {
         public string Country { get; set; } = string.Empty;
 
@@ -309,7 +309,7 @@ public class OuterApplyTests : GenericEntityTestBase
         public string Month { get; set; } = string.Empty;
     }
 
-    private sealed class OuterApplyClass3
+    public sealed class OuterApplyClass3
     {
         public string Country { get; set; } = string.Empty;
 

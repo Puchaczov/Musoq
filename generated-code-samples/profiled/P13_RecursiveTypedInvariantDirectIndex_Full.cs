@@ -170,24 +170,392 @@ namespace GeneratedSample_P13_RecursiveTypedInvariantDirectIndex_Full
         public event QueryPhaseEventHandler PhaseChanged;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, null), token);
+            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
         public Table RunWithProfile(CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             ArgumentNullException.ThrowIfNull(profileRecorder);
-            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
+            return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0_Profiled(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken, profileRecorder), token);
         }
 
-        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
+        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, profileRecorder))
+            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
             {
                 yield return new ResultRow0(__musoqShapeRow.Id, __musoqShapeRow.Depth);
             }
         }
 
-        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
+        private IEnumerable<ResultRow0> ComputeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
+        {
+            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0_Profiled(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, profileRecorder))
+            {
+                yield return new ResultRow0(__musoqShapeRow.Id, __musoqShapeRow.Depth);
+            }
+        }
+
+        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        {
+            OnPhaseChanged("compiled", QueryPhase.Begin);
+            OnPhaseChanged("compiled", QueryPhase.From);
+            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+            OnPhaseChanged("compiled", QueryPhase.Select);
+            try
+            {
+                var _cteRowResults = new CteRowResults();
+                var __musoqExecutionState = ExecutionState.Capture(Parameters);
+                ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
+                var __musoqFinalShapeRows = new List<ResultShape0>();
+                var cte0 = new List<Cte0Row0>();
+                var cte0CurrentFrontier = new List<Cte0Row0>();
+                var cte0NextFrontier = new List<Cte0Row0>();
+                int __cte0SnapshotRows = 0;
+                var cte0Seen = new HashSet<int>();
+                int __cte0Iteration = 0;
+                int __cte0CancellationCounter = 0;
+                var __cte0CurrentFrontier_ko3ikoSchema = provider.GetSchema("#graph");
+                var cte0CurrentFrontier_ko3ikoRowsSource = __cte0CurrentFrontier_ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.RecursiveCte.RecursiveGraphRoot>("roots", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var cte0CurrentFrontier_ko3ikoRows = cte0CurrentFrontier_ko3ikoRowsSource.Chunks;
+                foreach (var ko3ikoChunk in cte0CurrentFrontier_ko3ikoRows)
+                {
+                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.RecursiveCte.RecursiveGraphRoot> ko3ikoChunkView)
+                    {
+                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.RecursiveCte.RecursiveGraphRoot[] ko3ikoChunkViewArray)
+                        {
+                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                            {
+                                if ((ko3ikoIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                var __cte0CurrentFrontierCandidate0 = ko3iko.RootId;
+                                var __cte0CurrentFrontierCandidate1 = 0;
+                                if (cte0Seen.Add(__cte0CurrentFrontierCandidate0))
+                                {
+                                    if (cte0.Count + cte0CurrentFrontier.Count >= 10000000)
+                                    {
+                                        throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("reachable", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded, 10000000);
+                                    }
+
+                                    cte0CurrentFrontier.Add(new Cte0Row0(__cte0CurrentFrontierCandidate0, __cte0CurrentFrontierCandidate1));
+                                }
+                            }
+
+                            continue;
+                        }
+
+                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.RecursiveCte.RecursiveGraphRoot> ko3ikoChunkViewList)
+                        {
+                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                            {
+                                if ((ko3ikoIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                var __cte0CurrentFrontierCandidate0 = ko3iko.RootId;
+                                var __cte0CurrentFrontierCandidate1 = 0;
+                                if (cte0Seen.Add(__cte0CurrentFrontierCandidate0))
+                                {
+                                    if (cte0.Count + cte0CurrentFrontier.Count >= 10000000)
+                                    {
+                                        throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("reachable", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded, 10000000);
+                                    }
+
+                                    cte0CurrentFrontier.Add(new Cte0Row0(__cte0CurrentFrontierCandidate0, __cte0CurrentFrontierCandidate1));
+                                }
+                            }
+
+                            continue;
+                        }
+                    }
+
+                    for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                    {
+                        if ((ko3ikoIndex & 1023) == 0)
+                        {
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        var ko3iko = ko3ikoChunk[ko3ikoIndex];
+                        var __cte0CurrentFrontierCandidate0 = ko3iko.RootId;
+                        var __cte0CurrentFrontierCandidate1 = 0;
+                        if (cte0Seen.Add(__cte0CurrentFrontierCandidate0))
+                        {
+                            if (cte0.Count + cte0CurrentFrontier.Count >= 10000000)
+                            {
+                                throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("reachable", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded, 10000000);
+                            }
+
+                            cte0CurrentFrontier.Add(new Cte0Row0(__cte0CurrentFrontierCandidate0, __cte0CurrentFrontierCandidate1));
+                        }
+                    }
+                }
+
+                cte0.AddRange(cte0CurrentFrontier);
+                if (cte0CurrentFrontier.Count > 0)
+                {
+                    var cte0Invariant0Hash = new Dictionary<int, HashJoinBucket<Cte0Invariant0Row0>>();
+                    var __cte0Invariant0_eSchema = provider.GetSchema("#graph");
+                    var cte0Invariant0_eRowsSource = __cte0Invariant0_eSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.RecursiveCte.RecursiveGraphEdge>("edges", new SourceExecutionContext("e:2", sourceExecutionPlans["e:2"], token, __schemaColumns_compiled_e_1, sourceRuntimeSettingsBySourceContextId["e:2"], logger, OnDataSourceProgress), Array.Empty<object>());
+                    var cte0Invariant0_eRows = cte0Invariant0_eRowsSource.Chunks;
+                    expectedValuesF9227A53Row0[] cte0Invariant0_expectedRows = new expectedValuesF9227A53Row0[]
+                    {
+                        new expectedValuesF9227A53Row0("one-two"),
+                        new expectedValuesF9227A53Row0("two-three")
+                    };
+                    var cte0Invariant0ExpectedHash = new Dictionary<string, HashJoinBucket<expectedValuesF9227A53Row0>>(2);
+                    foreach (var expected in cte0Invariant0_expectedRows)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        string key = expected.Label;
+                        if (key == null)
+                            continue;
+                        {
+                            ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0Invariant0ExpectedHash, key, out var matchesExists);
+                            if (!matchesExists)
+                            {
+                                matches = new HashJoinBucket<expectedValuesF9227A53Row0>(expected);
+                            }
+                            else
+                            {
+                                matches.Add(expected);
+                            }
+                        }
+                    }
+
+                    foreach (var eChunk in cte0Invariant0_eRows)
+                    {
+                        if (eChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.RecursiveCte.RecursiveGraphEdge> eChunkView)
+                        {
+                            if (eChunkView.Source is Musoq.Evaluator.Tests.Schema.RecursiveCte.RecursiveGraphEdge[] eChunkViewArray)
+                            {
+                                int eChunkViewOffset = eChunkView.Offset;
+                                for (int eIndex = 0, eIndexCount = eChunkView.Count; eIndex < eIndexCount; ++eIndex)
+                                {
+                                    if ((eIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var e = eChunkViewArray[eChunkViewOffset + eIndex];
+                                    string key = e.Label;
+                                    if (key != null && cte0Invariant0ExpectedHash.TryGetValue(key, out var cte0Invariant0ExpectedHashMatches))
+                                    {
+                                        foreach (var expected in cte0Invariant0ExpectedHashMatches)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                            {
+                                                if (__cte0SnapshotRows >= 10000000)
+                                                {
+                                                    throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("reachable", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7009_RecursiveCteSnapshotLimitExceeded, 10000000);
+                                                }
+
+                                                __cte0SnapshotRows++;
+                                                Cte0Invariant0Row0 cte0Invariant0Row = new Cte0Invariant0Row0(e.SourceId, e.TargetId, e.Label, expected.Label);
+                                                int cte0Invariant0HashKey = cte0Invariant0Row.e_SourceId;
+                                                {
+                                                    ref var cte0Invariant0HashMatches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0Invariant0Hash, cte0Invariant0HashKey, out var cte0Invariant0HashMatchesExists);
+                                                    if (!cte0Invariant0HashMatchesExists)
+                                                    {
+                                                        cte0Invariant0HashMatches = new HashJoinBucket<Cte0Invariant0Row0>(cte0Invariant0Row);
+                                                    }
+                                                    else
+                                                    {
+                                                        cte0Invariant0HashMatches.Add(cte0Invariant0Row);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                continue;
+                            }
+
+                            if (eChunkView.Source is List<Musoq.Evaluator.Tests.Schema.RecursiveCte.RecursiveGraphEdge> eChunkViewList)
+                            {
+                                int eChunkViewOffset = eChunkView.Offset;
+                                for (int eIndex = 0, eIndexCount = eChunkView.Count; eIndex < eIndexCount; ++eIndex)
+                                {
+                                    if ((eIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var e = eChunkViewList[eChunkViewOffset + eIndex];
+                                    string key = e.Label;
+                                    if (key != null && cte0Invariant0ExpectedHash.TryGetValue(key, out var cte0Invariant0ExpectedHashMatches))
+                                    {
+                                        foreach (var expected in cte0Invariant0ExpectedHashMatches)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                            {
+                                                if (__cte0SnapshotRows >= 10000000)
+                                                {
+                                                    throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("reachable", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7009_RecursiveCteSnapshotLimitExceeded, 10000000);
+                                                }
+
+                                                __cte0SnapshotRows++;
+                                                Cte0Invariant0Row0 cte0Invariant0Row = new Cte0Invariant0Row0(e.SourceId, e.TargetId, e.Label, expected.Label);
+                                                int cte0Invariant0HashKey = cte0Invariant0Row.e_SourceId;
+                                                {
+                                                    ref var cte0Invariant0HashMatches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0Invariant0Hash, cte0Invariant0HashKey, out var cte0Invariant0HashMatchesExists);
+                                                    if (!cte0Invariant0HashMatchesExists)
+                                                    {
+                                                        cte0Invariant0HashMatches = new HashJoinBucket<Cte0Invariant0Row0>(cte0Invariant0Row);
+                                                    }
+                                                    else
+                                                    {
+                                                        cte0Invariant0HashMatches.Add(cte0Invariant0Row);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                continue;
+                            }
+                        }
+
+                        for (int eIndex = 0, eIndexCount = eChunk.Count; eIndex < eIndexCount; ++eIndex)
+                        {
+                            if ((eIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            var e = eChunk[eIndex];
+                            string key = e.Label;
+                            if (key != null && cte0Invariant0ExpectedHash.TryGetValue(key, out var cte0Invariant0ExpectedHashMatches))
+                            {
+                                foreach (var expected in cte0Invariant0ExpectedHashMatches)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    {
+                                        if (__cte0SnapshotRows >= 10000000)
+                                        {
+                                            throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("reachable", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7009_RecursiveCteSnapshotLimitExceeded, 10000000);
+                                        }
+
+                                        __cte0SnapshotRows++;
+                                        Cte0Invariant0Row0 cte0Invariant0Row = new Cte0Invariant0Row0(e.SourceId, e.TargetId, e.Label, expected.Label);
+                                        int cte0Invariant0HashKey = cte0Invariant0Row.e_SourceId;
+                                        {
+                                            ref var cte0Invariant0HashMatches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0Invariant0Hash, cte0Invariant0HashKey, out var cte0Invariant0HashMatchesExists);
+                                            if (!cte0Invariant0HashMatchesExists)
+                                            {
+                                                cte0Invariant0HashMatches = new HashJoinBucket<Cte0Invariant0Row0>(cte0Invariant0Row);
+                                            }
+                                            else
+                                            {
+                                                cte0Invariant0HashMatches.Add(cte0Invariant0Row);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    while (cte0CurrentFrontier.Count > 0)
+                    {
+                        if ((__cte0Iteration & 63) == 0)
+                        {
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        if (__cte0Iteration >= 1000)
+                        {
+                            throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("reachable", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7007_RecursiveCteIterationLimitExceeded, 1000);
+                        }
+
+                        __cte0Iteration++;
+                        cte0NextFrontier.Clear();
+                        for (int cte0CurrentFrontierIndex = 0; cte0CurrentFrontierIndex < cte0CurrentFrontier.Count; ++cte0CurrentFrontierIndex)
+                        {
+                            if (cte0CurrentFrontierIndex != 0 && (cte0CurrentFrontierIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            Cte0Row0 r = (Cte0Row0)cte0CurrentFrontier[cte0CurrentFrontierIndex];
+                            int key = r.Id;
+                            if (cte0Invariant0Hash.TryGetValue(key, out var cte0Invariant0HashMatches))
+                            {
+                                foreach (var eexpected in cte0Invariant0HashMatches)
+                                {
+                                    ++__cte0CancellationCounter;
+                                    if ((__cte0CancellationCounter & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var __cte0NextFrontierCandidate0 = eexpected.e_TargetId;
+                                    var __cte0NextFrontierCandidate1 = (r.Depth + 1);
+                                    if (cte0Seen.Add(__cte0NextFrontierCandidate0))
+                                    {
+                                        if (cte0.Count + cte0NextFrontier.Count >= 10000000)
+                                        {
+                                            throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("reachable", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded, 10000000);
+                                        }
+
+                                        cte0NextFrontier.Add(new Cte0Row0(__cte0NextFrontierCandidate0, __cte0NextFrontierCandidate1));
+                                    }
+                                }
+                            }
+                        }
+
+                        cte0.AddRange(cte0NextFrontier);
+                        var __cte0FrontierSwap = cte0CurrentFrontier;
+                        cte0CurrentFrontier = cte0NextFrontier;
+                        cte0NextFrontier = __cte0FrontierSwap;
+                    }
+                }
+
+                _cteRowResults.Slot0 = cte0;
+                var result = new List<ResultShape0>();
+                var __storedTable0Rows = _cteRowResults.Slot0;
+                for (int __storedTable0Index = 0; __storedTable0Index < __storedTable0Rows.Count; ++__storedTable0Index)
+                {
+                    if ((__storedTable0Index & 1023) == 0)
+                    {
+                        token.ThrowIfCancellationRequested();
+                    }
+
+                    Cte0Row0 reachable = __storedTable0Rows[__storedTable0Index];
+                    result.Add(new ResultShape0(reachable.Id, reachable.Depth));
+                }
+
+                var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
+                {
+                    var comparison = left.Id.CompareTo(right.Id);
+                    if (comparison != 0)
+                        return comparison;
+                    return 0;
+                }));
+                foreach (var resultSortedRowsRow in resultSortedRows)
+                {
+                    __musoqFinalShapeRows.Add(resultSortedRowsRow);
+                }
+
+                return __musoqFinalShapeRows;
+            }
+            finally
+            {
+                OnPhaseChanged("compiled:cte0", QueryPhase.End);
+                OnPhaseChanged("compiled", QueryPhase.End);
+            }
+        }
+
+        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
         {
             var __profileScopeDepth = profileRecorder?.GetCurrentOperatorScopeDepth() ?? 0;
             try

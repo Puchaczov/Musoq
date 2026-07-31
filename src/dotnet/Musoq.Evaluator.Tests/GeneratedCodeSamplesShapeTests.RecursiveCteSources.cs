@@ -42,8 +42,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [DynamicData(nameof(RecursiveSnapshotSampleData))]
     public void RecursiveInvariantSourceSample_ShouldPlanTypedInputBeforeRecursiveMember(string fileName)
     {
-        var sample = ReadSamples().Single(item =>
-            string.Equals(item.FileName, fileName, StringComparison.Ordinal));
+        var sample = ReadSample(fileName);
         var execution = ReadExecutionPlan(fileName);
         var code = ReadGeneratedCode(fileName);
         var physical = ReadGeneratedSampleSection(sample.Content, "Physical Plan", "Execution Plan");
@@ -77,8 +76,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RecursiveInvariantHashSample_ShouldBuildTypedIndexOutsideFixedPointLoop()
     {
-        var sample = ReadSamples().Single(item =>
-            string.Equals(item.FileName, "Q203_RecursiveInvariantHashLookup.cs", StringComparison.Ordinal));
+        var sample = ReadSample("Q203_RecursiveInvariantHashLookup.cs");
         var code = ReadGeneratedCode("Q203_RecursiveInvariantHashLookup.cs");
         var execution = ReadExecutionPlan(sample.FileName);
         var setupIndex = execution.IndexOf("  InvariantSetup", StringComparison.Ordinal);
@@ -113,8 +111,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [DynamicData(nameof(RecursiveCorrelatedApplySampleData))]
     public void RecursiveCorrelatedApplySample_ShouldKeepSourceInsideRecursiveMember(string fileName)
     {
-        var sample = ReadSamples().Single(item =>
-            string.Equals(item.FileName, fileName, StringComparison.Ordinal));
+        var sample = ReadSample(fileName);
         var execution = ReadExecutionPlan(fileName);
         var code = ReadGeneratedCode(fileName);
         var memberIndex = execution.IndexOf("  RecursiveMember", StringComparison.Ordinal);
@@ -132,8 +129,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RecursivePriorValuesCteSample_ShouldUseTypedHashPayloadWithoutRecursiveContext()
     {
-        var sample = ReadSamples().Single(item =>
-            string.Equals(item.FileName, "Q204_RecursivePriorValuesCteEdges.cs", StringComparison.Ordinal));
+        var sample = ReadSample("Q204_RecursivePriorValuesCteEdges.cs");
 
         var code = ReadGeneratedCode(sample.FileName);
         Assert.Contains("private readonly struct Cte0HashPayload0", code);
@@ -148,8 +144,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         foreach (var fileName in RecursiveWaveFiveSampleFileNames)
         {
-            var sample = ReadSamples().Single(item =>
-                string.Equals(item.FileName, fileName, StringComparison.Ordinal));
+            var sample = ReadSample(fileName);
 
             var code = ReadGeneratedCode(fileName);
             Assert.IsFalse(code.Contains(".Select(", StringComparison.Ordinal), fileName);

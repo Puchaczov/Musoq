@@ -53,7 +53,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ChainedApplyQualifyWindowSample_WhenCheckedIn_ShouldUseExecutionIrQualifyWindow()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == ChainedApplyQualifyWindowSampleFileName);
+        var sample = ReadSample(ChainedApplyQualifyWindowSampleFileName);
         var failures = GetChainedApplyQualifyWindowShapeFailures(sample.Content);
 
         Assert.IsEmpty(
@@ -98,8 +98,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ChainedApplyGroupedAggregateQualifyWindowSample_WhenCheckedIn_ShouldUseExecutionIrAggregateQualifyWindow()
     {
-        var sample = ReadSamples()
-            .Single(static sample => sample.FileName == ChainedApplyGroupedAggregateQualifyWindowSampleFileName);
+        var sample = ReadSample(ChainedApplyGroupedAggregateQualifyWindowSampleFileName);
         var failures = GetChainedApplyGroupedAggregateQualifyWindowShapeFailures(sample.Content);
 
         Assert.IsEmpty(
@@ -143,7 +142,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void AggregateOverHashJoinSample_WhenCheckedIn_ShouldUseExecutionIrAggregateOverHashTransition()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == AggregateOverHashJoinSampleFileName);
+        var sample = ReadSample(AggregateOverHashJoinSampleFileName);
         var failures = GetAggregateOverHashJoinShapeFailures(sample.Content);
 
         Assert.IsEmpty(
@@ -193,7 +192,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CteBackedAggregateOverHashJoinSample_WhenCheckedIn_ShouldUseExecutionIrCteAggregateOverHashTransition()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == CteBackedAggregateOverHashJoinSampleFileName);
+        var sample = ReadSample(CteBackedAggregateOverHashJoinSampleFileName);
         var failures = GetCteBackedAggregateOverHashJoinShapeFailures(sample.Content);
 
         Assert.IsEmpty(
@@ -204,9 +203,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void AccessMethodApplySample_WhenCheckedIn_ShouldUseDirectTypedEnumerableRows()
     {
-        var samples = ReadSamples()
-            .Where(static sample => sample.FileName is AccessMethodApplySampleFileName or OuterAccessMethodApplySampleFileName)
-            .ToArray();
+        var samples = ReadNamedSamples(AccessMethodApplySampleFileName, OuterAccessMethodApplySampleFileName);
 
         Assert.HasCount(2, samples);
 
@@ -220,7 +217,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void OuterAccessMethodApplySample_WhenCheckedIn_ShouldTrackUnmatchedRows()
     {
-        var sample = ReadSamples().Single(static sample => sample.FileName == OuterAccessMethodApplySampleFileName);
+        var sample = ReadSample(OuterAccessMethodApplySampleFileName);
         var failures = GetOuterAccessMethodApplyShapeFailures(sample.Content);
 
         Assert.IsEmpty(failures, $"{OuterAccessMethodApplySampleFileName} has stale outer-apply shape: {string.Join(", ", failures)}");

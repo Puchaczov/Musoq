@@ -13,58 +13,6 @@ namespace Musoq.Parser.Lexing;
 /// </summary>
 public sealed partial class Lexer : ILexer
 {
-    private static readonly Regex StringLiteralRegex = new(@"\G'([^'\\]|\\.)*'", RegexOptions.Compiled);
-    private static readonly Regex HFromRegex = new(@"\G#[\w*?_]+", RegexOptions.Compiled);
-    private static readonly Regex LineCommentRegex = new(@"\G--[^\r\n]*", RegexOptions.Compiled);
-    private static readonly Regex BlockCommentRegex = new(@"\G/\*[\s\S]*?\*/", RegexOptions.Compiled);
-    private static readonly Regex BracketedColumnRegex = new(@"\G\[[^\]]+\]", RegexOptions.Compiled);
-
-    private static readonly Regex HexIntegerRegex = new(@"\G0[xX][0-9a-fA-F]+", RegexOptions.Compiled);
-    private static readonly Regex BinaryIntegerRegex = new(@"\G0[bB][01]+", RegexOptions.Compiled);
-    private static readonly Regex OctalIntegerRegex = new(@"\G0[oO][0-7]+", RegexOptions.Compiled);
-
-    // Multi-word keyword regexes
-    private static readonly Regex NotInRegex = new(@"\Gnot\s+in(?=\s|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex NotLikeRegex = new(@"\Gnot\s+like(?=\s|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex NotRLikeRegex =
-        new(@"\Gnot\s+rlike(?=\s|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex UnionAllRegex =
-        new(@"\Gunion\s+all(?=\s|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex GroupByRegex =
-        new(@"\Ggroup\s+by(?=\s|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex OrderByRegex =
-        new(@"\Gorder\s+by(?=\s|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex PartitionByRegex =
-        new(@"\Gpartition\s+by(?=\s|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex CurrentRowRegex =
-        new(@"\Gcurrent\s+row(?=\s|\)|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex InnerJoinRegex =
-        new(@"\G(?:inner\s+)?join\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex OuterJoinRegex = new(@"\G(left|right|full)(?:\s+outer)?\s+join\b",
-        RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex SemiJoinRegex = new(@"\G(?:left\s+)?semi\s+join\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    private static readonly Regex AntiJoinRegex = new(@"\G(?:left\s+anti\s+semi|anti(?:\s+semi)?)\s+join\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    private static readonly Regex CrossJoinRegex = new(@"\Gcross\s+join\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex CrossApplyRegex =
-        new(@"\Gcross\s+apply(?=\s|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex OuterApplyRegex =
-        new(@"\Gouter\s+apply(?=\s|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex AsOfJoinRegex =
-        new(@"\Gasof\s+(?:(left)\s+(?:outer\s+)?)?join\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
     private readonly Queue<Token> _pendingSchemaTokens = new();
     private readonly bool _skipWhiteSpaces;
     private Token _currentToken;
@@ -203,6 +151,43 @@ public sealed partial class Lexer : ILexer
 
         var token = getToken(match.Value);
         Position += match.Length;
+        TrackResolvedToken(token);
+        return AssignToken(token);
+    }
+
+    internal Token NextColumn()
+    {
+        if (Position >= Input.Length)
+            return AssignToken(new EndOfFileToken(new TextSpan(Input.Length, 0)));
+
+        var start = Position;
+        var end = start;
+        if (Input[end] == '[')
+        {
+            end++;
+            while (end < Input.Length && Input[end] != ']')
+                end++;
+
+            if (end < Input.Length && end > start + 1)
+                end++;
+            else
+                end = start;
+        }
+        else if (Input[end] == '*')
+        {
+            end++;
+        }
+        else
+        {
+            while (end < Input.Length && (char.IsLetterOrDigit(Input[end]) || Input[end] == '_'))
+                end++;
+        }
+
+        if (end == start)
+            throw new UnknownTokenException(Position, Input[Position], Input[Position..]);
+
+        Position = end;
+        var token = new ColumnToken(Input[start..end], new TextSpan(start, end - start));
         TrackResolvedToken(token);
         return AssignToken(token);
     }

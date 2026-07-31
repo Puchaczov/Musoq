@@ -81,6 +81,7 @@ public sealed class BoundedRuntimeCacheTests
         });
 
         Assert.IsTrue(cache.Count <= 32);
+        cache.GetOrAdd(63, static key => key);
         Assert.IsTrue(cache.TryGetValue(63, out var value));
         Assert.AreEqual(63, value);
     }

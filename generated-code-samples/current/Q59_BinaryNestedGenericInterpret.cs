@@ -174,7 +174,7 @@ namespace GeneratedSample_Q59_BinaryNestedGenericInterpret
                     }
 
                     Statement0Row0 fc = __storedTable0Rows[__storedTable0Index];
-                    var pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.Pair<Musoq.Generated.Interpreters.ByteValue, Musoq.Generated.Interpreters.ShortValue>>((Musoq.Generated.Interpreters.Pair<Musoq.Generated.Interpreters.ByteValue, Musoq.Generated.Interpreters.ShortValue>[])(object[])EvaluationHelper.GetNestedValue(fc[1], "Data"));
+                    var pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.Pair<Musoq.Generated.Interpreters.ByteValue, Musoq.Generated.Interpreters.ShortValue>>(fc.c_Items.Data);
                     foreach (var pChunk in pRows)
                     {
                         for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)
@@ -185,7 +185,7 @@ namespace GeneratedSample_Q59_BinaryNestedGenericInterpret
                             }
 
                             var p = pChunk[pIndex];
-                            __musoqFinalShapeRows.Add(new ResultShape0(p.LeftItem.Value, p.RightItem.Value));
+                            __musoqFinalShapeRows.Add(new ResultShape0(((Musoq.Generated.Interpreters.ByteValue)p.LeftItem).Value, ((Musoq.Generated.Interpreters.ShortValue)p.RightItem).Value));
                         }
                     }
                 }
@@ -356,57 +356,16 @@ namespace GeneratedSample_Q59_BinaryNestedGenericInterpret
             public short RightValue { get; }
         }
 
-        private sealed class Statement0Row0 : Row
+        private sealed class Statement0Row0
         {
-            public Statement0Row0(byte[] __value0, object __value1)
+            public Statement0Row0(byte[] __value0, Musoq.Generated.Interpreters.LengthPrefixed<Musoq.Generated.Interpreters.Pair<Musoq.Generated.Interpreters.ByteValue, Musoq.Generated.Interpreters.ShortValue>> __value1)
             {
                 f_Content = __value0;
                 c_Items = __value1;
             }
 
-            public override int Count => 2;
-            public object c_Items { get; private set; }
-            public byte[] f_Content { get; private set; }
-
-            public override void AssignValue(int columnNumber, object value)
-            {
-                switch (columnNumber)
-                {
-                    case 0:
-                        f_Content = (byte[])value;
-                        break;
-                    case 1:
-                        c_Items = value;
-                        break;
-                    default:
-                        throw new IndexOutOfRangeException();
-                }
-            }
-
-            public override bool HasColumn(string name) => name switch
-            {
-                "f.Content" => true,
-                "f_Content" => true,
-                "Content" => true,
-                "c.Items" => true,
-                "c_Items" => true,
-                "Items" => true,
-                _ => false
-            };
-            public override object this[int columnNumber] => columnNumber switch
-            {
-                0 => (object)f_Content,
-                1 => (object)c_Items,
-                _ => throw new IndexOutOfRangeException()};
-            public override object this[string name] => name switch
-            {
-                "f.Content" => (object)f_Content,
-                "f_Content" => (object)f_Content,
-                "Content" => (object)f_Content,
-                "c.Items" => (object)c_Items,
-                "c_Items" => (object)c_Items,
-                "Items" => (object)c_Items,
-                _ => throw new KeyNotFoundException(name)};
+            public Musoq.Generated.Interpreters.LengthPrefixed<Musoq.Generated.Interpreters.Pair<Musoq.Generated.Interpreters.ByteValue, Musoq.Generated.Interpreters.ShortValue>> c_Items { get; }
+            public byte[] f_Content { get; }
         }
     }
 }

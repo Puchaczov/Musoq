@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
+using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
@@ -30,6 +31,8 @@ internal sealed record SemanticMetadataSnapshot
 
     public required IReadOnlyDictionary<SchemaFromNode, SourceContractDiagnosticLocationMap>
         SourceContractDiagnosticLocationsPerSchema { get; init; }
+
+    public required IReadOnlyList<BoundSourceContract> SourceContracts { get; init; }
 
     public required IReadOnlyList<ScriptParameterDefinition> ScriptParameterDefinitions { get; init; }
 
