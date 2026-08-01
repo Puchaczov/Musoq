@@ -115,6 +115,11 @@ public sealed partial class ExecutionShapeResolver
 
     private static FieldAccessStrategy ResolveAccessStrategy(Type entityType, ISchemaColumn column)
     {
+        if (SchemaIndexedRowContract.IsSupported(entityType))
+        {
+            return new PositionalAccess(column.ColumnIndex);
+        }
+
         if (column.ColumnName.Contains('.', StringComparison.Ordinal))
         {
             return new NestedClrPropertyAccess(column.ColumnName);

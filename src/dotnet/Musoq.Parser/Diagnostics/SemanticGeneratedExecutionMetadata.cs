@@ -12,6 +12,7 @@ internal static partial class SemanticErrorMetadataCatalog
             "Generated execution can access CLR members only when the source entity and its projected members are publicly referenceable. Private, object-typed, and custom runtime-dynamic entities would require reflection at query execution time.",
             [
                 "Expose a public CLR entity contract with public instance members.",
+                "Use a schema-indexed positional row, currently object[], when the schema supplies runtime column indexes.",
                 "Use a supported string/object dictionary row or ExpandoObject when the source is intentionally dynamic."
             ],
             "Generated Execution - Source Entity Contracts");

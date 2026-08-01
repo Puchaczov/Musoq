@@ -31,7 +31,7 @@ public partial class TransformTree
                 violation.EntityType.FullName ?? violation.EntityType.Name,
                 violation.Source.Schema,
                 violation.Source.Method,
-                $"member '{member}' {violation.Reason}. Use a public CLR contract or a supported string/object dictionary row.");
+                $"member '{member}' {violation.Reason}. Use a public CLR contract, a schema-indexed positional row (currently object[]), or a supported string/object dictionary row.");
             context.DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
                 message,

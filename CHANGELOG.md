@@ -4,6 +4,27 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.4-alpha.2
+
+See [release-notes/v17.0.4-alpha.2.md](release-notes/v17.0.4-alpha.2.md) for the curated full-train release notes.
+
+### Musoq.Evaluator
+
+- Restored generated-execution compatibility for schema-driven positional datasource rows represented by one-dimensional `object[]` values.
+- Added shared row classification and validation for public CLR members, supported dictionaries/`ExpandoObject`, and schema-indexed positional columns, including non-negative index and publicly referenceable cell-type checks.
+- Preserved direct generated indexing for runtime schemas, opaque bracketed column names, dotted metadata names, nested typed-cell traversal, CTEs, joins, grouping, aggregates, and repeated compilation.
+
+### Musoq.Converter and Musoq.Parser
+
+- Extended MQ3084 guidance with the schema-indexed positional row contract while retaining dictionary/`ExpandoObject` guidance for flexible name-based sources.
+- Kept unsupported carriers such as `object[][]`, arbitrary lists, inaccessible entities, custom dynamic objects, invalid indexes, and inaccessible cell types on the diagnostic path.
+
+### Tooling and verification
+
+- Added a comprehensive positional datasource contract suite and structural generated-code guardrails against reflection, dictionary adapters, and per-read helpers.
+- Documented the performance boundary: typed CLR rows for fixed schemas, direct `object[]` indexing for runtime schemas, and dictionaries/`ExpandoObject` for flexible name access.
+- Release verification covers the full train of five packages and the complete Release solution test gate.
+
 ## 17.0.4-alpha.1
 
 See [release-notes/v17.0.4-alpha.1.md](release-notes/v17.0.4-alpha.1.md) for the curated full-train release notes.

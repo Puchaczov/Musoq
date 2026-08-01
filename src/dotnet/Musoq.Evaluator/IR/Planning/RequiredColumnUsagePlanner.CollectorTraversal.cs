@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Nodes;
@@ -100,9 +101,21 @@ internal static partial class RequiredColumnUsagePlanner
         {
             foreach (var field in fields)
             {
-                if (requiredOutputColumns.Contains(field.OutputName))
+                if (ContainsOutputColumn(requiredOutputColumns, field.OutputName))
                     AddExpression(field.Expression, ResolveProjectionReason(field));
             }
+        }
+
+        private static bool ContainsOutputColumn(
+            IReadOnlySet<string> requiredOutputColumns,
+            string outputName)
+        {
+            if (requiredOutputColumns.Contains(outputName))
+                return true;
+
+            return requiredOutputColumns.Any(required =>
+                outputName.EndsWith($".{required}", StringComparison.OrdinalIgnoreCase) ||
+                required.EndsWith($".{outputName}", StringComparison.OrdinalIgnoreCase));
         }
 
         private void CollectCteDefinition(CteDefinition definition)

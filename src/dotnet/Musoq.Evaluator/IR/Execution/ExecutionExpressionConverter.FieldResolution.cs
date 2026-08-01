@@ -96,6 +96,8 @@ public static partial class ExecutionExpressionConverter
             string.Equals(candidate.Name, column.ColumnName, StringComparison.OrdinalIgnoreCase) ||
             string.Equals(candidate.Name, sourceRelativeColumnName, StringComparison.OrdinalIgnoreCase) ||
             string.Equals(candidate.Name, originalQualifiedName, StringComparison.OrdinalIgnoreCase) ||
+            sourceRelativeColumnName.Contains('.', StringComparison.Ordinal) &&
+            HasQualifiedSuffix(candidate.Name, sourceRelativeColumnName) ||
             string.Equals(candidate.QualifiedName, originalQualifiedName, StringComparison.OrdinalIgnoreCase) ||
             string.Equals(candidate.QualifiedName, qualifiedName, StringComparison.OrdinalIgnoreCase) ||
             string.Equals(candidate.QualifiedName, $"{alias}.{originalQualifiedName}", StringComparison.OrdinalIgnoreCase));
@@ -127,6 +129,11 @@ public static partial class ExecutionExpressionConverter
             .ToArray();
         field = unqualifiedMatches.Length == 1 ? unqualifiedMatches[0] : null;
         return field == null ? null : new ResolvedExecutionField(alias, field);
+    }
+
+    private static bool HasQualifiedSuffix(string candidate, string relativeName)
+    {
+        return candidate.EndsWith($".{relativeName}", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string RemoveSourceAlias(string columnName, string sourceAlias)

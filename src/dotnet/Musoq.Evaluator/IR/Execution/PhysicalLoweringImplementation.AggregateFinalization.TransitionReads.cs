@@ -102,11 +102,12 @@ internal sealed partial class PhysicalLoweringImplementation
             return null;
 
         var (binding, propertyPath) = nestedBinding.Value;
-        return new ExecutionFieldRead(
+        var read = new ExecutionFieldRead(
             tableRow.Alias,
             columnPath,
             field.Expression.ReturnType,
             new NestedPositionalAccess(binding.OutputIndex, propertyPath));
+        return read with { GeneratedTypeName = binding.Type.DisplayName.Replace('+', '.') };
     }
 
     private static NestedTransitionBinding? FindNestedTransitionBinding(

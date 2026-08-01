@@ -25,9 +25,8 @@ public sealed partial class ExecutionCSharpRenderer
         if (fieldRead.AccessStrategy is GeneratedDictionaryNestedAccess generatedDictionary)
             return RenderGeneratedDictionaryNestedFieldRead(fieldRead, generatedDictionary);
 
-        if (fieldRead.AccessStrategy is NestedPositionalAccess)
-            throw new InvalidOperationException(
-                "Generated execution cannot render nested positional access without a typed row carrier.");
+        if (fieldRead.AccessStrategy is NestedPositionalAccess nestedPositional)
+            return NestedPositionalFieldReadRenderer.Render(fieldRead, nestedPositional);
 
         if (fieldRead.AccessStrategy is ReflectedMemberAccess)
             throw new InvalidOperationException(

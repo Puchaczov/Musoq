@@ -72,6 +72,8 @@ internal static class ExecutionFieldAccessResolver
             TableRowShape table => ThrowMissingGeneratedRowType(column, alias, table),
             SourceEntityShape when nestedRoot.Field.AccessStrategy is ReflectedMemberAccess =>
                 new ReflectedMemberAccess(sourceRelativeColumnName),
+            SourceEntityShape when nestedRoot.Field.AccessStrategy is PositionalAccess positional =>
+                new NestedPositionalAccess(positional.Index, nestedRoot.PropertyPath),
             SourceEntityShape source when nestedRoot.Field.GeneratedTypeName is { } generatedTypeName =>
                 new GeneratedRowNestedAccess(
                     source.GeneratedTypeName ?? string.Empty,
@@ -101,6 +103,12 @@ internal static class ExecutionFieldAccessResolver
             column.ReturnType,
             nestedRoot.Field.Nullability,
             accessStrategy);
+
+        if (accessStrategy is NestedPositionalAccess)
+            field = field with
+            {
+                GeneratedTypeName = nestedRoot.Field.Type.DisplayName.Replace('+', '.')
+            };
 
         return new ResolvedExecutionField(alias, field);
     }

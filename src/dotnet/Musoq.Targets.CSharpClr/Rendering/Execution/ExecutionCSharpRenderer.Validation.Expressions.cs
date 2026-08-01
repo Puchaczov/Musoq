@@ -107,7 +107,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool CanRenderFieldRead(ExecutionFieldRead fieldRead)
     {
-        if (fieldRead.AccessStrategy is ReflectedMemberAccess or NestedPositionalAccess)
+        if (fieldRead.AccessStrategy is ReflectedMemberAccess)
             return false;
 
         return fieldRead.AccessStrategy is not (

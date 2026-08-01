@@ -638,6 +638,24 @@ interpretation sources, externally supplied table contracts, scalar sources,
 supported dictionaries, and `ExpandoObject` remain valid. `DESC` continues
 to use compile-time metadata reflection and does not enter this execution policy.
 
+For schema-driven runtime rows, the generated-execution boundary also supports
+a schema-indexed positional row, currently exactly one-dimensional `object[]`.
+The schema column name is metadata and may contain punctuation or dots; a
+bracketed reference such as `row.[Address.City]` binds the complete name to one
+index. Ordinary `row.Address.City` remains nested-member traversal and is not
+reinterpreted as a flat positional column.
+
+Choose the row contract according to the schema:
+
+- public typed CLR rows for fixed schemas and the strongest generated-code type safety;
+- direct positional `object[]` rows for runtime-defined schemas, with no copying or per-read reflection;
+- supported `IDictionary<string, object>` rows or `ExpandoObject` for flexible name-based access.
+
+Generated reflection fallback is intentionally not part of this boundary. Keep
+structural guardrails on generated code—direct positional indexing for
+`object[]`, no reflection helpers, and no dictionary adapters—rather than using
+flaky timing assertions to define the performance contract.
+
 Focused Wave 1 gates are green: source-policy and architecture ratchets 6/6,
 snapshot/manifest tests 238 passed with 2 refresh utilities skipped, benchmark
 correctness 4/4, binary/interpreter compatibility 793/793, and schema

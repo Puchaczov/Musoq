@@ -59,6 +59,19 @@ internal static class ExecutionSourceCodeGenerationPolicy
             if (IsExternallyProvidedType(source) || IsSupportedScalarEntity(entityType))
                 continue;
 
+            if (SchemaIndexedRowContract.IsSupported(entityType))
+            {
+                foreach (var column in used)
+                {
+                    if (SchemaIndexedRowContract.TryValidateColumn(column, out var positionalReason))
+                        continue;
+
+                    AddViolation(source, entityType, column.ColumnName, positionalReason!);
+                }
+
+                continue;
+            }
+
             foreach (var column in used)
             {
                 if (TryValidateMemberPath(entityType, column.ColumnName, out var memberReason))

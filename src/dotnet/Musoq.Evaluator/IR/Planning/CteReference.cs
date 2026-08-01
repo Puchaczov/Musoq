@@ -12,6 +12,13 @@ internal sealed record CteReference(
 {
     public bool ContainsOutputColumn(string columnName)
     {
-        return OutputColumns.Count == 0 || OutputColumns.Contains(columnName);
+        var relativeColumnName = columnName.StartsWith($"{Alias}.", StringComparison.OrdinalIgnoreCase)
+            ? columnName[(Alias.Length + 1)..]
+            : columnName;
+
+        return OutputColumns.Count == 0 ||
+               OutputColumns.Contains(columnName) ||
+               OutputColumns.Contains(relativeColumnName) ||
+               OutputColumns.Any(output => output.EndsWith($".{relativeColumnName}", StringComparison.OrdinalIgnoreCase));
     }
 }

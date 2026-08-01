@@ -51,20 +51,8 @@ ExecutionPlan [compiled]
       City: string <- property City
       Country: string <- property Country
     SourceEntity [b: BasicEntity]
-      Name: string <- property Name
       City: string <- property City
       Country: string <- property Country
-      Population: decimal <- property Population
-      Self: BasicEntity <- property Self
-      Money: decimal <- property Money
-      Month: string <- property Month
-      Time: DateTime <- property Time
-      Id: int <- property Id
-      NullableValue: int? <- property NullableValue
-      Array: int[] <- property Array
-      Other: BasicEntity <- property Other
-      Dictionary: Dictionary<string, string> <- property Dictionary
-      Children: BasicEntity[] <- property Children
     HashPayload [DHashPayload0]
       b.City: string <- field b_City
     TableRow [d]
@@ -114,13 +102,12 @@ namespace GeneratedSample_Q143_CorrelatedApplyDerivedTable
 
     public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
     {
-        private static readonly Column[] __columns_compiled_result_2 = new Column[]
+        private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
             new Column("a.City", typeof(string), 0),
             new Column("d.City", typeof(string), 1)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 11), new Column("Country", typeof(string), 12) });
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_1 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 10), new Column("City", typeof(string), 11), new Column("Country", typeof(string), 12), new Column("Population", typeof(decimal), 13), new Column("Self", typeof(Musoq.Evaluator.Tests.Schema.Basic.BasicEntity), 14), new Column("Money", typeof(decimal), 15), new Column("Month", typeof(string), 16), new Column("Time", typeof(DateTime), 17), new Column("Id", typeof(int), 18), new Column("NullableValue", typeof(int?), 19), new Column("Array", typeof(int[]), 20), new Column("Other", typeof(Musoq.Evaluator.Tests.Schema.Basic.BasicEntity), 21), new Column("Dictionary", typeof(Dictionary<string, string>), 22), new Column("Children", typeof(Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[]), 23) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();
@@ -134,7 +121,7 @@ namespace GeneratedSample_Q143_CorrelatedApplyDerivedTable
         public event QueryPhaseEventHandler PhaseChanged;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
         private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
@@ -161,7 +148,7 @@ namespace GeneratedSample_Q143_CorrelatedApplyDerivedTable
                 var aRowsSource = __aSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), Array.Empty<object>());
                 var aRows = aRowsSource.Chunks;
                 var __cte0_bSchema = provider.GetSchema("#B");
-                var cte0_bRowsSource = __cte0_bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var cte0_bRowsSource = __cte0_bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), Array.Empty<object>());
                 var cte0_bRows = cte0_bRowsSource.Chunks;
                 var dHash = new Dictionary<string, HashJoinBucket<DHashPayload0>>();
                 foreach (var bChunk in cte0_bRows)

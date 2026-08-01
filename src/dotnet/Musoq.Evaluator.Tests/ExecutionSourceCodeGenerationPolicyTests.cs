@@ -12,7 +12,9 @@ using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
 using Musoq.Schema.Reflection;
+using Musoq.Tests.Common.Schema;
 using SchemaConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
+using TestSchemaColumn = Musoq.Evaluator.Tests.Components.SchemaColumn;
 using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
@@ -34,6 +36,7 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
             "PrivateEntity");
         AssertHasGuidance(exception);
         AssertMessageContains(exception, "public CLR contract");
+        AssertMessageContains(exception, "schema-indexed positional row (currently object[])");
     }
 
     [TestMethod]
@@ -61,6 +64,67 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
     }
 
     [TestMethod]
+    public void CompileForInspection_WhenSourceEntityIsObjectArrayArray_ShouldRemainUnsupported()
+    {
+        var exception = CompileExpectedFailure(typeof(object[][]));
+
+        AssertErrorEnvelope(
+            exception,
+            DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
+            DiagnosticPhase.Bind,
+            "System.Object[][]");
+    }
+
+    [TestMethod]
+    public void CompileForInspection_WhenSourceEntityIsArbitraryList_ShouldRemainUnsupported()
+    {
+        var exception = CompileExpectedFailure(typeof(List<object[]>));
+
+        AssertErrorEnvelope(
+            exception,
+            DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
+            DiagnosticPhase.Bind,
+            "List");
+    }
+
+    [TestMethod]
+    public void CompileForInspection_WhenPositionalColumnHasNegativeIndex_ShouldReportGeneratedExecutionDiagnostic()
+    {
+        var exception = CompileExpectedFailure(
+            new PositionalRowsSchemaProvider(
+                [new TestSchemaColumn("Name", -1, typeof(string))],
+                [["Ada"]]),
+            "select a.Name from #positional.all() a");
+
+        AssertErrorEnvelope(
+            exception,
+            DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
+            DiagnosticPhase.Bind,
+            "Name");
+        AssertMessageContains(exception, "invalid negative index");
+    }
+
+    [TestMethod]
+    public void CompileForInspection_WhenPositionalColumnTypeIsNotReferenceable_ShouldReportGeneratedExecutionDiagnostic()
+    {
+        var exception = CompileExpectedFailure(
+            new PositionalRowsSchemaProvider(
+                [
+                    new TestSchemaColumn("Hidden", 0, typeof(InaccessibleColumnType)),
+                    new TestSchemaColumn("Name", 1, typeof(string))
+                ],
+                [[new InaccessibleColumnType(), "Ada"]]),
+            "select a.Name from #positional.all() a where a.Hidden != null");
+
+        AssertErrorEnvelope(
+            exception,
+            DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
+            DiagnosticPhase.Bind,
+            "Hidden");
+        AssertMessageContains(exception, "non-referenceable type");
+    }
+
+    [TestMethod]
     public void CompileForInspection_WhenSourceEntityIsSupportedDictionary_ShouldUseGeneratedAdapter()
     {
         var provider = new AnySchemaNameProvider(
@@ -84,12 +148,53 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetRowSourceChunks", StringComparison.Ordinal));
     }
 
+    [TestMethod]
+    public void CompileForInspection_WhenSourceEntityIsSchemaIndexedObjectArray_ShouldUseDirectPositionalAccess()
+    {
+        var inspection = InstanceCreator.CompileForInspection(
+            "select a.Name, a.Age, a.[Address.City] from #positional.all() a",
+            Guid.NewGuid().ToString(),
+            new PositionalRowsSchemaProvider(
+                [
+                    new Musoq.Schema.DataSources.SchemaColumn("Name", 2, typeof(string)),
+                    new Musoq.Schema.DataSources.SchemaColumn("Age", 0, typeof(int)),
+                    new Musoq.Schema.DataSources.SchemaColumn("Department", 1, typeof(string)),
+                    new Musoq.Schema.DataSources.SchemaColumn("Address.City", 3, typeof(string))
+                ],
+                [
+                    [37, "Engineering", "Ada", "London"],
+                    [29, "Research", "Bea", "Paris"]
+                ]),
+            _loggerResolver,
+            new CompilationOptions(usePrimitiveTypeValidation: false));
+
+        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("ExpandoAdapter", StringComparison.Ordinal));
+        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GeneratedDictionaryAccess", StringComparison.Ordinal));
+        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetColumnValue", StringComparison.Ordinal));
+        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetNestedValue", StringComparison.Ordinal));
+        Assert.Contains("[2]", inspection.GeneratedCSharpCode);
+        Assert.Contains("[0]", inspection.GeneratedCSharpCode);
+        Assert.Contains("[3]", inspection.GeneratedCSharpCode);
+        Assert.Contains("position 0", inspection.ExecutionPlanText);
+        Assert.Contains("position 2", inspection.ExecutionPlanText);
+        Assert.Contains("position 3", inspection.ExecutionPlanText);
+    }
+
     private MusoqQueryException CompileExpectedFailure(Type entityType)
     {
-        var result = InstanceCreator.CompileWithDiagnostics(
-            "select a.Name from #unsafe.all() a",
-            Guid.NewGuid().ToString(),
+        return CompileExpectedFailure(
             new UnsafeSchemaProvider(entityType),
+            "select a.Name from #unsafe.all() a");
+    }
+
+    private MusoqQueryException CompileExpectedFailure(
+        ISchemaProvider provider,
+        string query)
+    {
+        var result = InstanceCreator.CompileWithDiagnostics(
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
             _loggerResolver);
 
         Assert.IsTrue(result.HasErrors, "The inaccessible source contract should fail compilation.");
@@ -151,4 +256,9 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
     {
         public string Name { get; set; } = string.Empty;
     }
+
+    private sealed class InaccessibleColumnType
+    {
+    }
+
 }
