@@ -34,6 +34,7 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
     private readonly Func<ExecutionBatchCompilationRequest, BuildResult> _singleCompiler;
     private readonly int _maximumBatchSize;
     private readonly TimeSpan _collectionWindow;
+    private readonly Action? _requestEnqueued;
     private long _nextKey;
     private bool _disposed;
     private int _workCount;
@@ -43,7 +44,8 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
         Func<IReadOnlyList<ExecutionBatchCompilationRequest>, IReadOnlyList<ExecutionBatchCompilationResult>> batchCompiler,
         Func<ExecutionBatchCompilationRequest, BuildResult> singleCompiler,
         int maximumBatchSize = MaximumBatchSize,
-        TimeSpan? collectionWindow = null)
+        TimeSpan? collectionWindow = null,
+        Action? requestEnqueued = null)
     {
         _batchCompiler = batchCompiler ?? throw new ArgumentNullException(nameof(batchCompiler));
         _singleCompiler = singleCompiler ?? throw new ArgumentNullException(nameof(singleCompiler));
@@ -52,6 +54,7 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
 
         _maximumBatchSize = maximumBatchSize;
         _collectionWindow = collectionWindow ?? CollectionWindow;
+        _requestEnqueued = requestEnqueued;
         _dispatcher = new Thread(Dispatch)
         {
             IsBackground = true,
@@ -92,6 +95,7 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
             _queue.Enqueue(pending);
         }
         _queueSignal.Set();
+        _requestEnqueued?.Invoke();
 
         return pending.Completion.Task.GetAwaiter().GetResult();
     }

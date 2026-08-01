@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -96,19 +95,20 @@ public partial class SchemaExtendedTests
     public void RowSourceBase_WhenProducerIgnoresCancellation_ShouldNotHangConsumerDispose()
     {
         var source = new NonCooperativeChunkedSource();
-        var stopwatch = Stopwatch.StartNew();
 
-        using (var enumerator = source.Chunks.GetEnumerator())
-        {
-            Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual(1, enumerator.Current[0]);
-        }
+        using var enumerator = source.Chunks.GetEnumerator();
 
-        stopwatch.Stop();
+        Assert.IsTrue(enumerator.MoveNext());
+        Assert.AreEqual(1, enumerator.Current[0]);
+
+        // Dispose must return while the producer is deliberately ignoring
+        // cancellation. Releasing the producer only after disposal proves
+        // that cleanup was handed off instead of waiting on producer progress.
+        enumerator.Dispose();
+        Assert.IsFalse(source.ProducerExited.IsSet);
+
         source.ReleaseProducer.Set();
-
-        Assert.IsLessThan(TimeSpan.FromSeconds(2), stopwatch.Elapsed);
-        Assert.IsTrue(source.ProducerExited.Wait(TimeSpan.FromSeconds(2)));
+        source.ProducerExited.Wait();
     }
 
     private sealed class StartTrackingChunkedSource : RowSourceBase<int>

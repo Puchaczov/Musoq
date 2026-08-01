@@ -158,21 +158,25 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
     {
         var singleCalls = 0;
         var queries = new ConcurrentBag<CompiledQuery>();
-        var coordinator = CreateCoordinator(
+        using var requestEnqueued = new ManualResetEventSlim();
+        using var coordinator = CreateCoordinator(
             _ => throw new AssertFailedException("The pending request must not be batched after shutdown."),
             request =>
             {
                 Interlocked.Increment(ref singleCalls);
                 return CreateSuccess(request, queries).Result;
             },
-            collectionWindow: TimeSpan.FromSeconds(10));
+            collectionWindow: TimeSpan.FromSeconds(10),
+            requestEnqueued: requestEnqueued.Set);
 
         var resultTask = Task.Run(() => coordinator.Submit(
             "shutdown-query",
             new EmptySchemaProvider(),
             new TestsLoggerResolver(),
             new CompilationOptions()));
-        await Task.Delay(20);
+        Assert.IsTrue(
+            requestEnqueued.Wait(TimeSpan.FromSeconds(30)),
+            "The request was not enqueued before the coordinator shutdown test continued.");
 
         coordinator.Dispose();
         var result = await resultTask;
@@ -258,13 +262,15 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
         Func<IReadOnlyList<ExecutionBatchCompilationRequest>, IReadOnlyList<ExecutionBatchCompilationResult>> batchCompiler,
         Func<ExecutionBatchCompilationRequest, BuildResult> singleCompiler,
         TimeSpan collectionWindow,
-        int maximumBatchSize = 8)
+        int maximumBatchSize = 8,
+        Action? requestEnqueued = null)
     {
         return new ExecutionCompilationBatchCoordinator(
             batchCompiler,
             singleCompiler,
             maximumBatchSize,
-            collectionWindow: collectionWindow);
+            collectionWindow: collectionWindow,
+            requestEnqueued: requestEnqueued);
     }
 
     private static ExecutionBatchCompilationResult CreateSuccess(
