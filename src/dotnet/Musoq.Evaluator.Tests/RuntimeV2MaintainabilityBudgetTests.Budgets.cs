@@ -183,7 +183,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     [
         new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "declares:ExecutionCSharpRenderer", 461),
         new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "ExecutionCSharpRenderer.*Aggregate*.cs", 374),
-        new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionIrAnalysis*.cs", 94),
+        new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionIrAnalysis*.cs", 95),
         new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionExpressionFingerprint*.cs", 297),
         new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionExpressionConverter*.cs", 352),
         new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionNode*.cs", 190),
@@ -237,14 +237,14 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
     private static readonly SourceFamilyTotalBudget[] ProductionFamilyTotalBudgets =
     [
-        new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "declares:ExecutionCSharpRenderer", 27882),
+        new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "declares:ExecutionCSharpRenderer", 27957),
         new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "ExecutionCSharpRenderer.*Aggregate*.cs", 4634),
-        new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionIrAnalysis*.cs", 241),
+        new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionIrAnalysis*.cs", 242),
         new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionExpressionFingerprint*.cs", 409),
         new("src/dotnet/Musoq.Evaluator/IR/Execution", "PhysicalLoweringImplementation*.cs", 19778),
         new("src/dotnet/Musoq.Evaluator/IR/Execution", "SingleUse*.cs", 1501),
         new("src/dotnet/Musoq.Evaluator/IR/Execution", "CteSourceBacked*.cs", 800), new("src/dotnet/Musoq.Evaluator/IR/Execution", "CteSidecar*.cs", 297),
-        new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionIrRewriter*.cs", 1258), new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "ExecutionCSharpRenderer.OperatorProfiling*.cs", 406),
+        new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionIrRewriter*.cs", 1264), new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "ExecutionCSharpRenderer.OperatorProfiling*.cs", 406),
         new("src/dotnet/Musoq.Evaluator/IR/Execution", "*Key*Rendering.cs", 388),
         new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "ExecutionCSharpRenderer.HashJoinKeyRendering*.cs", 345),
         new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "ExecutionCSharpRenderer.KeySetHelperRendering*.cs", 224),

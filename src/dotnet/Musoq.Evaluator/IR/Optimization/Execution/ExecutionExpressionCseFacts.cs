@@ -36,6 +36,7 @@ internal static partial class ExecutionExpressionCseFacts
     {
         return !ExecutionIrAnalysis.FlattenExpressions(expression).Any(static current => current is
             ExecutionFieldRead or
+            ExecutionMemberRead or
             ExecutionVariableRead or
             ExecutionRowContextsRead or
             ExecutionWindowValueRead or
@@ -165,6 +166,7 @@ internal static partial class ExecutionExpressionCseFacts
         return expression switch
         {
             ExecutionFieldRead fieldRead => !string.IsNullOrWhiteSpace(fieldRead.Alias),
+            ExecutionMemberRead memberRead => IsDeterministicExpression(memberRead.Receiver),
             ExecutionMethodCall methodCall => IsSafeWholeMethodCallCseCandidate(methodCall, hasExplicitTargetMetadata: false),
             ExecutionMethodTargetReuseCandidate candidate => IsSafeWholeMethodCallCseCandidate(candidate.MethodCall, hasExplicitTargetMetadata: true),
             ExecutionStrictCast strictCast => IsSafeWholeStrictCastCseCandidate(strictCast),
@@ -223,6 +225,7 @@ internal static partial class ExecutionExpressionCseFacts
                                               methodCall.Arguments.All(IsDeterministicExpression) &&
                                               (methodCall.InjectedSource == null ||
                                                IsDeterministicExpression(methodCall.InjectedSource)),
+            ExecutionMemberRead memberRead => IsDeterministicExpression(memberRead.Receiver),
             ExecutionBinary binary => IsDeterministicExpression(binary.Left) &&
                                       IsDeterministicExpression(binary.Right),
             ExecutionUnary unary => IsDeterministicExpression(unary.Operand),
@@ -262,6 +265,7 @@ internal static partial class ExecutionExpressionCseFacts
     {
         return expression switch
         {
+            ExecutionMemberRead memberRead => 1 + GetExpressionDepth(memberRead.Receiver),
             ExecutionBinary binary => 1 + Math.Max(GetExpressionDepth(binary.Left), GetExpressionDepth(binary.Right)),
             ExecutionUnary unary => 1 + GetExpressionDepth(unary.Operand),
             ExecutionStrictCast strictCast => 1 + GetExpressionDepth(strictCast.Expression),

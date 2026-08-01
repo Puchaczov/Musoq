@@ -24,6 +24,7 @@ internal static class ParallelExecutionEligibilityRules
         {
             null => ParallelExecutionEligibilityCheck.Enabled,
             ExecutionFieldRead fieldRead => fieldReadEligibility(fieldRead),
+            ExecutionMemberRead memberRead => CanUseExpression(memberRead.Receiver, fieldReadEligibility),
             ExecutionLiteral => ParallelExecutionEligibilityCheck.Enabled,
             ExecutionBinary binary => Combine(
                 CanUseExpression(binary.Left, fieldReadEligibility),

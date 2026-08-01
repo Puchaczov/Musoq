@@ -12,6 +12,7 @@ public sealed partial class ExecutionCSharpRenderer
             expression switch
             {
                 ExecutionFieldRead fieldRead => renderer.RenderFieldRead(fieldRead, context),
+                ExecutionMemberRead memberRead => renderer.RenderMemberRead(memberRead, context),
                 ExecutionScriptParameterRead parameterRead => CreateIdentifierName(renderer.GetScriptParameterLocalName(parameterRead.Name)),
                 ExecutionScriptVariableRead variableRead => CreateIdentifierName(renderer.GetScriptVariableLocalName(variableRead.Name)),
                 ExecutionLiteral literal => ExecutionCSharpRenderer.RenderLiteral(literal.Value),

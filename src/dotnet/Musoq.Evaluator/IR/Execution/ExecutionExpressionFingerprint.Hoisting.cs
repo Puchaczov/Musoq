@@ -11,6 +11,7 @@ internal static partial class ExecutionExpressionFingerprint
         expression switch
         {
             ExecutionFieldRead fieldRead => $"field:{fieldRead.Alias}:{fieldRead.FieldName}:{HoistType(fieldRead.ReturnType)}:{fieldRead.AccessStrategy}",
+            ExecutionMemberRead memberRead => $"member:{memberRead.IsDynamic}:{memberRead.MemberName}:{ForHoist(memberRead.Receiver)}:{HoistType(memberRead.ReturnType)}",
             ExecutionLiteral literal => $"literal:{HoistType(literal.ReturnType)}:{literal.Value}",
             ExecutionBinary binary => $"binary:{binary.Kind}:{ForHoist(binary.Left)}:{ForHoist(binary.Right)}:{HoistType(binary.ReturnType)}",
             ExecutionUnary unary => $"unary:{unary.Kind}:{ForHoist(unary.Operand)}:{HoistType(unary.ReturnType)}",

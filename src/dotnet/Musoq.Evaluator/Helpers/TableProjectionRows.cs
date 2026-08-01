@@ -25,16 +25,11 @@ public static class TableProjectionRows
         CancellationToken cancellationToken)
         where TRow : Row
     {
-        foreach (var chunk in chunks)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            for (var index = 0; index < chunk.Count; index++)
-            {
-                var row = chunk[index];
-                if (predicate(row))
-                    yield return project(row);
-            }
-        }
+        ArgumentNullException.ThrowIfNull(chunks);
+        ArgumentNullException.ThrowIfNull(predicate);
+        ArgumentNullException.ThrowIfNull(project);
+
+        return new ChunkProjectionRows<TSource, TRow>(chunks, predicate, project, cancellationToken);
     }
 
     public static IEnumerable<TRow> ProjectOptionalRowsSerial<TSource, TRow>(
@@ -119,6 +114,55 @@ public static class TableProjectionRows
                     var projected = project(chunk[index]);
                     if (projected != null)
                         yield return projected;
+                }
+            }
+        }
+    }
+
+    private sealed class ChunkProjectionRows<TSource, TRow>(
+        IEnumerable<IReadOnlyList<TSource>> chunks,
+        Func<TSource, bool> predicate,
+        Func<TSource, TRow> project,
+        CancellationToken cancellationToken) : ITableRowBatchSource<TRow>
+        where TRow : Row
+    {
+        public void AddTo(Table table)
+        {
+            ArgumentNullException.ThrowIfNull(table);
+
+            foreach (var chunk in chunks)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                for (var index = 0; index < chunk.Count; index++)
+                {
+                    var row = chunk[index];
+                    if (predicate(row))
+                        table.AddDirect(project(row));
+                }
+            }
+        }
+
+        public IEnumerator<TRow> GetEnumerator()
+        {
+            return Enumerate().GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        private IEnumerable<TRow> Enumerate()
+        {
+            foreach (var chunk in chunks)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                for (var index = 0; index < chunk.Count; index++)
+                {
+                    var row = chunk[index];
+                    if (predicate(row))
+                        yield return project(row);
                 }
             }
         }

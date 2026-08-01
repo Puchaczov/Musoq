@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
 namespace Musoq.Evaluator.IR.Execution;
@@ -67,6 +68,9 @@ public static partial class ExecutionPlanPrinter
             ReflectedMemberAccess reflected => $"reflected member {reflected.PropertyPath}",
             NestedClrPropertyAccess nestedProperty => $"nested property {nestedProperty.PropertyPath}",
             NestedPositionalAccess nestedPositional => $"position {nestedPositional.Index}.{nestedPositional.PropertyPath}",
+            RuntimeDynamicMemberAccess runtimeDynamic => $"runtime dynamic member \"{runtimeDynamic.MemberName}\"",
+            RuntimeDynamicMemberPathAccess runtimePath =>
+                $"runtime dynamic path {runtimePath.RootFieldName}.{string.Join('.', runtimePath.Segments.Select(segment => segment.MemberName))}",
             _ => strategy.GetType().Name
         };
     }

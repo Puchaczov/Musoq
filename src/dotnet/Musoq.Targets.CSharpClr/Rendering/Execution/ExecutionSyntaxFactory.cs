@@ -207,9 +207,6 @@ internal static class ExecutionSyntaxFactory
 
     internal static TypeSyntax CreateTypeSyntax(Type type)
     {
-        if (DynamicEntityBoundary.IsDynamicMetaObjectProvider(type))
-            return SyntaxFactory.IdentifierName("dynamic");
-
         return SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(type));
     }
 
@@ -239,9 +236,7 @@ internal static class ExecutionSyntaxFactory
 
     internal static TypeSyntax CreateTypeOfTypeSyntax(Type type)
     {
-        return DynamicEntityBoundary.IsDynamicMetaObjectProvider(type)
-            ? CreateTypeSyntax(typeof(object))
-            : CreateTypeSyntax(type);
+        return CreateTypeSyntax(type);
     }
 
     internal static TypeSyntax CreateTypeOfTypeSyntax(ExecutionTypeRef type) =>

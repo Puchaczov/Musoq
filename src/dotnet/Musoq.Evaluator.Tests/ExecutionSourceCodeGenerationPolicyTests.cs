@@ -7,6 +7,7 @@ using Musoq.Converter;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Dynamic;
+using Musoq.Evaluator.Tests.Schema.RuntimeDynamic;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -60,7 +61,33 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
             exception,
             DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
             DiagnosticPhase.Bind,
+            "not publicly referenceable");
+    }
+
+    [TestMethod]
+    public void CompileForInspection_WhenSourceEntityIsArbitraryMetaObjectProvider_ShouldRemainUnsupported()
+    {
+        var exception = CompileExpectedFailure(typeof(RuntimeMetaObjectProvider));
+
+        AssertErrorEnvelope(
+            exception,
+            DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
+            DiagnosticPhase.Bind,
             "custom runtime-dynamic");
+    }
+
+    [TestMethod]
+    public void CompileForInspection_WhenDynamicColumnTypeIsNotReferenceable_ShouldReportGeneratedExecutionDiagnostic()
+    {
+        var exception = CompileExpectedFailure(
+            new UnsafeSchemaProvider(typeof(RuntimeDynamicRow), typeof(InaccessibleColumnType)),
+            "select 1 from #unsafe.all() a where a.Name is not null");
+
+        AssertErrorEnvelope(
+            exception,
+            DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
+            DiagnosticPhase.Bind,
+            "non-referenceable type");
     }
 
     [TestMethod]
@@ -203,12 +230,12 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
             : new MusoqQueryException(result.ToEnvelopes());
     }
 
-    private sealed class UnsafeSchemaProvider(Type entityType) : ISchemaProvider
+    private sealed class UnsafeSchemaProvider(Type entityType, Type? columnType = null) : ISchemaProvider
     {
-        public ISchema GetSchema(string schema) => new UnsafeSchema(entityType);
+        public ISchema GetSchema(string schema) => new UnsafeSchema(entityType, columnType ?? typeof(string));
     }
 
-    private sealed class UnsafeSchema(Type entityType) : SchemaBase("unsafe", CachedLibrary.Value)
+    private sealed class UnsafeSchema(Type entityType, Type columnType) : SchemaBase("unsafe", CachedLibrary.Value)
     {
         private static readonly Lazy<MethodsAggregator> CachedLibrary =
             new(() => new MethodsAggregator(new MethodsManager()));
@@ -218,7 +245,7 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
             SourceMetadataContext metadataContext,
             params object?[] parameters)
         {
-            return new UnsafeTable(entityType);
+            return new UnsafeTable(entityType, columnType);
         }
 
         public override SchemaMethodInfo[] GetRawConstructors(
@@ -231,11 +258,11 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
         }
     }
 
-    private sealed class UnsafeTable(Type entityType) : ISchemaTable
+    private sealed class UnsafeTable(Type entityType, Type columnType) : ISchemaTable
     {
         public ISchemaColumn[] Columns { get; } =
         [
-            new Musoq.Schema.DataSources.SchemaColumn("Name", 0, typeof(string))
+            new Musoq.Schema.DataSources.SchemaColumn("Name", 0, columnType)
         ];
 
         public ISchemaColumn? GetColumnByName(string name) =>

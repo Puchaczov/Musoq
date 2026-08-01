@@ -169,7 +169,7 @@ namespace GeneratedSample_Q67_DynamicCteBackedAsOfJoin
                                 }
 
                                 var lResolver = lResolverChunkViewArray[lResolverChunkViewOffset + lResolverIndex];
-                                var l = new lDynamicRow0(lResolver.ContainsKey("Team") ? (string)lResolver["Team"] : default(string), lResolver.ContainsKey("Name") ? (string)lResolver["Name"] : default(string), lResolver.ContainsKey("Score") ? (int)lResolver["Score"] : default(int));
+                                var l = new lDynamicRow0(lResolver.TryGetValue("Team", out var __dynamicValue9_0) ? (string)__dynamicValue9_0 : default(string), lResolver.TryGetValue("Name", out var __dynamicValue10_1) ? (string)__dynamicValue10_1 : default(string), lResolver.TryGetValue("Score", out var __dynamicValue11_2) ? (int)__dynamicValue11_2 : default(int));
                                 {
                                     var r = resultAsOfIndex.Find((object)l.Team, l.Score);
                                     if (r != null)
@@ -193,7 +193,7 @@ namespace GeneratedSample_Q67_DynamicCteBackedAsOfJoin
                                 }
 
                                 var lResolver = lResolverChunkViewList[lResolverChunkViewOffset + lResolverIndex];
-                                var l = new lDynamicRow0(lResolver.ContainsKey("Team") ? (string)lResolver["Team"] : default(string), lResolver.ContainsKey("Name") ? (string)lResolver["Name"] : default(string), lResolver.ContainsKey("Score") ? (int)lResolver["Score"] : default(int));
+                                var l = new lDynamicRow0(lResolver.TryGetValue("Team", out var __dynamicValue12_0) ? (string)__dynamicValue12_0 : default(string), lResolver.TryGetValue("Name", out var __dynamicValue13_1) ? (string)__dynamicValue13_1 : default(string), lResolver.TryGetValue("Score", out var __dynamicValue14_2) ? (int)__dynamicValue14_2 : default(int));
                                 {
                                     var r = resultAsOfIndex.Find((object)l.Team, l.Score);
                                     if (r != null)
@@ -215,7 +215,7 @@ namespace GeneratedSample_Q67_DynamicCteBackedAsOfJoin
                         }
 
                         var lResolver = lResolverChunk[lResolverIndex];
-                        var l = new lDynamicRow0(lResolver.ContainsKey("Team") ? (string)lResolver["Team"] : default(string), lResolver.ContainsKey("Name") ? (string)lResolver["Name"] : default(string), lResolver.ContainsKey("Score") ? (int)lResolver["Score"] : default(int));
+                        var l = new lDynamicRow0(lResolver.TryGetValue("Team", out var __dynamicValue15_0) ? (string)__dynamicValue15_0 : default(string), lResolver.TryGetValue("Name", out var __dynamicValue16_1) ? (string)__dynamicValue16_1 : default(string), lResolver.TryGetValue("Score", out var __dynamicValue17_2) ? (int)__dynamicValue17_2 : default(int));
                         {
                             var r = resultAsOfIndex.Find((object)l.Team, l.Score);
                             if (r != null)
@@ -270,7 +270,7 @@ namespace GeneratedSample_Q67_DynamicCteBackedAsOfJoin
                             }
 
                             var dResolver = dResolverChunkViewArray[dResolverChunkViewOffset + dResolverIndex];
-                            var d = new dDynamicRow0(dResolver.ContainsKey("Team") ? (string)dResolver["Team"] : default(string), dResolver.ContainsKey("Name") ? (string)dResolver["Name"] : default(string), dResolver.ContainsKey("Score") ? (int)dResolver["Score"] : default(int));
+                            var d = new dDynamicRow0(dResolver.TryGetValue("Team", out var __dynamicValue0_0) ? (string)__dynamicValue0_0 : default(string), dResolver.TryGetValue("Name", out var __dynamicValue1_1) ? (string)__dynamicValue1_1 : default(string), dResolver.TryGetValue("Score", out var __dynamicValue2_2) ? (int)__dynamicValue2_2 : default(int));
                             cte0.Add(new Cte0Row0(d.Team, d.Name, d.Score));
                         }
 
@@ -288,7 +288,7 @@ namespace GeneratedSample_Q67_DynamicCteBackedAsOfJoin
                             }
 
                             var dResolver = dResolverChunkViewList[dResolverChunkViewOffset + dResolverIndex];
-                            var d = new dDynamicRow0(dResolver.ContainsKey("Team") ? (string)dResolver["Team"] : default(string), dResolver.ContainsKey("Name") ? (string)dResolver["Name"] : default(string), dResolver.ContainsKey("Score") ? (int)dResolver["Score"] : default(int));
+                            var d = new dDynamicRow0(dResolver.TryGetValue("Team", out var __dynamicValue3_0) ? (string)__dynamicValue3_0 : default(string), dResolver.TryGetValue("Name", out var __dynamicValue4_1) ? (string)__dynamicValue4_1 : default(string), dResolver.TryGetValue("Score", out var __dynamicValue5_2) ? (int)__dynamicValue5_2 : default(int));
                             cte0.Add(new Cte0Row0(d.Team, d.Name, d.Score));
                         }
 
@@ -304,7 +304,7 @@ namespace GeneratedSample_Q67_DynamicCteBackedAsOfJoin
                     }
 
                     var dResolver = dResolverChunk[dResolverIndex];
-                    var d = new dDynamicRow0(dResolver.ContainsKey("Team") ? (string)dResolver["Team"] : default(string), dResolver.ContainsKey("Name") ? (string)dResolver["Name"] : default(string), dResolver.ContainsKey("Score") ? (int)dResolver["Score"] : default(int));
+                    var d = new dDynamicRow0(dResolver.TryGetValue("Team", out var __dynamicValue6_0) ? (string)__dynamicValue6_0 : default(string), dResolver.TryGetValue("Name", out var __dynamicValue7_1) ? (string)__dynamicValue7_1 : default(string), dResolver.TryGetValue("Score", out var __dynamicValue8_2) ? (int)__dynamicValue8_2 : default(int));
                     cte0.Add(new Cte0Row0(d.Team, d.Name, d.Score));
                 }
             }

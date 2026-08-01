@@ -118,6 +118,10 @@ internal static partial class ExpressionCseSubstitution
             {
                 Expression = Replace(strictCast.Expression, variablesBySignature)
             },
+            ExecutionMemberRead memberRead => memberRead with
+            {
+                Receiver = Replace(memberRead.Receiver, variablesBySignature)
+            },
             ExecutionArrayAccess arrayAccess => arrayAccess with
             {
                 Index = Replace(arrayAccess.Index, variablesBySignature)

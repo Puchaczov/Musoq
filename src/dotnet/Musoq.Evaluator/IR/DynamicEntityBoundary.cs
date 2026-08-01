@@ -47,6 +47,17 @@ internal static class DynamicEntityBoundary
     }
 
     /// <summary>
+    /// True when the type is a framework <see cref="DynamicObject"/> subclass.
+    /// Arbitrary meta-object providers remain outside the generated source contract.
+    /// </summary>
+    public static bool IsDynamicObject(Type type)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        return typeof(DynamicObject).IsAssignableFrom(type);
+    }
+
+    /// <summary>
     /// True when the type implements a string/object dictionary interface and can be
     /// accessed through dictionary members at runtime.
     /// </summary>

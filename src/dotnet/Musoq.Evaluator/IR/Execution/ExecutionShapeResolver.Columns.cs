@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Schema;
@@ -120,15 +121,43 @@ public sealed partial class ExecutionShapeResolver
             return new PositionalAccess(column.ColumnIndex);
         }
 
+        if (DynamicEntityBoundary.IsDynamicObject(entityType) &&
+            !ExecutionSourceCodeGenerationPolicy.IsSupportedDictionary(entityType))
+        {
+            if (HasPublicClrMember(entityType, column.ColumnName))
+            {
+                return new ClrPropertyAccess(ResolvePublicClrMemberName(entityType, column.ColumnName));
+            }
+
+            return new RuntimeDynamicMemberAccess(column.ColumnName);
+        }
+
         if (column.ColumnName.Contains('.', StringComparison.Ordinal))
         {
             return new NestedClrPropertyAccess(column.ColumnName);
         }
 
-        if (entityType.GetProperty(column.ColumnName) != null ||
-            entityType.GetField(column.ColumnName) != null)
+        if (HasPublicClrMember(entityType, column.ColumnName))
             return new ClrPropertyAccess(column.ColumnName);
 
         return new PositionalAccess(column.ColumnIndex);
+    }
+
+    private static bool HasPublicClrMember(Type entityType, string memberName) =>
+        ResolvePublicClrMember(entityType, memberName) != null;
+
+    private static string ResolvePublicClrMemberName(Type entityType, string memberName) =>
+        ResolvePublicClrMember(entityType, memberName)?.Name ?? memberName;
+
+    private static MemberInfo? ResolvePublicClrMember(Type entityType, string memberName)
+    {
+        return entityType
+            .GetMember(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase)
+            .FirstOrDefault(member => member switch
+            {
+                PropertyInfo property => property.GetMethod is { IsPublic: true },
+                FieldInfo field => field.IsPublic,
+                _ => false
+            });
     }
 }

@@ -11,6 +11,7 @@ internal abstract partial class ExecutionIrRewriter
         return expression switch
         {
             ExecutionFieldRead fieldRead => RewriteFieldRead(fieldRead),
+            ExecutionMemberRead memberRead => RewriteMemberRead(memberRead),
             ExecutionScriptParameterRead parameterRead => RewriteScriptParameterRead(parameterRead),
             ExecutionScriptVariableRead variableRead => RewriteScriptVariableRead(variableRead),
             ExecutionLiteral literal => RewriteLiteral(literal),
@@ -52,6 +53,12 @@ internal abstract partial class ExecutionIrRewriter
     }
 
     protected virtual ExecutionExpression RewriteFieldRead(ExecutionFieldRead expression) => expression;
+
+    protected virtual ExecutionExpression RewriteMemberRead(ExecutionMemberRead expression)
+    {
+        var receiver = RewriteExpression(expression.Receiver);
+        return ReferenceEquals(receiver, expression.Receiver) ? expression : expression with { Receiver = receiver };
+    }
 
     protected virtual ExecutionExpression RewriteScriptParameterRead(ExecutionScriptParameterRead expression) => expression;
 

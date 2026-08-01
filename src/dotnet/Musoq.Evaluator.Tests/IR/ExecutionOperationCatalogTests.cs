@@ -25,8 +25,8 @@ public sealed class ExecutionOperationCatalogTests
         CollectionAssert.AreEquivalent(nodes, ExecutionOperationCatalog.RegisteredNodeTypes.ToArray());
         CollectionAssert.AreEquivalent(expressions, ExecutionOperationCatalog.RegisteredExpressionTypes.ToArray());
         Assert.HasCount(88, nodes);
-        Assert.HasCount(37, expressions);
-        Assert.HasCount(125, ExecutionOperationCatalog.AllOperationIds);
+        Assert.HasCount(38, expressions);
+        Assert.HasCount(126, ExecutionOperationCatalog.AllOperationIds);
     }
 
     [TestMethod]

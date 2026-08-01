@@ -130,6 +130,8 @@ internal static class PortableSubsetLowerer
     {
         ExecutionLiteral literal => new PortableLiteralExpression(LowerConstant(literal.Value)),
         ExecutionFieldRead field => new PortableFieldExpression(field.Alias, field.FieldName),
+        ExecutionMemberRead member => throw new PortableSubsetLoweringException(
+            $"Portable subset does not support runtime member '{member.MemberName}'."),
         ExecutionScriptParameterRead parameter => new PortableParameterExpression(parameter.Name),
         ExecutionScriptVariableRead variable => new PortableScriptVariableExpression(variable.Name),
         ExecutionVariableRead variable => new PortableVariableExpression(variable.Variable.Name),

@@ -6,7 +6,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public static partial class ExecutionExpressionConverter
 {
-    private static ExecutionFieldRead ConvertColumnRef(
+    private static ExecutionExpression ConvertColumnRef(
         ColumnRef column,
         IReadOnlyDictionary<string, RowShape> sourceShapes)
     {
@@ -14,6 +14,29 @@ public static partial class ExecutionExpressionConverter
         if (resolvedField != null)
         {
             var (alias, field) = resolvedField.Value;
+
+            if (field.AccessStrategy is RuntimeDynamicMemberPathAccess runtimePath)
+            {
+                ExecutionExpression current = new ExecutionFieldRead(
+                    alias,
+                    runtimePath.RootFieldName,
+                    runtimePath.RootFieldType,
+                    runtimePath.RootIsDynamic
+                        ? new RuntimeDynamicMemberAccess(runtimePath.RootFieldName)
+                        : new ClrPropertyAccess(runtimePath.RootFieldName));
+
+                foreach (var segment in runtimePath.Segments)
+                {
+                    current = new ExecutionMemberRead(
+                        current,
+                        segment.MemberName,
+                        segment.ResultType,
+                        segment.IsDynamic);
+                }
+
+                return current;
+            }
+
             return new ExecutionFieldRead(
                 alias,
                 field.Name,
@@ -92,15 +115,18 @@ public static partial class ExecutionExpressionConverter
             ? columnName
             : $"{column.Alias}.{columnName}";
         var field = sourceShape.Fields.FirstOrDefault(candidate =>
-            string.Equals(candidate.Name, columnName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.Name, column.ColumnName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.Name, sourceRelativeColumnName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.Name, originalQualifiedName, StringComparison.OrdinalIgnoreCase) ||
-            sourceRelativeColumnName.Contains('.', StringComparison.Ordinal) &&
-            HasQualifiedSuffix(candidate.Name, sourceRelativeColumnName) ||
-            string.Equals(candidate.QualifiedName, originalQualifiedName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.QualifiedName, qualifiedName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.QualifiedName, $"{alias}.{originalQualifiedName}", StringComparison.OrdinalIgnoreCase));
+            !(sourceRelativeColumnName.Contains('.', StringComparison.Ordinal) &&
+              candidate.Name.Contains('.', StringComparison.Ordinal) &&
+              candidate.AccessStrategy is RuntimeDynamicMemberAccess) &&
+            (string.Equals(candidate.Name, columnName, StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(candidate.Name, column.ColumnName, StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(candidate.Name, sourceRelativeColumnName, StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(candidate.Name, originalQualifiedName, StringComparison.OrdinalIgnoreCase) ||
+             sourceRelativeColumnName.Contains('.', StringComparison.Ordinal) &&
+             HasQualifiedSuffix(candidate.Name, sourceRelativeColumnName) ||
+             string.Equals(candidate.QualifiedName, originalQualifiedName, StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(candidate.QualifiedName, qualifiedName, StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(candidate.QualifiedName, $"{alias}.{originalQualifiedName}", StringComparison.OrdinalIgnoreCase)));
 
         if (field != null)
             return new ResolvedExecutionField(alias, field);

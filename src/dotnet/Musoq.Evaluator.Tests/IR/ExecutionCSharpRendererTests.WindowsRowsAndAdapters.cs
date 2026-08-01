@@ -228,7 +228,7 @@ public sealed partial class ExecutionCSharpRendererTests
         Assert.Contains("foreach (var pDynamicSourceChunk in pRows)", code);
         Assert.Contains("var pDynamicSource = pDynamicSourceChunk[pDynamicSourceIndex];", code);
         Assert.Contains(
-            "var p = new pDynamicRow0(pDynamicSource.ContainsKey(\"Id\") ? (int)pDynamicSource[\"Id\"] : default(int), pDynamicSource.ContainsKey(\"Name\") ? (string)pDynamicSource[\"Name\"] : default(string));",
+            "var p = new pDynamicRow0(((IDictionary<string, object>)pDynamicSource).TryGetValue(\"Id\", out var __dynamicValue0_0) ? (int)__dynamicValue0_0 : default(int), ((IDictionary<string, object>)pDynamicSource).TryGetValue(\"Name\", out var __dynamicValue1_1) ? (string)__dynamicValue1_1 : default(string));",
             code);
         Assert.Contains("result.Add(new ResultRow0(p.Id, p.Name));", code);
         Assert.IsFalse(code.Contains("HasColumn", StringComparison.Ordinal));

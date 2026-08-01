@@ -93,9 +93,8 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.Contains("private sealed class dDynamicRow0", inspection.GeneratedCSharpCode);
-        Assert.Contains(
-            "new dDynamicRow0(dResolver.ContainsKey(\"Id\") ? (int)dResolver[\"Id\"] : default(int), dResolver.ContainsKey(\"Name\") ? (string)dResolver[\"Name\"] : default(string))",
-            inspection.GeneratedCSharpCode);
+        Assert.Contains("new dDynamicRow0(dResolver.TryGetValue(\"Id\", out var __dynamicValue", inspection.GeneratedCSharpCode);
+        Assert.Contains("dResolver.TryGetValue(\"Name\", out var __dynamicValue", inspection.GeneratedCSharpCode);
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("EvaluationHelper.GetColumnValue", StringComparison.Ordinal));
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual(1, table[0][0]);
@@ -127,7 +126,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.Contains("public dynamic Complex", inspection.GeneratedCSharpCode);
-        Assert.Contains("new dDynamicRow0(dResolver.ContainsKey(\"Complex\") ? dResolver[\"Complex\"] : null)", inspection.GeneratedCSharpCode);
+        Assert.Contains("new dDynamicRow0(dResolver.TryGetValue(\"Complex\", out var __dynamicValue", inspection.GeneratedCSharpCode);
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1, table[0][0]);
         Assert.AreEqual("Test1", table[0][1]);

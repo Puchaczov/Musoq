@@ -64,6 +64,7 @@ internal static partial class ExecutionIrAnalysis
         return expression switch
         {
             ExecutionBinary binary => [binary.Left, binary.Right],
+            ExecutionMemberRead memberRead => [memberRead.Receiver],
             ExecutionUnary unary => [unary.Operand],
             ExecutionMethodCall methodCall => methodCall.InjectedSource == null
                 ? methodCall.Arguments

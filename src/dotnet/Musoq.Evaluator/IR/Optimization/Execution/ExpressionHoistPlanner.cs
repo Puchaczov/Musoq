@@ -74,6 +74,7 @@ internal static class ExpressionHoistPlanner
         var candidate = expression switch
         {
             ExecutionFieldRead fieldRead => fieldRead.FieldName,
+            ExecutionMemberRead memberRead => memberRead.MemberName,
             ExecutionMethodCall methodCall => methodCall.Method.MethodName,
             ExecutionMethodTargetReuseCandidate methodTargetCandidate => methodTargetCandidate.MethodCall.Method.MethodName,
             ExecutionStrictCast strictCast => CreateCastHoistVariableName(strictCast),

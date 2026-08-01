@@ -53,6 +53,23 @@ internal static class ExecutionSourceCodeGenerationPolicy
             if (IsSupportedDictionary(entityType))
                 continue;
 
+            if (IsSupportedDynamicObject(entityType))
+            {
+                foreach (var column in used)
+                {
+                    if (CanReferenceType(column.ColumnType))
+                        continue;
+
+                    AddViolation(
+                        source,
+                        entityType,
+                        column.ColumnName,
+                        $"column '{column.ColumnName}' reaches non-referenceable type '{column.ColumnType.FullName ?? column.ColumnType.Name}'");
+                }
+
+                continue;
+            }
+
             // A coupled/table source supplies a generated column contract rather than
             // CLR member paths. The public source row remains part of the typed source
             // boundary, but its columns are intentionally mapped by the table shape.
@@ -120,13 +137,21 @@ internal static class ExecutionSourceCodeGenerationPolicy
                DynamicEntityBoundary.IsAssignableToStringObjectDictionary(type);
     }
 
+    public static bool IsSupportedDynamicObject(Type type)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        return DynamicEntityBoundary.IsDynamicObject(type) &&
+               !IsSupportedDictionary(type);
+    }
+
     private static string? GetEntityContractViolation(Type entityType)
     {
         if (entityType == typeof(object))
             return "the source metadata is object-typed";
 
         if (DynamicEntityBoundary.IsDynamicMetaObjectProvider(entityType) &&
-            !IsSupportedDictionary(entityType))
+            !IsSupportedDynamicObject(entityType))
         {
             return "the source entity is a custom runtime-dynamic type";
         }

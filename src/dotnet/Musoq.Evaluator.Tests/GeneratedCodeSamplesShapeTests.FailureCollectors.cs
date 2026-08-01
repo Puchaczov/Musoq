@@ -348,10 +348,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (content.Contains("new Table(\"cte0\"", StringComparison.Ordinal))
             failures.Add($"{DynamicCteBackedAsOfJoinSampleFileName}: still builds the dynamic CTE as a Table");
 
-        if (!content.Contains("new dDynamicRow0(dResolver.ContainsKey(\"Team\") ? (string)dResolver[\"Team\"]", StringComparison.Ordinal))
+        if (!content.Contains("new dDynamicRow0(dResolver.TryGetValue(\"Team\", out var __dynamicValue", StringComparison.Ordinal))
             failures.Add($"{DynamicCteBackedAsOfJoinSampleFileName}: missing right-side dynamic boundary adapter");
 
-        if (!content.Contains("new lDynamicRow0(lResolver.ContainsKey(\"Team\") ? (string)lResolver[\"Team\"]", StringComparison.Ordinal))
+        if (!content.Contains("new lDynamicRow0(lResolver.TryGetValue(\"Team\", out var __dynamicValue", StringComparison.Ordinal))
             failures.Add($"{DynamicCteBackedAsOfJoinSampleFileName}: missing left-side dynamic boundary adapter");
 
         return failures.ToArray();

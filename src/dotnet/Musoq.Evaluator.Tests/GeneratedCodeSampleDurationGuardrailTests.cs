@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class GeneratedCodeSampleDurationGuardrailTests
 {
-    private const int ExpectedSampleCount = 233;
+    private const int ExpectedSampleCount = 237;
 
     private static readonly string[] CorpusWideAccessorFiles =
     [

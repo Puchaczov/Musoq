@@ -55,7 +55,7 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.ParenthesizedExpression(RenderExpression(arrayAssign.Value)))));
     }
 
-    private static LocalDeclarationStatementSyntax RenderAdaptExpando(ExecutionAdaptExpando adapt)
+    private LocalDeclarationStatementSyntax RenderAdaptExpando(ExecutionAdaptExpando adapt)
     {
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -72,7 +72,7 @@ public sealed partial class ExecutionCSharpRenderer
                 .WithArgumentList(SyntaxFactory.ArgumentList()));
     }
 
-    private static ObjectCreationExpressionSyntax CreateExpandoAdapterCreation(string resolverName, ExpandoAdapterShape shape)
+    private ObjectCreationExpressionSyntax CreateExpandoAdapterCreation(string resolverName, ExpandoAdapterShape shape)
     {
         var values = shape.Fields
             .Select<FieldBinding, ExpressionSyntax>(field => RenderDynamicResolverRead(resolverName, shape.RuntimeType.RequireClrType(), field))
@@ -81,28 +81,39 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateObjectCreation(shape.TypeName, values);
     }
 
-    private static ConditionalExpressionSyntax RenderDynamicResolverRead(string resolverName, Type runtimeType, FieldBinding field)
+    private ConditionalExpressionSyntax RenderDynamicResolverRead(string resolverName, Type runtimeType, FieldBinding field)
     {
         var key = CreateStringLiteral(GetExpandoKey(field));
         var source = CreateDynamicDictionarySource(resolverName, runtimeType);
-        var value = CreateElementAccess(source, key);
-        var hasColumn = SyntaxFactory.InvocationExpression(
+        var valueName = CreateIdentifierName(
+            $"__dynamicValue{_dynamicResolverValueSequence++}_{field.OutputIndex}");
+        var value = valueName;
+        var valueDeclaration = SyntaxFactory.DeclarationExpression(
+            SyntaxFactory.IdentifierName("var"),
+            SyntaxFactory.SingleVariableDesignation(valueName.Identifier));
+        var tryGetValue = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     source,
-                    SyntaxFactory.IdentifierName("ContainsKey")))
-            .WithArgumentList(CreateArgumentList(key));
+                    SyntaxFactory.IdentifierName("TryGetValue")))
+            .WithArgumentList(SyntaxFactory.ArgumentList(
+                SyntaxFactory.SeparatedList(
+                [
+                    SyntaxFactory.Argument(key),
+                    SyntaxFactory.Argument(valueDeclaration)
+                        .WithRefKindKeyword(SyntaxFactory.Token(SyntaxKind.OutKeyword))
+                ])));
 
         if (field.Type.RequireClrType() == typeof(object) || DynamicEntityBoundary.IsDynamicMetaObjectProvider(field.Type.RequireClrType()))
         {
             return SyntaxFactory.ConditionalExpression(
-                hasColumn,
+                tryGetValue,
                 value,
                 SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
         }
 
         return SyntaxFactory.ConditionalExpression(
-            hasColumn,
+            tryGetValue,
             SyntaxFactory.CastExpression(CreateTypeSyntax(field.Type), value),
             SyntaxFactory.DefaultExpression(CreateTypeSyntax(field.Type)));
     }
@@ -122,7 +133,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool CanUseDictionaryMembers(Type runtimeType)
     {
-        return DynamicEntityBoundary.IsAssignableToStringObjectDictionary(runtimeType);
+        return DynamicEntityBoundary.IsStringObjectDictionaryContext(runtimeType);
     }
 
     private static string GetExpandoKey(FieldBinding field)

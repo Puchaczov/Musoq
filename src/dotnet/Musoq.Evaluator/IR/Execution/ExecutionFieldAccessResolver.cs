@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Musoq.Evaluator.IR.Expressions;
+using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -70,6 +72,19 @@ internal static class ExecutionFieldAccessResolver
             TableRowShape table when TryCreateGeneratedContextNestedAccess(table, nestedRoot) is { } generatedContext =>
                 generatedContext,
             TableRowShape table => ThrowMissingGeneratedRowType(column, alias, table),
+            SourceEntityShape source when nestedRoot.Field.Type.ResolveClrType() is { } nestedType &&
+                                    (nestedRoot.Field.AccessStrategy is RuntimeDynamicMemberAccess ||
+                                     ExecutionSourceCodeGenerationPolicy.IsSupportedDynamicObject(nestedType)) =>
+                new RuntimeDynamicMemberPathAccess(
+                    nestedRoot.Field.Name,
+                    nestedRoot.Field.Type,
+                    CreateRuntimeDynamicPathSegments(
+                        nestedRoot.Field.Type.ResolveClrType(),
+                        nestedRoot.PropertyPath,
+                    column.ReturnType,
+                    sourceShape.Fields,
+                    nestedRoot.Field.Name),
+                    rootIsDynamic: nestedRoot.Field.AccessStrategy is RuntimeDynamicMemberAccess),
             SourceEntityShape when nestedRoot.Field.AccessStrategy is ReflectedMemberAccess =>
                 new ReflectedMemberAccess(sourceRelativeColumnName),
             SourceEntityShape when nestedRoot.Field.AccessStrategy is PositionalAccess positional =>
@@ -380,6 +395,86 @@ internal static class ExecutionFieldAccessResolver
 
     private static bool IsDirectScalarSource(SourceEntityShape source) =>
         source.Fields is [{ AccessStrategy: DirectScalarValueAccess }];
+
+    private static IReadOnlyList<RuntimeDynamicMemberPathSegment> CreateRuntimeDynamicPathSegments(
+        Type rootType,
+        string propertyPath,
+        Type finalType,
+        IReadOnlyList<FieldBinding> schemaFields,
+        string rootFieldName)
+    {
+        var segments = propertyPath
+            .Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var result = new List<RuntimeDynamicMemberPathSegment>(segments.Length);
+        var currentType = rootType;
+
+        for (var index = 0; index < segments.Length; index++)
+        {
+            var name = segments[index];
+            var property = currentType.GetProperty(
+                name,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
+            var field = property == null
+                ? currentType.GetField(
+                    name,
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase)
+                : null;
+
+            if (property != null || field != null)
+            {
+                var memberType = property?.PropertyType ?? field!.FieldType;
+                var memberName = property?.Name ?? field!.Name;
+                result.Add(new RuntimeDynamicMemberPathSegment(
+                    memberName,
+                    ExecutionClrBindingFactory.FromClr(memberType),
+                    isDynamic: false));
+                currentType = memberType;
+                continue;
+            }
+
+            var canonicalName = ResolveSchemaMemberName(schemaFields, rootFieldName, segments, index) ?? name;
+            var hintedType = ResolveDynamicMemberType(currentType, name) ??
+                             (index == segments.Length - 1 ? finalType : typeof(object));
+            result.Add(new RuntimeDynamicMemberPathSegment(
+                canonicalName,
+                ExecutionClrBindingFactory.FromClr(hintedType),
+                isDynamic: true));
+            currentType = hintedType;
+        }
+
+        return result;
+    }
+
+    private static string? ResolveSchemaMemberName(
+        IReadOnlyList<FieldBinding> schemaFields,
+        string rootFieldName,
+        IReadOnlyList<string> segments,
+        int segmentIndex)
+    {
+        var expectedPrefix = $"{rootFieldName}.{string.Join('.', segments.Take(segmentIndex + 1))}";
+        var schemaField = schemaFields.FirstOrDefault(field =>
+            string.Equals(field.Name, expectedPrefix, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(field.QualifiedName, expectedPrefix, StringComparison.OrdinalIgnoreCase));
+        if (schemaField == null)
+            return null;
+
+        var separator = schemaField.Name.LastIndexOf('.');
+        return separator < 0 ? schemaField.Name : schemaField.Name[(separator + 1)..];
+    }
+
+    private static Type? ResolveDynamicMemberType(Type parentType, string memberName)
+    {
+        if (!DynamicEntityBoundary.IsDynamicMetaObjectProvider(parentType))
+            return null;
+
+        var hint = parentType
+            .GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>(inherit: true)
+            .FirstOrDefault(attribute => string.Equals(attribute.Name, memberName, StringComparison.OrdinalIgnoreCase));
+        if (hint != null)
+            return hint.Type;
+
+        return parentType.GetCustomAttribute<DynamicObjectPropertyDefaultTypeHintAttribute>(inherit: true)?.Type;
+    }
 
     private static string GetRootFieldName(string columnName)
     {

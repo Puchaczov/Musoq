@@ -38,6 +38,9 @@ public sealed partial class ExecutionCSharpRenderer
         if (fieldRead.AccessStrategy is GeneratedRowContextAccess generatedContext)
             return RenderGeneratedRowContextRead(fieldRead, generatedContext, context);
 
+        if (fieldRead.AccessStrategy is RuntimeDynamicMemberAccess runtimeDynamic)
+            return RenderRuntimeDynamicMemberRead(fieldRead, runtimeDynamic);
+
         if (fieldRead.AccessStrategy is GeneratedFieldAccess generatedField)
             return RenderGeneratedFieldRead(fieldRead, generatedField);
 
@@ -57,6 +60,57 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxKind.SimpleMemberAccessExpression,
             CreateIdentifierName(fieldRead.Alias),
             CreateIdentifierName(fieldRead.FieldName));
+    }
+
+    private static ExpressionSyntax RenderRuntimeDynamicMemberRead(
+        ExecutionFieldRead fieldRead,
+        RuntimeDynamicMemberAccess runtimeDynamic)
+    {
+        if (string.IsNullOrWhiteSpace(fieldRead.Alias))
+            throw new InvalidOperationException("Runtime dynamic member reads require a source alias.");
+
+        var receiver = SyntaxFactory.ParenthesizedExpression(
+            SyntaxFactory.CastExpression(
+                SyntaxFactory.IdentifierName("dynamic"),
+                CreateIdentifierName(fieldRead.Alias)));
+        var member = SyntaxFactory.MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            receiver,
+            CreateIdentifierName(runtimeDynamic.MemberName));
+
+        return CastDynamicValue(fieldRead.ReturnType, member);
+    }
+
+    private ExpressionSyntax RenderMemberRead(
+        ExecutionMemberRead memberRead,
+        ExecutionRenderContext context)
+    {
+        var receiver = RenderExpression(memberRead.Receiver, context);
+        var member = SyntaxFactory.MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            memberRead.IsDynamic
+                ? SyntaxFactory.ParenthesizedExpression(
+                    SyntaxFactory.CastExpression(
+                        SyntaxFactory.IdentifierName("dynamic"),
+                        receiver))
+                : receiver,
+            CreateIdentifierName(memberRead.MemberName));
+
+        return memberRead.IsDynamic
+            ? CastDynamicValue(memberRead.ReturnType, member)
+            : member;
+    }
+
+    private static ExpressionSyntax CastDynamicValue(
+        ExecutionTypeRef returnType,
+        ExpressionSyntax value)
+    {
+        var boxed = SyntaxFactory.ParenthesizedExpression(
+            SyntaxFactory.CastExpression(
+                CreateTypeSyntax(typeof(object)),
+                value));
+
+        return SyntaxFactory.CastExpression(CreateTypeSyntax(returnType), boxed);
     }
 
     private static IdentifierNameSyntax RenderDirectScalarValueRead(ExecutionFieldRead fieldRead)

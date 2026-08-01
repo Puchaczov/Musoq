@@ -4,6 +4,22 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.4-alpha.3
+
+See [release-notes/v17.0.4-alpha.3.md](release-notes/v17.0.4-alpha.3.md) for the curated full-train release notes.
+
+### Musoq.Evaluator and Musoq.Converter
+
+- Enabled generated execution for publicly referenceable `DynamicObject` source roots without changing datasource source-row contracts.
+- Lowered schema-advertised runtime members, including nested dynamic values, to typed DLR `GetMember` reads while preserving concrete source, chunk, loop, join, and method argument types.
+- Added canonical schema-name resolution, type-hint enforcement, null guards, per-row read reuse, and explicit MQ3084 rejection for inaccessible or unsupported dynamic contracts.
+
+### Tooling and verification
+
+- Added behavior-focused regression coverage for constant projections, runtime names, nested nullable values, typed operators and calls, joins, contract failures, and warm-cache schema isolation.
+- Added four catalogued generated-code review samples under `RuntimeDynamic`, refreshed the SHA-256 manifest, and expanded the current inventory from 233 to 237 samples.
+- Added runtime-dynamic cold-compilation, cache-hit, generated hot-execution, and handwritten DLR benchmarks plus documentation of the generated-execution contract and performance boundary.
+
 ## 17.0.4-alpha.2
 
 See [release-notes/v17.0.4-alpha.2.md](release-notes/v17.0.4-alpha.2.md) for the curated full-train release notes.

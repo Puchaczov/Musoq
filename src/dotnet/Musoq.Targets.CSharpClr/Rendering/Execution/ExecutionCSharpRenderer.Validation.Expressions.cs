@@ -45,6 +45,7 @@ public sealed partial class ExecutionCSharpRenderer
         return expression switch
         {
             ExecutionFieldRead fieldRead => CanRenderFieldRead(fieldRead),
+            ExecutionMemberRead memberRead => CanRenderMemberRead(memberRead),
             ExecutionScriptParameterRead parameterRead => !string.IsNullOrWhiteSpace(parameterRead.Name) &&
                                                           CanReferenceType(parameterRead.ReturnType),
             ExecutionScriptVariableRead variableRead => !string.IsNullOrWhiteSpace(variableRead.Name) &&
@@ -118,6 +119,12 @@ public sealed partial class ExecutionCSharpRenderer
                    GeneratedRowNestedAccess or
                    NestedClrPropertyAccess) ||
                !string.IsNullOrWhiteSpace(fieldRead.Alias);
+    }
+
+    private static bool CanRenderMemberRead(ExecutionMemberRead memberRead)
+    {
+        return CanReferenceType(memberRead.ReturnType) &&
+               CanRenderExpression(memberRead.Receiver);
     }
 
     private static bool CanRenderLiteral(object? value)

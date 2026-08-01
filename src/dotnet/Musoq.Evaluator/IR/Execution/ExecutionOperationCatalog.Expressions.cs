@@ -8,6 +8,7 @@ internal static partial class ExecutionOperationCatalog
     private static IEnumerable<KeyValuePair<Type, ExecutionOperationId>> CreateExpressionOperations()
     {
         yield return Operation<ExecutionFieldRead>("expr.field-read");
+        yield return Operation<ExecutionMemberRead>("expr.member-read");
         yield return Operation<ExecutionScriptParameterRead>("expr.script-parameter");
         yield return Operation<ExecutionScriptVariableRead>("expr.script-variable");
         yield return Operation<ExecutionLiteral>("expr.literal");

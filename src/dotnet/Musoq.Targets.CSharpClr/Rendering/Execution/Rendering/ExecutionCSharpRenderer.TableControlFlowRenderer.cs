@@ -33,7 +33,7 @@ public sealed partial class ExecutionCSharpRenderer
                 ExecutionContinue => [SyntaxFactory.ContinueStatement()],
                 ExecutionContinueIf continueIf => [renderer.RenderContinueIf(continueIf, renderContext)],
                 ExecutionBreak => [SyntaxFactory.BreakStatement()],
-                ExecutionAdaptExpando adapt => [ExecutionCSharpRenderer.RenderAdaptExpando(adapt)],
+                ExecutionAdaptExpando adapt => [renderer.RenderAdaptExpando(adapt)],
                 ExecutionCreateObject createObject => [ExecutionCSharpRenderer.RenderCreateObject(createObject)],
                 ExecutionIf branch => [renderer.RenderIf(branch, renderContext)],
                 ExecutionCreateGeneratedRow createRow => [renderer.RenderCreateGeneratedRow(createRow, renderContext)],

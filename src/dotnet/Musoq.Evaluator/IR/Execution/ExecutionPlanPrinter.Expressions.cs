@@ -16,6 +16,8 @@ public static partial class ExecutionPlanPrinter
             ExecutionFieldRead fieldRead => string.IsNullOrEmpty(fieldRead.Alias)
                 ? fieldRead.FieldName
                 : $"{fieldRead.Alias}.{fieldRead.FieldName}",
+            ExecutionMemberRead memberRead =>
+                $"{FormatExpression(memberRead.Receiver)}.{memberRead.MemberName}",
             ExecutionScriptParameterRead parameterRead => $"${parameterRead.Name}",
             ExecutionScriptVariableRead variableRead => $"${variableRead.Name}",
             ExecutionLiteral literal => FormatLiteral(literal.Value.ToClrValue()),

@@ -12,6 +12,7 @@ public sealed partial class ExecutionCSharpRenderer
     private const string StatsVariableName = "stats";
     private const string ProfileRecorderVariableName = "profileRecorder";
     private readonly ExecutionRenderOptions _renderOptions;
+    private int _dynamicResolverValueSequence;
     private IReadOnlyList<ScriptParameterDefinition> _scriptParameterDefinitions => _renderOptions.ScriptParameterDefinitions;
     private IReadOnlyList<ScriptVariableDefinition> _scriptVariableDefinitions => _renderOptions.ScriptVariableDefinitions;
     private IReadOnlyDictionary<string, string> _scriptParameterLocalNames => _renderOptions.ScriptParameterLocalNames;

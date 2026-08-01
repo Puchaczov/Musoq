@@ -35,6 +35,7 @@ internal static partial class ExecutionExpressionFingerprint
         return expression switch
         {
             ExecutionFieldRead fieldRead => $"field:{NormalizeAlias(fieldRead.Alias, parallelAggregate)}:{NormalizeFieldName(fieldRead.FieldName, fieldRead.Alias, parallelAggregate)}:{ForAggregateType(fieldRead.ReturnType)}:{AggregateFieldAccessStrategy(fieldRead.AccessStrategy, fieldRead.Alias, parallelAggregate)}",
+            ExecutionMemberRead memberRead => $"member:{memberRead.IsDynamic}:{memberRead.MemberName}:{ForParallelAggregate(memberRead.Receiver, parallelAggregate)}:{ForAggregateType(memberRead.ReturnType)}",
             ExecutionLiteral literal => $"literal:{NormalizeLiteralValue(literal.Value, parallelAggregate)}:{ForAggregateType(literal.ReturnType)}",
             ExecutionBinary binary => $"binary:{binary.Kind}:{ForParallelAggregate(binary.Left, parallelAggregate)}:{ForParallelAggregate(binary.Right, parallelAggregate)}:{ForAggregateType(binary.ReturnType)}",
             ExecutionUnary unary => $"unary:{unary.Kind}:{ForParallelAggregate(unary.Operand, parallelAggregate)}:{ForAggregateType(unary.ReturnType)}",
@@ -250,6 +251,9 @@ internal static partial class ExecutionExpressionFingerprint
             ReflectedMemberAccess reflected => $"reflected:{NormalizeFieldName(reflected.PropertyPath, alias, parallelAggregate)}",
             NestedClrPropertyAccess nested => $"nested-clr:{NormalizeFieldName(nested.PropertyPath, alias, parallelAggregate)}",
             NestedPositionalAccess nested => $"nested-positional:{nested.Index.ToString(CultureInfo.InvariantCulture)}:{NormalizeFieldName(nested.PropertyPath, alias, parallelAggregate)}",
+            RuntimeDynamicMemberAccess runtimeDynamic => $"runtime-dynamic:{runtimeDynamic.MemberName}",
+            RuntimeDynamicMemberPathAccess runtimePath =>
+                $"runtime-dynamic-path:{runtimePath.RootFieldName}:{string.Join('.', runtimePath.Segments.Select(segment => $"{segment.MemberName}:{segment.IsDynamic}:{segment.ResultType.StableId}"))}",
             _ => accessStrategy.GetType().FullName ?? accessStrategy.GetType().Name
         };
     }
