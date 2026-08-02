@@ -32,19 +32,10 @@ internal sealed partial class PhysicalLoweringImplementation
         return new TableRowShape(
             cteRef.Alias,
             cteShape.Fields.Select(field =>
-            {
-                var binding = new FieldBinding(
-                    field.Name,
-                    $"{cteRef.Alias}.{field.Name}",
-                    field.OutputIndex,
-                    field.Type,
-                    field.Nullability,
+                FieldBindingRebinder.Rebind(
+                    field,
                     CreateTypedStoredGeneratedRowAccess(cteShape, field),
-                    field.PublicType);
-                return field.GeneratedTypeName is { Length: > 0 } generatedTypeName
-                    ? binding with { GeneratedTypeName = generatedTypeName }
-                    : binding;
-            }).ToArray(),
+                    $"{cteRef.Alias}.{field.Name}")).ToArray(),
             CreateTypedStoredGeneratedRowContextBindings(cteShape),
             cteShape.TypeName);
     }

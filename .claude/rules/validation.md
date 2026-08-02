@@ -47,7 +47,7 @@
 
 ### Build Validation
 - **Build succeeds without errors**: All projects compile cleanly in Release configuration
-- **NuGet packages are generated**: Build produces 12 .nupkg files for all distributable modules
+- **NuGet packages are generated**: use `dotnet pack` or the release scripts for distributable modules
 - **No build-time dependencies**: Only requires the .NET 10.0.300+ SDK
 
 ### Performance and Benchmarks Validation
@@ -116,9 +116,9 @@ dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --filter Tes
 ```
 
 ### Documentation and Examples
-- **Architecture documentation**: See [musoq_enchanced_architecture.md](musoq_enchanced_architecture.md) for the query processing pipeline and optimizer ownership model
+- **Architecture documentation**: See [architecture.md](architecture.md) for the query processing pipeline and optimizer ownership model
 - **API usage examples**: Reference [README.md](../../README.md), [specs/](../../specs/), and focused tests for current examples
-- **Practical examples**: See [README.md](README.md) for real-world query examples (git analysis, file processing, etc.)
-- **Plugin development**: Examine existing plugins in [src/dotnet/Musoq.Plugins](src/dotnet/Musoq.Plugins) directory
-- **Specifications**: See [specs/](specs/) for detailed specifications (especially [musoq-binary-text-spec.md](specs/musoq-binary-text-spec.md) for interpretation schemas)
-- **Test examples**: [ArithmeticTests.cs](src/dotnet/Musoq.Evaluator.Tests/ArithmeticTests.cs) demonstrates test patterns using `BasicEntityTestBase`
+- **Practical examples**: See [README.md](../../README.md) for real-world query examples (git analysis, file processing, etc.)
+- **Plugin development**: Examine existing plugins in [src/dotnet/Musoq.Plugins](../../src/dotnet/Musoq.Plugins) directory
+- **Specifications**: See [specs/](../../specs/) for detailed specifications (especially [musoq-binary-text-spec.md](../../specs/musoq-binary-text-spec.md) for interpretation schemas)
+- **Test examples**: [ArithmeticTests.cs](../../src/dotnet/Musoq.Evaluator.Tests/ArithmeticTests.cs) demonstrates test patterns using `BasicEntityTestBase`

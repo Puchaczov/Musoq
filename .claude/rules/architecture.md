@@ -7,7 +7,7 @@
 4. **Plan query**: `QueryPlanner` derives properties, records planning diagnostics, and invokes physical plan construction
 5. **Build physical plan**: `PhysicalPlanBuilder.Lower()` maps logical operators to `PhysicalNode` execution strategies selected by planner-owned rules
 6. **Build Execution IR**: `PhysicalToExecutionPlanBuilder` lowers physical strategies into explicit executable operations and metadata
-7. **Render C#**: `CSharpRenderer` and `ExecutionCSharpRenderer` walk Execution IR and emit Roslyn syntax
+7. **Render C#**: `Musoq.Targets.CSharpClr` owns `CSharpRenderer` and `ExecutionCSharpRenderer`, which emit Roslyn syntax from Execution IR
 8. **Compile**: `TurnQueryIntoRunnableCode` compiles the generated C# into an in-memory assembly
 9. **Execute**: `CompiledQuery.Run()` executes against data sources from schema providers and returns table results
 
@@ -17,22 +17,20 @@
 SQL text
   -> Musoq.Parser lexer/parser
   -> RootNode AST
-  -> TransformTree visitor pipeline
-       DistinctToGroupBy
-       SubqueryToCte
-       ExtractRawColumns
-       BuildMetadataAndInferTypes
-       ConstantFolding
-       DeadCteEliminator
+  -> TransformTree pipeline
+       PreLogicalNormalizer
+       semantic metadata and scope analysis
        RewriteQueryVisitor
   -> LogicalPlanBuilder
   -> LogicalNode tree with OutputSchema
+  -> LogicalOptimizer
   -> QueryPlanner with PlanProperties and PlanningDecision diagnostics
   -> PhysicalPlanBuilder
   -> PhysicalNode tree with execution strategies
   -> PhysicalToExecutionPlanBuilder
   -> ExecutionNode tree with executable operations and metadata
-  -> CSharpRenderer + ExecutionCSharpRenderer + RenderContext
+  -> ExecutionIrOptimizer
+  -> Musoq.Targets.CSharpClr: CSharpRenderer + ExecutionCSharpRenderer + RenderContext
   -> Roslyn CompilationUnitSyntax
   -> CSharpCompilation
   -> in-memory assembly
@@ -56,4 +54,4 @@ SQL text
 - **Debugging helpers**: use `IrExpressionPrinter`, `LogicalPlanPrinter`, `PlanningTextPrinter`, and `PhysicalPlanPrinter` to inspect intermediate representations.
 
 
-Before touching IR planner, Execution IR, or renderer code, read `musoq_enchanced_architecture.md`. For detailed architecture of each module, see the per-project `copilot-instructions.md` files listed from the root instructions.
+This file is the current architecture reference for planner, Execution IR, and renderer ownership. For detailed architecture of each covered module, see the per-project `copilot-instructions.md` files listed from the root instructions.

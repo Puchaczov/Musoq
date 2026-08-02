@@ -28,9 +28,9 @@ Musoq's guidance is layered. Read the most specific file that applies, then fall
 | [CLAUDE.md](CLAUDE.md) | Root guide for Claude Code; mirrors the Copilot guide and `@`-imports the rule modules | Claude Code |
 | `.claude/rules/*.md` | Canonical rule modules (`architecture`, `code-quality`, `multi-session`, `troubleshooting`, `validation`); also auto-loaded as workspace instruction files | All agents in this workspace |
 | `src/dotnet/<Project>/copilot-instructions.md` | Per-project deep dives (internal structure, key classes, workflows) | Anyone editing that project |
-| [musoq_enchanced_architecture.md](musoq_enchanced_architecture.md) | Authoritative logical/physical planner and IR renderer reference | Anyone touching IR, planner, or renderer code |
+| [.claude/rules/architecture.md](.claude/rules/architecture.md) | Authoritative logical/physical planner and execution-target ownership reference | Anyone touching IR, planner, or renderer code |
 
-When two files appear to disagree, the more specific one wins for its scope: per-project files override the root guide for that project, and `musoq_enchanced_architecture.md` is authoritative for planner/IR ownership.
+When two files appear to disagree, the more specific one wins for its scope: per-project files override the root guide for that project, and `.claude/rules/architecture.md` is authoritative for planner/IR ownership.
 
 ### Where Does My Change Belong?
 
@@ -82,11 +82,12 @@ pwsh scripts/release/Pack-Release.ps1 -AllPackages -OutputPath artifacts/ci-nupk
 ### Project Structure and Key Components
 Musoq is organized into these modules, all located in `src/dotnet/`:
 - **Musoq.Parser**: SQL syntax parsing and AST generation using recursive descent parser
-- **Musoq.Evaluator**: Query execution engine and runtime - owns AST transformations, Expression IR, logical plans, `QueryPlanner`, physical query plans, Execution IR, IR-based C# rendering, and runtime support
+- **Musoq.Evaluator**: Query execution engine and runtime - owns AST transformations, Expression IR, logical plans, `QueryPlanner`, physical query plans, Execution IR, and runtime support
 - **Musoq.Converter**: Compilation orchestration (contains `InstanceCreator`, the main API entry point) - wires parsing, semantic transformations, logical plan construction, `QueryPlanner`, Execution IR lowering, IR rendering, and Roslyn compilation
 - **Musoq.Schema**: Type system and data source abstraction via `ISchema` and `ISchemaProvider`
 - **Musoq.Plugins**: Built-in SQL functions library (~1000 methods for string, math, aggregation, etc.)
 - **Musoq.Playground**: Interactive testing project for experimenting with queries
+- **Musoq.Targets.*:** Target contracts, analysis, portable testing, and the production C# CLR renderer
 - **Musoq.*.Tests**: Test projects for each module; use current test output for authoritative counts
 - **Musoq.Tests.Common**: Shared test utilities and base classes (e.g., `BasicEntityTestBase`)
 - **Musoq.Benchmarks**: Performance benchmarks using BenchmarkDotNet
@@ -102,17 +103,16 @@ The solution file [Musoq.sln](src/dotnet/Musoq.sln) is located in `src/dotnet/` 
 - **Physical Plan Builder**: [PhysicalPlanBuilder.cs](src/dotnet/Musoq.Evaluator/IR/Physical/PhysicalPlanBuilder.cs) - Constructs physical nodes from planner-owned strategy/property decisions
 - **Execution Plan Builder**: [PhysicalToExecutionPlanBuilder.cs](src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.cs) - Lowers physical plan strategies into explicit executable operations and runtime metadata
 - **Execution IR Nodes**: [ExecutionNode.cs](src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionNode.cs) and [ExecutionExpression.cs](src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionExpression.cs) - Model executable table, row, join, aggregate, window, and expression operations
-- **IR Renderer**: [CSharpRenderer.cs](src/dotnet/Musoq.Evaluator/IR/CodeGeneration/CSharpRenderer.cs), [ExecutionCSharpRenderer.cs](src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionCSharpRenderer.cs), and [RenderContext.cs](src/dotnet/Musoq.Evaluator/IR/CodeGeneration/RenderContext.cs) - Render Execution IR to Roslyn syntax
+- **C# Renderer**: [CSharpRenderer.cs](src/dotnet/Musoq.Targets.CSharpClr/Rendering/CodeGeneration/CSharpRenderer.cs), [ExecutionCSharpRenderer.cs](src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.cs), and [RenderContext.cs](src/dotnet/Musoq.Targets.CSharpClr/Rendering/CodeGeneration/RenderContext.cs)
 - **Expression IR**: [ExpressionConverter.cs](src/dotnet/Musoq.Evaluator/IR/Expressions/ExpressionConverter.cs) - Converts parser expressions into typed IR expressions used by plans and renderers
 - **Core Interfaces**: [ISchema.cs](src/dotnet/Musoq.Schema/ISchema.cs), [ISchemaProvider.cs](src/dotnet/Musoq.Schema/ISchemaProvider.cs)
 - **Query Result**: [CompiledQuery.cs](src/dotnet/Musoq.Evaluator/CompiledQuery.cs) with `Run()` method
-- **Planner Architecture Reference**: [musoq_enchanced_architecture.md](musoq_enchanced_architecture.md) - Authoritative logical/physical planner and IR renderer reference for this branch
-- **Enhanced Architecture**: [musoq_enchanced_architecture.md](musoq_enchanced_architecture.md) - Broader architecture guide; verify against the current IR planner before relying on generated-code examples
+- **Architecture Rules**: [.claude/rules/architecture.md](.claude/rules/architecture.md) - Current planner, Execution IR, and target ownership rules
 - **Specifications**: [specs/](specs/) - Language specifications and proposals
 
 ### Per-Project Instructions
 
-Each non-test project has its own `copilot-instructions.md` with project-specific architecture, key classes, internal structure, and development workflow. **Read the relevant per-project file when working on that module.**
+The modules with dedicated guides are listed below. Other projects, including `Musoq.Targets.*`, `Musoq.Tests.Common`, and examples, follow the root guide and applicable architecture rules. **Read the relevant per-project file when working on a covered module.**
 
 | Project | Instructions | What's Inside |
 |---------|-------------|---------------|
@@ -122,7 +122,7 @@ Each non-test project has its own `copilot-instructions.md` with project-specifi
 | **Musoq.Schema** | [copilot-instructions.md](src/dotnet/Musoq.Schema/copilot-instructions.md) | ISchema/ISchemaProvider interfaces, data source abstraction, method resolution pipeline, planner-consumed schema metadata, how to implement new data sources |
 | **Musoq.Plugins** | [copilot-instructions.md](src/dotnet/Musoq.Plugins/copilot-instructions.md) | ~1000 built-in functions, LibraryBase partial classes, aggregation/window function patterns, how to add new SQL functions |
 | **Musoq.Playground** | [copilot-instructions.md](src/dotnet/Musoq.Playground/copilot-instructions.md) | Interactive query testing console app |
-| **Musoq.Benchmarks** | [copilot-instructions.md](src/dotnet/Musoq.Benchmarks/copilot-instructions.md) | 20+ benchmark suites, running/interpreting benchmarks, baseline workflow |
+| **Musoq.Benchmarks** | [copilot-instructions.md](src/dotnet/Musoq.Benchmarks/copilot-instructions.md) | Benchmark suites, running/interpreting benchmarks, baseline workflow |
 
 @.claude/rules/multi-session.md
 

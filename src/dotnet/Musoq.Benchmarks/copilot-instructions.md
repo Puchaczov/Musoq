@@ -1,12 +1,12 @@
 # Musoq.Benchmarks
 
-Performance measurement suite using BenchmarkDotNet. Contains ~40 benchmark classes covering compilation, execution, joins, aggregation, window functions, source planning, optimization passes, and more.
+Performance measurement suite using BenchmarkDotNet. It covers compilation, execution, joins, aggregation, window functions, source planning, optimization passes, and more.
 
 ## Internal Structure
 
 ```
 Musoq.Benchmarks/
-├── Benchmark Classes (~40, representative list below)
+├── Benchmark Classes (representative list below)
 │   ├── CompilationPipelineBenchmark.cs      # End-to-end compilation benchmarks
 │   ├── ExecutionBenchmark.cs                # Query execution benchmarks
 │   ├── DistinctBenchmark.cs                 # DISTINCT performance

@@ -14,7 +14,7 @@ Musoq.Parser/
 │   ├── KeywordLookup.cs            # Reserved keyword recognition
 │   ├── ILexer.cs                   # Lexer interface
 │   └── LexerException.cs           # Lexer error type
-├── Tokens/                         # ~125 token types
+├── Tokens/                         # Token types
 │   ├── Token.cs                    # Base token class
 │   ├── TokenType.cs                # Token type enum
 │   ├── GenericFunctionToken.cs     # Type-parameterized: Func<Type>(...)
@@ -26,7 +26,7 @@ Musoq.Parser/
 │   ├── BinaryIntegerToken.cs       # 0b101 literals
 │   ├── OctalIntegerToken.cs        # 0o77 literals
 │   └── ... (115+ more keyword/operator tokens)
-├── Nodes/                          # ~180 AST node types (including From/ and InterpretationSchema/)
+├── Nodes/                          # AST node types (including From/ and InterpretationSchema/)
 │   ├── Node.cs                     # Abstract base node
 │   ├── RootNode.cs                 # AST root
 │   ├── QueryNode.cs                # SELECT query
@@ -113,7 +113,7 @@ Musoq.Parser (leaf project — no dependencies)
 
 ### Testing
 ```bash
-# Run parser tests (1,403 tests, ~0.5 seconds)
+# Run parser tests
 dotnet test src/dotnet/Musoq.Parser.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
 
 # Rerun a specific failing parser test with useful failure detail

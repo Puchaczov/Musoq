@@ -4,6 +4,16 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.4-alpha.4
+
+See [release-notes/evaluator/v17.0.4-alpha.4.md](release-notes/evaluator/v17.0.4-alpha.4.md) for the curated `Musoq.Evaluator` release notes.
+
+### Musoq.Evaluator
+
+- Preserved schema-indexed positional field bindings across materialized row carriers, CTEs, set operations, joins, and downstream projections without changing datasource or renderer contracts.
+- Centralized metadata-preserving row-carrier rebinding and added a target-neutral invariant guard against unresolved indexed bindings before rendering.
+- Added broad generated-code and execution coverage for `UNION`, `UNION ALL`, `INTERSECT`, `EXCEPT`, sidecar CTE modes, nullable and permuted positional schemas, nested cells, opaque names, repeated compilation, and carrier controls.
+
 ## 17.0.4-alpha.3
 
 See [release-notes/v17.0.4-alpha.3.md](release-notes/v17.0.4-alpha.3.md) for the curated full-train release notes.

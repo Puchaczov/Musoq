@@ -203,7 +203,7 @@ Musoq.Plugins (leaf project — no dependencies)
 ### Testing
 
 ```bash
-# Run plugins tests (4,362 tests, ~1 second)
+# Run plugins tests
 dotnet test src/dotnet/Musoq.Plugins.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
 ```
 

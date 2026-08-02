@@ -9,7 +9,9 @@ public sealed record ExecutionPlanBuildResult(
     public static ExecutionPlanBuildResult CreateSupported(ExecutionPlan executionPlan)
     {
         ArgumentNullException.ThrowIfNull(executionPlan);
-        return new ExecutionPlanBuildResult(true, GeneratedRowContextPruner.Prune(executionPlan), null);
+        var prunedPlan = GeneratedRowContextPruner.Prune(executionPlan);
+        ExecutionBindingInvariantValidator.Validate(prunedPlan);
+        return new ExecutionPlanBuildResult(true, prunedPlan, null);
     }
 
     public static ExecutionPlanBuildResult CreateUnsupported(string reason)

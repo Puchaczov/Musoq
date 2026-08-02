@@ -119,6 +119,87 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
+    public void CompileForExecution_WhenSelectingAllPositionalColumns_ShouldReadEveryIndex()
+    {
+        const string query = "select * from #positional.all() entity";
+        var provider = CreateKeyValuePositionalRowsSchemaProvider();
+        var inspection = Inspect(query, provider);
+
+        var table = CompileForExecution(query, provider).Run();
+
+        Assert.AreEqual(2, table.Count);
+        Assert.AreEqual("first", table[0][0]);
+        Assert.AreEqual("current-first", table[0][1]);
+        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains("[1]", inspection.GeneratedCSharpCode);
+    }
+
+    [TestMethod]
+    public void CompileForExecution_WhenCteProjectsEveryPositionalColumn_ShouldPreserveEveryIndex()
+    {
+        const string query = "with state as (select entity.Key, entity.Value from #positional.all() entity) select state.Key, state.Value from state";
+        var provider = CreateKeyValuePositionalRowsSchemaProvider();
+        var inspection = Inspect(query, provider);
+
+        var table = CompileForExecution(query, provider).Run();
+
+        Assert.AreEqual(2, table.Count);
+        Assert.AreEqual("first", table[0][0]);
+        Assert.AreEqual("current-first", table[0][1]);
+        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains("[1]", inspection.GeneratedCSharpCode);
+    }
+
+    [TestMethod]
+    public void CompileForExecution_WhenPositionalSourcesFeedExcept_ShouldUseIndexedSetKeys()
+    {
+        const string query = "select current.Key from #positional.all() current except select previous.Key from #positional.all() previous";
+        var provider = CreateKeyValuePositionalRowsSchemaProvider();
+        var inspection = Inspect(query, provider);
+
+        var table = CompileForExecution(query, provider).Run();
+
+        Assert.AreEqual(0, table.Count);
+        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
+    }
+
+    [TestMethod]
+    public void CompileForExecution_WhenSelectAllPositionalSourceFeedsCteAndExcept_ShouldPreserveIndexedAccess()
+    {
+        const string query = """
+                             with state as (
+                                 select *
+                                 from #positional.all() entity
+                             )
+                             select current.Key
+                             from state current
+                             except
+                             select previous.Key
+                             from #positional.all() previous
+                             """;
+        var provider = new PositionalRowsSchemaProvider(
+            [
+                new SchemaColumn("Key", 0, typeof(string)),
+                new SchemaColumn("Value", 1, typeof(string))
+            ],
+            [
+                ["first", "current-first"],
+                ["second", "current-second"]
+            ]);
+
+        var table = CompileForExecution(query, provider).Run();
+        var inspection = Inspect(query, provider);
+
+        Assert.AreEqual(0, table.Count);
+        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains("[1]", inspection.GeneratedCSharpCode);
+        AssertGeneratedCSharpDoesNotUseMemberAccessOnAliases(
+            inspection.GeneratedCSharpCode,
+            "entity",
+            "previous");
+    }
+
+    [TestMethod]
     public void CompileForExecution_WhenPositionalSourceIsGrouped_ShouldAggregateDirectReads()
     {
         var compiled = CompileForExecution(
@@ -181,6 +262,19 @@ public partial class QueryInspectionTests
                 [37, "Engineering", "Ada", "London", "symbolic-1"],
                 [29, "Research", "Bea", "Paris", "symbolic-2"],
                 [null!, "Research", "Cid", "Berlin", "symbolic-3"]
+            ]);
+    }
+
+    private static PositionalRowsSchemaProvider CreateKeyValuePositionalRowsSchemaProvider()
+    {
+        return new PositionalRowsSchemaProvider(
+            [
+                new SchemaColumn("Key", 0, typeof(string)),
+                new SchemaColumn("Value", 1, typeof(string))
+            ],
+            [
+                ["first", "current-first"],
+                ["second", "current-second"]
             ]);
     }
 

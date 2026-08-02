@@ -24,13 +24,13 @@ Musoq's guidance is layered. Read the most specific file that applies, then fall
 
 | File(s) | Role | Audience |
 |---------|------|----------|
-| [.github/copilot-instructions.md](.github/copilot-instructions.md) | Standalone root guide with the full rule set | GitHub Copilot |
-| [CLAUDE.md](CLAUDE.md) | Root guide for Claude Code; mirrors this file and `@`-imports the rule modules | Claude Code |
+| [copilot-instructions.md](copilot-instructions.md) | Repo-wide guide with the full rule set | GitHub Copilot |
+| [CLAUDE.md](../CLAUDE.md) | Root guide for Claude Code; mirrors this file and `@`-imports the rule modules | Claude Code |
 | `.claude/rules/*.md` | Canonical rule modules (`architecture`, `code-quality`, `multi-session`, `troubleshooting`, `validation`); also auto-loaded as workspace instruction files | All agents in this workspace |
 | `src/dotnet/<Project>/copilot-instructions.md` | Per-project deep dives (internal structure, key classes, workflows) | Anyone editing that project |
-| [musoq_enchanced_architecture.md](musoq_enchanced_architecture.md) | Authoritative logical/physical planner and IR renderer reference | Anyone touching IR, planner, or renderer code |
+| [architecture.md](../.claude/rules/architecture.md) | Authoritative logical/physical planner and execution-target ownership reference | Anyone touching IR, planner, or renderer code |
 
-When two files appear to disagree, the more specific one wins for its scope: per-project files override the root guide for that project, and `musoq_enchanced_architecture.md` is authoritative for planner/IR ownership.
+When two files appear to disagree, the more specific one wins for its scope: per-project files override the root guide for that project, and `architecture.md` is authoritative for planner/IR ownership.
 
 ### Where Does My Change Belong?
 
@@ -49,10 +49,10 @@ When two files appear to disagree, the more specific one wins for its scope: per
 ## Working Effectively
 
 ### Prerequisites and Environment Setup
-- **Required**: .NET 10.0.300 SDK or newer 10.0 feature band (pinned in [global.json](global.json) with `rollForward: latestFeature`)
+- **Required**: .NET 10.0.300 SDK or newer 10.0 feature band (pinned in [global.json](../global.json) with `rollForward: latestFeature`)
 - **Recommended**: Visual Studio or VS Code with C# extension
 - **OS**: Works on Windows, Linux, and macOS
-- **Package Management**: All projects generate NuGet packages on build (versions vary per module)
+- **Package Management**: Packable projects are packaged explicitly with `dotnet pack`; release versions and publication are tag-driven, as described in `RELEASING.md`.
 
 ### Core Development Workflow
 Bootstrap, build, and test the repository:
@@ -82,47 +82,47 @@ dotnet pack src/dotnet/Musoq.sln --configuration Release --no-build --nologo --v
 ### Project Structure and Key Components
 Musoq is organized into these modules, all located in `src/dotnet/`:
 - **Musoq.Parser**: SQL syntax parsing and AST generation using recursive descent parser
-- **Musoq.Evaluator**: Query execution engine and runtime - owns AST transformations, Expression IR, logical plans, `QueryPlanner`, physical query plans, Execution IR, IR-based C# rendering, and runtime support
+- **Musoq.Evaluator**: Query execution engine and runtime - owns AST transformations, Expression IR, logical plans, `QueryPlanner`, physical query plans, Execution IR, and runtime support
 - **Musoq.Converter**: Compilation orchestration (contains `InstanceCreator`, the main API entry point) - wires parsing, semantic transformations, logical plan construction, `QueryPlanner`, Execution IR lowering, IR rendering, and Roslyn compilation
 - **Musoq.Schema**: Type system and data source abstraction via `ISchema` and `ISchemaProvider`
 - **Musoq.Plugins**: Built-in SQL functions library (~1000 methods for string, math, aggregation, etc.)
 - **Musoq.Playground**: Interactive testing project for experimenting with queries
+- **Musoq.Targets.*:** Target contracts, analysis, portable testing, and the production C# CLR renderer
 - **Musoq.*.Tests**: Test projects for each module; exact counts drift with active planner work, so trust current test output and `.copilot_session_summary.md`
 - **Musoq.Tests.Common**: Shared test utilities and base classes (e.g., `BasicEntityTestBase`)
 - **Musoq.Benchmarks**: Performance benchmarks using BenchmarkDotNet
 
-The solution file [Musoq.sln](src/dotnet/Musoq.sln) is located in `src/dotnet/` with all projects as siblings.
+The solution file [Musoq.sln](../src/dotnet/Musoq.sln) is located in `src/dotnet/` with all projects as siblings.
 
 **Important Files**:
-- **API Entry**: [InstanceCreator.cs](src/dotnet/Musoq.Converter/InstanceCreator.cs) - Main compilation interface
-- **Pipeline Orchestration**: [TransformTree.cs](src/dotnet/Musoq.Converter/Build/TransformTree.cs) - Runs AST transforms, builds logical/physical plans, lowers to Execution IR, and renders via the IR renderer
-- **Build State**: [BuildItems.cs](src/dotnet/Musoq.Converter/Build/BuildItems.cs) - Carries `LogicalPlan`, `PhysicalPlan`, Execution IR inspection data, compilation metadata, and generated artifacts
-- **Logical Plan Builder**: [LogicalPlanBuilder.cs](src/dotnet/Musoq.Evaluator/IR/Logical/LogicalPlanBuilder.cs) - Lowers the normalized typed AST into relational operators
-- **Query Planner**: [QueryPlanner.cs](src/dotnet/Musoq.Evaluator/IR/Planning/QueryPlanner.cs) - Derives plan properties, including internal source-aware metadata and diagnostics, records `PlanningDecision` diagnostics, and routes logical plans into physical plan construction
-- **Physical Plan Builder**: [PhysicalPlanBuilder.cs](src/dotnet/Musoq.Evaluator/IR/Physical/PhysicalPlanBuilder.cs) - Constructs physical nodes from planner-owned strategy/property decisions
-- **Execution Plan Builder**: [PhysicalToExecutionPlanBuilder.cs](src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.cs) - Lowers physical plan strategies into explicit executable operations and runtime metadata
-- **Execution IR Nodes**: [ExecutionNode.cs](src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionNode.cs) and [ExecutionExpression.cs](src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionExpression.cs) - Model executable table, row, join, aggregate, window, and expression operations
-- **IR Renderer**: [CSharpRenderer.cs](src/dotnet/Musoq.Evaluator/IR/CodeGeneration/CSharpRenderer.cs), [ExecutionCSharpRenderer.cs](src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionCSharpRenderer.cs), and [RenderContext.cs](src/dotnet/Musoq.Evaluator/IR/CodeGeneration/RenderContext.cs) - Render Execution IR to Roslyn syntax
-- **Expression IR**: [ExpressionConverter.cs](src/dotnet/Musoq.Evaluator/IR/Expressions/ExpressionConverter.cs) - Converts parser expressions into typed IR expressions used by plans and renderers
-- **Core Interfaces**: [ISchema.cs](src/dotnet/Musoq.Schema/ISchema.cs), [ISchemaProvider.cs](src/dotnet/Musoq.Schema/ISchemaProvider.cs)
-- **Query Result**: [CompiledQuery.cs](src/dotnet/Musoq.Evaluator/CompiledQuery.cs) with `Run()` method
-- **Planner Architecture Reference**: [musoq_enchanced_architecture.md](musoq_enchanced_architecture.md) - Authoritative logical/physical planner and IR renderer reference for this branch
-- **Enhanced Architecture**: [musoq_enchanced_architecture.md](musoq_enchanced_architecture.md) - Broader architecture guide; verify against the current IR planner before relying on generated-code examples
-- **Specifications**: [specs/](specs/) - Language specifications and proposals
+- **API Entry**: [InstanceCreator.cs](../src/dotnet/Musoq.Converter/InstanceCreator.cs) - Main compilation interface
+- **Pipeline Orchestration**: [TransformTree.cs](../src/dotnet/Musoq.Converter/Build/TransformTree.cs) - Runs normalization, planning, Execution IR lowering, and target rendering
+- **Build State**: [BuildItems.cs](../src/dotnet/Musoq.Converter/Build/BuildItems.cs) - Carries typed phase artifacts and compilation metadata
+- **Logical Plan Builder**: [LogicalPlanBuilder.cs](../src/dotnet/Musoq.Evaluator/IR/Logical/LogicalPlanBuilder.cs) - Lowers the normalized typed AST into relational operators
+- **Query Planner**: [QueryPlanner.cs](../src/dotnet/Musoq.Evaluator/IR/Planning/QueryPlanner.cs) - Owns query strategy and property decisions
+- **Physical Plan Builder**: [PhysicalPlanBuilder.cs](../src/dotnet/Musoq.Evaluator/IR/Physical/PhysicalPlanBuilder.cs) - Constructs physical nodes from planner-owned decisions
+- **Execution Plan Builder**: [PhysicalToExecutionPlanBuilder.cs](../src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.cs) - Lowers physical strategies into executable operations and metadata
+- **Execution IR Nodes**: [ExecutionNode.cs](../src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionNode.cs) and [ExecutionExpression.cs](../src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionExpression.cs) - Model executable operations and expressions
+- **C# Renderer**: [CSharpRenderer.cs](../src/dotnet/Musoq.Targets.CSharpClr/Rendering/CodeGeneration/CSharpRenderer.cs), [ExecutionCSharpRenderer.cs](../src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.cs), and [RenderContext.cs](../src/dotnet/Musoq.Targets.CSharpClr/Rendering/CodeGeneration/RenderContext.cs)
+- **Expression IR**: [ExpressionConverter.cs](../src/dotnet/Musoq.Evaluator/IR/Expressions/ExpressionConverter.cs) - Converts parser expressions into typed IR expressions
+- **Core Interfaces**: [ISchema.cs](../src/dotnet/Musoq.Schema/ISchema.cs), [ISchemaProvider.cs](../src/dotnet/Musoq.Schema/ISchemaProvider.cs)
+- **Query Result**: [CompiledQuery.cs](../src/dotnet/Musoq.Evaluator/CompiledQuery.cs) with `Run()` method
+- **Architecture Rules**: [architecture.md](../.claude/rules/architecture.md) - Current planner, Execution IR, and target ownership rules
+- **Specifications**: [specs/](../specs/) - Language specifications and proposals
 
 ### Per-Project Instructions
 
-Each non-test project has its own `copilot-instructions.md` with project-specific architecture, key classes, internal structure, and development workflow. **Read the relevant per-project file when working on that module.**
+The modules with dedicated guides are listed below. Other projects, including `Musoq.Targets.*`, `Musoq.Tests.Common`, and examples, follow this root guide and the applicable architecture rules. **Read the relevant per-project file when working on a covered module.**
 
 | Project | Instructions | What's Inside |
 |---------|-------------|---------------|
-| **Musoq.Parser** | [copilot-instructions.md](src/dotnet/Musoq.Parser/copilot-instructions.md) | Lexer internals, token and AST node types, GenericFunctionRegex, interpretation schema nodes; parser output feeds the typed AST and planner pipeline |
-| **Musoq.Evaluator** | [copilot-instructions.md](src/dotnet/Musoq.Evaluator/copilot-instructions.md) | AST visitor pipeline, Expression IR, logical/physical plans, IR renderers, runtime optimization, known planner/codegen patterns |
-| **Musoq.Converter** | [copilot-instructions.md](src/dotnet/Musoq.Converter/copilot-instructions.md) | Build chain pattern, InstanceCreator API, plan construction, IR rendering orchestration |
-| **Musoq.Schema** | [copilot-instructions.md](src/dotnet/Musoq.Schema/copilot-instructions.md) | ISchema/ISchemaProvider interfaces, data source abstraction, method resolution pipeline, planner-consumed schema metadata, how to implement new data sources |
-| **Musoq.Plugins** | [copilot-instructions.md](src/dotnet/Musoq.Plugins/copilot-instructions.md) | ~1000 built-in functions, LibraryBase partial classes, aggregation/window function patterns, how to add new SQL functions |
-| **Musoq.Playground** | [copilot-instructions.md](src/dotnet/Musoq.Playground/copilot-instructions.md) | Interactive query testing console app |
-| **Musoq.Benchmarks** | [copilot-instructions.md](src/dotnet/Musoq.Benchmarks/copilot-instructions.md) | 20+ benchmark suites, running/interpreting benchmarks, baseline workflow |
+| **Musoq.Parser** | [copilot-instructions.md](../src/dotnet/Musoq.Parser/copilot-instructions.md) | Lexer, tokens, AST nodes, and parser impact guidance |
+| **Musoq.Evaluator** | [copilot-instructions.md](../src/dotnet/Musoq.Evaluator/copilot-instructions.md) | Visitors, plans, Execution IR, runtime, and target boundaries |
+| **Musoq.Converter** | [copilot-instructions.md](../src/dotnet/Musoq.Converter/copilot-instructions.md) | Build pipeline, `InstanceCreator`, and rendering orchestration |
+| **Musoq.Schema** | [copilot-instructions.md](../src/dotnet/Musoq.Schema/copilot-instructions.md) | Data-source contracts, method resolution, and schema metadata |
+| **Musoq.Plugins** | [copilot-instructions.md](../src/dotnet/Musoq.Plugins/copilot-instructions.md) | Built-in functions and aggregate/window patterns |
+| **Musoq.Playground** | [copilot-instructions.md](../src/dotnet/Musoq.Playground/copilot-instructions.md) | Interactive query testing console |
+| **Musoq.Benchmarks** | [copilot-instructions.md](../src/dotnet/Musoq.Benchmarks/copilot-instructions.md) | Benchmark suites, baselines, and result interpretation |
 
 ## Multi-Session Communication
 
@@ -253,7 +253,7 @@ Each non-test project has its own `copilot-instructions.md` with project-specifi
 
 Generated C# samples are acceptance evidence for strategy choices. Do not treat generated C# as the primary optimization surface; if a sample looks slow, first ask what physical strategy or Execution IR metadata should have prevented that shape.
 
-For benchmark commands, result interpretation thresholds, baseline workflow, and when to add new benchmarks, see the [Musoq.Benchmarks copilot-instructions.md](src/dotnet/Musoq.Benchmarks/copilot-instructions.md).
+For benchmark commands, result interpretation thresholds, baseline workflow, and when to add new benchmarks, see the [Musoq.Benchmarks copilot-instructions.md](../src/dotnet/Musoq.Benchmarks/copilot-instructions.md).
 
 ## Validation
 
@@ -279,7 +279,7 @@ For benchmark commands, result interpretation thresholds, baseline workflow, and
   ```
 
 ### IR Planner Validation
-- **Plan construction tests** live under [src/dotnet/Musoq.Evaluator.Tests/IR](src/dotnet/Musoq.Evaluator.Tests/IR) and cover Expression IR, logical nodes, physical nodes, builders, renderers, and end-to-end IR pipeline behavior.
+- **Plan construction tests** live under [src/dotnet/Musoq.Evaluator.Tests/IR](../src/dotnet/Musoq.Evaluator.Tests/IR) and cover Expression IR, logical nodes, physical nodes, builders, renderers, and end-to-end IR pipeline behavior.
 - For planner shape bugs, run the focused IR tests first, then the evaluator suite:
    ```bash
    dotnet test src/dotnet/Musoq.Evaluator.Tests --configuration Release --no-build --filter "FullyQualifiedName~Musoq.Evaluator.Tests.IR" --nologo --verbosity quiet --logger "console;verbosity=minimal"
@@ -303,7 +303,7 @@ For benchmark commands, result interpretation thresholds, baseline workflow, and
 
 ### Build Validation
 - **Build succeeds without errors**: All projects compile cleanly in Release configuration
-- **NuGet packages are generated**: Build produces 12 .nupkg files for all distributable modules
+- **NuGet packages are generated**: use `dotnet pack` or the release scripts for distributable modules
 - **No build-time dependencies**: Only requires the .NET 10.0.300+ SDK
 
 ### Performance and Benchmarks Validation
@@ -372,12 +372,12 @@ dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --filter Tes
 ```
 
 ### Documentation and Examples
-- **Architecture documentation**: See [musoq_enchanced_architecture.md](musoq_enchanced_architecture.md) for the query processing pipeline and optimizer ownership model
-- **API usage examples**: Reference [README.md](README.md), [specs/](specs/), and focused tests for current examples
-- **Practical examples**: See [README.md](README.md) for real-world query examples (git analysis, file processing, etc.)
-- **Plugin development**: Examine existing plugins in [src/dotnet/Musoq.Plugins](src/dotnet/Musoq.Plugins) directory
-- **Specifications**: See [specs/](specs/) for detailed specifications (especially [musoq-binary-text-spec.md](specs/musoq-binary-text-spec.md) for interpretation schemas)
-- **Test examples**: [ArithmeticTests.cs](src/dotnet/Musoq.Evaluator.Tests/ArithmeticTests.cs) demonstrates test patterns using `BasicEntityTestBase`
+- **Architecture documentation**: See [architecture.md](../.claude/rules/architecture.md) for the query processing pipeline and ownership model
+- **API usage examples**: Reference [README.md](../README.md), [specs/](../specs/), and focused tests for current examples
+- **Practical examples**: See [README.md](../README.md) for real-world query examples (git analysis, file processing, etc.)
+- **Plugin development**: Examine existing plugins in [src/dotnet/Musoq.Plugins](../src/dotnet/Musoq.Plugins) directory
+- **Specifications**: See [specs/](../specs/) for detailed specifications (especially [musoq-binary-text-spec.md](../specs/musoq-binary-text-spec.md) for interpretation schemas)
+- **Test examples**: [ArithmeticTests.cs](../src/dotnet/Musoq.Evaluator.Tests/ArithmeticTests.cs) demonstrates test patterns using `BasicEntityTestBase`
 
 ## Critical Timing Expectations
 
@@ -404,7 +404,7 @@ dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --filter Tes
 4. **Plan query**: `QueryPlanner` derives properties, records planning diagnostics, and invokes physical plan construction
 5. **Build physical plan**: `PhysicalPlanBuilder.Lower()` maps logical operators to `PhysicalNode` execution strategies selected by planner-owned rules
 6. **Build Execution IR**: `PhysicalToExecutionPlanBuilder` lowers physical strategies into explicit executable operations and metadata
-7. **Render C#**: `CSharpRenderer` and `ExecutionCSharpRenderer` walk Execution IR and emit Roslyn syntax
+7. **Render C#**: `Musoq.Targets.CSharpClr` owns `CSharpRenderer` and `ExecutionCSharpRenderer`, which emit Roslyn syntax from Execution IR
 8. **Compile**: `TurnQueryIntoRunnableCode` compiles the generated C# into an in-memory assembly
 9. **Execute**: `CompiledQuery.Run()` executes against data sources from schema providers and returns table results
 
@@ -414,22 +414,20 @@ dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --filter Tes
 SQL text
    -> Musoq.Parser lexer/parser
    -> RootNode AST
-   -> TransformTree visitor pipeline
-          DistinctToGroupBy
-          SubqueryToCte
-          ExtractRawColumns
-          BuildMetadataAndInferTypes
-          ConstantFolding
-          DeadCteEliminator
+   -> TransformTree pipeline
+          PreLogicalNormalizer
+          semantic metadata and scope analysis
           RewriteQueryVisitor
    -> LogicalPlanBuilder
    -> LogicalNode tree with OutputSchema
+   -> LogicalOptimizer
    -> QueryPlanner with PlanProperties and PlanningDecision diagnostics
    -> PhysicalPlanBuilder
    -> PhysicalNode tree with execution strategies
    -> PhysicalToExecutionPlanBuilder
    -> ExecutionNode tree with executable operations and metadata
-   -> CSharpRenderer + ExecutionCSharpRenderer + RenderContext
+   -> ExecutionIrOptimizer
+   -> Musoq.Targets.CSharpClr: CSharpRenderer + ExecutionCSharpRenderer + RenderContext
    -> Roslyn CompilationUnitSyntax
    -> CSharpCompilation
    -> in-memory assembly
@@ -452,7 +450,7 @@ SQL text
 - **Renderer decomposition shapes**: plain, grouped, and window queries have strict physical and Execution IR shapes. If a renderer rejects a shape, inspect the logical plan, physical plan, and Execution IR before changing rendering code.
 - **Debugging helpers**: use `IrExpressionPrinter`, `LogicalPlanPrinter`, `PlanningTextPrinter`, and `PhysicalPlanPrinter` to inspect intermediate representations.
 
-Before touching IR planner, Execution IR, or renderer code, read [musoq_enchanced_architecture.md](musoq_enchanced_architecture.md). For detailed module guidance, see the per-project `copilot-instructions.md` files listed in the [Per-Project Instructions](#per-project-instructions) section above.
+Before touching IR planner, Execution IR, or renderer code, read [architecture.md](../.claude/rules/architecture.md). For detailed module guidance, see the per-project `copilot-instructions.md` files listed in the [Per-Project Instructions](#per-project-instructions) section above.
 
 ## Troubleshooting
 

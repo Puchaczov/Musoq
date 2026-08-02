@@ -144,7 +144,7 @@ Musoq.Schema
 ### Testing
 
 ```bash
-# Run schema tests (457 tests, ~0.2 seconds)
+# Run schema tests
 dotnet test src/dotnet/Musoq.Schema.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
 ```
 

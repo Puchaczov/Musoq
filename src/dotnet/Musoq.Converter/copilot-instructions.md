@@ -188,7 +188,7 @@ dotnet test src/dotnet/Musoq.Converter.Tests --configuration Release --no-build 
 - Change physical-plan state carried through the pipeline via `BuildItems.PhysicalPlan`.
 - Change Execution IR lowering inside `TransformTree.BuildExecutionInspection()` only when the physical-to-execution handoff changes.
 - Change IR rendering orchestration inside `TransformTree.BuildWithIrRenderer()` only when renderer construction or metadata handoff changes.
-- Read the repository-root `musoq_enchanced_architecture.md` before touching planner, Execution IR, or renderer routing.
+- Read [architecture.md](../../../.claude/rules/architecture.md) before touching planner, Execution IR, or renderer routing.
 
 **Modifying the API surface:**
 - `InstanceCreator` is the public-facing API — changes here affect all consumers

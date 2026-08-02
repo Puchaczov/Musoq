@@ -36,7 +36,7 @@ Make existing code smaller, clearer, and easier for humans to review and maintai
 ## Musoq Gates
 
 - Read the relevant project `copilot-instructions.md` before touching code in `src/dotnet/Musoq.Parser`, `Musoq.Evaluator`, `Musoq.Converter`, `Musoq.Schema`, `Musoq.Plugins`, `Musoq.Playground`, or `Musoq.Benchmarks`.
-- Read `musoq_enchanced_architecture.md` before touching IR planner, Execution IR, physical planning, or renderer code.
+- Read [architecture.md](../../../.claude/rules/architecture.md) before touching IR planner, Execution IR, physical planning, or renderer code.
 - Keep optimization decisions in `QueryPlanner`, planner-owned helpers, physical planning, or Execution IR. Do not hide query-level strategy choices in renderers or generated C#.
 - Before final validation, re-read `.github/copilot-instructions.md` and fix any compliance issues found in the changed code.
 - After code changes, run the relevant focused tests first, then the full solution command unless the user explicitly narrows validation or the environment blocks it:

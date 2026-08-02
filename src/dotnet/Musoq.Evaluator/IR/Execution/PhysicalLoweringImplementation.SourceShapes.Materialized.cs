@@ -22,20 +22,7 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         return new TableRowShape(
             alias,
-            rowShape.Fields.Select(field =>
-            {
-                var binding = new FieldBinding(
-                    field.Name,
-                    field.QualifiedName,
-                    field.OutputIndex,
-                    field.Type,
-                    field.Nullability,
-                    createAccess(field),
-                    field.PublicType);
-                return field.GeneratedTypeName is { } generatedTypeName
-                    ? binding with { GeneratedTypeName = generatedTypeName }
-                    : binding;
-            }).ToArray(),
+            FieldBindingRebinder.Rebind(rowShape.Fields, createAccess),
             useTypedContextAccess && rowShape.SupportsGeneratedFieldAccess
                 ? CreateTypedStoredGeneratedRowContextBindings(rowShape)
                 : rowShape.Contexts,

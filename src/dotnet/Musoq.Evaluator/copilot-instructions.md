@@ -214,7 +214,7 @@ The active runtime path is under `IR/`. It separates query meaning from executio
 | Semantic binding | `Musoq.Evaluator.Visitors` semantic services | Keep `BuildMetadataAndInferTypesVisitor` as the facade; add source, method, result-shape, validation, and diagnostic behavior to focused services when practical. |
 
 Key planner rules:
-- New optimizer rules belong in `IR/Optimization` under the owning stage group. Builders create initial shapes, lowerers translate selected strategy, and target renderers emit faithfully; update `musoq_enchanced_architecture.md` if a feature truly needs different ownership.
+- New optimizer rules belong in `IR/Optimization` under the owning stage group. Builders create initial shapes, lowerers translate selected strategy, and target renderers emit faithfully; update [architecture.md](../../../.claude/rules/architecture.md) if a feature truly needs different ownership.
 - Optimizer passes should consume and recompute analysis facts through `OptimizationContext.AnalysisFacts`; changed passes invalidate stale plan-derived facts unless they recompute them in the same pass.
 - Every logical and physical plan node carries an `OutputSchema`; prefer it over inferred-column fallbacks when resolving produced query shape.
 - Source-aware planning belongs in planner helpers such as `RequiredColumnUsagePlanner`, `SourcePredicatePlanner`, `SourceInteractionPlanner`, `SourcePlanningPlanner`, `SourceBoundaryPlanner`, and `PredicatePlacementPlanner`. Public source planning is stateless: accepted ordering/slicing must flow as immutable `SourceExecutionPlan` data through `SourceExecutionContext.Plan`.
@@ -251,7 +251,7 @@ Key planner rules:
 - `Musoq.Targets.TestPortable` consumes Execution IR directly, lowers its supported subset to immutable `PortableSubsetProgram`, and executes with `PortableValue`. It must not access CLR sidecars or reference Converter, CSharpClr, Roslyn, reflection activation, or target analysis implementations, and it must not be production registered. This is an intentional breaking change to the public-looking Execution IR surface; there is no public target selector.
 - `TargetContractVersions` versions Execution IR, host ABI, and target package format independently. Version changes require updated capability checks, manifests, and portable conformance coverage; the public artifact format remains version `2` until deliberately migrated.
 - Lowerer decomposition is likewise strict. Aggregate, join, CTE, and window lowering behavior belongs in `IR/Execution/Lowering` coordinators when practical; set operations remain in their focused lowerer partials. Avoid rebuilding source, group, and finalization setup ad hoc in unrelated lowerer partials.
-- Before touching IR code, read `musoq_enchanced_architecture.md` from the repository root.
+- Before touching IR code, read [architecture.md](../../../.claude/rules/architecture.md).
 
 ## Generated Code Samples & Runtime Optimization
 
@@ -277,7 +277,7 @@ The snapshot tests compile each catalog query through `InstanceCreator.CreateFor
 1. **Run the generated-sample tests** to see whether current generated code still matches the sample corpus.
 2. **Refresh and read the local samples** to identify slow shapes such as redundant materialization, discarded contexts, string-keyed lookups, inline allocation, or reflection-like access.
 3. **Map each slow shape to an owner**: logical planning for query meaning, physical planning for strategy, Execution IR for executable metadata, and target renderer only for faithful syntax emission.
-4. **Consult the planner architecture reference** in `musoq_enchanced_architecture.md` for Physical/Execution IR ownership boundaries, and the [Musoq.Benchmarks copilot-instructions.md](../Musoq.Benchmarks/copilot-instructions.md) for the benchmark-to-query-family mapping.
+4. **Consult the planner architecture reference** in [architecture.md](../../../.claude/rules/architecture.md) for Physical/Execution IR ownership boundaries, and the [Musoq.Benchmarks copilot-instructions.md](../Musoq.Benchmarks/copilot-instructions.md) for the benchmark-to-query-family mapping.
 5. **Establish a benchmark baseline before code changes** for the affected query family.
 6. **Implement changes** in `IR/Physical` or `IR/Execution`; touch `IR/CodeGeneration` only for target-neutral render metadata, and touch `Musoq.Targets.CSharpClr` only for generated C# syntax emission.
 7. **Refresh tracked generated-code samples intentionally** and verify the generated code improved.
