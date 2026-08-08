@@ -31,6 +31,7 @@ internal static partial class GeneratedCodeSamplesCatalog
         samples.AddRange(CreateRecursiveCteSamples());
         samples.AddRange(CreatePerformanceSamples());
         samples.AddRange(CreateRuntimeDynamicSamples());
+        samples.Add(NullableProviderMethodLeftJoin());
 
         return samples;
     }

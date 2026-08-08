@@ -44,12 +44,7 @@ public static partial class ExecutionExpressionConverter
                 Convert(binary.Right, sourceShapes, cteTableIndexes, methodTargets),
                 binary.ReturnType),
             UnaryOp unary => new ExecutionUnary(unary.Kind, Convert(unary.Operand, sourceShapes, cteTableIndexes, methodTargets), unary.ReturnType),
-            MethodCall method => CreateMethodCall(
-                method.Method,
-                method.Arguments.Select(argument => Convert(argument, sourceShapes, cteTableIndexes, methodTargets)).ToArray(),
-                method.Alias,
-                method.ReturnType,
-                CreateInjectedSourceExpression(method.Method, method.Alias, sourceShapes)),
+            MethodCall method => ConvertMethodCall(method, sourceShapes, cteTableIndexes, methodTargets),
             StrictCast strictCast => new ExecutionStrictCast(
                 Convert(strictCast.Expression, sourceShapes, cteTableIndexes, methodTargets),
                 strictCast.TargetTypeName,

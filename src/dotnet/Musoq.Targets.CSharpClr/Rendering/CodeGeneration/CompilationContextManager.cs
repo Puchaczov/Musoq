@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Musoq.Evaluator.Runtime;
@@ -55,7 +57,35 @@ public sealed class CompilationContextManager
     /// <param name="assemblies">Plugin assemblies to reference.</param>
     public void InitializeCoreReferences(IEnumerable<Assembly> assemblies)
     {
-        AddAssemblyReferences(assemblies as Assembly[] ?? [.. assemblies]);
+        var assemblyArray = assemblies as Assembly[] ?? [.. assemblies];
+        var newReferences = new List<MetadataReference>(assemblyArray.Length);
+
+        foreach (var assembly in assemblyArray)
+        {
+            if (string.IsNullOrEmpty(assembly.Location))
+                continue;
+
+            if (_loadedAssemblies.Contains(assembly.Location))
+                continue;
+
+            try
+            {
+                ValidateMetadataImage(assembly.Location);
+                newReferences.Add(GetMetadataReference(assembly.Location));
+            }
+            catch (Exception exception) when (IsMetadataReferenceFailure(exception))
+            {
+                throw CSharpClrReferenceDiscoveryException.ForMetadataReference(
+                    assembly,
+                    "execution-plan CLR reference",
+                    exception);
+            }
+
+            _loadedAssemblies.Add(assembly.Location);
+        }
+
+        if (newReferences.Count > 0)
+            _compilation = _compilation.AddReferences(newReferences);
     }
 
     #region INamespaceTracker
@@ -145,9 +175,28 @@ public sealed class CompilationContextManager
 
     private MetadataReference GetMetadataReference(string assemblyPath)
     {
-        return _runtimeEnvironment?.GetOrCreateMetadataReference(assemblyPath) ??
-               MetadataReference.CreateFromFile(assemblyPath);
+        var reference = _runtimeEnvironment?.GetOrCreateMetadataReference(assemblyPath) ??
+                        MetadataReference.CreateFromFile(assemblyPath);
+        return reference;
     }
+
+    private static void ValidateMetadataImage(string assemblyPath)
+    {
+        using var stream = File.OpenRead(assemblyPath);
+        using var peReader = new PEReader(stream);
+        if (!peReader.HasMetadata)
+            throw new BadImageFormatException("The assembly file does not contain CLR metadata.");
+
+        _ = peReader.GetMetadata();
+    }
+
+    private static bool IsMetadataReferenceFailure(Exception exception) =>
+        exception is ArgumentException or
+            BadImageFormatException or
+            FileLoadException or
+            FileNotFoundException or
+            IOException or
+            UnauthorizedAccessException;
 
     private static IEnumerable<string> GetPreloadedAssemblyPaths(CSharpCompilation compilation)
     {

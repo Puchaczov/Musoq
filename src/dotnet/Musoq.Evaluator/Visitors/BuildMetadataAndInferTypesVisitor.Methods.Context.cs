@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
+using Musoq.Plugins.Attributes;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
 
 namespace Musoq.Evaluator.Visitors;
@@ -83,7 +85,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         MethodInfo? firstMethod = null;
         MethodResolutionContext? resolvedContext = null;
         var ambiguousAliases = new List<string>();
-        var allSameMethod = true;
+        var allCandidatesEquivalent = true;
 
         foreach (var alias in tableSymbol.CompoundTables)
         {
@@ -104,14 +106,18 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             ambiguousAliases.Add(alias);
 
-            if (!AreSameMethod(firstMethod, candidateMethod))
-                allSameMethod = false;
+            if (allCandidatesEquivalent)
+            {
+                allCandidatesEquivalent = AreSameMethod(firstMethod, candidateMethod) &&
+                                          IsAliasIndependentInvocation(firstMethod) &&
+                                          IsAliasIndependentInvocation(candidateMethod);
+            }
         }
 
         if (resolvedContext == null)
             return false;
 
-        if (ambiguousAliases.Count > 1 && !allSameMethod)
+        if (ambiguousAliases.Count > 1 && !allCandidatesEquivalent)
         {
             ReportAmbiguousMethodOwner(node, ambiguousAliases);
             return true;
@@ -120,6 +126,14 @@ public partial class BuildMetadataAndInferTypesVisitor
         RegisterMethodContextAssemblies(resolvedContext.Value.EntityType);
         context = resolvedContext.Value;
         return true;
+    }
+
+    private static bool IsAliasIndependentInvocation(MethodInfo method)
+    {
+        return !method.GetParameters()
+            .SelectMany(static parameter => parameter.GetCustomAttributes(true))
+            .Any(static attribute => attribute.GetType().Name is
+                nameof(InjectSpecificSourceAttribute) or "InjectSourceAttribute");
     }
 
     private void ReportAmbiguousMethodOwner(AccessMethodNode methodNode, IReadOnlyCollection<string> candidateAliases)

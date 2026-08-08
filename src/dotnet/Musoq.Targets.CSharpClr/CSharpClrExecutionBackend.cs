@@ -1,5 +1,6 @@
 using System;
-using System.Linq;
+using System.IO;
+using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator;
@@ -85,18 +86,33 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
             _runtimeEnvironment.CreateCompilation(assemblyName),
             _runtimeEnvironment);
         compilationContext.InitializeDefaults();
-        var referenceAssemblies = inputs.ReferenceAssemblies.ToList();
-        foreach (var referenceType in inputs.AdditionalReferenceTypes)
+        try
         {
-            if (!referenceAssemblies.Contains(referenceType.Assembly))
-                referenceAssemblies.Add(referenceType.Assembly);
+            var referenceAssemblies = CSharpClrReferenceAssemblyCollector.Collect(
+                request.CompatibilityReport,
+                inputs.ExecutionBindings,
+                inputs.ReferenceAssemblies,
+                inputs.AdditionalReferenceTypes,
+                inputs.OutputType,
+                _runtimeEnvironment.PreloadedAssemblyPaths);
+
+            compilationContext.InitializeCoreReferences(referenceAssemblies);
+        }
+        catch (CSharpClrReferenceDiscoveryException exception)
+        {
+            return CreateMissingReferenceResult(exception);
+        }
+        catch (Exception exception) when (IsExpectedMetadataReferenceFailure(exception))
+        {
+            return CreateMissingReferenceResult(
+                new CSharpClrReferenceDiscoveryException(
+                    "<unknown>",
+                    "execution-plan CLR reference",
+                    CSharpClrReferenceDiscoveryException.GetStableReason(exception),
+                    exception));
         }
 
-        if (inputs.OutputType?.Assembly is { } outputAssembly && !referenceAssemblies.Contains(outputAssembly))
-            referenceAssemblies.Add(outputAssembly);
-
-        compilationContext.InitializeCoreReferences(referenceAssemblies);
-            compilationContext.AddSyntaxTree(ClassEmitter.CreateSyntaxTreeDirect(compilationUnit, inputs.RenderProfile));
+        compilationContext.AddSyntaxTree(ClassEmitter.CreateSyntaxTreeDirect(compilationUnit, inputs.RenderProfile));
         if (!string.IsNullOrEmpty(inputs.InterpreterSourceCode))
         {
             compilationContext.TrackNamespace("Musoq.Generated.Interpreters");
@@ -144,4 +160,21 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
         return new NotSupportedException(
             $"Execution IR does not support this query shape and old physical rendering is disabled: {reason}");
     }
+
+    internal static TargetRenderResult CreateMissingReferenceResult(
+        CSharpClrReferenceDiscoveryException exception)
+    {
+        return TargetRenderResult.Failed(
+            ExecutionTargetIds.CSharpClr,
+            [TargetDiagnostic.Error(
+                TargetDiagnosticCodes.MissingClrReference,
+                exception.Message)]);
+    }
+
+    private static bool IsExpectedMetadataReferenceFailure(Exception exception) =>
+        exception is FileNotFoundException or
+            BadImageFormatException or
+            FileLoadException or
+            IOException;
+
 }

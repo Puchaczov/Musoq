@@ -30,7 +30,7 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             AnalyzeNode(node, sink);
 
         foreach (var expression in ExecutionIrAnalysis.FlattenExpressions(plan.Body))
-            AnalyzeExpression(expression, sink);
+            AnalyzeExpression(expression, plan.Shapes, sink);
 
         return new ExecutionTargetCompatibilityReport(sink.ToArray());
     }
@@ -45,6 +45,7 @@ internal static class ExecutionTargetCompatibilityAnalyzer
                     $"source entity '{source.Alias}' uses {FormatType(source.EntityType)}");
                 sink.AddClrType(source.EntityType);
                 AddFields(source.Fields, sink);
+                AddClrPropertyPathTypes(source, sink);
                 break;
             case GeneratedRowShape generated:
                 AddGeneratedRow(generated.TypeName, generated.Fields.Concat(generated.Contexts), sink);
@@ -114,12 +115,22 @@ internal static class ExecutionTargetCompatibilityAnalyzer
         }
     }
 
-    private static void AnalyzeExpression(ExecutionExpression expression, RequirementSink sink)
+    private static void AnalyzeExpression(
+        ExecutionExpression expression,
+        IReadOnlyList<RowShape> shapes,
+        RequirementSink sink)
     {
         sink.AddClrType(expression.ReturnType);
 
         switch (expression)
         {
+            case ExecutionFieldRead fieldRead
+                when fieldRead.Alias is { Length: > 0 } alias &&
+                     (fieldRead.FieldName.Contains('.', StringComparison.Ordinal) ||
+                      fieldRead.FieldName.Contains('[', StringComparison.Ordinal)):
+                if (TryGetSourceEntityShape(shapes, alias) is { } sourceShape)
+                    AddClrPropertyPathTypes(sourceShape, fieldRead.FieldName, sink);
+                break;
             case ExecutionLiteral { Value.Kind: ExecutionConstantKind.ClrOnly } literal:
                 sink.Add(
                     ExecutionTargetRequirementKind.ClrOnlyConstant,
@@ -136,6 +147,20 @@ internal static class ExecutionTargetCompatibilityAnalyzer
         }
     }
 
+    private static SourceEntityShape? TryGetSourceEntityShape(
+        IReadOnlyList<RowShape> shapes,
+        string alias)
+    {
+        foreach (var shape in shapes)
+        {
+            if (shape is SourceEntityShape source &&
+                string.Equals(source.Alias, alias, StringComparison.OrdinalIgnoreCase))
+                return source;
+        }
+
+        return null;
+    }
+
     private static void AddFields(IEnumerable<FieldBinding> fields, RequirementSink sink)
     {
         foreach (var field in fields)
@@ -144,6 +169,92 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             if (field.PublicType != null)
                 sink.AddClrType(field.PublicType);
         }
+    }
+
+    private static void AddClrPropertyPathTypes(SourceEntityShape source, RequirementSink sink)
+    {
+        Type entityType;
+        try
+        {
+            entityType = source.EntityType.ResolveClrType();
+        }
+        catch (NotSupportedException)
+        {
+            return;
+        }
+
+        foreach (var field in source.Fields)
+        {
+            var path = field.AccessStrategy switch
+            {
+                ClrPropertyAccess property => property.PropertyName,
+                NestedClrPropertyAccess nested => nested.PropertyPath,
+                _ => null
+            };
+
+            if (string.IsNullOrWhiteSpace(path))
+                continue;
+
+            AddClrPropertyPathTypes(entityType, path, sink);
+        }
+    }
+
+    private static void AddClrPropertyPathTypes(
+        SourceEntityShape source,
+        string path,
+        RequirementSink sink)
+    {
+        try
+        {
+            AddClrPropertyPathTypes(source.EntityType.ResolveClrType(), path, sink);
+        }
+        catch (NotSupportedException)
+        {
+        }
+    }
+
+    private static void AddClrPropertyPathTypes(Type entityType, string path, RequirementSink sink)
+    {
+        var currentType = entityType;
+        var segments = path
+            .Split(['.', '[', ']'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        foreach (var segment in segments)
+        {
+            if (int.TryParse(segment, out _))
+                continue;
+
+            var member = ResolvePublicMember(currentType, segment);
+            if (member is null)
+                return;
+
+            if (member.DeclaringType is { } declaringType)
+                sink.AddClrType(declaringType);
+
+            var memberType = member switch
+            {
+                PropertyInfo property => property.PropertyType,
+                FieldInfo field => field.FieldType,
+                _ => null
+            };
+            if (memberType is null)
+                return;
+
+            sink.AddClrType(memberType);
+            currentType = Nullable.GetUnderlyingType(memberType) ?? memberType;
+        }
+    }
+
+    private static MemberInfo? ResolvePublicMember(Type type, string name)
+    {
+        return type
+            .GetMember(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase)
+            .FirstOrDefault(member => member switch
+            {
+                PropertyInfo property => property.GetMethod is { IsPublic: true },
+                FieldInfo field => field.IsPublic,
+                _ => false
+            });
     }
 
     private static void AddAggregateGroupShape(AggregateGroupShape shape, RequirementSink sink)

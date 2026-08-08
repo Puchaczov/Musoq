@@ -122,10 +122,28 @@ public sealed partial class ExecutionCSharpRenderer
             aggregateContext.Groups.Name,
             SyntaxFactory.ObjectCreationExpression(CreateListTypeSyntax(groupType))
                 .WithArgumentList(SyntaxFactory.ArgumentList())));
-        statements.Add(CreateLocalDeclaration(
-            groupType,
-            aggregateContext.CurrentGroup.Name,
-            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
+
+        if (aggregateContext.GroupShape.Keys.Count == 0)
+        {
+            statements.Add(CreateLocalDeclaration(
+                groupType,
+                aggregateContext.CurrentGroup.Name,
+                CreateAggregateGroupCreation(aggregateContext.GroupShape, context, [])));
+            statements.Add(SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(aggregateContext.Groups.Name),
+                            SyntaxFactory.IdentifierName("Add")))
+                    .WithArgumentList(CreateArgumentList(SyntaxFactory.IdentifierName(aggregateContext.CurrentGroup.Name)))));
+        }
+        else
+        {
+            statements.Add(CreateLocalDeclaration(
+                groupType,
+                aggregateContext.CurrentGroup.Name,
+                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
+        }
 
         return statements;
     }

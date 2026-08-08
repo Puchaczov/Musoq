@@ -224,7 +224,7 @@ public partial class DistinctComprehensiveTests : BasicEntityTestBase
 
     /// <summary>
     ///     Tests DISTINCT values returned from a grouped result in CTE.
-    ///     Note: COUNT(DISTINCT column) syntax is not supported, use nested CTEs.
+    ///     COUNT(DISTINCT column) is supported directly in the grouped query.
     /// </summary>
 
     /// <summary>

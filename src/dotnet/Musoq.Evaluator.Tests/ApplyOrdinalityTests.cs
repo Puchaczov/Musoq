@@ -198,6 +198,61 @@ order by b.Ordinal";
     }
 
     [TestMethod]
+    public void CrossApplySchemaMethodWithOrdinality_ShouldRetainGenericInjectedSourceBinding()
+    {
+        const string noOrdinalityQuery = @"
+select b.Value
+from #schema.first() a
+cross apply a.MethodArrayOfStringsWithoutParameters() b";
+        const string query = @"
+select b.Value, b.Ordinal
+from #schema.first() a
+cross apply a.MethodArrayOfStringsWithoutParameters() b with ordinality
+order by b.Ordinal";
+        var source = new[]
+        {
+            new ObjectArrayRow
+            {
+                Children = [new ChildRow { Name = "parent" }]
+            }
+        };
+
+        var noOrdinalityTable = CreateAndRunVirtualMachine(noOrdinalityQuery, source).Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(noOrdinalityTable, ["one"], ["two"]);
+
+        var table = CreateAndRunVirtualMachine(query, source).Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["one", 0], ["two", 1]);
+    }
+
+    [TestMethod]
+    public void OuterApplySchemaMethod_ShouldRetainGenericInjectedSourceWithAndWithoutOrdinality()
+    {
+        const string noOrdinalityQuery = @"
+select b.Value
+from #schema.first() a
+outer apply a.MethodArrayOfStringsWithoutParameters() b";
+        const string ordinalityQuery = @"
+select b.Value, b.Ordinal
+from #schema.first() a
+outer apply a.MethodArrayOfStringsWithoutParameters() b with ordinality
+order by b.Ordinal";
+        var source = new[]
+        {
+            new ObjectArrayRow
+            {
+                Children = [new ChildRow { Name = "parent" }]
+            }
+        };
+
+        var noOrdinalityTable = CreateAndRunVirtualMachine(noOrdinalityQuery, source).Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(noOrdinalityTable, ["one"], ["two"]);
+
+        var ordinalityTable = CreateAndRunVirtualMachine(ordinalityQuery, source).Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsInOrder(ordinalityTable, ["one", 0], ["two", 1]);
+    }
+
+    [TestMethod]
     public void CrossApplyWithOrdinality_WhenRightSourceAlreadyHasOrdinalColumn_ShouldThrow()
     {
         const string query = @"

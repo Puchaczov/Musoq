@@ -102,6 +102,46 @@ dotnet run --project src/dotnet/Musoq.Benchmarks -c Release -- --filter "*TwoMod
 
 These benchmarks are characterization only; unit tests must not assert timing thresholds.
 
+## TableSymbol schema-binding transitions
+
+`TableSymbolTransformationBenchmark` protects the metadata hot paths used when a
+provider relation crosses nullable, ordinality, and multi-alias transitions. It
+covers single-alias lookup, nullable and ordinality transformations, and
+two/eight-alias merge-and-resolve operations. The benchmark source uses only APIs
+available at the baseline commit, so copy that exact benchmark file into a clean
+baseline worktree before collecting the baseline cohort.
+
+Capture three isolated cohorts on each side with the same `ShortRun` settings:
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj -c Release --no-build -- `
+  --filter "*TableSymbolTransformationBenchmark*" --job short --memory --exporters json `
+  --artifacts artifacts/table-symbol-wave4/baseline-1
+
+dotnet run --project src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj -c Release --no-build -- `
+  --filter "*TableSymbolTransformationBenchmark*" --job short --memory --exporters json `
+  --artifacts artifacts/table-symbol-wave4/current-1
+```
+
+Repeat each command for cohorts `2` and `3`, then compare the six compressed
+JSON reports:
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj -c Release --no-build -- compare-reports `
+  --baseline artifacts/table-symbol-wave4/baseline-1/results/Musoq.Benchmarks.TableSymbolTransformationBenchmark-report-full-compressed.json `
+  --baseline artifacts/table-symbol-wave4/baseline-2/results/Musoq.Benchmarks.TableSymbolTransformationBenchmark-report-full-compressed.json `
+  --baseline artifacts/table-symbol-wave4/baseline-3/results/Musoq.Benchmarks.TableSymbolTransformationBenchmark-report-full-compressed.json `
+  --current artifacts/table-symbol-wave4/current-1/results/Musoq.Benchmarks.TableSymbolTransformationBenchmark-report-full-compressed.json `
+  --current artifacts/table-symbol-wave4/current-2/results/Musoq.Benchmarks.TableSymbolTransformationBenchmark-report-full-compressed.json `
+  --current artifacts/table-symbol-wave4/current-3/results/Musoq.Benchmarks.TableSymbolTransformationBenchmark-report-full-compressed.json
+```
+
+The comparator uses the median of the three reports and rejects any method above
+`1.03x` for either mean time or allocated bytes. Raw BenchmarkDotNet reports are
+local ignored artifacts and MUST NOT be committed. The Wave 4 cohort passed with
+ratios from `0.8018x` to `1.0000x` for time and `0.7274x` to `1.0000x` for
+allocation.
+
 ## Streaming Chunk-Parallel Projection
 
 `StreamingChunkParallelProjectionBenchmark` compares the old serial streaming projection path

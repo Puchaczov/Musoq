@@ -4,7 +4,7 @@ namespace Musoq.Evaluator.Tests;
 
 public sealed partial class GeneratedCodeSamplesShapeTests
 {
-    private const int ExpectedSampleFileCount = 237;
+    private const int ExpectedSampleFileCount = 238;
     private const int InlineInArrayAllocationBudget = 0;
     private const string CrossApplySampleFileName = "Q19_CrossApply.cs";
     private const string OuterApplySampleFileName = "Q20_OuterApply.cs";
@@ -33,6 +33,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private const string ChainedApplyGroupedAggregateQualifyWindowSampleFileName =
         "Q75_ChainedApplyGroupedAggregateQualifyWindow.cs";
     private const string ApplyWithOrdinalitySampleFileName = "Q173_ApplyWithOrdinality.cs";
+    private const string NullableProviderMethodLeftJoinSampleFileName = "Q235_NullableProviderMethodLeftJoin.cs";
     private const string CteDistinctJoinByCountrySampleFileName = "Q50_CteDistinctJoinByCountry.cs";
     private const string CteJoinFrameQualifySampleFileName = "Q47_CteJoinFrameQualify.cs";
     private const string InSubqueryBasicSampleFileName = "Q99_InSubqueryBasic.cs";

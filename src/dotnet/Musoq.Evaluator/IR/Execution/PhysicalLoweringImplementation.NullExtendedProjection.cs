@@ -57,7 +57,8 @@ internal sealed partial class PhysicalLoweringImplementation
         var resultShape = CreateNullExtendedGeneratedShape(
             context.ResultShapeName,
             projectedValues,
-            context.SourceLookup);
+            context.SourceLookup,
+            context.NullAlias);
         var matchedAppendRow = CreateNullExtendedAppendRow(
             context.ResultTable,
             resultShape,
@@ -92,7 +93,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static GeneratedRowShape CreateNullExtendedGeneratedShape(
         string typeName,
         IReadOnlyList<NullExtendedProjectedValue> fields,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup,
+        string nullAlias)
     {
         var usedFieldNames = new HashSet<string>(StringComparer.Ordinal);
 
@@ -105,7 +107,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 field.ResultType,
                 field.Nullability,
                 new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)))).ToArray(),
-            CreateContextBindings(sourceLookup));
+            CreateContextBindings(sourceLookup, [nullAlias]));
     }
 
     private static FullOuterNullExtendedProjectionBuildResult CreateFullOuterNullExtendedProjection(
@@ -160,7 +162,9 @@ internal sealed partial class PhysicalLoweringImplementation
         var resultShape = CreateFullOuterNullExtendedGeneratedShape(
             context.ResultShapeName,
             projectedValues,
-            context.SourceLookup);
+            context.SourceLookup,
+            leftAlias,
+            rightAlias);
         var matchedAppendRow = CreateFullOuterNullExtendedAppendRow(
             context.ResultTable,
             resultShape,
@@ -193,7 +197,9 @@ internal sealed partial class PhysicalLoweringImplementation
     private static GeneratedRowShape CreateFullOuterNullExtendedGeneratedShape(
         string typeName,
         IReadOnlyList<FullOuterNullExtendedProjectedValue> fields,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup,
+        string leftAlias,
+        string rightAlias)
     {
         var usedFieldNames = new HashSet<string>(StringComparer.Ordinal);
 
@@ -206,7 +212,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 field.ResultType,
                 field.Nullability,
                 new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)))).ToArray(),
-            CreateContextBindings(sourceLookup));
+            CreateContextBindings(sourceLookup, [leftAlias, rightAlias]));
     }
 
     private static ExecutionAppendRow CreateFullOuterNullExtendedAppendRow(

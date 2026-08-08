@@ -123,7 +123,8 @@ namespace GeneratedSample_Q24_AggregateNoGroupBy
                 var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
                 var ko3ikoRows = ko3ikoRowsSource.Chunks;
                 var groupsToFinalize = new List<ResultAggregateGroup>();
-                ResultAggregateGroup group = null;
+                ResultAggregateGroup group = new ResultAggregateGroup();
+                groupsToFinalize.Add(group);
                 foreach (var ko3ikoChunk in ko3ikoRows)
                 {
                     if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)

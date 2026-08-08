@@ -26,6 +26,9 @@ internal static class OuterApplyNullSubstitutionService
             ExecutionRowPresence rowPresence when string.Equals(rowPresence.Alias, rightAlias, StringComparison.OrdinalIgnoreCase) =>
                 OuterApplyNullSubstitutionResult.Known(new ExecutionLiteral(!rowPresence.IsPresent, typeof(bool))),
             ExecutionRowPresence => OuterApplyNullSubstitutionResult.Known(expression),
+            ExecutionVariableRead variable when string.Equals(variable.Variable.Name, rightAlias, StringComparison.OrdinalIgnoreCase) =>
+                OuterApplyNullSubstitutionResult.Unknown(),
+            ExecutionVariableRead => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionInCheck inCheck => SubstituteInCheck(inCheck, rightAlias),
             ExecutionPatternMatch patternMatch => SubstitutePatternMatch(patternMatch, rightAlias),
             ExecutionBetween between => SubstituteBetween(between, rightAlias),
@@ -34,7 +37,6 @@ internal static class OuterApplyNullSubstitutionService
             ExecutionRowStream => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionScalarRowStream => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionStoredTableRows => OuterApplyNullSubstitutionResult.Known(expression),
-            ExecutionVariableRead => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionCompositeKey compositeKey => SubstituteCompositeKey(compositeKey, rightAlias),
             ExecutionValueTupleKey valueTupleKey => SubstituteValueTupleKey(valueTupleKey, rightAlias),
             ExecutionWindowValueRead => OuterApplyNullSubstitutionResult.Known(expression),

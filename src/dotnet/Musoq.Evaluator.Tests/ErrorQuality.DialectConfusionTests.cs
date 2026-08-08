@@ -85,7 +85,7 @@ public partial class ErrorQualityDialectConfusionTests : BasicEntityTestBase
 
     // ============================================================================
     // P-AGG: COUNT(*) and aggregate syntax
-    // Expected hint: COUNT(*) → suggest Count(1). COUNT(DISTINCT x) → suggest GROUP BY + Count.
+    // Expected hint: COUNT(*) → suggest Count(1); COUNT(DISTINCT x) is supported directly.
     // ============================================================================
 
 

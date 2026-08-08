@@ -402,6 +402,33 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
     }
 
     [TestMethod]
+    public void Analyze_WhenSourceUsesNestedClrPropertyPath_ShouldReportIntermediateClrTypes()
+    {
+        var sourceShape = new SourceEntityShape(
+            "s",
+            typeof(NestedSource),
+            [
+                new FieldBinding(
+                    "Child.Value",
+                    "s.Child.Value",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new NestedClrPropertyAccess("Child.Value"))
+            ]);
+        var plan = new ExecutionPlan(
+            "Q_NestedPropertyPath",
+            [sourceShape],
+            new ExecutionBlock([]));
+
+        var report = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
+
+        AssertContainsRequirement(report, ExecutionTargetRequirementKind.ClrTypeUsage, typeof(NestedSource).FullName!);
+        AssertContainsRequirement(report, ExecutionTargetRequirementKind.ClrTypeUsage, typeof(NestedChild).FullName!);
+        AssertContainsRequirement(report, ExecutionTargetRequirementKind.ClrTypeUsage, typeof(string).FullName!);
+    }
+
+    [TestMethod]
     public void Analyze_WhenPlanUsesMethodsAndPluginWindows_ShouldReportRuntimeRequirements()
     {
         var toUpper = ResolveLibraryMethod(nameof(LibraryBase.ToUpper), typeof(string));
@@ -731,6 +758,16 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
         public string? Name { get; init; }
 
         public int Score { get; init; }
+    }
+
+    private sealed class NestedSource
+    {
+        public NestedChild Child { get; } = new();
+    }
+
+    private sealed class NestedChild
+    {
+        public string Value { get; } = string.Empty;
     }
 
     private sealed class CustomPortableLibrary : LibraryBase

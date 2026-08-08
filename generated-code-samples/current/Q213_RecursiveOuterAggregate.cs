@@ -226,7 +226,8 @@ namespace GeneratedSample_Q213_RecursiveOuterAggregate
 
                 _cteRowResults.Slot0 = cte0;
                 var groupsToFinalize = new List<ResultAggregateGroup>();
-                ResultAggregateGroup group = null;
+                ResultAggregateGroup group = new ResultAggregateGroup();
+                groupsToFinalize.Add(group);
                 var __storedTable0Rows = _cteRowResults.Slot0;
                 for (int __storedTable0Index = 0; __storedTable0Index < __storedTable0Rows.Count; ++__storedTable0Index)
                 {

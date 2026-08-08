@@ -20,14 +20,14 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
     ];
 
     [TestMethod]
-    public void CurrentCorpus_Contains237SnapshotsAndNoGeneratedReflection()
+    public void CurrentCorpus_Contains238SnapshotsAndNoGeneratedReflection()
     {
         var files = Directory
             .EnumerateFiles(GeneratedCodeSampleArtifacts.SamplesDirectory, "*.cs")
             .ToArray();
 
-        Assert.AreEqual(237, files.Length);
-        Assert.AreEqual(237, GeneratedCodeSamplesCatalog.Samples.Count);
+        Assert.AreEqual(238, files.Length);
+        Assert.AreEqual(238, GeneratedCodeSamplesCatalog.Samples.Count);
 
         var expectedFiles = new[]
         {

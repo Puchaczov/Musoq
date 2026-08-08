@@ -6,4 +6,5 @@ internal static class TargetDiagnosticCodes
     public const string UnsupportedRequirement = "MT1002";
     public const string UnsupportedLowering = "MT1003";
     public const string UnsupportedSemantics = "MT1004";
+    public const string MissingClrReference = "MT1005";
 }

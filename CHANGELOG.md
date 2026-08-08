@@ -4,6 +4,26 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.5-alpha.1
+
+See [release-notes/v17.0.5-alpha.1.md](release-notes/v17.0.5-alpha.1.md) for the curated full-train release notes.
+
+### Musoq.Evaluator
+
+- Preserved schema ownership and provider-method binding across table transformations, nullable outer joins, CTEs, set operations, and downstream projections.
+- Required alias qualification for source-injected provider methods when more than one source alias can provide the method, and documented the resulting MQ3035 ambiguity rule.
+- Added comprehensive `COUNT(DISTINCT)` coverage across overloads, compositions, grouping, empty aggregates, streaming, parallel execution, and generated query inspection.
+
+### Musoq.Converter
+
+- Added demand-driven CLR reference discovery from execution-plan requirements, including external CLR types, nested property paths, and deterministic missing-reference diagnostics.
+- Prevented broad CLR reference loading and strengthened generated C# compilation and execution-target compatibility analysis.
+
+### Tooling and verification
+
+- Added external CLR fixtures, architecture guardrails, generated-code samples, performance benchmarks, and solution registration for the new end-to-end coverage.
+- Full-train release validation covers `Musoq.Parser`, `Musoq.Plugins`, `Musoq.Schema`, `Musoq.Evaluator`, and `Musoq.Converter`.
+
 ## 17.0.4-alpha.4
 
 See [release-notes/evaluator/v17.0.4-alpha.4.md](release-notes/evaluator/v17.0.4-alpha.4.md) for the curated `Musoq.Evaluator` release notes.

@@ -25,9 +25,9 @@ public sealed class StreamingChunkParallelAggregateQueryTests
     }
 
     [TestMethod]
-    public void StreamingRowSource_WhenParallelGroupedAggregateRuns_ShouldNotMaterializeAllChunksBeforeAggregating()
+    public void StreamingRowSource_WhenParallelGroupedDistinctAggregateRuns_ShouldMergeValuesAcrossChunks()
     {
-        const string query = "select City, Count(Signal(City)) from #schema.rows() group by City";
+        const string query = "select City, Count(distinct Signal(Name)) from #schema.rows() group by City";
         var compilationOptions = new CompilationOptions(
             ParallelizationMode.Full,
             usePrimitiveTypeValidation: false,
@@ -81,7 +81,7 @@ public sealed class StreamingChunkParallelAggregateQueryTests
         }
     }
 
-    public sealed record StreamingAggregateEntity(string City);
+    public sealed record StreamingAggregateEntity(string City, string Name);
 
     private sealed class BlockingSecondChunkRowSource(AggregateStreamingProbe probe)
         : RowSourceBase<StreamingAggregateEntity>
@@ -92,15 +92,19 @@ public sealed class StreamingChunkParallelAggregateQueryTests
         {
             writer.Write(
             [
-                new StreamingAggregateEntity("A"),
-                new StreamingAggregateEntity("A")
+                new StreamingAggregateEntity("A", "shared"),
+                new StreamingAggregateEntity("A", "first")
             ]);
             ChunksWritten++;
 
             if (!probe.WaitForFirstAggregateInput(TimeSpan.FromSeconds(5)))
                 throw new InvalidOperationException("The aggregate loop did not process the first chunk before the source needed the second chunk.");
 
-            writer.Write([new StreamingAggregateEntity("B")]);
+            writer.Write(
+            [
+                new StreamingAggregateEntity("A", "shared"),
+                new StreamingAggregateEntity("B", "only")
+            ]);
             ChunksWritten++;
         }
     }

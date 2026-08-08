@@ -26,10 +26,7 @@ public class TableSymbol : Symbol
         _tables.Add(alias, (schema, table));
         _orders.Add(alias);
         HasAlias = hasAlias;
-        _fullTableName = alias;
-
-        _fullSchema = schema;
-        _fullTable = table;
+        SetFullBinding(alias, table);
     }
 
     private TableSymbol(bool hasAlias = true)
@@ -160,22 +157,12 @@ public class TableSymbol : Symbol
 
         var compoundTableColumns = new List<ISchemaColumn>();
 
-        foreach (var item in _tables)
-        {
-            symbol._tables.Add(item.Key, item.Value);
-            symbol._orders.Add(item.Key);
+        AddTableBindings(this, symbol, compoundTableColumns, _orders);
+        AddTableBindings(other, symbol, compoundTableColumns, other._orders);
 
-            compoundTableColumns.AddRange(item.Value.Item2.Columns);
-        }
-
-        symbol._tables.Add(other.FullTableName, (other.FullSchema, other.FullTable));
-        symbol._orders.Add(other.FullTableName);
-
-        compoundTableColumns.AddRange(other.FullTable.Columns);
-
-        symbol._fullTableName = string.Concat(symbol._orders);
-        symbol._fullTable = new DynamicTable(compoundTableColumns.ToArray());
-        symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol.FullTable);
+        symbol.SetFullBinding(
+            string.Concat(symbol._orders),
+            new DynamicTable(compoundTableColumns.ToArray()));
         CopyMaybeMissingAliasesTo(symbol);
         other.CopyMaybeMissingAliasesTo(symbol);
 
@@ -215,9 +202,9 @@ public class TableSymbol : Symbol
             compoundTableColumns.AddRange(schemaTable.Columns);
         }
 
-        symbol._fullTableName = string.Concat(symbol._orders);
-        symbol._fullTable = new DynamicTable(compoundTableColumns.ToArray(), singleEntityType);
-        symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol.FullTable);
+        symbol.SetFullBinding(
+            string.Concat(symbol._orders),
+            new DynamicTable(compoundTableColumns.ToArray(), singleEntityType));
         CopyMaybeMissingAliasesTo(symbol);
 
         return symbol;
@@ -233,9 +220,7 @@ public class TableSymbol : Symbol
             symbol._orders.Add(tableName);
         }
 
-        symbol._fullTableName = fullTableName;
-        symbol._fullTable = FullTable;
-        symbol._fullSchema = new TransitionSchema(fullTableName, FullTable);
+        symbol.SetFullBinding(fullTableName, FullTable);
         CopyMaybeMissingAliasesTo(symbol);
 
         return symbol;
@@ -243,7 +228,7 @@ public class TableSymbol : Symbol
 
     public TableSymbol MakeNullableIfPossible()
     {
-        var symbol = new TableSymbol();
+        var symbol = new TableSymbol(HasAlias);
         var compoundTableColumns = new List<ISchemaColumn>();
 
         foreach (var column in FullTable.Columns) compoundTableColumns.Add(ConvertColumnToNullable(column));
@@ -261,9 +246,9 @@ public class TableSymbol : Symbol
             symbol._orders.Add(item.Key);
         }
 
-        symbol._fullTableName = string.Concat(symbol._orders);
-        symbol._fullTable = new DynamicTable(compoundTableColumns.ToArray(), singleEntityType);
-        symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol.FullTable);
+        symbol.SetFullBinding(
+            string.Concat(symbol._orders),
+            new DynamicTable(compoundTableColumns.ToArray(), singleEntityType));
         CopyMaybeMissingAliasesTo(symbol);
 
         return symbol;
@@ -284,7 +269,7 @@ public class TableSymbol : Symbol
 
     public TableSymbol LimitColumnsTo(IReadOnlyDictionary<string, string[]> columnLimits)
     {
-        var symbol = new TableSymbol();
+        var symbol = new TableSymbol(HasAlias);
 
         var compoundTableColumns = new List<ISchemaColumn>();
 
@@ -306,9 +291,9 @@ public class TableSymbol : Symbol
             compoundTableColumns.AddRange(dynamicTable.Columns);
         }
 
-        symbol._fullTableName = string.Concat(symbol._orders);
-        symbol._fullTable = new DynamicTable(compoundTableColumns.ToArray(), singleEntityType);
-        symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol.FullTable);
+        symbol.SetFullBinding(
+            string.Concat(symbol._orders),
+            new DynamicTable(compoundTableColumns.ToArray(), singleEntityType));
         CopyMaybeMissingAliasesTo(symbol);
 
         return symbol;
@@ -320,6 +305,34 @@ public class TableSymbol : Symbol
         {
             if (symbol.ContainsAlias(alias))
                 symbol._maybeMissingAliases.Add(alias);
+        }
+    }
+
+    private void SetFullBinding(string fullTableName, ISchemaTable fullTable)
+    {
+        _fullTableName = fullTableName;
+        _fullTable = fullTable;
+        _fullSchema = _tables.Count == 1 &&
+                      _orders.Count == 1 &&
+                      string.Equals(_orders[0], fullTableName, StringComparison.Ordinal)
+            ? _tables[_orders[0]].Schema
+            : new TransitionSchema(fullTableName, fullTable);
+    }
+
+    private static void AddTableBindings(
+        TableSymbol source,
+        TableSymbol destination,
+        ICollection<ISchemaColumn> compoundTableColumns,
+        IReadOnlyList<string> aliases)
+    {
+        for (var index = 0; index < aliases.Count; index++)
+        {
+            var alias = aliases[index];
+            var binding = source._tables[alias];
+            destination._tables.Add(alias, binding);
+            destination._orders.Add(alias);
+            foreach (var column in binding.SchemaTable.Columns)
+                compoundTableColumns.Add(column);
         }
     }
 }

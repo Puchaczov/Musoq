@@ -1877,11 +1877,11 @@ In queries with multiple data sources (joins, applies), each schema has its own 
 
 When a function is called without an alias prefix in a multi-source query, the engine attempts to resolve the owning schema automatically. It does so by trying to bind the method against **every** schema in scope and then applying three rules in order:
 
-1. **Common method rule.** If **all** candidate schemas resolve the method to the **same underlying implementation** (same function identity), the engine picks any one of them. This is the typical case for built-in library methods (e.g., `ToDecimal`, `Concat`, `Contains`) that every schema inherits from a shared base.
+1. **Common method rule.** If **all** candidate schemas resolve the method to the **same underlying implementation** (same function identity) **and the invocation is alias-independent**, the engine picks any one of them. Alias-independent methods do not receive a source row through an injected parameter. This is the typical case for shared utility methods (e.g., `ToDecimal`, `Concat`, `Contains`) that every schema inherits from a common library. A method that receives an injected source row is alias-dependent even when every candidate exposes the same implementation, because the selected alias changes the observable input and nullability of the call; such a call MUST be qualified when more than one alias can provide it.
 
 2. **Unique method rule.** If **exactly one** candidate schema resolves the method successfully, the engine picks that schema. This applies to methods that are unique to a particular schema's library.
 
-3. **Ambiguity error.** If **two or more** candidate schemas resolve the method to **different implementations**, the engine cannot choose and raises diagnostic **MQ3035** (`AmbiguousMethodOwner`). The caller must add an alias prefix to disambiguate.
+3. **Ambiguity error.** If **two or more** candidate schemas resolve the method to different implementations, or if the candidates resolve an alias-dependent (source-injected) method, the engine cannot choose and raises diagnostic **MQ3035** (`AmbiguousMethodOwner`). The caller must add an alias prefix to disambiguate.
 
 > **Aggregate methods** (those decorated with `[InjectGroup]`) follow a separate but analogous auto-resolution path that was already present before this algorithm was introduced. The rules above extend the same principle to all non-aggregate methods.
 
@@ -1893,7 +1893,7 @@ Understanding how methods are classified helps predict when auto-resolution succ
 |----------|---------------|-----------------|
 | **Aggregate** | Decorated with `[InjectGroup]` (e.g., `Sum`, `Count`, `Avg`) | Resolved via dedicated aggregate inference; same common-method logic applies |
 | **Pure utility** | No special injection; stateless (e.g., `ToDecimal`, `Concat`, `Abs`) | Almost always shared across schemas → Rule 1 resolves them |
-| **Entity-bound** | Decorated with `[InjectSpecificSource]`; schema-specific | Resolves only in the schema that defines them → Rule 2 or Rule 3 applies |
+| **Entity-bound** | Decorated with `[InjectSpecificSource]`; receives the selected source row | A method available through exactly one alias uses Rule 2; multiple eligible aliases require qualification and otherwise report MQ3035, even when they expose the same implementation |
 
 #### 8.10.3 Examples
 
@@ -1921,7 +1921,7 @@ inner join B.entities() b on a.Id = b.Id
 
 **Ambiguous — explicit alias required (Rule 3):**
 
-If schemas A and B each define their own `Transform` with different implementations, the engine raises MQ3035. The caller must specify which schema's `Transform` to use:
+If schemas A and B each define their own `Transform` with different implementations, the engine raises MQ3035. The same diagnostic applies when both aliases expose one shared source-injected implementation: the injected row still makes the owner observable. The caller must specify which schema's `Transform` to use:
 
 ```sql
 -- ERROR MQ3035: Transform resolves to different implementations in A and B

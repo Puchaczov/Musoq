@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.IR.Execution;
+using Musoq.Evaluator.IR.Execution.Portability;
+using Musoq.Targets.Abstractions;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -15,6 +17,21 @@ internal sealed class CSharpClrExecutionBindingContext
     {
         ArgumentNullException.ThrowIfNull(typeRef);
         return typeRef.ResolveClrType();
+    }
+
+    internal Type BindType(ExecutionPortableTypeDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        return ExecutionClrBindingResolver.ResolveType(descriptor);
+    }
+
+    internal Type BindType(
+        ExecutionPortableTypeDescriptor descriptor,
+        IReadOnlyDictionary<string, Assembly> semanticAssemblies)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(semanticAssemblies);
+        return ExecutionClrBindingResolver.ResolveType(descriptor, semanticAssemblies);
     }
 
     internal Type? BindOptionalType(ExecutionTypeRef? typeRef) =>
@@ -30,5 +47,20 @@ internal sealed class CSharpClrExecutionBindingContext
     {
         ArgumentNullException.ThrowIfNull(callableRef);
         return callableRef.ResolveClrMethod();
+    }
+
+    internal MethodInfo BindMethod(ExecutionPortableCallableDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        return ExecutionClrBindingResolver.ResolveMethod(descriptor);
+    }
+
+    internal MethodInfo BindMethod(
+        ExecutionPortableCallableDescriptor descriptor,
+        IReadOnlyDictionary<string, Assembly> semanticAssemblies)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(semanticAssemblies);
+        return ExecutionClrBindingResolver.ResolveMethod(descriptor, semanticAssemblies);
     }
 }

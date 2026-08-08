@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ExternalContracts\Musoq.Evaluator.Tests.External.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Musoq.Plugins\Musoq.Plugins.csproj" />
+  </ItemGroup>
+</Project>

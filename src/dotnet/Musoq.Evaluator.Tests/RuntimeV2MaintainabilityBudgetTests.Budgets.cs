@@ -237,8 +237,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
     private static readonly SourceFamilyTotalBudget[] ProductionFamilyTotalBudgets =
     [
-        new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "declares:ExecutionCSharpRenderer", 27957),
-        new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "ExecutionCSharpRenderer.*Aggregate*.cs", 4634),
+        new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "declares:ExecutionCSharpRenderer", 27975),
+        new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "ExecutionCSharpRenderer.*Aggregate*.cs", 4640),
         new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionIrAnalysis*.cs", 242),
         new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionExpressionFingerprint*.cs", 409),
         new("src/dotnet/Musoq.Evaluator/IR/Execution", "PhysicalLoweringImplementation*.cs", 19778),
@@ -324,6 +324,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             ["src/dotnet/Musoq.Converter/ExecutionTargets/ExecutionTargetCatalog.cs"] = 3,
             ["src/dotnet/Musoq.Converter/Build/TransformTree.ExecutionIr.cs"] = 2,
             ["src/dotnet/Musoq.Targets.CSharpClr/CSharpClrExecutionBackend.cs"] = 2,
+            ["src/dotnet/Musoq.Targets.CSharpClr/CSharpClrReferenceAssemblyCollector.cs"] = 2,
+            ["src/dotnet/Musoq.Targets.Execution.Analysis/Targeting/ExecutionTargetCompatibilityAnalyzer.cs"] = 2,
             ["src/dotnet/Musoq.Plugins/Lib/LibraryBase.Date.Extraction.cs"] = 2
         };
 
@@ -353,6 +355,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             ["src/dotnet/Musoq.Converter/ExecutionTargets/ExecutionTargetCatalog.cs"] = "Internal target catalog rejects unregistered phases and render requests that violate target capabilities.",
             ["src/dotnet/Musoq.Converter/Build/TransformTree.ExecutionIr.cs"] = "Execution rendering rejects unsupported Execution IR before target backend dispatch.",
             ["src/dotnet/Musoq.Targets.CSharpClr/CSharpClrExecutionBackend.cs"] = "C# CLR backend rejects unsupported target dispatch and unsupported execution IR render outcomes.",
+            ["src/dotnet/Musoq.Targets.CSharpClr/CSharpClrReferenceAssemblyCollector.cs"] = "Reference discovery classifies unresolved execution-plan CLR descriptors before Roslyn compilation.",
+            ["src/dotnet/Musoq.Targets.Execution.Analysis/Targeting/ExecutionTargetCompatibilityAnalyzer.cs"] = "Compatibility analysis safely skips CLR property-path inspection when an execution descriptor cannot resolve its CLR type.",
             ["src/dotnet/Musoq.Plugins/Lib/LibraryBase.Date.Extraction.cs"] = "Date extraction helpers reject unsupported date-like inputs."
         };
 

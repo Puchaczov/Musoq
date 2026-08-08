@@ -183,7 +183,8 @@ namespace GeneratedSample_Q164_PivotCteNoGroupBy
             var cte0_ko3ikoRows = cte0_ko3ikoRowsSource.Chunks;
             var cte0 = new List<Cte0Row0>();
             var cte0GroupsToFinalize = new List<Cte0AggregateGroup>();
-            Cte0AggregateGroup cte0Group = null;
+            Cte0AggregateGroup cte0Group = new Cte0AggregateGroup();
+            cte0GroupsToFinalize.Add(cte0Group);
             foreach (var ko3ikoChunk in cte0_ko3ikoRows)
             {
                 if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)
