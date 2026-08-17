@@ -26,7 +26,13 @@ public class SchemaArgumentException : ArgumentException, IDiagnosticException
     {
         Reason = "invalid-argument";
     }
-    public SchemaArgumentException(string argumentName, string message, string? reason = null)
+
+    public SchemaArgumentException(string argumentName, string message)
+        : this(argumentName, message, "invalid-argument")
+    {
+    }
+
+    public SchemaArgumentException(string argumentName, string message, string? reason)
         : base(message, argumentName)
     {
         Reason = reason ?? "invalid-argument";
@@ -78,8 +84,15 @@ public class SchemaArgumentException : ArgumentException, IDiagnosticException
 
     public static SchemaArgumentException ForInvalidMethodName(
         string methodName,
+        string availableMethods)
+    {
+        return ForInvalidMethodName(methodName, availableMethods, "unknown-source");
+    }
+
+    public static SchemaArgumentException ForInvalidMethodName(
+        string methodName,
         string availableMethods,
-        string reason = "unknown-source")
+        string reason)
     {
         return new SchemaArgumentException(
             nameof(methodName),

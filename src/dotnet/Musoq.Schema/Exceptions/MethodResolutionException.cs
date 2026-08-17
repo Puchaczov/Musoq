@@ -13,8 +13,17 @@ public class MethodResolutionException : InvalidOperationException, IDiagnosticE
         string methodName,
         string[] providedParameterTypes,
         string[] availableSignatures,
+        string message)
+        : this(methodName, providedParameterTypes, availableSignatures, message, "no-matching-overload")
+    {
+    }
+
+    public MethodResolutionException(
+        string methodName,
+        string[] providedParameterTypes,
+        string[] availableSignatures,
         string message,
-        string resolutionReason = "no-matching-overload")
+        string resolutionReason)
         : base(message)
     {
         MethodName = methodName;
@@ -80,8 +89,20 @@ public class MethodResolutionException : InvalidOperationException, IDiagnosticE
     public static MethodResolutionException ForUnresolvedMethod(
         string methodName,
         string[] providedParameterTypes,
+        string[] availableSignatures)
+    {
+        return ForUnresolvedMethod(
+            methodName,
+            providedParameterTypes,
+            availableSignatures,
+            "no-matching-overload");
+    }
+
+    public static MethodResolutionException ForUnresolvedMethod(
+        string methodName,
+        string[] providedParameterTypes,
         string[] availableSignatures,
-        string resolutionReason = "no-matching-overload")
+        string resolutionReason)
     {
         ArgumentNullException.ThrowIfNull(providedParameterTypes);
         ArgumentNullException.ThrowIfNull(availableSignatures);

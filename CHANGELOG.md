@@ -4,6 +4,32 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.6-alpha.1
+
+See [release-notes/v17.0.6-alpha.1.md](release-notes/v17.0.6-alpha.1.md) for the curated full-train release notes.
+
+### Musoq.Parser
+
+- Added adjacent `r`/`R`-prefixed raw SQL string literals with exact backslash, whitespace, quote, separator, and Unicode preservation.
+- Added context-aware alias and source-boundary grammar contracts, contextual `params(...)` compatibility, and structured syntax diagnostics.
+- Added advisory diagnostics for suspicious ordinary-string escapes and high-confidence query hazards.
+
+### Musoq.Evaluator
+
+- Added context-aware advisory analysis across literals, predicates, joins, applies, CTEs, CASE/coalesce expressions, and declaration scopes.
+- Added structured diagnostic propagation for symbol resolution, datasource lifecycle, runtime execution, source origins, spans, and safe envelopes.
+- Hardened direct execution and generated-code diagnostic behavior while preserving cancellation, parameter binding, and datasource diagnostics.
+
+### Musoq.Converter
+
+- Carried raw literals, source aliases, parameters, and structured diagnostics through compilation, inspection, caching, generated C#, and execution.
+- Added end-to-end coverage for raw literals, advisory warnings, required aliases, diagnostic replay, and precision propagation.
+
+### Tooling and verification
+
+- Published the descriptor-backed diagnostic catalog, language-spec contracts, migration guidance, and active warning/error documentation.
+- Full-train release validation covers `Musoq.Parser`, `Musoq.Plugins`, `Musoq.Schema`, `Musoq.Evaluator`, and `Musoq.Converter`.
+
 ## 17.0.5-alpha.1
 
 See [release-notes/v17.0.5-alpha.1.md](release-notes/v17.0.5-alpha.1.md) for the curated full-train release notes.
