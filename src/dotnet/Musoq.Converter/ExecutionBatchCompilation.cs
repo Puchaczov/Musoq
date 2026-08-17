@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -7,11 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
-using Musoq.Targets.Abstractions;
-using Musoq.Targets.Execution;
 using EvaluatorCompilationOptions = Musoq.Evaluator.CompilationOptions;
 using ParserDiagnostic = Musoq.Parser.Diagnostics.Diagnostic;
 

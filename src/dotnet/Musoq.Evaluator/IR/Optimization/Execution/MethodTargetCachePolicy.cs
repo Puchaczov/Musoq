@@ -2,7 +2,6 @@ using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Plugins.Attributes;
-using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Evaluator.IR.Optimization.Execution;
 

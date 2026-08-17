@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Musoq.Evaluator.Utils;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 

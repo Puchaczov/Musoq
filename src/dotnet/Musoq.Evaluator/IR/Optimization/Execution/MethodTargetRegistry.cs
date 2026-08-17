@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using Musoq.Evaluator.IR.Execution;
-using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Evaluator.IR.Optimization.Execution;
 

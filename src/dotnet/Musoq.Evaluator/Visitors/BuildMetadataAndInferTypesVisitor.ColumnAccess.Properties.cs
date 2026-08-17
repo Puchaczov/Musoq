@@ -1,10 +1,6 @@
 using System.Dynamic;
-using System.Reflection;
 using Musoq.Evaluator.Exceptions;
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
-using Musoq.Plugins.Attributes;
-using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -59,8 +55,14 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             if (propertyInfo == null)
             {
-                if (TryReportUnknownProperty(node.Name, parentNodeType, node))
+                if (TryReportUnknownProperty(node.Name, parentNodeType, node, parentNode?.ToString()))
+                {
+                    // Keep the semantic stack balanced and poison the remainder of
+                    // this property chain so later members do not become unrelated
+                    // unknown-column diagnostics.
+                    PushSemanticNode(new IdentifierNode(node.Name, typeof(object), node.SpanOrEmpty()));
                     return;
+                }
                 var span = node.SpanOrEmpty();
                 throw new UnknownPropertyException(node.Name, parentNodeType.Name, span);
             }

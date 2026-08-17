@@ -13,8 +13,6 @@ using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Architecture;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
-using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Components;
 

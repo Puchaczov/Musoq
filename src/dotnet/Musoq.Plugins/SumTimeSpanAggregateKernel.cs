@@ -1,5 +1,3 @@
-using System.Numerics;
-
 namespace Musoq.Plugins;
 
 #pragma warning disable CS1591

@@ -1,10 +1,7 @@
 using System.Dynamic;
-using System.Reflection;
 using Musoq.Evaluator.Exceptions;
-using Musoq.Parser;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
-using Musoq.Plugins.Attributes;
-using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -15,10 +12,24 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         if (node.DestinationKind == AccessObjectKeyNode.Destination.Variable)
         {
-            if (TryReportConstructionNotSupported($"Construction ${node.ToString()} is not yet supported.", node))
+            const string message = "Variable key access is not supported.";
+            if (DiagnosticContext != null)
+            {
+                DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3096_UnsupportedVariableKeyAccess,
+                    message,
+                    node);
+                // Keep the semantic stack balanced so this root error does
+                // not become an unrelated internal visitor failure.
+                PushSemanticNode(new IdentifierNode(node.ToString(), typeof(object), node.SpanOrEmpty()));
                 return;
+            }
+
             var keySpan = node.SpanOrEmpty();
-            throw new ConstructionNotYetSupported($"Construction ${node.ToString()} is not yet supported.", keySpan);
+            throw new ConstructionNotYetSupported(
+                message,
+                DiagnosticCode.MQ3096_UnsupportedVariableKeyAccess,
+                keySpan);
         }
 
         var parentNode = PeekSemanticNode(VisitorOperationNames.VisitAccessObjectKeyNode);

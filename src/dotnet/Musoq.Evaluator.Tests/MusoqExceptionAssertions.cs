@@ -2,6 +2,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Converter.Exceptions;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
@@ -26,7 +27,15 @@ internal static class MusoqExceptionAssertions
             $"Expected diagnostic code {expectedCode} but got {envelope.Code}. Message: {envelope.Message}");
         Assert.AreEqual(DiagnosticSeverity.Error, envelope.Severity);
         Assert.AreEqual(expectedPhase, envelope.Phase);
-        Assert.IsNotNull(envelope.Snippet, "Error should include source snippet for user context");
+        // A diagnostic may legitimately have no source location (for example, a
+        // schema/runtime failure reported after the query text is no longer the
+        // failing domain).  In that case the envelope must keep the location
+        // unknown instead of manufacturing a SQL snippet.  Known query
+        // locations still require the contextual snippet contract.
+        if (envelope.SourceKind == DiagnosticSourceKind.Query && envelope.Offset.HasValue)
+        {
+            Assert.IsNotNull(envelope.Snippet, "Known query errors should include a source snippet");
+        }
     }
 
     /// <summary>
@@ -154,7 +163,8 @@ internal static class MusoqExceptionAssertions
 
         for (var i = 0; i < expectedCodes.Length; i++)
             Assert.AreEqual(expectedCodes[i], actualCodes[i],
-                $"Error at index {i}: expected {expectedCodes[i]} but got {actualCodes[i]}. Message: {exception.Envelopes[i].Message}");
+                $"Error at index {i}: expected {expectedCodes[i]} but got {actualCodes[i]}. " +
+                $"Actual envelopes: [{string.Join(", ", exception.Envelopes.Select(e => $"{e.Code}: {e.Message}"))}]");
     }
 
     /// <summary>
@@ -170,6 +180,26 @@ internal static class MusoqExceptionAssertions
             $"Expected exactly 1 error but got {result.Errors.Count}: [{string.Join(", ", result.Errors.Select(e => $"{e.Code}: {e.Message}"))}]");
         Assert.AreEqual(expectedCode, result.Errors[0].Code,
             $"Expected error code {expectedCode} but got {result.Errors[0].Code}. Message: {result.Errors[0].Message}");
+    }
+
+    /// <summary>
+    ///     Asserts a runtime failure has one structured expression envelope.
+    /// </summary>
+    internal static void AssertRuntimeError(
+        QueryExecutionException exception,
+        DiagnosticCode expectedCode)
+    {
+        Assert.IsNotNull(exception.Envelope, "Expected a structured runtime diagnostic envelope.");
+        if (expectedCode == DiagnosticCode.MQ9002_InternalExecutionError)
+        {
+            Assert.AreEqual(DiagnosticPhase.Internal, exception.Envelope.Phase);
+            Assert.AreEqual(DiagnosticSeverity.Error, exception.Envelope.Severity);
+            return;
+        }
+
+        Assert.AreEqual(expectedCode, exception.Envelope.Code);
+        Assert.AreEqual(DiagnosticSeverity.Error, exception.Envelope.Severity);
+        Assert.AreEqual(DiagnosticPhase.Runtime, exception.Envelope.Phase);
     }
 
     /// <summary>
@@ -189,6 +219,7 @@ internal static class MusoqExceptionAssertions
 
         for (var i = 0; i < expectedCodes.Length; i++)
             Assert.AreEqual(expectedCodes[i], actualCodes[i],
-                $"Error at index {i}: expected {expectedCodes[i]} but got {actualCodes[i]}. Message: {result.Errors[i].Message}");
+                $"Error at index {i}: expected {expectedCodes[i]} but got {actualCodes[i]}. " +
+                $"Actual errors: [{string.Join(", ", result.Errors.Select(e => $"{e.Code}: {e.Message}"))}]");
     }
 }

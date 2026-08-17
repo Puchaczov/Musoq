@@ -95,12 +95,12 @@ public partial class MalformedQueryErrorTests
     #region ORDER BY edge cases
 
     [TestMethod]
-    public void WhenOrderByPositionNumber_ShouldThrowUnsupportedSyntax()
+    public void WhenOrderByPositionNumber_ShouldReportDedicatedDiagnostic()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name, Age FROM #test.people() ORDER BY 1"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2030_UnsupportedSyntax, DiagnosticPhase.Parse,
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3093_OrderByOrdinalUnsupported, DiagnosticPhase.Bind,
             "ORDER BY column position is not supported");
         AssertHasGuidance(ex);
     }

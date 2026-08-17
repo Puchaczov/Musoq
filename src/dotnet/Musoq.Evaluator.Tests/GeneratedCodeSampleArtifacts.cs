@@ -9,10 +9,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Converter;
 using Musoq.Converter.Build;
-using Musoq.Evaluator;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
-using Musoq.Evaluator.IR.Physical;
 using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 using PhysicalPlanPrinter = Musoq.Evaluator.IR.Physical.PhysicalPlanPrinter;
 

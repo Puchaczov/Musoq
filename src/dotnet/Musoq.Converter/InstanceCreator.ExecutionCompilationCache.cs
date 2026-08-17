@@ -11,10 +11,7 @@ using System.Threading;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
-using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
-using Musoq.Targets.Execution;
 
 namespace Musoq.Converter;
 

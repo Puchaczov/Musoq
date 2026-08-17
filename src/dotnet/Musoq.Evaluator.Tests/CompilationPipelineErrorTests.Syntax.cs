@@ -31,9 +31,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Parser returns MQ2001_UnexpectedToken: "Expected token is From but received Identifier"
-        AssertHasOneOfErrorCodes(result, "SELECT without FROM clause",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2004_MissingFromClause);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "SELECT without FROM clause");
     }
 
     [TestMethod]
@@ -47,10 +45,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Should be MQ2015_LeadingComma or MQ2001_UnexpectedToken
-        AssertHasOneOfErrorCodes(result, "leading comma in select list",
-            DiagnosticCode.MQ2015_LeadingComma,
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2003_InvalidExpression);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "leading comma in select list");
     }
 
     [TestMethod]
@@ -64,10 +59,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Should be trailing comma or unexpected token
-        AssertHasOneOfErrorCodes(result, "double comma in select list",
-            DiagnosticCode.MQ2014_TrailingComma,
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2003_InvalidExpression);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "double comma in select list");
     }
 
     [TestMethod]
@@ -81,9 +73,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Parser returns MQ2001: "Expected token is RightParenthesis but received From"
-        AssertHasOneOfErrorCodes(result, "unbalanced parentheses - missing close",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2010_MissingClosingParenthesis);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "unbalanced parentheses - missing close");
     }
 
     [TestMethod]
@@ -97,9 +87,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Should be unexpected token (extra paren)
-        AssertHasOneOfErrorCodes(result, "extra closing parenthesis",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2003_InvalidExpression);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "extra closing parenthesis");
     }
 
     [TestMethod]
@@ -113,9 +101,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Should be missing SELECT or unexpected token
-        AssertHasOneOfErrorCodes(result, "WHERE before SELECT",
-            DiagnosticCode.MQ2025_MissingSelectKeyword,
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "WHERE before SELECT");
     }
 
     [TestMethod]
@@ -163,9 +149,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Parser returns MQ2001: "Cannot compose statement, Identifier is not expected here"
-        AssertHasOneOfErrorCodes(result, "query without SELECT keyword",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2025_MissingSelectKeyword);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "query without SELECT keyword");
     }
 
     [TestMethod]
@@ -209,11 +193,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Parser returns MQ2001: "Expected token is On but received EndOfFile"
-        AssertHasOneOfErrorCodes(result, "JOIN without ON condition",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2007_InvalidJoinCondition,
-            DiagnosticCode.MQ2002_MissingToken,
-            DiagnosticCode.MQ2016_IncompleteStatement);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2007_InvalidJoinCondition, "JOIN without ON condition");
     }
 
     [TestMethod]
@@ -227,10 +207,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Parser returns MQ2030_UnsupportedSyntax: "Unrecognized token for ComposeOrder(), the token was Identifier"
-        AssertHasOneOfErrorCodes(result, "ASCENDING not recognized (should be ASC)",
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2009_InvalidOrderByExpression,
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2009_InvalidOrderByExpression, "ASCENDING not recognized (should be ASC)");
     }
 
     [TestMethod]
@@ -244,11 +221,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Parser returns MQ2001: "Parse error: The SQL query input cannot be empty..."
-        AssertHasOneOfErrorCodes(result, "empty query",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2016_IncompleteStatement,
-            DiagnosticCode.MQ2025_MissingSelectKeyword,
-            DiagnosticCode.MQ2017_UnexpectedEndOfFile);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2016_IncompleteStatement, "empty query");
     }
 
     [TestMethod]
@@ -262,11 +235,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Parser returns MQ2001: "Parse error: The SQL query input cannot be empty..."
-        AssertHasOneOfErrorCodes(result, "whitespace-only query",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2016_IncompleteStatement,
-            DiagnosticCode.MQ2025_MissingSelectKeyword,
-            DiagnosticCode.MQ2017_UnexpectedEndOfFile);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2016_IncompleteStatement, "whitespace-only query");
     }
 
 }

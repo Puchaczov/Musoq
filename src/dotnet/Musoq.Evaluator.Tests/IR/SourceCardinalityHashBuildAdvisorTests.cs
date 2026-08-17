@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
-using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Planning.Cardinality;
 using Musoq.Evaluator.IR.Planning.SourcePlanning;
 

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Physical.Rewriting;
-using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.SourcePlanning;
 
 namespace Musoq.Evaluator.IR.Physical.SourcePlanning;

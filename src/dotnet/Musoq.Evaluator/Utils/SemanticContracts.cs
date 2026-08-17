@@ -5,7 +5,6 @@ using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Utils;
 

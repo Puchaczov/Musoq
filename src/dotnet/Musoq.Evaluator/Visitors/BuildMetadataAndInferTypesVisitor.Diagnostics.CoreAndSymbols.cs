@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tables;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
@@ -77,12 +76,27 @@ public partial class BuildMetadataAndInferTypesVisitor
     /// <param name="objectType">The type of object on which the property was not found.</param>
     /// <param name="node">The node where the error occurred.</param>
     /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
-    protected bool TryReportUnknownProperty(string propertyName, Type? objectType, Node? node)
+    protected bool TryReportUnknownProperty(
+        string propertyName,
+        Type? objectType,
+        Node? node,
+        string? accessContext = null)
     {
         if (DiagnosticContext != null)
         {
+            if (node is { HasSpan: true } &&
+                DiagnosticContext.HasNearbyError(DiagnosticCode.MQ3028_UnknownProperty, node.Span))
+                return true;
+
             var availableProperties = objectType?.GetProperties().Select(p => p.Name) ?? [];
-            DiagnosticContext.ReportUnknownProperty(propertyName, availableProperties, node);
+            var message = $"Unknown property '{propertyName}'" +
+                          (objectType == null ? "." : $" on '{objectType.Name}'.");
+            if (!string.IsNullOrWhiteSpace(accessContext))
+                message += $" Accessed through '{accessContext}'.";
+            var suggestion = ErrorCatalog.GetDidYouMeanSuggestion(propertyName, availableProperties);
+            if (!string.IsNullOrEmpty(suggestion))
+                message += $" Did you mean '{suggestion}'?";
+            DiagnosticContext.ReportError(DiagnosticCode.MQ3028_UnknownProperty, message, node);
             return true;
         }
 

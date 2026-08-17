@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Converter.Build;
 
 internal static class TargetArtifactSemanticFactsFactory

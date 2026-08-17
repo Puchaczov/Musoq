@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Musoq.Evaluator.IR.Execution;
 
 namespace Musoq.Evaluator.IR.CodeGeneration;

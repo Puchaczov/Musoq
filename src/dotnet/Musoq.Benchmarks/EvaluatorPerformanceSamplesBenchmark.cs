@@ -2,7 +2,6 @@ using BenchmarkDotNet.Attributes;
 using Musoq.Benchmarks.Components;
 using Musoq.Converter;
 using Musoq.Evaluator;
-using Musoq.Evaluator.Tables;
 using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Visitors;
-using Musoq.Schema;
 using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Helpers;

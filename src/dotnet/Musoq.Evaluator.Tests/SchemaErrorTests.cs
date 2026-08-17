@@ -31,7 +31,7 @@ public class SchemaErrorTests : NegativeTestsBase
             CompileQuery(
                 "WITH First AS (SELECT * FROM Second s), Second AS (SELECT Name FROM #test.people()) SELECT * FROM First f"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3003_UnknownTable, DiagnosticPhase.Bind, "Second");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3023_TableNotDefined, DiagnosticPhase.Bind, "Second");
     }
 
     #endregion
@@ -54,7 +54,7 @@ public class SchemaErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.nonexistent()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3003_UnknownTable, DiagnosticPhase.Bind, "nonexistent");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3085_UnknownSource, DiagnosticPhase.Bind, "nonexistent");
         AssertHasGuidance(ex);
     }
 

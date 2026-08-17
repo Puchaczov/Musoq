@@ -170,9 +170,7 @@ public partial class CompilationPipelineErrorTests
 
         // Assert - Parser sees content after /* as comment body, then fails on structure
         // Returns MQ2001_UnexpectedToken because the SELECT is incomplete
-        AssertHasOneOfErrorCodes(result, "block comment never closed with */",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ1005_UnterminatedBlockComment);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ1005_UnterminatedBlockComment, "block comment never closed with */");
     }
 
     [TestMethod]

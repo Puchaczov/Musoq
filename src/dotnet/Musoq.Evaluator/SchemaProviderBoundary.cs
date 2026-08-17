@@ -1,4 +1,3 @@
-using System;
 using Musoq.Schema.Exceptions;
 
 namespace Musoq.Evaluator;

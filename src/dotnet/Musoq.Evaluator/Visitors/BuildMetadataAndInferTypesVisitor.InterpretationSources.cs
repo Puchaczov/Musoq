@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using Musoq.Evaluator.TemporarySchemas;
+using Musoq.Evaluator.Exceptions;
+using Musoq.Parser;
 using Musoq.Parser.Nodes.InterpretationSchema;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -28,7 +30,13 @@ public partial class BuildMetadataAndInferTypesVisitor
             throw new InvalidOperationException(
                 $"Cannot create interpret table: schema name is '{schemaName ?? "null"}' and schema registry is {(SchemaRegistry != null ? "present" : "null")}.");
 
-        var schema = SchemaRegistry.GetSchema(schemaName);
+        if (!SchemaRegistry.TryGetSchema(schemaName, out var registration) || registration == null)
+            throw new UnknownInterpretationSchemaException(
+                schemaName,
+                $"Interpretation schema '{schemaName}' is not defined.",
+                TextSpan.Empty);
+
+        var schema = registration;
         var columns = new List<ISchemaColumn>();
 
         switch (schema.Node)

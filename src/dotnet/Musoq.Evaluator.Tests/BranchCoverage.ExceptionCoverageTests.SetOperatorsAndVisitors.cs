@@ -93,82 +93,6 @@ public partial class BranchCoverageImprovementTests
 
     #endregion
 
-    #region Exception Branch Coverage — SetOperatorMustHaveKeyColumnsException
-
-    [TestMethod]
-    public void SetOperatorKeyColumns_WhenCreatedWithUnion_ShouldCreateCorrectMessage()
-    {
-        var ex = new SetOperatorMustHaveKeyColumnsException("Union");
-
-        StringAssert.Contains(ex.Message, "UNION");
-        StringAssert.Contains(ex.Message, "UNION (<key_columns>)");
-    }
-
-    [TestMethod]
-    public void SetOperatorKeyColumns_WhenCreatedWithUnionAll_ShouldCreateCorrectMessage()
-    {
-        var ex = new SetOperatorMustHaveKeyColumnsException("UnionAll");
-
-        StringAssert.Contains(ex.Message, "UNION ALL");
-        StringAssert.Contains(ex.Message, "UNION ALL (<key_columns>)");
-    }
-
-    [TestMethod]
-    public void SetOperatorKeyColumns_WhenCreatedWithExcept_ShouldCreateCorrectMessage()
-    {
-        var ex = new SetOperatorMustHaveKeyColumnsException("Except");
-
-        StringAssert.Contains(ex.Message, "EXCEPT");
-        StringAssert.Contains(ex.Message, "EXCEPT (<key_columns>)");
-    }
-
-    [TestMethod]
-    public void SetOperatorKeyColumns_WhenCreatedWithIntersect_ShouldCreateCorrectMessage()
-    {
-        var ex = new SetOperatorMustHaveKeyColumnsException("Intersect");
-
-        StringAssert.Contains(ex.Message, "INTERSECT");
-        StringAssert.Contains(ex.Message, "INTERSECT (<key_columns>)");
-    }
-
-    [TestMethod]
-    public void SetOperatorKeyColumns_WhenCreatedWithUnknownOperator_ShouldUseFallback()
-    {
-        var ex = new SetOperatorMustHaveKeyColumnsException("CustomOp");
-
-        StringAssert.Contains(ex.Message, "CUSTOMOP");
-    }
-
-    [TestMethod]
-    public void SetOperatorKeyColumns_WhenCreatedWithSpan_ShouldSetSpan()
-    {
-        var span = new TextSpan(1, 10);
-        var ex = new SetOperatorMustHaveKeyColumnsException("Union", span);
-
-        Assert.AreEqual(span, ex.Span);
-        Assert.AreEqual(DiagnosticCode.MQ3031_SetOperatorMissingKeys, ex.Code);
-    }
-
-    [TestMethod]
-    public void SetOperatorKeyColumns_ToDiagnostic_ShouldReturnError()
-    {
-        var ex = new SetOperatorMustHaveKeyColumnsException("Union");
-        var diagnostic = ex.ToDiagnostic();
-
-        Assert.AreEqual(DiagnosticCode.MQ3031_SetOperatorMissingKeys, diagnostic.Code);
-    }
-
-    [TestMethod]
-    public void SetOperatorKeyColumns_CreateMessage_ShouldCombineSyntaxAndDisplayName()
-    {
-        var message = SetOperatorMustHaveKeyColumnsException.CreateMessage("Intersect");
-
-        StringAssert.Contains(message, "INTERSECT (<key_columns>)");
-        StringAssert.Contains(message, "INTERSECT");
-    }
-
-    #endregion
-
     #region Exception Branch Coverage — VisitorException
 
     [TestMethod]
@@ -195,15 +119,16 @@ public partial class BranchCoverageImprovementTests
         var innerEx = new ConstructionNotYetSupported("inner", new TextSpan(0, 5));
         var ex = new VisitorException("Vis", "Op", "msg", innerEx);
 
-        Assert.AreEqual(DiagnosticCode.MQ3030_ConstructionNotSupported, ex.Code);
+        Assert.AreEqual(DiagnosticCode.MQ4016_UnsupportedSchemaConstruction, ex.Code);
     }
 
     [TestMethod]
-    public void VisitorException_WhenCreatedWithGenericInner_ShouldUseFallbackCode()
+    public void VisitorException_WhenCreatedWithGenericInner_ShouldUseInternalCode()
     {
         var innerEx = new InvalidOperationException("generic error");
         var ex = new VisitorException("Vis", "Op", "msg", innerEx);
 
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, ex.Code);
         Assert.AreEqual(DiagnosticSeverity.Error, ex.ToDiagnostic().Severity);
     }
 

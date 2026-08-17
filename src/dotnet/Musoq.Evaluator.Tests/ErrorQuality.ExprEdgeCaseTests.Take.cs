@@ -30,9 +30,7 @@ public partial class ErrorQualityExprEdgeCaseTests
         var result = analyzer.Analyze(query);
 
         // Assert — Should error on negative TAKE
-        AssertHasOneOfErrorCodes(result, "TAKE with negative value",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasErrorCode(result, DiagnosticCode.MQ2038_InvalidSliceCount, "TAKE with negative value");
     }
 
     [TestMethod]
@@ -46,9 +44,7 @@ public partial class ErrorQualityExprEdgeCaseTests
         var result = analyzer.Analyze(query);
 
         // Assert — Should error on negative SKIP
-        AssertHasOneOfErrorCodes(result, "SKIP with negative value",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasErrorCode(result, DiagnosticCode.MQ2038_InvalidSliceCount, "SKIP with negative value");
     }
 
     [TestMethod]
@@ -62,9 +58,7 @@ public partial class ErrorQualityExprEdgeCaseTests
         var result = analyzer.Analyze(query);
 
         // Assert — Should error on non-integer TAKE
-        AssertHasOneOfErrorCodes(result, "TAKE with non-integer",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasErrorCode(result, DiagnosticCode.MQ2038_InvalidSliceCount, "TAKE with non-integer");
     }
 
     [TestMethod]
@@ -78,9 +72,7 @@ public partial class ErrorQualityExprEdgeCaseTests
         var result = analyzer.Analyze(query);
 
         // Assert — Should error on non-integer SKIP
-        AssertHasOneOfErrorCodes(result, "SKIP with non-integer",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasErrorCode(result, DiagnosticCode.MQ2038_InvalidSliceCount, "SKIP with non-integer");
     }
 
     [TestMethod]

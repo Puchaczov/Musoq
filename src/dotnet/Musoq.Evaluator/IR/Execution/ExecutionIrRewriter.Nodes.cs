@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 
 namespace Musoq.Evaluator.IR.Execution;

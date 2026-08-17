@@ -9,6 +9,8 @@ public sealed class Diagnostic
 {
     private readonly List<string> _relatedInfo;
     private readonly List<DiagnosticAction> _suggestedFixes;
+    private readonly Dictionary<string, string> _arguments;
+    private readonly List<DiagnosticRelatedLocation> _relatedLocations;
 
     /// <summary>
     ///     Creates a new diagnostic.
@@ -23,7 +25,12 @@ public sealed class Diagnostic
         IEnumerable<string>? relatedInfo = null,
         IEnumerable<DiagnosticAction>? suggestedFixes = null,
         string? explanation = null,
-        string? docsReference = null)
+        string? docsReference = null,
+        DiagnosticPhase? phase = null,
+        DiagnosticSourceKind sourceKind = DiagnosticSourceKind.Query,
+        IEnumerable<KeyValuePair<string, string>>? arguments = null,
+        IEnumerable<DiagnosticRelatedLocation>? relatedLocations = null,
+        string? correlationId = null)
     {
         Code = code;
         Severity = severity;
@@ -35,8 +42,17 @@ public sealed class Diagnostic
         _suggestedFixes = suggestedFixes != null
             ? [..suggestedFixes]
             : [];
+        _arguments = arguments != null
+            ? new Dictionary<string, string>(arguments, StringComparer.Ordinal)
+            : new Dictionary<string, string>(StringComparer.Ordinal);
+        _relatedLocations = relatedLocations != null
+            ? [..relatedLocations]
+            : [];
         Explanation = explanation;
         DocsReference = docsReference;
+        _phase = phase ?? DiagnosticPhaseMapping.FromCode(code);
+        SourceKind = sourceKind;
+        CorrelationId = correlationId;
     }
 
     /// <summary>
@@ -105,9 +121,31 @@ public sealed class Diagnostic
     public string? DocsReference { get; }
 
     /// <summary>
-    ///     Gets the compilation phase where this diagnostic originated.
+    ///     Gets the explicit phase where the diagnostic originated.
     /// </summary>
-    public DiagnosticPhase Phase => DiagnosticPhaseMapping.FromCode(Code);
+    private readonly DiagnosticPhase _phase;
+
+    public DiagnosticPhase Phase => _phase;
+
+    /// <summary>
+    ///     Gets the source domain containing the primary location.
+    /// </summary>
+    public DiagnosticSourceKind SourceKind { get; }
+
+    /// <summary>
+    ///     Gets stable string-valued facts associated with the diagnostic.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> Arguments => _arguments;
+
+    /// <summary>
+    ///     Gets typed secondary locations associated with the diagnostic.
+    /// </summary>
+    public IReadOnlyList<DiagnosticRelatedLocation> RelatedLocations => _relatedLocations;
+
+    /// <summary>
+    ///     Gets an optional identifier used to correlate internal failures.
+    /// </summary>
+    public string? CorrelationId { get; }
 
     /// <summary>
     ///     Gets the text span from location information.
@@ -120,8 +158,7 @@ public sealed class Diagnostic
     public Diagnostic WithRelatedInfo(string info)
     {
         var newRelatedInfo = new List<string>(_relatedInfo) { info };
-        return new Diagnostic(Code, Severity, Message, Location, EndLocation, ContextSnippet,
-            newRelatedInfo, _suggestedFixes, Explanation, DocsReference);
+        return Copy(relatedInfo: newRelatedInfo);
     }
 
     /// <summary>
@@ -130,8 +167,7 @@ public sealed class Diagnostic
     public Diagnostic WithSuggestedFix(DiagnosticAction action)
     {
         var newFixes = new List<DiagnosticAction>(_suggestedFixes) { action };
-        return new Diagnostic(Code, Severity, Message, Location, EndLocation, ContextSnippet,
-            _relatedInfo, newFixes, Explanation, DocsReference);
+        return Copy(suggestedFixes: newFixes);
     }
 
     /// <summary>
@@ -139,8 +175,7 @@ public sealed class Diagnostic
     /// </summary>
     public Diagnostic WithExplanation(string explanation)
     {
-        return new Diagnostic(Code, Severity, Message, Location, EndLocation, ContextSnippet,
-            _relatedInfo, _suggestedFixes, explanation, DocsReference);
+        return Copy(explanation: explanation);
     }
 
     /// <summary>
@@ -148,8 +183,40 @@ public sealed class Diagnostic
     /// </summary>
     public Diagnostic WithDocsReference(string docsReference)
     {
-        return new Diagnostic(Code, Severity, Message, Location, EndLocation, ContextSnippet,
-            _relatedInfo, _suggestedFixes, Explanation, docsReference);
+        return Copy(docsReference: docsReference);
+    }
+
+    /// <summary>
+    ///     Creates a copy with a complete source location while retaining all
+    ///     structured diagnostic payload.
+    /// </summary>
+    public Diagnostic WithLocations(SourceLocation location, SourceLocation endLocation)
+    {
+        return Copy(location: location, endLocation: endLocation);
+    }
+
+    /// <summary>
+    ///     Creates a copy with an additional structured argument.
+    /// </summary>
+    public Diagnostic WithArgument(string name, string value)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+        ArgumentNullException.ThrowIfNull(value);
+        var arguments = new Dictionary<string, string>(_arguments, StringComparer.Ordinal)
+        {
+            [name] = value
+        };
+        return Copy(arguments: arguments);
+    }
+
+    /// <summary>
+    ///     Creates a copy with an additional typed related location.
+    /// </summary>
+    public Diagnostic WithRelatedLocation(DiagnosticRelatedLocation relatedLocation)
+    {
+        ArgumentNullException.ThrowIfNull(relatedLocation);
+        var locations = new List<DiagnosticRelatedLocation>(_relatedLocations) { relatedLocation };
+        return Copy(relatedLocations: locations);
     }
 
     /// <summary>
@@ -183,6 +250,34 @@ public sealed class Diagnostic
         foreach (var fix in _suggestedFixes) lines.Add($"  = help: {fix.Title}");
 
         return string.Join(Environment.NewLine, lines);
+    }
+
+    private Diagnostic Copy(
+        SourceLocation? location = null,
+        SourceLocation? endLocation = null,
+        IEnumerable<string>? relatedInfo = null,
+        IEnumerable<DiagnosticAction>? suggestedFixes = null,
+        string? explanation = null,
+        string? docsReference = null,
+        IEnumerable<KeyValuePair<string, string>>? arguments = null,
+        IEnumerable<DiagnosticRelatedLocation>? relatedLocations = null)
+    {
+        return new Diagnostic(
+            Code,
+            Severity,
+            Message,
+            location ?? Location,
+            endLocation ?? EndLocation,
+            ContextSnippet,
+            relatedInfo ?? _relatedInfo,
+            suggestedFixes ?? _suggestedFixes,
+            explanation ?? Explanation,
+            docsReference ?? DocsReference,
+            _phase,
+            SourceKind,
+            arguments ?? _arguments,
+            relatedLocations ?? _relatedLocations,
+            CorrelationId);
     }
 
     private static string FormatSeverity(DiagnosticSeverity severity)

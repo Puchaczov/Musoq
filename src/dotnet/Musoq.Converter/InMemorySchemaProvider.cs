@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Schema;
+using Musoq.Schema.Exceptions;
 
 namespace Musoq.Converter;
 
@@ -42,7 +43,7 @@ internal sealed class InMemorySchemaProvider : ISchemaProvider
         if (_schemas.TryGetValue(schemaName, out var inMemorySchema))
             return inMemorySchema;
 
-        throw new InvalidOperationException($"In-memory schema '#{schemaName}' is not declared.");
+        throw new SourceNotFoundException($"In-memory schema '#{schemaName}' is not declared.");
     }
 
     private static Dictionary<string, MusoqSourceRows> CreateBindingMap(

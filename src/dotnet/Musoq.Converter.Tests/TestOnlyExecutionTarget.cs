@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
-using Musoq.Evaluator.IR.Execution;
 
 namespace Musoq.Converter.Tests;
 

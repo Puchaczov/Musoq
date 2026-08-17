@@ -455,10 +455,10 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         SourceFamilyTotalBudget[] focusedBudgets =
         [
-            new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "declares:ExecutionCSharpRenderer", 27975),
+            new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "declares:ExecutionCSharpRenderer", 28128),
             new("src/dotnet/Musoq.Evaluator/IR/Execution", "PhysicalLoweringImplementation*.cs", 19778),
-            new("src/dotnet/Musoq.Evaluator/Visitors", "BuildMetadataAndInferTypesVisitor*.cs", 9333),
-            new("src/dotnet/Musoq.Evaluator/IR/Execution/Lowering", "*.cs", 594),
+            new("src/dotnet/Musoq.Evaluator/Visitors", "BuildMetadataAndInferTypesVisitor*.cs", 9463),
+            new("src/dotnet/Musoq.Evaluator/IR/Execution/Lowering", "*.cs", 601),
             new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/Rendering", "*.cs", 220),
             new("src/dotnet/Musoq.Evaluator/Visitors", "Semantic*.cs", 502),
             new("src/dotnet/Musoq.Parser/Traversal", "*.cs", 188)

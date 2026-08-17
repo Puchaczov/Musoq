@@ -1,4 +1,3 @@
-using System;
 using Musoq.Schema.Diagnostics;
 
 namespace Musoq.Schema.DataSources;

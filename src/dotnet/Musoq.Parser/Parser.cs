@@ -92,10 +92,7 @@ public partial class Parser
                     }
                     else if (_enableRecovery)
                     {
-                        RecordError(
-                            DiagnosticCode.MQ2016_IncompleteStatement,
-                            "Failed to compose statement. The SQL query structure is invalid.",
-                            Current.Span);
+                        RecordIncompleteStatementIfNeeded();
 
                         if (!TryRecoverToNextStatement())
                             break;
@@ -111,25 +108,38 @@ public partial class Parser
                 }
                 catch (SyntaxException ex) when (_enableRecovery)
                 {
-                    RecordSyntaxException(ex);
+                    RecordSyntaxExceptionIfNeeded(ex);
                     if (!TryRecoverToNextStatement())
                         break;
                 }
                 catch (NotSupportedException ex) when (_enableRecovery)
                 {
-                    RecordError(
-                        DiagnosticCode.MQ2030_UnsupportedSyntax,
+                    // Parser-owned unsupported shapes are query syntax failures.  Convert them
+                    // to the typed syntax diagnostic at this boundary so internal NotSupported
+                    // exceptions can never leak into the public diagnostic classifier.
+                    RecordSyntaxExceptionIfNeeded(new SyntaxException(
                         ex.Message,
-                        Current.Span);
+                        _lexer.AlreadyResolvedQueryPart,
+                        DiagnosticCode.MQ2030_UnsupportedSyntax,
+                        Current.Span,
+                        ex));
                     if (!TryRecoverToNextStatement())
                         break;
                 }
+
+            if (statements.Count == 0 && !diagnostics.HasErrors)
+            {
+                RecordError(
+                    DiagnosticCode.MQ2016_IncompleteStatement,
+                    "The query contains no executable statement. Provide a SELECT query or another supported statement.",
+                    Current.Span);
+            }
 
             var root = statements.Count > 0
                 ? new RootNode(new StatementsArrayNode(statements.ToArray()))
                 : null;
 
-            return new ParseResult(root, sourceText, diagnostics.ToSortedList());
+            return CreateParseResult(root, sourceText, diagnostics);
         }
         catch (Exception ex)
         {
@@ -140,7 +150,7 @@ public partial class Parser
                     diagnostic.Message,
                     diagnostic.Span);
 
-                return ParseResult.Failed(sourceText, diagnostics.ToSortedList());
+                return CreateFailedParseResult(sourceText, diagnostics);
             }
 
             var fallbackDiagnostic = ex.ToDiagnosticOrGeneric(sourceText);
@@ -150,7 +160,7 @@ public partial class Parser
                 fallbackDiagnostic.Message,
                 span);
 
-            return ParseResult.Failed(sourceText, diagnostics.ToSortedList());
+            return CreateFailedParseResult(sourceText, diagnostics);
         }
     }
 

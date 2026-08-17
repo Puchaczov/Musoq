@@ -57,6 +57,19 @@ public sealed class DiagnosticContext
     /// </summary>
     public bool HasReachedMaxErrors => _diagnostics.HasTooManyErrors;
 
+    internal bool HasNearbyError(DiagnosticCode code, TextSpan span, int distance = 1)
+    {
+        if (span.IsEmpty)
+            return false;
+
+        return Errors.Any(diagnostic =>
+            diagnostic.Code == code &&
+            diagnostic.Location.IsValid &&
+            (diagnostic.Span == span ||
+             (diagnostic.Span.End <= span.Start &&
+              span.Start - diagnostic.Span.End <= distance)));
+    }
+
     /// <summary>
     ///     Gets the current scope path (for error context).
     /// </summary>
@@ -106,7 +119,18 @@ public sealed class DiagnosticContext
     /// </summary>
     public void ReportError(DiagnosticCode code, string message, Node? node)
     {
-        ReportError(code, message, node.SpanOrEmpty());
+        if (node is null || !node.HasSpan)
+        {
+            _diagnostics.Add(new Diagnostic(
+                code,
+                DiagnosticSeverity.Error,
+                message,
+                SourceLocation.None,
+                SourceLocation.None));
+            return;
+        }
+
+        ReportError(code, message, node.Span);
     }
 
     /// <summary>
@@ -123,7 +147,18 @@ public sealed class DiagnosticContext
     public void ReportWarning(DiagnosticCode code, string message, Node node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        ReportWarning(code, message, node.SpanOrEmpty());
+        if (!node.HasSpan)
+        {
+            _diagnostics.Add(new Diagnostic(
+                code,
+                DiagnosticSeverity.Warning,
+                message,
+                SourceLocation.None,
+                SourceLocation.None));
+            return;
+        }
+
+        ReportWarning(code, message, node.Span);
     }
 
     /// <summary>
@@ -156,8 +191,29 @@ public sealed class DiagnosticContext
     public void ReportException(Exception exception, TextSpan? span = null)
     {
         var diagnostic = exception.ToDiagnosticOrGeneric(SourceText);
-        var actualSpan = span ?? diagnostic.Span;
-        _diagnostics.AddError(diagnostic.Code, diagnostic.Message, actualSpan);
+        var effectiveSpan = span is { IsEmpty: false }
+            ? span.Value
+            : diagnostic.Span;
+
+        if (effectiveSpan is { IsEmpty: false } &&
+            HasNearbyError(diagnostic.Code, effectiveSpan))
+            return;
+
+        if (!span.HasValue || span.Value.IsEmpty)
+        {
+            if (!diagnostic.Location.IsValid && !diagnostic.EndLocation.IsValid)
+                diagnostic = diagnostic.WithLocations(SourceLocation.None, SourceLocation.None);
+
+            _diagnostics.Add(diagnostic);
+            return;
+        }
+
+        var actualSpan = span.Value;
+        var locations = SourceText != null
+            ? SourceText.GetLocations(actualSpan)
+            : (Start: new SourceLocation(actualSpan.Start, 1, actualSpan.Start + 1),
+                End: new SourceLocation(actualSpan.End, 1, actualSpan.End + 1));
+        _diagnostics.Add(diagnostic.WithLocations(locations.Start, locations.End));
     }
 
     /// <summary>
@@ -219,7 +275,7 @@ public sealed class DiagnosticContext
         if (!string.IsNullOrEmpty(suggestion))
             message += CreateDidYouMeanMessage(suggestion);
 
-        ReportError(DiagnosticCode.MQ3004_UnknownFunction, message, span);
+        ReportError(DiagnosticCode.MQ3086_UnknownCallable, message, span);
     }
 
     /// <summary>
@@ -275,7 +331,7 @@ public sealed class DiagnosticContext
         ArgumentNullException.ThrowIfNull(node);
         var span = node.SpanOrEmpty();
         var message = $"Function '{functionName}' expects {expected} argument(s) but got {actual}.";
-        ReportError(DiagnosticCode.MQ3006_InvalidArgumentCount, message, span);
+        ReportError(DiagnosticCode.MQ3087_InvalidCallableArity, message, span);
     }
 
     /// <summary>

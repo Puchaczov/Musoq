@@ -23,7 +23,14 @@ public partial class Parser
         {
             case TokenType.Decimal:
                 var token = ConsumeAndGetToken(TokenType.Decimal);
-                return new DecimalNode(token.Value, token.Span);
+                try
+                {
+                    return new DecimalNode(token.Value, token.Span);
+                }
+                catch (Exception ex) when (IsNumericConstructionFailure(ex))
+                {
+                    throw NumericLiteralOutOfRange(token, ex);
+                }
             case TokenType.Integer:
                 return ComposeInteger();
             case TokenType.HexadecimalInteger:
@@ -125,28 +132,56 @@ public partial class Parser
     private IntegerNode ComposeInteger()
     {
         var token = (IntegerToken)ConsumeAndGetToken(TokenType.Integer);
-        return new IntegerNode(token.Value, token.Abbreviation, token.Span);
+        try
+        {
+            return new IntegerNode(token.Value, token.Abbreviation, token.Span);
+        }
+        catch (Exception ex) when (IsNumericConstructionFailure(ex))
+        {
+            throw NumericLiteralOutOfRange(token, ex);
+        }
     }
 
 
     private HexIntegerNode ComposeHexInteger()
     {
         var token = (HexIntegerToken)ConsumeAndGetToken(TokenType.HexadecimalInteger);
-        return new HexIntegerNode(token.Value, token.Span);
+        try
+        {
+            return new HexIntegerNode(token.Value, token.Span);
+        }
+        catch (Exception ex) when (IsNumericConstructionFailure(ex))
+        {
+            throw NumericLiteralOutOfRange(token, ex);
+        }
     }
 
 
     private BinaryIntegerNode ComposeBinaryInteger()
     {
         var token = (BinaryIntegerToken)ConsumeAndGetToken(TokenType.BinaryInteger);
-        return new BinaryIntegerNode(token.Value, token.Span);
+        try
+        {
+            return new BinaryIntegerNode(token.Value, token.Span);
+        }
+        catch (Exception ex) when (IsNumericConstructionFailure(ex))
+        {
+            throw NumericLiteralOutOfRange(token, ex);
+        }
     }
 
 
     private OctalIntegerNode ComposeOctalInteger()
     {
         var token = (OctalIntegerToken)ConsumeAndGetToken(TokenType.OctalInteger);
-        return new OctalIntegerNode(token.Value, token.Span);
+        try
+        {
+            return new OctalIntegerNode(token.Value, token.Span);
+        }
+        catch (Exception ex) when (IsNumericConstructionFailure(ex))
+        {
+            throw NumericLiteralOutOfRange(token, ex);
+        }
     }
 
 
@@ -158,9 +193,28 @@ public partial class Parser
         {
             TokenType.Word => ConsumeAndGetToken(TokenType.Word),
             TokenType.StringLiteral => ConsumeAndGetToken(TokenType.StringLiteral),
-            _ => throw new NotSupportedException($"Expected Word or StringLiteral but got {tokenType}")
+            _ => throw new SyntaxException(
+                $"Expected Word or StringLiteral but got {tokenType}.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2001_UnexpectedToken,
+                Current.Span)
         };
         return new WordNode(token.Value, token.Span);
+    }
+
+    private SyntaxException NumericLiteralOutOfRange(Token token, Exception innerException)
+    {
+        return new SyntaxException(
+            $"Numeric literal '{token.Value}' is outside the supported range.",
+            _lexer.AlreadyResolvedQueryPart,
+            DiagnosticCode.MQ1009_NumericLiteralOutOfRange,
+            token.Span,
+            innerException);
+    }
+
+    private static bool IsNumericConstructionFailure(Exception exception)
+    {
+        return exception is OverflowException or FormatException or ArgumentException or NotSupportedException;
     }
 
 

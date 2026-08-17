@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
@@ -180,7 +179,7 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(query, CreateSources()));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2030_UnsupportedSyntax, DiagnosticPhase.Parse, "aggregate SELECT aliases");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3092_AggregateInGroupBy, DiagnosticPhase.Bind, "aggregate SELECT aliases");
     }
 
     [TestMethod]
@@ -191,7 +190,7 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(query, CreateSources()));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2030_UnsupportedSyntax, DiagnosticPhase.Parse, "aggregate SELECT aliases");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3092_AggregateInGroupBy, DiagnosticPhase.Bind, "aggregate SELECT aliases");
     }
 
     [TestMethod]

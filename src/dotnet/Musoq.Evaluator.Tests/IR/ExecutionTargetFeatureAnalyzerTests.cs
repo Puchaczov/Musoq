@@ -3,8 +3,6 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Expressions;
-using Musoq.Targets.Abstractions;
-using Musoq.Targets.Execution;
 using Musoq.Targets.Execution.Analysis;
 
 namespace Musoq.Evaluator.Tests.IR;

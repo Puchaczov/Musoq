@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -37,7 +36,7 @@ public partial class QueryInspectionTests
         Assert.Contains("source plan accepted: columns=[Name], orderBy=1, skip=1, take=2", result.PlanningText);
         Assert.Contains("source plan residual: orderBy=0, skip=null, take=null", result.PlanningText);
         Assert.Contains("SourcePlanning [SourcePlan]", result.PlanningText);
-        Assert.IsFalse(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5013_SourceContractWarning));
     }
 
     [TestMethod]
@@ -62,7 +61,6 @@ public partial class QueryInspectionTests
         Assert.Contains("source plan diagnostic [TryPlanSource]: Info - source estimate is exact", result.PlanningText);
         Assert.Contains("source plan diagnostic [TryPlanSource]: Warning - source declined ordering", result.PlanningText);
         Assert.IsTrue(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5013_SourceContractWarning));
-        Assert.IsFalse(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5012_OptimizationFallback));
     }
 
     [TestMethod]
@@ -90,7 +88,6 @@ public partial class QueryInspectionTests
         Assert.IsTrue(result.Succeeded);
         Assert.Contains("Source optimization warning", warning.Message);
         Assert.Contains("source declined ordering", warning.Message);
-        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
     }
 
     [TestMethod]
@@ -117,7 +114,6 @@ public partial class QueryInspectionTests
 
         Assert.IsTrue(result.Succeeded);
         Assert.Contains("source-specific reason for declined ordering", warning.Message);
-        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
     }
 
     [TestMethod]
@@ -141,7 +137,7 @@ public partial class QueryInspectionTests
             _loggerResolver);
 
         Assert.IsTrue(result.Succeeded);
-        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
     }
 
     [TestMethod]
@@ -230,7 +226,7 @@ public partial class QueryInspectionTests
 
         Assert.Contains("PhysicalTopN", inspection.PhysicalPlanText);
         Assert.Contains("source plan residual: orderBy=1, skip=null, take=2", inspection.PlanningText);
-        Assert.IsFalse(inspection.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(inspection.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5013_SourceContractWarning));
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("alpha", table[0][0]);
         Assert.AreEqual("bravo", table[1][0]);
@@ -244,7 +240,7 @@ public partial class QueryInspectionTests
 
         Assert.Contains("PhysicalFilter", inspection.PhysicalPlanText);
         Assert.Contains("source plan residual: orderBy=0, skip=null, take=null, predicate=yes", inspection.PlanningText);
-        Assert.IsFalse(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
     }
 
     [TestMethod]
@@ -253,7 +249,7 @@ public partial class QueryInspectionTests
         var provider = new PlanningSchemaProvider(static request => SourcePlanResult.RejectAll(request));
         var inspection = Inspect("select p.Name from #planning.items() p", provider);
 
-        Assert.IsFalse(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
     }
 
     [TestMethod]
@@ -265,7 +261,7 @@ public partial class QueryInspectionTests
         Assert.Contains("SourcePredicateMovementExpansion", inspection.PlanningText);
         Assert.Contains("cannot be represented by the source predicate DTO", inspection.PlanningText);
         Assert.Contains("PhysicalFilter [(ToUpper(d.Dummy) = 'SINGLE')]", inspection.PhysicalPlanText);
-        Assert.IsFalse(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
     }
 
     [TestMethod]
@@ -280,8 +276,8 @@ public partial class QueryInspectionTests
 
         Assert.IsTrue(first.Succeeded);
         Assert.IsTrue(second.Succeeded);
-        Assert.IsFalse(first.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
-        Assert.IsFalse(second.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(first.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
+        Assert.IsFalse(second.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
 
         var firstItems = GetBuildItems(first);
         var secondItems = GetBuildItems(second);
@@ -312,8 +308,6 @@ public partial class QueryInspectionTests
         Assert.Contains("source plan diagnostic [DescribeSource]: Warning - descriptor declined source-local optimization", inspection.PlanningText);
         Assert.IsTrue(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
         Assert.IsTrue(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
-        Assert.IsFalse(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
-        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
     }
 
     [TestMethod]
@@ -332,7 +326,7 @@ public partial class QueryInspectionTests
             _loggerResolver);
 
         Assert.IsTrue(result.Succeeded);
-        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
     }
 
     [TestMethod]

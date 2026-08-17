@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Linq;
 using Musoq.Evaluator.Exceptions;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 
@@ -66,7 +65,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             return false;
 
         const string message = "GROUP BY expressions cannot contain aggregate functions or aggregate SELECT aliases.";
-        TryReportSemanticError<NotSupportedException>(DiagnosticCode.MQ2030_UnsupportedSyntax, message, field);
+        TryReportSemanticError<NotSupportedException>(DiagnosticCode.MQ3092_AggregateInGroupBy, message, field);
         return DiagnosticContext != null;
     }
 

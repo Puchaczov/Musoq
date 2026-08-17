@@ -48,7 +48,9 @@ public partial class Parser
 
         throw new SyntaxException(
             $"{operatorName} requires at least one argument inside parentheses.",
-            _lexer.AlreadyResolvedQueryPart);
+            _lexer.AlreadyResolvedQueryPart,
+            DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed,
+            Current.Span);
     }
 
 

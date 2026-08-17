@@ -31,7 +31,7 @@ public partial class Parser
         throw new SyntaxException(
             "Standalone ANALYZE is not implemented. Use EXPLAIN ANALYZE <query>.",
             _lexer.AlreadyResolvedQueryPart,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
+            DiagnosticCode.MQ2040_InvalidDiagnosticCommand,
             Current.Span);
     }
 
@@ -50,7 +50,7 @@ public partial class Parser
             throw new SyntaxException(
                 "EXPLAIN without ANALYZE is not supported. Use EXPLAIN ANALYZE <query>.",
                 _lexer.AlreadyResolvedQueryPart,
-                DiagnosticCode.MQ2030_UnsupportedSyntax,
+                DiagnosticCode.MQ2040_InvalidDiagnosticCommand,
                 Current.Span.IsEmpty ? explainToken.Span : Current.Span);
         }
 
@@ -85,7 +85,7 @@ public partial class Parser
             throw new SyntaxException(
                 "Diagnostic command requires an inner SELECT, FROM, WITH, PIVOT, or UNPIVOT query.",
                 _lexer.AlreadyResolvedQueryPart,
-                DiagnosticCode.MQ2030_UnsupportedSyntax,
+                DiagnosticCode.MQ2040_InvalidDiagnosticCommand,
                 Current.Span);
         }
 
@@ -99,7 +99,7 @@ public partial class Parser
         throw new SyntaxException(
             $"Diagnostic command does not support inner query starting with '{actual}'. Expected SELECT, FROM, WITH, PIVOT, or UNPIVOT.",
             _lexer.AlreadyResolvedQueryPart,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
+            DiagnosticCode.MQ2040_InvalidDiagnosticCommand,
             Current.Span);
     }
 

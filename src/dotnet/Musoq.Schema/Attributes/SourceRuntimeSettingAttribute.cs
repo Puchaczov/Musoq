@@ -1,4 +1,3 @@
-using System;
 using Musoq.Schema.Optimization;
 
 namespace Musoq.Schema.Attributes;

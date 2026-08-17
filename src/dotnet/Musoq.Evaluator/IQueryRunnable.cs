@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator;
 

@@ -2,8 +2,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Targets.Abstractions;
-using Musoq.Targets.Execution;
 
 namespace Musoq.Converter.Tests;
 

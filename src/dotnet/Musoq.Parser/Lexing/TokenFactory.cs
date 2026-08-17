@@ -188,8 +188,8 @@ public static class TokenFactory
     ///     Creates a string literal token.
     /// </summary>
     /// <param name="position">The position in the input.</param>
-    /// <param name="value">The unescaped value of the string.</param>
-    /// <param name="originalLength">The original length including quotes.</param>
+    /// <param name="value">The value to store in the string literal token.</param>
+    /// <param name="originalLength">The source length supplied by the caller for the token span.</param>
     /// <returns>A string literal token.</returns>
     public static Token CreateStringLiteralToken(int position, string value, int originalLength)
     {

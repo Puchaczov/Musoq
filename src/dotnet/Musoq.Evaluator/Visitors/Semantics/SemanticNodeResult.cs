@@ -1,4 +1,3 @@
-using System;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;

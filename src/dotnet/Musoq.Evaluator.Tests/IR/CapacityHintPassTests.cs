@@ -1,7 +1,6 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
-using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.IR.Optimization.Execution;
 

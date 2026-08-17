@@ -19,7 +19,10 @@ public sealed partial class ExecutionCSharpRenderer
             return RenderEquality(binary, context);
 
         if (RequiresNullableTemporalSubtraction(binary))
-            return RenderNullableTemporalSubtractionOrDefault(binary, context);
+        {
+            var temporal = RenderNullableTemporalSubtractionOrDefault(binary, context);
+            return temporal;
+        }
 
         var expression = SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.BinaryExpression(
@@ -50,7 +53,7 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 RenderNullableTemporalSubtractionValue(binary, context),
-                SyntaxFactory.IdentifierName(nameof(Nullable<>.GetValueOrDefault))));
+                SyntaxFactory.IdentifierName(nameof(Nullable<int>.GetValueOrDefault))));
     }
 
     private ParenthesizedExpressionSyntax RenderNullableTemporalSubtractionValue(
@@ -220,4 +223,5 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private static bool IsNullableValueType(ExecutionTypeRef type) => IsNullableValueType(type.RequireClrType());
+
 }

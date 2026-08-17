@@ -1,8 +1,6 @@
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.Utils.Symbols;
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;

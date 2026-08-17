@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Collections.Generic;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
@@ -14,10 +15,12 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
     public CannotResolveMethodException(string message, Exception innerException)
         : base(message, innerException)
     {
+        Code = DiagnosticCode.MQ3088_NoMatchingCallableOverload;
     }
 
     public CannotResolveMethodException()
     {
+        Code = DiagnosticCode.MQ3088_NoMatchingCallableOverload;
     }
     /// <summary>
     ///     Initializes a new instance with a message.
@@ -25,7 +28,7 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
     public CannotResolveMethodException(string message)
         : base(message)
     {
-        Code = DiagnosticCode.MQ3029_UnresolvableMethod;
+        Code = DiagnosticCode.MQ3088_NoMatchingCallableOverload;
     }
 
     /// <summary>
@@ -34,7 +37,7 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
     public CannotResolveMethodException(string message, TextSpan span)
         : base(message)
     {
-        Code = DiagnosticCode.MQ3029_UnresolvableMethod;
+        Code = DiagnosticCode.MQ3088_NoMatchingCallableOverload;
         Span = span;
     }
 
@@ -46,6 +49,24 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
     {
         Code = code;
         Span = span;
+        Arguments = new Dictionary<string, string>(StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    ///     Initializes an exception with a structured callable-resolution payload.
+    /// </summary>
+    internal CannotResolveMethodException(
+        string message,
+        DiagnosticCode code,
+        TextSpan span,
+        IReadOnlyDictionary<string, string>? arguments)
+        : base(message)
+    {
+        Code = code;
+        Span = span;
+        Arguments = arguments is null
+            ? new Dictionary<string, string>(StringComparer.Ordinal)
+            : new Dictionary<string, string>(arguments, StringComparer.Ordinal);
     }
 
     /// <summary>
@@ -59,12 +80,22 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
     public TextSpan? Span { get; }
 
     /// <summary>
+    ///     Gets stable facts describing the failed callable resolution.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> Arguments { get; } =
+        new Dictionary<string, string>(StringComparer.Ordinal);
+
+    /// <summary>
     ///     Converts this exception to a Diagnostic instance.
     /// </summary>
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
         var span = Span ?? TextSpan.Empty;
-        return Diagnostic.Error(Code, Message, span);
+        var diagnostic = Diagnostic.Error(Code, Message, span);
+        foreach (var (name, value) in Arguments)
+            diagnostic = diagnostic.WithArgument(name, value);
+
+        return diagnostic;
     }
 
     /// <summary>

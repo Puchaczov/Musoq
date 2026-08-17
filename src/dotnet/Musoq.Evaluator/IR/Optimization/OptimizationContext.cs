@@ -1,5 +1,3 @@
-using Musoq.Evaluator;
-
 namespace Musoq.Evaluator.IR.Optimization;
 
 internal sealed class OptimizationContext

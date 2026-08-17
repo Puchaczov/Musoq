@@ -10,8 +10,6 @@ global using Musoq.Evaluator.IR.Execution.Lowering.Sources;
 global using Musoq.Evaluator.IR.Execution.Lowering.Tables;
 global using Musoq.Evaluator.IR.Execution.Lowering.Windows;
 global using Musoq.Evaluator.IR.Planning;
-
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;

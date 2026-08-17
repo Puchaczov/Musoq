@@ -142,8 +142,7 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         // Assert
         // The parser may handle this differently - either as an error or as recoverable
         // We accept both outcomes: HasErrors true OR the parsing fails with issues visible
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            "Should detect invalid token error or fail to parse");
+        Assert.IsNotEmpty(result.Errors, "Should detect an invalid-token diagnostic");
     }
 
     [TestMethod]
@@ -454,8 +453,7 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         {
             var result = analyzer.Analyze(null!);
             // If it doesn't throw, it should report an error
-            Assert.IsTrue(result.HasErrors || !result.IsParsed,
-                "Null query should result in error or failed parse");
+            Assert.IsNotEmpty(result.Errors, "Null query should result in an error diagnostic");
         }
         catch (ArgumentNullException)
         {

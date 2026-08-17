@@ -1,7 +1,7 @@
 ﻿using Musoq.Converter.Exceptions;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
-using Musoq.Parser.Nodes;
+using System.Collections.Immutable;
 
 namespace Musoq.Converter.Build;
 
@@ -19,16 +19,15 @@ public class CreateTree(BuildChain successor) : BuildChain(successor)
         try
         {
             var script = items.RawQuery;
-            var rootNode = ParsedQueryTemplateCache.GetOrAdd(
-                script,
-                ParsedQueryTemplateCache.DefaultParserContract,
-                () => Parse(script));
+            var parsedTemplate = ParsedQueryTemplateCache.GetOrAddWithDiagnostics(script,
+                ParsedQueryTemplateCache.DefaultParserContract, () => Parse(script));
 
-            if (rootNode == null)
+            if (parsedTemplate.Root == null)
                 throw AstValidationException.ForNullNode("RootNode", "CreateTree after parsing");
 
-            items.RawQueryTree = rootNode;
+            items.RawQueryTree = parsedTemplate.Root;
             items.SourceText = new SourceText(items.RawQuery);
+            items.DiagnosticContext.AddRange(parsedTemplate.Diagnostics);
         }
         catch (Exception ex) when (ex is not AstValidationException)
         {
@@ -42,10 +41,10 @@ public class CreateTree(BuildChain successor) : BuildChain(successor)
         Successor?.Build(items);
     }
 
-    private static RootNode Parse(string script)
+    private static ParsedQueryTemplate Parse(string script)
     {
         var lexer = new Lexer(script, true);
         var parser = new Parser.Parser(lexer);
-        return parser.ComposeAll();
+        return new ParsedQueryTemplate(parser.ComposeAll(), lexer.Diagnostics.ToImmutableArray());
     }
 }

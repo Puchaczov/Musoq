@@ -1,5 +1,6 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
@@ -118,7 +119,9 @@ public class ParserValuesFromTests
     [TestMethod]
     public void ValuesFromSource_WithoutAlias_ShouldFail()
     {
-        Assert.Throws<SyntaxException>(() => Parse("select * from values { { Name: 'A' } }"));
+        var exception = Assert.Throws<SyntaxException>(() => Parse("select * from values { { Name: 'A' } }"));
+
+        Assert.AreEqual(DiagnosticCode.MQ2035_MissingRequiredAlias, exception.Code);
     }
 
     [TestMethod]

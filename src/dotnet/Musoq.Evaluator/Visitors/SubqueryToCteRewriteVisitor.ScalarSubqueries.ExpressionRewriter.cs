@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.Visitors.Helpers.Subqueries;
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;

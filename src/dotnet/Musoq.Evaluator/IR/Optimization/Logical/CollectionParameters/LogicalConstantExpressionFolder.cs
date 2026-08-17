@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Expressions.CollectionParameters;
-using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Evaluator.IR.Optimization.Logical;
 

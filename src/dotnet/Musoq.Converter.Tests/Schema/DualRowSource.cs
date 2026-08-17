@@ -1,5 +1,3 @@
-using System.Threading;
-using System.Collections.Generic;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Converter.Tests.Schema;

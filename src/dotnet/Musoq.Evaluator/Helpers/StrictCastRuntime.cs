@@ -106,6 +106,43 @@ public static class StrictCastRuntime
         return false;
     }
 
+    internal static bool TryValidateConstant(string canonicalTypeName, object? value, out string error)
+    {
+        try
+        {
+            switch (canonicalTypeName)
+            {
+                case "Boolean": _ = ToBoolean(value); break;
+                case "Byte": _ = ToByte(value); break;
+                case "SByte": _ = ToSByte(value); break;
+                case "Int16": _ = ToInt16(value); break;
+                case "UInt16": _ = ToUInt16(value); break;
+                case "Int32": _ = ToInt32(value); break;
+                case "UInt32": _ = ToUInt32(value); break;
+                case "Int64": _ = ToInt64(value); break;
+                case "UInt64": _ = ToUInt64(value); break;
+                case "Single": _ = ToSingle(value); break;
+                case "Double": _ = ToDouble(value); break;
+                case "Decimal": _ = ToDecimal(value); break;
+                case "Char": _ = ToChar(value); break;
+                case "String": _ = ToString(value); break;
+                case "DateTime": _ = ToDateTime(value); break;
+                case "DateTimeOffset": _ = ToDateTimeOffset(value); break;
+                case "TimeSpan": _ = ToTimeSpan(value); break;
+                case "Guid": _ = ToGuid(value); break;
+                default: throw new InvalidOperationException($"Unknown canonical cast target '{canonicalTypeName}'.");
+            }
+
+            error = string.Empty;
+            return true;
+        }
+        catch (Exception exception) when (exception is ArgumentException or FormatException or InvalidCastException or OverflowException)
+        {
+            error = exception.Message;
+            return false;
+        }
+    }
+
     public static bool TryGetReturnType(string typeName, [NotNullWhen(true)] out Type? returnType)
     {
         return TryResolveTarget(typeName, out _, out returnType);

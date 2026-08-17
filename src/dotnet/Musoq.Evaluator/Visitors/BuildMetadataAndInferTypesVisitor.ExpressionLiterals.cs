@@ -8,7 +8,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         AddAssembly(typeof(string).Assembly);
-        PushSemanticNode(new StringNode(node.Value));
+        PushSemanticNode(new StringNode(node.Value, node.Span));
     }
 
     public override void Visit(DecimalNode node)
@@ -59,13 +59,13 @@ public partial class BuildMetadataAndInferTypesVisitor
         AddAssembly(typeof(string).Assembly);
         var word = node is AggregateIdentifierNode aggregateIdentifier
             ? new AggregateIdentifierNode(aggregateIdentifier.Value, aggregateIdentifier.DisplayName)
-            : new WordNode(node.Value);
+            : new WordNode(node.Value, node.Span);
         PushSemanticNode(word);
     }
 
     public override void Visit(NullNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        PushSemanticNode(new NullNode(node.ReturnType));
+        PushSemanticNode(new NullNode(node.ReturnType, node.Span));
     }
 }

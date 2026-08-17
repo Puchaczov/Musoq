@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-
 namespace Musoq.Evaluator.Helpers;
 
 public static partial class EvaluationHelper

@@ -49,8 +49,11 @@ public partial class Parser
             default:
                 if (IsOrderingBoundary(allowClauseBoundaries) || IsContextualKeyword("nulls"))
                     return Order.Ascending;
-                throw new NotSupportedException(
-                    $"Unrecognized token for ComposeOrder(), the token was {Current.TokenType}");
+                throw new SyntaxException(
+                    $"Unrecognized token for ComposeOrder(), the token was {Current.TokenType}.",
+                    _lexer.AlreadyResolvedQueryPart,
+                    DiagnosticCode.MQ2009_InvalidOrderByExpression,
+                    Current.Span);
         }
     }
 

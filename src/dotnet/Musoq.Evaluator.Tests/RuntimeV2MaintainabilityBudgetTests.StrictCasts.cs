@@ -139,8 +139,9 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
         var weatherCode = CompileGeneratedSampleForInspection("Q185_RuntimeV2WeatherSingleAggregate.cs").GeneratedCSharpCode;
         Assert.Contains(
-            "float? temperatureSingle = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToSingle(temperature);",
+            "global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToSingle(temperature)",
             weatherCode);
+        Assert.IsFalse(weatherCode.Contains("RuntimeExpressionBoundary", StringComparison.Ordinal));
     }
 
     [TestMethod]

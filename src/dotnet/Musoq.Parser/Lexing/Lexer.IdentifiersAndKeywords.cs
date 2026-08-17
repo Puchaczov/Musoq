@@ -13,6 +13,9 @@ public sealed partial class Lexer
     {
         var start = Position;
 
+        if (Input[start] is 'r' or 'R' && start + 1 < Input.Length && Input[start + 1] == '\'')
+            return ScanRawStringLiteral();
+
         var multiWordToken = TryMatchMultiWordKeyword();
         if (multiWordToken != null)
             return AssignToken(multiWordToken);

@@ -5,11 +5,9 @@ using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Execution;
-using Musoq.Evaluator.IR.Execution.Lowering;
 using Musoq.Evaluator.IR.Execution.Lowering.Coordinators;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Visitors;
-using Musoq.Targets.CSharpClr;
 
 namespace Musoq.Evaluator.Tests.Architecture;
 

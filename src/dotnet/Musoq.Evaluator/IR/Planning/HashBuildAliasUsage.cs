@@ -1,5 +1,4 @@
 using System.Linq;
-using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using ColumnRefExtractor = Musoq.Evaluator.IR.Expressions.ColumnRefExtractor;
 

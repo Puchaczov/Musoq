@@ -15,7 +15,7 @@ public partial class MalformedQueryErrorTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() a CROSS APPLY #test.nonexistent() AS t"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3003_UnknownTable, DiagnosticPhase.Bind, "nonexistent");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3085_UnknownSource, DiagnosticPhase.Bind, "nonexistent");
         AssertHasGuidance(ex);
     }
 
@@ -38,7 +38,7 @@ public partial class MalformedQueryErrorTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("couple #test.people with table UndefinedTable as Source; select * from Source()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3003_UnknownTable, DiagnosticPhase.Bind, "'UndefinedTable'");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3023_TableNotDefined, DiagnosticPhase.Bind, "'UndefinedTable'");
     }
 
     [TestMethod]
@@ -47,7 +47,7 @@ public partial class MalformedQueryErrorTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("select * from Source(); table MyTable { Name: string }; couple #test.people with table MyTable as Source"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3003_UnknownTable, DiagnosticPhase.Bind, "'Source'");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3023_TableNotDefined, DiagnosticPhase.Bind, "'Source'");
     }
 
     [TestMethod]
@@ -57,7 +57,7 @@ public partial class MalformedQueryErrorTests
             CompileQuery(
                 "table MyTable { Col: banana }; couple #test.people with table MyTable as Source; select Col from Source()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind, "banana");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "Col");
     }
 
     [TestMethod]

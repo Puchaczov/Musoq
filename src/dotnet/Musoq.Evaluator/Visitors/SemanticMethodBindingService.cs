@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 
 namespace Musoq.Evaluator.Visitors;

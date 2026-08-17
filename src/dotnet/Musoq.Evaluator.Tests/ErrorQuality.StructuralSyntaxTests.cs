@@ -34,34 +34,13 @@ public partial class ErrorQualityStructuralSyntaxTests : BasicEntityTestBase
 
     private static void AssertHasErrorCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected error code {expectedCode} ({context}) but query succeeded. IsParsed: {result.IsParsed}");
-
-        if (result.HasErrors)
-        {
-            var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.IsTrue(
-                result.Errors.Any(e => e.Code == expectedCode),
-                $"Expected error code {expectedCode} ({context}) but got:\n{errorDetails}");
-        }
+        DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, expectedCode, context);
     }
 
-    private static void AssertHasOneOfErrorCodes(QueryAnalysisResult result, string context,
-        params DiagnosticCode[] expectedCodes)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
+        string context)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but query succeeded");
-
-        if (result.HasErrors)
-        {
-            var hasExpected = result.Errors.Any(e => expectedCodes.Contains(e.Code));
-            if (!hasExpected)
-            {
-                var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-                Assert.Fail(
-                    $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but got:\n{errorDetails}");
-            }
-        }
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
 
     private static void AssertHasExactlyOneErrorCode(
@@ -69,13 +48,24 @@ public partial class ErrorQualityStructuralSyntaxTests : BasicEntityTestBase
         string context,
         DiagnosticCode expectedCode)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected {expectedCode} ({context}) but query succeeded");
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
+    }
 
-        Assert.HasCount(1, result.Errors, $"Expected exactly one diagnostic ({context}).");
-        var diagnostic = result.Errors.First();
-        Assert.AreEqual(expectedCode, diagnostic.Code,
-            $"Expected {expectedCode} ({context}) but got {diagnostic.Code}.");
+    private static void AssertHasExactDiagnosticCodes(
+        QueryAnalysisResult result,
+        string context,
+        params DiagnosticCode[] expectedCodes)
+    {
+        Assert.IsNotEmpty(result.Errors, $"Expected diagnostics ({context}) but query succeeded");
+
+        var actual = result.Errors.ToArray();
+        Assert.HasCount(expectedCodes.Length, actual,
+            $"Expected [{string.Join(", ", expectedCodes)}] ({context}) but got: " +
+            string.Join("; ", actual.Select(e => $"[{e.Code}] {e.Message} at {e.Span}")));
+
+        for (var index = 0; index < expectedCodes.Length; index++)
+            Assert.AreEqual(expectedCodes[index], actual[index].Code,
+                $"Diagnostic {index} ({context}) has code {actual[index].Code}, expected {expectedCodes[index]}.");
     }
 
     private static void AssertNoErrors(QueryAnalysisResult result)

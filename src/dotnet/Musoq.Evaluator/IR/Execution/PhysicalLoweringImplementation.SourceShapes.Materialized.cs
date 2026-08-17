@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation

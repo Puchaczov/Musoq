@@ -86,13 +86,13 @@ public partial class QueryInspectionTests
 
     private static void AssertNoFallbackWarning(QueryInspectionResult result)
     {
-        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
     }
 
     private static void AssertNoFallbackWarning(QueryInspectionResult result, string optimization)
     {
         Assert.IsFalse(result.Warnings.Any(item =>
-            item.Code == DiagnosticCode.MQ5012_OptimizationFallback &&
+            item.Code == DiagnosticCode.MQ5013_SourceContractWarning &&
             item.Message.Contains(optimization, StringComparison.Ordinal)));
     }
 }

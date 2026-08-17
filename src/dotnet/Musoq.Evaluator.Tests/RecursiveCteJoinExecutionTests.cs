@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.RecursiveCte;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -101,10 +103,14 @@ public sealed class RecursiveCteJoinExecutionTests
         });
         using var compiled = Compile(InnerJoinQuery, provider);
 
-        var exception = Assert.ThrowsExactly<InvalidOperationException>(
+        var exception = Assert.ThrowsExactly<QueryExecutionException>(
             () => TableMaterializationTestHelper.Materialize(compiled.Run()));
 
-        Assert.AreEqual("snapshot failed", exception.Message);
+        var envelope = exception.Envelope ?? throw new AssertFailedException("Expected a datasource envelope.");
+        Assert.AreEqual(DiagnosticCode.MQ7011_DataSourceReadFailed, envelope.Code);
+        var preserved = exception.InnerException?.InnerException ??
+                        throw new AssertFailedException("The original datasource exception was not preserved.");
+        Assert.AreEqual("snapshot failed", preserved.Message);
         Assert.AreEqual(1, provider.Recorder.Enumerated("edges"));
         Assert.AreEqual(1, provider.Recorder.Disposed("edges"));
     }
@@ -119,10 +125,14 @@ public sealed class RecursiveCteJoinExecutionTests
         });
         using var compiled = Compile(InnerJoinQuery, provider);
 
-        var exception = Assert.ThrowsExactly<InvalidOperationException>(
+        var exception = Assert.ThrowsExactly<QueryExecutionException>(
             () => TableMaterializationTestHelper.Materialize(compiled.Run()));
 
-        Assert.AreEqual("snapshot failed after first chunk", exception.Message);
+        var envelope = exception.Envelope ?? throw new AssertFailedException("Expected a datasource envelope.");
+        Assert.AreEqual(DiagnosticCode.MQ7011_DataSourceReadFailed, envelope.Code);
+        var preserved = exception.InnerException?.InnerException ??
+                        throw new AssertFailedException("The original datasource exception was not preserved.");
+        Assert.AreEqual("snapshot failed after first chunk", preserved.Message);
         Assert.AreEqual(1, provider.Recorder.Enumerated("edges"));
         Assert.AreEqual(1, provider.Recorder.RowsYielded("edges"));
         Assert.AreEqual(1, provider.Recorder.Disposed("edges"));

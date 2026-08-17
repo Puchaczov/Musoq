@@ -31,7 +31,7 @@ public static partial class ExecutionExpressionConverter
         IReadOnlyDictionary<string, int>? cteTableIndexes,
         IReadOnlyDictionary<Type, ExecutionVariable>? methodTargets)
     {
-        return expression switch
+        var converted = expression switch
         {
             ColumnRef column => ConvertColumnRef(column, sourceShapes),
             ScriptParameterRef parameter => ConvertScriptParameter(parameter),
@@ -94,5 +94,7 @@ public static partial class ExecutionExpressionConverter
             CteTableRef cteTableRef => throw Unsupported(expression, $"CTE table '{cteTableRef.Name}' requires a registered table index"),
             _ => throw Unsupported(expression, "no execution expression lowering is registered")
         };
+
+        return converted;
     }
 }

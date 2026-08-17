@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Converter;
 using Musoq.Converter.Exceptions;
 using Musoq.Parser.Diagnostics;
 using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;

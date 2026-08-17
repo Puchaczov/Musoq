@@ -55,7 +55,7 @@ public partial class BranchCoverageImprovementTests
     [TestMethod]
     public void ErrorCatalog_GetDefaultSeverity_ForWarning_ShouldReturnWarning()
     {
-        var severity = ErrorCatalog.GetDefaultSeverity(DiagnosticCode.MQ5001_UnusedAlias);
+        var severity = ErrorCatalog.GetDefaultSeverity(DiagnosticCode.MQ5003_ImplicitTypeConversion);
 
         Assert.AreEqual(DiagnosticSeverity.Warning, severity);
     }
@@ -79,7 +79,7 @@ public partial class BranchCoverageImprovementTests
     [TestMethod]
     public void ErrorCatalog_GetDefaultSeverity_ForRuntimeError_ShouldReturnError()
     {
-        var severity = ErrorCatalog.GetDefaultSeverity(DiagnosticCode.MQ7001_DataSourceBindingFailed);
+        var severity = ErrorCatalog.GetDefaultSeverity(DiagnosticCode.MQ7010_DataSourceOpenFailed);
 
         Assert.AreEqual(DiagnosticSeverity.Error, severity);
     }
@@ -91,9 +91,8 @@ public partial class BranchCoverageImprovementTests
         Assert.AreEqual("Syntax", ErrorCatalog.GetCategory(DiagnosticCode.MQ2001_UnexpectedToken));
         Assert.AreEqual("Semantic", ErrorCatalog.GetCategory(DiagnosticCode.MQ3001_UnknownColumn));
         Assert.AreEqual("Schema", ErrorCatalog.GetCategory(DiagnosticCode.MQ4001_InvalidBinarySchemaField));
-        Assert.AreEqual("Warning", ErrorCatalog.GetCategory(DiagnosticCode.MQ5001_UnusedAlias));
-        Assert.AreEqual("FeatureGate", ErrorCatalog.GetCategory(DiagnosticCode.MQ6001_CteUnavailable));
-        Assert.AreEqual("Runtime", ErrorCatalog.GetCategory(DiagnosticCode.MQ7001_DataSourceBindingFailed));
+        Assert.AreEqual("Warning", ErrorCatalog.GetCategory(DiagnosticCode.MQ5003_ImplicitTypeConversion));
+        Assert.AreEqual("Runtime", ErrorCatalog.GetCategory(DiagnosticCode.MQ7010_DataSourceOpenFailed));
         Assert.AreEqual("CodeGeneration", ErrorCatalog.GetCategory(DiagnosticCode.MQ8001_CodeGenerationFailed));
     }
 
@@ -158,7 +157,7 @@ public partial class BranchCoverageImprovementTests
 
         Assert.IsTrue(result);
         var typedDiagnostic = diagnostic ?? throw new AssertFailedException("Expected a diagnostic.");
-        Assert.AreEqual(DiagnosticCode.MQ3014_InvalidPropertyAccess, typedDiagnostic.Code);
+        Assert.AreEqual(DiagnosticCode.MQ3028_UnknownProperty, typedDiagnostic.Code);
     }
 
     [TestMethod]
@@ -182,33 +181,33 @@ public partial class BranchCoverageImprovementTests
     }
 
     [TestMethod]
-    public void DiagnosticExceptionExtensions_ToDiagnosticOrGeneric_WithArgumentNullException_ShouldReturnGeneric()
+    public void DiagnosticExceptionExtensions_ToDiagnosticOrGeneric_WithArgumentNullException_ShouldReturnInternal()
     {
         var ex = new ArgumentNullException("param");
 
         var diagnostic = ex.ToDiagnosticOrGeneric();
 
-        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, diagnostic.Code);
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, diagnostic.Code);
     }
 
     [TestMethod]
-    public void DiagnosticExceptionExtensions_ToDiagnosticOrGeneric_WithKeyNotFoundException_ShouldReturnTableNotFound()
+    public void DiagnosticExceptionExtensions_ToDiagnosticOrGeneric_WithKeyNotFoundException_ShouldReturnInternal()
     {
         var ex = new KeyNotFoundException("test");
 
         var diagnostic = ex.ToDiagnosticOrGeneric();
 
-        Assert.AreEqual(DiagnosticCode.MQ3003_UnknownTable, diagnostic.Code);
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, diagnostic.Code);
     }
 
     [TestMethod]
-    public void DiagnosticExceptionExtensions_ToDiagnosticOrGeneric_WithNotSupportedException_ShouldReturnUnsupported()
+    public void DiagnosticExceptionExtensions_ToDiagnosticOrGeneric_WithNotSupportedException_ShouldReturnInternal()
     {
         var ex = new NotSupportedException("not supported");
 
         var diagnostic = ex.ToDiagnosticOrGeneric();
 
-        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, diagnostic.Code);
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, diagnostic.Code);
     }
 
     [TestMethod]

@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Musoq.Evaluator;
+﻿using Musoq.Evaluator;
 using Musoq.Evaluator.Visitors;
 using Musoq.Evaluator.Visitors.Helpers.InterpretationSchemaDependencyGraph;
 

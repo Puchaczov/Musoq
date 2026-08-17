@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Musoq.Evaluator.Exceptions;
 
 namespace Musoq.Evaluator.Runtime;
 
@@ -39,7 +40,7 @@ internal sealed class QueryRowsEnumerator<T> : IEnumerator<T>
             _finished = true;
             _inner.Dispose();
             _scope.Fail(ex);
-            throw;
+            throw ExecutionFailureConverter.Convert("RowEnumeration", ex);
         }
     }
 
@@ -54,6 +55,13 @@ internal sealed class QueryRowsEnumerator<T> : IEnumerator<T>
             return;
 
         _finished = true;
-        _scope.DisposeEnumerator(_inner);
+        try
+        {
+            _scope.DisposeEnumerator(_inner);
+        }
+        catch (Exception exception)
+        {
+            throw ExecutionFailureConverter.Convert("RowEnumeration", exception);
+        }
     }
 }

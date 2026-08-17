@@ -15,21 +15,23 @@ internal static class SchemaColumnMetadataSyntax
         if (column.ReadModifiers.Count == 0)
         {
             return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.IdentifierName(nameof(Column)))
-                .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
+                .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new ArgumentSyntax[]
+                {
                     SyntaxFactory.Argument(CreateStringLiteral(column.ColumnName)),
                     SyntaxFactory.Argument(CreateTypeOfExpression(column.ColumnType)),
                     SyntaxFactory.Argument(CreateIntLiteral(column.ColumnIndex))
-                ])));
+                })));
         }
 
         return SyntaxFactory.ObjectCreationExpression(
                 SyntaxFactory.ParseTypeName("global::Musoq.Schema.DataSources.SchemaColumn"))
-            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
+            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new ArgumentSyntax[]
+            {
                 SyntaxFactory.Argument(CreateStringLiteral(column.ColumnName)),
                 SyntaxFactory.Argument(CreateIntLiteral(column.ColumnIndex)),
                 SyntaxFactory.Argument(CreateTypeOfExpression(column.ColumnType)),
                 SyntaxFactory.Argument(CreateReadModifierDictionaryCreation(column.ReadModifiers))
-            ])));
+            })));
     }
 
     private static ObjectCreationExpressionSyntax CreateReadModifierDictionaryCreation(

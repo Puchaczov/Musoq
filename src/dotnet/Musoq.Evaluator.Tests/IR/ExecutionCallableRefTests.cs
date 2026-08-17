@@ -1,8 +1,5 @@
-using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
-using Musoq.Targets.Abstractions;
-using Musoq.Targets.CSharpClr;
 
 namespace Musoq.Evaluator.Tests.IR;
 

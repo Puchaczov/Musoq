@@ -1,4 +1,3 @@
-using System;
 using Microsoft.CodeAnalysis.Emit;
 using Musoq.Targets.CSharpClr;
 

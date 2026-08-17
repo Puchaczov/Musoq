@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
@@ -265,8 +266,9 @@ public sealed partial class RewriteQueryVisitor
         if (schemaName == null)
             return;
 
-        throw new InvalidOperationException(
-            $"The syntax '{functionName}(data, ''{schemaName}'')' is no longer supported. Use '{functionName}<{schemaName}>(data)' instead.");
+        throw new QuerySyntaxException(
+            $"The syntax '{functionName}(data, ''{schemaName}'')' is no longer supported. Use '{functionName}<{schemaName}>(data)' instead.",
+            args.Span);
     }
 
     private static void ThrowIfOldInterpretAtSyntax(ArgsListNode? args)
@@ -285,7 +287,8 @@ public sealed partial class RewriteQueryVisitor
         if (schemaName == null)
             return;
 
-        throw new InvalidOperationException(
-            $"The syntax 'InterpretAt(data, offset, ''{schemaName}'')' is no longer supported. Use 'InterpretAt<{schemaName}>(data, offset)' instead.");
+        throw new QuerySyntaxException(
+            $"The syntax 'InterpretAt(data, offset, ''{schemaName}'')' is no longer supported. Use 'InterpretAt<{schemaName}>(data, offset)' instead.",
+            args.Span);
     }
 }

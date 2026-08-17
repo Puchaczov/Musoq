@@ -20,11 +20,7 @@ select Name, Value from Source()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should indicate invalid type names
-        AssertHasOneOfErrorCodes(result, "invalid type names 'banana', 'potato'",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2012_InvalidSchemaDefinition,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "invalid type names 'banana', 'potato'");
     }
 
     [TestMethod]
@@ -40,12 +36,7 @@ select * from Source()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should indicate empty table definition
-        AssertHasOneOfErrorCodes(result, "TABLE with no columns",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2005_InvalidSelectList,
-            DiagnosticCode.MQ2012_InvalidSchemaDefinition,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "TABLE with no columns");
     }
 
     [TestMethod]
@@ -78,11 +69,11 @@ select Name from Source()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should indicate missing type
-        AssertHasOneOfErrorCodes(result, "TABLE column without type",
+        AssertHasExactDiagnosticCodes(
+            result,
+            "TABLE column without type",
             DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2012_InvalidSchemaDefinition,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+            DiagnosticCode.MQ2001_UnexpectedToken);
     }
 
     [TestMethod]
@@ -98,11 +89,11 @@ select Name from Source()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should indicate invalid empty type
-        AssertHasOneOfErrorCodes(result, "TABLE column with empty type",
+        AssertHasExactDiagnosticCodes(
+            result,
+            "TABLE column with empty type",
             DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2012_InvalidSchemaDefinition,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+            DiagnosticCode.MQ2001_UnexpectedToken);
     }
 
     #endregion
@@ -120,10 +111,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate missing operand
-        AssertHasOneOfErrorCodes(result, "dangling + operator",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2020_MissingOperand,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "dangling + operator");
     }
 
     [TestMethod]
@@ -137,10 +125,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate invalid operator
-        AssertHasOneOfErrorCodes(result, "double ++ operator",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2019_InvalidOperator,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "double ++ operator");
     }
 
     [TestMethod]
@@ -154,11 +139,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate missing END
-        AssertHasOneOfErrorCodes(result, "CASE without END",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2026_InvalidCaseExpression,
-            DiagnosticCode.MQ2029_MissingEndKeyword,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "CASE without END");
     }
 
     [TestMethod]
@@ -172,11 +153,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate missing WHEN
-        AssertHasOneOfErrorCodes(result, "CASE without WHEN",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2026_InvalidCaseExpression,
-            DiagnosticCode.MQ2027_MissingWhenClause,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "CASE without WHEN");
     }
 
     [TestMethod]
@@ -190,11 +167,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate missing THEN
-        AssertHasOneOfErrorCodes(result, "CASE WHEN without THEN",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2026_InvalidCaseExpression,
-            DiagnosticCode.MQ2028_MissingThenClause,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "CASE WHEN without THEN");
     }
 
     [TestMethod]
@@ -208,10 +181,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate multiple ELSE not allowed
-        AssertHasOneOfErrorCodes(result, "multiple ELSE in CASE",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2026_InvalidCaseExpression,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "multiple ELSE in CASE");
     }
 
     [TestMethod]
@@ -225,10 +195,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate unterminated string
-        AssertHasOneOfErrorCodes(result, "unclosed string literal",
-            DiagnosticCode.MQ1002_UnterminatedString,
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ1002_UnterminatedString, "unclosed string literal");
     }
 
     [TestMethod]
@@ -242,9 +209,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate unclosed parenthesis
-        AssertHasOneOfErrorCodes(result, "unclosed parenthesis in expression",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2010_MissingClosingParenthesis);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "unclosed parenthesis in expression");
     }
 
     [TestMethod]
@@ -274,9 +239,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate missing parentheses for IN
-        AssertHasOneOfErrorCodes(result, "IN without parentheses",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "IN without parentheses");
     }
 
     [TestMethod]
@@ -290,10 +253,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate missing LIKE pattern
-        AssertHasOneOfErrorCodes(result, "LIKE without pattern",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2020_MissingOperand,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "LIKE without pattern");
     }
 
     [TestMethod]
@@ -307,10 +267,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should suggest CASE WHEN expression
-        AssertHasOneOfErrorCodes(result, "ternary ?: should suggest CASE WHEN",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2019_InvalidOperator,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "ternary ?: should suggest CASE WHEN");
     }
 
     [TestMethod]
@@ -324,10 +281,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should error with clear message
-        AssertHasOneOfErrorCodes(result, "lambda => expression not supported",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2019_InvalidOperator,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "lambda => expression not supported");
     }
 
     #endregion

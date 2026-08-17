@@ -1,4 +1,5 @@
 using System.Dynamic;
+using System.Collections.Generic;
 using System.Reflection;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
@@ -15,7 +16,19 @@ internal sealed class SemanticColumnPropertyBindingService(
 {
     public SemanticIdentifierBinding ResolveIdentifier(TableSymbol tableSymbol, string identifierName)
     {
-        var column = tableSymbol.GetColumnByAliasAndName(sourceBinding.Identifier, identifierName);
+        if (!string.IsNullOrEmpty(sourceBinding.Identifier) &&
+            !tableSymbol.ContainsAlias(sourceBinding.Identifier))
+            return SemanticIdentifierBinding.ForUnknownAlias(sourceBinding.Identifier, tableSymbol.CompoundTables);
+
+        ISchemaColumn? column;
+        try
+        {
+            column = tableSymbol.GetColumnByAliasAndName(sourceBinding.Identifier, identifierName);
+        }
+        catch (KeyNotFoundException)
+        {
+            return SemanticIdentifierBinding.ForUnknownAlias(sourceBinding.Identifier, tableSymbol.CompoundTables);
+        }
 
         if (column != null)
             return SemanticIdentifierBinding.ForColumn(column, string.Empty);
@@ -192,7 +205,9 @@ internal readonly record struct SemanticIdentifierBinding(
     SemanticIdentifierBindingKind Kind,
     ISchemaColumn? Column,
     string? SourceAlias,
-    ISchemaColumn[] AvailableColumns)
+    ISchemaColumn[] AvailableColumns,
+    string? UnknownAlias,
+    string[] AvailableAliases)
 {
     public static SemanticIdentifierBinding ForColumn(ISchemaColumn column, string sourceAlias)
     {
@@ -200,23 +215,37 @@ internal readonly record struct SemanticIdentifierBinding(
             SemanticIdentifierBindingKind.Column,
             column,
             sourceAlias,
+            [],
+            null,
             []);
     }
 
     public static SemanticIdentifierBinding ForIdentifier()
     {
-        return new SemanticIdentifierBinding(SemanticIdentifierBindingKind.Identifier, null, null, []);
+        return new SemanticIdentifierBinding(SemanticIdentifierBindingKind.Identifier, null, null, [], null, []);
     }
 
     public static SemanticIdentifierBinding ForUnknown(ISchemaColumn[] availableColumns)
     {
-        return new SemanticIdentifierBinding(SemanticIdentifierBindingKind.Unknown, null, null, availableColumns);
+        return new SemanticIdentifierBinding(SemanticIdentifierBindingKind.Unknown, null, null, availableColumns, null, []);
+    }
+
+    public static SemanticIdentifierBinding ForUnknownAlias(string alias, string[] availableAliases)
+    {
+        return new SemanticIdentifierBinding(
+            SemanticIdentifierBindingKind.UnknownAlias,
+            null,
+            null,
+            [],
+            alias,
+            availableAliases);
     }
 }
 
 internal enum SemanticIdentifierBindingKind
 {
     Unknown,
+    UnknownAlias,
     Identifier,
     Column
 }

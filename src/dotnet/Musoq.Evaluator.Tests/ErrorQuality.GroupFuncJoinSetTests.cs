@@ -32,34 +32,13 @@ public class ErrorQualityGroupFuncJoinSetTests : BasicEntityTestBase
 
     private static void AssertHasErrorCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected error code {expectedCode} ({context}) but query succeeded. IsParsed: {result.IsParsed}");
-
-        if (result.HasErrors)
-        {
-            var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.IsTrue(
-                result.Errors.Any(e => e.Code == expectedCode),
-                $"Expected error code {expectedCode} ({context}) but got:\n{errorDetails}");
-        }
+        DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, expectedCode, context);
     }
 
-    private static void AssertHasOneOfErrorCodes(QueryAnalysisResult result, string context,
-        params DiagnosticCode[] expectedCodes)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
+        string context)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but query succeeded");
-
-        if (result.HasErrors)
-        {
-            var hasExpected = result.Errors.Any(e => expectedCodes.Contains(e.Code));
-            if (!hasExpected)
-            {
-                var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-                Assert.Fail(
-                    $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but got:\n{errorDetails}");
-            }
-        }
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
 
     private static void AssertNoErrors(QueryAnalysisResult result)
@@ -109,9 +88,7 @@ HAVING NonExistent > 5";
         var result = analyzer.Analyze(query);
 
         // Assert — Should report unknown column in HAVING
-        AssertHasOneOfErrorCodes(result, "non-existent column in HAVING",
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3012_NonAggregateInSelect);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3001_UnknownColumn, "non-existent column in HAVING");
     }
 
     [TestMethod]
@@ -127,10 +104,7 @@ WHERE Count(1) > 2";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — WHERE comes before GROUP BY; also aggregate not allowed in WHERE
-        AssertHasOneOfErrorCodes(result, "aggregate in WHERE should suggest HAVING",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ3011_AggregateNotAllowed,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "aggregate in WHERE should suggest HAVING");
     }
 
     [TestMethod]
@@ -193,9 +167,7 @@ ORDER BY NonExistent";
         var result = analyzer.Analyze(query);
 
         // Assert — Should report unknown column in ORDER BY
-        AssertHasOneOfErrorCodes(result, "ORDER BY non-existent column with GROUP BY",
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3012_NonAggregateInSelect);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3001_UnknownColumn, "ORDER BY non-existent column with GROUP BY");
     }
 
     #endregion
@@ -217,10 +189,7 @@ ORDER BY NonExistent";
         var result = analyzer.Analyze(query);
 
         // Assert — Should report unknown function
-        AssertHasOneOfErrorCodes(result, "non-existent function BananaFunction",
-            DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3086_UnknownCallable, "non-existent function BananaFunction");
     }
 
     [TestMethod]
@@ -234,10 +203,7 @@ ORDER BY NonExistent";
         var result = analyzer.Analyze(query);
 
         // Assert — Should report wrong argument count
-        AssertHasOneOfErrorCodes(result, "Substring with too few arguments",
-            DiagnosticCode.MQ3006_InvalidArgumentCount,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3087_InvalidCallableArity, "Substring with too few arguments");
     }
 
     [TestMethod]
@@ -251,10 +217,7 @@ ORDER BY NonExistent";
         var result = analyzer.Analyze(query);
 
         // Assert — Should report too many arguments
-        AssertHasOneOfErrorCodes(result, "Substring with too many arguments",
-            DiagnosticCode.MQ3006_InvalidArgumentCount,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3087_InvalidCallableArity, "Substring with too many arguments");
     }
 
     [TestMethod]
@@ -285,10 +248,7 @@ ORDER BY NonExistent";
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain argument type mismatch
-        AssertHasOneOfErrorCodes(result, "Replace with integer arguments",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3088_NoMatchingCallableOverload, "Replace with integer arguments");
     }
 
     [TestMethod]
@@ -302,10 +262,7 @@ ORDER BY NonExistent";
         var result = analyzer.Analyze(query);
 
         // Assert — Should report unknown method
-        AssertHasOneOfErrorCodes(result, "non-existent entity method",
-            DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3086_UnknownCallable, "non-existent entity method");
     }
 
     #endregion
@@ -348,10 +305,7 @@ INNER JOIN #B.Entities() b ON c.Name = b.Name";
         var result = analyzer.Analyze(query);
 
         // Assert — Should report unknown alias c
-        AssertHasOneOfErrorCodes(result, "ON condition with unknown alias c",
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3003_UnknownTable,
-            DiagnosticCode.MQ3015_UnknownAlias);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3015_UnknownAlias, "ON condition with unknown alias c");
     }
 
     [TestMethod]
@@ -367,9 +321,7 @@ INNER JOIN #B.Entities() a ON a.Name = a.Name";
         var result = analyzer.Analyze(query);
 
         // Assert — Should report duplicate alias
-        AssertHasOneOfErrorCodes(result, "duplicate alias 'a' in JOIN",
-            DiagnosticCode.MQ2008_DuplicateAlias,
-            DiagnosticCode.MQ3021_DuplicateAlias);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3021_DuplicateAlias, "duplicate alias 'a' in JOIN");
     }
 
     [TestMethod]
@@ -386,9 +338,7 @@ INNER JOIN #A.Entities() a ON b.Name = a.Name";
         var result = analyzer.Analyze(query);
 
         // Assert — Should report duplicate alias
-        AssertHasOneOfErrorCodes(result, "conflicting alias 'a' in multiple JOINs",
-            DiagnosticCode.MQ2008_DuplicateAlias,
-            DiagnosticCode.MQ3021_DuplicateAlias);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3021_DuplicateAlias, "conflicting alias 'a' in multiple JOINs");
     }
 
     #endregion
@@ -412,8 +362,7 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — invalid set-operator key columns should now be reported during analysis.
-        AssertHasOneOfErrorCodes(result, "non-existent set-operator key column",
-            DiagnosticCode.MQ3001_UnknownColumn);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3001_UnknownColumn, "non-existent set-operator key column");
     }
 
     [TestMethod]

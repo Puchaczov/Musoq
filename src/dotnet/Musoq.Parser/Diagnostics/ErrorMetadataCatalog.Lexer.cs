@@ -33,10 +33,10 @@ internal static class LexerErrorMetadataCatalog
 
         yield return Entry(
             DiagnosticCode.MQ1004_InvalidEscapeSequence,
-            "The string literal contains an escape sequence that Musoq does not recognize.",
+            "The string literal contains a malformed fixed-length escape sequence. Supported escapes are decoded; unknown escapes such as \\q remain literal.",
             [
-                "Use one of the supported escapes like \\n, \\r, \\t, \\', \\\\, \\uFFFF, or \\xFF.",
-                "If you want a literal backslash, escape it as \\\\."
+                "Use a supported escape such as \\n, \\r, \\t, \\', \\\\, \\uFFFF, or \\xFF.",
+                "For Windows paths, use a raw literal such as r'C:\\Path\\To\\File' or double each backslash as 'C:\\\\Path\\\\To\\\\File'."
             ],
             "Core Spec - String Literals");
 
@@ -73,6 +73,15 @@ internal static class LexerErrorMetadataCatalog
             [
                 "Use only digits 0-7 after the 0o prefix.",
                 "Convert the value to decimal if it needs digits 8 or 9."
+            ],
+            "Core Spec - Numeric Literals");
+
+        yield return Entry(
+            DiagnosticCode.MQ1009_NumericLiteralOutOfRange,
+            "A numeric literal is syntactically valid but cannot be represented by a supported Musoq numeric type.",
+            [
+                "Use a smaller value or a supported numeric representation.",
+                "If the value is intended as text, enclose it in a string literal."
             ],
             "Core Spec - Numeric Literals");
     }

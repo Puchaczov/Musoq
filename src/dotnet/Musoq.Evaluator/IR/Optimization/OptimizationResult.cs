@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using Musoq.Evaluator;
-
 namespace Musoq.Evaluator.IR.Optimization;
 
 internal sealed record OptimizationResult<TPlan>(

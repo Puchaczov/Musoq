@@ -1,6 +1,3 @@
-using System;
-using Musoq.Schema.Optimization;
-
 namespace Musoq.Evaluator;
 
 /// <summary>

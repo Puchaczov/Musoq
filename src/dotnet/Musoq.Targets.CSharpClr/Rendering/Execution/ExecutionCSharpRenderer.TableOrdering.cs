@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Execution.Facts;
 using Musoq.Evaluator.Tables;
-using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -103,7 +102,7 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateTableRowsRead(topOffset.Source.Name),
                 StatementEmitter.CreateBlock(CreateInvocationStatement(
                         sourceRowsVariableName,
-                        nameof(List<>.Add),
+                        nameof(List<object>.Add),
                         SyntaxFactory.IdentifierName(sourceRowVariableName)))),
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),

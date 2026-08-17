@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
-using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -43,7 +42,7 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName(builder.Name),
-                        SyntaxFactory.IdentifierName(nameof(WindowPartitionCountBuilder<>.ToResultInPlaceUnchecked))))
+                        SyntaxFactory.IdentifierName(nameof(WindowPartitionCountBuilder<object>.ToResultInPlaceUnchecked))))
                 .WithArgumentList(CreateArgumentList())));
 
         return statements;

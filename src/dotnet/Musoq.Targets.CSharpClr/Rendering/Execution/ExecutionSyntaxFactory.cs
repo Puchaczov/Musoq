@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
 
 using Musoq.Evaluator.IR.Expressions;
-using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.Tables;
 
 namespace Musoq.Targets.CSharpClr;

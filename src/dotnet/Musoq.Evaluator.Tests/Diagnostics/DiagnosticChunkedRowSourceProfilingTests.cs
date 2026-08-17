@@ -9,7 +9,6 @@ using Musoq.Evaluator.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Diagnostics;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.Diagnostics;
 

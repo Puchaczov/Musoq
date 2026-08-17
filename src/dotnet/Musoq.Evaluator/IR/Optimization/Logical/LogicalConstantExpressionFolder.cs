@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
-using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Evaluator.IR.Optimization.Logical;
 
@@ -178,27 +177,6 @@ internal sealed partial class LogicalConstantExpressionFolder(DiagnosticContext?
     }
 
     protected override IrExpression VisitCteTableRef(CteTableRef node) => node;
-
-    public void ReportConstantCondition(IrExpression expression, string clauseName)
-    {
-        if (expression is not Literal { Value: bool value })
-            return;
-
-        if (value)
-        {
-            diagnostics?.ReportWarning(
-                DiagnosticCode.MQ5010_TautologicalCondition,
-                $"{clauseName} clause always evaluates to true and has no effect.",
-                GetSourceSpan(expression));
-        }
-        else
-        {
-            diagnostics?.ReportWarning(
-                DiagnosticCode.MQ5011_ContradictoryCondition,
-                $"{clauseName} clause always evaluates to false; no rows will be returned.",
-                GetSourceSpan(expression));
-        }
-    }
 
     private IrExpression[] RewriteExpressions(IReadOnlyList<IrExpression> expressions, out bool changed)
     {

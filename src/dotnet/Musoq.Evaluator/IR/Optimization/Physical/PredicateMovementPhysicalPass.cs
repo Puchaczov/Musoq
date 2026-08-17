@@ -11,7 +11,6 @@ using Musoq.Plugins.Attributes;
 using AliasRefExtractor = Musoq.Evaluator.IR.Expressions.AliasRefExtractor;
 using ColumnRefExtractor = Musoq.Evaluator.IR.Expressions.ColumnRefExtractor;
 using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
-using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Evaluator.IR.Optimization.Physical;
 

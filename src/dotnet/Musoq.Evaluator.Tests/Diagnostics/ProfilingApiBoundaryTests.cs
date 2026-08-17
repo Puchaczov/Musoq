@@ -8,7 +8,6 @@ using Musoq.Evaluator.Diagnostics;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.Diagnostics;
 

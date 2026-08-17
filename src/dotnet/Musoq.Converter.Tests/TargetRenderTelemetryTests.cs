@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Targets.Execution;
 
 namespace Musoq.Converter.Tests;
 

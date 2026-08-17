@@ -1,7 +1,6 @@
 using System.Dynamic;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Utils.Symbols;
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
 using NotSupportedException = System.NotSupportedException;
@@ -15,6 +14,15 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var exp = PopSemanticNode(VisitorOperationNames.VisitDotNodeExpression);
         var root = PopSemanticNode(VisitorOperationNames.VisitDotNodeRoot);
+
+        // A reported child-binding error is represented by a node with no
+        // return type. Preserve the parent shape so traversal cannot turn the
+        // original bind error into a stack or cast failure.
+        if (exp.ReturnType == null && DiagnosticContext?.HasErrors == true)
+        {
+            PushSemanticNode(new DotNode(root, exp, node.IsTheMostInner, node.Name));
+            return;
+        }
 
         if (root?.ReturnType == null)
             throw VisitorException.CreateForProcessingFailure(

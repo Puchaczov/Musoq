@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Tables;
@@ -357,9 +355,6 @@ public sealed class SemanticServiceBaselineTests
             new SetOperatorMustHaveSameTypesOfColumnsException(
                 new FieldNode(new IntegerNode(1), 0, "Id"),
                 new FieldNode(new StringNode("name"), 0, "Name")).Message);
-        Assert.AreEqual(
-            "Explicit key columns are optional for UNION ALL. Omit the key list or use '()' to compare all projected values; use 'UNION ALL (<key_columns>)' only when comparing an explicit subset.",
-            new SetOperatorMustHaveKeyColumnsException("UnionAll").Message);
     }
 
     private static QueryNode CreateSetOperatorQuery()

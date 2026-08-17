@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Evaluator.IR.Bindings;
 
 namespace Musoq.Evaluator.IR.Execution;
 

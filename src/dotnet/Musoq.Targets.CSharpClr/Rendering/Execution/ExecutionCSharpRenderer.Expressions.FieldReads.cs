@@ -1,7 +1,5 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.Tables;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -96,9 +94,10 @@ public sealed partial class ExecutionCSharpRenderer
                 : receiver,
             CreateIdentifierName(memberRead.MemberName));
 
-        return memberRead.IsDynamic
-            ? CastDynamicValue(memberRead.ReturnType, member)
-            : member;
+        if (!memberRead.IsDynamic)
+            return member;
+
+        return CastDynamicValue(memberRead.ReturnType, member);
     }
 
     private static ExpressionSyntax CastDynamicValue(

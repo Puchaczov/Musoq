@@ -13,8 +13,6 @@ public partial class UserMistakesTests
 
         var result = analyzer.ValidateSyntax(query);
 
-        AssertHasOneOfErrorCodes(result, "FULL OUTER JOIN missing ON",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2007_InvalidJoinCondition);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2007_InvalidJoinCondition, "FULL OUTER JOIN missing ON");
     }
 }

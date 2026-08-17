@@ -1,4 +1,3 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Examples.DataSources.Git.Tests;
@@ -30,8 +29,6 @@ public sealed class GitInspectionTests : GitExampleTestBase
         Assert.IsTrue(inspection.Warnings.Any(warning =>
             warning.Code == DiagnosticCode.MQ5013_SourceContractWarning &&
             warning.Message.Contains("GitSlicePushdown", StringComparison.Ordinal)));
-        Assert.IsFalse(inspection.Warnings.Any(warning =>
-            warning.Code == DiagnosticCode.MQ5012_OptimizationFallback));
     }
 
     [TestMethod]

@@ -53,10 +53,7 @@ public partial class ErrorQualityExprEdgeCaseTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Comment-only query should be rejected as non-query syntax.
-        AssertHasOneOfErrorCodes(result, "query with only comments",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2025_MissingSelectKeyword,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2016_IncompleteStatement, "query with only comments");
     }
 
     [TestMethod]
@@ -140,10 +137,7 @@ public partial class ErrorQualityExprEdgeCaseTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should error: keyword split by newline
-        AssertHasOneOfErrorCodes(result, "keyword split by newline",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2025_MissingSelectKeyword,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "keyword split by newline");
     }
 
     [TestMethod]

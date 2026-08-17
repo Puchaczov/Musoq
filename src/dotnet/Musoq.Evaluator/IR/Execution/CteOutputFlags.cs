@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Evaluator.IR.Execution;
 
 [Flags]

@@ -80,7 +80,7 @@ public partial class Parser
 
     private static bool IsSetOperator(TokenType currentTokenType)
     {
-        return SetOperators.Contains(currentTokenType);
+        return Array.IndexOf(SetOperators, currentTokenType) >= 0;
     }
 
 }

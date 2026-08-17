@@ -12,7 +12,6 @@ using Musoq.Parser.Lexing;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests;
 

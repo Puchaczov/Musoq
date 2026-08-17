@@ -10,8 +10,6 @@ using Musoq.Converter.Build;
 using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
 using Musoq.Evaluator;
-using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Converter.Tests;
 

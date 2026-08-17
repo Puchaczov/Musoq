@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
+using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Parser.Tests;
@@ -73,6 +74,17 @@ public class SchemaParserFieldValidationTests : SchemaParserTestsBase
         Assert.AreEqual(FieldValueValidationKind.OneOf, validation.Kind);
         Assert.IsFalse(validation.IsByteList);
         Assert.HasCount(3, validation.Values);
+    }
+
+    [TestMethod]
+    public void StringOneOf_WithRawLiteral_ShouldPreserveBackslashes()
+    {
+        var validation = ParseFieldValidation(@"string[32] ascii oneOf [r'C:\new\test', r'\\server\share']");
+
+        Assert.AreEqual(FieldValueValidationKind.OneOf, validation.Kind);
+        Assert.HasCount(2, validation.Values);
+        Assert.AreEqual(@"C:\new\test", ((ConstantValueNode)validation.Values[0]).ObjValue);
+        Assert.AreEqual(@"\\server\share", ((ConstantValueNode)validation.Values[1]).ObjValue);
     }
 
     [TestMethod]

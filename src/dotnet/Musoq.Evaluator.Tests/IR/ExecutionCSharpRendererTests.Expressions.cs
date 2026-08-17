@@ -11,6 +11,18 @@ namespace Musoq.Evaluator.Tests.IR;
 public sealed partial class ExecutionCSharpRendererTests
 {
     [TestMethod]
+    public void RenderMethod_ShouldEmitDirectExpressionsWithoutRuntimeDiagnosticWrappers()
+    {
+        var code = new ExecutionCSharpRenderer()
+            .RenderMethod(CreateMethodCallPlan(), "ExecutePlan")
+            .NormalizeWhitespace()
+            .ToFullString();
+
+        Assert.IsFalse(code.Contains("RuntimeExpressionBoundary", StringComparison.Ordinal));
+        Assert.IsFalse(code.Contains("RuntimeExpressionOrigin", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
     public void CanRender_WhenPlanContainsScalarMethodCall_ShouldReturnTrue()
     {
         var renderer = new ExecutionCSharpRenderer();

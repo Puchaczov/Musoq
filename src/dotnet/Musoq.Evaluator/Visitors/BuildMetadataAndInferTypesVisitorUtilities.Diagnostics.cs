@@ -121,8 +121,9 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
         if (schemaName == null)
             return;
 
-        throw new InvalidOperationException(
-            $"The syntax '{functionName}(data, ''{schemaName}'')' is no longer supported. Use '{functionName}<{schemaName}>(data)' instead.");
+        throw new QuerySyntaxException(
+            $"The syntax '{functionName}(data, ''{schemaName}'')' is no longer supported. Use '{functionName}<{schemaName}>(data)' instead.",
+            args.Span);
     }
 
     internal static bool IsInterpretOrParseFunction(string methodName)
@@ -173,11 +174,6 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
 
         throw new InvalidOperationException(
             $"Expected schema name as a quoted string at argument index {schemaArgIndex}, got {schemaArg?.GetType().Name ?? "null"}.");
-    }
-
-    internal static Exception SetOperatorDoesNotHaveKeysException(string setOperator)
-    {
-        return new SetOperatorMustHaveKeyColumnsException(setOperator);
     }
 
     private static readonly FrozenDictionary<string, string> DialectColumnHints =

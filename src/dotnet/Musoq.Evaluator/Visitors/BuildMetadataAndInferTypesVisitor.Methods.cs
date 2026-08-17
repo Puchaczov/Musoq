@@ -25,6 +25,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         var (method, canSkipInjectSource) = ResolveMethod(node, args, methodContext);
 
         method = ProcessGenericMethodIfNeeded(method, args, methodContext.EntityType);
+        SuspiciousOrdinaryStringEscapeDiagnostics.ReportMethodArgumentRisks(DiagnosticContext, args, node.Arguments,
+            method, canSkipInjectSource);
 
         var accessMethod = CreateAccessMethod(node, args, method, methodContext, canSkipInjectSource, func);
 

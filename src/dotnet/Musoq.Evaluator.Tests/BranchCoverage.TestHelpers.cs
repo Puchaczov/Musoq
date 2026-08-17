@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using Musoq.Evaluator.Tables;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Optimization;
 using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Tests;

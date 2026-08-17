@@ -373,7 +373,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
     {
         var ex = Assert.Throws<MusoqQueryException>(() => TestMethodTemplate("0xFFFFFFFFFFFFFFFF1", 0L));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "too large");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ1009_NumericLiteralOutOfRange, DiagnosticPhase.Parse, "outside the supported range");
         AssertHasGuidance(ex);
     }
 
@@ -383,7 +383,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             TestMethodTemplate("0b11111111111111111111111111111111111111111111111111111111111111111", 0L));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "too large");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ1009_NumericLiteralOutOfRange, DiagnosticPhase.Parse, "outside the supported range");
         AssertHasGuidance(ex);
     }
 
@@ -392,7 +392,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
     {
         var ex = Assert.Throws<MusoqQueryException>(() => TestMethodTemplate("0o7777777777777777777777", 0L));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "too large");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ1009_NumericLiteralOutOfRange, DiagnosticPhase.Parse, "outside the supported range");
         AssertHasGuidance(ex);
     }
 

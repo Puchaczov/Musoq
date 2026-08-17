@@ -1,14 +1,9 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.Extensions.Logging;
-using Musoq.Evaluator.Tables;
-using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
-using Musoq.Schema;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -387,7 +382,8 @@ public sealed partial class ExecutionCSharpRenderer
             .WithArgumentList(SyntaxFactory.ArgumentList())
             .WithInitializer(SyntaxFactory.InitializerExpression(
                 SyntaxKind.ObjectInitializerExpression,
-                SyntaxFactory.SeparatedList<ExpressionSyntax>([
+                SyntaxFactory.SeparatedList<ExpressionSyntax>(new ExpressionSyntax[]
+                {
                     SyntaxFactory.AssignmentExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.IdentifierName(nameof(ParallelOptions.CancellationToken)),
@@ -398,6 +394,6 @@ public sealed partial class ExecutionCSharpRenderer
                         SyntaxFactory.LiteralExpression(
                             SyntaxKind.NumericLiteralExpression,
                             SyntaxFactory.Literal(maxDegreeOfParallelism)))
-                ])));
+                })));
     }
 }

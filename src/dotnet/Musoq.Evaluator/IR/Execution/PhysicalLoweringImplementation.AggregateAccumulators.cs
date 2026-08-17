@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
-using Musoq.Evaluator.IR.Expressions;
 using AggregateRefRewriter = Musoq.Evaluator.IR.Expressions.AggregateRefRewriter;
 
 namespace Musoq.Evaluator.IR.Execution;

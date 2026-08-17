@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Execution;
-using Musoq.Targets.Execution;
 
 namespace Musoq.Targets.Execution.Analysis;
 

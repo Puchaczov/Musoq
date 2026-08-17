@@ -2,11 +2,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Musoq.Converter.Build;
-using Musoq.Converter.Diagnostics;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
-using Musoq.Evaluator.IR.CodeGeneration;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 

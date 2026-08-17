@@ -18,9 +18,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should say FROM is missing
-        AssertHasOneOfErrorCodes(result, "SELECT without FROM",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2004_MissingFromClause);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "SELECT without FROM");
     }
 
     [TestMethod]
@@ -34,9 +32,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should say SELECT is missing
-        AssertHasOneOfErrorCodes(result, "FROM without SELECT",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2025_MissingSelectKeyword);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "FROM without SELECT");
     }
 
     [TestMethod]
@@ -50,10 +46,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate wrong clause order
-        AssertHasOneOfErrorCodes(result, "WHERE before FROM is wrong order",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2004_MissingFromClause,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "WHERE before FROM is wrong order");
     }
 
     [TestMethod]
@@ -67,10 +60,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain HAVING requires GROUP BY
-        AssertHasOneOfErrorCodes(result, "HAVING without GROUP BY",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "HAVING without GROUP BY");
     }
 
     [TestMethod]
@@ -84,9 +74,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate wrong clause order
-        AssertHasOneOfErrorCodes(result, "ORDER BY before WHERE is wrong order",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2009_InvalidOrderByExpression, "ORDER BY before WHERE is wrong order");
     }
 
     [TestMethod]
@@ -100,9 +88,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate wrong clause order
-        AssertHasOneOfErrorCodes(result, "GROUP BY after ORDER BY is wrong order",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2009_InvalidOrderByExpression, "GROUP BY after ORDER BY is wrong order");
     }
 
     [TestMethod]
@@ -116,9 +102,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate duplicate WHERE
-        AssertHasOneOfErrorCodes(result, "double WHERE clause",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "double WHERE clause");
     }
 
     [TestMethod]
@@ -132,9 +116,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate duplicate ORDER BY
-        AssertHasOneOfErrorCodes(result, "double ORDER BY clause",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "double ORDER BY clause");
     }
 
     [TestMethod]
@@ -148,9 +130,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate wrong order or handle gracefully
-        AssertHasOneOfErrorCodes(result, "TAKE before ORDER BY",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "TAKE before ORDER BY");
     }
 
     [TestMethod]
@@ -178,9 +158,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — SELECT list cannot be empty
-        AssertHasOneOfErrorCodes(result, "empty SELECT list",
-            DiagnosticCode.MQ2005_InvalidSelectList,
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2005_InvalidSelectList, "empty SELECT list");
     }
 
     [TestMethod]
@@ -194,9 +172,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate trailing comma
-        AssertHasOneOfErrorCodes(result, "trailing comma in SELECT list",
-            DiagnosticCode.MQ2014_TrailingComma,
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "trailing comma in SELECT list");
     }
 
     [TestMethod]
@@ -210,10 +186,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate trailing comma
-        AssertHasOneOfErrorCodes(result, "trailing comma in GROUP BY",
-            DiagnosticCode.MQ2014_TrailingComma,
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "trailing comma in GROUP BY");
     }
 
     [TestMethod]
@@ -229,10 +202,7 @@ INNER JOIN #B.Entities() b";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate missing ON clause
-        AssertHasOneOfErrorCodes(result, "INNER JOIN without ON",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2007_InvalidJoinCondition,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2007_InvalidJoinCondition, "INNER JOIN without ON");
     }
 
     [TestMethod]
@@ -248,12 +218,7 @@ CROSS APPLY #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should indicate missing alias
-        AssertHasOneOfErrorCodes(result, "CROSS APPLY without alias",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ3022_MissingAlias,
-            DiagnosticCode.MQ3002_AmbiguousColumn,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2035_MissingRequiredAlias, "CROSS APPLY without alias");
     }
 
     [TestMethod]
@@ -268,9 +233,7 @@ CROSS APPLY #B.Entities()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate invalid schema reference
-        AssertHasOneOfErrorCodes(result, "schema with empty method name",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "schema with empty method name");
     }
 
     [TestMethod]
@@ -284,10 +247,7 @@ CROSS APPLY #B.Entities()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate unclosed parenthesis
-        AssertHasOneOfErrorCodes(result, "missing closing parenthesis in schema method",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2010_MissingClosingParenthesis,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "missing closing parenthesis in schema method");
     }
 
     [TestMethod]
@@ -301,9 +261,7 @@ CROSS APPLY #B.Entities()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate extra closing parenthesis
-        AssertHasOneOfErrorCodes(result, "extra closing parenthesis",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "extra closing parenthesis");
     }
 
     [TestMethod]
@@ -356,11 +314,7 @@ SELECT * FROM MyData md";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate missing AS in CTE
-        AssertHasOneOfErrorCodes(result, "CTE without AS keyword",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2013_InvalidCTE,
-            DiagnosticCode.MQ2023_MissingAsKeyword,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "CTE without AS keyword");
     }
 
     [TestMethod]
@@ -375,10 +329,7 @@ SELECT * FROM MyData md";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate missing parentheses around CTE query
-        AssertHasOneOfErrorCodes(result, "CTE query without parentheses",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2013_InvalidCTE,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "CTE query without parentheses");
     }
 
     [TestMethod]
@@ -397,8 +348,7 @@ SELECT * FROM Recursive r";
         var result = analyzer.Analyze(query);
 
         // Assert — The self-reference is valid only when the contextual keyword is present.
-        AssertHasOneOfErrorCodes(result, "recursive CTE requires WITH RECURSIVE",
-            DiagnosticCode.MQ3072_RecursiveCteRequiresKeyword);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3072_RecursiveCteRequiresKeyword, "recursive CTE requires WITH RECURSIVE");
     }
 
     [TestMethod]
@@ -413,11 +363,7 @@ WITH MyData AS (SELECT Name FROM #A.Entities())";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate WITH must come before SELECT
-        AssertHasOneOfErrorCodes(result, "CTE after SELECT (wrong position)",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2013_InvalidCTE,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2030_UnsupportedSyntax, "CTE after SELECT (wrong position)");
     }
 
     [TestMethod]
@@ -433,12 +379,7 @@ SELECT * FROM MyData md";
         var result = analyzer.Analyze(query);
 
         // Assert — Should indicate duplicate CTE name
-        AssertHasOneOfErrorCodes(result, "duplicate CTE names",
-            DiagnosticCode.MQ2008_DuplicateAlias,
-            DiagnosticCode.MQ2013_InvalidCTE,
-            DiagnosticCode.MQ3021_DuplicateAlias,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3021_DuplicateAlias, "duplicate CTE names");
     }
 
     [TestMethod]
@@ -452,12 +393,7 @@ SELECT * FROM MyData md";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate CTE needs a SELECT statement
-        AssertHasOneOfErrorCodes(result, "CTE with no SELECT after it",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2013_InvalidCTE,
-            DiagnosticCode.MQ2016_IncompleteStatement,
-            DiagnosticCode.MQ2017_UnexpectedEndOfFile,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2030_UnsupportedSyntax, "CTE with no SELECT after it");
     }
 
     [TestMethod]
@@ -491,12 +427,7 @@ SELECT * FROM Second s";
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain forward references not allowed
-        AssertHasOneOfErrorCodes(result, "forward reference between CTEs",
-            DiagnosticCode.MQ2013_InvalidCTE,
-            DiagnosticCode.MQ3003_UnknownTable,
-            DiagnosticCode.MQ3023_TableNotDefined,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3023_TableNotDefined, "forward reference between CTEs");
     }
 
     [TestMethod]
@@ -511,10 +442,7 @@ SELECT * FROM MyData md";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate empty CTE body
-        AssertHasOneOfErrorCodes(result, "empty CTE body",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2013_InvalidCTE,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2030_UnsupportedSyntax, "empty CTE body");
     }
 
     #endregion

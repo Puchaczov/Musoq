@@ -1,5 +1,4 @@
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.IR.Expressions;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.IR.Expressions;

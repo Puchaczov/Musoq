@@ -1,8 +1,6 @@
-using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.Tests.Schema.Basic;

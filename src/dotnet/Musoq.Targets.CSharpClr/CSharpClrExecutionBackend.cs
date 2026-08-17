@@ -1,15 +1,8 @@
-using System;
 using System.IO;
-using System.Reflection;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator;
-using Musoq.Evaluator.IR.CodeGeneration;
-using Musoq.Evaluator.IR.Execution;
-using Musoq.Targets.CSharpClr.Optimization.Codegen;
 using Musoq.Evaluator.Runtime;
-using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
-using Musoq.Targets.Execution;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -112,13 +105,19 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
                     exception));
         }
 
-        compilationContext.AddSyntaxTree(ClassEmitter.CreateSyntaxTreeDirect(compilationUnit, inputs.RenderProfile));
+        var generatedSourcePath = $"{safeNamespaceName}.g.cs";
+        compilationContext.AddSyntaxTree(ClassEmitter.CreateSyntaxTreeDirect(
+            compilationUnit,
+            inputs.RenderProfile,
+            generatedSourcePath));
         if (!string.IsNullOrEmpty(inputs.InterpreterSourceCode))
         {
             compilationContext.TrackNamespace("Musoq.Generated.Interpreters");
             compilationContext.AddSyntaxTree(CSharpSyntaxTree.ParseText(
                 inputs.InterpreterSourceCode,
-                new CSharpParseOptions(LanguageVersion.CSharp11)));
+                new CSharpParseOptions(LanguageVersion.CSharp11),
+                $"{safeNamespaceName}.interpreter.g.cs",
+                Encoding.UTF8));
         }
 
         var artifact = new CSharpRenderedQueryArtifact(

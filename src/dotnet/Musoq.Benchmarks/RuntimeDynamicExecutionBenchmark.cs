@@ -6,11 +6,9 @@ using Musoq.Benchmarks.Components;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Runtime;
-using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Schema.Optimization;
 using Musoq.Schema.Reflection;
 using Musoq.Evaluator.Tables;
 

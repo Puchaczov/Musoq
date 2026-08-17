@@ -26,6 +26,13 @@ public partial class BuildMetadataAndInferTypesVisitor
             : _sourceBinding.Identifier;
         var identifier = string.IsNullOrEmpty(primaryIdentifier) ? node.Alias : primaryIdentifier;
 
+        if (DiagnosticContext?.HasErrors == true &&
+            _diagnosticRecoveryAliases.Contains(string.IsNullOrEmpty(node.Alias) ? identifier : node.Alias))
+        {
+            PushSemanticNode(new AccessColumnNode(node.Name, node.Alias, typeof(object), node.Span));
+            return;
+        }
+
         if (string.IsNullOrEmpty(identifier))
             throw VisitorException.CreateForProcessingFailure(
                 VisitorName,
@@ -34,19 +41,35 @@ public partial class BuildMetadataAndInferTypesVisitor
                 "Ensure the query has proper FROM clause and table aliases are correctly specified."
             );
 
-        var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
+        var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(identifier, out var resolvedTableSymbol)
+            ? resolvedTableSymbol
+            : null;
         if (tableSymbol == null)
-            throw VisitorException.CreateForProcessingFailure(
-                VisitorName,
-                VisitorOperationNames.VisitAccessColumnNode,
-                $"Table symbol not found for identifier '{identifier}'",
-                "Verify that the table or alias is properly defined in the query."
-            );
+        {
+            var missingAlias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : identifier;
+            if (DiagnosticContext?.HasErrors == true)
+            {
+                PushSemanticNode(new AccessColumnNode(node.Name, node.Alias, typeof(string), node.Span));
+                return;
+            }
+
+            if (TryReportUnknownAlias(missingAlias, [], node))
+            {
+                PushSemanticNode(new AccessColumnNode(node.Name, node.Alias, typeof(string), node.Span));
+                return;
+            }
+        }
+
+        if (tableSymbol is null)
+            throw new UnknownAliasException(identifier, node.SpanOrEmpty());
 
         if (!string.IsNullOrEmpty(node.Alias) && !tableSymbol.ContainsAlias(node.Alias))
         {
             if (TryReportUnknownAlias(node.Alias, tableSymbol.CompoundTables, node))
+            {
+                PushSemanticNode(new AccessColumnNode(node.Name, node.Alias, typeof(object), node.Span));
                 return;
+            }
 
             throw VisitorException.CreateForProcessingFailure(
                 VisitorName,
@@ -67,6 +90,10 @@ public partial class BuildMetadataAndInferTypesVisitor
         catch (KeyNotFoundException)
         {
             column = null;
+        }
+        catch (Exception exception)
+        {
+            throw new SchemaProviderFailureException(exception);
         }
 
         if (column == null)
@@ -155,6 +182,13 @@ public partial class BuildMetadataAndInferTypesVisitor
             }
 
             if (binding.Kind == SemanticIdentifierBindingKind.Identifier)
+            {
+                PushSemanticNode(new IdentifierNode(node.Name));
+                return;
+            }
+
+            if (binding.Kind == SemanticIdentifierBindingKind.UnknownAlias &&
+                TryReportUnknownAlias(binding.UnknownAlias!, binding.AvailableAliases, node))
             {
                 PushSemanticNode(new IdentifierNode(node.Name));
                 return;

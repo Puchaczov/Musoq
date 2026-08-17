@@ -1,4 +1,3 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 

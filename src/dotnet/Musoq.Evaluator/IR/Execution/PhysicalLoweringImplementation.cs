@@ -1,13 +1,7 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical;
-using Musoq.Evaluator.IR.Physical.Nodes;
-using Musoq.Evaluator.IR.Planning;
-using Musoq.Evaluator.IR.Execution.Lowering;
-using Musoq.Evaluator.IR.Execution.Lowering.Coordinators;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 
 namespace Musoq.Evaluator.IR.Execution;

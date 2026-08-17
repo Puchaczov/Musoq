@@ -1,4 +1,3 @@
-using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.IR.Optimization;
 

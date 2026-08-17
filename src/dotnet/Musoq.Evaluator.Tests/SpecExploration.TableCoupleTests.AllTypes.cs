@@ -1,7 +1,6 @@
 using System;
 using System.Dynamic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Tests.Schema.Unknown;
 
 namespace Musoq.Evaluator.Tests;
 

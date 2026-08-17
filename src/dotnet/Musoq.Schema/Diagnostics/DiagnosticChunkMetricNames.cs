@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Schema.Diagnostics;
 
 public static class DiagnosticChunkMetricNames

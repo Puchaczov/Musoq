@@ -1,5 +1,3 @@
-using Musoq.Parser.Diagnostics;
-
 namespace Musoq.Parser.Lexing;
 
 public sealed partial class Lexer

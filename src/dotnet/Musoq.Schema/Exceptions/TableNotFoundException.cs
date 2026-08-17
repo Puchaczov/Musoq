@@ -1,6 +1,9 @@
+using Musoq.Parser;
+using Musoq.Parser.Diagnostics;
+
 namespace Musoq.Schema.Exceptions;
 
-public class TableNotFoundException : Exception
+public class TableNotFoundException : Exception, IDiagnosticException
 {
     public TableNotFoundException(string message, Exception innerException)
         : base(message, innerException)
@@ -14,5 +17,16 @@ public class TableNotFoundException : Exception
 
     public TableNotFoundException()
     {
+    }
+
+    public DiagnosticCode Code => DiagnosticCode.MQ3085_UnknownSource;
+
+    /// <inheritdoc />
+    public TextSpan? Span => null;
+
+    /// <inheritdoc />
+    public Diagnostic ToDiagnostic(SourceText? sourceText = null)
+    {
+        return Diagnostic.Error(Code, Message, TextSpan.Empty);
     }
 }

@@ -166,7 +166,7 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(query, source));
 
-        AssertExactErrors(ex, DiagnosticCode.MQ3025_ColumnMustBeArray, DiagnosticCode.MQ3001_UnknownColumn);
+        AssertExactErrors(ex, DiagnosticCode.MQ3025_ColumnMustBeArray);
     }
 
     [TestMethod]
@@ -178,7 +178,7 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(query, source));
 
-        AssertExactErrors(ex, DiagnosticCode.MQ3025_ColumnMustBeArray, DiagnosticCode.MQ3001_UnknownColumn);
+        AssertExactErrors(ex, DiagnosticCode.MQ3025_ColumnMustBeArray);
     }
 
     #endregion
@@ -194,7 +194,7 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(query, source));
 
-        AssertExactErrors(ex, DiagnosticCode.MQ3026_ColumnNotBindable, DiagnosticCode.MQ3001_UnknownColumn);
+        AssertExactErrors(ex, DiagnosticCode.MQ3026_ColumnNotBindable);
     }
 
     #endregion

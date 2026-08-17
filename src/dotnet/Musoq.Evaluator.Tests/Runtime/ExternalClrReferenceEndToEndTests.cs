@@ -8,14 +8,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
-using Musoq.Evaluator;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.External.Contracts;
 using Musoq.Evaluator.Tests.External.Rows;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Optimization;
 using MusoqApi = Musoq.Converter.Musoq;
 using DataSourceSchemaColumn = Musoq.Schema.DataSources.SchemaColumn;
 

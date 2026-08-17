@@ -15,5 +15,14 @@ internal static partial class WarningMetadataCatalog
                 "Remove unsupported modifiers when the data source should use its defaults."
             ],
             "Table/Couple Spec - Source Contract Diagnostics");
+
+        yield return Entry(
+            DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape,
+            "A recognized escape sequence changes the value of an ordinary string that looks like a path. Existing ordinary-string escape semantics remain unchanged; this warning is advisory.",
+            [
+                "Use a raw literal such as r'path\\segment' when backslashes should remain literal.",
+                "Double each intended backslash in an ordinary string, such as 'path\\\\segment'."
+            ],
+            "Core Spec - String Literals");
     }
 }

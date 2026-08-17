@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.IR.Optimization.Physical;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Planning;

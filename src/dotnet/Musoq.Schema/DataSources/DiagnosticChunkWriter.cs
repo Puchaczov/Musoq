@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Musoq.Schema.Diagnostics;
 
 namespace Musoq.Schema.DataSources;
 

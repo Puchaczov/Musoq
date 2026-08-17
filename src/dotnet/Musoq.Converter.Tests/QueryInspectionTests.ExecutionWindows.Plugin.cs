@@ -1,6 +1,7 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Converter.Tests;
 
@@ -134,7 +135,7 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenCustomPluginWindowIsObjectShaped_ShouldRejectNoBoxingExecution()
     {
-        var exception = Assert.Throws<NotSupportedException>(() => Inspect(@"
+        var exception = Assert.Throws<InternalDiagnosticException>(() => Inspect(@"
                 with c as (
                     select 'Charlie' as Name, 'NYC' as City, 5 as Population from #system.dual()
                 )
@@ -142,9 +143,14 @@ public partial class QueryInspectionTests
                 from c",
             new CompilationOptions()));
 
-        Assert.Contains("ObjectRunningProduct", exception.Message);
-        Assert.Contains("typed no-boxing input/result/argument contracts", exception.Message);
-        Assert.Contains("object-shaped", exception.Message);
+        var envelope = MusoqErrorEnvelope.FromException(exception);
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, envelope.Code);
+        Assert.Contains("internal failure", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("ObjectRunningProduct", exception.Message);
+        var verbose = MusoqErrorEnvelope.FromExceptionVerbose(exception);
+        Assert.Contains("ObjectRunningProduct", verbose.Details ?? string.Empty);
+        Assert.Contains("typed no-boxing input/result/argument contracts", verbose.Details ?? string.Empty);
+        Assert.Contains("object-shaped", verbose.Details ?? string.Empty);
     }
 
     [TestMethod]

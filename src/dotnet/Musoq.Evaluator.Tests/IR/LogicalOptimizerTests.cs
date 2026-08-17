@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
@@ -248,7 +247,7 @@ public sealed class LogicalOptimizerTests
     }
 
     [TestMethod]
-    public void Optimize_WhenLogicalWherePredicateFoldsToFalse_ShouldReportContradictoryCondition()
+    public void Optimize_WhenLogicalWherePredicateFoldsToFalse_ShouldLeaveAdvisoryOwnershipToSemanticPhase()
     {
         var diagnosticContext = new DiagnosticContext(new SourceText("SELECT Value FROM v WHERE true AND false"));
         var input = new ValuesScanNode(
@@ -266,9 +265,7 @@ public sealed class LogicalOptimizerTests
 
         _ = new LogicalOptimizer(diagnosticContext: diagnosticContext).Optimize(initial);
 
-        var warning = diagnosticContext.Warnings.Single();
-        Assert.AreEqual(DiagnosticCode.MQ5011_ContradictoryCondition, warning.Code);
-        StringAssert.Contains(warning.Message, "WHERE");
+        Assert.AreEqual(0, diagnosticContext.Warnings.Count());
     }
 
     private static void AssertTraceEntriesAreMeaningful(

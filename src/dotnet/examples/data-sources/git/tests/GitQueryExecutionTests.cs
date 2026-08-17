@@ -1,5 +1,3 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Musoq.Examples.DataSources.Git.Tests;
 
 [TestClass]

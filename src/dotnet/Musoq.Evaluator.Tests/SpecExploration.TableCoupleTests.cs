@@ -1,5 +1,4 @@
 using System.Dynamic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Unknown;
 

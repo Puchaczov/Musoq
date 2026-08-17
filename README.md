@@ -114,7 +114,136 @@ Musoq run "select c.Sha, c.Message, c.Author from git.repository('.') r cross ap
 Musoq quit
 ```
 
+### Windows paths and raw SQL strings
+
+Use a raw string literal when a path contains backslashes. The adjacent
+`r` or `R` prefix preserves each backslash, so Windows paths can be passed
+directly to a datasource:
+
+```sql
+select FullPath from os.files(r'C:\Some\Path\To\Directory', true) take 5
+select FullPath from os.files(r'\\server\share', true) take 5
+select FullPath from os.files(r'C:\Temp\', true) take 5
+```
+
+Raw strings are generic SQL string literals, not an `os.files`-specific feature.
+The prefix must touch the opening quote, and embedded single quotes are written
+as two single quotes: `r'a''b'`.
+
+Ordinary strings keep their normal escape behavior. If a recognized escape
+changes path-like text, diagnostic-aware compilation reports advisory
+`MQ5014_SuspiciousOrdinaryStringEscape` while preserving the existing decoded
+runtime value:
+
+```sql
+select FullPath from os.files('C:\new\test', true) take 5
+-- MQ5014: \n and \t alter this path-like ordinary string
+```
+
+Use a raw literal or double each intended backslash:
+
+```sql
+select FullPath from os.files(r'C:\new\test', true) take 5
+select FullPath from os.files('C:\\new\\test', true) take 5
+```
+
+Rooted path risks are detectable during parsing. Relative path warnings need a
+path-sensitive binding context, so a bare
+`select 'some\text' from system.dual()` remains quiet. Standalone intentional
+escapes such as `select '\n' from system.dual()` and unknown escapes
+remain warning-free; malformed `\u` and `\x` sequences remain `MQ1004` errors.
+Use `CompileWithDiagnostics()` when the warning surface is needed; convenience
+compilation that returns only a `CompiledQuery` does not expose warnings.
+
+### Stable aliases for JOIN and APPLY
+
+Every source in a query block containing `JOIN` or `APPLY` needs a stable
+addressable name. CTE and named in-memory sources have natural names; schema
+calls, functions, row methods/properties, derived tables, and `VALUES` sources
+need explicit aliases. A single schema or function source may remain unaliased.
+
+```sql
+select a1.Name, item.Value
+from a.b() a1
+cross apply a1.Column item
+take 10
+```
+
+If the APPLY alias is omitted, the parser reports `MQ2035` before the `TAKE`
+boundary and leaves the boundary available for recovery:
+
+```sql
+select a1.Name
+from a.b() a1
+cross apply a1.Column
+take 10
+-- MQ2035_MissingRequiredAlias
+```
+
+Use brackets when a reserved word is the intended alias, for example
+`cross apply a1.Column [take]`. The same rule applies independently inside
+nested query blocks, derived tables, and `VALUES` sources.
+
 ---
+
+### Common advisory warnings
+
+Diagnostic-aware analysis reports warnings for common SQL intent mistakes.
+Warnings never change parsed values, generated code, datasource arguments, or
+runtime results. Use `CompileWithDiagnostics()` to receive them.
+
+A regex word boundary must keep its backslash:
+
+```sql
+select Name from #A.Entities() where Name rlike '\bword\b'
+-- MQ5015: use r'\bword\b' or '\\bword\\b'
+```
+
+`LIKE` uses SQL wildcards `%` and `_`, not filesystem glob syntax:
+
+```sql
+select Name from #A.Entities() where Name like '*.log'
+-- MQ5016: use '%.log' for LIKE, or RLIKE for regex semantics
+```
+
+Use an explicit null predicate instead of comparing with `NULL`:
+
+```sql
+select Name from #A.Entities() where Name = NULL
+-- MQ5017: use Name IS NULL (or a null-safe distinctness operator)
+```
+
+A filter on the optional side of an outer join can remove unmatched rows:
+
+```sql
+select a.Name, b.Name
+from #A.Entities() a
+left join #B.Entities() b on a.Id = b.Id
+where b.Name = 'match'
+-- MQ5019: move an intended match restriction into ON
+```
+
+Apply a deterministic ordering before skipping rows:
+
+```sql
+select Name from #A.Entities() skip 10
+-- MQ5021: add ORDER BY Name before SKIP
+```
+
+NULL inside `NOT IN` can make every non-matching value evaluate to `UNKNOWN`:
+
+```sql
+select Name from #A.Entities() where Name not in ('Alice', NULL)
+-- MQ5024: filter NULLs or use a null-aware predicate
+```
+
+An impossible constant conversion is reported before execution when Musoq can
+prove that an implicit comparison conversion cannot succeed:
+
+```sql
+select 1 from #A.Entities() where Time = '02/31/2026'
+-- MQ5025: use a valid temporal literal or an explicit conversion
+```
 
 ## ✨ Beyond Standard SQL
 

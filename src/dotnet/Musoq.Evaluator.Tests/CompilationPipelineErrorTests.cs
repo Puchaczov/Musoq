@@ -101,35 +101,13 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
         string? context = null)
     {
         var contextInfo = context != null ? $" ({context})" : "";
-
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected error code {expectedCode}{contextInfo} but query succeeded. IsParsed: {result.IsParsed}");
-
-        if (result.HasErrors)
-        {
-            var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message} at {e.Span}"));
-            Assert.IsTrue(
-                result.Errors.Any(e => e.Code == expectedCode),
-                $"Expected error code {expectedCode}{contextInfo} but got:\n{errorDetails}");
-        }
+        DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, expectedCode, contextInfo);
     }
 
-    private static void AssertHasOneOfErrorCodes(QueryAnalysisResult result, string context,
-        params DiagnosticCode[] expectedCodes)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
+        string context)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but query succeeded");
-
-        if (result.HasErrors)
-        {
-            var hasExpected = result.Errors.Any(e => expectedCodes.Contains(e.Code));
-            if (!hasExpected)
-            {
-                var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-                Assert.Fail(
-                    $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but got:\n{errorDetails}");
-            }
-        }
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
 
     private static void AssertHasExactlyOneErrorCode(
@@ -137,27 +115,17 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
         string context,
         DiagnosticCode expectedCode)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected {expectedCode} ({context}) but query succeeded");
-
-        Assert.HasCount(1, result.Errors, $"Expected exactly one diagnostic ({context}).");
-        var diagnostic = result.Errors.First();
-        Assert.AreEqual(expectedCode, diagnostic.Code,
-            $"Expected {expectedCode} ({context}) but got {diagnostic.Code}.");
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
 
     private static void AssertHasErrorWithMessage(QueryAnalysisResult result, string messageContains, string context)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected error containing '{messageContains}' ({context}) but query succeeded");
-
-        if (result.HasErrors)
-        {
-            var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.IsTrue(
-                result.Errors.Any(e => e.Message.Contains(messageContains, StringComparison.OrdinalIgnoreCase)),
-                $"Expected error containing '{messageContains}' ({context}) but got:\n{errorDetails}");
-        }
+        var diagnostics = result.Errors.ToList();
+        Assert.HasCount(1, diagnostics,
+            $"Expected one error containing '{messageContains}' ({context}) but got: " +
+            string.Join(" | ", diagnostics.Select(static item => $"[{item.Code}] {item.Message}")));
+        Assert.IsTrue(diagnostics[0].Message.Contains(messageContains, StringComparison.OrdinalIgnoreCase),
+            $"Expected error containing '{messageContains}' ({context}) but got: {diagnostics[0].Message}");
     }
 
     private static void AssertNoErrors(QueryAnalysisResult result)
@@ -175,7 +143,7 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
         Assert.IsNotNull(result, "Result should not be null - analyzer should not crash");
 
         if (shouldHaveErrors)
-            Assert.IsTrue(result.HasErrors || !result.IsParsed,
+            Assert.IsNotEmpty(result.Errors,
                 $"Expected errors for behavior: {expectedBehavior}. Got IsParsed={result.IsParsed}, HasErrors={result.HasErrors}");
         else
             Assert.IsFalse(result.HasErrors,

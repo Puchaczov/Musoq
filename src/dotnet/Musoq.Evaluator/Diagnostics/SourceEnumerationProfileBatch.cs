@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Evaluator.Diagnostics;
 
 internal readonly record struct SourceEnumerationProfileBatch(

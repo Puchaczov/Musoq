@@ -14,33 +14,57 @@ internal static class TargetDiagnosticReporter
         ArgumentNullException.ThrowIfNull(targetDiagnostics);
         ArgumentNullException.ThrowIfNull(context);
 
-        context.AddRange(targetDiagnostics.Select(diagnostic => Convert(diagnostic, context.SourceText)));
+        context.AddRange(targetDiagnostics.Select(Convert));
     }
 
-    private static Diagnostic Convert(TargetDiagnostic diagnostic, SourceText? sourceText)
+    private static Diagnostic Convert(TargetDiagnostic diagnostic)
     {
-        var (start, end) = ResolveLocations(diagnostic, sourceText);
+        var (start, end) = ResolveLocations(diagnostic);
         return new Diagnostic(
             DiagnosticCode.MQ8001_CodeGenerationFailed,
             MapSeverity(diagnostic.Severity),
             $"[{diagnostic.Code}] {diagnostic.Message}",
             start,
             end,
-            diagnostic.SourceSnippet);
+            diagnostic.SourceSnippet,
+            phase: DiagnosticPhase.CodeGeneration,
+            sourceKind: DiagnosticSourceKind.GeneratedSource,
+            arguments:
+            [
+                new KeyValuePair<string, string>("targetCode", diagnostic.Code)
+            ]);
     }
 
-    private static (SourceLocation Start, SourceLocation End) ResolveLocations(
-        TargetDiagnostic diagnostic,
-        SourceText? sourceText)
+    private static (SourceLocation Start, SourceLocation End) ResolveLocations(TargetDiagnostic diagnostic)
     {
-        if (sourceText is null)
+        if (diagnostic.SourceRange is not { } range)
             return (SourceLocation.None, SourceLocation.None);
 
-        var startOffset = Math.Min(diagnostic.SourceRange?.Start ?? 0, sourceText.Length);
-        var endOffset = Math.Min(diagnostic.SourceRange?.End ?? startOffset, sourceText.Length);
-        var start = sourceText.GetLocation(startOffset).WithFilePath(diagnostic.SourceName ?? sourceText.FilePath);
-        var end = sourceText.GetLocation(endOffset).WithFilePath(diagnostic.SourceName ?? sourceText.FilePath);
+        var sourceName = diagnostic.SourceName ?? "<generated>";
+        var start = CreateLocation(
+            range.Start,
+            range.StartLine,
+            range.StartColumn,
+            sourceName);
+        var end = CreateLocation(
+            range.End,
+            range.EndLine,
+            range.EndColumn,
+            sourceName);
         return (start, end);
+    }
+
+    private static SourceLocation CreateLocation(
+        int offset,
+        int? line,
+        int? column,
+        string sourceName)
+    {
+        if (line is { } knownLine && column is { } knownColumn)
+            return new SourceLocation(offset, knownLine, knownColumn, sourceName);
+
+        // A generated offset must never be interpreted against the SQL SourceText.
+        return new SourceLocation(offset, -1, -1, sourceName);
     }
 
     private static DiagnosticSeverity MapSeverity(TargetDiagnosticSeverity severity)

@@ -2,8 +2,6 @@ using System.Linq;
 using Musoq.Converter.Build;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
-using Musoq.Evaluator.IR.Physical;
-using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Planning.Printing;
 using PhysicalPlanPrinter = Musoq.Evaluator.IR.Physical.PhysicalPlanPrinter;
 

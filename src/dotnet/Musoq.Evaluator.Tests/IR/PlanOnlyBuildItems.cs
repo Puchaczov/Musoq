@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Musoq.Converter.Build;
-using Musoq.Evaluator;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Parser.Diagnostics;

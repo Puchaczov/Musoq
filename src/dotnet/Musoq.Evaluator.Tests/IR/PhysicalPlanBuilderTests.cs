@@ -1,15 +1,11 @@
 using System;
-using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
-using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.IR.Optimization.Physical;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Planning;
-using Musoq.Schema;
-using Musoq.Schema.Optimization;
 using PhysicalNodes = Musoq.Evaluator.IR.Physical.Nodes;
 using PhysicalPlanBuilder = Musoq.Evaluator.IR.Physical.PhysicalPlanBuilder;
 using PhysicalPlanPrinter = Musoq.Evaluator.IR.Physical.PhysicalPlanPrinter;

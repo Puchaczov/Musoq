@@ -24,7 +24,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - Substring requires string first argument
         DocumentTypeHandling(result, "Substring on number",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
             DiagnosticCode.MQ3005_TypeMismatch);
     }
 
@@ -40,7 +40,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - Length requires string argument
         DocumentTypeHandling(result, "Length on number",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
             DiagnosticCode.MQ3005_TypeMismatch);
     }
 
@@ -56,7 +56,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - ToUpperInvariant requires string argument
         DocumentTypeHandling(result, "ToUpperInvariant on number",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
             DiagnosticCode.MQ3005_TypeMismatch);
     }
 
@@ -72,7 +72,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - Abs requires numeric argument
         DocumentTypeHandling(result, "Abs on string",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
             DiagnosticCode.MQ3005_TypeMismatch);
     }
 
@@ -88,7 +88,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - Round requires numeric argument
         DocumentTypeHandling(result, "Round on string",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
             DiagnosticCode.MQ3005_TypeMismatch);
     }
 
@@ -104,8 +104,8 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - Substring requires more arguments
         DocumentTypeHandling(result, "Substring with too few arguments",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ3006_InvalidArgumentCount);
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
+            DiagnosticCode.MQ3087_InvalidCallableArity);
     }
 
     [TestMethod]
@@ -120,8 +120,8 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - Upper takes 1 argument
         DocumentTypeHandling(result, "Upper with too many arguments",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ3006_InvalidArgumentCount);
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
+            DiagnosticCode.MQ3087_InvalidCallableArity);
     }
 
     [TestMethod]
@@ -136,7 +136,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - Cast function may or may not exist, or type conversion may fail
         DocumentTypeHandling(result, "Cast string to int",
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -151,7 +151,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - Cast with unknown target type
         DocumentTypeHandling(result, "Cast to unknown type",
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -166,7 +166,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - Convert function may not exist or conversion may fail
         DocumentTypeHandling(result, "Convert int to datetime",
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -181,7 +181,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - ToString with NULL may have ambiguous overloads
         DocumentTypeHandling(result, "ToString with NULL argument",
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -196,7 +196,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - Concat with mixed argument types
         DocumentTypeHandling(result, "Concat with mixed argument types",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
             DiagnosticCode.MQ3005_TypeMismatch);
     }
 
@@ -212,7 +212,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - RowNumber may not exist or may have resolution issues
         DocumentTypeHandling(result, "RowNumber function resolution",
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]

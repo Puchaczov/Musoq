@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Benchmarks.Performance;
 using Musoq.Evaluator;
 

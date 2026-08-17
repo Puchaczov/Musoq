@@ -60,7 +60,7 @@ public class ParseResultFormattingTests
         var root = ParseQuery(sourceText.Text);
         var warnings = new[]
         {
-            Diagnostic.Warning(DiagnosticCode.MQ5001_UnusedAlias, "test warning", new TextSpan(0, 5))
+            Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "test warning", new TextSpan(0, 5))
         };
         var parseResult = new ParseResult(root, sourceText, warnings);
 
@@ -78,7 +78,7 @@ public class ParseResultFormattingTests
         var diagnostics = new[]
         {
             Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "error", new TextSpan(0, 5)),
-            Diagnostic.Warning(DiagnosticCode.MQ5001_UnusedAlias, "warning", new TextSpan(5, 3))
+            Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning", new TextSpan(5, 3))
         };
         var parseResult = new ParseResult(root, sourceText, diagnostics);
 
@@ -96,7 +96,7 @@ public class ParseResultFormattingTests
         var diagnostics = new[]
         {
             Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "error", new TextSpan(0, 5)),
-            Diagnostic.Warning(DiagnosticCode.MQ5001_UnusedAlias, "warning", new TextSpan(5, 3))
+            Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning", new TextSpan(5, 3))
         };
         var parseResult = new ParseResult(root, sourceText, diagnostics);
 
@@ -359,7 +359,7 @@ public class ParseResultFormattingTests
     {
         var formatter = new DiagnosticFormatter();
         var diagnostic = Diagnostic.Warning(
-            DiagnosticCode.MQ5001_UnusedAlias,
+            DiagnosticCode.MQ5003_ImplicitTypeConversion,
             "unused alias",
             new TextSpan(0, 5));
 

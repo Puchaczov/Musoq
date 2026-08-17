@@ -1,6 +1,5 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Build;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes.InterpretationSchema;
 

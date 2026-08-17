@@ -8,6 +8,7 @@ using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
+using Musoq.Schema.Exceptions;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
 using AliasedFromNode = Musoq.Parser.Nodes.From.AliasedFromNode;
 
@@ -53,15 +54,49 @@ public partial class BuildMetadataAndInferTypesVisitor
                 ? CreatePartialInterpretTable()
                 : CreateInterpretTable(schemaName);
 
+            var schemaRegistration = SchemaRegistry?.TryGetSchema(schemaName, out var registeredSchema) == true
+                ? registeredSchema
+                : null;
+            if (schemaRegistration == null)
+                throw new UnknownInterpretationSchemaException(
+                    schemaName,
+                    $"Interpretation schema '{schemaName}' is not defined.",
+                    node.SpanOrEmpty());
+
+            var isTextSchema = schemaRegistration.Node is global::Musoq.Parser.Nodes.InterpretationSchema.TextSchemaNode;
+            var isParse = node.Identifier.Equals("Parse", StringComparison.OrdinalIgnoreCase) ||
+                          node.Identifier.Equals("TryParse", StringComparison.OrdinalIgnoreCase) ||
+                          node.Identifier.Equals("PartialParse", StringComparison.OrdinalIgnoreCase);
+            if (isParse != isTextSchema)
+                throw new QuerySyntaxException(
+                    isParse
+                        ? $"{node.Identifier} requires a text interpretation schema."
+                        : $"{node.Identifier} requires a binary interpretation schema.",
+                    node.SpanOrEmpty());
+
+            var expectedArgumentCount = node.Identifier.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase)
+                ? 2
+                : 1;
+            if (args.Args.Length != expectedArgumentCount)
+                throw new QuerySyntaxException(
+                    $"{node.Identifier}<{schemaName}> expects {expectedArgumentCount} argument{(expectedArgumentCount == 1 ? string.Empty : "s")}, but received {args.Args.Length}.",
+                    args.Span);
+
+            var dataType = args.Args[0].ReturnType;
+            var dataTypeIsCompatible = dataType == null || dataType == typeof(object) ||
+                                        (isTextSchema ? dataType == typeof(string) : dataType == typeof(byte[]));
+            if (!dataTypeIsCompatible)
+                throw new QuerySyntaxException(
+                    isTextSchema
+                        ? $"{node.Identifier}<{schemaName}> requires a string source value."
+                        : $"{node.Identifier}<{schemaName}> requires a byte-array source value.",
+                    args.Args[0].SpanOrEmpty());
+
 
             Type? returnType = null;
-            if (schemaName != null && SchemaRegistry != null &&
-                SchemaRegistry.TryGetSchema(schemaName, out var schemaRegistration))
-            {
-                returnType = schemaRegistration?.GeneratedType;
-                if (returnType != null && isPartialInterpret)
-                    returnType = typeof(Musoq.Schema.Interpreters.PartialInterpretResult<>).MakeGenericType(returnType);
-            }
+            returnType = schemaRegistration.GeneratedType;
+            if (returnType != null && isPartialInterpret)
+                returnType = typeof(Musoq.Schema.Interpreters.PartialInterpretResult<>).MakeGenericType(returnType);
 
             var interpretTableSymbol = new TableSymbol(
                 _sourceBinding.QueryAlias,
@@ -96,6 +131,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (IsInterpretFunction(node.Identifier) && node.TypeParameter == null)
         {
             ThrowIfOldInterpretSyntax(node.Identifier, node.Args);
+            throw new QuerySyntaxException(
+                $"The {node.Identifier} source requires a schema type parameter, for example {node.Identifier}<Schema>(data).",
+                node.SpanOrEmpty());
         }
 
         // A function-shaped FROM item is not necessarily a datasource.  Reject
@@ -114,10 +152,21 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (!_sourceBinding.ExplicitlyCoupledSources.ContainsKey(node.Identifier) && TryResolveAsStandaloneFunction(node))
             return;
 
-        var definition = _sourceBinding.ExplicitlyCoupledSources[node.Identifier];
+        if (!_sourceBinding.ExplicitlyCoupledSources.TryGetValue(node.Identifier, out var definition))
+        {
+            if (IsInterpretFunction(node.Identifier))
+                throw new MethodResolutionException(
+                    $"The source-shaped callable '{node.Identifier}' could not be resolved. " +
+                    "Declare it with COUPLE or use a supported standalone function.");
+
+            throw new TableIsNotDefinedException(node.Identifier, node.SpanOrEmpty());
+        }
+
         var schemaInfo = definition.SchemaMethodNode;
         var table = definition.TableName != null
-            ? _sourceBinding.ExplicitlyDefinedTables[definition.TableName]
+            ? _sourceBinding.ExplicitlyDefinedTables.TryGetValue(definition.TableName, out var definedTable)
+                ? definedTable
+                : throw new TableIsNotDefinedException(definition.TableName, node.SpanOrEmpty())
             : null;
         var hasExternallyProvidedTypes = table != null;
 
@@ -151,7 +200,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             throw new CannotResolveMethodException(
                 bindingFailure.Message,
                 bindingFailure.Code,
-                bindingFailure.Span);
+                bindingFailure.Span,
+                bindingFailure.Arguments);
 
         var boundInvocation = bindingResult.Invocation;
         if (boundInvocation != null)

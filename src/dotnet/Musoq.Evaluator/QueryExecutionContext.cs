@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator;
 

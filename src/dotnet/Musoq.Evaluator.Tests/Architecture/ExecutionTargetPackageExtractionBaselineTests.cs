@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
-using Musoq.Converter.Build;
 
 namespace Musoq.Evaluator.Tests.Architecture;
 

@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Evaluator;
 
 internal static class CompilationParallelism

@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
+using Musoq.Parser.Diagnostics;
 using Musoq.Tests.Common;
 
 namespace Musoq.Converter.Tests;
@@ -118,10 +120,11 @@ public class TypedExecutionTests
     {
         var query = Compile<ThrowingConstructorDto>("select d.Dummy as Dummy from #system.dual() d");
 
-        var exception = Assert.Throws<InvalidOperationException>(() =>
+        var exception = Assert.Throws<QueryExecutionException>(() =>
             query.Run(new TypedQueryRunOptions(CancellationToken.None)).ToArray());
 
-        Assert.AreEqual("Projection failed.", exception.Message);
+        Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, exception.Envelope!.Code);
+        Assert.AreEqual("Projection failed.", exception.InnerException!.Message);
     }
 
     [TestMethod]

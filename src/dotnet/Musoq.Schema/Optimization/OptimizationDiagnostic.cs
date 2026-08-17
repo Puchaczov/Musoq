@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Schema.Optimization;
 
 public sealed record OptimizationDiagnostic(

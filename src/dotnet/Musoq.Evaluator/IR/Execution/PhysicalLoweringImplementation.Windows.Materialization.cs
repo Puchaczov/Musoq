@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Musoq.Evaluator.IR.Expressions;
-using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
 
 namespace Musoq.Evaluator.IR.Execution;
 

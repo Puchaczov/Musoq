@@ -104,7 +104,7 @@ public partial class TypoAndUxDiagnosticProbeTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT a.Name, b.Amount FROM #test.people() a INNER JOIN #test.orders() b"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2007_InvalidJoinCondition, DiagnosticPhase.Parse);
     }
 
     [TestMethod]

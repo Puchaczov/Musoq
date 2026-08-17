@@ -64,14 +64,17 @@ public partial class Parser
                     break;
                 case TokenType.NotIn:
                     Consume(TokenType.NotIn);
-                    node = new NotNode(ComposeInExpression(node));
+                    node = new NotNode(ComposeInExpression(node, true));
                     break;
                 case TokenType.Between:
                     node = ComposeBetween(node);
                     break;
                 default:
-                    throw new NotSupportedException(
-                        $"Unrecognized token for ComposeEqualityOperators(), the token was {Current.TokenType}");
+                    throw new SyntaxException(
+                        $"Unrecognized token for ComposeEqualityOperators(), the token was {Current.TokenType}.",
+                        _lexer.AlreadyResolvedQueryPart,
+                        DiagnosticCode.MQ2001_UnexpectedToken,
+                        Current.Span);
             }
 
         return node;
@@ -155,7 +158,7 @@ public partial class Parser
     }
 
 
-    private static Node CreatePatternPredicate(Node left, TokenType operatorType, Node right)
+    private Node CreatePatternPredicate(Node left, TokenType operatorType, Node right)
     {
         return operatorType switch
         {
@@ -163,7 +166,11 @@ public partial class Parser
             TokenType.NotLike => new NotNode(new LikeNode(left, right)),
             TokenType.RLike => new RLikeNode(left, right),
             TokenType.NotRLike => new NotNode(new RLikeNode(left, right)),
-            _ => throw new NotSupportedException($"{operatorType} is not supported while parsing pattern predicate.")
+            _ => throw new SyntaxException(
+                $"{operatorType} is not supported while parsing pattern predicate.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2001_UnexpectedToken,
+                Current.Span)
         };
     }
 
@@ -210,7 +217,7 @@ public partial class Parser
     }
 
 
-    private Node ComposeInExpression(Node left)
+    private Node ComposeInExpression(Node left, bool notIn = false)
     {
         if (Current.TokenType == TokenType.ParameterReference)
         {
@@ -219,6 +226,13 @@ public partial class Parser
         }
 
         Consume(TokenType.LeftParenthesis);
+
+        if (notIn && Current.TokenType == TokenType.RightParenthesis)
+            throw new SyntaxException(
+                "NOT IN does not support an empty value list.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed,
+                Current.Span);
 
         if (Current.TokenType == TokenType.Select || Current.TokenType == TokenType.From || Current.TokenType == TokenType.Pivot || Current.TokenType == TokenType.Unpivot)
         {

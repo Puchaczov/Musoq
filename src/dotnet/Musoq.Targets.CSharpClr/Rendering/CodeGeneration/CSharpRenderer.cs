@@ -1,12 +1,7 @@
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.IR.Execution;
-using static Musoq.Targets.CSharpClr.ExecutionSyntaxFactory;
-using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
-using ExecutionCSharpRenderer = Musoq.Targets.CSharpClr.ExecutionCSharpRenderer;
 
 namespace Musoq.Targets.CSharpClr;
 

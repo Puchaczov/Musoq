@@ -108,7 +108,7 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         return typeof(HashSet<>)
             .MakeGenericType(keyType)
-            .GetMethod(nameof(HashSet<>.Add), [keyType])
+            .GetMethod(nameof(HashSet<object>.Add), [keyType])
             ?? throw new InvalidOperationException($"Could not resolve HashSet<{keyType.Name}>.Add for lean distinct lowering.");
     }
 }

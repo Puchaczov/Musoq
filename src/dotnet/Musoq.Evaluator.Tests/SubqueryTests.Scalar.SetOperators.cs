@@ -1,8 +1,9 @@
-using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Diagnostics;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -47,12 +48,12 @@ public partial class SubqueryTests
             ) AS MatchCity
             FROM #A.entities() a";
 
-        var exception = Assert.Throws<InvalidOperationException>(() =>
+        var exception = Assert.Throws<QueryExecutionException>(() =>
             _ = CreateAndRunVirtualMachine(query, CreateScalarSources())
                 .Run(TestContext.CancellationToken)
                 .Count);
 
-        Assert.AreEqual("Scalar subquery returned more than one row.", exception.Message);
+        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
     }
 
     [TestMethod]

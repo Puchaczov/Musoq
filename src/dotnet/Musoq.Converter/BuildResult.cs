@@ -81,6 +81,18 @@ public sealed class BuildResult
     }
 
     /// <summary>
+    ///     Converts every collected diagnostic, including warnings and informational
+    ///     diagnostics, into a spec-compliant envelope. <see cref="ToEnvelopes" />
+    ///     remains the error-only operation used by existing exception surfaces.
+    /// </summary>
+    public IReadOnlyList<MusoqErrorEnvelope> ToAllEnvelopes()
+    {
+        return Diagnostics
+            .Select(diagnostic => MusoqErrorEnvelope.FromDiagnostic(diagnostic, _queryText))
+            .ToList();
+    }
+
+    /// <summary>
     ///     Creates a successful result with optional warnings/info diagnostics.
     /// </summary>
     internal static BuildResult Success(CompiledQuery query, IReadOnlyList<Diagnostic> diagnostics,

@@ -9,7 +9,6 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Musoq.Parser.Tests" />
-    <InternalsVisibleTo Include="Musoq.Converter" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Diagnostics\ErrorMetadataCatalog.Semantic.AsOfJoin.cs">

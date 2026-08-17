@@ -5,8 +5,6 @@ using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Plugins;
-using Musoq.Schema.Optimization;
-using Musoq.Targets.Execution.Analysis;
 
 namespace Musoq.Evaluator.Tests.IR;
 

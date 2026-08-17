@@ -128,12 +128,15 @@ public partial class MalformedQueryErrorTests
     [TestMethod]
     public void WhenTwoSelectStatements_ShouldThrowError()
     {
-        // Known quality gap: multiple statements still fall through to generated-code compilation,
-        // but the surfaced message should clearly say query processing failed.
+        // Compilation accepts declarations but only one result-producing statement.
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT 1 FROM #test.single(); SELECT 2 FROM #test.single()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ9999_Unknown, DiagnosticPhase.Runtime, "Query processing failed:");
+        var envelope = ex.PrimaryEnvelope;
+        Assert.AreEqual(DiagnosticCode.MQ2036_MultipleExecutableStatements, envelope.Code);
+        Assert.AreEqual(DiagnosticSeverity.Error, envelope.Severity);
+        Assert.AreEqual(DiagnosticPhase.Parse, envelope.Phase);
+        StringAssert.Contains(envelope.Message, "Multiple executable statements");
     }
 
     [TestMethod]

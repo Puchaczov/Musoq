@@ -1,19 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.Extensions.Logging;
-using Musoq.Evaluator.IR.CodeGeneration;
-using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
-using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
-using Musoq.Targets.Execution;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
@@ -269,7 +265,8 @@ public static class ClassEmitter
 
     internal static SyntaxTree CreateSyntaxTreeDirect(
         CompilationUnitSyntax compilationUnit,
-        TargetRenderProfile profile)
+        TargetRenderProfile profile,
+        string? path = null)
     {
         ArgumentNullException.ThrowIfNull(compilationUnit);
         if (profile == TargetRenderProfile.ExecutionFast)
@@ -283,7 +280,9 @@ public static class ClassEmitter
                 // the workspace formatter and redundant-parenthesis pass.
                 return CSharpSyntaxTree.ParseText(
                     compilationUnit.NormalizeWhitespace().ToFullString(),
-                    new CSharpParseOptions(LanguageVersion.CSharp11));
+                    new CSharpParseOptions(LanguageVersion.CSharp11),
+                    path ?? string.Empty,
+                    Encoding.UTF8);
             }
         }
 
@@ -298,7 +297,9 @@ public static class ClassEmitter
         using (TargetRenderTelemetry.BeginPhase("render.reparse"))
             return SyntaxFactory.ParseSyntaxTree(
                 source,
-                new CSharpParseOptions(LanguageVersion.CSharp11));
+                new CSharpParseOptions(LanguageVersion.CSharp11),
+                path ?? string.Empty,
+                Encoding.UTF8);
     }
 
     /// <summary>

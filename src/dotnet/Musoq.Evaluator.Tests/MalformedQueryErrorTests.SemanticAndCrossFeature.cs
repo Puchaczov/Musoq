@@ -15,7 +15,7 @@ public partial class MalformedQueryErrorTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT RowNumber(1) FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "RowNumber");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3087_InvalidCallableArity, DiagnosticPhase.Bind, "RowNumber");
         AssertHasGuidance(ex);
     }
 

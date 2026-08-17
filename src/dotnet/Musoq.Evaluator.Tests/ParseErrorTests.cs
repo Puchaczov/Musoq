@@ -56,7 +56,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Count(1) FROM #test.people() GROUP BY"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Group by clause does not have any fields");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2006_MissingGroupByColumn, DiagnosticPhase.Parse, "GROUP BY requires at least one field");
         AssertHasGuidance(ex);
     }
 
@@ -76,7 +76,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name FROM #test.people() TAKE"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Integer");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2038_InvalidSliceCount, DiagnosticPhase.Parse, "TAKE count");
         AssertHasGuidance(ex);
     }
 
@@ -86,7 +86,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name FROM #test.people() SKIP"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Integer");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2038_InvalidSliceCount, DiagnosticPhase.Parse, "SKIP count");
         AssertHasGuidance(ex);
     }
 
@@ -96,7 +96,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name FROM #test.people() TAKE 'five'"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Integer");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2038_InvalidSliceCount, DiagnosticPhase.Parse, "TAKE count");
         AssertHasGuidance(ex);
     }
 
@@ -120,7 +120,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT City, Count(1) FROM #test.people() ORDER BY City GROUP BY City"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "GroupBy");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2009_InvalidOrderByExpression, DiagnosticPhase.Parse, "ComposeOrder");
         AssertHasGuidance(ex);
     }
 
@@ -310,7 +310,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("WITH MyData AS () SELECT * FROM MyData m"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2030_UnsupportedSyntax, DiagnosticPhase.Parse);
         AssertHasGuidance(ex);
     }
 
@@ -334,7 +334,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() p INNER JOIN #test.orders() o"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "On");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2007_InvalidJoinCondition, DiagnosticPhase.Parse, "ON");
         AssertHasGuidance(ex);
     }
 
@@ -374,7 +374,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name FROM #test.people() EXCEPT (Name)"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2030_UnsupportedSyntax, DiagnosticPhase.Parse);
         AssertHasGuidance(ex);
     }
 

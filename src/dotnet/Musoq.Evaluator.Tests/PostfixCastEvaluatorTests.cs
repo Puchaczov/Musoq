@@ -1,9 +1,8 @@
 using System;
 using System.Globalization;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Converter;
 using Musoq.Converter.Exceptions;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Parser.Diagnostics;
 using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
@@ -243,7 +242,8 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
             "select InvalidText::Int32 from #schema.first()",
             [new CastEntity { InvalidText = "not_a_number" }]);
 
-        Assert.Throws<FormatException>(() => _ = vm.Run().Count);
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run().Count);
+        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
     }
 
     [TestMethod]
@@ -253,7 +253,8 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
             "select InvalidText::Int32, InvalidText::Int32 from #schema.first()",
             [new CastEntity { InvalidText = "not_a_number" }]);
 
-        Assert.Throws<FormatException>(() => _ = vm.Run().Count);
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run().Count);
+        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
     }
 
     [TestMethod]
@@ -263,7 +264,8 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
             "select OverflowText::Byte from #schema.first()",
             [new CastEntity { OverflowText = "256" }]);
 
-        Assert.Throws<OverflowException>(() => _ = vm.Run().Count);
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run().Count);
+        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
     }
 
     [TestMethod]
@@ -273,7 +275,8 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
             "select ObjectValue::Guid from #schema.first()",
             [new CastEntity { ObjectValue = 42 }]);
 
-        Assert.Throws<InvalidCastException>(() => _ = vm.Run().Count);
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run().Count);
+        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
     }
 
     [TestMethod]
@@ -295,13 +298,13 @@ public sealed class PostfixCastEvaluatorTests : GenericEntityTestBase
     }
 
     [TestMethod]
-    public void PostfixCast_UnknownTarget_ShouldReportUnsupportedSyntax()
+    public void PostfixCast_UnknownTarget_ShouldReportUnsupportedCastTarget()
     {
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(
             "select Int32Text::INTEGER from #schema.first()",
             [CreateFullCastEntity()]));
 
-        AssertSingleError(ex, DiagnosticCode.MQ2030_UnsupportedSyntax, DiagnosticPhase.Parse, "CLR type names and C# aliases only");
+        AssertSingleError(ex, DiagnosticCode.MQ3090_UnsupportedCastTarget, DiagnosticPhase.Bind, "CLR type names and C# aliases only");
     }
 
     [TestMethod]

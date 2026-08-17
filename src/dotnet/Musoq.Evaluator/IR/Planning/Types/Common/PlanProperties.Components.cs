@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
-using Musoq.Evaluator;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Planning.Cardinality;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.IR.Planning;
 

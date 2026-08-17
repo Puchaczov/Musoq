@@ -1,7 +1,6 @@
 using System.Globalization;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.Visitors;
-using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Evaluator.IR.Optimization.Logical;
 

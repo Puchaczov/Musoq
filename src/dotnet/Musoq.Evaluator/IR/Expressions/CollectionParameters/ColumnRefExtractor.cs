@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Musoq.Evaluator.IR.Expressions.CollectionParameters;
 
 namespace Musoq.Evaluator.IR.Expressions;

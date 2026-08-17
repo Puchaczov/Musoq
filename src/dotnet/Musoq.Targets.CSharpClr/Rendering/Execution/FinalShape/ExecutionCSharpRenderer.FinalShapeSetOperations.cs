@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.IR.Logical.Nodes;
-using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -276,11 +275,11 @@ public sealed partial class ExecutionCSharpRenderer
     {
         ExpressionSyntax conditionExpression = condition switch
         {
-            ExecutionCSharpRenderer.SetKeyCondition.Added => CreateHashSetInvocation(keysName, nameof(HashSet<>.Add), rowName, setOperation, source, context),
-            ExecutionCSharpRenderer.SetKeyCondition.Contained => CreateHashSetInvocation(keysName, nameof(HashSet<>.Contains), rowName, setOperation, source, context),
+            ExecutionCSharpRenderer.SetKeyCondition.Added => CreateHashSetInvocation(keysName, nameof(HashSet<object>.Add), rowName, setOperation, source, context),
+            ExecutionCSharpRenderer.SetKeyCondition.Contained => CreateHashSetInvocation(keysName, nameof(HashSet<object>.Contains), rowName, setOperation, source, context),
             ExecutionCSharpRenderer.SetKeyCondition.NotContained => SyntaxFactory.PrefixUnaryExpression(
                 SyntaxKind.LogicalNotExpression,
-                CreateHashSetInvocation(keysName, nameof(HashSet<>.Contains), rowName, setOperation, source, context)),
+                CreateHashSetInvocation(keysName, nameof(HashSet<object>.Contains), rowName, setOperation, source, context)),
             _ => throw UnsupportedShape.Of($"Set key condition {condition}")
         };
 

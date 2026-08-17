@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 

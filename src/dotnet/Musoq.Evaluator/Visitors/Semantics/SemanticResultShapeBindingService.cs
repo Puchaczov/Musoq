@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Globalization;
-using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
 

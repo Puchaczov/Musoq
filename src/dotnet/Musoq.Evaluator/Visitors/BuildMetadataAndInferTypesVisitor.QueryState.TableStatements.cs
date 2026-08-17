@@ -1,13 +1,7 @@
-using System.Collections.Generic;
-using Musoq.Evaluator.Exceptions;
-using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
-using Musoq.Schema;
-using Musoq.Schema.DataSources;
+using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -82,6 +76,15 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         if (node.Node is not ParameterBlockNode)
             _diagnostics.HasSeenNonParameterStatement = true;
+
+        // Interpretation schema definitions are intentionally skipped by the
+        // metadata traverser. They still arrive wrapped in a StatementNode,
+        // so there is no semantic child on the stack to pop.
+        if (node.Node is BinarySchemaNode or TextSchemaNode)
+        {
+            PushSemanticNode(new StatementNode(node.Node));
+            return;
+        }
 
         PushSemanticNode(new StatementNode(PopSemanticNode()));
     }

@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins.Attributes;

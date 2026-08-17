@@ -58,7 +58,7 @@ public static partial class EvaluationHelper
         if (source is null)
             throw new InvalidOperationException($"Schema '{schema.Name}' returned null row source for '{name}'.");
 
-        var chunks = source.GetType().GetProperty(nameof(RowSource<>.Chunks))?.GetValue(source);
+        var chunks = source.GetType().GetProperty(nameof(RowSource<object>.Chunks))?.GetValue(source);
         if (chunks is not IEnumerable enumerable)
         {
             throw new InvalidOperationException(

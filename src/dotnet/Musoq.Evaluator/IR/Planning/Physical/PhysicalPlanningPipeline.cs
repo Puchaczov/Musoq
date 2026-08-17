@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.IR.Optimization.Physical;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Planning.Cardinality;

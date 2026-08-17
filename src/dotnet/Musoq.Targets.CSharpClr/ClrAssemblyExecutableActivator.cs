@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
@@ -9,11 +8,9 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Musoq.Evaluator;
 using Musoq.Evaluator.Diagnostics;
 using Musoq.Evaluator.Tables;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Targets.CSharpClr;
 

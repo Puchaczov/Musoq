@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 using Musoq.Parser.Nodes;
-using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Evaluator.IR.Optimization.Logical;
 

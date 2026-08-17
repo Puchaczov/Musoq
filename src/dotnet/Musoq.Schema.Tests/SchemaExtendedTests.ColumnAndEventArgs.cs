@@ -1,7 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Musoq.Schema;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Schema.Tests;

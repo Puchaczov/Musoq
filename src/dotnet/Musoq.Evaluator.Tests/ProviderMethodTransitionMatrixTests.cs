@@ -279,7 +279,7 @@ select countries.GetCountry() from countries";
 
         AssertErrorEnvelope(
             exception,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
+            DiagnosticCode.MQ3086_UnknownCallable,
             DiagnosticPhase.Bind,
             "GetCountry");
     }
@@ -298,7 +298,7 @@ from values {
 
         AssertErrorEnvelope(
             exception,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
+            DiagnosticCode.MQ3086_UnknownCallable,
             DiagnosticPhase.Bind,
             "GetCountry");
     }
@@ -321,7 +321,7 @@ from unpivoted";
 
         AssertErrorEnvelope(
             exception,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
+            DiagnosticCode.MQ3086_UnknownCallable,
             DiagnosticPhase.Bind,
             "GetCountry");
     }

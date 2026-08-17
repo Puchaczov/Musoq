@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
-using Musoq.Targets.CSharpClr;
 
 namespace Musoq.Evaluator.Tests.IR;
 

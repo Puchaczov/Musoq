@@ -1,5 +1,3 @@
-using Musoq.Evaluator.IR.Execution;
-
 namespace Musoq.Evaluator.IR.CodeGeneration;
 
 internal enum FinalProjectionSinkTarget

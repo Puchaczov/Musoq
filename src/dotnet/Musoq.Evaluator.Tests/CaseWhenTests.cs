@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Exceptions;
+using Musoq.Parser.Diagnostics;
 using Musoq.Evaluator.Tests.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -156,6 +158,10 @@ public class CaseWhenTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        Assert.Throws<MethodCallThrownException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
+
+        Assert.IsNotNull(exception.Envelope);
+        Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, exception.Envelope.Code);
+        Assert.IsInstanceOfType<MethodCallThrownException>(exception.InnerException);
     }
 }

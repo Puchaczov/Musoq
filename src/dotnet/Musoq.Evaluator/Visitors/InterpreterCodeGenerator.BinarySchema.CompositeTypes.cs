@@ -1,5 +1,6 @@
 using System.Text;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
@@ -234,6 +235,7 @@ public partial class InterpreterCodeGenerator
         string role)
     {
         return new ConstructionNotYetSupported(
-            $"Unsupported interpretation schema code generation for schema '{_currentSchemaName}', field '{fieldName}', {role} '{unsupportedType.GetType().Name}'.");
+            $"Unsupported interpretation schema code generation for schema '{_currentSchemaName}', field '{fieldName}', {role} '{unsupportedType.GetType().Name}'.",
+            DiagnosticCode.MQ4016_UnsupportedSchemaConstruction);
     }
 }

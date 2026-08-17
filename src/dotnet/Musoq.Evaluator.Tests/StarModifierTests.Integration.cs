@@ -15,7 +15,7 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * replace (1 as Name) replace (2 as City) from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2030_UnsupportedSyntax,
+        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2041_InvalidStarModifierOrder,
             "Duplicate or out-of-order star modifier");
     }
 
@@ -25,7 +25,7 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * like '%a' like '%b' from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2030_UnsupportedSyntax,
+        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2041_InvalidStarModifierOrder,
             "Duplicate or out-of-order star modifier");
     }
 
@@ -35,7 +35,7 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * replace (1 as Name) like '%a' from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2030_UnsupportedSyntax,
+        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2041_InvalidStarModifierOrder,
             "Duplicate or out-of-order star modifier");
     }
 
@@ -45,7 +45,7 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * replace (1 as Name) exclude (City) from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2030_UnsupportedSyntax,
+        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2041_InvalidStarModifierOrder,
             "Duplicate or out-of-order star modifier");
     }
 
@@ -136,8 +136,8 @@ public partial class StarModifierTests
 
     private static void AssertHasError(QueryAnalysisResult result, string context)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected an error ({context}) but query succeeded.");
+        Assert.IsNotEmpty(result.Errors,
+            $"Expected an error diagnostic ({context}) but query succeeded.");
     }
 
     private static void AssertHasErrorWithMessage(
@@ -145,17 +145,8 @@ public partial class StarModifierTests
         DiagnosticCode expectedCode,
         string expectedMessageSubstring)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected error code {expectedCode} but query succeeded.");
-
-        var match = result.Errors.FirstOrDefault(e => e.Code == expectedCode);
-
-        if (match == null)
-        {
-            var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.Fail(
-                $"Expected error code {expectedCode} with message containing '{expectedMessageSubstring}' but got:\n{errorDetails}");
-        }
+        var match = DiagnosticContractTestAssertions.AssertSingleError(
+            result, expectedCode, expectedMessageSubstring);
 
         StringAssert.Contains(
             match.Message,

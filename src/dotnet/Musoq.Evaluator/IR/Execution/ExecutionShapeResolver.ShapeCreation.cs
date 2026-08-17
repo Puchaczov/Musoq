@@ -105,7 +105,7 @@ public sealed partial class ExecutionShapeResolver
     {
         return CanUseSourceEntityShape(elementType) &&
                columns.Count == 1 &&
-               string.Equals(columns[0].ColumnName, nameof(PrimitiveTypeEntity<>.Value), StringComparison.Ordinal);
+               string.Equals(columns[0].ColumnName, nameof(PrimitiveTypeEntity<object>.Value), StringComparison.Ordinal);
     }
 
     private static string CreateDynamicTypeName(string alias)

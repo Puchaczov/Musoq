@@ -14,7 +14,6 @@ using Musoq.Schema;
 using Musoq.Schema.Attributes;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests;
 

@@ -33,9 +33,7 @@ public partial class UserMistakesTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2001: unexpected SELECT in FROM
-        AssertHasOneOfErrorCodes(result, "subquery without parentheses",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "subquery without parentheses");
     }
 
 
@@ -65,9 +63,7 @@ public partial class UserMistakesTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2030_UnsupportedSyntax: unrecognized token for order direction
-        AssertHasOneOfErrorCodes(result, "invalid ORDER BY direction 'ASCENDING'",
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2009_InvalidOrderByExpression, "invalid ORDER BY direction 'ASCENDING'");
     }
 
     [TestMethod]
@@ -95,9 +91,7 @@ public partial class UserMistakesTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2001: expected number for TAKE
-        AssertHasOneOfErrorCodes(result, "non-integer TAKE value",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasErrorCode(result, DiagnosticCode.MQ2038_InvalidSliceCount, "non-integer TAKE value");
     }
 
 
@@ -113,10 +107,7 @@ public partial class UserMistakesTests
         var result = analyzer.Analyze(query);
 
         // Assert - Parser returns MQ2001 for comma syntax (cross join not supported)
-        AssertHasOneOfErrorCodes(result, "duplicate table alias 'a'",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ3002_AmbiguousColumn,
-            DiagnosticCode.MQ3003_UnknownTable);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "duplicate table alias 'a'");
     }
 
     [TestMethod]
@@ -130,9 +121,7 @@ public partial class UserMistakesTests
         var result = analyzer.Analyze(query);
 
         // Assert - unknown alias 'x' should be reported
-        AssertHasOneOfErrorCodes(result, "undefined alias 'x'",
-            DiagnosticCode.MQ3015_UnknownAlias,
-            DiagnosticCode.MQ3001_UnknownColumn);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3015_UnknownAlias, "undefined alias 'x'");
     }
 
     [TestMethod]
@@ -161,10 +150,8 @@ public partial class UserMistakesTests
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - MQ3029_UnresolvableMethod
-        AssertHasOneOfErrorCodes(result, "unknown function 'UnknownFunction'",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ3004_UnknownFunction);
+        // Assert - MQ3088_NoMatchingCallableOverload
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3086_UnknownCallable, "unknown function 'UnknownFunction'");
     }
 
     [TestMethod]
@@ -177,10 +164,8 @@ public partial class UserMistakesTests
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - MQ3029_UnresolvableMethod: no overload matches
-        AssertHasOneOfErrorCodes(result, "Substring with no arguments",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ3006_InvalidArgumentCount);
+        // Assert - MQ3088_NoMatchingCallableOverload: no overload matches
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3087_InvalidCallableArity, "Substring with no arguments");
     }
 
     [TestMethod]
@@ -208,9 +193,7 @@ public partial class UserMistakesTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2001: Expected RightParenthesis
-        AssertHasOneOfErrorCodes(result, "unclosed function argument list",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2010_MissingClosingParenthesis);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "unclosed function argument list");
     }
 
 
@@ -270,10 +253,7 @@ public partial class UserMistakesTests
         var result = analyzer.Analyze(query);
 
         // Assert - MQ2001: empty query error
-        AssertHasOneOfErrorCodes(result, "empty query",
-            DiagnosticCode.MQ2016_IncompleteStatement,
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2017_UnexpectedEndOfFile);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2016_IncompleteStatement, "empty query");
     }
 
     [TestMethod]
@@ -287,10 +267,7 @@ public partial class UserMistakesTests
         var result = analyzer.Analyze(query);
 
         // Assert - MQ2001: whitespace-only query error
-        AssertHasOneOfErrorCodes(result, "whitespace-only query",
-            DiagnosticCode.MQ2016_IncompleteStatement,
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2017_UnexpectedEndOfFile);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2016_IncompleteStatement, "whitespace-only query");
     }
 
     [TestMethod]
@@ -304,10 +281,7 @@ public partial class UserMistakesTests
         var result = analyzer.Analyze(query);
 
         // Assert - MQ2001: comment-only query error
-        AssertHasOneOfErrorCodes(result, "comment-only query",
-            DiagnosticCode.MQ2016_IncompleteStatement,
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2017_UnexpectedEndOfFile);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2016_IncompleteStatement, "comment-only query");
     }
 
     [TestMethod]

@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using Musoq.Parser.Nodes.InterpretationSchema;
-
 namespace Musoq.Evaluator.Visitors;
 
 /// <summary>

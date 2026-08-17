@@ -6,7 +6,6 @@ using System.Threading;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Tables;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator;
 

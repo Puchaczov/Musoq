@@ -1,6 +1,5 @@
 using Musoq.Converter.Build;
 using Musoq.Evaluator.IR.CodeGeneration;
-using Musoq.Schema;
 
 namespace Musoq.Converter;
 

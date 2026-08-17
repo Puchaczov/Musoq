@@ -97,6 +97,9 @@ public class VisitorException : Exception, IDiagnosticException
     /// </summary>
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
+        if (Code is DiagnosticCode.MQ9001_InternalCompilerError or DiagnosticCode.MQ9002_InternalExecutionError)
+            return InternalDiagnosticException.ForCompiler(this, Span).ToDiagnostic(sourceText);
+
         var span = Span ?? TextSpan.Empty;
         return Diagnostic.Error(Code, Message, span);
     }
@@ -112,7 +115,7 @@ public class VisitorException : Exception, IDiagnosticException
     public static VisitorException CreateForStackUnderflow(string visitorName, string operation, int expectedItems,
         int actualItems)
     {
-        return new VisitorException(
+        return CreateForInternalFailure(
             visitorName,
             operation,
             $"Stack underflow detected. Expected at least {expectedItems} item(s) on the stack, but found {actualItems}. " +
@@ -130,7 +133,7 @@ public class VisitorException : Exception, IDiagnosticException
     /// <returns>A configured VisitorException instance.</returns>
     public static VisitorException CreateForNullNode(string visitorName, string operation, string nodeType)
     {
-        return new VisitorException(
+        return CreateForInternalFailure(
             visitorName,
             operation,
             $"Expected '{nodeType}' node but received null. " +
@@ -150,7 +153,7 @@ public class VisitorException : Exception, IDiagnosticException
     public static VisitorException CreateForInvalidNodeType(string visitorName, string operation, string expectedType,
         string actualType)
     {
-        return new VisitorException(
+        return CreateForInternalFailure(
             visitorName,
             operation,
             $"Invalid node type. Expected '{expectedType}' but got '{actualType}'. " +
@@ -174,6 +177,16 @@ public class VisitorException : Exception, IDiagnosticException
         if (!string.IsNullOrEmpty(suggestion)) message += $" {suggestion}";
 
         return new VisitorException(visitorName, operation, message);
+    }
+
+    private static VisitorException CreateForInternalFailure(string visitorName, string operation, string message)
+    {
+        return new VisitorException(
+            visitorName,
+            operation,
+            message,
+            DiagnosticCode.MQ9001_InternalCompilerError,
+            TextSpan.Empty);
     }
 
     private static (DiagnosticCode code, TextSpan? span) ResolveDiagnosticData(Exception? exception = null)

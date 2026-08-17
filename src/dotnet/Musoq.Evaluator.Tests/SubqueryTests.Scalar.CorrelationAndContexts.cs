@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
-using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 

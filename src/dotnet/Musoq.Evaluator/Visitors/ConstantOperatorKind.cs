@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace Musoq.Evaluator.Visitors;
 
 internal enum ConstantOperatorKind

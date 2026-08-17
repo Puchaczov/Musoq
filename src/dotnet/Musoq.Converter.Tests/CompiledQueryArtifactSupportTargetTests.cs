@@ -8,7 +8,6 @@ using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Converter.Tests;
 

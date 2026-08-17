@@ -99,7 +99,9 @@ internal static partial class SyntaxDiagnosticEnhancer
         var keywordCandidate = GetKeywordCandidate(currentToken, sourceText, span);
         var keywordSuggestion = GetKeywordSuggestion(currentToken, sourceText, span);
         var dialectHelp = GetDialectKeywordHelp(currentToken, sourceText);
-        var enhancedMessage = BuildMessage(message, span, keywordCandidate, keywordSuggestion, dialectHelp);
+        var enhancedMessage = code == DiagnosticCode.MQ2035_MissingRequiredAlias
+            ? message
+            : BuildMessage(message, span, keywordCandidate, keywordSuggestion, dialectHelp);
         var explanation = BuildExplanation(metadata, keywordCandidate, keywordSuggestion, dialectHelp);
         var docsReference = dialectHelp?.DocsReference ?? metadata?.DocsReference;
         var suggestedFixes = BuildSuggestedFixes(metadata, keywordCandidate, span, keywordSuggestion, dialectHelp);

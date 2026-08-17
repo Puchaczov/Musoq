@@ -23,7 +23,7 @@ public class UnknownPropertyException : Exception, IDiagnosticException
     public UnknownPropertyException(string message)
         : base(message)
     {
-        Code = DiagnosticCode.MQ3014_InvalidPropertyAccess;
+        Code = DiagnosticCode.MQ3028_UnknownProperty;
     }
 
     /// <summary>
@@ -34,7 +34,7 @@ public class UnknownPropertyException : Exception, IDiagnosticException
     {
         PropertyName = propertyName;
         TypeName = typeName;
-        Code = DiagnosticCode.MQ3014_InvalidPropertyAccess;
+        Code = DiagnosticCode.MQ3028_UnknownProperty;
         Span = span;
     }
 

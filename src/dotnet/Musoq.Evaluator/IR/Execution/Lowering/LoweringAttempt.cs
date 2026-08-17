@@ -1,4 +1,3 @@
-using Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 namespace Musoq.Evaluator.IR.Execution.Lowering;
 
 internal enum LoweringAttemptKind

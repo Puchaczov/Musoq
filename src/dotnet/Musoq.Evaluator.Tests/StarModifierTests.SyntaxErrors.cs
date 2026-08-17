@@ -340,7 +340,7 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * exclude (Name) exclude (City) from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2030_UnsupportedSyntax,
+        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2041_InvalidStarModifierOrder,
             "Duplicate or out-of-order star modifier");
     }
 

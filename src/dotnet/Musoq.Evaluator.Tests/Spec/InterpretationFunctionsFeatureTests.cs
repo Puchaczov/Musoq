@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
-using Musoq.Evaluator.Tests;
 using Musoq.Evaluator.Tests.Components;
 
 namespace Musoq.Evaluator.Tests.Spec;

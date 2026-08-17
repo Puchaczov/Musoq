@@ -31,10 +31,7 @@ public partial class UserMistakesTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2030 or MQ2001 for invalid syntax
-        AssertHasOneOfErrorCodes(result, "double operator ++",
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2003_InvalidExpression);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "double operator ++");
     }
 
     [TestMethod]
@@ -48,9 +45,7 @@ public partial class UserMistakesTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2030_UnsupportedSyntax: trailing AND
-        AssertHasOneOfErrorCodes(result, "trailing AND without operand",
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "trailing AND without operand");
     }
 
     [TestMethod]
@@ -64,9 +59,7 @@ public partial class UserMistakesTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2030 or MQ2001: missing operator between Name and 'test'
-        AssertHasOneOfErrorCodes(result, "missing operator between Name and literal",
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "missing operator between Name and literal");
     }
 
     [TestMethod]
@@ -94,9 +87,7 @@ public partial class UserMistakesTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2001: missing AND in BETWEEN
-        AssertHasOneOfErrorCodes(result, "BETWEEN missing AND",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "BETWEEN missing AND");
     }
 
 
@@ -187,9 +178,7 @@ public partial class UserMistakesTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2001: Expected token is On
-        AssertHasOneOfErrorCodes(result, "JOIN missing ON",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2007_InvalidJoinCondition);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2007_InvalidJoinCondition, "JOIN missing ON");
     }
 
     [TestMethod]
@@ -203,9 +192,7 @@ public partial class UserMistakesTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2001 or MQ2030: unrecognized JOIN type
-        AssertHasOneOfErrorCodes(result, "invalid JOIN type 'WEIRD'",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "invalid JOIN type 'WEIRD'");
     }
 
     [TestMethod]
@@ -222,9 +209,7 @@ public partial class UserMistakesTests
         var result = analyzer.Analyze(query);
 
         // Assert - omitted keys are valid, but both sides still need the same projection width
-        AssertHasOneOfErrorCodes(result, "UNION column count mismatch",
-            DiagnosticCode.MQ3019_SetOperatorColumnCount,
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3019_SetOperatorColumnCount, "UNION column count mismatch");
     }
 
     [TestMethod]
@@ -238,9 +223,7 @@ public partial class UserMistakesTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2001 or MQ2030: UNION without second query
-        AssertHasOneOfErrorCodes(result, "UNION without second query",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2030_UnsupportedSyntax, "UNION without second query");
     }
 
 
@@ -256,8 +239,7 @@ public partial class UserMistakesTests
         var result = analyzer.Analyze(query);
 
         // Assert - City is not in GROUP BY and not inside an aggregate → MQ3012
-        AssertHasOneOfErrorCodes(result, "City not in GROUP BY",
-            DiagnosticCode.MQ3012_NonAggregateInSelect);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3012_NonAggregateInSelect, "City not in GROUP BY");
     }
 
     [TestMethod]
@@ -284,10 +266,8 @@ public partial class UserMistakesTests
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - MQ3029_UnresolvableMethod for unknown function
-        AssertHasOneOfErrorCodes(result, "unknown function 'FakeAggregate'",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ3004_UnknownFunction);
+        // Assert - MQ3088_NoMatchingCallableOverload for unknown function
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3086_UnknownCallable, "unknown function 'FakeAggregate'");
     }
 
     [TestMethod]
@@ -317,9 +297,7 @@ public partial class UserMistakesTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2001: missing AS keyword
-        AssertHasOneOfErrorCodes(result, "CTE missing AS keyword",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "CTE missing AS keyword");
     }
 
     [TestMethod]
@@ -333,9 +311,7 @@ public partial class UserMistakesTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2001: incorrect CTE syntax order
-        AssertHasOneOfErrorCodes(result, "CTE referenced before definition",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2030_UnsupportedSyntax, "CTE referenced before definition");
     }
 
 }

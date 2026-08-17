@@ -8,24 +8,6 @@ internal static class RuntimeErrorMetadataCatalog
     public static IEnumerable<ErrorMetadata> Build()
     {
         yield return Entry(
-            DiagnosticCode.MQ7001_DataSourceBindingFailed,
-            "The runtime could not bind to the data source constructor.",
-            [
-                "Query the source directly and cast columns inline when possible.",
-                "Use a supported typed source path when available."
-            ],
-            "TABLE/COUPLE Spec - Integration");
-
-        yield return Entry(
-            DiagnosticCode.MQ7002_DataSourceIteratorError,
-            "The data source entered an invalid iterator state during execution.",
-            [
-                "Retry the query after resetting the data source.",
-                "Check the data source implementation for iterator state errors."
-            ],
-            "Datasource Troubleshooting");
-
-        yield return Entry(
             DiagnosticCode.MQ7003_RequiredScriptParameterMissing,
             "A required script parameter was declared without a default value, but the host did not provide a runtime value.",
             [
@@ -60,6 +42,33 @@ internal static class RuntimeErrorMetadataCatalog
                 "Add the parameter to the param(...) block if the query should accept it."
             ],
             "Core Spec - Script Parameters");
+
+        yield return Entry(
+            DiagnosticCode.MQ7010_DataSourceOpenFailed,
+            "A schema or source could not be opened during query execution. The source arguments are intentionally not included in diagnostics.",
+            [
+                "Check that the schema is available and that the source can be constructed with the supplied query values.",
+                "Inspect the verbose exception details when debugging a trusted local provider."
+            ],
+            "Core Spec - Data Sources");
+
+        yield return Entry(
+            DiagnosticCode.MQ7011_DataSourceReadFailed,
+            "A data source failed while producing or reading rows. The query was not classified as a syntax or binding error.",
+            [
+                "Check the provider's connection, stream, and iterator implementation.",
+                "Inspect the verbose exception details when debugging a trusted local provider."
+            ],
+            "Core Spec - Data Sources");
+
+        yield return Entry(
+            DiagnosticCode.MQ7012_DataSourceCleanupFailed,
+            "A data source failed while releasing its row-enumeration resources.",
+            [
+                "Check the provider's enumerator and resource-disposal implementation.",
+                "Inspect the verbose exception details when debugging a trusted local provider."
+            ],
+            "Core Spec - Data Sources");
 
         foreach (var entry in RecursiveCteRuntimeErrorMetadata.Build())
             yield return entry;

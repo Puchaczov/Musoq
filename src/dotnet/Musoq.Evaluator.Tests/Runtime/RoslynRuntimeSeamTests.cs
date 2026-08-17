@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator;
 using Musoq.Evaluator.Runtime;
 
 namespace Musoq.Evaluator.Tests.Runtime;

@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 
 namespace Musoq.Evaluator.Diagnostics;

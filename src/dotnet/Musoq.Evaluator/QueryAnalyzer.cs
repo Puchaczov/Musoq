@@ -2,13 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using Microsoft.Extensions.Logging;
-using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.IR.Optimization.Logical;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.InterpretationSchema;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator;
@@ -76,8 +77,31 @@ public sealed class QueryAnalyzer
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
+            if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
+                RethrowProviderFailure(providerFailure);
+
             diagnosticBag.AddError(ex, sourceText);
         }
+        catch (Exception ex)
+        {
+            if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
+                RethrowProviderFailure(providerFailure);
+
+            if (!diagnosticBag.HasErrors)
+                diagnosticBag.Add(
+                    InternalDiagnosticException.ForCompiler(ex)
+                        .ToDiagnostic(sourceText));
+        }
+
+        // Do not normalize or bind a recovery tree that already contains parser errors.
+        // Invalid recovery nodes are not semantic input and would otherwise produce misleading
+        // stack, cast, or missing-member failures that hide the parser root cause.
+        if (diagnosticBag.HasErrors)
+            return new QueryAnalysisResult
+            {
+                Root = rootNode,
+                Diagnostics = diagnosticBag.ToSortedList()
+            };
 
         if (rootNode == null)
             return new QueryAnalysisResult
@@ -100,7 +124,26 @@ public sealed class QueryAnalyzer
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
+            if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
+                RethrowProviderFailure(providerFailure);
+
             diagnosticBag.AddError(ex, sourceText);
+        }
+        catch (Exception ex)
+        {
+            if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
+                RethrowProviderFailure(providerFailure);
+
+            if (diagnosticBag.HasErrors)
+                return new QueryAnalysisResult
+                {
+                    Root = rootNode,
+                    Diagnostics = diagnosticBag.ToSortedList()
+                };
+
+            diagnosticBag.Add(
+                InternalDiagnosticException.ForCompiler(ex)
+                    .ToDiagnostic(sourceText));
         }
 
         if (diagnosticBag.HasErrors)
@@ -120,22 +163,38 @@ public sealed class QueryAnalyzer
             var logger = _loggerFactory?.CreateLogger<BuildMetadataAndInferTypesVisitor>()
                          ?? new NullLogger<BuildMetadataAndInferTypesVisitor>();
 
+            var schemaRegistry = CreateSchemaRegistry(rootNode, diagnosticBag);
+            if (diagnosticBag.HasErrors)
+                return new QueryAnalysisResult
+                {
+                    Root = rootNode,
+                    Diagnostics = diagnosticBag.ToSortedList()
+                };
+
             var metadataVisitor = new BuildMetadataAndInferTypesVisitor(
                 _schemaProvider,
                 new Dictionary<string, string[]>(),
                 logger,
                 diagnosticContext,
-                _compilationOptions);
+                _compilationOptions,
+                schemaRegistry);
 
-            var traverseVisitor = new BuildMetadataAndInferTypesTraverseVisitor(metadataVisitor);
-            rootNode.Accept(traverseVisitor);
-
+            var metadataPhase = new SemanticMetadataPhaseCoordinator().Analyze(rootNode, metadataVisitor);
+            rootNode = metadataPhase.Query;
 
             if (metadataVisitor.Root is { } typedRoot)
             {
                 rootNode = typedRoot;
-                metadataSnapshot = metadataVisitor.CreateSemanticMetadataSnapshot();
-                scopeArtifact = SemanticScopeArtifact.Capture(traverseVisitor.Scope);
+                metadataSnapshot = metadataPhase.Metadata;
+                scopeArtifact = metadataPhase.Scope;
+
+                if (!diagnosticContext.HasErrors)
+                    new SemanticAdvisoryPhaseCoordinator().Analyze(
+                        rootNode,
+                        metadataSnapshot,
+                        diagnosticContext,
+                        normalizedQueryTree,
+                        parsedQueryTree);
             }
         }
         catch (OperationCanceledException)
@@ -148,12 +207,26 @@ public sealed class QueryAnalyzer
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
-            diagnosticContext.ReportException(ex);
+            if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
+                RethrowProviderFailure(providerFailure);
+
+            if (!diagnosticContext.HasErrors)
+                diagnosticContext.ReportException(ex);
+        }
+        catch (Exception ex)
+        {
+            if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
+                RethrowProviderFailure(providerFailure);
+
+            if (!diagnosticContext.HasErrors)
+                diagnosticContext.ReportException(
+                    InternalDiagnosticException.ForCompiler(ex));
         }
 
-
-        var allDiagnostics = diagnosticBag.ToSortedList().ToList();
-        allDiagnostics.AddRange(diagnosticContext.Diagnostics);
+        var allDiagnosticsBag = new DiagnosticBag { SourceText = sourceText };
+        allDiagnosticsBag.AddRange(diagnosticBag);
+        allDiagnosticsBag.AddRange(diagnosticContext.Diagnostics);
+        var allDiagnostics = allDiagnosticsBag.ToSortedList().ToList();
 
         var semanticArtifacts = metadataSnapshot is { } snapshot &&
                                 parsedQueryTree is { } parsed &&
@@ -212,7 +285,19 @@ public sealed class QueryAnalyzer
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
+            if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
+                RethrowProviderFailure(providerFailure);
+
             diagnosticBag.AddError(ex, sourceText);
+        }
+        catch (Exception ex)
+        {
+            if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
+                RethrowProviderFailure(providerFailure);
+
+            diagnosticBag.Add(
+                InternalDiagnosticException.ForCompiler(ex)
+                    .ToDiagnostic(sourceText));
         }
 
         return new QueryAnalysisResult
@@ -231,6 +316,40 @@ public sealed class QueryAnalyzer
         }
 
         diagnosticBag.AddError(exception, sourceText);
+    }
+
+    private static SchemaRegistry CreateSchemaRegistry(RootNode rootNode, DiagnosticBag diagnosticBag)
+    {
+        var registry = new SchemaRegistry();
+        if (rootNode.Expression is not StatementsArrayNode statements)
+            return registry;
+
+        var visitor = new SchemaDefinitionVisitor(registry);
+        foreach (var statement in statements.Statements)
+        {
+            if (statement.Node is not (BinarySchemaNode or TextSchemaNode))
+                continue;
+
+            try
+            {
+                statement.Node.Accept(visitor);
+            }
+            catch (QuerySyntaxException exception)
+            {
+                diagnosticBag.AddError(exception, null);
+                break;
+            }
+            catch (InvalidOperationException)
+            {
+                diagnosticBag.AddError(
+                    DiagnosticCode.MQ2030_UnsupportedSyntax,
+                    "The interpretation schema definition contains an invalid or unresolved schema reference.",
+                    statement.SpanOrEmpty());
+                break;
+            }
+        }
+
+        return registry;
     }
 
     private static void RethrowProviderFailure(SchemaProviderFailureException exception)

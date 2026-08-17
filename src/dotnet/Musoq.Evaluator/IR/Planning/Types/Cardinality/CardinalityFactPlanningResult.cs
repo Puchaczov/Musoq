@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Musoq.Evaluator.IR.Physical;
 
 namespace Musoq.Evaluator.IR.Planning.Cardinality;
 

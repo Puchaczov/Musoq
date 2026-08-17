@@ -69,7 +69,7 @@ public class ParserDiagnosticCommandTests
     {
         var exception = Assert.Throws<SyntaxException>(() => Parse("explain select 1 from #test.rows()"));
 
-        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, exception.Code);
+        Assert.AreEqual(DiagnosticCode.MQ2040_InvalidDiagnosticCommand, exception.Code);
         StringAssert.Contains(exception.Message, "EXPLAIN without ANALYZE is not supported");
     }
 
@@ -78,7 +78,7 @@ public class ParserDiagnosticCommandTests
     {
         var exception = Assert.Throws<SyntaxException>(() => Parse("analyze select 1 from #test.rows()"));
 
-        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, exception.Code);
+        Assert.AreEqual(DiagnosticCode.MQ2040_InvalidDiagnosticCommand, exception.Code);
         StringAssert.Contains(exception.Message, "Standalone ANALYZE is not implemented");
     }
 
@@ -87,7 +87,7 @@ public class ParserDiagnosticCommandTests
     {
         var exception = Assert.Throws<SyntaxException>(() => Parse("profile"));
 
-        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, exception.Code);
+        Assert.AreEqual(DiagnosticCode.MQ2040_InvalidDiagnosticCommand, exception.Code);
         StringAssert.Contains(exception.Message, "Diagnostic command requires an inner SELECT, FROM, WITH, PIVOT, or UNPIVOT query");
     }
 
@@ -96,7 +96,7 @@ public class ParserDiagnosticCommandTests
     {
         var exception = Assert.Throws<SyntaxException>(() => Parse("profile table temp {Name: string}"));
 
-        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, exception.Code);
+        Assert.AreEqual(DiagnosticCode.MQ2040_InvalidDiagnosticCommand, exception.Code);
         StringAssert.Contains(exception.Message, "Diagnostic command does not support inner query starting with 'table'");
     }
 

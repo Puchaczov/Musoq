@@ -1,10 +1,8 @@
-using System;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
-using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Targets.CSharpClr;

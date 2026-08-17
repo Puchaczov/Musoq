@@ -243,6 +243,15 @@ internal static class ParserErrorMetadataCatalog
             "Core Spec - FROM Arguments");
 
         yield return Entry(
+            DiagnosticCode.MQ2035_MissingRequiredAlias,
+            "A source in a multi-source query needs a stable alias so JOIN and APPLY expressions can address it reliably. Derived tables and VALUES sources always require an alias.",
+            [
+                "Add an alias immediately after the source, for example: FROM #schema.items() items.",
+                "Use AS for clarity, or bracket an alias that is also a SQL keyword."
+            ],
+            "Core Spec - Aliasing");
+
+        yield return Entry(
             DiagnosticCode.MQ2026_InvalidCaseExpression,
             "Musoq supports searched CASE only (CASE WHEN ... THEN ... END), not simple CASE (CASE expr WHEN value ...).",
             ["Rewrite as: CASE WHEN expr = value THEN result ELSE default END."],
@@ -310,5 +319,41 @@ internal static class ParserErrorMetadataCatalog
                 "Declare script variables before the first expression that references them."
             ],
             "Core Spec - Script Variables");
+
+        yield return Entry(
+            DiagnosticCode.MQ2036_MultipleExecutableStatements,
+            "This compilation entry point accepts only one result-producing statement.",
+            ["Submit one executable query at a time."],
+            "Core Spec - Statements");
+
+        yield return Entry(
+            DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed,
+            "A predicate that requires values was given an empty parenthesized list.",
+            ["Add at least one value inside the parentheses."],
+            "Core Spec - Predicates");
+
+        yield return Entry(
+            DiagnosticCode.MQ2038_InvalidSliceCount,
+            "TAKE and SKIP require a non-negative integer count.",
+            ["Use a whole number greater than or equal to zero."],
+            "Core Spec - TAKE and SKIP");
+
+        yield return Entry(
+            DiagnosticCode.MQ2039_TieBreakRequiresAsOfJoin,
+            "TIE BREAK BY is defined only for ASOF JOIN and ASOF LEFT JOIN.",
+            ["Move TIE BREAK BY to an ASOF join or remove the clause."],
+            "Core Spec - ASOF JOIN");
+
+        yield return Entry(
+            DiagnosticCode.MQ2040_InvalidDiagnosticCommand,
+            "The diagnostic command is incomplete or its inner query form is unsupported.",
+            ["Use PROFILE <query> or EXPLAIN ANALYZE <query>."],
+            "Core Spec - Diagnostic Commands");
+
+        yield return Entry(
+            DiagnosticCode.MQ2041_InvalidStarModifierOrder,
+            "Star modifiers must appear once and in the order LIKE/NOT LIKE, EXCLUDE, REPLACE, RENAME.",
+            ["Reorder the modifiers and remove duplicates."],
+            "Core Spec - Star Modifiers");
     }
 }

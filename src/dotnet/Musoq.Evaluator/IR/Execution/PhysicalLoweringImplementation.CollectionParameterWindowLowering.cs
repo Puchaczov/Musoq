@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Expressions.CollectionParameters;
 
 namespace Musoq.Evaluator.IR.Execution;

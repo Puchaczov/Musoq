@@ -10,7 +10,6 @@ using Musoq.Benchmarks.Schema;
 using Musoq.Benchmarks.Schema.Country;
 using Musoq.Converter;
 using Musoq.Evaluator;
-using Musoq.Schema.Optimization;
 using MusoqApi = Musoq.Converter.Musoq;
 
 namespace Musoq.Benchmarks;

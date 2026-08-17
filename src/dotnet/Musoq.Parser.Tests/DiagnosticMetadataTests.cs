@@ -59,7 +59,7 @@ public class DiagnosticMetadataTests
     [TestMethod]
     public void Diagnostic_Info_ShouldHaveInfoSeverity()
     {
-        var diag = Diagnostic.Info(DiagnosticCode.MQ5001_UnusedAlias, "info msg", new TextSpan(0, 5));
+        var diag = Diagnostic.Info(DiagnosticCode.MQ5003_ImplicitTypeConversion, "info msg", new TextSpan(0, 5));
 
         Assert.AreEqual(DiagnosticSeverity.Info, diag.Severity);
     }
@@ -67,7 +67,7 @@ public class DiagnosticMetadataTests
     [TestMethod]
     public void Diagnostic_Hint_ShouldHaveHintSeverity()
     {
-        var diag = Diagnostic.Hint(DiagnosticCode.MQ5001_UnusedAlias, "hint msg", new TextSpan(0, 5));
+        var diag = Diagnostic.Hint(DiagnosticCode.MQ5003_ImplicitTypeConversion, "hint msg", new TextSpan(0, 5));
 
         Assert.AreEqual(DiagnosticSeverity.Hint, diag.Severity);
     }
@@ -160,7 +160,7 @@ public class DiagnosticMetadataTests
         var bag = new DiagnosticBag { MaxErrors = 1 };
 
         bag.AddError(DiagnosticCode.MQ2001_UnexpectedToken, "error", new TextSpan(0, 1));
-        bag.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, "warning", new TextSpan(1, 1));
+        bag.AddWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning", new TextSpan(1, 1));
 
         Assert.AreEqual(1, bag.ErrorCount);
         Assert.AreEqual(1, bag.WarningCount);
@@ -229,7 +229,7 @@ public class DiagnosticMetadataTests
     {
         var bag = new DiagnosticBag();
 
-        bag.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, new TextSpan(0, 1), "myAlias");
+        bag.AddWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, new TextSpan(0, 1), "myAlias");
 
         Assert.AreEqual(1, bag.WarningCount);
     }
@@ -239,7 +239,7 @@ public class DiagnosticMetadataTests
     {
         var bag = new DiagnosticBag();
         bag.AddError(DiagnosticCode.MQ2001_UnexpectedToken, "error", new TextSpan(0, 1));
-        bag.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, "warning", new TextSpan(1, 1));
+        bag.AddWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning", new TextSpan(1, 1));
 
         var errors = bag.GetErrors().ToArray();
 
@@ -252,7 +252,7 @@ public class DiagnosticMetadataTests
     {
         var bag = new DiagnosticBag();
         bag.AddError(DiagnosticCode.MQ2001_UnexpectedToken, "error", new TextSpan(0, 1));
-        bag.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, "warning", new TextSpan(1, 1));
+        bag.AddWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning", new TextSpan(1, 1));
 
         var warnings = bag.GetWarnings().ToArray();
 
@@ -264,7 +264,7 @@ public class DiagnosticMetadataTests
     public void DiagnosticBag_ToSortedList_ShouldSortByLocationThenSeverity()
     {
         var bag = new DiagnosticBag();
-        bag.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, "warning at 10", new TextSpan(10, 1));
+        bag.AddWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning at 10", new TextSpan(10, 1));
         bag.AddError(DiagnosticCode.MQ2001_UnexpectedToken, "error at 0", new TextSpan(0, 1));
 
         var sorted = bag.ToSortedList();
@@ -277,7 +277,7 @@ public class DiagnosticMetadataTests
     {
         var bag = new DiagnosticBag();
         bag.AddError(DiagnosticCode.MQ2001_UnexpectedToken, "error", new TextSpan(0, 1));
-        bag.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, "warning", new TextSpan(1, 1));
+        bag.AddWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning", new TextSpan(1, 1));
 
         bag.Clear();
 
@@ -320,7 +320,7 @@ public class DiagnosticMetadataTests
     {
         var bag = new DiagnosticBag();
         bag.AddError(DiagnosticCode.MQ2001_UnexpectedToken, "error", new TextSpan(0, 1));
-        bag.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, "warning", new TextSpan(1, 1));
+        bag.AddWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning", new TextSpan(1, 1));
 
         var count = 0;
         foreach (var _ in bag)
@@ -345,7 +345,7 @@ public class DiagnosticMetadataTests
     [TestMethod]
     public void Diagnostic_IsWarning_ShouldReturnTrueForWarnings()
     {
-        var warning = Diagnostic.Warning(DiagnosticCode.MQ5001_UnusedAlias, "warning", new TextSpan(0, 5));
+        var warning = Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning", new TextSpan(0, 5));
 
         Assert.IsTrue(warning.IsWarning);
         Assert.IsFalse(warning.IsError);
@@ -415,7 +415,7 @@ public class DiagnosticMetadataTests
     [TestMethod]
     public void Diagnostic_Info_FactoryMethod_ShouldCreateInfoDiagnostic()
     {
-        var diag = Diagnostic.Info(DiagnosticCode.MQ5001_UnusedAlias, "info message", new TextSpan(0, 5));
+        var diag = Diagnostic.Info(DiagnosticCode.MQ5003_ImplicitTypeConversion, "info message", new TextSpan(0, 5));
 
         Assert.AreEqual(DiagnosticSeverity.Info, diag.Severity);
         Assert.AreEqual("info message", diag.Message);
@@ -439,7 +439,7 @@ public class DiagnosticMetadataTests
         var start = new SourceLocation(5, 2, 3);
         var end = new SourceLocation(10, 2, 8);
 
-        var diag = Diagnostic.Warning(DiagnosticCode.MQ5001_UnusedAlias, "warning", start, end);
+        var diag = Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning", start, end);
 
         Assert.AreEqual(DiagnosticSeverity.Warning, diag.Severity);
         Assert.AreEqual(5, diag.Location.Offset);
@@ -451,7 +451,7 @@ public class DiagnosticMetadataTests
         var start = new SourceLocation(5, 2, 3);
         var end = new SourceLocation(10, 2, 8);
 
-        var diag = Diagnostic.Info(DiagnosticCode.MQ5001_UnusedAlias, "info", start, end);
+        var diag = Diagnostic.Info(DiagnosticCode.MQ5003_ImplicitTypeConversion, "info", start, end);
 
         Assert.AreEqual(DiagnosticSeverity.Info, diag.Severity);
         Assert.AreEqual(5, diag.Location.Offset);

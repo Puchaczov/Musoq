@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Utils.Symbols;
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
 

@@ -23,7 +23,16 @@ public sealed class MusoqErrorEnvelope
         string? explanation,
         IReadOnlyList<string> suggestedFixes,
         string? docsReference,
-        string? details)
+        string? details,
+        IReadOnlyList<DiagnosticAction>? actions = null,
+        DiagnosticSourceKind sourceKind = DiagnosticSourceKind.Query,
+        int? offset = null,
+        int? endOffset = null,
+        int? endLine = null,
+        int? endColumn = null,
+        IReadOnlyDictionary<string, string>? arguments = null,
+        IReadOnlyList<DiagnosticRelatedLocation>? relatedLocations = null,
+        string? correlationId = null)
     {
         Code = code;
         Severity = severity;
@@ -37,6 +46,15 @@ public sealed class MusoqErrorEnvelope
         SuggestedFixes = suggestedFixes ?? Array.Empty<string>();
         DocsReference = docsReference;
         Details = details;
+        Actions = actions ?? Array.Empty<DiagnosticAction>();
+        SourceKind = sourceKind;
+        Offset = offset;
+        EndOffset = endOffset;
+        EndLine = endLine;
+        EndColumn = endColumn;
+        Arguments = arguments ?? new Dictionary<string, string>(StringComparer.Ordinal);
+        RelatedLocations = relatedLocations ?? Array.Empty<DiagnosticRelatedLocation>();
+        CorrelationId = correlationId;
     }
 
     /// <summary>Stable error code (e.g., MQ3022).</summary>
@@ -48,8 +66,11 @@ public sealed class MusoqErrorEnvelope
     /// <summary>Error or warning.</summary>
     public DiagnosticSeverity Severity { get; }
 
-    /// <summary>Compilation phase: parse, bind, runtime, datasource, feature-gate.</summary>
+    /// <summary>Compilation phase where the diagnostic originated.</summary>
     public DiagnosticPhase Phase { get; }
+
+    /// <summary>Source domain containing the primary diagnostic location.</summary>
+    public DiagnosticSourceKind SourceKind { get; }
 
     /// <summary>Human-readable summary of the problem.</summary>
     public string Message { get; }
@@ -60,8 +81,20 @@ public sealed class MusoqErrorEnvelope
     /// <summary>1-based column number, or null if unknown.</summary>
     public int? Column { get; }
 
-    /// <summary>Length of the error span in characters, or null if unknown.</summary>
+    /// <summary>Length of the error span in characters; zero is a known insertion span.</summary>
     public int? Length { get; }
+
+    /// <summary>Absolute start offset, or null when the location is unknown.</summary>
+    public int? Offset { get; }
+
+    /// <summary>Absolute exclusive end offset, or null when the location is unknown.</summary>
+    public int? EndOffset { get; }
+
+    /// <summary>1-based end line, or null when the end location is unknown.</summary>
+    public int? EndLine { get; }
+
+    /// <summary>1-based end column, or null when the end location is unknown.</summary>
+    public int? EndColumn { get; }
 
     /// <summary>Source snippet with pointer (if available).</summary>
     public string? Snippet { get; }
@@ -78,6 +111,18 @@ public sealed class MusoqErrorEnvelope
     /// <summary>Internal diagnostic detail (shown with --verbose or in Details: section).</summary>
     public string? Details { get; }
 
+    /// <summary>Stable machine-readable string facts associated with the diagnostic.</summary>
+    public IReadOnlyDictionary<string, string> Arguments { get; }
+
+    /// <summary>Typed secondary locations associated with the diagnostic.</summary>
+    public IReadOnlyList<DiagnosticRelatedLocation> RelatedLocations { get; }
+
+    /// <summary>Structured actions, including optional text edits.</summary>
+    public IReadOnlyList<DiagnosticAction> Actions { get; }
+
+    /// <summary>Optional correlation identifier for internal failures.</summary>
+    public string? CorrelationId { get; }
+
     /// <summary>
     ///     Creates an envelope from a <see cref="Diagnostic" /> and optional source query text.
     /// </summary>
@@ -93,18 +138,29 @@ public sealed class MusoqErrorEnvelope
                       ?? metadata?.DocsReference;
 
         var fixes = BuildSuggestedFixes(diagnostic, metadata);
+        var actions = diagnostic.SuggestedFixes.Count > 0
+            ? diagnostic.SuggestedFixes
+            : DiagnosticDescriptorRegistry.Get(diagnostic.Code)?.DefaultActions ?? [];
 
         string? snippet = diagnostic.ContextSnippet;
-        if (snippet == null && queryText != null && diagnostic.Location.IsValid && !IsEmptySpanAtOrigin(diagnostic))
+        var hasLocation = diagnostic.Location.IsValid;
+        var hasEndLocation = diagnostic.EndLocation.IsValid;
+        var spanLength = hasLocation && hasEndLocation && diagnostic.EndLocation.Offset >= diagnostic.Location.Offset
+            ? diagnostic.Span.Length
+            : (int?)null;
+
+        if (snippet == null && queryText != null && hasLocation)
         {
             var sourceText = new SourceText(queryText);
             snippet = sourceText.GetContextSnippet(diagnostic.Span);
         }
 
-        int? line = diagnostic.Location.IsValid && !IsEmptySpanAtOrigin(diagnostic) ? diagnostic.Location.Line : null;
-        int? column = diagnostic.Location.IsValid && !IsEmptySpanAtOrigin(diagnostic) ? diagnostic.Location.Column : null;
-        var spanLength = diagnostic.Span.Length;
-        int? length = spanLength > 0 ? spanLength : null;
+        int? line = hasLocation ? diagnostic.Location.Line : null;
+        int? column = hasLocation ? diagnostic.Location.Column : null;
+        int? offset = hasLocation ? diagnostic.Location.Offset : null;
+        int? endOffset = hasEndLocation ? diagnostic.EndLocation.Offset : null;
+        int? endLine = hasEndLocation ? diagnostic.EndLocation.Line : null;
+        int? endColumn = hasEndLocation ? diagnostic.EndLocation.Column : null;
 
         return new MusoqErrorEnvelope(
             diagnostic.Code,
@@ -113,25 +169,37 @@ public sealed class MusoqErrorEnvelope
             diagnostic.Message,
             line,
             column,
-            length,
+            spanLength,
             snippet,
             explanation,
             fixes,
             docsRef,
-            details: null);
+            details: null,
+            actions: actions,
+            sourceKind: diagnostic.SourceKind,
+            offset: offset,
+            endOffset: endOffset,
+            endLine: endLine,
+            endColumn: endColumn,
+            arguments: diagnostic.Arguments,
+            relatedLocations: diagnostic.RelatedLocations,
+            correlationId: diagnostic.CorrelationId);
     }
 
     /// <summary>
     ///     Creates an envelope from an exception and optional source query text.
     /// </summary>
-    public static MusoqErrorEnvelope FromException(Exception exception, string? queryText = null)
+    public static MusoqErrorEnvelope FromException(
+        Exception exception,
+        string? queryText = null,
+        bool includeSensitiveDetails = false)
     {
         ArgumentNullException.ThrowIfNull(exception);
         var sourceText = queryText != null ? new SourceText(queryText) : null;
         var diagnostic = exception.ToDiagnosticOrGeneric(sourceText);
         var envelope = FromDiagnostic(diagnostic, queryText);
 
-        var details = exception.InnerException?.Message ?? exception.StackTrace;
+        var details = includeSensitiveDetails ? GetExceptionDetails(exception) : null;
 
         return new MusoqErrorEnvelope(
             envelope.Code,
@@ -145,7 +213,25 @@ public sealed class MusoqErrorEnvelope
             envelope.Explanation,
             envelope.SuggestedFixes,
             envelope.DocsReference,
-            details);
+            details,
+            envelope.Actions,
+            envelope.SourceKind,
+            envelope.Offset,
+            envelope.EndOffset,
+            envelope.EndLine,
+            envelope.EndColumn,
+            envelope.Arguments,
+            envelope.RelatedLocations,
+            envelope.CorrelationId);
+    }
+
+    /// <summary>
+    ///     Creates an envelope with raw exception details for explicit debugging
+    ///     or trusted local tooling.
+    /// </summary>
+    public static MusoqErrorEnvelope FromExceptionVerbose(Exception exception, string? queryText = null)
+    {
+        return FromException(exception, queryText, includeSensitiveDetails: true);
     }
 
     private static string[] BuildSuggestedFixes(Diagnostic diagnostic, ErrorMetadata? metadata)
@@ -161,8 +247,8 @@ public sealed class MusoqErrorEnvelope
         return fixes.ToArray();
     }
 
-    private static bool IsEmptySpanAtOrigin(Diagnostic diagnostic)
+    private static string? GetExceptionDetails(Exception exception)
     {
-        return diagnostic.Location.Offset == 0 && diagnostic.Span.Length == 0;
+        return exception.InnerException?.Message ?? exception.StackTrace;
     }
 }

@@ -24,7 +24,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - SUM expects numeric argument
         DocumentTypeHandling(result, "SUM on string",
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -39,7 +39,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - AVG expects numeric argument
         DocumentTypeHandling(result, "AVG on string",
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -69,7 +69,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - SUM on boolean may or may not be supported
         DocumentTypeHandling(result, "SUM on boolean",
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -84,8 +84,8 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - COUNT typically takes 0 or 1 argument
         DocumentTypeHandling(result, "COUNT with too many arguments",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ3006_InvalidArgumentCount);
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
+            DiagnosticCode.MQ3087_InvalidCallableArity);
     }
 
     [TestMethod]
@@ -162,7 +162,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - COALESCE should have compatible types
         DocumentTypeHandling(result, "COALESCE with mixed types",
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -177,7 +177,7 @@ public partial class TypeRelatedMistakesTests
 
         // Assert - COALESCE string and number
         DocumentTypeHandling(result, "COALESCE string and number",
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]

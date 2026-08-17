@@ -1,3 +1,5 @@
+using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
 
@@ -40,8 +42,11 @@ public partial class Parser
             };
         }
 
-        throw new NotSupportedException(
-            $"Unrecognized token for ComposeAccessMethod(), the token was {Current.TokenType}");
+        throw new SyntaxException(
+            $"Unrecognized token for ComposeAccessMethod(), the token was {Current.TokenType}.",
+            _lexer.AlreadyResolvedQueryPart,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            Current.Span);
     }
 
 

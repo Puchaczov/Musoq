@@ -1,6 +1,5 @@
 using System.Reflection;
 using Musoq.Evaluator.Exceptions;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins.Attributes;
@@ -22,8 +21,13 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (TryResolveAggregateDeclarationMethod(distinctMethodName, argTypes, args, context, out var distinctDeclaration))
                 return (distinctDeclaration, false);
 
-            throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(
-                $"{node.Name}(DISTINCT ...)", args.Args);
+            throw CallableResolutionDiagnostics.CreateException(
+                context.SchemaTablePair.Schema,
+                distinctMethodName,
+                argTypes,
+                context.EntityType,
+                node.SpanOrEmpty(),
+                args.Args);
         }
 
         if (TryResolveAggregateDeclarationMethod(methodName, argTypes, args, context, out var declaration))
@@ -48,6 +52,12 @@ public partial class BuildMetadataAndInferTypesVisitor
                 DiagnosticCode.MQ3033_InterpretFunctionOutsideApply,
                 node.Span);
 
-        throw CreateMethodResolutionExceptionWithSuggestion(methodName, args.Args, context);
+        throw CallableResolutionDiagnostics.CreateException(
+            context.SchemaTablePair.Schema,
+            methodName,
+            argTypes,
+            context.EntityType,
+            node.SpanOrEmpty(),
+            args.Args);
     }
 }

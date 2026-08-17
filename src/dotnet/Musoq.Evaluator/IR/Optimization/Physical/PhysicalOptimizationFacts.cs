@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Planning.Cardinality;
 using PlanProperties = Musoq.Evaluator.IR.Planning.PlanProperties;
-using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Evaluator.IR.Optimization.Physical;
 

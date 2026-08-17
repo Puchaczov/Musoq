@@ -2,7 +2,6 @@ using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Utils.Symbols;
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
@@ -48,7 +47,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         _resultShape.GeneratedAliases.Add(_sourceBinding.QueryAlias);
 
-        TableSymbol tableSymbol;
+        TableSymbol? tableSymbol;
 
         var parentScope = _sourceBinding.CurrentScope.Parent ??
                           throw new VisitorException(
@@ -56,10 +55,9 @@ public partial class BuildMetadataAndInferTypesVisitor
                               "VisitInMemoryTableFromNode",
                               "In-memory table source requires a parent scope.");
 
-        if (parentScope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(node.VariableName))
+        if (parentScope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(node.VariableName, out var parentTableSymbol))
         {
-            tableSymbol = parentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.VariableName) ??
-                          throw new TableIsNotDefinedException(node.VariableName, node.SpanOrEmpty());
+            tableSymbol = parentTableSymbol;
         }
         else
         {
@@ -68,15 +66,13 @@ public partial class BuildMetadataAndInferTypesVisitor
             while (scope != null && scope.Name != "CTE") scope = scope.Parent;
 
             if (scope is null)
-            {
-                if (TryReportTableNotDefined(node.VariableName, node))
-                    return;
-                var span = node.SpanOrEmpty();
-                throw new TableIsNotDefinedException(node.VariableName, span);
-            }
+                throw new TableIsNotDefinedException(node.VariableName, node.SpanOrEmpty());
 
-            tableSymbol = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.VariableName);
+            scope.ScopeSymbolTable.TryGetSymbol(node.VariableName, out tableSymbol);
         }
+
+        if (tableSymbol == null)
+            throw new TableIsNotDefinedException(node.VariableName, node.SpanOrEmpty());
 
         var tableSchemaPair = tableSymbol.GetTableByAlias(node.VariableName);
         _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(_sourceBinding.QueryAlias,

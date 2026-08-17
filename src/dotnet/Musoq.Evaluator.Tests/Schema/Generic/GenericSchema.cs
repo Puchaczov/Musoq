@@ -124,7 +124,7 @@ public sealed class RowSourceFilterInput(object rowSource)
 
     private static IEnumerable<IReadOnlyList<dynamic>> GetChunks(object rowSource)
     {
-        var chunksProperty = rowSource.GetType().GetProperty(nameof(RowSource<>.Chunks));
+        var chunksProperty = rowSource.GetType().GetProperty(nameof(RowSource<object>.Chunks));
         if (chunksProperty?.GetValue(rowSource) is not IEnumerable chunks)
             yield break;
 

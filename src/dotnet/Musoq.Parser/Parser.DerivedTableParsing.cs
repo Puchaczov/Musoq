@@ -7,7 +7,7 @@ namespace Musoq.Parser;
 
 public partial class Parser
 {
-    private DerivedTableFromNode ComposeDerivedTableFrom(bool isApplyContext)
+    private ParsedSource ComposeDerivedTableFrom(SourceParseContext context)
     {
         var opening = ConsumeAndGetToken(TokenType.LeftParenthesis);
 
@@ -22,21 +22,24 @@ public partial class Parser
             ? ComposeCteExpression()
             : ComposeSetOperators(1);
         var closing = ConsumeAndGetToken(TokenType.RightParenthesis);
-        var (alias, aliasSpan) = ComposeAlias();
+        var aliasResult = ComposeAlias(AliasContext.DerivedSource);
+        EnsureAliasSyntax(aliasResult, AliasContext.DerivedSource);
+        var alias = aliasResult.Alias;
+        var aliasSpan = aliasResult.Span;
 
         if (string.IsNullOrWhiteSpace(alias))
-            throw new SyntaxException(
-                "Derived table requires an alias after the closing parenthesis.",
+            throw MissingRequiredAliasAfterDelimiter(
+                "derived table",
+                "the closing parenthesis",
                 _lexer.AlreadyResolvedQueryPart,
-                DiagnosticCode.MQ2022_InvalidAlias,
                 closing.Span);
 
         RegisterFromAlias(alias);
 
-        var derived = new DerivedTableFromNode(query, alias, isApplyContext);
+        var derived = new DerivedTableFromNode(query, alias, context == SourceParseContext.ApplyRight);
         derived.WithSpan(opening.Span.Through(closing.Span));
         if (!aliasSpan.IsEmpty)
             derived.WithFullSpan(derived.Span.Through(aliasSpan));
-        return derived;
+        return ParsedSource.Create(derived, SourceKind.Derived, opening.Span.Start, closing.Span, aliasResult);
     }
 }

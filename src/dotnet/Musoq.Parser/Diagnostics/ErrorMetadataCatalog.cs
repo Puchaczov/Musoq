@@ -16,6 +16,11 @@ public static class ErrorMetadataCatalog
     /// </summary>
     public static ErrorMetadata? Get(DiagnosticCode code)
     {
+        return DiagnosticDescriptorRegistry.Get(code)?.Metadata;
+    }
+
+    internal static ErrorMetadata? GetLegacy(DiagnosticCode code)
+    {
         return Entries.GetValueOrDefault(code);
     }
 
@@ -23,11 +28,12 @@ public static class ErrorMetadataCatalog
         DiagnosticCode code,
         string explanation,
         string[] suggestedFixes,
-        string docsReference)
+        string docsReference,
+        DiagnosticPhase? phase = null)
     {
         return new ErrorMetadata(
             code,
-            DiagnosticPhaseMapping.FromCode(code),
+            phase ?? DiagnosticPhaseMapping.FromCode(code),
             explanation,
             suggestedFixes,
             docsReference);

@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.Tables;
-using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -226,11 +225,11 @@ public sealed partial class ExecutionCSharpRenderer
     {
         ExpressionSyntax conditionExpression = condition switch
         {
-            SetKeyCondition.Added => CreateHashSetInvocation(keysName, nameof(HashSet<>.Add), rowName, setOperation, source, context),
-            SetKeyCondition.Contained => CreateHashSetInvocation(keysName, nameof(HashSet<>.Contains), rowName, setOperation, source, context),
+            SetKeyCondition.Added => CreateHashSetInvocation(keysName, nameof(HashSet<object>.Add), rowName, setOperation, source, context),
+            SetKeyCondition.Contained => CreateHashSetInvocation(keysName, nameof(HashSet<object>.Contains), rowName, setOperation, source, context),
             SetKeyCondition.NotContained => SyntaxFactory.PrefixUnaryExpression(
                 SyntaxKind.LogicalNotExpression,
-                CreateHashSetInvocation(keysName, nameof(HashSet<>.Contains), rowName, setOperation, source, context)),
+                CreateHashSetInvocation(keysName, nameof(HashSet<object>.Contains), rowName, setOperation, source, context)),
             _ => throw UnsupportedShape.Of($"Set key condition {condition}")
         };
 
@@ -248,7 +247,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return SyntaxFactory.ExpressionStatement(CreateHashSetInvocation(
             keysName,
-            nameof(HashSet<>.Add),
+            nameof(HashSet<object>.Add),
             rowName,
             setOperation,
             source,

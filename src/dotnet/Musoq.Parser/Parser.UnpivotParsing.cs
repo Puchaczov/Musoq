@@ -16,8 +16,8 @@ public partial class Parser
         {
             _fromPosition += 1;
             Consume(TokenType.Unpivot);
-            var source = ComposeFrom(false);
-            source = ComposeJoinOrApply(source);
+            var source = ComposeSource(SourceParseContext.Primary);
+            var sourceExpression = ComposeJoinOrApply(source);
             var nameColumn = ComposeUnpivotOnColumn();
             var entries = ComposeUnpivotEntries();
             ConsumeUnpivotUsingKeyword();
@@ -27,7 +27,7 @@ public partial class Parser
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
             var take = ComposeTake();
-            var unpivot = new UnpivotFromNode(source, nameColumn.Name, valueColumn.Name, entries, keepFields);
+            var unpivot = new UnpivotFromNode(sourceExpression, nameColumn.Name, valueColumn.Name, entries, keepFields);
             var select = new SelectNode([new FieldNode(new AllColumnsNode(), 0, null)]);
             return new QueryNode(select, new ExpressionFromNode(unpivot), null, null, orderBy, skip, take, null, null, default);
         }
@@ -75,7 +75,10 @@ public partial class Parser
         do
         {
             var expression = ComposeOperations();
-            var (alias, aliasSpan) = ComposeAlias();
+            var aliasResult = ComposeAlias(AliasContext.Unpivot);
+            EnsureAliasSyntax(aliasResult, AliasContext.Unpivot);
+            var alias = aliasResult.Alias;
+            var aliasSpan = aliasResult.Span;
 
             if (string.IsNullOrWhiteSpace(alias) && !TryCreateUnpivotStableAlias(expression, out alias))
                 throw UnpivotSyntax(

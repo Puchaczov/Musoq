@@ -29,6 +29,10 @@ public partial class Table
                 }
             }
         }
+        catch (Exception exception)
+        {
+            throw ExecutionFailureConverter.Convert("DeferredMaterialization", exception);
+        }
         finally
         {
             lease?.Dispose();

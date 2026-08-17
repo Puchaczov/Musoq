@@ -53,8 +53,8 @@ public partial class CompilationPipelineErrorTests
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - unknown schema method/table source should map to MQ3003
-        AssertHasErrorCode(result, DiagnosticCode.MQ3003_UnknownTable,
+        // Assert - the schema exists, but the requested source does not
+        AssertHasErrorCode(result, DiagnosticCode.MQ3085_UnknownSource,
             "method 'UnknownMethod' not found in schema A");
 
         // Verify the error mentions the unknown method and suggests available methods
@@ -169,9 +169,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.Analyze(query);
 
         // Assert - invalid operand combination for string + int
-        AssertHasOneOfErrorCodes(result, "string + int arithmetic",
-            DiagnosticCode.MQ3007_InvalidOperandTypes,
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3007_InvalidOperandTypes, "string + int arithmetic");
     }
 
     [TestMethod]
@@ -186,8 +184,7 @@ public partial class CompilationPipelineErrorTests
 
         // Assert - Musoq now enforces standard SQL GROUP BY rules.
         // Name is not in GROUP BY and not inside an aggregate → MQ3012 error.
-        AssertHasOneOfErrorCodes(result, "Name not in GROUP BY should produce MQ3012",
-            DiagnosticCode.MQ3012_NonAggregateInSelect);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3012_NonAggregateInSelect, "Name not in GROUP BY should produce MQ3012");
     }
 
     [TestMethod]
@@ -201,8 +198,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.Analyze(query);
 
         // Assert - ambiguous column name should use dedicated diagnostic
-        AssertHasOneOfErrorCodes(result, "'Name' exists in both tables - must qualify with alias",
-            DiagnosticCode.MQ3002_AmbiguousColumn);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3002_AmbiguousColumn, "'Name' exists in both tables - must qualify with alias");
 
         // Verify the error mentions ambiguous column
         Assert.IsTrue(result.Errors.Any(e =>
@@ -236,11 +232,7 @@ public partial class CompilationPipelineErrorTests
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Returns MQ3029_UnresolvableMethod: "Method MyFunc with argument types System.String cannot be resolved"
-        AssertHasOneOfErrorCodes(result, "function 'MyFunc' doesn't exist",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ3013_CannotResolveMethod);
+        AssertHasErrorCode(result, DiagnosticCode.MQ3086_UnknownCallable, "function 'MyFunc' doesn't exist");
     }
 
     [TestMethod]
@@ -253,11 +245,7 @@ public partial class CompilationPipelineErrorTests
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Returns MQ3029_UnresolvableMethod: "Method Length with argument types ... cannot be resolved"
-        AssertHasOneOfErrorCodes(result, "too many arguments to Length()",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ3006_InvalidArgumentCount,
-            DiagnosticCode.MQ3013_CannotResolveMethod);
+        AssertHasErrorCode(result, DiagnosticCode.MQ3087_InvalidCallableArity, "too many arguments to Length()");
     }
 
     [TestMethod]
@@ -270,11 +258,7 @@ public partial class CompilationPipelineErrorTests
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Returns MQ3029_UnresolvableMethod: "Method Substring with argument types System.String cannot be resolved"
-        AssertHasOneOfErrorCodes(result, "too few arguments to Substring()",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ3006_InvalidArgumentCount,
-            DiagnosticCode.MQ3013_CannotResolveMethod);
+        AssertHasErrorCode(result, DiagnosticCode.MQ3087_InvalidCallableArity, "too few arguments to Substring()");
     }
 
     [TestMethod]
@@ -287,11 +271,7 @@ public partial class CompilationPipelineErrorTests
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Returns MQ3029_UnresolvableMethod: "Method Substring with argument types System.Decimal, System.Int32, System.Int32 cannot be resolved"
-        AssertHasOneOfErrorCodes(result, "wrong argument type for Substring()",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertHasErrorCode(result, DiagnosticCode.MQ3088_NoMatchingCallableOverload, "wrong argument type for Substring()");
     }
 
     [TestMethod]
@@ -306,10 +286,7 @@ public partial class CompilationPipelineErrorTests
 
         // Assert - Returns MQ3028_UnknownProperty: "Property 'Name' could not be found"
         // and MQ3001_UnknownColumn: "Unknown column 'NonExistent'"
-        AssertHasOneOfErrorCodes(result, "property chain doesn't resolve",
-            DiagnosticCode.MQ3028_UnknownProperty,
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3014_InvalidPropertyAccess);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3028_UnknownProperty, "property chain doesn't resolve");
     }
 
     [TestMethod]
@@ -324,10 +301,7 @@ public partial class CompilationPipelineErrorTests
 
         // Assert - Returns MQ3028_UnknownProperty: "Property 'Population' could not be found"
         // and MQ3001_UnknownColumn: "Unknown column 'Length'"
-        AssertHasOneOfErrorCodes(result, "int32 doesn't have 'Length' property",
-            DiagnosticCode.MQ3028_UnknownProperty,
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3014_InvalidPropertyAccess);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3028_UnknownProperty, "int32 doesn't have 'Length' property");
     }
 
     [TestMethod]
@@ -341,10 +315,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.Analyze(query);
 
         // Assert - Should be MQ3018_NoIndexer or MQ3017_ObjectNotArray
-        AssertHasOneOfErrorCodes(result, "indexing non-indexable type (int)",
-            DiagnosticCode.MQ3018_NoIndexer,
-            DiagnosticCode.MQ3017_ObjectNotArray,
-            DiagnosticCode.MQ3014_InvalidPropertyAccess);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3017_ObjectNotArray, "indexing non-indexable type (int)");
     }
 
     [TestMethod]

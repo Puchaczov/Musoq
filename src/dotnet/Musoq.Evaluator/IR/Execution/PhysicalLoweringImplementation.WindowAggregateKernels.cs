@@ -2,7 +2,6 @@ using System.Reflection;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
-using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.IR.Execution;
 

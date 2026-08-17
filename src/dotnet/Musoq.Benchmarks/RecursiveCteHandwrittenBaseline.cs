@@ -1,5 +1,4 @@
 using Musoq.Evaluator.Tables;
-using Musoq.Schema;
 
 namespace Musoq.Benchmarks;
 

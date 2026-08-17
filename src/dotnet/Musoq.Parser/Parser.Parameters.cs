@@ -11,7 +11,7 @@ public partial class Parser
     private bool IsParameterBlockStart()
     {
         return (Current.TokenType is TokenType.Identifier or TokenType.Word or TokenType.Function) &&
-               Current.Value.Equals("param", StringComparison.OrdinalIgnoreCase);
+               (Current.Value.Equals("param", StringComparison.OrdinalIgnoreCase) || Current.Value.Equals("params", StringComparison.OrdinalIgnoreCase));
     }
 
 

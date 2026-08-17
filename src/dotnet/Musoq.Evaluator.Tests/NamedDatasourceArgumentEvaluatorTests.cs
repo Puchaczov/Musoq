@@ -17,7 +17,6 @@ using Musoq.Parser.Lexing;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Schema.Optimization;
 using Musoq.Schema.Reflection;
 using SchemaConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 

@@ -1,4 +1,3 @@
-using Musoq.Evaluator.IR.Execution.Portability;
 using Musoq.Targets.Abstractions;
 
 namespace Musoq.Evaluator.IR.Execution;

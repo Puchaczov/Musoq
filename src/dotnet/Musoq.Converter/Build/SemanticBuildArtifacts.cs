@@ -1,9 +1,5 @@
 using System.Collections.Generic;
 using Musoq.Evaluator;
-using Musoq.Evaluator.IR.Execution;
-using Musoq.Evaluator.IR.Logical;
-using Musoq.Evaluator.IR.Physical;
-using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.Visitors;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using Musoq.Parser.Nodes;

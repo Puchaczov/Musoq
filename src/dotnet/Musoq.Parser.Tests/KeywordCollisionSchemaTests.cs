@@ -1,4 +1,3 @@
-using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes.InterpretationSchema;

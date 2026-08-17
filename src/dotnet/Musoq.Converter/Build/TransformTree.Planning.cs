@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
-using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Planning.Printing;
-using Musoq.Evaluator.Visitors;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using PlanningContext = Musoq.Evaluator.IR.Planning.PlanningContext;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
@@ -128,10 +127,6 @@ public partial class TransformTree
 
             return new PlanningStageBuildResult(artifacts, updatedSemantic, updatedContext);
         }
-        catch (IndexOutOfRangeException)
-        {
-            throw;
-        }
         catch (OperationCanceledException)
         {
             throw;
@@ -141,9 +136,23 @@ public partial class TransformTree
             ExceptionDispatchInfo.Capture(providerFailure.InnerException ?? providerFailure).Throw();
             throw new InvalidOperationException("Schema provider failure rethrow did not propagate.");
         }
+        catch (Exception ex) when (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is not null)
+        {
+            var providerFailure = EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex)!;
+            ExceptionDispatchInfo.Capture(providerFailure.InnerException ?? providerFailure).Throw();
+            throw new InvalidOperationException("Schema provider failure rethrow did not propagate.");
+        }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
-            context.DiagnosticContext.ReportException(ex);
+            if (!context.DiagnosticContext.HasErrors)
+                context.DiagnosticContext.ReportException(ex);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            if (!context.DiagnosticContext.HasErrors)
+                context.DiagnosticContext.ReportException(
+                    InternalDiagnosticException.ForCompiler(ex));
             return null;
         }
     }

@@ -162,7 +162,7 @@ public sealed class ScriptParameterTypeCompatibilityTests : NegativeTestsBase
         var exception = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("param(limit: int) select Length($limit) from #test.people()"));
 
-        AssertErrorEnvelope(exception, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "$limit");
+        AssertErrorEnvelope(exception, DiagnosticCode.MQ3088_NoMatchingCallableOverload, DiagnosticPhase.Bind, "$limit");
         AssertMessageContains(exception, "Int32");
         AssertMessageContains(exception, "Length");
         AssertMessageContains(exception, "Expected overloads");
@@ -176,7 +176,7 @@ public sealed class ScriptParameterTypeCompatibilityTests : NegativeTestsBase
         var exception = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("param(flag: bool) select ToUpper($flag) from #test.people()"));
 
-        AssertErrorEnvelope(exception, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "$flag");
+        AssertErrorEnvelope(exception, DiagnosticCode.MQ3088_NoMatchingCallableOverload, DiagnosticPhase.Bind, "$flag");
         AssertMessageContains(exception, "Boolean");
         AssertMessageContains(exception, "ToUpper");
         AssertMessageContains(exception, "Expected overloads");

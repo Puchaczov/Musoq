@@ -82,20 +82,10 @@ public partial class ErrorQualityBinaryTextSchemaTests : BasicEntityTestBase
         return new QueryAnalyzer(CreateSchemaProvider());
     }
 
-    private static void AssertHasOneOfErrorCodes(QueryAnalysisResult result, string context,
-        params DiagnosticCode[] expectedCodes)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
+        string context)
     {
-        var errors = result.Errors.ToList();
-        Assert.IsNotEmpty(errors,
-            $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but no diagnostics were reported");
-
-        var hasExpected = errors.Any(e => expectedCodes.Contains(e.Code));
-        if (!hasExpected)
-        {
-            var errorDetails = string.Join("\n", errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.Fail(
-                $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but got:\n{errorDetails}");
-        }
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
 
     private static void AssertNoErrors(QueryAnalysisResult result)

@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
-using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
 

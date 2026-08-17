@@ -9,16 +9,21 @@ namespace Musoq.Parser;
 
 public partial class Parser
 {
-    private FromNode ComposeFrom(bool fromKeywordBefore = true, bool isApplyContext = false)
+    private ParsedSource ComposeFrom()
     {
-        if (fromKeywordBefore)
-            Consume(TokenType.From);
+        Consume(TokenType.From);
+        return ComposeSource(SourceParseContext.Primary);
+    }
+
+    private ParsedSource ComposeSource(SourceParseContext context)
+    {
+        var sourceStart = Current.Span.Start;
 
         if (IsValuesSource())
             return ComposeValuesFrom();
 
         if (Current.TokenType == TokenType.LeftParenthesis)
-            return ComposeDerivedTableFrom(isApplyContext);
+            return ComposeDerivedTableFrom(context);
 
         string alias;
         TextSpan aliasSpan;
@@ -31,31 +36,46 @@ public partial class Parser
             {
                 Consume(TokenType.Dot);
                 var accessMethod = ComposeAccessMethod(string.Empty, true);
-
-                (alias, aliasSpan) = ComposeAlias();
+                var sourceEndSpan = Previous?.Span ?? name.Span;
+                var aliasResult = ComposeAlias(AliasContext.Source);
+                EnsureAliasSyntax(aliasResult, AliasContext.Source);
+                alias = aliasResult.Alias;
+                aliasSpan = aliasResult.Span;
 
                 fromNode = new SchemaFromNode(name.Value, accessMethod.Name, accessMethod.Arguments, alias,
                     _fromPosition);
-            }
-            else
-            {
-                (alias, aliasSpan) = ComposeAlias();
-                fromNode = new ReferentialFromNode(name.Value, alias);
+                if (!aliasSpan.IsEmpty)
+                    fromNode.WithSpan(aliasSpan);
+
+                if (!string.IsNullOrWhiteSpace(alias))
+                    RegisterFromAlias(alias);
+
+                return ParsedSource.Create(fromNode, SourceKind.Schema, sourceStart, sourceEndSpan, aliasResult);
             }
 
+            var referentialSourceEnd = name.Span;
+            var referentialAlias = ComposeAlias(AliasContext.Source);
+            EnsureAliasSyntax(referentialAlias, AliasContext.Source);
+            alias = referentialAlias.Alias;
+            aliasSpan = referentialAlias.Span;
+            fromNode = new ReferentialFromNode(name.Value, alias);
             if (!aliasSpan.IsEmpty)
                 fromNode.WithSpan(aliasSpan);
 
-            if (!string.IsNullOrWhiteSpace(alias))
-                RegisterFromAlias(alias);
+            RegisterFromAlias(string.IsNullOrWhiteSpace(alias) ? name.Value : alias);
 
-            return fromNode;
+            return ParsedSource.Create(fromNode, SourceKind.Referential, sourceStart, referentialSourceEnd,
+                referentialAlias, name.Value);
         }
 
         if (Current.TokenType == TokenType.Function)
         {
             var method = ComposeAccessMethod(string.Empty, true);
-            (alias, aliasSpan) = ComposeAlias();
+            var sourceEndSpan = Previous?.Span ?? new TextSpan(sourceStart, 0);
+            var aliasResult = ComposeAlias(AliasContext.Source);
+            EnsureAliasSyntax(aliasResult, AliasContext.Source);
+            alias = aliasResult.Alias;
+            aliasSpan = aliasResult.Span;
 
             if (!string.IsNullOrWhiteSpace(alias))
                 RegisterFromAlias(alias);
@@ -63,21 +83,25 @@ public partial class Parser
             var fromNode = new AliasedFromNode(method.Name, method.Arguments, alias, _fromPosition, method.TypeParameter);
             if (!aliasSpan.IsEmpty)
                 fromNode.WithSpan(aliasSpan);
-            return fromNode;
+            return ParsedSource.Create(fromNode, SourceKind.Function, sourceStart, sourceEndSpan, aliasResult);
         }
 
         if (Current.TokenType == TokenType.MethodAccess)
         {
             var sourceAlias = Current.Value;
             var allowNamedArguments = sourceAlias.StartsWith('#') ||
-                                      !isApplyContext ||
-                                      (isApplyContext && !IsKnownFromAlias(sourceAlias));
+                                      context != SourceParseContext.ApplyRight ||
+                                      !IsKnownFromAlias(sourceAlias);
             var accessMethod = ComposeAccessMethod(sourceAlias, allowNamedArguments);
-            (alias, aliasSpan) = ComposeAlias();
+            var sourceEndSpan = Previous?.Span ?? new TextSpan(sourceStart, sourceAlias.Length);
+            var aliasResult = ComposeAlias(AliasContext.Source);
+            EnsureAliasSyntax(aliasResult, AliasContext.Source);
+            alias = aliasResult.Alias;
+            aliasSpan = aliasResult.Span;
 
             var isSchemaReference = sourceAlias.StartsWith('#') ||
-                                    !isApplyContext ||
-                                    (isApplyContext && !IsKnownFromAlias(sourceAlias));
+                                    context != SourceParseContext.ApplyRight ||
+                                    !IsKnownFromAlias(sourceAlias);
 
             if (isSchemaReference && !sourceAlias.StartsWith('#'))
             {
@@ -89,7 +113,7 @@ public partial class Parser
                 var fromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
                 if (!aliasSpan.IsEmpty)
                     fromNode.WithSpan(aliasSpan);
-                return fromNode;
+                return ParsedSource.Create(fromNode, SourceKind.Schema, sourceStart, sourceEndSpan, aliasResult);
             }
 
             if (sourceAlias.StartsWith('#'))
@@ -100,28 +124,29 @@ public partial class Parser
                 var fromNode = new SchemaFromNode(sourceAlias, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
                 if (!aliasSpan.IsEmpty)
                     fromNode.WithSpan(aliasSpan);
-                return fromNode;
+                return ParsedSource.Create(fromNode, SourceKind.Schema, sourceStart, sourceEndSpan, aliasResult);
             }
-
-            if (string.IsNullOrWhiteSpace(alias))
-                throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
 
             var accessFromNode = new AccessMethodFromNode(alias, sourceAlias, accessMethod);
             if (!aliasSpan.IsEmpty)
                 accessFromNode.WithSpan(aliasSpan);
 
-            RegisterFromAlias(alias);
+            if (!string.IsNullOrWhiteSpace(alias))
+                RegisterFromAlias(alias);
 
-            return accessFromNode;
+            return ParsedSource.Create(accessFromNode, SourceKind.AccessMethod, sourceStart, sourceEndSpan, aliasResult);
         }
-
 
         var baseNode = ComposeBaseTypes();
         var columnName = baseNode switch
         {
             IdentifierNode id => id.Name,
             WordNode word => word.Value,
-            _ => throw new NotSupportedException($"Expected identifier or word but got {baseNode.GetType().Name}")
+            _ => throw new SyntaxException(
+                $"Expected identifier or word but got {baseNode.GetType().Name}.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2001_UnexpectedToken,
+                baseNode.Span)
         };
 
         if (Current.TokenType == TokenType.Dot)
@@ -131,30 +156,28 @@ public partial class Parser
             if (Current.TokenType == TokenType.Function)
             {
                 var accessMethod = ComposeAccessMethod(string.Empty, true);
-                (alias, aliasSpan) = ComposeAlias();
+                var sourceEndSpan = Previous?.Span ?? baseNode.Span;
+                var aliasResult = ComposeAlias(AliasContext.Source);
+                EnsureAliasSyntax(aliasResult, AliasContext.Source);
+                alias = aliasResult.Alias;
+                aliasSpan = aliasResult.Span;
 
                 var schemaName = EnsureHashPrefix(columnName);
-
                 if (!string.IsNullOrWhiteSpace(alias))
                     RegisterFromAlias(alias);
 
                 var fromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
                 if (!aliasSpan.IsEmpty)
                     fromNode.WithSpan(aliasSpan);
-                return fromNode;
+                return ParsedSource.Create(fromNode, SourceKind.Schema, sourceStart, sourceEndSpan, aliasResult);
             }
 
             var properties = new List<string>();
             var anyParsed = false;
-
             while (Current.TokenType == TokenType.Property)
             {
-                if (!anyParsed)
-                    anyParsed = true;
-
-                var propertyName = Current.Value;
-                properties.Add(propertyName);
-
+                anyParsed = true;
+                properties.Add(Current.Value);
                 Consume(TokenType.Property);
 
                 if (Current.TokenType == TokenType.Dot)
@@ -168,123 +191,49 @@ public partial class Parser
 
             if (anyParsed)
             {
-                (alias, aliasSpan) = ComposeAlias();
+                var sourceEndSpan = Previous?.Span ?? baseNode.Span;
+                var aliasResult = ComposeAlias(AliasContext.Source);
+                EnsureAliasSyntax(aliasResult, AliasContext.Source);
+                alias = aliasResult.Alias;
+                aliasSpan = aliasResult.Span;
 
-                if (string.IsNullOrWhiteSpace(alias))
-                    throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
+                if (!string.IsNullOrWhiteSpace(alias))
+                    RegisterFromAlias(alias);
 
-                RegisterFromAlias(alias);
                 var fromNode = new PropertyFromNode(alias, columnName, properties.ToArray());
                 if (!aliasSpan.IsEmpty)
                     fromNode.WithSpan(aliasSpan);
-                return fromNode;
+                return ParsedSource.Create(fromNode, SourceKind.Property, sourceStart, sourceEndSpan, aliasResult);
             }
 
-            throw new NotSupportedException($"Unrecognized token {Current.TokenType} when parsing From clause.");
+            throw new SyntaxException(
+                $"Unrecognized token {Current.TokenType} when parsing FROM clause.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2001_UnexpectedToken,
+                Current.Span);
         }
 
-        (alias, aliasSpan) = ComposeAlias();
-
-        if (!string.IsNullOrWhiteSpace(alias))
-            RegisterFromAlias(alias);
+        var inMemoryAlias = ComposeAlias(AliasContext.Source);
+        EnsureAliasSyntax(inMemoryAlias, AliasContext.Source);
+        alias = inMemoryAlias.Alias;
+        aliasSpan = inMemoryAlias.Span;
+        RegisterFromAlias(string.IsNullOrWhiteSpace(alias) ? columnName : alias);
 
         var inMemoryNode = new InMemoryTableFromNode(columnName, alias);
         inMemoryNode.WithSpan(baseNode.Span.Through(aliasSpan));
-        return inMemoryNode;
+        return ParsedSource.Create(inMemoryNode, SourceKind.InMemory, sourceStart, baseNode.Span, inMemoryAlias,
+            columnName);
     }
-
-
-
-    private ValuesFromNode ComposeValuesFrom()
-    {
-        var valuesToken = ConsumeAndGetToken(Current.TokenType);
-        Consume(TokenType.LBracket);
-
-        var rows = new List<ValuesRowNode>();
-        while (Current.TokenType != TokenType.RBracket)
-        {
-            rows.Add(ComposeValuesRow());
-
-            if (Current.TokenType != TokenType.Comma)
-                break;
-
-            Consume(TokenType.Comma);
-            if (Current.TokenType == TokenType.RBracket)
-                break;
-        }
-
-        var closingToken = ConsumeAndGetToken(TokenType.RBracket);
-        var (alias, aliasSpan) = ComposeAlias();
-
-        if (string.IsNullOrWhiteSpace(alias))
-            throw new SyntaxException(
-                "VALUES source requires an alias after the closing brace. Example: from values { { Name: 'A' } } v.",
-                _lexer.AlreadyResolvedQueryPart,
-                DiagnosticCode.MQ2022_InvalidAlias,
-                closingToken.Span);
-
-        RegisterFromAlias(alias);
-
-        var fromNode = new ValuesFromNode(rows, alias);
-        fromNode.WithSpan(valuesToken.Span.Through(closingToken.Span));
-
-        if (!aliasSpan.IsEmpty)
-            fromNode.WithFullSpan(fromNode.Span.Through(aliasSpan));
-
-        return fromNode;
-    }
-
-
-    private ValuesRowNode ComposeValuesRow()
-    {
-        var openingToken = ConsumeAndGetToken(TokenType.LBracket);
-
-        var fields = new List<ValuesFieldNode>();
-        while (Current.TokenType != TokenType.RBracket)
-        {
-            var fieldToken = ComposeValuesFieldName();
-            Consume(TokenType.Colon);
-
-            fields.Add(new ValuesFieldNode(fieldToken.Value, ComposeOperations(), fieldToken.Span));
-
-            if (Current.TokenType != TokenType.Comma)
-                break;
-
-            Consume(TokenType.Comma);
-            if (Current.TokenType == TokenType.RBracket)
-                break;
-        }
-
-        var closingToken = ConsumeAndGetToken(TokenType.RBracket);
-
-        return new ValuesRowNode(fields, openingToken.Span.Through(closingToken.Span));
-    }
-
-
-    private Token ComposeValuesFieldName()
-    {
-        if (Current.TokenType is not (TokenType.Identifier or TokenType.Word))
-            throw new SyntaxException(
-                "Expected field name in VALUES row literal.",
-                _lexer.AlreadyResolvedQueryPart,
-                DiagnosticCode.MQ2002_MissingToken,
-                Current.Span);
-
-        return ConsumeAndGetToken(Current.TokenType);
-    }
-
 
     private void PushFromAliasesScope()
     {
         _fromAliasesStack.Push(new HashSet<string>(StringComparer.OrdinalIgnoreCase));
     }
 
-
     private void PopFromAliasesScope()
     {
         _fromAliasesStack.Pop();
     }
-
 
     private void RegisterFromAlias(string alias)
     {
@@ -292,12 +241,12 @@ public partial class Parser
             _fromAliasesStack.Peek().Add(alias);
     }
 
-
     private bool IsKnownFromAlias(string alias)
     {
         foreach (var scope in _fromAliasesStack)
             if (scope.Contains(alias))
                 return true;
+
         return false;
     }
 

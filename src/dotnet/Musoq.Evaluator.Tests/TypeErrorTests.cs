@@ -156,7 +156,7 @@ public class TypeErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Substring(Name, 'zero', 5) FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "Substring");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3088_NoMatchingCallableOverload, DiagnosticPhase.Bind, "Substring");
         AssertHasGuidance(ex);
     }
 
@@ -166,7 +166,7 @@ public class TypeErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Substring(Name) FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "Substring");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3087_InvalidCallableArity, DiagnosticPhase.Bind, "Substring");
         AssertHasGuidance(ex);
     }
 
@@ -183,7 +183,7 @@ public class TypeErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Sum(Name) FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "Sum");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3088_NoMatchingCallableOverload, DiagnosticPhase.Bind, "Sum");
         AssertHasGuidance(ex);
     }
 
@@ -193,7 +193,7 @@ public class TypeErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Avg(City) FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "Avg");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3088_NoMatchingCallableOverload, DiagnosticPhase.Bind, "Avg");
         AssertHasGuidance(ex);
     }
 
@@ -203,7 +203,7 @@ public class TypeErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT CompletelyFakeFunction(Name) FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "CompletelyFakeFunction");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3086_UnknownCallable, DiagnosticPhase.Bind, "CompletelyFakeFunction");
         AssertHasGuidance(ex);
     }
 

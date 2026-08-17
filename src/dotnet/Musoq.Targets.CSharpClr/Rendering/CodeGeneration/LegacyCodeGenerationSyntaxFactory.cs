@@ -1,10 +1,7 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.IR;
-using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.Tables;
 
 namespace Musoq.Targets.CSharpClr.Rendering.CodeGeneration;

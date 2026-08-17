@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Linq;
-using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Parser.Diagnostics;
@@ -61,6 +60,12 @@ public static partial class InstanceCreator
         {
             caughtException = ex;
             diagnosticContext.ReportException(ex);
+        }
+        catch (Exception ex)
+        {
+            caughtException = ex;
+            if (!diagnosticContext.HasErrors)
+                diagnosticContext.ReportException(InternalDiagnosticException.ForCompiler(ex));
         }
         finally
         {

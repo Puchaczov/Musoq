@@ -274,7 +274,7 @@ public class ConverterExceptionsExceptionTypeTests
 
         var exception = new MusoqQueryException(envelope);
 
-        Assert.Contains("MQ9999", exception.Message);
+        Assert.Contains("MQ9001", exception.Message);
         Assert.Contains("Message: Missing alias for data source", exception.Message);
         Assert.HasCount(1, exception.Envelopes);
         Assert.AreSame(envelope, exception.PrimaryEnvelope);
@@ -431,9 +431,9 @@ public class ConverterExceptionsExceptionTypeTests
     private static MusoqErrorEnvelope CreateTestEnvelope(string message)
     {
         return new MusoqErrorEnvelope(
-            DiagnosticCode.MQ9999_Unknown,
+            DiagnosticCode.MQ9001_InternalCompilerError,
             DiagnosticSeverity.Error,
-            DiagnosticPhase.Runtime,
+            DiagnosticPhase.Internal,
             message,
             null, null, null, null, null,
             Array.Empty<string>(), null, null);

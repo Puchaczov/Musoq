@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -10,7 +9,6 @@ using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
-using Musoq.Targets.Abstractions;
 using Musoq.Targets.CSharpClr;
 
 namespace Musoq.Converter;

@@ -96,7 +96,7 @@ public class DiagnosticCoreTypesTests
     public void Diagnostic_Warning_ShouldHaveCorrectSeverity()
     {
         var span = new TextSpan(10, 5);
-        var diagnostic = Diagnostic.Warning(DiagnosticCode.MQ5002_SelectStar, "Consider using explicit columns", span);
+        var diagnostic = Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "Consider using explicit columns", span);
 
         Assert.AreEqual(DiagnosticSeverity.Warning, diagnostic.Severity);
         Assert.IsFalse(diagnostic.IsError);
@@ -110,7 +110,7 @@ public class DiagnosticCoreTypesTests
 
         bag.AddError(DiagnosticCode.MQ2001_UnexpectedToken, "Error 1", new TextSpan(0, 5));
         bag.AddError(DiagnosticCode.MQ2002_MissingToken, "Error 2", new TextSpan(10, 3));
-        bag.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, "Warning 1", new TextSpan(20, 4));
+        bag.AddWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "Warning 1", new TextSpan(20, 4));
 
         Assert.AreEqual(3, bag.Count);
         Assert.AreEqual(2, bag.ErrorCount);
@@ -318,14 +318,17 @@ public class DiagnosticCoreTypesTests
     }
 
     [TestMethod]
-    public void IDiagnosticException_ToDiagnosticOrGeneric_ShouldFallbackForNonDiagnosticException()
+    public void IDiagnosticException_ToDiagnosticOrGeneric_ShouldClassifyUntypedFailureAsInternal()
     {
         var regularException = new Exception("Test error");
 
         var diagnostic = regularException.ToDiagnosticOrGeneric();
 
-        Assert.AreEqual(DiagnosticCode.MQ9999_Unknown, diagnostic.Code);
-        Assert.Contains("Test error", diagnostic.Message);
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, diagnostic.Code);
+        Assert.AreEqual(DiagnosticPhase.Internal, diagnostic.Phase);
+        Assert.AreEqual(DiagnosticSourceKind.Internal, diagnostic.SourceKind);
+        Assert.DoesNotContain("Test error", diagnostic.Message);
+        Assert.IsTrue(diagnostic.Arguments.ContainsKey("correlationId"));
     }
 
     [TestMethod]
@@ -342,94 +345,91 @@ public class DiagnosticCoreTypesTests
     }
 
     [TestMethod]
-    public void ToDiagnosticOrGeneric_KeyNotFoundException_ShouldProvideUserFriendlyMessage()
+    public void ToDiagnosticOrGeneric_KeyNotFoundException_ShouldClassifyAsInternal()
     {
         var exception = new KeyNotFoundException("The given key 'testAlias123' was not present in the dictionary.");
 
         var diagnostic = exception.ToDiagnosticOrGeneric();
 
-        Assert.AreEqual(DiagnosticCode.MQ3003_UnknownTable, diagnostic.Code);
-        Assert.Contains("testAlias123", diagnostic.Message, "Should mention the key");
-        Assert.Contains("could not be resolved", diagnostic.Message, "Should explain the issue");
-        Assert.DoesNotContain("was not present in the dictionary",
-            diagnostic.Message, "Should not show raw .NET message");
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, diagnostic.Code);
+        Assert.DoesNotContain("testAlias123", diagnostic.Message);
+        Assert.DoesNotContain("was not present in the dictionary", diagnostic.Message);
     }
 
     [TestMethod]
-    public void ToDiagnosticOrGeneric_NullReferenceException_ShouldProvideUserFriendlyMessage()
+    public void ToDiagnosticOrGeneric_NullReferenceException_ShouldClassifyAsInternal()
     {
         var exception = new NullReferenceException();
 
         var diagnostic = exception.ToDiagnosticOrGeneric();
 
-        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, diagnostic.Code);
-        Assert.Contains("null reference", diagnostic.Message, "Should explain the issue");
-        Assert.Contains("query", diagnostic.Message, "Should provide context");
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, diagnostic.Code);
+        Assert.AreEqual(DiagnosticPhase.Internal, diagnostic.Phase);
     }
 
     [TestMethod]
-    public void ToDiagnosticOrGeneric_StackEmptyInvalidOperation_ShouldMapToUnsupportedSyntax()
+    public void ToDiagnosticOrGeneric_StackEmptyInvalidOperation_ShouldClassifyAsInternal()
     {
         var exception = new InvalidOperationException("Stack empty.");
 
         var diagnostic = exception.ToDiagnosticOrGeneric();
 
-        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, diagnostic.Code);
-        Assert.Contains("Stack empty", diagnostic.Message);
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, diagnostic.Code);
+        Assert.DoesNotContain("Stack empty", diagnostic.Message);
     }
 
     [TestMethod]
-    public void ToDiagnosticOrGeneric_UnterminatedStringMessage_ShouldMapToUnterminatedString()
+    public void ToDiagnosticOrGeneric_UnstructuredUnterminatedStringMessage_ShouldClassifyAsInternal()
     {
         var exception =
             new Exception("Token ''' was unrecognized. Rest of the unparsed query is 'Unterminated string literal'");
 
         var diagnostic = exception.ToDiagnosticOrGeneric();
 
-        Assert.AreEqual(DiagnosticCode.MQ1002_UnterminatedString, diagnostic.Code);
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, diagnostic.Code);
     }
 
     [TestMethod]
-    public void ToDiagnosticOrGeneric_KeyNotFound_ShouldMapToUnknownTable()
+    public void ToDiagnosticOrGeneric_KeyNotFound_ShouldClassifyAsInternal()
     {
         var exception = new KeyNotFoundException("The given key 'First' was not present in the dictionary.");
 
         var diagnostic = exception.ToDiagnosticOrGeneric();
 
-        Assert.AreEqual(DiagnosticCode.MQ3003_UnknownTable, diagnostic.Code);
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, diagnostic.Code);
     }
 
     [TestMethod]
-    public void ToDiagnosticOrGeneric_DuplicateKeyArgument_ShouldMapToDuplicateAlias()
+    public void ToDiagnosticOrGeneric_DuplicateKeyArgument_ShouldClassifyAsInternal()
     {
         var exception = new ArgumentException("An item with the same key has already been added. Key: MyData");
 
         var diagnostic = exception.ToDiagnosticOrGeneric();
 
-        Assert.AreEqual(DiagnosticCode.MQ3021_DuplicateAlias, diagnostic.Code);
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, diagnostic.Code);
     }
 
     [TestMethod]
-    public void ToDiagnosticOrGeneric_ArgumentNullException_ShouldIncludeParameterName()
+    public void ToDiagnosticOrGeneric_ArgumentNullException_ShouldClassifyAsInternal()
     {
         var exception = new ArgumentNullException("queryText");
 
         var diagnostic = exception.ToDiagnosticOrGeneric();
 
-        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, diagnostic.Code);
-        Assert.Contains("queryText", diagnostic.Message, "Should mention the parameter name");
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, diagnostic.Code);
+        Assert.DoesNotContain("queryText", diagnostic.Message);
     }
 
     [TestMethod]
-    public void ToDiagnosticOrGeneric_IndexOutOfRangeException_ShouldProvideContext()
+    public void ToDiagnosticOrGeneric_IndexOutOfRangeException_ShouldClassifyAsInternal()
     {
         var exception = new IndexOutOfRangeException();
 
         var diagnostic = exception.ToDiagnosticOrGeneric();
 
-        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, diagnostic.Code);
-        Assert.Contains("index", diagnostic.Message, "Should mention index issue");
-        Assert.Contains("range", diagnostic.Message, "Should mention range issue");
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, diagnostic.Code);
+        Assert.DoesNotContain("index", diagnostic.Message);
+        Assert.DoesNotContain("range", diagnostic.Message);
     }
 
     #endregion
@@ -453,7 +453,7 @@ public class DiagnosticCoreTypesTests
     {
         var bag = new DiagnosticBag();
         bag.AddError(DiagnosticCode.MQ2001_UnexpectedToken, "Error 1", new TextSpan(0, 1));
-        bag.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, "Warning 1", new TextSpan(5, 1));
+        bag.AddWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "Warning 1", new TextSpan(5, 1));
 
         bag.Clear();
 

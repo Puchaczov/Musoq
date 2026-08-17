@@ -176,7 +176,7 @@ internal static class ExecutionFieldAccessResolver
         NestedRootField nestedRoot)
     {
         var pathRoot = nestedRoot.PropertyPath
-            .Split(['.', '['], 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Split(new[] { '.', '[' }, 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .FirstOrDefault();
         if (string.IsNullOrWhiteSpace(pathRoot))
             return null;

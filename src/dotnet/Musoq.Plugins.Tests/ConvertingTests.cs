@@ -162,7 +162,7 @@ public sealed class ConvertingTests : PluginsTestBase
     private static IEnumerable<object?[]> ToHexCases()
     {
         yield return StringCase("ToHex_BytesWithDelimiter", library => library.ToHex("Hel"u8.ToArray(), "-"), "48-65-6C");
-        yield return StringCase("ToHex_EmptyBytes", library => library.ToHex([]), string.Empty);
+        yield return StringCase("ToHex_EmptyBytes", library => library.ToHex(Array.Empty<byte>()), string.Empty);
         yield return StringCase("ToHex_NullBytes", library => library.ToHex(null), null);
         yield return StringCase("ToHex_DateTime", library => library.ToHex(DateTime.Now), ConversionNotSupported);
     }
@@ -178,7 +178,7 @@ public sealed class ConvertingTests : PluginsTestBase
     private static IEnumerable<object?[]> TextCases()
     {
         yield return StringCase("ToText_NullBytes", library => library.ToText(null!, "utf-8"), string.Empty);
-        yield return StringCase("ToText_EmptyBytes", library => library.ToText([], "utf-8"), string.Empty);
+        yield return StringCase("ToText_EmptyBytes", library => library.ToText(Array.Empty<byte>(), "utf-8"), string.Empty);
         yield return StringCase("ToText_Utf8", library => library.ToText("Hello"u8.ToArray(), "utf-8"), "Hello");
         yield return StringCase("ToText_Utf8Short", library => library.ToText("Hello"u8.ToArray(), "utf8"), "Hello");
         yield return StringCase("ToText_Utf16", library => library.ToText(Encoding.Unicode.GetBytes("Hello"), "utf-16"), "Hello");
@@ -198,7 +198,7 @@ public sealed class ConvertingTests : PluginsTestBase
     private static IEnumerable<object?[]> Base64StringCases()
     {
         yield return StringCase("ToBase64_Bytes", library => library.ToBase64("Hello"u8.ToArray()), "SGVsbG8=");
-        yield return StringCase("ToBase64_EmptyBytes", library => library.ToBase64([]), string.Empty);
+        yield return StringCase("ToBase64_EmptyBytes", library => library.ToBase64(Array.Empty<byte>()), string.Empty);
         yield return StringCase("ToBase64_BytesWithOffsetAndLength", library => library.ToBase64("Hello World"u8.ToArray(), 0, 5), "SGVsbG8=");
         yield return StringCase("ToBase64_BytesSlice", library => library.ToBase64([1, 2, 3, 4, 5], 1, 3), "AgME");
         yield return StringCase("ToBase64_String", library => library.ToBase64("Hello"), "SGVsbG8=");

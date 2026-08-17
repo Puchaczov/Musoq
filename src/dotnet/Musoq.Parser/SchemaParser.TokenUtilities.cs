@@ -75,7 +75,7 @@ public partial class SchemaParser
              (value.StartsWith('"') && value.EndsWith('"'))) && value.Length >= 2)
             value = value[1..^1];
 
-        return UnescapeString(value);
+        return token.TokenType == TokenType.StringLiteral ? value : UnescapeString(value);
     }
 
     private static string UnescapeString(string value)

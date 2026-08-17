@@ -5,25 +5,25 @@ namespace Musoq.Examples.DataSources.Csv;
 public sealed class CsvFileTable : ISchemaTable
 {
     public CsvFileTable()
-        : this([])
+        : this(Array.Empty<ISchemaColumn>())
     {
     }
 
     public CsvFileTable(string path)
-        : this([])
+        : this(Array.Empty<ISchemaColumn>())
     {
         _ = path;
     }
 
     public CsvFileTable(string path, bool hasHeader)
-        : this([])
+        : this(Array.Empty<ISchemaColumn>())
     {
         _ = path;
         _ = hasHeader;
     }
 
     public CsvFileTable(string path, bool hasHeader, int skipRows)
-        : this([])
+        : this(Array.Empty<ISchemaColumn>())
     {
         _ = path;
         _ = hasHeader;
@@ -31,7 +31,7 @@ public sealed class CsvFileTable : ISchemaTable
     }
 
     public CsvFileTable(string path, bool hasHeader, int skipRows, string delimiter)
-        : this([])
+        : this(Array.Empty<ISchemaColumn>())
     {
         _ = path;
         _ = hasHeader;

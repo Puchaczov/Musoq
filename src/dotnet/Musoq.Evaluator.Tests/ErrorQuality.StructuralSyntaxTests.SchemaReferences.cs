@@ -34,12 +34,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.Analyze(query);
 
         // Assert — Should indicate invalid schema reference format
-        AssertHasOneOfErrorCodes(result, "schema without dot separator",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ3003_UnknownTable,
-            DiagnosticCode.MQ3010_UnknownSchema,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "schema without dot separator");
     }
 
     [TestMethod]
@@ -53,11 +48,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.Analyze(query);
 
         // Assert — Should indicate missing table/method name
-        AssertHasOneOfErrorCodes(result, "schema without table name",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ3003_UnknownTable,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "schema without table name");
     }
 
     [TestMethod]
@@ -71,11 +62,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.Analyze(query);
 
         // Assert — Should indicate missing schema name
-        AssertHasOneOfErrorCodes(result, "schema reference with missing schema name",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ3010_UnknownSchema,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3010_UnknownSchema, "schema reference with missing schema name");
     }
 
     [TestMethod]
@@ -89,11 +76,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.Analyze(query);
 
         // Assert — Should indicate invalid schema reference
-        AssertHasOneOfErrorCodes(result, "double hash in schema reference",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ3010_UnknownSchema,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "double hash in schema reference");
     }
 
     [TestMethod]
@@ -123,10 +106,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.Analyze(query);
 
         // Assert — Should indicate missing parentheses
-        AssertHasOneOfErrorCodes(result, "schema reference without parentheses",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "schema reference without parentheses");
     }
 
     #endregion

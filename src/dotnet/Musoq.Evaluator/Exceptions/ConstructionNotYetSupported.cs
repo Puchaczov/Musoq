@@ -9,21 +9,36 @@ public class ConstructionNotYetSupported : Exception, IDiagnosticException
     public ConstructionNotYetSupported(string message, Exception innerException)
         : base(message, innerException)
     {
+        Code = DiagnosticCode.MQ4016_UnsupportedSchemaConstruction;
     }
 
     public ConstructionNotYetSupported()
     {
+        Code = DiagnosticCode.MQ4016_UnsupportedSchemaConstruction;
     }
     public ConstructionNotYetSupported(string message)
         : base(message)
     {
-        Code = DiagnosticCode.MQ3030_ConstructionNotSupported;
+        Code = DiagnosticCode.MQ4016_UnsupportedSchemaConstruction;
     }
 
     public ConstructionNotYetSupported(string message, TextSpan span)
         : base(message)
     {
-        Code = DiagnosticCode.MQ3030_ConstructionNotSupported;
+        Code = DiagnosticCode.MQ4016_UnsupportedSchemaConstruction;
+        Span = span;
+    }
+
+    public ConstructionNotYetSupported(string message, DiagnosticCode code)
+        : base(message)
+    {
+        Code = code;
+    }
+
+    public ConstructionNotYetSupported(string message, DiagnosticCode code, TextSpan span)
+        : base(message)
+    {
+        Code = code;
         Span = span;
     }
 

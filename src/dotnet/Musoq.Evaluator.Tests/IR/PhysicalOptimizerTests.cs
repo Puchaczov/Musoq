@@ -13,8 +13,6 @@ using Musoq.Evaluator.IR.Optimization.Physical;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Planning;
-using Musoq.Schema;
-using Musoq.Schema.Optimization;
 using PlanProperties = Musoq.Evaluator.IR.Planning.PlanProperties;
 
 namespace Musoq.Evaluator.Tests.IR;

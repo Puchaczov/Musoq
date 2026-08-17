@@ -278,7 +278,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert - Should report error
-        Assert.IsTrue(result.HasErrors || !result.IsParsed);
+        Assert.IsNotEmpty(result.Errors);
     }
 
     [TestMethod]
@@ -357,7 +357,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         var result = analyzer.ValidateSyntax(query);
 
         // Assert
-        Assert.IsTrue(result.HasErrors || !result.IsParsed);
+        Assert.IsNotEmpty(result.Errors);
     }
 
     [TestMethod]
@@ -387,7 +387,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         var result = analyzer.ValidateSyntax(query);
 
         // Assert
-        Assert.IsTrue(result.HasErrors || !result.IsParsed);
+        Assert.IsNotEmpty(result.Errors);
     }
 
     #endregion
@@ -405,7 +405,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         var result = analyzer.Analyze("");
 
         // Assert
-        Assert.IsTrue(result.HasErrors || !result.IsParsed);
+        Assert.IsNotEmpty(result.Errors);
     }
 
     [TestMethod]
@@ -419,7 +419,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         var result = analyzer.Analyze("   \t\n   ");
 
         // Assert
-        Assert.IsTrue(result.HasErrors || !result.IsParsed);
+        Assert.IsNotEmpty(result.Errors);
     }
 
     [TestMethod]
@@ -433,7 +433,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         var result = analyzer.Analyze("-- just a comment");
 
         // Assert
-        Assert.IsTrue(result.HasErrors || !result.IsParsed);
+        Assert.IsNotEmpty(result.Errors);
     }
 
     [TestMethod]
@@ -603,7 +603,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Arrange
         var location = new SourceLocation(0, 1, 1);
         var diagnostic = new Diagnostic(
-            DiagnosticCode.MQ5001_UnusedAlias,
+            DiagnosticCode.MQ5003_ImplicitTypeConversion,
             DiagnosticSeverity.Warning,
             "Test warning",
             location);
@@ -620,7 +620,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Arrange - create diagnostic with Info severity using constructor
         var location = new SourceLocation(0, 1, 1);
         var diagnostic = new Diagnostic(
-            DiagnosticCode.MQ5001_UnusedAlias, // Reuse warning code for test
+            DiagnosticCode.MQ5003_ImplicitTypeConversion, // Reuse warning code for test
             DiagnosticSeverity.Info,
             "Test info",
             location);

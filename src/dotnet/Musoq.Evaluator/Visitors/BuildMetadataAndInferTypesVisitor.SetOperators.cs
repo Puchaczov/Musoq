@@ -3,7 +3,6 @@ using System.Linq;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
@@ -155,7 +154,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             return true;
         }
 
-        return false;
+        throw new UnknownAliasException(alias, node.SpanOrEmpty());
     }
 
     private void VisitSetOperationNode(SetOperatorNode node, string setOperatorName)

@@ -6,7 +6,6 @@ using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.Tables;
-using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -176,7 +175,7 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(asOfProbe.Index!.Name),
-                    SyntaxFactory.IdentifierName(nameof(AsOfJoinIndex<,>.Find))))
+                    SyntaxFactory.IdentifierName(nameof(AsOfJoinIndex<object, object>.Find))))
             .WithArgumentList(CreateArgumentList(
                 CreateAsOfEqualityKeyExpression(asOfProbe.EqualityKeys, static key => key.Left, context),
                 CreateAsOfComparisonKeyExpression(asOfProbe.ProbeKey, asOfProbe.ComparisonKeyType?.RequireClrType() ?? typeof(object), context)));
@@ -382,7 +381,7 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(rangeProbe.Index.Name),
-                    SyntaxFactory.IdentifierName(nameof(RangeJoinIndex<,>.Find))))
+                    SyntaxFactory.IdentifierName(nameof(RangeJoinIndex<object, object>.Find))))
             .WithArgumentList(CreateArgumentList(arguments));
     }
 

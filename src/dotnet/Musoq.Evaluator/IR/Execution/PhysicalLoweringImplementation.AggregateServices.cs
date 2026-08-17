@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Musoq.Evaluator.IR.Execution.Lowering;
-using Musoq.Evaluator.IR.Execution.Lowering.Coordinators;
 using Musoq.Evaluator.IR.Physical;
 
 namespace Musoq.Evaluator.IR.Execution;

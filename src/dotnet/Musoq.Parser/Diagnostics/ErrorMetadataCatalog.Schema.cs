@@ -138,5 +138,12 @@ internal static class SchemaErrorMetadataCatalog
                 "Remove the trailing 'as' when no target type is intended and use 'raw' instead."
             ],
             "Binary/Text Spec - Substreams");
+
+        yield return Entry(
+            DiagnosticCode.MQ4016_UnsupportedSchemaConstruction,
+            "The interpretation schema contains a construction that the generated schema reader cannot lower.",
+            ["Use a supported schema field or modifier.", "Replace the construction with a supported primitive, substream, array, or nested schema."],
+            "Binary/Text Spec - Code Generation",
+            DiagnosticPhase.Schema);
     }
 }

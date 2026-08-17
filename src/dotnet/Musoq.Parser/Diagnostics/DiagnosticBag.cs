@@ -12,6 +12,9 @@ namespace Musoq.Parser.Diagnostics;
 public sealed class DiagnosticBag : IEnumerable<Diagnostic>
 {
     private readonly ConcurrentBag<Diagnostic> _diagnostics = new();
+    private readonly ConcurrentDictionary<DiagnosticIdentity, byte> _diagnosticKeys = new();
+    private readonly ConcurrentDictionary<DiagnosticIdentity, long> _diagnosticOrder = new();
+    private long _nextSequence;
     private int _errorCount;
     private int _warningCount;
 
@@ -73,6 +76,11 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
         if (diagnostic.IsError && HasTooManyErrors)
             return false;
 
+        var key = DiagnosticIdentity.Create(diagnostic);
+        if (!_diagnosticKeys.TryAdd(key, 0))
+            return false;
+
+        _diagnosticOrder.TryAdd(key, Interlocked.Increment(ref _nextSequence));
         _diagnostics.Add(diagnostic);
 
         if (diagnostic.IsError)
@@ -181,10 +189,27 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
     /// </summary>
     public IReadOnlyList<Diagnostic> ToSortedList()
     {
-        return _diagnostics
-            .OrderBy(d => d.Location)
+        var diagnostics = _diagnostics.ToArray();
+        var knownContent = diagnostics
+            .Where(static diagnostic => diagnostic.Location.IsValid)
+            .Select(DiagnosticContentIdentity.Create)
+            .ToHashSet();
+
+        var ordered = diagnostics
+            .Where(diagnostic => diagnostic.Location.IsValid ||
+                                !knownContent.Contains(DiagnosticContentIdentity.Create(diagnostic)))
+            .OrderBy(static d => d.SourceKind)
+            .ThenBy(static d => d.Location.FilePath, StringComparer.Ordinal)
+            .ThenBy(static d => d.Location.Offset < 0 ? int.MaxValue : d.Location.Offset)
+            .ThenBy(static d => d.EndLocation.Offset < 0 ? int.MaxValue : d.EndLocation.Offset)
+            .ThenByDescending(d => _diagnosticOrder.GetValueOrDefault(DiagnosticIdentity.Create(d), long.MaxValue))
+            .ThenBy(static d => d.Phase)
             .ThenBy(d => d.Severity)
+            .ThenBy(d => (int)d.Code)
+            .ThenBy(d => d.Message, StringComparer.Ordinal)
             .ToList();
+
+        return ordered;
     }
 
     /// <summary>
@@ -212,6 +237,9 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
         {
         }
 
+        _diagnosticKeys.Clear();
+        _diagnosticOrder.Clear();
+        Interlocked.Exchange(ref _nextSequence, 0);
         Interlocked.Exchange(ref _errorCount, 0);
         Interlocked.Exchange(ref _warningCount, 0);
     }
@@ -223,5 +251,51 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
                 new SourceLocation(span.End, 1, span.End + 1));
 
         return SourceText.GetLocations(span);
+    }
+
+    private readonly record struct DiagnosticIdentity(
+        DiagnosticCode Code,
+        DiagnosticSeverity Severity,
+        DiagnosticPhase Phase,
+        DiagnosticSourceKind SourceKind,
+        int Offset,
+        int EndOffset,
+        int Line,
+        int Column,
+        string? FilePath,
+        string Message)
+    {
+        public static DiagnosticIdentity Create(Diagnostic diagnostic)
+        {
+            return new DiagnosticIdentity(
+                diagnostic.Code,
+                diagnostic.Severity,
+                diagnostic.Phase,
+                diagnostic.SourceKind,
+                diagnostic.Location.Offset,
+                diagnostic.EndLocation.Offset,
+                diagnostic.Location.Line,
+                diagnostic.Location.Column,
+                diagnostic.Location.FilePath,
+                diagnostic.Message);
+        }
+    }
+
+    private readonly record struct DiagnosticContentIdentity(
+        DiagnosticCode Code,
+        DiagnosticSeverity Severity,
+        DiagnosticPhase Phase,
+        DiagnosticSourceKind SourceKind,
+        string Message)
+    {
+        public static DiagnosticContentIdentity Create(Diagnostic diagnostic)
+        {
+            return new DiagnosticContentIdentity(
+                diagnostic.Code,
+                diagnostic.Severity,
+                diagnostic.Phase,
+                diagnostic.SourceKind,
+                diagnostic.Message);
+        }
     }
 }

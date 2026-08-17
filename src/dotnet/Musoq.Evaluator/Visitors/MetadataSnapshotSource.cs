@@ -3,7 +3,6 @@ using System.Linq;
 using Musoq.Evaluator.Utils;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Visitors;
 

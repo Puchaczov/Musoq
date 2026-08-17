@@ -622,34 +622,13 @@ select City, Count(1) as Cnt from #A.Entities() group by City having Count(1) > 
 
     private static void AssertHasErrorCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected error code {expectedCode} ({context}) but query succeeded. IsParsed: {result.IsParsed}");
-
-        if (result.HasErrors)
-        {
-            var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.IsTrue(
-                result.Errors.Any(e => e.Code == expectedCode),
-                $"Expected error code {expectedCode} ({context}) but got:\n{errorDetails}");
-        }
+        DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, expectedCode, context);
     }
 
-    private static void AssertHasOneOfErrorCodes(QueryAnalysisResult result, string context,
-        params DiagnosticCode[] expectedCodes)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
+        string context)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but query succeeded");
-
-        if (result.HasErrors)
-        {
-            var hasExpected = result.Errors.Any(e => expectedCodes.Contains(e.Code));
-            if (!hasExpected)
-            {
-                var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-                Assert.Fail(
-                    $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but got:\n{errorDetails}");
-            }
-        }
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
 
     private static void AssertNoErrors(QueryAnalysisResult result)

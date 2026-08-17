@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
-using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
-using Musoq.Evaluator.IR.Planning;
 
 namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 

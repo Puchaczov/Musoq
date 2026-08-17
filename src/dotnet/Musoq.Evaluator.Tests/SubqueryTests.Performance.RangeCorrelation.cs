@@ -1,7 +1,9 @@
-using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Exceptions;
+using Musoq.Parser.Diagnostics;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -84,10 +86,10 @@ public partial class SubqueryTests
         var sources = CreateRangeCorrelationSources();
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var exception = Assert.Throws<InvalidOperationException>(() =>
+        var exception = Assert.Throws<QueryExecutionException>(() =>
             _ = vm.Run(TestContext.CancellationToken).Count);
 
-        Assert.AreEqual("Scalar subquery returned more than one row.", exception.Message);
+        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreateRangeCorrelationSources() => new()

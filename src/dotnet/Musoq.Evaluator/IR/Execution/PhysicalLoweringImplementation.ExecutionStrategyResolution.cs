@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using Musoq.Evaluator.IR.Physical;
-using Musoq.Evaluator.IR.Planning;
-using Musoq.Evaluator.IR.Execution.Lowering;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using ExecutionStrategyPlan = Musoq.Evaluator.IR.Planning.ExecutionStrategyPlan;
 

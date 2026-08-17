@@ -1,6 +1,5 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.IR.Execution;
 
 namespace Musoq.Evaluator.Tests.IR;
 

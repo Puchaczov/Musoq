@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Plugins;
-using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -211,7 +210,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return CreateInvocationStatement(
             functionName,
-            nameof(IWindowFunction<,>.Accumulate),
+            nameof(IWindowFunction<object, object>.Accumulate),
             RenderExpression(plugin.Value));
     }
 
@@ -221,7 +220,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return CreateInvocationExpression(
             functionName,
-            nameof(IWindowFunction<,>.GetValue));
+            nameof(IWindowFunction<object, object>.GetValue));
     }
 
 }

@@ -2,7 +2,6 @@ using System.Linq;
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
-using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using IrNodes = Musoq.Evaluator.IR.Logical.Nodes;

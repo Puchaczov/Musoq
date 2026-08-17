@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Components;
@@ -235,11 +234,11 @@ public class CrossApplyMultiSchemaTests
         {
             var nameToIndex =
                 typeof(TEntity).GetField("NameToIndexMap")?.GetValue(null) as IReadOnlyDictionary<string, int>
-                ?? throw new InvalidOperationException($"Missing {nameof(GenericChunkSource<>)} name-to-index map.");
+                ?? throw new InvalidOperationException($"Missing {nameof(GenericChunkSource<object>)} name-to-index map.");
             var indexToAccess =
                 typeof(TEntity).GetField("IndexToObjectAccessMap")?.GetValue(null) as
                     IReadOnlyDictionary<int, Func<TEntity, object?>>
-                ?? throw new InvalidOperationException($"Missing {nameof(GenericChunkSource<>)} index access map.");
+                ?? throw new InvalidOperationException($"Missing {nameof(GenericChunkSource<object>)} index access map.");
 
             var source1 = new GenericChunkSource<TEntity>(source, nameToIndex, indexToAccess);
 

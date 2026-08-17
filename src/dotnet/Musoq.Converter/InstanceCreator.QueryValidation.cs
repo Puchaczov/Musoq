@@ -10,10 +10,12 @@ public static partial class InstanceCreator
         if (rawQueryTree?.Expression is not StatementsArrayNode statementsArray)
             return;
 
-        var resultProducingCount = statementsArray.Statements.Count(s => IsResultProducingStatement(s.Node));
+        var resultProducingStatements = statementsArray.Statements
+            .Where(s => IsResultProducingStatement(s.Node))
+            .ToArray();
 
-        if (resultProducingCount > 1)
-            throw new MultiStatementQueryException();
+        if (resultProducingStatements.Length > 1)
+            throw new MultiStatementQueryException(resultProducingStatements[1].SpanOrEmpty());
     }
 
     private static bool IsResultProducingStatement(Node? node)

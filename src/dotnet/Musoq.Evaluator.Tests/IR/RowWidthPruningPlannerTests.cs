@@ -1,14 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
-using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Planning;
-using Musoq.Schema;
 using BoundaryRowShapePlanner = Musoq.Evaluator.IR.Planning.BoundaryRowShapePlanner;
 using PlanProperties = Musoq.Evaluator.IR.Planning.PlanProperties;
 

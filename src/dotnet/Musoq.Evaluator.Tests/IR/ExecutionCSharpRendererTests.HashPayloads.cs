@@ -1,7 +1,6 @@
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.IR.Execution;
 using ExecutionCSharpRenderer = Musoq.Targets.CSharpClr.ExecutionCSharpRenderer;
 
 namespace Musoq.Evaluator.Tests.IR;

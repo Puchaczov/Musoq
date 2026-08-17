@@ -1,13 +1,41 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 
 public partial class OrderByTests
 {
+    [TestMethod]
+    public void WhenOrderByUsesProjectionAlias_ShouldKeepCompatibilityBehaviorWithoutMq5009()
+    {
+        const string query = "select City as SortKey, Money from #A.Entities() order by SortKey";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            ["#A"] =
+            [
+                new BasicEntity("zeta", "city", 1m),
+                new BasicEntity("alpha", "city", 2m)
+            ]
+        };
+
+        var analysis = new QueryAnalyzer(
+            new BasicSchemaProvider<BasicEntity>(sources)).Analyze(query);
+
+        Assert.IsFalse(analysis.HasErrors, string.Join(" | ", analysis.Diagnostics));
+        Assert.IsFalse(analysis.Warnings.Any(static warning => (int)warning.Code == 5009));
+        Assert.IsNull(ErrorMetadataCatalog.Get((DiagnosticCode)5009));
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["alpha", 2m], ["zeta", 1m]);
+    }
+
     [TestMethod]
     public void WhenOrderByAscWithAliasedColumn_ShouldWork()
     {

@@ -1,19 +1,14 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
-using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
-using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using Musoq.Parser.Nodes;
-using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Converter;
 

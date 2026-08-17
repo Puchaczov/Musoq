@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Text.RegularExpressions;
+using System.Collections.Generic;
 
 namespace Musoq.Parser.Diagnostics;
 
@@ -28,8 +27,7 @@ public static class DiagnosticExceptionExtensions
     }
 
     /// <summary>
-    ///     Converts an exception to a diagnostic, falling back to a generic error if
-    ///     the exception doesn't implement IDiagnosticException.
+    ///     Converts an exception to a diagnostic, wrapping untyped failures as internal compiler failures.
     /// </summary>
     /// <param name="exception">The exception to convert.</param>
     /// <param name="sourceText">Optional source text for line/column information.</param>
@@ -39,14 +37,7 @@ public static class DiagnosticExceptionExtensions
         if (TryGetDiagnosticException(exception, out var diagnosticException))
             return diagnosticException.ToDiagnostic(sourceText);
 
-
-        var message = MakeUserFriendlyMessage(exception);
-        var code = GetFallbackDiagnosticCode(exception);
-
-        return Diagnostic.Error(
-            code,
-            message,
-            TextSpan.Empty);
+        return InternalDiagnosticException.ForCompiler(exception).ToDiagnostic(sourceText);
     }
 
     /// <summary>
@@ -59,47 +50,7 @@ public static class DiagnosticExceptionExtensions
     public static bool AddError(this DiagnosticBag bag, Exception exception, SourceText? sourceText)
     {
         var diagnostic = exception.ToDiagnosticOrGeneric(sourceText);
-        return bag.AddError(diagnostic.Code, diagnostic.Message, diagnostic.Span);
-    }
-
-    private static DiagnosticCode GetFallbackDiagnosticCode(Exception exception)
-    {
-        if (exception.Message.Contains("Unterminated string literal", StringComparison.OrdinalIgnoreCase))
-            return DiagnosticCode.MQ1002_UnterminatedString;
-
-        if (IsTableNotFoundException(exception))
-            return DiagnosticCode.MQ3003_UnknownTable;
-
-        if (exception is NullReferenceException or ArgumentNullException or IndexOutOfRangeException)
-            return DiagnosticCode.MQ2030_UnsupportedSyntax;
-
-        if (exception is NotSupportedException)
-            return DiagnosticCode.MQ2030_UnsupportedSyntax;
-
-        if (exception is KeyNotFoundException)
-            return DiagnosticCode.MQ3003_UnknownTable;
-
-        if (exception is ArgumentException argumentException &&
-            argumentException.Message.Contains("same key has already been added", StringComparison.OrdinalIgnoreCase))
-            return DiagnosticCode.MQ3021_DuplicateAlias;
-
-        if (exception is ArgumentException methodArgumentException &&
-            string.Equals(methodArgumentException.ParamName, "methodName", StringComparison.Ordinal) &&
-            methodArgumentException.Message.Contains("is not recognized", StringComparison.OrdinalIgnoreCase))
-            return DiagnosticCode.MQ3003_UnknownTable;
-
-        if (exception.Message.Contains("schemaName=", StringComparison.OrdinalIgnoreCase) &&
-            exception.Message.Contains("registry=null", StringComparison.OrdinalIgnoreCase))
-            return DiagnosticCode.MQ3010_UnknownSchema;
-
-        if (exception is InvalidOperationException invalidOperationException &&
-            invalidOperationException.Message.Contains("Stack empty", StringComparison.OrdinalIgnoreCase))
-            return DiagnosticCode.MQ2030_UnsupportedSyntax;
-
-        if (exception is InvalidOperationException)
-            return DiagnosticCode.MQ2030_UnsupportedSyntax;
-
-        return DiagnosticCode.MQ9999_Unknown;
+        return bag.Add(diagnostic);
     }
 
     private static bool TryGetDiagnosticException(Exception exception, out IDiagnosticException diagnosticException)
@@ -122,68 +73,5 @@ public static class DiagnosticExceptionExtensions
 
         diagnosticException = default!;
         return false;
-    }
-
-    private static string MakeUserFriendlyMessage(Exception exception)
-    {
-        var originalMessage = exception.Message;
-
-
-        if (IsTableNotFoundException(exception))
-        {
-            var tableName = string.IsNullOrWhiteSpace(originalMessage) ? "unknown" : originalMessage;
-            return $"Unknown table or data source '{tableName}'. Check the schema method name in the FROM clause.";
-        }
-
-
-        switch (exception)
-        {
-            case KeyNotFoundException:
-
-
-                if (originalMessage.Contains("was not present in the dictionary", StringComparison.Ordinal))
-                {
-                    var keyMatch = Regex.Match(originalMessage, @"'([^']+)'");
-                    if (keyMatch.Success)
-                        return $"Reference '{keyMatch.Groups[1].Value}' could not be resolved. " +
-                               "Check table names, aliases, and query structure near this location.";
-                }
-
-                return "A required reference could not be found. Check table names, aliases, and query structure.";
-
-            case NullReferenceException:
-                return "Query processing failed because a null reference was encountered. " +
-                       "This usually means the query structure is invalid or incomplete.";
-
-            case ArgumentNullException argNull:
-                return $"Required value '{argNull.ParamName}' was not provided. " +
-                       "Please verify your query is complete.";
-
-            case ArgumentException { ParamName: not null } arg:
-                return $"Invalid argument '{arg.ParamName}': {originalMessage}";
-
-            case InvalidOperationException:
-
-                return $"Query processing error: {originalMessage}";
-
-            case NotSupportedException:
-                return $"This query uses unsupported syntax or behavior: {originalMessage}";
-
-            case IndexOutOfRangeException:
-                return "Query processing failed because an index was out of range. " +
-                       "This usually means the query contains mismatched elements.";
-
-            default:
-
-                return $"Query processing failed: {originalMessage}";
-        }
-    }
-
-    private static bool IsTableNotFoundException(Exception exception)
-    {
-        return string.Equals(
-            exception.GetType().FullName,
-            "Musoq.Schema.Exceptions.TableNotFoundException",
-            StringComparison.Ordinal);
     }
 }

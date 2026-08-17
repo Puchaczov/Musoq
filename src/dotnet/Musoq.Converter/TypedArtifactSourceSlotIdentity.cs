@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Converter;
 
 public sealed record TypedArtifactSourceSlotIdentity

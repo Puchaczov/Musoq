@@ -14,10 +14,11 @@ internal static class CSharpReadModifierMetadata
             .OrderBy(static modifier => modifier.Key, StringComparer.Ordinal)
             .Select(static modifier => SyntaxFactory.InitializerExpression(
                 SyntaxKind.ComplexElementInitializerExpression,
-                SyntaxFactory.SeparatedList<ExpressionSyntax>([
+                SyntaxFactory.SeparatedList<ExpressionSyntax>(new ExpressionSyntax[]
+                {
                     CreateStringLiteral(modifier.Key),
                     CreateStringLiteral(modifier.Value)
-                ])));
+                })));
 
         return SyntaxFactory.ObjectCreationExpression(
                 SyntaxFactory.ParseTypeName("Dictionary<string, string>"))

@@ -217,10 +217,7 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should error and suggest = instead of ==
-        AssertHasOneOfErrorCodes(result, "== should suggest =",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2019_InvalidOperator,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "== should suggest =");
     }
 
     [TestMethod]
@@ -234,12 +231,7 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should suggest Concat() function
-        AssertHasOneOfErrorCodes(result, "|| should suggest Concat()",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2019_InvalidOperator,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ3007_InvalidOperandTypes,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "|| should suggest Concat()");
     }
 
     [TestMethod]
@@ -253,10 +245,7 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should error and suggest LIKE with appropriate workaround
-        AssertHasOneOfErrorCodes(result, "ILIKE not supported, suggest LIKE",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "ILIKE not supported, suggest LIKE");
     }
 
     [TestMethod]
@@ -270,10 +259,7 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should error and suggest ToString() or appropriate Cast function
-        AssertHasOneOfErrorCodes(result, ":: casting should suggest ToString() etc.",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3090_UnsupportedCastTarget, ":: casting should suggest ToString() etc.");
     }
 
     [TestMethod]
@@ -287,11 +273,7 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should suggest ToInt32()/ToString()/etc.
-        AssertHasOneOfErrorCodes(result, "CAST should suggest Musoq conversion functions",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "CAST should suggest Musoq conversion functions");
     }
 
     [TestMethod]
@@ -308,14 +290,7 @@ SELECT Name FROM #B.Entities()";
         // CONVERT(varchar, Population) parses as a function call CONVERT with args,
         // but 'varchar' is treated as a column reference (unknown) and
         // the method CONVERT cannot be resolved.
-        AssertHasOneOfErrorCodes(result, "CONVERT should suggest Musoq conversion functions",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3001_UnknownColumn, "CONVERT should suggest Musoq conversion functions");
     }
 
     [TestMethod]
@@ -358,11 +333,7 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should suggest Coalesce or Musoq equivalent
-        AssertHasOneOfErrorCodes(result, "NVL should suggest Coalesce or Musoq equivalent",
-            DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3086_UnknownCallable, "NVL should suggest Coalesce or Musoq equivalent");
     }
 
     [TestMethod]
@@ -376,11 +347,7 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should suggest Coalesce or Musoq equivalent
-        AssertHasOneOfErrorCodes(result, "ISNULL should suggest Coalesce or Musoq equivalent",
-            DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3087_InvalidCallableArity, "ISNULL should suggest Coalesce or Musoq equivalent");
     }
 
     [TestMethod]
@@ -450,10 +417,7 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should suggest ToString() or Concat()
-        AssertHasOneOfErrorCodes(result, "string + number should suggest ToString/Concat",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3007_InvalidOperandTypes,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3007_InvalidOperandTypes, "string + number should suggest ToString/Concat");
     }
 
     #endregion

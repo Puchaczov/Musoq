@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Optimization;

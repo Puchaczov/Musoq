@@ -148,26 +148,6 @@ public class EvaluatorExceptionsTests
 
     #endregion
 
-    #region SetOperatorMustHaveKeyColumnsException Tests
-
-    [TestMethod]
-    public void SetOperatorMustHaveKeyColumnsException_ShouldContainOperatorName()
-    {
-        // Arrange
-        var setOperator = "EXCEPT";
-
-        // Act
-        var exception = new SetOperatorMustHaveKeyColumnsException(setOperator);
-
-        // Assert
-        Assert.Contains(setOperator, exception.Message);
-        Assert.Contains("<key_columns>", exception.Message);
-        Assert.Contains("optional", exception.Message);
-        Assert.Contains("all projected values", exception.Message);
-    }
-
-    #endregion
-
     #region SetOperatorMustHaveSameQuantityOfColumnsException Tests
 
     [TestMethod]
@@ -346,6 +326,10 @@ public class EvaluatorExceptionsTests
         Assert.AreEqual("CompiledQuery", exception.QueryContext);
         Assert.AreEqual(phase, exception.ExecutionPhase);
         Assert.AreEqual(innerException, exception.InnerException);
+        Assert.IsNotNull(exception.Envelope);
+        Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, exception.Envelope.Code);
+        Assert.IsFalse(exception.FormatText().Contains("Data source error", StringComparison.Ordinal));
+        Assert.IsTrue(exception.FormatVerboseText().Contains("Data source error", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -425,7 +409,7 @@ public class EvaluatorExceptionsTests
     }
 
     [TestMethod]
-    public void VisitorException_WithKnownFallbackInnerException_ShouldUseMappedCode()
+    public void VisitorException_WithUntypedInnerException_ShouldUseInternalCode()
     {
         // Arrange
         var innerException = new NotSupportedException("Unsupported operation");
@@ -434,7 +418,7 @@ public class EvaluatorExceptionsTests
         var exception = new VisitorException("TestVisitor", "Visit", "Error occurred", innerException);
 
         // Assert
-        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, exception.Code);
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, exception.Code);
     }
 
     [TestMethod]

@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Targets.CSharpClr;

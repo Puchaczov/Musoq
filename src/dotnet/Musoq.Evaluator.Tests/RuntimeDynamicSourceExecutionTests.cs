@@ -6,17 +6,17 @@ using System.Linq.Expressions;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.CSharp.RuntimeBinder;
 using Musoq.Converter;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Exceptions;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Exceptions;
 using Musoq.Schema.Managers;
 using Musoq.Schema.Reflection;
+using Musoq.Parser.Diagnostics;
 using Musoq.Evaluator.Tests.Schema.RuntimeDynamic;
 using SchemaConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 using RuntimeSchemaColumn = Musoq.Schema.DataSources.SchemaColumn;
@@ -471,7 +471,9 @@ public sealed class RuntimeDynamicSourceExecutionTests
             _loggerResolver,
             new CompilationOptions(usePrimitiveTypeValidation: false));
 
-        Assert.ThrowsExactly<RuntimeBinderException>(() => query.Run(CancellationToken.None).Count);
+        var exception = Assert.ThrowsExactly<QueryExecutionException>(() => query.Run(CancellationToken.None).Count);
+        Assert.IsNotNull(exception.Envelope);
+        Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, exception.Envelope.Code);
     }
 
     private static RuntimeDynamicRow CreateRow(

@@ -1,8 +1,6 @@
 using System.Collections.Frozen;
 using System.Globalization;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
-using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.Tables;
 
 namespace Musoq.Targets.CSharpClr;

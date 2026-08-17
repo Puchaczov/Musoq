@@ -551,7 +551,7 @@ public class ToStringMethodsTests : PluginsTestBase
     [TestMethod]
     public void ToString_WhenEmptyStringArrayProvided_ShouldReturnEmpty()
     {
-        var result = Library.ToString([]);
+        var result = Library.ToString(Array.Empty<string>());
 
         Assert.AreEqual("", result);
     }

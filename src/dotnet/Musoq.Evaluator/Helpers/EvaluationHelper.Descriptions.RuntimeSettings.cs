@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using Musoq.Evaluator.RuntimeSettings;
 using Musoq.Evaluator.Tables;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Helpers;
 

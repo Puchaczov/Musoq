@@ -1,3 +1,4 @@
+using System.Text;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Helpers;
 using Musoq.Parser.Tokens;
@@ -174,6 +175,14 @@ public sealed partial class Lexer
                     else
                         throw new LexerException(message, absoluteSpan.Start, DiagnosticCode.MQ1004_InvalidEscapeSequence);
                 }
+                else if (OrdinaryStringEscapeRiskDetector.Find(innerText, start + 1) is
+                         { IsRootedPath: true, HasNonEscapeContent: true } risk)
+                {
+                    Diagnostics.AddWarning(
+                        DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape,
+                        risk.Span,
+                        risk.EscapeText);
+                }
 
                 Position = end + 1;
                 var unescaped = innerText.ToString().Unescape();
@@ -205,6 +214,59 @@ public sealed partial class Lexer
         }
 
         throw new LexerException("Unterminated string literal: missing closing '", start, DiagnosticCode.MQ1002_UnterminatedString);
+    }
+
+    private Token ScanRawStringLiteral()
+    {
+        var start = Position;
+        var contentStart = start + 2;
+        var end = contentStart;
+        var segmentStart = contentStart;
+        StringBuilder? valueBuilder = null;
+
+        while (end < Input.Length)
+        {
+            if (Input[end] != '\'')
+            {
+                end++;
+                continue;
+            }
+
+            if (end + 1 < Input.Length && Input[end + 1] == '\'')
+            {
+                valueBuilder ??= new StringBuilder();
+                valueBuilder.Append(Input, segmentStart, end - segmentStart);
+                valueBuilder.Append('\'');
+                end += 2;
+                segmentStart = end;
+                continue;
+            }
+
+            var value = valueBuilder is null
+                ? Input[contentStart..end]
+                : valueBuilder.Append(Input, segmentStart, end - segmentStart).ToString();
+
+            Position = end + 1;
+            return AssignToken(new StringLiteralToken(value, new TextSpan(start, Position - start)));
+        }
+
+        var message = "Unterminated raw string literal: missing closing '";
+        if (RecoverOnError)
+        {
+            var recoveryEnd = Math.Min(start + 2, Input.Length);
+            while (recoveryEnd < Input.Length &&
+                   Input[recoveryEnd] != '\n' &&
+                   Input[recoveryEnd] != '\r' &&
+                   Input[recoveryEnd] != ';')
+                recoveryEnd++;
+
+            var span = new TextSpan(start, recoveryEnd - start);
+            Diagnostics.AddError(DiagnosticCode.MQ1002_UnterminatedString, message, span);
+            Position = recoveryEnd;
+            return AssignToken(new ErrorToken(Input[start..recoveryEnd], span));
+        }
+
+        throw new LexerException(message, start, DiagnosticCode.MQ1002_UnterminatedString);
     }
 
 }

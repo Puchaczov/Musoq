@@ -79,7 +79,7 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(appendRecord.List.Name),
-                    SyntaxFactory.IdentifierName(nameof(List<>.Add))))
+                    SyntaxFactory.IdentifierName(nameof(List<object>.Add))))
             .WithArgumentList(CreateArgumentList(recordCreation));
 
         return SyntaxFactory.ExpressionStatement(invocation);
@@ -99,7 +99,7 @@ public sealed partial class ExecutionCSharpRenderer
                         SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
                             SyntaxFactory.IdentifierName(orderRecords.Source.Name),
-                            SyntaxFactory.IdentifierName(nameof(List<>.Sort))))
+                            SyntaxFactory.IdentifierName(nameof(List<object>.Sort))))
                     .WithArgumentList(CreateArgumentList(comparer))),
             ExecutionTakeOrderRecordSelection take => SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.AssignmentExpression(

@@ -6,14 +6,9 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.IR.Execution.Portability;
 using Musoq.Evaluator.Tests.External.Contracts;
-using Musoq.Targets.Abstractions;
-using Musoq.Targets.CSharpClr;
-using Musoq.Targets.Execution;
 using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Evaluator.Tests.Runtime;

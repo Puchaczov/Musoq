@@ -14,7 +14,6 @@ using Musoq.Converter.Tests.Schema;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Converter.Tests;
 
@@ -768,7 +767,7 @@ public partial class QueryInspectionTests
             _loggerResolver);
 
         Assert.IsFalse(result.Succeeded);
-        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, result.Errors[0].Code);
+        Assert.AreEqual(DiagnosticCode.MQ2040_InvalidDiagnosticCommand, result.Errors[0].Code);
         StringAssert.Contains(result.Errors[0].Message, "EXPLAIN without ANALYZE is not supported");
     }
 
@@ -782,7 +781,7 @@ public partial class QueryInspectionTests
             _loggerResolver);
 
         Assert.IsFalse(result.Succeeded);
-        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, result.Errors[0].Code);
+        Assert.AreEqual(DiagnosticCode.MQ2040_InvalidDiagnosticCommand, result.Errors[0].Code);
         StringAssert.Contains(result.Errors[0].Message, "Standalone ANALYZE is not implemented");
     }
 
@@ -796,7 +795,7 @@ public partial class QueryInspectionTests
             _loggerResolver);
 
         Assert.IsFalse(result.Succeeded);
-        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, result.Errors[0].Code);
+        Assert.AreEqual(DiagnosticCode.MQ2040_InvalidDiagnosticCommand, result.Errors[0].Code);
         StringAssert.Contains(result.Errors[0].Message, "Expected SELECT, FROM, WITH, PIVOT, or UNPIVOT");
     }
 

@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editing;
 using Musoq.Evaluator.Utils;
 
 namespace Musoq.Targets.CSharpClr;

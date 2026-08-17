@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Build;
@@ -34,10 +33,12 @@ public sealed class PortableSubsetConformanceTests
     }
 
     [TestMethod]
-    public void PortableSubset_WhenQueryUsesParameters_ShouldMatchCSharpClr()
+    [DataRow("param", DisplayName = "canonical parameter spelling")]
+    [DataRow("params", DisplayName = "plural parameter spelling")]
+    public void PortableSubset_WhenQueryUsesParameters_ShouldMatchCSharpClr(string keyword)
     {
         AssertConforms(
-            "param(p: int) select $p as Value from #system.dual() d",
+            $"{keyword}(p: int) select $p as Value from #system.dual() d",
             new Dictionary<string, PortableValue>(StringComparer.Ordinal)
             {
                 ["p"] = PortableValue.FromSigned(7, 32)

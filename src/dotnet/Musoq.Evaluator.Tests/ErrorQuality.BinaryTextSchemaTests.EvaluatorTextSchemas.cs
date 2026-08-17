@@ -21,11 +21,7 @@ select l.Data from #A.Entities() a cross apply Parse(a.Population) l";
         var result = analyzer.Analyze(query);
 
         // Assert — Parse() on integer should produce type error
-        AssertHasOneOfErrorCodes(result, "Parse() on integer column",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2030_UnsupportedSyntax, "Parse() on integer column");
     }
 
     #endregion
@@ -43,10 +39,7 @@ select l.Data from #A.Entities() a cross apply Parse(a.Population) l";
         var result = analyzer.Analyze(query);
 
         // Assert — undefined schema in Parse() should produce error
-        AssertHasOneOfErrorCodes(result, "Parse() referencing undefined schema",
-            DiagnosticCode.MQ4003_UndefinedSchemaReference,
-            DiagnosticCode.MQ3010_UnknownSchema,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3010_UnknownSchema, "Parse() referencing undefined schema");
     }
 
     #endregion
@@ -67,11 +60,7 @@ select l.Data from #A.Entities() a cross apply Parse(a.Name) l";
         var result = analyzer.Analyze(query);
 
         // Assert — Parse() with wrong arg count should produce error
-        AssertHasOneOfErrorCodes(result, "Parse() with wrong arg count",
-            DiagnosticCode.MQ3006_InvalidArgumentCount,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2030_UnsupportedSyntax, "Parse() with wrong arg count");
     }
 
     #endregion
@@ -92,10 +81,7 @@ select l.Content from #A.Entities() a cross apply Parse<LogLine>(a.Name) l";
         var result = analyzer.Analyze(query);
 
         // Assert — accessing non-existent text field should error
-        AssertHasOneOfErrorCodes(result, "accessing non-existent text field",
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3014_InvalidPropertyAccess,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3001_UnknownColumn, "accessing non-existent text field");
     }
 
     #endregion
@@ -116,10 +102,7 @@ select l.Magic from #A.Entities() a cross apply Parse(a.Name) l";
         var result = analyzer.Analyze(query);
 
         // Assert — Parse() with binary schema name may confuse
-        AssertHasOneOfErrorCodes(result, "Parse() with binary schema name",
-            DiagnosticCode.MQ4003_UndefinedSchemaReference,
-            DiagnosticCode.MQ3010_UnknownSchema,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2030_UnsupportedSyntax, "Parse() with binary schema name");
     }
 
     #endregion
@@ -140,10 +123,7 @@ select h.Data from #A.Entities() a cross apply Interpret<LogLine>(a.Name) h";
         var result = analyzer.Analyze(query);
 
         // Assert — Interpret() with text schema name should error
-        AssertHasOneOfErrorCodes(result, "Interpret() with text schema name",
-            DiagnosticCode.MQ4003_UndefinedSchemaReference,
-            DiagnosticCode.MQ3010_UnknownSchema,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2030_UnsupportedSyntax, "Interpret() with text schema name");
     }
 
     #endregion

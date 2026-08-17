@@ -5,7 +5,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Converter.Exceptions;
-using Musoq.Evaluator.Tests.Components;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.IR.Execution;
@@ -183,7 +183,8 @@ public sealed class PostfixCastMethodCallEvaluatorTests : BasicEntityTestBase
             "select TestMethodWithInjectEntityAndParameter('not_a_number')::int from #A.entities()",
             CreateSingleSource(new BasicEntity("POLAND", 500)));
 
-        Assert.Throws<FormatException>(() => _ = vm.Run().Count);
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run().Count);
+        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
     }
 
     [TestMethod]
@@ -193,7 +194,8 @@ public sealed class PostfixCastMethodCallEvaluatorTests : BasicEntityTestBase
             "select TestMethodWithInjectEntityAndParameter('256')::byte from #A.entities()",
             CreateSingleSource(new BasicEntity("POLAND", 500)));
 
-        Assert.Throws<OverflowException>(() => _ = vm.Run().Count);
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run().Count);
+        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
     }
 
     [TestMethod]
@@ -203,7 +205,8 @@ public sealed class PostfixCastMethodCallEvaluatorTests : BasicEntityTestBase
             "select JustReturnArrayOfString()::int from #A.entities()",
             CreateSingleSource(new BasicEntity("POLAND", 500)));
 
-        Assert.Throws<InvalidCastException>(() => _ = vm.Run().Count);
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run().Count);
+        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
     }
 
     [TestMethod]
@@ -213,7 +216,8 @@ public sealed class PostfixCastMethodCallEvaluatorTests : BasicEntityTestBase
             "select NothingToDo(Self)::Guid from #A.entities()",
             CreateSingleSource(new BasicEntity("POLAND", 500)));
 
-        Assert.Throws<InvalidCastException>(() => _ = vm.Run().Count);
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run().Count);
+        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
     }
 
     [TestMethod]
@@ -223,7 +227,9 @@ public sealed class PostfixCastMethodCallEvaluatorTests : BasicEntityTestBase
             "select ThrowException()::int from #A.entities()",
             CreateSingleSource(new BasicEntity("POLAND", 500)));
 
-        Assert.Throws<MethodCallThrownException>(() => _ = vm.Run().Count);
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run().Count);
+        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
+        Assert.IsInstanceOfType<MethodCallThrownException>(exception.InnerException);
     }
 
     [TestMethod]
@@ -235,8 +241,8 @@ public sealed class PostfixCastMethodCallEvaluatorTests : BasicEntityTestBase
 
         AssertSingleError(
             exception,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticPhase.Parse,
+            DiagnosticCode.MQ3090_UnsupportedCastTarget,
+            DiagnosticPhase.Bind,
             "CLR type names and C# aliases only");
     }
 

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Musoq.Evaluator.IR;
 
 namespace Musoq.Evaluator.IR.Execution;
 

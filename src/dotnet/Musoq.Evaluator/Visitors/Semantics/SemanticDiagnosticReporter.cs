@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Parser.Diagnostics;
@@ -31,6 +30,9 @@ internal sealed class SemanticDiagnosticReporter(DiagnosticContext? diagnosticCo
         if (diagnosticContext == null)
             return false;
 
+        if (diagnosticContext.HasErrors)
+            return true;
+
         diagnosticContext.ReportError(
             DiagnosticCode.MQ3027_InvalidExpressionType,
             $"Query output column '{field.FieldName}' has invalid type '{invalidType?.FullName ?? "null"}' in {context}. Only primitive types are allowed in query outputs.",
@@ -43,6 +45,9 @@ internal sealed class SemanticDiagnosticReporter(DiagnosticContext? diagnosticCo
         if (diagnosticContext == null)
             return false;
 
+        if (diagnosticContext.HasErrors)
+            return true;
+
         diagnosticContext.ReportError(
             DiagnosticCode.MQ3027_InvalidExpressionType,
             $"Expression '{expressionDescription}' has invalid type '{invalidType?.FullName ?? "null"}' in {context}. Only primitive types are allowed in query expressions.",
@@ -54,6 +59,13 @@ internal sealed class SemanticDiagnosticReporter(DiagnosticContext? diagnosticCo
     {
         if (diagnosticContext == null)
             return false;
+
+        // An invalid aggregate in GROUP BY owns the structural failure. The
+        // non-aggregate projection error is only a dependent consequence of
+        // the same malformed grouping shape.
+        if (diagnosticContext.Diagnostics.Any(diagnostic =>
+                diagnostic.Code == DiagnosticCode.MQ3092_AggregateInGroupBy))
+            return true;
 
         var groupByColumnList = groupByColumns.ToArray();
         var groupByList = groupByColumnList.Length > 0

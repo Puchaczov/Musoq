@@ -1,9 +1,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.Runtime;
-using ExecutionCSharpRenderer = Musoq.Targets.CSharpClr.ExecutionCSharpRenderer;
 
 namespace Musoq.Targets.CSharpClr;
 

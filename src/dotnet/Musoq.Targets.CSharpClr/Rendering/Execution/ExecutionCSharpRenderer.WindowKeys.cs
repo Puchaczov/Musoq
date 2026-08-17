@@ -111,7 +111,7 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName(partitionBuilder.Name),
-                        SyntaxFactory.IdentifierName(nameof(WindowPartitionBuilder<>.ToPartitionSet))))));
+                        SyntaxFactory.IdentifierName(nameof(WindowPartitionBuilder<object>.ToPartitionSet))))));
             return;
         }
 

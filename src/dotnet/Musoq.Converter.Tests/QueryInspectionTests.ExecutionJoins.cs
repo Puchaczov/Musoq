@@ -21,7 +21,7 @@ public partial class QueryInspectionTests
         Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(d.Dummy, e.Dummy", result.GeneratedCSharpCode);
         Assert.Contains("JoinStrategy [JoinStrategySelection] Inner -> HashJoin", result.PlanningText);
         Assert.Contains("Hash join selected because at least one equi key pair was found.", result.PlanningText);
-        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
     }
 
     [TestMethod]
@@ -297,7 +297,7 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         Assert.Contains("PhysicalNestedLoopJoin [Inner]", result.PhysicalPlanText);
         Assert.Contains("JoinStrategy [JoinStrategySelection] Inner -> NestedLoop", result.PlanningText);
-        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
         AssertExecutionPlanContains("ForEach [d in dRows]", result.ExecutionPlanText);
         AssertExecutionPlanContains("ForEach [e in eRowsBuffer]", result.ExecutionPlanText);
         Assert.Contains("If [(dummy <> dummy1)]", result.ExecutionPlanText);
@@ -312,8 +312,8 @@ public partial class QueryInspectionTests
 
         Assert.Contains("PhysicalNestedLoopJoin [Cross]", cross.PhysicalPlanText);
         Assert.Contains("PhysicalNestedLoopJoin [AsofInner]", asof.PhysicalPlanText);
-        Assert.IsFalse(cross.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
-        Assert.IsFalse(asof.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(cross.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
+        Assert.IsFalse(asof.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
     }
 
     [TestMethod]
@@ -325,7 +325,7 @@ public partial class QueryInspectionTests
 
         Assert.Contains("PhysicalNestedLoopJoin [Inner]", result.PhysicalPlanText);
         Assert.Contains("Hash and sort-merge joins are disabled by compilation options.", result.PlanningText);
-        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
     }
 
     [TestMethod]
@@ -337,7 +337,7 @@ public partial class QueryInspectionTests
 
         Assert.Contains("PhysicalNestedLoopJoin [Inner]", result.PhysicalPlanText);
         Assert.Contains("dynamic or expando", result.PlanningText);
-        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
     }
 
     [TestMethod]

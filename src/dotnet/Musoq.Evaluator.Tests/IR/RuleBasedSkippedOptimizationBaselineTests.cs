@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,7 +11,6 @@ using Musoq.Evaluator.IR.Optimization.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.Tests.Schema.Basic;
-using Musoq.Schema;
 using PlanProperties = Musoq.Evaluator.IR.Planning.PlanProperties;
 
 namespace Musoq.Evaluator.Tests.IR;

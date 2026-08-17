@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Nodes;

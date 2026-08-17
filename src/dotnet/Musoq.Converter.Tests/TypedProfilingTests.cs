@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
 using MusoqTypedProfileFixtures;
 using Musoq.Tests.Common;

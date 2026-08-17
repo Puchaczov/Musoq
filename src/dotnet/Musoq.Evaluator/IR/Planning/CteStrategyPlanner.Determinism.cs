@@ -1,5 +1,4 @@
 using Musoq.Evaluator.IR.Analysis;
-using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Planning;

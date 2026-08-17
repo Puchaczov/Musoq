@@ -90,7 +90,7 @@ public class DiagnosticErrorEnvelopeTests
     public void MusoqErrorEnvelope_FromDiagnostic_WhenLocationInvalid_ShouldHaveNullLineAndColumn()
     {
         var diagnostic = new Diagnostic(
-            DiagnosticCode.MQ9999_Unknown,
+            DiagnosticCode.MQ9001_InternalCompilerError,
             DiagnosticSeverity.Error,
             "Error",
             SourceLocation.None);
@@ -102,17 +102,19 @@ public class DiagnosticErrorEnvelopeTests
     }
 
     [TestMethod]
-    public void MusoqErrorEnvelope_FromException_ShouldCreateEnvelopeWithDetails()
+    public void MusoqErrorEnvelope_FromException_ShouldOmitSensitiveDetailsByDefault()
     {
         var inner = new InvalidOperationException("Something broke internally");
         var exception = new Exception("Query failed", inner);
 
         var envelope = MusoqErrorEnvelope.FromException(exception, "SELECT * FROM #test.data() t");
 
-        Assert.AreEqual(DiagnosticCode.MQ9999_Unknown, envelope.Code);
+        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, envelope.Code);
         Assert.AreEqual(DiagnosticSeverity.Error, envelope.Severity);
-        Assert.IsNotNull(envelope.Details);
-        Assert.AreEqual("Something broke internally", envelope.Details);
+        Assert.IsNull(envelope.Details);
+
+        var verbose = MusoqErrorEnvelope.FromExceptionVerbose(exception, "SELECT * FROM #test.data() t");
+        Assert.AreEqual("Something broke internally", verbose.Details);
     }
 
     [TestMethod]
@@ -120,7 +122,7 @@ public class DiagnosticErrorEnvelopeTests
     {
         Assert.Throws<ArgumentNullException>(
             () => new MusoqErrorEnvelope(
-                DiagnosticCode.MQ9999_Unknown,
+                DiagnosticCode.MQ9001_InternalCompilerError,
                 DiagnosticSeverity.Error,
                 DiagnosticPhase.Runtime,
                 null!,
@@ -168,7 +170,7 @@ public class DiagnosticErrorEnvelopeTests
     public void MusoqErrorEnvelopeFormatter_FormatText_WhenNoLocation_ShouldShowRuntime()
     {
         var envelope = CreateTestEnvelope(
-            DiagnosticCode.MQ7001_DataSourceBindingFailed,
+            DiagnosticCode.MQ7010_DataSourceOpenFailed,
             DiagnosticSeverity.Error,
             DiagnosticPhase.Runtime,
             "Binding failed");
@@ -256,7 +258,7 @@ public class DiagnosticErrorEnvelopeTests
     public void MusoqErrorEnvelopeFormatter_FormatJson_WhenNoLocation_ShouldOmitLocationBlock()
     {
         var envelope = CreateTestEnvelope(
-            DiagnosticCode.MQ9999_Unknown,
+            DiagnosticCode.MQ9001_InternalCompilerError,
             DiagnosticSeverity.Error,
             DiagnosticPhase.Runtime,
             "Error");
@@ -270,7 +272,7 @@ public class DiagnosticErrorEnvelopeTests
     public void MusoqErrorEnvelopeFormatter_FormatJson_ShouldEscapeSpecialCharacters()
     {
         var envelope = CreateTestEnvelope(
-            DiagnosticCode.MQ9999_Unknown,
+            DiagnosticCode.MQ9001_InternalCompilerError,
             DiagnosticSeverity.Error,
             DiagnosticPhase.Runtime,
             "Error with \"quotes\" and\nnewline");

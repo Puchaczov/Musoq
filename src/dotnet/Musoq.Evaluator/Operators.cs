@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+
 using Musoq.Evaluator.Runtime;
 
 namespace Musoq.Evaluator;
@@ -16,8 +17,15 @@ public partial class Operators
         if (content is null || searchFor is null)
             return false;
 
-        var matcher = LikeMatcherCache.GetOrAdd(searchFor, static pattern => CreateLikeMatcher(pattern));
-        return matcher(content);
+        try
+        {
+            var matcher = LikeMatcherCache.GetOrAdd(searchFor, static pattern => CreateLikeMatcher(pattern));
+            return matcher(content);
+        }
+        catch (RegexMatchTimeoutException)
+        {
+            throw;
+        }
     }
 
     public bool RLike(string? content, string? pattern)
@@ -25,10 +33,17 @@ public partial class Operators
         if (content is null || pattern is null)
             return false;
 
-        var regex = RLikePatternCache.GetOrAdd(pattern, static p =>
-            new Regex(p, RegexOptions.Compiled, RuntimeCacheOptions.DefaultRegexTimeout));
+        try
+        {
+            var regex = RLikePatternCache.GetOrAdd(pattern, static p =>
+                new Regex(p, RegexOptions.Compiled, RuntimeCacheOptions.DefaultRegexTimeout));
 
-        return regex.IsMatch(content);
+            return regex.IsMatch(content);
+        }
+        catch (RegexMatchTimeoutException)
+        {
+            throw;
+        }
     }
 
     public bool Contains<T>(T? value, T?[]? values)

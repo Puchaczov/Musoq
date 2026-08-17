@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis.CSharp;
-using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Targets.CSharpClr;

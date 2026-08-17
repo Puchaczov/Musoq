@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -89,11 +88,11 @@ public sealed partial class ExecutionCSharpRenderer
         var valueRead = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(valueName),
-            SyntaxFactory.IdentifierName(nameof(Nullable<>.Value)));
+            SyntaxFactory.IdentifierName(nameof(Nullable<int>.Value)));
         var hasValueCheck = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(valueName),
-            SyntaxFactory.IdentifierName(nameof(Nullable<>.HasValue)));
+            SyntaxFactory.IdentifierName(nameof(Nullable<int>.HasValue)));
 
         var body = kernel.Descriptor.Function switch
         {
@@ -206,7 +205,7 @@ public sealed partial class ExecutionCSharpRenderer
             ? SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.IdentifierName(valueName),
-                SyntaxFactory.IdentifierName(nameof(Nullable<>.Value)))
+                SyntaxFactory.IdentifierName(nameof(Nullable<int>.Value)))
             : SyntaxFactory.IdentifierName(valueName);
     }
 

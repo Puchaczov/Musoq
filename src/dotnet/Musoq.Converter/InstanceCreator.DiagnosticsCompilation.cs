@@ -133,6 +133,12 @@ public static partial class InstanceCreator
             caughtException = ex;
             diagnosticContext.ReportException(ex);
         }
+        catch (Exception ex)
+        {
+            caughtException = ex;
+            if (!diagnosticContext.HasErrors)
+                diagnosticContext.ReportException(InternalDiagnosticException.ForCompiler(ex));
+        }
 
         var diagnostics = diagnosticContext.Diagnostics.ToList();
 
@@ -175,21 +181,38 @@ public static partial class InstanceCreator
                     canonicalContract);
             }
 
-            var canonicalRunnableStarted = Stopwatch.GetTimestamp();
-            var canonicalRunnable = CreateRunnable(canonicalCompilation, items);
-            canonicalRunnable.Logger = loggerResolver.ResolveLogger();
-            telemetry.AddPhase("canonical-cache-hit-runnable", canonicalRunnableStarted);
-            telemetry.SetArtifactIdentity(
-                canonicalCompilation.Template.RunnableTypeName,
-                emitted: false,
-                loaded: false);
-            telemetry.SetBindingIdentity($"{schemaProvider.GetType().AssemblyQualifiedName}|{items.QueryResultMode}");
-            telemetry.SetCacheOutcome("canonical-hit");
-            return BuildResult.Success(
-                new CompiledQuery(canonicalRunnable),
-                diagnostics,
-                script,
-                items);
+            try
+            {
+                var canonicalRunnableStarted = Stopwatch.GetTimestamp();
+                var canonicalRunnable = CreateRunnable(canonicalCompilation, items);
+                canonicalRunnable.Logger = loggerResolver.ResolveLogger();
+                telemetry.AddPhase("canonical-cache-hit-runnable", canonicalRunnableStarted);
+                telemetry.SetArtifactIdentity(
+                    canonicalCompilation.Template.RunnableTypeName,
+                    emitted: false,
+                    loaded: false);
+                telemetry.SetBindingIdentity($"{schemaProvider.GetType().AssemblyQualifiedName}|{items.QueryResultMode}");
+                telemetry.SetCacheOutcome("canonical-hit");
+                return BuildResult.Success(
+                    new CompiledQuery(canonicalRunnable),
+                    diagnosticContext.Diagnostics.ToList(),
+                    script,
+                    items);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                caughtException = ex;
+                diagnosticContext.ReportException(InternalDiagnosticException.ForCompiler(ex));
+                return BuildResult.Failure(
+                    diagnosticContext.Diagnostics.ToList(),
+                    script,
+                    caughtException,
+                    items);
+            }
         }
 
         if (canonicalContract is not null)
@@ -206,32 +229,59 @@ public static partial class InstanceCreator
             diagnosticContext.ReportException(ce);
             return BuildResult.Failure(diagnosticContext.Diagnostics.ToList(), script, caughtException, items);
         }
-
-        Type runnableType;
-        using (EvaluatorPerformanceTelemetry.BeginPhase("load-runnable-type"))
-            runnableType = LoadRunnableType(items);
-
-        var runnableStarted = Stopwatch.GetTimestamp();
-        var runnable = CreateRunnable(
-            runnableType,
-            CreateRuntimeBinding(items));
-        runnable.Logger = loggerResolver.ResolveLogger();
-        telemetry.AddPhase("create-runnable", runnableStarted);
-        telemetry.SetArtifactIdentity(runnableType.FullName ?? runnableType.Name, emitted: true, loaded: true);
-        telemetry.SetBindingIdentity($"{items.SchemaProvider.GetType().AssemblyQualifiedName}|{items.QueryResultMode}");
-
-        if (cacheKey.HasValue && CanUseExecutionCompilationCache(items))
+        catch (OperationCanceledException)
         {
-            var cacheStoreStarted = Stopwatch.GetTimestamp();
-            StoreExecutionCompilation(
-                cacheKey.Value,
-                CreateCachedExecutableArtifact(cacheKey.Value.ExecutionTarget, runnableType),
-                semanticContractFingerprint!,
-                runnableType.FullName ?? runnableType.Name,
-                canonicalContract);
-            telemetry.AddPhase("cache-store", cacheStoreStarted);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            caughtException = ex;
+            diagnosticContext.ReportException(InternalDiagnosticException.ForCompiler(ex));
+            return BuildResult.Failure(diagnosticContext.Diagnostics.ToList(), script, caughtException, items);
         }
 
-        return BuildResult.Success(new CompiledQuery(runnable), diagnostics, script, items);
+        try
+        {
+            Type runnableType;
+            using (EvaluatorPerformanceTelemetry.BeginPhase("load-runnable-type"))
+                runnableType = LoadRunnableType(items);
+
+            var runnableStarted = Stopwatch.GetTimestamp();
+            var runnable = CreateRunnable(
+                runnableType,
+                CreateRuntimeBinding(items));
+            runnable.Logger = loggerResolver.ResolveLogger();
+            telemetry.AddPhase("create-runnable", runnableStarted);
+            telemetry.SetArtifactIdentity(runnableType.FullName ?? runnableType.Name, emitted: true, loaded: true);
+            telemetry.SetBindingIdentity($"{items.SchemaProvider.GetType().AssemblyQualifiedName}|{items.QueryResultMode}");
+
+            if (cacheKey.HasValue && CanUseExecutionCompilationCache(items))
+            {
+                var cacheStoreStarted = Stopwatch.GetTimestamp();
+                StoreExecutionCompilation(
+                    cacheKey.Value,
+                    CreateCachedExecutableArtifact(cacheKey.Value.ExecutionTarget, runnableType),
+                    semanticContractFingerprint!,
+                    runnableType.FullName ?? runnableType.Name,
+                    canonicalContract);
+                telemetry.AddPhase("cache-store", cacheStoreStarted);
+            }
+
+            return BuildResult.Success(new CompiledQuery(runnable), diagnosticContext.Diagnostics.ToList(), script, items);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            caughtException = ex;
+            diagnosticContext.ReportException(InternalDiagnosticException.ForCompiler(ex));
+            return BuildResult.Failure(
+                diagnosticContext.Diagnostics.ToList(),
+                script,
+                caughtException,
+                items);
+        }
     }
 }

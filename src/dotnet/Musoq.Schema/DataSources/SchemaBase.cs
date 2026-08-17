@@ -183,14 +183,21 @@ public abstract class SchemaBase : ISchema
         if (methods.Length == 0)
         {
             var available = getAvailableNames();
-            throw SchemaArgumentException.ForInvalidMethodName(displayName, available);
+            throw SchemaArgumentException.ForInvalidMethodName(
+                displayName,
+                available,
+                reason: "unknown-source");
         }
 
         if (!TryMatchConstructorWithParams(methods, parameters, out var constructorInfo))
         {
             var availableSignatures = methods.Select(GetMethodSignature).ToArray();
             var providedTypes = parameters.Select(p => p?.GetType().Name ?? "null").ToArray();
-            throw MethodResolutionException.ForUnresolvedMethod(displayName, providedTypes, availableSignatures);
+            throw MethodResolutionException.ForUnresolvedMethod(
+                displayName,
+                providedTypes,
+                availableSignatures,
+                resolutionReason: "no-matching-overload");
         }
 
         if (transformParameters != null)

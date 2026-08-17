@@ -1,3 +1,4 @@
+using Musoq.Evaluator.Helpers;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 
@@ -44,6 +45,13 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         _scriptVariables.TryAddDefinition(node, _scriptParameters.DefinitionsByName);
+        if (PrimitiveTypeResolver.TryResolveDeclarationType(node.DeclaredTypeName, out var variableType) &&
+            variableType == typeof(string))
+            SuspiciousOrdinaryStringEscapeDiagnostics.ReportRelativePathRisk(
+                DiagnosticContext,
+                node.Initializer,
+                SuspiciousOrdinaryStringEscapeDiagnostics.IsPathSensitiveName(node.Name));
+
         PushSemanticNode(new ScriptVariableDeclarationNode(node.Name, node.TypeName, node.IsNullable, node.Initializer, node.Span));
     }
 

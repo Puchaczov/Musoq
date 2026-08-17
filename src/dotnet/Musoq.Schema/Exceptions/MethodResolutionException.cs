@@ -1,21 +1,26 @@
+using Musoq.Parser;
+using Musoq.Parser.Diagnostics;
+
 namespace Musoq.Schema.Exceptions;
 
 /// <summary>
 ///     Exception thrown when method resolution fails in schema operations.
 ///     Provides detailed information about the failed method resolution including available alternatives.
 /// </summary>
-public class MethodResolutionException : InvalidOperationException
+public class MethodResolutionException : InvalidOperationException, IDiagnosticException
 {
     public MethodResolutionException(
         string methodName,
         string[] providedParameterTypes,
         string[] availableSignatures,
-        string message)
+        string message,
+        string resolutionReason = "no-matching-overload")
         : base(message)
     {
         MethodName = methodName;
         ProvidedParameterTypes = providedParameterTypes;
         AvailableSignatures = availableSignatures;
+        ResolutionReason = resolutionReason;
     }
 
     public MethodResolutionException(string message, Exception innerException)
@@ -24,6 +29,7 @@ public class MethodResolutionException : InvalidOperationException
         MethodName = string.Empty;
         ProvidedParameterTypes = [];
         AvailableSignatures = [];
+        ResolutionReason = "unknown";
     }
 
     public MethodResolutionException(string message)
@@ -32,6 +38,7 @@ public class MethodResolutionException : InvalidOperationException
         MethodName = string.Empty;
         ProvidedParameterTypes = [];
         AvailableSignatures = [];
+        ResolutionReason = "unknown";
     }
 
     public MethodResolutionException()
@@ -39,16 +46,42 @@ public class MethodResolutionException : InvalidOperationException
         MethodName = string.Empty;
         ProvidedParameterTypes = [];
         AvailableSignatures = [];
+        ResolutionReason = "unknown";
     }
 
     public string MethodName { get; }
     public string[] ProvidedParameterTypes { get; }
     public string[] AvailableSignatures { get; }
 
+    public string ResolutionReason { get; }
+
+    /// <summary>Gets the precise callable-resolution diagnostic for this failure.</summary>
+    public DiagnosticCode Code => ResolutionReason switch
+    {
+        "unknown-callable" => DiagnosticCode.MQ3086_UnknownCallable,
+        "invalid-arity" => DiagnosticCode.MQ3087_InvalidCallableArity,
+        "ambiguous-overload" => DiagnosticCode.MQ3089_AmbiguousCallableOverload,
+        _ => DiagnosticCode.MQ3088_NoMatchingCallableOverload
+    };
+
+    /// <inheritdoc />
+    public TextSpan? Span => null;
+
+    /// <inheritdoc />
+    public Diagnostic ToDiagnostic(SourceText? sourceText = null)
+    {
+        return Diagnostic.Error(Code, Message, TextSpan.Empty)
+            .WithArgument("methodName", MethodName)
+            .WithArgument("providedTypes", string.Join(", ", ProvidedParameterTypes))
+            .WithArgument("candidateSignatures", string.Join("; ", AvailableSignatures))
+            .WithArgument("resolutionReason", ResolutionReason);
+    }
+
     public static MethodResolutionException ForUnresolvedMethod(
         string methodName,
         string[] providedParameterTypes,
-        string[] availableSignatures)
+        string[] availableSignatures,
+        string resolutionReason = "no-matching-overload")
     {
         ArgumentNullException.ThrowIfNull(providedParameterTypes);
         ArgumentNullException.ThrowIfNull(availableSignatures);
@@ -63,7 +96,12 @@ public class MethodResolutionException : InvalidOperationException
                       $"{availableOptions} " +
                       "Please check the method name and parameter types.";
 
-        return new MethodResolutionException(methodName, providedParameterTypes, availableSignatures, message);
+        return new MethodResolutionException(
+            methodName,
+            providedParameterTypes,
+            availableSignatures,
+            message,
+            resolutionReason);
     }
 
     public static MethodResolutionException ForAmbiguousMethod(
@@ -78,6 +116,11 @@ public class MethodResolutionException : InvalidOperationException
                       $"Multiple method signatures match: {matches}. " +
                       "Please provide more specific parameter types to resolve the ambiguity.";
 
-        return new MethodResolutionException(methodName, providedParameterTypes, matchingSignatures, message);
+        return new MethodResolutionException(
+            methodName,
+            providedParameterTypes,
+            matchingSignatures,
+            message,
+            "ambiguous-overload");
     }
 }

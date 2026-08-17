@@ -2,6 +2,7 @@ using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Visitors.Helpers;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using InMemoryGroupedFromNode = Musoq.Evaluator.Parser.InMemoryGroupedFromNode;
 
@@ -18,7 +19,9 @@ public sealed partial class RewriteQueryVisitor
             if (QueryRewriteUtilities.IsQueryWithMixedAggregateAndNonAggregateMethods(split))
             {
                 throw new ConstructionNotYetSupported(
-                    "Mixing aggregate and non aggregate methods without GROUP BY is not supported by query rewrite.");
+                    "This aggregate projection shape is not supported without GROUP BY.",
+                    DiagnosticCode.MQ3097_UnsupportedAggregateProjection,
+                    context.Select.SpanOrEmpty());
             }
         }
 

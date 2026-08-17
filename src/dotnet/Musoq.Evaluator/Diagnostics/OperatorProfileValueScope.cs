@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Evaluator.Diagnostics;
 
 public struct OperatorProfileValueScope : IDisposable

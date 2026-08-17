@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Nodes;
-using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Evaluator.IR.Optimization.Logical;
 

@@ -1,4 +1,3 @@
-using Musoq.Evaluator;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Physical;

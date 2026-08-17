@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Physical;
-using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Evaluator.IR.Optimization.Physical;
 

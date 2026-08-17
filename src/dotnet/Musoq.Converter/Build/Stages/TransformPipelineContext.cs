@@ -7,7 +7,6 @@ using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Converter.Build;
 
@@ -20,6 +19,8 @@ internal sealed record TransformPipelineContext
     public required CompilationOptions CompilationOptions { get; init; }
 
     public required DiagnosticContext DiagnosticContext { get; init; }
+
+    public SourceText? SourceText { get; init; }
 
     public SchemaRegistry? SchemaRegistry { get; init; }
 
@@ -62,6 +63,7 @@ internal sealed record TransformPipelineContext
             SchemaProvider = items.SchemaProvider,
             CompilationOptions = items.CompilationOptions,
             DiagnosticContext = items.DiagnosticContext,
+            SourceText = items.SourceText,
             SchemaRegistry = items.SchemaRegistry,
             EmitExecutionPlanText = items.EmitExecutionPlanText,
             StopAfterPlanning = items.StopAfterPlanning,

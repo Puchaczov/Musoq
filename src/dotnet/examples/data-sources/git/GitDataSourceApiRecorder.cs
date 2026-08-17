@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using Musoq.Schema;
 using Musoq.Schema.Diagnostics;
 using Musoq.Schema.Optimization;

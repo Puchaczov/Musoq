@@ -1,8 +1,6 @@
-using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Logical.Rewriting;
-using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Evaluator.IR.Optimization.Logical;
 
@@ -94,7 +92,6 @@ internal sealed partial class LogicalConstantFoldingPass : ILogicalNormalization
     private static LogicalNode RewriteFilter(FilterNode node, LogicalConstantExpressionFolder folder)
     {
         var predicate = folder.Visit(node.Predicate);
-        folder.ReportConstantCondition(predicate, "WHERE");
         return ReferenceEquals(predicate, node.Predicate)
             ? node
             : new FilterNode(predicate, node.Input);
@@ -103,7 +100,6 @@ internal sealed partial class LogicalConstantFoldingPass : ILogicalNormalization
     private static LogicalNode RewriteHaving(HavingFilterNode node, LogicalConstantExpressionFolder folder)
     {
         var predicate = folder.Visit(node.Predicate);
-        folder.ReportConstantCondition(predicate, "HAVING");
         return ReferenceEquals(predicate, node.Predicate)
             ? node
             : new HavingFilterNode(predicate, node.Input);
@@ -143,7 +139,6 @@ internal sealed partial class LogicalConstantFoldingPass : ILogicalNormalization
     private static LogicalNode RewriteQualify(QualifyFilterNode node, LogicalConstantExpressionFolder folder)
     {
         var predicate = folder.Visit(node.Predicate);
-        folder.ReportConstantCondition(predicate, "QUALIFY");
         return ReferenceEquals(predicate, node.Predicate)
             ? node
             : new QualifyFilterNode(predicate, node.Input);

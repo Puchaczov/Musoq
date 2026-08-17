@@ -17,28 +17,19 @@ internal static partial class SemanticErrorMetadataCatalog
             "Core Spec - Column References");
 
         yield return Entry(
-            DiagnosticCode.MQ3002_AmbiguousColumn,
-            "The column name matches columns in multiple data sources and is ambiguous.",
-            ["Qualify the column with a table alias: alias.ColumnName."],
-            "Core Spec - Column References");
-
-        yield return Entry(
-            DiagnosticCode.MQ3003_UnknownTable,
-            "The referenced table or schema method could not be resolved in the selected schema.",
+            DiagnosticCode.MQ3085_UnknownSource,
+            "The schema is available, but it does not expose the requested source name.",
             [
-                "Check the method name after the schema prefix, for example #schema.method().",
-                "Verify the schema exposes this data source."
+                "Check the source name after the schema prefix for spelling errors.",
+                "Use DESC to inspect the sources exposed by the schema."
             ],
             "Core Spec - FROM Clause");
 
         yield return Entry(
-            DiagnosticCode.MQ3004_UnknownFunction,
-            "No function with this name and compatible arguments could be found.",
-            [
-                "Check the function name for typos.",
-                "Verify the argument types match an available overload."
-            ],
-            "Core Spec - Functions");
+            DiagnosticCode.MQ3002_AmbiguousColumn,
+            "The column name matches columns in multiple data sources and is ambiguous.",
+            ["Qualify the column with a table alias: alias.ColumnName."],
+            "Core Spec - Column References");
 
         yield return Entry(
             DiagnosticCode.MQ3005_TypeMismatch,
@@ -48,15 +39,6 @@ internal static partial class SemanticErrorMetadataCatalog
                 "Verify the column type matches the expected usage."
             ],
             "Core Spec - Type System");
-
-        yield return Entry(
-            DiagnosticCode.MQ3006_InvalidArgumentCount,
-            "The function was called with the wrong number of arguments.",
-            [
-                "Check the function signature for the expected argument count.",
-                "Verify you are calling the correct overload."
-            ],
-            "Core Spec - Functions");
 
         yield return Entry(
             DiagnosticCode.MQ3007_InvalidOperandTypes,
@@ -72,15 +54,6 @@ internal static partial class SemanticErrorMetadataCatalog
             "Division by zero was detected in a constant expression.",
             ["Add a CASE WHEN check to guard against dividing by zero."],
             "Core Spec - Arithmetic Operators");
-
-        yield return Entry(
-            DiagnosticCode.MQ3009_NullReference,
-            "A binding path may dereference a null value.",
-            [
-                "Add a null guard before accessing the member.",
-                "Use a CASE expression or nullable-aware source shape when nulls are expected."
-            ],
-            "Core Spec - Null Handling");
 
         yield return Entry(
             DiagnosticCode.MQ3010_UnknownSchema,
@@ -108,24 +81,6 @@ internal static partial class SemanticErrorMetadataCatalog
                 "Wrap the column in an aggregate function such as Count, Sum, Min, or Max."
             ],
             "Core Spec - GROUP BY and Aggregation");
-
-        yield return Entry(
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            "No method overload matches the argument types provided.",
-            [
-                "Use explicit type conversions such as ToInt32 or ToString.",
-                "Check the method name for typos."
-            ],
-            "Core Spec - Method Resolution");
-
-        yield return Entry(
-            DiagnosticCode.MQ3014_InvalidPropertyAccess,
-            "The referenced property does not exist on the object type.",
-            [
-                "Check the property name for typos.",
-                "Verify the object type exposes this property."
-            ],
-            "Core Spec - Property Access");
 
         yield return Entry(
             DiagnosticCode.MQ3015_UnknownAlias,
@@ -238,33 +193,6 @@ internal static partial class SemanticErrorMetadataCatalog
                 "Verify the object type exposes this property before accessing it."
             ],
             "Core Spec - Property Access");
-
-        yield return Entry(
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            "No method overload matches the provided argument types.",
-            [
-                "Check argument types and convert if necessary.",
-                "Verify the method name is correct."
-            ],
-            "Core Spec - Method Resolution");
-
-        yield return Entry(
-            DiagnosticCode.MQ3030_ConstructionNotSupported,
-            "This syntax or construction is not supported in the current version of Musoq.",
-            [
-                "Rewrite using a supported equivalent.",
-                "Check the documentation for supported constructions."
-            ],
-            "Core Spec - Unsupported Constructions");
-
-        yield return Entry(
-            DiagnosticCode.MQ3031_SetOperatorMissingKeys,
-            "Legacy set-operator missing-key diagnostic. Omitted keys and empty key lists now compare all projected values.",
-            [
-                "Omit the key list, or write (), to compare all projected values.",
-                "Use an explicit key list such as UNION (key1, key2) only when comparing a subset."
-            ],
-            "Core Spec - Set Operators");
 
         yield return Entry(
             DiagnosticCode.MQ3032_ArithmeticOverflow,

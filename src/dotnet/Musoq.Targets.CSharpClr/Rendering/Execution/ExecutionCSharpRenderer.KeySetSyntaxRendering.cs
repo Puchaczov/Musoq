@@ -16,7 +16,7 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName(setVariableName),
-                        SyntaxFactory.IdentifierName(nameof(HashSet<>.Add))))
+                        SyntaxFactory.IdentifierName(nameof(HashSet<object>.Add))))
                 .WithArgumentList(CreateArgumentList(SyntaxFactory.IdentifierName(keyVariableName))));
     }
 
@@ -28,7 +28,7 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(setVariableName),
-                    SyntaxFactory.IdentifierName(nameof(HashSet<>.Contains))))
+                        SyntaxFactory.IdentifierName(nameof(HashSet<object>.Contains))))
             .WithArgumentList(CreateArgumentList(SyntaxFactory.IdentifierName(keyVariableName)));
     }
 

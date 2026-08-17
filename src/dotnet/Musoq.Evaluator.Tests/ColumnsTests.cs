@@ -27,7 +27,7 @@ public class ColumnsTests : BasicEntityTestBase
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3028_UnknownProperty, DiagnosticPhase.Bind, "Self");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3028_UnknownProperty, DiagnosticPhase.Bind, "NonExistingProperty");
     }
 
     [TestMethod]
@@ -128,7 +128,7 @@ public class ColumnsTests : BasicEntityTestBase
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3028_UnknownProperty, DiagnosticPhase.Bind, "Self");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3028_UnknownProperty, DiagnosticPhase.Bind, "Other[NonExistingProperty]");
     }
 
     [TestMethod]
@@ -162,7 +162,7 @@ public class ColumnsTests : BasicEntityTestBase
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3028_UnknownProperty, DiagnosticPhase.Bind, "Self");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3017_ObjectNotArray, DiagnosticPhase.Bind, "Other");
     }
 
     [TestMethod]

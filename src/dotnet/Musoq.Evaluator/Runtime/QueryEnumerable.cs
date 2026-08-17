@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using Musoq.Evaluator.Exceptions;
 
 namespace Musoq.Evaluator.Runtime;
 
@@ -37,7 +38,7 @@ public sealed class QueryEnumerable<T> : IQueryRows<T>
         catch (Exception ex)
         {
             scope.Fail(ex);
-            throw;
+            throw ConvertExecutionFailure("RowEnumeration", ex);
         }
     }
 
@@ -61,7 +62,12 @@ public sealed class QueryEnumerable<T> : IQueryRows<T>
         {
             cancellation.Dispose();
             _onException?.Invoke(ex);
-            throw;
+            throw ConvertExecutionFailure("RowEnumeration", ex);
         }
+    }
+
+    private static Exception ConvertExecutionFailure(string phase, Exception exception)
+    {
+        return ExecutionFailureConverter.Convert(phase, exception);
     }
 }

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Musoq.Evaluator.Tests.Exceptions;
 using Musoq.Schema;
+using Musoq.Schema.Exceptions;
 
 namespace Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -12,7 +12,7 @@ public class BasicSchemaProvider<T>(IDictionary<string, IEnumerable<T>> values) 
     public virtual ISchema GetSchema(string schema)
     {
         if (!Values.TryGetValue(schema, out var value))
-            throw new SchemaNotFoundException();
+            throw new SourceNotFoundException($"Schema '{schema}' was not found.");
 
         return new GenericSchema<BasicEntity, BasicEntityTable>(value, BasicEntity.TestNameToIndexMap,
             BasicEntity.TestIndexToObjectAccessMap);

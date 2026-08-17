@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -208,7 +207,7 @@ public sealed partial class ExecutionCSharpRenderer
             ? SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.IdentifierName(valueName),
-                SyntaxFactory.IdentifierName(nameof(Nullable<>.Value)))
+                SyntaxFactory.IdentifierName(nameof(Nullable<int>.Value)))
             : (ExpressionSyntax)SyntaxFactory.IdentifierName(valueName);
 
         return CastIfNeeded(value, typeof(decimal));
@@ -226,7 +225,7 @@ public sealed partial class ExecutionCSharpRenderer
             return SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 value,
-                SyntaxFactory.IdentifierName(nameof(Nullable<>.HasValue)));
+                SyntaxFactory.IdentifierName(nameof(Nullable<int>.HasValue)));
         }
 
         if (!inputType.IsValueType)

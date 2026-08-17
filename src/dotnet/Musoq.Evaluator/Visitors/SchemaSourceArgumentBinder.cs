@@ -10,7 +10,8 @@ namespace Musoq.Evaluator.Visitors;
 internal sealed record SchemaSourceBindingFailure(
     DiagnosticCode Code,
     string Message,
-    TextSpan Span);
+    TextSpan Span,
+    IReadOnlyDictionary<string, string>? Arguments = null);
 
 internal sealed class SchemaSourceBindingResult
 {
@@ -35,6 +36,41 @@ internal sealed class SchemaSourceBindingResult
 
 internal static class SchemaSourceArgumentBinder
 {
+    public static IReadOnlySet<int> GetPathSensitiveArgumentIndexes(
+        ArgsListNode arguments,
+        SchemaMethodInfo[] methods,
+        BoundSchemaInvocation? invocation)
+    {
+        ArgumentNullException.ThrowIfNull(arguments);
+        ArgumentNullException.ThrowIfNull(methods);
+
+        if (invocation != null)
+            return GetBoundPathSensitiveArgumentIndexes(invocation);
+
+        if (arguments.HasNamedArguments)
+            return new HashSet<int>();
+
+        var compatibleSignatures = methods
+            .Select(SchemaSourceSignature.Create)
+            .Where(signature => signature.Parameters.Length == arguments.Args.Length)
+            .Where(signature => arguments.Args
+                .Select((argument, index) => (argument, index))
+                .All(item => IsCompatible(item.argument, signature.Parameters[item.index].ParameterType)))
+            .ToArray();
+
+        var pathSensitiveIndexes = new HashSet<int>();
+        for (var argumentIndex = 0; argumentIndex < arguments.Args.Length; argumentIndex++)
+        {
+            if (compatibleSignatures.Length > 0 && compatibleSignatures.All(signature =>
+                    SuspiciousOrdinaryStringEscapeDiagnostics.IsPathSensitiveStringParameter(
+                        signature.Parameters[argumentIndex].Name,
+                        signature.Parameters[argumentIndex].ParameterType)))
+                pathSensitiveIndexes.Add(argumentIndex);
+        }
+
+        return pathSensitiveIndexes;
+    }
+
     public static SchemaSourceBindingResult Bind(ArgsListNode arguments, SchemaMethodInfo[] methods)
     {
         ArgumentNullException.ThrowIfNull(arguments);
@@ -46,9 +82,33 @@ internal static class SchemaSourceArgumentBinder
             .ToArray();
         var hasExistingFullArityMatch = !arguments.HasNamedArguments &&
                                         signatures.Any(signature =>
-                                            arguments.Args.Length == signature.Parameters.Length);
+                                            CanAcceptArgumentCount(signature, arguments.Args.Length));
         if (hasExistingFullArityMatch)
+        {
+            var fullArityCandidates = signatures
+                .Where(signature => CanAcceptArgumentCount(signature, arguments.Args.Length))
+                .Where(signature => arguments.Args
+                    .Select((argument, index) => (argument, index))
+                    .All(item => IsCompatible(item.argument, signature.Parameters[item.index].ParameterType)))
+                .ToArray();
+
+            if (fullArityCandidates.Length == 0)
+                return SchemaSourceBindingResult.Error(CreateCallableFailure(
+                    DiagnosticCode.MQ3088_NoMatchingCallableOverload,
+                    "No datasource overload accepts the supplied argument types.",
+                    arguments,
+                    signatures));
+
+            var scored = fullArityCandidates
+                .Select(signature => (signature, score: GetMatchScore(arguments, signature)))
+                .OrderByDescending(item => item.score)
+                .ToArray();
+            var bestFullArity = scored.Where(item => item.score == scored[0].score).ToArray();
+            if (bestFullArity.Length > 1)
+                return SchemaSourceBindingResult.NotRequired();
+
             return SchemaSourceBindingResult.NotRequired();
+        }
 
         var requiresBinding = arguments.HasNamedArguments ||
                               signatures.Any(signature => arguments.Args.Length != signature.Parameters.Length);
@@ -65,6 +125,16 @@ internal static class SchemaSourceArgumentBinder
                     "Named datasource arguments require reflected constructor metadata.",
                     FindFirstNamedArgumentSpan(arguments)))
                 : SchemaSourceBindingResult.NotRequired();
+        }
+
+        if (!arguments.HasNamedArguments && !signatures.Any(signature =>
+                signature.CanBindNamedArguments && CanAcceptArgumentCount(signature, arguments.Args.Length)))
+        {
+            return SchemaSourceBindingResult.Error(CreateCallableFailure(
+                DiagnosticCode.MQ3087_InvalidCallableArity,
+                "No datasource overload accepts the supplied argument count.",
+                arguments,
+                signatures.Where(static signature => signature.CanBindNamedArguments)));
         }
 
         var candidates = new List<(BoundSchemaInvocation Invocation, int Score)>();
@@ -87,10 +157,19 @@ internal static class SchemaSourceArgumentBinder
         }
 
         if (candidates.Count == 0)
-            return SchemaSourceBindingResult.Error(firstFailure ?? new SchemaSourceBindingFailure(
-                DiagnosticCode.MQ3013_CannotResolveMethod,
-                "The datasource arguments do not match any reflected source signature.",
-                arguments.Span));
+        {
+            if (firstFailure is { Code: DiagnosticCode.MQ2034_InvalidNamedSourceArgument or
+                                  DiagnosticCode.MQ3079_UnknownSourceArgument or
+                                  DiagnosticCode.MQ3080_DuplicateSourceArgument or
+                                  DiagnosticCode.MQ3081_MissingRequiredSourceArgument })
+                return SchemaSourceBindingResult.Error(firstFailure);
+
+            return SchemaSourceBindingResult.Error(CreateCallableFailure(
+                DiagnosticCode.MQ3088_NoMatchingCallableOverload,
+                "No datasource overload accepts the supplied argument types.",
+                arguments,
+                signatures.Where(static signature => signature.CanBindNamedArguments)));
+        }
 
         var bestScore = candidates.Max(static candidate => candidate.Score);
         var best = candidates.Where(candidate => candidate.Score == bestScore).ToArray();
@@ -100,12 +179,36 @@ internal static class SchemaSourceArgumentBinder
                 "; ",
                 best.Select(candidate => FormatSignature(candidate.Invocation.Signature)));
             return SchemaSourceBindingResult.Error(new SchemaSourceBindingFailure(
-                DiagnosticCode.MQ3082_AmbiguousSourceInvocation,
+                DiagnosticCode.MQ3089_AmbiguousCallableOverload,
                 $"Multiple datasource signatures match: {signaturesText}.",
-                arguments.Span));
+                arguments.Span,
+                new Dictionary<string, string>(StringComparer.Ordinal)
+                {
+                    ["callable"] = best[0].Invocation.Signature.Method.MethodName,
+                    ["actualTypes"] = FormatArgumentTypes(arguments),
+                    ["candidateSignatures"] = string.Join("; ", best.Select(candidate => FormatSignature(candidate.Invocation.Signature)))
+                }));
         }
 
         return SchemaSourceBindingResult.Success(best[0].Invocation);
+    }
+
+    private static IReadOnlySet<int> GetBoundPathSensitiveArgumentIndexes(BoundSchemaInvocation invocation)
+    {
+        var pathSensitiveIndexes = new HashSet<int>();
+        foreach (var argument in invocation.Arguments)
+        {
+            if (argument.SourceArgumentIndex is not { } sourceArgumentIndex)
+                continue;
+
+            var parameter = invocation.Signature.Parameters[argument.ParameterIndex];
+            if (SuspiciousOrdinaryStringEscapeDiagnostics.IsPathSensitiveStringParameter(
+                    parameter.Name,
+                    parameter.ParameterType))
+                pathSensitiveIndexes.Add(sourceArgumentIndex);
+        }
+
+        return pathSensitiveIndexes;
     }
 
     private static (BoundSchemaInvocation? Invocation, int Score, SchemaSourceBindingFailure? Failure)
@@ -121,7 +224,7 @@ internal static class SchemaSourceArgumentBinder
             if (positionalCount >= parameterIndexes.Length)
             {
                 return (null, 0, Failure(
-                    DiagnosticCode.MQ3013_CannotResolveMethod,
+                    DiagnosticCode.MQ3087_InvalidCallableArity,
                     "Too many positional datasource arguments.",
                     arguments.Args[argumentIndex].Span));
             }
@@ -229,6 +332,56 @@ internal static class SchemaSourceArgumentBinder
             return 0;
 
         return argument.ReturnType == parameterType ? 2 : 1;
+    }
+
+    private static int GetMatchScore(ArgsListNode arguments, SchemaSourceSignature signature)
+    {
+        var score = 0;
+        for (var index = 0; index < arguments.Args.Length; index++)
+            score += GetMatchScore(arguments.Args[index], signature.Parameters[index].ParameterType);
+
+        return score;
+    }
+
+    private static bool CanAcceptArgumentCount(SchemaSourceSignature signature, int count)
+    {
+        var required = signature.Parameters.Count(static parameter => parameter.IsRequired);
+        return count >= required && count <= signature.Parameters.Length;
+    }
+
+    private static SchemaSourceBindingFailure CreateCallableFailure(
+        DiagnosticCode code,
+        string message,
+        ArgsListNode arguments,
+        IEnumerable<SchemaSourceSignature> signatures)
+    {
+        var signaturesArray = signatures
+            .Select(FormatSignature)
+            .Distinct(StringComparer.Ordinal)
+            .Take(5)
+            .ToArray();
+        var facts = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["actualTypes"] = FormatArgumentTypes(arguments),
+            ["candidateSignatures"] = string.Join("; ", signaturesArray)
+        };
+        if (code == DiagnosticCode.MQ3087_InvalidCallableArity)
+            facts["expectedCounts"] = string.Join(", ", signatures.Select(FormatExpectedCount).Distinct(StringComparer.Ordinal));
+
+        return new SchemaSourceBindingFailure(code, message, arguments.Span, facts);
+    }
+
+    private static string FormatArgumentTypes(ArgsListNode arguments)
+    {
+        return string.Join(", ", arguments.Args.Select(argument => argument.ReturnType?.Name ?? "object"));
+    }
+
+    private static string FormatExpectedCount(SchemaSourceSignature signature)
+    {
+        var required = signature.Parameters.Count(static parameter => parameter.IsRequired);
+        return required == signature.Parameters.Length
+            ? required.ToString()
+            : $"{required}..{signature.Parameters.Length}";
     }
 
     private static SchemaSourceBindingFailure Failure(DiagnosticCode code, string message, TextSpan span) =>

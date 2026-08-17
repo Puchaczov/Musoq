@@ -1,4 +1,3 @@
-using System;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;

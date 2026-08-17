@@ -1,9 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
-using Musoq.Schema;
-using Musoq.Targets.Abstractions;
-using Musoq.Targets.Execution;
 using Musoq.Converter.Tests.Schema;
 
 namespace Musoq.Converter.Tests;

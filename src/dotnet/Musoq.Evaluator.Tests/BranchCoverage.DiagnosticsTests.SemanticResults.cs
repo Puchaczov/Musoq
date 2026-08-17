@@ -102,7 +102,7 @@ public partial class BranchCoverageImprovementTests
         var diags = new[]
         {
             Diagnostic.Error(DiagnosticCode.MQ3005_TypeMismatch, "err1", new TextSpan(0, 5)),
-            Diagnostic.Warning(DiagnosticCode.MQ5001_UnusedAlias, "warn1", new TextSpan(5, 10))
+            Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warn1", new TextSpan(5, 10))
         };
 
         result.AddDiagnostics(diags);
@@ -136,7 +136,7 @@ public partial class BranchCoverageImprovementTests
     public void SemanticAnalysisResult_ThrowIfErrors_WhenOnlyWarnings_ShouldNotThrow()
     {
         var node = new IntegerNode("1", "i");
-        var diag = Diagnostic.Warning(DiagnosticCode.MQ5001_UnusedAlias, "warn", new TextSpan(0, 5));
+        var diag = Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warn", new TextSpan(0, 5));
         var result = new SemanticAnalysisResult(node, [diag]);
 
         result.ThrowIfErrors();

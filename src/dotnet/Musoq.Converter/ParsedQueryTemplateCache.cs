@@ -1,14 +1,16 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Musoq.Evaluator.Visitors;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Converter;
 
 internal static class ParsedQueryTemplateCache
 {
-    internal const string DefaultParserContract = "compose-all/skip-whitespace/v1";
+    internal const string DefaultParserContract = "compose-all/skip-whitespace/diagnostics-v2";
 
     private const int MaximumEntries = 256;
     private const int MaximumRetainedTextCharacters = 4_000_000;
@@ -39,6 +41,28 @@ internal static class ParsedQueryTemplateCache
         string parserContract,
         Func<RootNode> factory)
     {
+        ArgumentNullException.ThrowIfNull(factory);
+        return GetOrAddTemplate(
+                script,
+                parserContract,
+                () => new ParsedQueryTemplate(factory(), ImmutableArray<Diagnostic>.Empty))
+            .Root;
+    }
+
+    internal static ParsedQueryTemplate GetOrAddWithDiagnostics(
+        string script,
+        string parserContract,
+        Func<ParsedQueryTemplate> factory)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        return GetOrAddTemplate(script, parserContract, factory);
+    }
+
+    private static ParsedQueryTemplate GetOrAddTemplate(
+        string script,
+        string parserContract,
+        Func<ParsedQueryTemplate> factory)
+    {
         ArgumentNullException.ThrowIfNull(script);
         ArgumentNullException.ThrowIfNull(parserContract);
         ArgumentNullException.ThrowIfNull(factory);
@@ -50,17 +74,21 @@ internal static class ParsedQueryTemplateCache
         if (Entries.TryGetValue(key, out var existing))
         {
             Interlocked.Increment(ref _hits);
-            return CloneForCompilation(existing.Value.Root);
+            return CloneTemplate(existing.Value);
         }
 
         var candidate = new Lazy<CacheEntry>(
-            () => new CacheEntry(factory()),
+            () =>
+            {
+                var template = factory();
+                return new CacheEntry(template.Root, template.Diagnostics);
+            },
             LazyThreadSafetyMode.ExecutionAndPublication);
         var winner = Entries.GetOrAdd(key, candidate);
         if (!ReferenceEquals(candidate, winner))
         {
             Interlocked.Increment(ref _hits);
-            return CloneForCompilation(winner.Value.Root);
+            return CloneTemplate(winner.Value);
         }
 
         Interlocked.Increment(ref _misses);
@@ -68,7 +96,7 @@ internal static class ParsedQueryTemplateCache
         {
             _ = winner.Value;
             Publish(key, winner);
-            return CloneForCompilation(winner.Value.Root);
+            return CloneTemplate(winner.Value);
         }
         catch
         {
@@ -144,12 +172,19 @@ internal static class ParsedQueryTemplateCache
         return visitor.Root;
     }
 
+    private static ParsedQueryTemplate CloneTemplate(CacheEntry entry)
+    {
+        return new ParsedQueryTemplate(CloneForCompilation(entry.Root), entry.Diagnostics);
+    }
+
     private readonly record struct CacheKey(string Script, string ParserContract);
 
     private readonly record struct QueueItem(CacheKey Key, Lazy<CacheEntry> Value);
 
-    private sealed record CacheEntry(RootNode Root);
+    private sealed record CacheEntry(RootNode Root, ImmutableArray<Diagnostic> Diagnostics);
 }
+
+internal sealed record ParsedQueryTemplate(RootNode Root, ImmutableArray<Diagnostic> Diagnostics);
 
 internal readonly record struct ParsedQueryTemplateCacheSnapshot(
     int Count,

@@ -1,4 +1,3 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.Diagnostics;

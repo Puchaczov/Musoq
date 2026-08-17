@@ -1,0 +1,2562 @@
+{
+  "schemaVersion": 1,
+  "generatedFrom": "Musoq.Parser.Diagnostics.DiagnosticDescriptorRegistry",
+  "diagnostics": [
+    {
+      "code": "MQ1001_UnknownToken",
+      "number": 1001,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Lexer",
+      "messageTemplate": "Unknown token '{0}'",
+      "explanation": "The lexer encountered a character that is not part of Musoq SQL syntax.",
+      "docsReference": "Core Spec - Lexical Structure",
+      "suggestedFixes": [
+        "Remove or replace the unrecognized character.",
+        "If this is a string literal, wrap it in single quotes: 'value'."
+      ]
+    },
+    {
+      "code": "MQ1002_UnterminatedString",
+      "number": 1002,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Lexer",
+      "messageTemplate": "Unterminated string literal",
+      "explanation": "A string literal was opened with a single quote but never closed.",
+      "docsReference": "Core Spec - String Literals",
+      "suggestedFixes": [
+        "Add a closing single quote to the string literal."
+      ]
+    },
+    {
+      "code": "MQ1003_InvalidNumericLiteral",
+      "number": 1003,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Lexer",
+      "messageTemplate": "Invalid numeric literal '{0}'",
+      "explanation": "The numeric literal format is not valid.",
+      "docsReference": "Core Spec - Numeric Literals",
+      "suggestedFixes": [
+        "Check for misplaced decimal points or invalid digit characters.",
+        "For hex use 0x prefix, for binary use 0b, for octal use 0o."
+      ]
+    },
+    {
+      "code": "MQ1004_InvalidEscapeSequence",
+      "number": 1004,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Lexer",
+      "messageTemplate": "Invalid escape sequence '{0}'",
+      "explanation": "The string literal contains a malformed fixed-length escape sequence. Supported escapes are decoded; unknown escapes such as \\q remain literal.",
+      "docsReference": "Core Spec - String Literals",
+      "suggestedFixes": [
+        "Use a supported escape such as \\n, \\r, \\t, \\', \\\\, \\uFFFF, or \\xFF.",
+        "For Windows paths, use a raw literal such as r'C:\\Path\\To\\File' or double each backslash as 'C:\\\\Path\\\\To\\\\File'."
+      ]
+    },
+    {
+      "code": "MQ1005_UnterminatedBlockComment",
+      "number": 1005,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Lexer",
+      "messageTemplate": "Unterminated block comment",
+      "explanation": "A block comment was opened but the lexer reached the end of the script before finding a closing marker.",
+      "docsReference": "Core Spec - Comments",
+      "suggestedFixes": [
+        "Close the block comment with */.",
+        "Remove the opening /* if the text should be query syntax."
+      ]
+    },
+    {
+      "code": "MQ1006_InvalidHexNumber",
+      "number": 1006,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Lexer",
+      "messageTemplate": "Invalid hexadecimal number '{0}'",
+      "explanation": "A hexadecimal numeric literal contains characters that are not valid hexadecimal digits.",
+      "docsReference": "Core Spec - Numeric Literals",
+      "suggestedFixes": [
+        "Use only digits 0-9 and letters A-F after the 0x prefix.",
+        "Remove separators or suffixes that are not part of the literal format."
+      ]
+    },
+    {
+      "code": "MQ1007_InvalidBinaryNumber",
+      "number": 1007,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Lexer",
+      "messageTemplate": "Invalid binary number '{0}'",
+      "explanation": "A binary numeric literal contains characters other than 0 or 1.",
+      "docsReference": "Core Spec - Numeric Literals",
+      "suggestedFixes": [
+        "Use only 0 and 1 after the 0b prefix.",
+        "Convert the value to decimal if the source format is not binary."
+      ]
+    },
+    {
+      "code": "MQ1008_InvalidOctalNumber",
+      "number": 1008,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Lexer",
+      "messageTemplate": "Invalid octal number '{0}'",
+      "explanation": "An octal numeric literal contains digits outside the range 0 through 7.",
+      "docsReference": "Core Spec - Numeric Literals",
+      "suggestedFixes": [
+        "Use only digits 0-7 after the 0o prefix.",
+        "Convert the value to decimal if it needs digits 8 or 9."
+      ]
+    },
+    {
+      "code": "MQ1009_NumericLiteralOutOfRange",
+      "number": 1009,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Lexer",
+      "messageTemplate": "Numeric literal '{0}' is outside the supported range",
+      "explanation": "A numeric literal is syntactically valid but cannot be represented by a supported Musoq numeric type.",
+      "docsReference": "Core Spec - Numeric Literals",
+      "suggestedFixes": [
+        "Use a smaller value or a supported numeric representation.",
+        "If the value is intended as text, enclose it in a string literal."
+      ]
+    },
+    {
+      "code": "MQ2001_UnexpectedToken",
+      "number": 2001,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Unexpected token '{0}', expected '{1}'",
+      "explanation": "The parser encountered a token that does not fit the expected SQL grammar at this position.",
+      "docsReference": "Core Spec - Statement Structure",
+      "suggestedFixes": [
+        "Check for missing keywords, commas, or parentheses near this location.",
+        "Verify the query follows Musoq SQL syntax."
+      ]
+    },
+    {
+      "code": "MQ2002_MissingToken",
+      "number": 2002,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Missing '{0}'",
+      "explanation": "A required keyword, delimiter, or closing token is missing at this position.",
+      "docsReference": "Core Spec - Statement Structure",
+      "suggestedFixes": [
+        "Insert the missing keyword or delimiter near the highlighted location.",
+        "Check for a missing FROM clause, comma, or closing parenthesis."
+      ]
+    },
+    {
+      "code": "MQ2003_InvalidExpression",
+      "number": 2003,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Invalid expression",
+      "explanation": "The parser could not form a valid expression from the tokens at this location.",
+      "docsReference": "Core Spec - Expressions",
+      "suggestedFixes": [
+        "Check that operators have operands on both sides.",
+        "Wrap nested expressions in parentheses when precedence is unclear."
+      ]
+    },
+    {
+      "code": "MQ2004_MissingFromClause",
+      "number": 2004,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Missing FROM clause",
+      "explanation": "Every SELECT query in Musoq requires a FROM clause specifying a data source.",
+      "docsReference": "Core Spec - FROM Clause",
+      "suggestedFixes": [
+        "Add a FROM clause: SELECT ... FROM #schema.method() alias.",
+        "For constant expressions, use: SELECT 1 FROM #system.dual() d."
+      ]
+    },
+    {
+      "code": "MQ2005_InvalidSelectList",
+      "number": 2005,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Invalid SELECT list",
+      "explanation": "The SELECT list is empty, malformed, or contains expressions that cannot be separated into projections.",
+      "docsReference": "Core Spec - SELECT Clause",
+      "suggestedFixes": [
+        "Add at least one projection after SELECT.",
+        "Separate projection expressions with commas."
+      ]
+    },
+    {
+      "code": "MQ2006_MissingGroupByColumn",
+      "number": 2006,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Column '{0}' must appear in GROUP BY clause",
+      "explanation": "The GROUP BY clause is missing a column or expression after a comma or keyword.",
+      "docsReference": "Core Spec - GROUP BY Clause",
+      "suggestedFixes": [
+        "Add the missing GROUP BY expression.",
+        "Remove the dangling comma if no additional grouping expression is needed."
+      ]
+    },
+    {
+      "code": "MQ2007_InvalidJoinCondition",
+      "number": 2007,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Invalid JOIN condition",
+      "explanation": "The JOIN condition is missing or is not a valid boolean expression.",
+      "docsReference": "Core Spec - JOIN Clause",
+      "suggestedFixes": [
+        "Add an ON clause with a comparison between the joined sources.",
+        "Make sure the ON expression evaluates to a boolean value."
+      ]
+    },
+    {
+      "code": "MQ2008_DuplicateAlias",
+      "number": 2008,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Duplicate alias '{0}'",
+      "explanation": "The same alias was declared more than once in the parsed query scope.",
+      "docsReference": "Core Spec - Aliasing",
+      "suggestedFixes": [
+        "Rename one of the aliases.",
+        "Remove the duplicate alias if it was introduced accidentally."
+      ]
+    },
+    {
+      "code": "MQ2009_InvalidOrderByExpression",
+      "number": 2009,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Invalid ORDER BY expression",
+      "explanation": "The ORDER BY clause contains an expression that the parser cannot accept in this position.",
+      "docsReference": "Core Spec - ORDER BY Clause",
+      "suggestedFixes": [
+        "Use a projection alias, column reference, or valid expression in ORDER BY.",
+        "Move DESC or ASC after the expression it modifies."
+      ]
+    },
+    {
+      "code": "MQ2010_MissingClosingParenthesis",
+      "number": 2010,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Missing closing parenthesis ')'",
+      "explanation": "An opening parenthesis does not have a matching closing parenthesis.",
+      "docsReference": "Core Spec - Expressions",
+      "suggestedFixes": [
+        "Add the missing closing parenthesis.",
+        "Check nested function calls and subqueries near the highlighted span."
+      ]
+    },
+    {
+      "code": "MQ2011_MissingClosingBracket",
+      "number": 2011,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Missing closing bracket ']' or '}}'",
+      "explanation": "An opening bracket does not have a matching closing bracket.",
+      "docsReference": "Core Spec - Array Access",
+      "suggestedFixes": [
+        "Add the missing closing bracket.",
+        "Check array indexing and bracketed path expressions."
+      ]
+    },
+    {
+      "code": "MQ2012_InvalidSchemaDefinition",
+      "number": 2012,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Invalid schema definition",
+      "explanation": "A DEFINE SCHEMA block does not match the expected schema grammar.",
+      "docsReference": "Binary/Text Spec - Schema Definitions",
+      "suggestedFixes": [
+        "Check the schema name, field list, and field type syntax.",
+        "Verify nested schema references use defined schema names."
+      ]
+    },
+    {
+      "code": "MQ2013_InvalidCTE",
+      "number": 2013,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Invalid common table expression (CTE)",
+      "explanation": "The Common Table Expression syntax is invalid or incomplete.",
+      "docsReference": "Core Spec - CTE",
+      "suggestedFixes": [
+        "Verify CTE format: WITH name AS (SELECT ...) SELECT ... FROM name.",
+        "Ensure the CTE body is a valid SELECT statement."
+      ]
+    },
+    {
+      "code": "MQ2014_TrailingComma",
+      "number": 2014,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Trailing comma",
+      "explanation": "A comma appears after the last item in a list where another item was expected.",
+      "docsReference": "Core Spec - Lists",
+      "suggestedFixes": [
+        "Remove the trailing comma.",
+        "Add the missing item after the comma."
+      ]
+    },
+    {
+      "code": "MQ2015_LeadingComma",
+      "number": 2015,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Unexpected leading comma",
+      "explanation": "A comma appears before the first item in a list.",
+      "docsReference": "Core Spec - Lists",
+      "suggestedFixes": [
+        "Remove the leading comma.",
+        "Move the comma between two list items."
+      ]
+    },
+    {
+      "code": "MQ2016_IncompleteStatement",
+      "number": 2016,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Incomplete statement",
+      "explanation": "The query ended before Musoq could form a complete statement.",
+      "docsReference": "Core Spec - Statement Structure",
+      "suggestedFixes": [
+        "Complete the statement with the missing clause or expression.",
+        "Start with a full query shape such as: SELECT ... FROM #schema.method() alias."
+      ]
+    },
+    {
+      "code": "MQ2017_UnexpectedEndOfFile",
+      "number": 2017,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Unexpected end of file",
+      "explanation": "The parser reached the end of the script while more tokens were still required.",
+      "docsReference": "Core Spec - Statement Structure",
+      "suggestedFixes": [
+        "Complete the current clause or expression.",
+        "Check for an unclosed parenthesis, bracket, CASE expression, or subquery."
+      ]
+    },
+    {
+      "code": "MQ2018_MissingOperator",
+      "number": 2018,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Missing operator between expressions",
+      "explanation": "Two expressions appear next to each other without an operator between them.",
+      "docsReference": "Core Spec - Operators",
+      "suggestedFixes": [
+        "Insert the intended operator such as =, AND, OR, +, or -.",
+        "Add a comma if these were meant to be separate list items."
+      ]
+    },
+    {
+      "code": "MQ2019_InvalidOperator",
+      "number": 2019,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Invalid operator '{0}'",
+      "explanation": "An operator was used in a position or form that is not valid for Musoq SQL.",
+      "docsReference": "Core Spec - Operators",
+      "suggestedFixes": [
+        "Check that the operator is supported by Musoq.",
+        "Verify the operator appears between compatible operands."
+      ]
+    },
+    {
+      "code": "MQ2020_MissingOperand",
+      "number": 2020,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Missing operand for operator '{0}'",
+      "explanation": "An operator is missing the expression it should operate on.",
+      "docsReference": "Core Spec - Operators",
+      "suggestedFixes": [
+        "Add the missing expression before or after the operator.",
+        "Remove the operator if it is not needed."
+      ]
+    },
+    {
+      "code": "MQ2021_UnclosedFunctionCall",
+      "number": 2021,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Unclosed function call '{0}'",
+      "explanation": "A function call was opened but not closed before the statement ended.",
+      "docsReference": "Core Spec - Functions",
+      "suggestedFixes": [
+        "Add the closing parenthesis for the function call.",
+        "Check that all function arguments are separated with commas."
+      ]
+    },
+    {
+      "code": "MQ2022_InvalidAlias",
+      "number": 2022,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Invalid alias '{0}'",
+      "explanation": "The alias syntax is malformed or uses a token that cannot be an alias.",
+      "docsReference": "Core Spec - Aliasing",
+      "suggestedFixes": [
+        "Use an identifier for the alias.",
+        "If the alias follows an expression, write it after AS or immediately after the expression where supported."
+      ]
+    },
+    {
+      "code": "MQ2023_MissingAsKeyword",
+      "number": 2023,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Missing AS keyword before alias",
+      "explanation": "The parser expected an AS keyword before an alias in this position.",
+      "docsReference": "Core Spec - Aliasing",
+      "suggestedFixes": [
+        "Insert AS before the alias.",
+        "Remove the alias if it was not intended."
+      ]
+    },
+    {
+      "code": "MQ2024_InvalidSubquery",
+      "number": 2024,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Invalid subquery",
+      "explanation": "A subquery is malformed or appears in a location where this parser path cannot accept it.",
+      "docsReference": "Core Spec - Subqueries",
+      "suggestedFixes": [
+        "Ensure the subquery starts with SELECT and is enclosed in parentheses.",
+        "Use the subquery only in a supported expression or source position."
+      ]
+    },
+    {
+      "code": "MQ2025_MissingSelectKeyword",
+      "number": 2025,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Missing SELECT keyword",
+      "explanation": "A query statement is missing the SELECT keyword.",
+      "docsReference": "Core Spec - SELECT Clause",
+      "suggestedFixes": [
+        "Start the query with SELECT.",
+        "If this is a CTE, place the SELECT statement after the WITH definitions."
+      ]
+    },
+    {
+      "code": "MQ2026_InvalidCaseExpression",
+      "number": 2026,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Invalid CASE expression",
+      "explanation": "Musoq supports searched CASE only (CASE WHEN ... THEN ... END), not simple CASE (CASE expr WHEN value ...).",
+      "docsReference": "Core Spec - CASE Expressions",
+      "suggestedFixes": [
+        "Rewrite as: CASE WHEN expr = value THEN result ELSE default END."
+      ]
+    },
+    {
+      "code": "MQ2027_MissingWhenClause",
+      "number": 2027,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Missing WHEN clause in CASE expression",
+      "explanation": "A CASE expression is missing a WHEN clause.",
+      "docsReference": "Core Spec - CASE Expressions",
+      "suggestedFixes": [
+        "Add at least one WHEN condition.",
+        "Use searched CASE syntax: CASE WHEN condition THEN value END."
+      ]
+    },
+    {
+      "code": "MQ2028_MissingThenClause",
+      "number": 2028,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Missing THEN clause in CASE expression",
+      "explanation": "A CASE WHEN branch is missing the THEN result expression.",
+      "docsReference": "Core Spec - CASE Expressions",
+      "suggestedFixes": [
+        "Add THEN followed by the value for that branch.",
+        "Check that the WHEN condition is complete before THEN."
+      ]
+    },
+    {
+      "code": "MQ2029_MissingEndKeyword",
+      "number": 2029,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Missing END keyword in CASE expression",
+      "explanation": "A CASE expression is missing its closing END keyword.",
+      "docsReference": "Core Spec - CASE Expressions",
+      "suggestedFixes": [
+        "Add END after the final CASE branch.",
+        "Check nested CASE expressions for balanced END keywords."
+      ]
+    },
+    {
+      "code": "MQ2030_UnsupportedSyntax",
+      "number": 2030,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Error MQ2030_UnsupportedSyntax",
+      "explanation": "The query uses syntax that Musoq does not support or that is not valid in this position.",
+      "docsReference": "Core Spec - Statement Structure",
+      "suggestedFixes": [
+        "Rewrite the clause using Musoq SQL syntax.",
+        "If this came from another SQL dialect, check the Musoq equivalent keywords."
+      ]
+    },
+    {
+      "code": "MQ2031_InvalidScriptParameterDeclaration",
+      "number": 2031,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Error MQ2031_InvalidScriptParameterDeclaration",
+      "explanation": "The script parameter declaration does not match Musoq's param(name: type) syntax.",
+      "docsReference": "Core Spec - Script Parameters",
+      "suggestedFixes": [
+        "Write parameters as: param(author: string, limit: int = 10).",
+        "Put the parameter name before the type and separate it from the type with a colon."
+      ]
+    },
+    {
+      "code": "MQ2032_UnsupportedScriptParameterSyntax",
+      "number": 2032,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Error MQ2032_UnsupportedScriptParameterSyntax",
+      "explanation": "The query uses a parameter declaration style from another language that Musoq does not support.",
+      "docsReference": "Core Spec - Script Parameters",
+      "suggestedFixes": [
+        "Use Musoq syntax: param(author: string).",
+        "Reference declared parameters inside the query as $author."
+      ]
+    },
+    {
+      "code": "MQ2033_InvalidScriptVariableDeclaration",
+      "number": 2033,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Error MQ2033_InvalidScriptVariableDeclaration",
+      "explanation": "The script variable declaration does not match Musoq's let name: type = value syntax.",
+      "docsReference": "Core Spec - Script Variables",
+      "suggestedFixes": [
+        "Write script variables as: let topic: string = 'important'.",
+        "Declare script variables before the first expression that references them."
+      ]
+    },
+    {
+      "code": "MQ2034_InvalidNamedSourceArgument",
+      "number": 2034,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Invalid named datasource argument: {0}",
+      "explanation": "A datasource argument label is malformed, appears after a named argument, or is used outside a datasource call.",
+      "docsReference": "Core Spec - FROM Arguments",
+      "suggestedFixes": [
+        "Use a simple identifier followed by a colon and an expression.",
+        "Place all positional arguments before named arguments.",
+        "Use named arguments only when invoking a datasource source."
+      ]
+    },
+    {
+      "code": "MQ2035_MissingRequiredAlias",
+      "number": 2035,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "A source requires an alias in this query block",
+      "explanation": "A source in a multi-source query needs a stable alias so JOIN and APPLY expressions can address it reliably. Derived tables and VALUES sources always require an alias.",
+      "docsReference": "Core Spec - Aliasing",
+      "suggestedFixes": [
+        "Add an alias immediately after the source, for example: FROM #schema.items() items.",
+        "Use AS for clarity, or bracket an alias that is also a SQL keyword."
+      ]
+    },
+    {
+      "code": "MQ2036_MultipleExecutableStatements",
+      "number": 2036,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Multiple executable statements are not supported by this compilation entry point",
+      "explanation": "This compilation entry point accepts only one result-producing statement.",
+      "docsReference": "Core Spec - Statements",
+      "suggestedFixes": [
+        "Submit one executable query at a time."
+      ]
+    },
+    {
+      "code": "MQ2037_EmptyPredicateListNotAllowed",
+      "number": 2037,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "The {0} predicate list cannot be empty",
+      "explanation": "A predicate that requires values was given an empty parenthesized list.",
+      "docsReference": "Core Spec - Predicates",
+      "suggestedFixes": [
+        "Add at least one value inside the parentheses."
+      ]
+    },
+    {
+      "code": "MQ2038_InvalidSliceCount",
+      "number": 2038,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "{0} count must be a non-negative integer",
+      "explanation": "TAKE and SKIP require a non-negative integer count.",
+      "docsReference": "Core Spec - TAKE and SKIP",
+      "suggestedFixes": [
+        "Use a whole number greater than or equal to zero."
+      ]
+    },
+    {
+      "code": "MQ2039_TieBreakRequiresAsOfJoin",
+      "number": 2039,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "TIE BREAK BY requires an ASOF JOIN",
+      "explanation": "TIE BREAK BY is defined only for ASOF JOIN and ASOF LEFT JOIN.",
+      "docsReference": "Core Spec - ASOF JOIN",
+      "suggestedFixes": [
+        "Move TIE BREAK BY to an ASOF join or remove the clause."
+      ]
+    },
+    {
+      "code": "MQ2040_InvalidDiagnosticCommand",
+      "number": 2040,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Invalid diagnostic command",
+      "explanation": "The diagnostic command is incomplete or its inner query form is unsupported.",
+      "docsReference": "Core Spec - Diagnostic Commands",
+      "suggestedFixes": [
+        "Use PROFILE <query> or EXPLAIN ANALYZE <query>."
+      ]
+    },
+    {
+      "code": "MQ2041_InvalidStarModifierOrder",
+      "number": 2041,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Star modifiers are out of order or duplicated",
+      "explanation": "Star modifiers must appear once and in the order LIKE/NOT LIKE, EXCLUDE, REPLACE, RENAME.",
+      "docsReference": "Core Spec - Star Modifiers",
+      "suggestedFixes": [
+        "Reorder the modifiers and remove duplicates."
+      ]
+    },
+    {
+      "code": "MQ3001_UnknownColumn",
+      "number": 3001,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Unknown column '{0}'",
+      "explanation": "The column name could not be resolved in any of the available data sources.",
+      "docsReference": "Core Spec - Column References",
+      "suggestedFixes": [
+        "Check the column name for typos.",
+        "Qualify the column with a table alias: alias.ColumnName."
+      ]
+    },
+    {
+      "code": "MQ3002_AmbiguousColumn",
+      "number": 3002,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Ambiguous column '{0}' - matches columns in '{1}' and '{2}'",
+      "explanation": "The column name matches columns in multiple data sources and is ambiguous.",
+      "docsReference": "Core Spec - Column References",
+      "suggestedFixes": [
+        "Qualify the column with a table alias: alias.ColumnName."
+      ]
+    },
+    {
+      "code": "MQ3005_TypeMismatch",
+      "number": 3005,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Type mismatch: cannot convert '{0}' to '{1}'",
+      "explanation": "The expression type does not match the expected type in this context.",
+      "docsReference": "Core Spec - Type System",
+      "suggestedFixes": [
+        "Use an explicit conversion function such as ToInt32, ToDecimal, or ToString.",
+        "Verify the column type matches the expected usage."
+      ]
+    },
+    {
+      "code": "MQ3007_InvalidOperandTypes",
+      "number": 3007,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Operator '{0}' cannot be applied to operands of type '{1}' and '{2}'",
+      "explanation": "The operator cannot be applied to the given operand types.",
+      "docsReference": "Core Spec - Operator Type Rules",
+      "suggestedFixes": [
+        "Convert operands to compatible types before comparing.",
+        "For string date comparisons, parse to a numeric or date representation first."
+      ]
+    },
+    {
+      "code": "MQ3008_DivisionByZero",
+      "number": 3008,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Division by zero",
+      "explanation": "Division by zero was detected in a constant expression.",
+      "docsReference": "Core Spec - Arithmetic Operators",
+      "suggestedFixes": [
+        "Add a CASE WHEN check to guard against dividing by zero."
+      ]
+    },
+    {
+      "code": "MQ3010_UnknownSchema",
+      "number": 3010,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Unknown schema '{0}'",
+      "explanation": "The referenced schema could not be found in the registered schema providers.",
+      "docsReference": "Core Spec - Schema References",
+      "suggestedFixes": [
+        "Verify the schema name is correct: #schemaName.method().",
+        "Ensure the schema provider is registered."
+      ]
+    },
+    {
+      "code": "MQ3011_AggregateNotAllowed",
+      "number": 3011,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Aggregate function '{0}' not allowed in this context",
+      "explanation": "An aggregate function appears in a context where aggregate evaluation is not allowed.",
+      "docsReference": "Core Spec - GROUP BY and Aggregation",
+      "suggestedFixes": [
+        "Move the aggregate to SELECT, HAVING, or another aggregate-aware clause.",
+        "Use a non-aggregate expression in row-level filters such as WHERE."
+      ]
+    },
+    {
+      "code": "MQ3012_NonAggregateInSelect",
+      "number": 3012,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Column '{0}' must appear in GROUP BY clause or be used in an aggregate function",
+      "explanation": "Every selected column must be either aggregated or included in the GROUP BY clause.",
+      "docsReference": "Core Spec - GROUP BY and Aggregation",
+      "suggestedFixes": [
+        "Add the column to the GROUP BY clause.",
+        "Wrap the column in an aggregate function such as Count, Sum, Min, or Max."
+      ]
+    },
+    {
+      "code": "MQ3015_UnknownAlias",
+      "number": 3015,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Unknown alias '{0}'",
+      "explanation": "The query references an alias that is not visible in the current scope.",
+      "docsReference": "Core Spec - Aliasing",
+      "suggestedFixes": [
+        "Check the alias name for typos.",
+        "Define the alias in the FROM or APPLY clause before referencing it."
+      ]
+    },
+    {
+      "code": "MQ3016_CircularReference",
+      "number": 3016,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Circular reference detected in '{0}'",
+      "explanation": "The query contains references that depend on each other in a cycle.",
+      "docsReference": "Core Spec - Binding",
+      "suggestedFixes": [
+        "Break the cycle by introducing an intermediate projection.",
+        "Ensure aliases do not refer back to expressions that depend on them."
+      ]
+    },
+    {
+      "code": "MQ3017_ObjectNotArray",
+      "number": 3017,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3017_ObjectNotArray",
+      "explanation": "Array access was attempted on an object that is not an array.",
+      "docsReference": "Core Spec - Array Access",
+      "suggestedFixes": [
+        "Verify the column or expression returns an array or IEnumerable type."
+      ]
+    },
+    {
+      "code": "MQ3018_NoIndexer",
+      "number": 3018,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3018_NoIndexer",
+      "explanation": "The object does not implement an indexer for bracket access.",
+      "docsReference": "Core Spec - Indexer Access",
+      "suggestedFixes": [
+        "Use a different access pattern or check the object type."
+      ]
+    },
+    {
+      "code": "MQ3019_SetOperatorColumnCount",
+      "number": 3019,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3019_SetOperatorColumnCount",
+      "explanation": "Set operators require both queries to have the same number of columns.",
+      "docsReference": "Core Spec - Set Operators",
+      "suggestedFixes": [
+        "Adjust the SELECT lists so both queries produce the same number of columns."
+      ]
+    },
+    {
+      "code": "MQ3020_SetOperatorColumnTypes",
+      "number": 3020,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3020_SetOperatorColumnTypes",
+      "explanation": "Set operators require matching column types between the two queries.",
+      "docsReference": "Core Spec - Set Operators",
+      "suggestedFixes": [
+        "Convert columns to matching types using ToInt32, ToString, or another explicit conversion."
+      ]
+    },
+    {
+      "code": "MQ3021_DuplicateAlias",
+      "number": 3021,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3021_DuplicateAlias",
+      "explanation": "An alias with this name was already defined earlier in the query.",
+      "docsReference": "Core Spec - Aliasing",
+      "suggestedFixes": [
+        "Use a different alias name for this source or expression."
+      ]
+    },
+    {
+      "code": "MQ3022_MissingAlias",
+      "number": 3022,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Method call '{0}' must be qualified with a source alias when more than one schema is used",
+      "explanation": "In multi-source queries, method calls must be qualified with a source alias so Musoq can choose which schema library implementation to invoke.",
+      "docsReference": "Core Spec - JOIN Clause and Aggregation",
+      "suggestedFixes": [
+        "Prefix the method with the owning source alias, for example: a.ToDecimal(a.Id) or b.Sum(b.Amount).",
+        "For aggregates, remember that the alias chooses the schema library implementation, not the input column source.",
+        "If the aggregate is already aliased in SELECT, prefer that projection alias in ORDER BY instead of repeating the aggregate expression."
+      ]
+    },
+    {
+      "code": "MQ3023_TableNotDefined",
+      "number": 3023,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3023_TableNotDefined",
+      "explanation": "The referenced table or data source is not defined in this query.",
+      "docsReference": "Core Spec - FROM Clause",
+      "suggestedFixes": [
+        "Verify the table alias or CTE name is correct.",
+        "Ensure the data source is defined in a FROM clause."
+      ]
+    },
+    {
+      "code": "MQ3024_GroupByIndexOutOfRange",
+      "number": 3024,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3024_GroupByIndexOutOfRange",
+      "explanation": "A positional GROUP BY reference points outside the SELECT projection list.",
+      "docsReference": "Core Spec - GROUP BY Clause",
+      "suggestedFixes": [
+        "Use a GROUP BY index between 1 and the number of selected columns.",
+        "Prefer grouping by the expression or alias directly for clarity."
+      ]
+    },
+    {
+      "code": "MQ3025_ColumnMustBeArray",
+      "number": 3025,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3025_ColumnMustBeArray",
+      "explanation": "The expression must return an array or enumerable value for this operation.",
+      "docsReference": "Core Spec - APPLY and Arrays",
+      "suggestedFixes": [
+        "Use a column that returns an array or IEnumerable value.",
+        "Remove the array operation if the source value is scalar."
+      ]
+    },
+    {
+      "code": "MQ3026_ColumnNotBindable",
+      "number": 3026,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3026_ColumnNotBindable",
+      "explanation": "The selected column cannot be bound as a table source.",
+      "docsReference": "Core Spec - Bindable Properties",
+      "suggestedFixes": [
+        "Expose the property as bindable in the schema when it should be used as a nested table.",
+        "Use a regular property reference if the value should stay scalar."
+      ]
+    },
+    {
+      "code": "MQ3027_InvalidExpressionType",
+      "number": 3027,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3027_InvalidExpressionType",
+      "explanation": "The expression returns a type that is not valid for the current query construct.",
+      "docsReference": "Core Spec - Type System",
+      "suggestedFixes": [
+        "Use an expression that returns the expected type.",
+        "Add an explicit conversion before passing the expression to this construct."
+      ]
+    },
+    {
+      "code": "MQ3028_UnknownProperty",
+      "number": 3028,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3028_UnknownProperty",
+      "explanation": "The property name could not be resolved on the referenced object.",
+      "docsReference": "Core Spec - Property Access",
+      "suggestedFixes": [
+        "Check the property name for typos.",
+        "Verify the object type exposes this property before accessing it."
+      ]
+    },
+    {
+      "code": "MQ3032_ArithmeticOverflow",
+      "number": 3032,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3032_ArithmeticOverflow",
+      "explanation": "A constant arithmetic expression overflowed its target numeric type.",
+      "docsReference": "Core Spec - Arithmetic Operators",
+      "suggestedFixes": [
+        "Use a larger numeric type or a decimal literal.",
+        "Reduce the literal value so it fits the target type."
+      ]
+    },
+    {
+      "code": "MQ3033_InterpretFunctionOutsideApply",
+      "number": 3033,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3033_InterpretFunctionOutsideApply",
+      "explanation": "Parse and Interpret functions can only be used inside CROSS APPLY or OUTER APPLY.",
+      "docsReference": "Binary/Text Spec - Usage",
+      "suggestedFixes": [
+        "Move the function call to a CROSS APPLY or OUTER APPLY clause.",
+        "Use TryParse in OUTER APPLY if parsing may fail."
+      ]
+    },
+    {
+      "code": "MQ3034_AmbiguousAggregateOwner",
+      "number": 3034,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Aggregate call '{0}' is ambiguous because multiple source aliases expose different implementations: {1}",
+      "explanation": "An unqualified aggregate call matched multiple source aliases with different aggregate implementations.",
+      "docsReference": "Core Spec - Aggregation",
+      "suggestedFixes": [
+        "Prefix the aggregate with the intended source alias, for example: first.Sum(...) or second.Sum(...).",
+        "If the aggregate appears in ORDER BY, alias it in SELECT first and order by that projection alias."
+      ]
+    },
+    {
+      "code": "MQ3035_AmbiguousMethodOwner",
+      "number": 3035,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Method call '{0}' is ambiguous because multiple source aliases expose different implementations: {1}",
+      "explanation": "An unqualified method call matched multiple source aliases with different method implementations.",
+      "docsReference": "Core Spec - Method Resolution",
+      "suggestedFixes": [
+        "Prefix the method with the intended source alias, for example: first.MyMethod(...) or second.MyMethod(...).",
+        "Choose the alias whose schema library should own the method implementation."
+      ]
+    },
+    {
+      "code": "MQ3036_AsOfJoinMissingInequality",
+      "number": 3036,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "ASOF JOIN requires at least one inequality condition (>=, >, <=, <).",
+      "explanation": "An ASOF JOIN requires exactly one inequality condition to identify the nearest match.",
+      "docsReference": "Core Spec - ASOF JOIN",
+      "suggestedFixes": [
+        "Add one inequality predicate between the left and right sources.",
+        "Keep equality predicates for partitioning and one inequality for the as-of ordering."
+      ]
+    },
+    {
+      "code": "MQ3037_AsOfJoinMultipleInequalities",
+      "number": 3037,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "ASOF JOIN supports exactly one inequality condition. Found {0}.",
+      "explanation": "An ASOF JOIN contains more than one inequality condition.",
+      "docsReference": "Core Spec - ASOF JOIN",
+      "suggestedFixes": [
+        "Keep only the inequality that defines the as-of ordering.",
+        "Move additional range checks to WHERE when they are row filters."
+      ]
+    },
+    {
+      "code": "MQ3038_AsOfJoinOrNotSupported",
+      "number": 3038,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "ASOF JOIN ON clause does not support OR.",
+      "explanation": "The ASOF JOIN ON clause does not support OR conditions.",
+      "docsReference": "Core Spec - ASOF JOIN",
+      "suggestedFixes": [
+        "Rewrite the join condition using AND predicates.",
+        "Split OR alternatives into separate queries when needed."
+      ]
+    },
+    {
+      "code": "MQ3039_AsOfJoinInequalityMustReferenceBothSides",
+      "number": 3039,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "ASOF JOIN inequality must reference columns from both sides.",
+      "explanation": "The ASOF JOIN inequality must compare values from the left and right sources.",
+      "docsReference": "Core Spec - ASOF JOIN",
+      "suggestedFixes": [
+        "Reference one column from each side of the join in the inequality.",
+        "Use source aliases to make each side explicit."
+      ]
+    },
+    {
+      "code": "MQ3040_AsOfJoinInequalityColumnNotOrderable",
+      "number": 3040,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "ASOF JOIN inequality column type '{0}' is not orderable.",
+      "explanation": "The ASOF JOIN inequality uses a column type that cannot be ordered.",
+      "docsReference": "Core Spec - ASOF JOIN",
+      "suggestedFixes": [
+        "Use a numeric, date, or other comparable column for the as-of inequality.",
+        "Convert the column to an orderable type before joining."
+      ]
+    },
+    {
+      "code": "MQ3041_StarExcludeColumnNotFound",
+      "number": 3041,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3041_StarExcludeColumnNotFound",
+      "explanation": "A star EXCLUDE modifier references a column that is not present in the source shape.",
+      "docsReference": "Core Spec - Star Modifiers",
+      "suggestedFixes": [
+        "Check the excluded column name for typos.",
+        "Remove columns from EXCLUDE that are not returned by the source."
+      ]
+    },
+    {
+      "code": "MQ3042_StarReplaceColumnNotFound",
+      "number": 3042,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3042_StarReplaceColumnNotFound",
+      "explanation": "A star REPLACE modifier targets a column that is not present in the source shape.",
+      "docsReference": "Core Spec - Star Modifiers",
+      "suggestedFixes": [
+        "Check the replacement target column name for typos.",
+        "Use REPLACE only for columns produced by the star expansion."
+      ]
+    },
+    {
+      "code": "MQ3043_StarExcludeRemovesAllColumns",
+      "number": 3043,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3043_StarExcludeRemovesAllColumns",
+      "explanation": "A star EXCLUDE or LIKE modifier would remove every column from the projection.",
+      "docsReference": "Core Spec - Star Modifiers",
+      "suggestedFixes": [
+        "Leave at least one column in the star expansion.",
+        "Use explicit projections when the intended shape is small."
+      ]
+    },
+    {
+      "code": "MQ3044_StarColumnInBothExcludeAndReplace",
+      "number": 3044,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3044_StarColumnInBothExcludeAndReplace",
+      "explanation": "The same star-expanded column appears in both EXCLUDE and REPLACE modifiers.",
+      "docsReference": "Core Spec - Star Modifiers",
+      "suggestedFixes": [
+        "Remove the column from EXCLUDE if it should be replaced.",
+        "Remove the replacement if the column should be excluded."
+      ]
+    },
+    {
+      "code": "MQ3045_StarLikeMatchedNoColumns",
+      "number": 3045,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3045_StarLikeMatchedNoColumns",
+      "explanation": "A star LIKE pattern did not match any columns in the source shape.",
+      "docsReference": "Core Spec - Star Modifiers",
+      "suggestedFixes": [
+        "Check the LIKE pattern spelling.",
+        "Use explicit column names if no wildcard match is intended."
+      ]
+    },
+    {
+      "code": "MQ3046_StarExcludeDuplicateColumn",
+      "number": 3046,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3046_StarExcludeDuplicateColumn",
+      "explanation": "The same column appears more than once in a star EXCLUDE list.",
+      "docsReference": "Core Spec - Star Modifiers",
+      "suggestedFixes": [
+        "Remove the duplicate EXCLUDE entry.",
+        "Keep each excluded column name only once."
+      ]
+    },
+    {
+      "code": "MQ3047_StarReplaceDuplicateColumn",
+      "number": 3047,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3047_StarReplaceDuplicateColumn",
+      "explanation": "The same column appears more than once in a star REPLACE list.",
+      "docsReference": "Core Spec - Star Modifiers",
+      "suggestedFixes": [
+        "Remove the duplicate replacement.",
+        "Combine the replacement logic into a single REPLACE expression."
+      ]
+    },
+    {
+      "code": "MQ3048_StarReplaceTargetsRemovedColumn",
+      "number": 3048,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3048_StarReplaceTargetsRemovedColumn",
+      "explanation": "A star REPLACE modifier targets a column already removed by EXCLUDE or LIKE filtering.",
+      "docsReference": "Core Spec - Star Modifiers",
+      "suggestedFixes": [
+        "Remove the column from EXCLUDE or adjust the LIKE pattern if it should be replaced.",
+        "Remove the replacement if the column should stay removed."
+      ]
+    },
+    {
+      "code": "MQ3049_InSubqueryMultipleColumns",
+      "number": 3049,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3049_InSubqueryMultipleColumns",
+      "explanation": "An IN subquery must return exactly one column so Musoq can match it against the left-hand expression.",
+      "docsReference": "Core Spec - IN Subqueries",
+      "suggestedFixes": [
+        "Remove extra columns from the subquery SELECT list so it returns a single column.",
+        "Use separate IN conditions combined with AND when filtering multiple columns."
+      ]
+    },
+    {
+      "code": "MQ3050_QualifyRequiresWindowFunction",
+      "number": 3050,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3050_QualifyRequiresWindowFunction",
+      "explanation": "The QUALIFY clause filters rows based on window function results and must reference at least one window function.",
+      "docsReference": "Core Spec - QUALIFY",
+      "suggestedFixes": [
+        "Add a window function to the QUALIFY expression.",
+        "Use WHERE instead if you want to filter on a non-window expression."
+      ]
+    },
+    {
+      "code": "MQ3051_FilterOnNonAggregate",
+      "number": 3051,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3051_FilterOnNonAggregate",
+      "explanation": "The FILTER clause can only be applied to aggregate functions.",
+      "docsReference": "Core Spec - FILTER",
+      "suggestedFixes": [
+        "Remove FILTER from the non-aggregate function call.",
+        "Use a CASE expression inside an aggregate argument for conditional aggregation."
+      ]
+    },
+    {
+      "code": "MQ3052_RangeFrameRequiresOrderBy",
+      "number": 3052,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3052_RangeFrameRequiresOrderBy",
+      "explanation": "A RANGE window frame requires an ORDER BY clause in the window specification.",
+      "docsReference": "Core Spec - Window Frames",
+      "suggestedFixes": [
+        "Add an ORDER BY clause to the window specification.",
+        "Use ROWS instead of RANGE if ordering is not required."
+      ]
+    },
+    {
+      "code": "MQ3053_InvalidWindowFrameBounds",
+      "number": 3053,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3053_InvalidWindowFrameBounds",
+      "explanation": "The window frame start bound must not be logically after the end bound.",
+      "docsReference": "Core Spec - Window Frames",
+      "suggestedFixes": [
+        "Swap the start and end bounds so the start is logically before the end.",
+        "Use the ordering: UNBOUNDED PRECEDING, N PRECEDING, CURRENT ROW, N FOLLOWING, UNBOUNDED FOLLOWING."
+      ]
+    },
+    {
+      "code": "MQ3054_StarModifierInInSubquery",
+      "number": 3054,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3054_StarModifierInInSubquery",
+      "explanation": "Star modifiers cannot be used inside an IN subquery because the subquery must expose exactly one stable column.",
+      "docsReference": "Core Spec - IN Subqueries",
+      "suggestedFixes": [
+        "Replace the star modifier with an explicit column reference.",
+        "Extract complex projection logic outside the IN subquery."
+      ]
+    },
+    {
+      "code": "MQ3055_InvalidValuesSource",
+      "number": 3055,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Invalid VALUES source: {0}",
+      "explanation": "Inline VALUES sources are strongly typed tables and each row must have a compatible field shape.",
+      "docsReference": "Core Spec - Inline VALUES Sources",
+      "suggestedFixes": [
+        "Make every VALUES row use the same fields.",
+        "Use only literals, NULL, or literal arithmetic inside VALUES fields.",
+        "Use numeric suffixes when you need a specific numeric type."
+      ]
+    },
+    {
+      "code": "MQ3056_DuplicateScriptParameterBlock",
+      "number": 3056,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3056_DuplicateScriptParameterBlock",
+      "explanation": "A script can have only one parameter block.",
+      "docsReference": "Core Spec - Script Parameters",
+      "suggestedFixes": [
+        "Merge all declarations into the first param(...) block.",
+        "Place the single param(...) block at the beginning of the script."
+      ]
+    },
+    {
+      "code": "MQ3057_ScriptParameterBlockAfterStatement",
+      "number": 3057,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3057_ScriptParameterBlockAfterStatement",
+      "explanation": "Script parameters are a script preamble and must be declared before query statements.",
+      "docsReference": "Core Spec - Script Parameters",
+      "suggestedFixes": [
+        "Move param(...) before SELECT, WITH, FROM, TABLE, COUPLE, or DESC.",
+        "Omit the parameter block entirely if the script does not need parameters."
+      ]
+    },
+    {
+      "code": "MQ3058_DuplicateScriptParameterName",
+      "number": 3058,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3058_DuplicateScriptParameterName",
+      "explanation": "The same script parameter name was declared more than once.",
+      "docsReference": "Core Spec - Script Parameters",
+      "suggestedFixes": [
+        "Remove the duplicate declaration.",
+        "Use a distinct name for each parameter."
+      ]
+    },
+    {
+      "code": "MQ3059_UndeclaredScriptParameter",
+      "number": 3059,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3059_UndeclaredScriptParameter",
+      "explanation": "A parameter reference was used without a matching declaration in the param(...) block.",
+      "docsReference": "Core Spec - Script Parameters",
+      "suggestedFixes": [
+        "Add the parameter to the param(...) block.",
+        "Check the parameter name for typos; parameter names are case-sensitive."
+      ]
+    },
+    {
+      "code": "MQ3060_UnsupportedScriptParameterType",
+      "number": 3060,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3060_UnsupportedScriptParameterType",
+      "explanation": "The declared script parameter type is not one of the supported primitive query types.",
+      "docsReference": "Core Spec - Script Parameters",
+      "suggestedFixes": [
+        "Use a supported primitive type such as string, bool, int, decimal, datetime, guid, or a nullable form like int?.",
+        "Do not declare complex object or array parameters in the param(...) block."
+      ]
+    },
+    {
+      "code": "MQ3061_InvalidScriptParameterDefault",
+      "number": 3061,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3061_InvalidScriptParameterDefault",
+      "explanation": "The script parameter default cannot be bound to the declared parameter type.",
+      "docsReference": "Core Spec - Script Parameters",
+      "suggestedFixes": [
+        "Use only primitive constants or null as defaults.",
+        "For guid, datetime, datetimeoffset, and timespan defaults, use a parseable string literal."
+      ]
+    },
+    {
+      "code": "MQ3062_InvalidScriptParameterSourceArgument",
+      "number": 3062,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3062_InvalidScriptParameterSourceArgument",
+      "explanation": "Script parameters used as data-source arguments must be direct references with defaults so source metadata can be resolved.",
+      "docsReference": "Core Spec - Script Parameters",
+      "suggestedFixes": [
+        "Pass the parameter directly, for example: #Files.All($path).",
+        "Declare a default value, for example: param(path: string = '/tmp')."
+      ]
+    },
+    {
+      "code": "MQ3063_DuplicateScriptSymbolName",
+      "number": 3063,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3063_DuplicateScriptSymbolName",
+      "explanation": "A script variable and another script symbol use the same name, making $name ambiguous.",
+      "docsReference": "Core Spec - Script Variables",
+      "suggestedFixes": [
+        "Rename one of the script symbols.",
+        "Keep param(...) names and let names unique within the script."
+      ]
+    },
+    {
+      "code": "MQ3064_UnsupportedScriptVariableType",
+      "number": 3064,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3064_UnsupportedScriptVariableType",
+      "explanation": "The declared script variable type is not one of the supported primitive query types.",
+      "docsReference": "Core Spec - Script Variables",
+      "suggestedFixes": [
+        "Use a supported primitive type such as string, bool, int, decimal, datetime, guid, or a nullable value type like int?.",
+        "Do not declare complex object or array script variables."
+      ]
+    },
+    {
+      "code": "MQ3065_InvalidScriptVariableInitializer",
+      "number": 3065,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3065_InvalidScriptVariableInitializer",
+      "explanation": "The script variable initializer cannot be evaluated as a compile-time constant for the declared type.",
+      "docsReference": "Core Spec - Script Variables",
+      "suggestedFixes": [
+        "Use literals, constant operators, and earlier let variables only.",
+        "Move runtime expressions, data-source columns, and function calls into the query body."
+      ]
+    },
+    {
+      "code": "MQ3066_ScriptVariableUsedBeforeDeclaration",
+      "number": 3066,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3066_ScriptVariableUsedBeforeDeclaration",
+      "explanation": "A script variable initializer references a let variable that has not been declared yet.",
+      "docsReference": "Core Spec - Script Variables",
+      "suggestedFixes": [
+        "Move the referenced let declaration earlier in the script.",
+        "Check the script variable name for typos; names are case-sensitive."
+      ]
+    },
+    {
+      "code": "MQ3067_MissingSourceRuntimeSetting",
+      "number": 3067,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Error MQ3067_MissingSourceRuntimeSetting",
+      "explanation": "A data source requires a runtime setting that was not provided.",
+      "docsReference": "Data Source Runtime Settings",
+      "suggestedFixes": [
+        "Provide the setting through the configured source runtime settings resolver.",
+        "Use DESC SETTINGS to inspect required settings without revealing secret values."
+      ]
+    },
+    {
+      "code": "MQ3068_StarRenameDuplicateSource",
+      "number": 3068,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Duplicate source column '{0}' in RENAME list.",
+      "explanation": "The same output column appears more than once as a star RENAME source.",
+      "docsReference": "Core Spec - Star Modifiers",
+      "suggestedFixes": [
+        "Remove the duplicate RENAME entry.",
+        "Keep each renamed output column name only once."
+      ]
+    },
+    {
+      "code": "MQ3069_StarRenameDuplicateTarget",
+      "number": 3069,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Duplicate target column '{0}' in RENAME list.",
+      "explanation": "A star RENAME modifier would produce duplicate output column names.",
+      "docsReference": "Core Spec - Star Modifiers",
+      "suggestedFixes": [
+        "Choose unique RENAME target names.",
+        "Avoid renaming a column to the name of another surviving star output."
+      ]
+    },
+    {
+      "code": "MQ3070_StarRenameColumnNotFound",
+      "number": 3070,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "RENAME references non-existent output column '{0}'.",
+      "explanation": "A star RENAME modifier references a column that is not present after earlier star modifiers.",
+      "docsReference": "Core Spec - Star Modifiers",
+      "suggestedFixes": [
+        "Check the RENAME source column name for typos.",
+        "Rename only columns that remain after LIKE, EXCLUDE, and REPLACE."
+      ]
+    },
+    {
+      "code": "MQ3071_SourceContractError",
+      "number": 3071,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Source contract error: {0}",
+      "explanation": "A data source reported that the table contract cannot be honored.",
+      "docsReference": "Table/Couple Spec - Source Contract Diagnostics",
+      "suggestedFixes": [
+        "Adjust the annotated table column type or read modifier to a value supported by the data source.",
+        "Remove the column modifier when the data source should use its own default behavior."
+      ]
+    },
+    {
+      "code": "MQ3072_RecursiveCteRequiresKeyword",
+      "number": 3072,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Recursive CTE '{0}' requires WITH RECURSIVE.",
+      "explanation": "A CTE references itself without declaring WITH RECURSIVE.",
+      "docsReference": "Core Spec - Recursive CTEs",
+      "suggestedFixes": [
+        "Add RECURSIVE after WITH."
+      ]
+    },
+    {
+      "code": "MQ3073_InvalidRecursiveCteShape",
+      "number": 3073,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Invalid recursive CTE shape: {0}",
+      "explanation": "The recursive CTE does not have one anchor and one top-level recursive union member.",
+      "docsReference": "Core Spec - Recursive CTEs",
+      "suggestedFixes": [
+        "Use one anchor query followed by UNION, UNION ALL, or keyed UNION and one recursive member."
+      ]
+    },
+    {
+      "code": "MQ3074_InvalidRecursiveCteReference",
+      "number": 3074,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Invalid recursive CTE reference: {0}",
+      "explanation": "The recursive CTE contains an invalid self, forward, or mutual reference.",
+      "docsReference": "Core Spec - Recursive CTEs",
+      "suggestedFixes": [
+        "Reference the recursive CTE exactly once in the recursive member and only depend on earlier CTEs."
+      ]
+    },
+    {
+      "code": "MQ3075_UnsupportedRecursiveCteOperator",
+      "number": 3075,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Operator '{0}' is not supported in a recursive CTE member.",
+      "explanation": "The recursive member uses an operator outside the v1 recursive CTE subset.",
+      "docsReference": "Core Spec - Recursive CTEs",
+      "suggestedFixes": [
+        "Move the operator to the outer query or rewrite the recursive member using projection, filtering, supported joins, or APPLY."
+      ]
+    },
+    {
+      "code": "MQ3076_RecursiveCteOutputMismatch",
+      "number": 3076,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Recursive CTE output mismatch: {0}",
+      "explanation": "The recursive member output does not match the anchor-derived recursive relation shape.",
+      "docsReference": "Core Spec - Recursive CTEs",
+      "suggestedFixes": [
+        "Match the anchor column count and types; add an explicit postfix cast to the anchor when necessary."
+      ]
+    },
+    {
+      "code": "MQ3077_CteColumnListCountMismatch",
+      "number": 3077,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "CTE '{0}' declares {1} column name(s), but its query projects {2} column(s).",
+      "explanation": "The number of exported CTE column names differs from the number of projected columns.",
+      "docsReference": "Core Spec - Common Table Expressions",
+      "suggestedFixes": [
+        "Add or remove names so the CTE column list matches the projection positionally."
+      ]
+    },
+    {
+      "code": "MQ3078_DuplicateCteColumnName",
+      "number": 3078,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "CTE '{0}' declares duplicate column name '{1}'.",
+      "explanation": "A CTE column list exports the same case-insensitive identifier more than once.",
+      "docsReference": "Core Spec - Common Table Expressions",
+      "suggestedFixes": [
+        "Rename one of the duplicate exported columns."
+      ]
+    },
+    {
+      "code": "MQ3079_UnknownSourceArgument",
+      "number": 3079,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Datasource argument '{0}' is not present in the selected source signature.",
+      "explanation": "A named datasource argument does not match any parameter in the selected source signature.",
+      "docsReference": "Core Spec - FROM Arguments",
+      "suggestedFixes": [
+        "Check the parameter spelling in DESC output.",
+        "Use the constructor parameter name exposed by the datasource."
+      ]
+    },
+    {
+      "code": "MQ3080_DuplicateSourceArgument",
+      "number": 3080,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Datasource argument '{0}' was supplied more than once.",
+      "explanation": "A datasource parameter was supplied more than once, either by name or by positional prefix plus name.",
+      "docsReference": "Core Spec - FROM Arguments",
+      "suggestedFixes": [
+        "Supply each datasource parameter exactly once."
+      ]
+    },
+    {
+      "code": "MQ3081_MissingRequiredSourceArgument",
+      "number": 3081,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Required datasource argument '{0}' was not supplied.",
+      "explanation": "A required datasource parameter was not supplied and has no usable reflected default.",
+      "docsReference": "Core Spec - FROM Arguments",
+      "suggestedFixes": [
+        "Provide the parameter positionally or by name.",
+        "Use a datasource constructor with an optional default if omission is intended."
+      ]
+    },
+    {
+      "code": "MQ3083_NamedSourceArgumentsRequireMetadata",
+      "number": 3083,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Named datasource arguments require reflected source metadata for '{0}'.",
+      "explanation": "The datasource does not expose reflected constructor metadata required to bind argument names and defaults.",
+      "docsReference": "Core Spec - FROM Arguments",
+      "suggestedFixes": [
+        "Use positional arguments for this datasource.",
+        "Expose a reflection-backed table constructor in GetRawConstructors()."
+      ]
+    },
+    {
+      "code": "MQ3084_SourceEntityRequiresRuntimeReflection",
+      "number": 3084,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Source entity '{0}' for '{1}.{2}' cannot be emitted as generated execution code: {3}",
+      "explanation": "Generated execution can access CLR members only when the source entity and its projected members are publicly referenceable. Private, object-typed, and custom runtime-dynamic entities would require reflection at query execution time.",
+      "docsReference": "Generated Execution - Source Entity Contracts",
+      "suggestedFixes": [
+        "Expose a public CLR entity contract with public instance members.",
+        "Use a schema-indexed positional row, currently object[], when the schema supplies runtime column indexes.",
+        "Use a supported string/object dictionary row or ExpandoObject when the source is intentionally dynamic."
+      ]
+    },
+    {
+      "code": "MQ3085_UnknownSource",
+      "number": 3085,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Source '{0}' does not exist in schema '{1}'",
+      "explanation": "The schema is available, but it does not expose the requested source name.",
+      "docsReference": "Core Spec - FROM Clause",
+      "suggestedFixes": [
+        "Check the source name after the schema prefix for spelling errors.",
+        "Use DESC to inspect the sources exposed by the schema."
+      ]
+    },
+    {
+      "code": "MQ3086_UnknownCallable",
+      "number": 3086,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Unknown callable '{0}'",
+      "explanation": "No scalar, aggregate, row, library, or source callable with this name is available in the selected owner.",
+      "docsReference": "Core Spec - Method Resolution",
+      "suggestedFixes": [
+        "Check the callable name for a spelling error.",
+        "Use DESC or the schema documentation to inspect available callables."
+      ]
+    },
+    {
+      "code": "MQ3087_InvalidCallableArity",
+      "number": 3087,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Callable '{0}' does not accept {1} argument(s); expected {2}",
+      "explanation": "The callable name is known, but none of its overloads accepts the supplied number of arguments.",
+      "docsReference": "Core Spec - Method Resolution",
+      "suggestedFixes": [
+        "Check the callable signature and supplied argument count.",
+        "Provide required arguments or remove extra arguments."
+      ]
+    },
+    {
+      "code": "MQ3088_NoMatchingCallableOverload",
+      "number": 3088,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "No overload of callable '{0}' accepts argument types ({1})",
+      "explanation": "At least one callable overload has the requested arity, but none accepts the supplied argument types.",
+      "docsReference": "Core Spec - Method Resolution",
+      "suggestedFixes": [
+        "Convert the arguments explicitly or choose an overload-compatible value.",
+        "Check the candidate signatures in the diagnostic."
+      ]
+    },
+    {
+      "code": "MQ3089_AmbiguousCallableOverload",
+      "number": 3089,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Callable '{0}' is ambiguous for argument types ({1})",
+      "explanation": "More than one callable overload is equally valid for the supplied arguments.",
+      "docsReference": "Core Spec - Method Resolution",
+      "suggestedFixes": [
+        "Convert an argument explicitly or qualify the call so one overload is selected.",
+        "Check the candidate signatures in the diagnostic."
+      ]
+    },
+    {
+      "code": "MQ3090_UnsupportedCastTarget",
+      "number": 3090,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Cast target '{0}' is not supported",
+      "explanation": "The postfix cast target is not one of the CLR types or C# aliases supported by Musoq.",
+      "docsReference": "Core Spec - Type System",
+      "suggestedFixes": [
+        "Use a supported CLR type name such as Int32, Decimal, DateTime, or String.",
+        "Use an explicit conversion function when a custom target is required."
+      ]
+    },
+    {
+      "code": "MQ3091_InvalidConstantCast",
+      "number": 3091,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Constant value cannot be cast to '{0}': {1}",
+      "explanation": "A constant value is known at bind time and cannot be converted to the requested target type.",
+      "docsReference": "Core Spec - Type System",
+      "suggestedFixes": [
+        "Correct the literal value or use a compatible target type.",
+        "Use a guarded conversion function when the value is not guaranteed to be valid."
+      ]
+    },
+    {
+      "code": "MQ3092_AggregateInGroupBy",
+      "number": 3092,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "GROUP BY expressions cannot contain aggregate functions",
+      "explanation": "An aggregate expression is not valid inside GROUP BY.",
+      "docsReference": "Core Spec - GROUP BY and Aggregation",
+      "suggestedFixes": [
+        "Group by the input expression instead.",
+        "Move the aggregate expression to SELECT or HAVING."
+      ]
+    },
+    {
+      "code": "MQ3093_OrderByOrdinalUnsupported",
+      "number": 3093,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "ORDER BY numeric positions are not supported",
+      "explanation": "This engine does not interpret numeric ORDER BY expressions as projection ordinals.",
+      "docsReference": "Core Spec - ORDER BY",
+      "suggestedFixes": [
+        "Order by a column name or projection alias instead of a numeric position."
+      ]
+    },
+    {
+      "code": "MQ3094_InvalidConstantRegex",
+      "number": 3094,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "The constant regex pattern is invalid: {0}",
+      "explanation": "A constant RLIKE pattern can be checked during binding and is not valid for the runtime regex engine.",
+      "docsReference": "Core Spec - Pattern Predicates",
+      "suggestedFixes": [
+        "Fix the regex syntax or escape the intended metacharacters.",
+        "Use a raw literal when backslashes should be preserved."
+      ]
+    },
+    {
+      "code": "MQ3095_ScalarSubqueryCardinality",
+      "number": 3095,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Scalar subquery may return more than one row",
+      "explanation": "A scalar subquery must be provably single-row before its value can be used as a scalar.",
+      "docsReference": "Core Spec - Subqueries",
+      "suggestedFixes": [
+        "Add an aggregate, TAKE 1, or another predicate that guarantees one row.",
+        "Use IN or EXISTS when multiple rows are intended."
+      ]
+    },
+    {
+      "code": "MQ3096_UnsupportedVariableKeyAccess",
+      "number": 3096,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Variable key access is not supported",
+      "explanation": "Bracket key access on a script variable is not supported by the current binding and code-generation pipeline.",
+      "docsReference": "Core Spec - Script Variables",
+      "suggestedFixes": [
+        "Bind the key explicitly or use a typed object/property access.",
+        "Use a source column or dynamic object that supports key access."
+      ]
+    },
+    {
+      "code": "MQ3097_UnsupportedAggregateProjection",
+      "number": 3097,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "This aggregate projection shape is not supported without GROUP BY",
+      "explanation": "The selected aggregate and non-aggregate expressions cannot be lowered without a grouping boundary.",
+      "docsReference": "Core Spec - GROUP BY and Aggregation",
+      "suggestedFixes": [
+        "Add GROUP BY for the non-aggregate projection.",
+        "Aggregate every selected expression that is not a grouping key."
+      ]
+    },
+    {
+      "code": "MQ4001_InvalidBinarySchemaField",
+      "number": 4001,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "Invalid binary schema field '{0}'",
+      "explanation": "A field in the binary schema definition is invalid.",
+      "docsReference": "Binary/Text Spec - Binary Schema Fields",
+      "suggestedFixes": [
+        "Verify field type and constraints match the binary schema grammar."
+      ]
+    },
+    {
+      "code": "MQ4002_InvalidTextSchemaField",
+      "number": 4002,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "Invalid text schema field '{0}'",
+      "explanation": "A field in the text schema definition is invalid.",
+      "docsReference": "Binary/Text Spec - Text Schema Fields",
+      "suggestedFixes": [
+        "Verify the text field name, type, and constraints.",
+        "Check delimiter, quote, and optional field settings for the text schema."
+      ]
+    },
+    {
+      "code": "MQ4003_UndefinedSchemaReference",
+      "number": 4003,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "Reference to undefined schema '{0}'",
+      "explanation": "The interpretation schema referenced by Interpret, Parse, or InterpretAt was not defined.",
+      "docsReference": "Binary/Text Spec - Schema References",
+      "suggestedFixes": [
+        "Define the schema in a DEFINE SCHEMA block before referencing it.",
+        "Verify the schema name matches exactly."
+      ]
+    },
+    {
+      "code": "MQ4004_CircularSchemaReference",
+      "number": 4004,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "Circular schema reference: '{0}' references itself",
+      "explanation": "Interpretation schemas reference each other in a cycle.",
+      "docsReference": "Binary/Text Spec - Schema References",
+      "suggestedFixes": [
+        "Break the schema reference cycle.",
+        "Use a flat field or a separately parsed schema boundary where recursion is not supported."
+      ]
+    },
+    {
+      "code": "MQ4005_InvalidEndianness",
+      "number": 4005,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "Invalid endianness specification",
+      "explanation": "A binary schema field declares an unsupported byte order.",
+      "docsReference": "Binary/Text Spec - Binary Schema Fields",
+      "suggestedFixes": [
+        "Use a supported endianness value.",
+        "Remove the endianness modifier when the field type does not need it."
+      ]
+    },
+    {
+      "code": "MQ4006_InvalidFieldConstraint",
+      "number": 4006,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "Invalid field constraint '{0}'",
+      "explanation": "A schema field constraint is malformed or incompatible with the field type.",
+      "docsReference": "Binary/Text Spec - Field Constraints",
+      "suggestedFixes": [
+        "Check the constraint name and value.",
+        "Apply constraints only to field types that support them."
+      ]
+    },
+    {
+      "code": "MQ4007_InvalidSchemaFieldType",
+      "number": 4007,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "Invalid type '{0}' in schema field",
+      "explanation": "A schema field uses a type that is not supported by the interpretation schema parser.",
+      "docsReference": "Binary/Text Spec - Schema Field Types",
+      "suggestedFixes": [
+        "Use one of the supported binary or text schema field types.",
+        "Replace custom CLR type names with schema-supported primitive type names."
+      ]
+    },
+    {
+      "code": "MQ4008_DuplicateSchemaField",
+      "number": 4008,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "Duplicate field name '{0}' in schema",
+      "explanation": "A schema declares the same field name more than once.",
+      "docsReference": "Binary/Text Spec - Schema Definitions",
+      "suggestedFixes": [
+        "Rename one of the fields.",
+        "Remove the duplicate field declaration."
+      ]
+    },
+    {
+      "code": "MQ4009_InvalidSchemaName",
+      "number": 4009,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "Invalid schema name '{0}'",
+      "explanation": "The schema name is missing or uses invalid identifier syntax.",
+      "docsReference": "Binary/Text Spec - Schema Definitions",
+      "suggestedFixes": [
+        "Use a valid schema identifier.",
+        "Check for punctuation or whitespace in the schema name."
+      ]
+    },
+    {
+      "code": "MQ4010_MissingRequiredField",
+      "number": 4010,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "Missing required field '{0}' in schema",
+      "explanation": "A schema field or schema declaration is missing a required value.",
+      "docsReference": "Binary/Text Spec - Schema Definitions",
+      "suggestedFixes": [
+        "Add the required field property.",
+        "Check the schema grammar for required name, type, offset, length, or delimiter values."
+      ]
+    },
+    {
+      "code": "MQ4011_SwitchSelectorNotPreviousField",
+      "number": 4011,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "Switch selector '{0}' must reference a field declared before the switch field",
+      "explanation": "A binary switch selector does not reference a field declared before the switch field.",
+      "docsReference": "Binary/Text Spec - Switch Payloads",
+      "suggestedFixes": [
+        "Reference a field that appears earlier in the same schema.",
+        "Move the discriminator field above the switch field."
+      ]
+    },
+    {
+      "code": "MQ4012_DuplicateSwitchBranchAlias",
+      "number": 4012,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "Duplicate switch branch alias '{0}'",
+      "explanation": "A binary switch declares the same branch alias more than once.",
+      "docsReference": "Binary/Text Spec - Switch Payloads",
+      "suggestedFixes": [
+        "Rename one of the branch aliases.",
+        "Each switch branch alias must be unique within the switch."
+      ]
+    },
+    {
+      "code": "MQ4013_InvalidSwitchCaseLabel",
+      "number": 4013,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "Switch case label must be a constant scalar literal",
+      "explanation": "A binary switch case label is not a constant scalar literal.",
+      "docsReference": "Binary/Text Spec - Switch Payloads",
+      "suggestedFixes": [
+        "Use a constant integer, hex, binary, octal, or string literal as the case label.",
+        "Use '_' for the optional default branch."
+      ]
+    },
+    {
+      "code": "MQ4014_InvalidSubstreamModifier",
+      "number": 4014,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "Substream requires a 'raw' or 'as <type>' modifier with an optional 'exact' or 'lax' mode",
+      "explanation": "A binary substream is missing a 'raw' or 'as <type>' modifier or declares an invalid mode.",
+      "docsReference": "Binary/Text Spec - Substreams",
+      "suggestedFixes": [
+        "Use 'substream[size] raw' to return the bounded slice as bytes.",
+        "Use 'substream[size] as <type>' with an optional 'exact' or 'lax' mode."
+      ]
+    },
+    {
+      "code": "MQ4015_InvalidSubstreamTarget",
+      "number": 4015,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "Substream 'as' requires a valid target type",
+      "explanation": "A binary substream declares an invalid or missing target type after 'as'.",
+      "docsReference": "Binary/Text Spec - Substreams",
+      "suggestedFixes": [
+        "Provide a schema reference, inline schema, array, repeat-until, string, primitive, or switch target.",
+        "Remove the trailing 'as' when no target type is intended and use 'raw' instead."
+      ]
+    },
+    {
+      "code": "MQ4016_UnsupportedSchemaConstruction",
+      "number": 4016,
+      "phase": "Schema",
+      "severity": "Error",
+      "category": "Schema",
+      "messageTemplate": "This interpretation schema construction is not supported by the code generator",
+      "explanation": "The interpretation schema contains a construction that the generated schema reader cannot lower.",
+      "docsReference": "Binary/Text Spec - Code Generation",
+      "suggestedFixes": [
+        "Use a supported schema field or modifier.",
+        "Replace the construction with a supported primitive, substream, array, or nested schema."
+      ]
+    },
+    {
+      "code": "MQ5003_ImplicitTypeConversion",
+      "number": 5003,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "Ambiguous date text is implicitly converted from '{0}' to '{1}'",
+      "explanation": "Ambiguous numeric date text is being implicitly converted to a temporal type; its day/month interpretation can depend on the shape of the input.",
+      "docsReference": "Core Spec - Type System",
+      "suggestedFixes": [
+        "Use ISO year-first text such as 2026-02-01.",
+        "Use ToDateTimeWithFormat or ToDateTimeOffsetWithFormat with an explicit format."
+      ]
+    },
+    {
+      "code": "MQ5008_UnreachableCode",
+      "number": 5008,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "Unreachable code detected",
+      "explanation": "A branch or expression cannot be reached based on preceding query logic.",
+      "docsReference": "Core Spec - Expressions",
+      "suggestedFixes": [
+        "Remove the unreachable branch.",
+        "Check whether a condition was inverted accidentally."
+      ]
+    },
+    {
+      "code": "MQ5010_TautologicalCondition",
+      "number": 5010,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "Error MQ5010_TautologicalCondition",
+      "explanation": "A condition always evaluates to true and does not filter rows.",
+      "docsReference": "Core Spec - WHERE Clause",
+      "suggestedFixes": [
+        "Remove the redundant condition.",
+        "Check whether one side of the comparison should reference a different value."
+      ]
+    },
+    {
+      "code": "MQ5011_ContradictoryCondition",
+      "number": 5011,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "Error MQ5011_ContradictoryCondition",
+      "explanation": "A condition always evaluates to false, so no rows can satisfy it.",
+      "docsReference": "Core Spec - WHERE Clause",
+      "suggestedFixes": [
+        "Remove or correct the contradictory condition.",
+        "Check whether AND should be OR in the predicate."
+      ]
+    },
+    {
+      "code": "MQ5013_SourceContractWarning",
+      "number": 5013,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "Source contract warning: {0}",
+      "explanation": "A data source reported a non-fatal issue with the table contract or read modifiers.",
+      "docsReference": "Table/Couple Spec - Source Contract Diagnostics",
+      "suggestedFixes": [
+        "Inspect the source contract warning message for the affected column or modifier.",
+        "Remove unsupported modifiers when the data source should use its defaults."
+      ]
+    },
+    {
+      "code": "MQ5014_SuspiciousOrdinaryStringEscape",
+      "number": 5014,
+      "phase": "Parse",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "Ordinary string escape '{0}' changes path-like text; use a raw literal or double the backslash if the text should be preserved.",
+      "explanation": "A recognized escape sequence changes the value of an ordinary string that looks like a path. Existing ordinary-string escape semantics remain unchanged; this warning is advisory.",
+      "docsReference": "Core Spec - String Literals",
+      "suggestedFixes": [
+        "Use a raw literal such as r'path\\segment' when backslashes should remain literal.",
+        "Double each intended backslash in an ordinary string, such as 'path\\\\segment'."
+      ]
+    },
+    {
+      "code": "MQ5015_SuspiciousRegexEscape",
+      "number": 5015,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "An ordinary string escape changes a regex token '{0}'",
+      "explanation": "An ordinary string escape changes a regex token before the regex engine evaluates it. For example, \\b becomes a backspace character rather than a word boundary.",
+      "docsReference": "Core Spec - Regular Expressions",
+      "suggestedFixes": [
+        "Use a raw string literal such as r'\\bword\\b' for regex syntax.",
+        "Double the backslash when the ordinary-string form is intentional."
+      ]
+    },
+    {
+      "code": "MQ5016_GlobWildcardInLike",
+      "number": 5016,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "Glob wildcard '{0}' is used with SQL LIKE",
+      "explanation": "The pattern looks like a filesystem glob, but SQL LIKE recognizes '%' and '_' rather than '*' and '?'.",
+      "docsReference": "Core Spec - LIKE and RLIKE",
+      "suggestedFixes": [
+        "Use '%' or '_' for SQL LIKE wildcards.",
+        "Use RLIKE when the pattern is a regular expression."
+      ]
+    },
+    {
+      "code": "MQ5017_NullComparison",
+      "number": 5017,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "Comparison with NULL using '{0}' is always UNKNOWN",
+      "explanation": "SQL comparisons with NULL produce UNKNOWN rather than true or false. Use IS NULL, IS NOT NULL, or IS DISTINCT FROM when that is the intended test.",
+      "docsReference": "Core Spec - Null Handling",
+      "suggestedFixes": [
+        "Replace the comparison with IS NULL or IS NOT NULL.",
+        "Use IS DISTINCT FROM when a total comparison is required."
+      ]
+    },
+    {
+      "code": "MQ5018_AmbiguousOuterJoinNullCheck",
+      "number": 5018,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "IS NULL on optional alias '{0}.{1}' cannot distinguish a missing outer-join row from a present NULL value",
+      "explanation": "A nullable column from an optional outer-join side can be NULL both when its row is missing and when a present row contains NULL.",
+      "docsReference": "Core Spec - Outer Joins",
+      "suggestedFixes": [
+        "Use the table alias IS PRESENT or IS MISSING predicate to test row existence.",
+        "Check a source column that is non-nullable when a present row is required."
+      ]
+    },
+    {
+      "code": "MQ5019_NullRejectingOuterJoinFilter",
+      "number": 5019,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "WHERE predicate rejects NULL-extended rows from optional alias '{0}' and effectively turns the outer join into an inner join",
+      "explanation": "A WHERE predicate is false or UNKNOWN for the NULL-extended row of an outer join, so unmatched rows cannot survive.",
+      "docsReference": "Core Spec - Outer Joins",
+      "suggestedFixes": [
+        "Move the restriction into the JOIN ON clause when it is part of matching.",
+        "Use an explicit row-presence predicate when removing unmatched rows is intentional."
+      ]
+    },
+    {
+      "code": "MQ5020_SetOperationOrderByScope",
+      "number": 5020,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "ORDER BY on the rightmost set operand does not order the combined set result",
+      "explanation": "An ORDER BY attached to the rightmost operand of a set operation orders that operand before combination, not the combined result.",
+      "docsReference": "Core Spec - Set Operations and ORDER BY",
+      "suggestedFixes": [
+        "Move ORDER BY to a query that consumes the combined set.",
+        "Keep branch-local ORDER BY only when it is paired with TAKE or positive SKIP for intentional slicing."
+      ]
+    },
+    {
+      "code": "MQ5021_UnorderedSkip",
+      "number": 5021,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "SKIP {0} is used without ORDER BY, so the skipped rows are not deterministic",
+      "explanation": "SKIP without ORDER BY selects an unspecified offset, so repeated executions may skip different rows.",
+      "docsReference": "Core Spec - ORDER BY and SKIP",
+      "suggestedFixes": [
+        "Add ORDER BY on the same query before SKIP.",
+        "Remove SKIP when row order is not part of the query contract."
+      ]
+    },
+    {
+      "code": "MQ5022_UnusedCte",
+      "number": 5022,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "CTE '{0}' is not reachable from the outer query",
+      "explanation": "A user-declared CTE is not reachable from the outer query, so its work will not contribute to the result.",
+      "docsReference": "Core Spec - Common Table Expressions",
+      "suggestedFixes": [
+        "Remove the unused CTE.",
+        "Reference the CTE from the outer query or from another live CTE."
+      ]
+    },
+    {
+      "code": "MQ5023_UnusedScriptVariable",
+      "number": 5023,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "Script variable '{0}' is not transitively used",
+      "explanation": "A let variable is not used by an executable statement or by a live dependency chain.",
+      "docsReference": "Core Spec - Script Variables",
+      "suggestedFixes": [
+        "Remove the unused variable.",
+        "Reference it from a live query or variable initializer."
+      ]
+    },
+    {
+      "code": "MQ5024_NullSensitiveNotIn",
+      "number": 5024,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "NOT IN contains NULL, so non-matching values evaluate to UNKNOWN",
+      "explanation": "NOT IN returns UNKNOWN, rather than true, when its candidate list contains NULL and no value matches.",
+      "docsReference": "Core Spec - Null Handling",
+      "suggestedFixes": [
+        "Remove NULL from the NOT IN list.",
+        "Use an explicit NULL-safe predicate such as NOT EXISTS or add a non-null filter."
+      ]
+    },
+    {
+      "code": "MQ5025_ImpossibleImplicitConversion",
+      "number": 5025,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "This constant cannot be implicitly converted to {0}; the comparison cannot match",
+      "explanation": "A constant selected for an implicit temporal conversion cannot be parsed by the target type, so the comparison will never match.",
+      "docsReference": "Core Spec - Type System",
+      "suggestedFixes": [
+        "Use a valid value for the target type.",
+        "Use an explicit conversion or format when the text has a non-default representation."
+      ]
+    },
+    {
+      "code": "MQ7003_RequiredScriptParameterMissing",
+      "number": 7003,
+      "phase": "Runtime",
+      "severity": "Error",
+      "category": "Runtime",
+      "messageTemplate": "Error MQ7003_RequiredScriptParameterMissing",
+      "explanation": "A required script parameter was declared without a default value, but the host did not provide a runtime value.",
+      "docsReference": "Core Spec - Script Parameters",
+      "suggestedFixes": [
+        "Set the parameter in CompiledQuery.Parameters before calling Run().",
+        "Add a default value in the param(...) block if the parameter should be optional."
+      ]
+    },
+    {
+      "code": "MQ7004_ScriptParameterTypeMismatch",
+      "number": 7004,
+      "phase": "Runtime",
+      "severity": "Error",
+      "category": "Runtime",
+      "messageTemplate": "Error MQ7004_ScriptParameterTypeMismatch",
+      "explanation": "Runtime script parameter values are strict CLR casts and are not converted from strings or other types.",
+      "docsReference": "Core Spec - Script Parameters",
+      "suggestedFixes": [
+        "Pass a value whose CLR type matches the declared Musoq parameter type.",
+        "For example, pass 10 as an int for param(limit: int), not \"10\"."
+      ]
+    },
+    {
+      "code": "MQ7005_ScriptParameterNullNotAllowed",
+      "number": 7005,
+      "phase": "Runtime",
+      "severity": "Error",
+      "category": "Runtime",
+      "messageTemplate": "Error MQ7005_ScriptParameterNullNotAllowed",
+      "explanation": "A null runtime value was supplied for a non-nullable script parameter.",
+      "docsReference": "Core Spec - Script Parameters",
+      "suggestedFixes": [
+        "Provide a non-null value for this parameter.",
+        "Declare the parameter as nullable, for example int?, if null is allowed."
+      ]
+    },
+    {
+      "code": "MQ7006_UnknownScriptParameter",
+      "number": 7006,
+      "phase": "Runtime",
+      "severity": "Error",
+      "category": "Runtime",
+      "messageTemplate": "Error MQ7006_UnknownScriptParameter",
+      "explanation": "The host supplied a runtime script parameter that is not declared by the query.",
+      "docsReference": "Core Spec - Script Parameters",
+      "suggestedFixes": [
+        "Remove the unknown parameter from the runtime parameter dictionary.",
+        "Add the parameter to the param(...) block if the query should accept it."
+      ]
+    },
+    {
+      "code": "MQ7007_RecursiveCteIterationLimitExceeded",
+      "number": 7007,
+      "phase": "Runtime",
+      "severity": "Error",
+      "category": "Runtime",
+      "messageTemplate": "Recursive CTE iteration limit of {0} was exceeded.",
+      "explanation": "Recursive CTE execution exceeded the configured number of recursive-member evaluations.",
+      "docsReference": "Core Spec - Recursive CTEs",
+      "suggestedFixes": [
+        "Add a terminating predicate or use UNION/keyed UNION for cycle elimination.",
+        "Increase the recursive iteration limit only when the traversal is intentionally deeper."
+      ]
+    },
+    {
+      "code": "MQ7008_RecursiveCteRowLimitExceeded",
+      "number": 7008,
+      "phase": "Runtime",
+      "severity": "Error",
+      "category": "Runtime",
+      "messageTemplate": "Recursive CTE row limit of {0} was exceeded.",
+      "explanation": "Recursive CTE execution accepted more rows than the configured safety limit.",
+      "docsReference": "Core Spec - Recursive CTEs",
+      "suggestedFixes": [
+        "Use UNION or keyed UNION to reject repeated identities.",
+        "Increase the recursive row limit only after checking the expected result size."
+      ]
+    },
+    {
+      "code": "MQ7009_RecursiveCteSnapshotLimitExceeded",
+      "number": 7009,
+      "phase": "Runtime",
+      "severity": "Error",
+      "category": "Runtime",
+      "messageTemplate": "Recursive CTE invariant snapshot row limit of {0} was exceeded.",
+      "explanation": "Recursive CTE execution retained more invariant rows than the configured snapshot safety limit.",
+      "docsReference": "Core Spec - Recursive CTEs",
+      "suggestedFixes": [
+        "Reduce or filter invariant recursive-member sources before traversal.",
+        "Increase the recursive snapshot row limit only after checking the expected invariant size."
+      ]
+    },
+    {
+      "code": "MQ7010_DataSourceOpenFailed",
+      "number": 7010,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Runtime",
+      "messageTemplate": "The data source could not be opened for schema '{0}', source '{1}', alias '{2}'.",
+      "explanation": "A schema or source could not be opened during query execution. The source arguments are intentionally not included in diagnostics.",
+      "docsReference": "Core Spec - Data Sources",
+      "suggestedFixes": [
+        "Check that the schema is available and that the source can be constructed with the supplied query values.",
+        "Inspect the verbose exception details when debugging a trusted local provider."
+      ]
+    },
+    {
+      "code": "MQ7011_DataSourceReadFailed",
+      "number": 7011,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Runtime",
+      "messageTemplate": "The data source failed while reading rows for schema '{0}', source '{1}', alias '{2}'.",
+      "explanation": "A data source failed while producing or reading rows. The query was not classified as a syntax or binding error.",
+      "docsReference": "Core Spec - Data Sources",
+      "suggestedFixes": [
+        "Check the provider's connection, stream, and iterator implementation.",
+        "Inspect the verbose exception details when debugging a trusted local provider."
+      ]
+    },
+    {
+      "code": "MQ7012_DataSourceCleanupFailed",
+      "number": 7012,
+      "phase": "DataSource",
+      "severity": "Error",
+      "category": "Runtime",
+      "messageTemplate": "The data source failed while cleaning up rows for schema '{0}', source '{1}', alias '{2}'.",
+      "explanation": "A data source failed while releasing its row-enumeration resources.",
+      "docsReference": "Core Spec - Data Sources",
+      "suggestedFixes": [
+        "Check the provider's enumerator and resource-disposal implementation.",
+        "Inspect the verbose exception details when debugging a trusted local provider."
+      ]
+    },
+    {
+      "code": "MQ8001_CodeGenerationFailed",
+      "number": 8001,
+      "phase": "CodeGeneration",
+      "severity": "Error",
+      "category": "CodeGeneration",
+      "messageTemplate": "Generated C# code failed to compile: {0}",
+      "explanation": "The Roslyn compilation of the internally generated C# code failed. This is typically an internal engine issue, not a user error.",
+      "docsReference": "Architecture - Code Generation",
+      "suggestedFixes": [
+        "Report the query to the Musoq issue tracker.",
+        "Try simplifying the query to narrow down the trigger."
+      ]
+    },
+    {
+      "code": "MQ8002_CompiledArtifactIncompatible",
+      "number": 8002,
+      "phase": "Runtime",
+      "severity": "Error",
+      "category": "CodeGeneration",
+      "messageTemplate": "Error MQ8002_CompiledArtifactIncompatible",
+      "explanation": "The compiled query artifact cannot be used with the current script, schema, compilation options, engine version, or artifact loader.",
+      "docsReference": "Runtime V2 - Compiled Artifacts",
+      "suggestedFixes": [
+        "Recompile the query artifact with the current engine and schema provider.",
+        "Verify that the host cache key includes script, options, plugin/catalog versions, and schema compatibility inputs.",
+        "If using a custom artifact type loader, ensure it returns the generated runnable type."
+      ]
+    },
+    {
+      "code": "MQ9001_InternalCompilerError",
+      "number": 9001,
+      "phase": "Internal",
+      "severity": "Error",
+      "category": "Unknown",
+      "messageTemplate": "The compiler encountered an internal failure. Reference '{0}' when reporting this issue.",
+      "explanation": "The compiler reached an invariant failure without a user-owned query classification. The diagnostic is intentionally safe and does not expose engine exception details.",
+      "docsReference": "Diagnostics - Internal Compiler Errors",
+      "suggestedFixes": [
+        "Record the correlation identifier and the smallest query that reproduces the issue.",
+        "Report the diagnostic with the query text and engine version."
+      ]
+    },
+    {
+      "code": "MQ9002_InternalExecutionError",
+      "number": 9002,
+      "phase": "Internal",
+      "severity": "Error",
+      "category": "Unknown",
+      "messageTemplate": "The query encountered an internal execution failure. Reference '{0}' when reporting this issue.",
+      "explanation": "The execution engine reached an invariant failure while evaluating a compiled query.",
+      "docsReference": "Diagnostics - Internal Execution Errors",
+      "suggestedFixes": [
+        "Record the correlation identifier and the query shape that triggered the failure.",
+        "Report the diagnostic without including secret source arguments."
+      ]
+    }
+  ]
+}

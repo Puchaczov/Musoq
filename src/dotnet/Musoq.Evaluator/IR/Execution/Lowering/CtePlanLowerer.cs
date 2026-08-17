@@ -1,5 +1,5 @@
 using Musoq.Evaluator.IR.Physical.Nodes;
-using Musoq.Evaluator.IR.Execution.Lowering.Coordinators;
+
 namespace Musoq.Evaluator.IR.Execution.Lowering;
 internal interface ICteLoweringService
 {

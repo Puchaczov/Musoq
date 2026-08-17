@@ -1,12 +1,7 @@
 using System.Dynamic;
-using System.Reflection;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Utils.Symbols;
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
-using Musoq.Plugins.Attributes;
-using Musoq.Schema.DataSources;
-using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -22,8 +17,11 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             if (tableSymbol == null)
             {
-                if (TryReportUnknownProperty(node.TableAlias ?? _sourceBinding.Identifier, null, node))
-                    return;
+                    if (TryReportUnknownProperty(node.TableAlias ?? _sourceBinding.Identifier, null, node))
+                    {
+                        PushSemanticNode(new IdentifierNode(node.ObjectName, typeof(object), node.SpanOrEmpty()));
+                        return;
+                    }
                 var span = node.SpanOrEmpty();
                 throw new UnknownPropertyException(node.TableAlias ?? _sourceBinding.Identifier, "unknown", span);
             }
@@ -36,7 +34,10 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (columnAccess == null)
             {
                 if (TryReportUnknownProperty(node.ObjectName, null, node))
+                {
+                    PushSemanticNode(new IdentifierNode(node.ObjectName, typeof(object), node.SpanOrEmpty()));
                     return;
+                }
                 var span = node.SpanOrEmpty();
                 throw new UnknownPropertyException(node.ObjectName, "unknown", span);
             }
@@ -84,7 +85,10 @@ public partial class BuildMetadataAndInferTypesVisitor
                     if (TryReportObjectNotArray(
                             $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
                             node))
+                    {
+                        PushSemanticNode(new IdentifierNode(node.Name, typeof(object), node.SpanOrEmpty()));
                         return;
+                    }
                     var nodeSpan = node.SpanOrEmpty();
                     throw new ObjectIsNotAnArrayException(
                         $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
@@ -96,7 +100,10 @@ public partial class BuildMetadataAndInferTypesVisitor
                     if (TryReportObjectNotArray(
                             $"Object {parentNodeType.Name} property '{node.Name}' is not an array or indexable type.",
                             node))
+                    {
+                        PushSemanticNode(new IdentifierNode(node.Name, typeof(object), node.SpanOrEmpty()));
                         return;
+                    }
                     var notArraySpan = node.SpanOrEmpty();
                     throw new ObjectIsNotAnArrayException(
                         $"Object {parentNodeType.Name} property '{node.Name}' is not an array or indexable type.",
@@ -106,7 +113,10 @@ public partial class BuildMetadataAndInferTypesVisitor
                 if (propertyAccess == null)
                 {
                     if (TryReportUnknownProperty(node.Name, parentNodeType, node))
+                    {
+                        PushSemanticNode(new IdentifierNode(node.Name, typeof(object), node.SpanOrEmpty()));
                         return;
+                    }
                     var propSpan = node.SpanOrEmpty();
                     throw new UnknownPropertyException(
                         node.Name, parentNodeType.Name, propSpan);
@@ -129,7 +139,10 @@ public partial class BuildMetadataAndInferTypesVisitor
                     if (TryReportObjectNotArray(
                             $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
                             node))
+                    {
+                        PushSemanticNode(new IdentifierNode(node.Name, typeof(object), node.SpanOrEmpty()));
                         return;
+                    }
                     var exSpan = node.SpanOrEmpty();
                     throw new ObjectIsNotAnArrayException(
                         $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
@@ -139,7 +152,10 @@ public partial class BuildMetadataAndInferTypesVisitor
                 if (!_columnPropertyBindingService.CanUseAsArrayOrIndexer(property))
                 {
                     if (TryReportObjectNotArray($"Object {node.Name} is not an array or indexable type.", node))
+                    {
+                        PushSemanticNode(new IdentifierNode(node.Name, typeof(object), node.SpanOrEmpty()));
                         return;
+                    }
                     var naSpan = node.SpanOrEmpty();
                     throw new ObjectIsNotAnArrayException(
                         $"Object {node.Name} is not an array or indexable type.", naSpan);
@@ -148,7 +164,10 @@ public partial class BuildMetadataAndInferTypesVisitor
                 if (property == null)
                 {
                     if (TryReportUnknownProperty(node.Name, parentNodeType, node))
+                    {
+                        PushSemanticNode(new IdentifierNode(node.Name, typeof(object), node.SpanOrEmpty()));
                         return;
+                    }
                     var propSpan = node.SpanOrEmpty();
                     throw new UnknownPropertyException(
                         node.Name, parentNodeType.Name, propSpan);
@@ -159,7 +178,10 @@ public partial class BuildMetadataAndInferTypesVisitor
             else
             {
                 if (TryReportUnknownProperty(node.ObjectName, null, node))
+                {
+                    PushSemanticNode(new IdentifierNode(node.ObjectName, typeof(object), node.SpanOrEmpty()));
                     return;
+                }
                 var objSpan = node.SpanOrEmpty();
                 throw new UnknownPropertyException(
                     node.ObjectName, "unknown", objSpan);

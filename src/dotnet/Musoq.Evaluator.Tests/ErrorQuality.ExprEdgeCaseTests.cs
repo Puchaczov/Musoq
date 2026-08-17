@@ -31,34 +31,13 @@ public partial class ErrorQualityExprEdgeCaseTests : BasicEntityTestBase
 
     private static void AssertHasErrorCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected error code {expectedCode} ({context}) but query succeeded. IsParsed: {result.IsParsed}");
-
-        if (result.HasErrors)
-        {
-            var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.IsTrue(
-                result.Errors.Any(e => e.Code == expectedCode),
-                $"Expected error code {expectedCode} ({context}) but got:\n{errorDetails}");
-        }
+        DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, expectedCode, context);
     }
 
-    private static void AssertHasOneOfErrorCodes(QueryAnalysisResult result, string context,
-        params DiagnosticCode[] expectedCodes)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
+        string context)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but query succeeded");
-
-        if (result.HasErrors)
-        {
-            var hasExpected = result.Errors.Any(e => expectedCodes.Contains(e.Code));
-            if (!hasExpected)
-            {
-                var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-                Assert.Fail(
-                    $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but got:\n{errorDetails}");
-            }
-        }
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
 
     private static void AssertNoErrors(QueryAnalysisResult result)
@@ -87,10 +66,7 @@ public partial class ErrorQualityExprEdgeCaseTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain type mismatch at ToUpper level
-        AssertHasOneOfErrorCodes(result, "ToUpper(int) type mismatch",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3088_NoMatchingCallableOverload, "ToUpper(int) type mismatch");
     }
 
     [TestMethod]
@@ -108,9 +84,7 @@ END FROM #A.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain CASE branches must return same type
-        AssertHasOneOfErrorCodes(result, "CASE branches with three different types",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3027_InvalidExpressionType);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3027_InvalidExpressionType, "CASE branches with three different types");
     }
 
     [TestMethod]
@@ -220,10 +194,7 @@ END FROM #A.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Null property access should surface as unknown property/column, not generic unknown.
-        AssertHasOneOfErrorCodes(result, "property access on null",
-            DiagnosticCode.MQ3014_InvalidPropertyAccess,
-            DiagnosticCode.MQ3028_UnknownProperty,
-            DiagnosticCode.MQ3001_UnknownColumn);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3028_UnknownProperty, "property access on null");
     }
 
 

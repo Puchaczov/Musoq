@@ -1,4 +1,5 @@
 using Musoq.Parser.Diagnostics;
+using Musoq.Schema.Exceptions;
 
 namespace Musoq.Evaluator.Exceptions;
 
@@ -77,10 +78,16 @@ public class QueryExecutionException : InvalidOperationException
     public static QueryExecutionException ForExecutionFailure(string phase, Exception innerException)
     {
         ArgumentNullException.ThrowIfNull(innerException);
+
+        if (innerException is QueryExecutionException existing)
+            return existing;
+
+        var diagnostic = InternalDiagnosticException.ForExecution(innerException);
+        var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic.ToDiagnostic());
         return new QueryExecutionException(
             "CompiledQuery",
             phase,
-            $"Query execution failed during {phase}: {innerException.Message}. Please check your query and data sources for issues.",
+            envelope,
             innerException
         );
     }
@@ -94,6 +101,22 @@ public class QueryExecutionException : InvalidOperationException
             "ScriptParameterBinding",
             envelope,
             innerException);
+    }
+
+    public static QueryExecutionException ForDataSourceFailure(DataSourceLifecycleException innerException)
+    {
+        ArgumentNullException.ThrowIfNull(innerException);
+        var envelope = MusoqErrorEnvelope.FromDiagnostic(innerException.ToDiagnostic());
+        return new QueryExecutionException(
+            "CompiledQuery",
+            innerException.Operation,
+            envelope,
+            innerException);
+    }
+
+    public string FormatVerboseText()
+    {
+        return FormatText() + Environment.NewLine + InnerException;
     }
 
     public static QueryExecutionException ForCancellationFailure(string phase, Exception innerException)

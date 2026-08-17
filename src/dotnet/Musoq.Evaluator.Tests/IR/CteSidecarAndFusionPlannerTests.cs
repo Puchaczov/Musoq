@@ -7,7 +7,6 @@ using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Planning;
-using Musoq.Plugins;
 
 namespace Musoq.Evaluator.Tests.IR;
 

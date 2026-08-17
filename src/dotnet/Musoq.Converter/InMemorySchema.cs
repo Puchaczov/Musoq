@@ -3,6 +3,7 @@ using System.Linq;
 using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Exceptions;
 using Musoq.Schema.Managers;
 using Musoq.Schema.Optimization;
 using Musoq.Schema.Reflection;
@@ -102,6 +103,6 @@ internal sealed class InMemorySchema : SchemaBase
         if (_slotsBySourceName.TryGetValue(normalized, out var slot))
             return slot;
 
-        throw new InvalidOperationException($"In-memory source '{sourceName}' is not declared in schema '#{Name}'.");
+        throw new TableNotFoundException($"In-memory source '{sourceName}' is not declared in schema '#{Name}'.");
     }
 }

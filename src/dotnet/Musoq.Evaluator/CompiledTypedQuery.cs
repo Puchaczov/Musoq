@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Schema;
+using Musoq.Schema.Exceptions;
 
 namespace Musoq.Evaluator;
 
@@ -98,6 +99,22 @@ public class CompiledTypedQuery<TOut>
             {
                 throw QueryExecutionException.ForScriptParameterBinding(ex);
             }
+            catch (DataSourceLifecycleException ex)
+            {
+                throw QueryExecutionException.ForDataSourceFailure(ex);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (QueryExecutionException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw ExecutionFailureConverter.Convert("Execution", ex);
+            }
         }
 
         private static IEnumerator<TOut> GetConfiguredEnumerator(IEnumerable<TOut> rows)
@@ -109,6 +126,22 @@ public class CompiledTypedQuery<TOut>
             catch (ScriptParameterBindingException ex)
             {
                 throw QueryExecutionException.ForScriptParameterBinding(ex);
+            }
+            catch (DataSourceLifecycleException ex)
+            {
+                throw QueryExecutionException.ForDataSourceFailure(ex);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (QueryExecutionException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw ExecutionFailureConverter.Convert("RowEnumeration", ex);
             }
         }
     }
@@ -132,11 +165,46 @@ public class CompiledTypedQuery<TOut>
             {
                 throw QueryExecutionException.ForScriptParameterBinding(ex);
             }
+            catch (DataSourceLifecycleException ex)
+            {
+                throw QueryExecutionException.ForDataSourceFailure(ex);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (QueryExecutionException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw ExecutionFailureConverter.Convert("RowEnumeration", ex);
+            }
         }
 
         public void Reset()
         {
-            inner.Reset();
+            try
+            {
+                inner.Reset();
+            }
+            catch (DataSourceLifecycleException ex)
+            {
+                throw QueryExecutionException.ForDataSourceFailure(ex);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (QueryExecutionException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw ExecutionFailureConverter.Convert("RowEnumeration", ex);
+            }
         }
 
         public void Dispose()
@@ -144,7 +212,26 @@ public class CompiledTypedQuery<TOut>
             if (Interlocked.Exchange(ref _disposed, 1) != 0)
                 return;
 
-            inner.Dispose();
+            try
+            {
+                inner.Dispose();
+            }
+            catch (DataSourceLifecycleException ex)
+            {
+                throw QueryExecutionException.ForDataSourceFailure(ex);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (QueryExecutionException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw ExecutionFailureConverter.Convert("RowEnumeration", ex);
+            }
         }
     }
 }

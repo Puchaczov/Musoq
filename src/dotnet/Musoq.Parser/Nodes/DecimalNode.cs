@@ -4,12 +4,7 @@ namespace Musoq.Parser.Nodes;
 
 public class DecimalNode : ConstantValueNode
 {
-    public DecimalNode(string value)
-        : this(value, default)
-    {
-    }
-
-    public DecimalNode(string value, TextSpan span)
+    public DecimalNode(string value, TextSpan span = default)
     {
         if (!decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var result))
             throw new NotSupportedException($"The value '{value}' cannot be converted to decimal.");
@@ -20,12 +15,7 @@ public class DecimalNode : ConstantValueNode
         FullSpan = span;
     }
 
-    public DecimalNode(decimal value)
-        : this(value, default)
-    {
-    }
-
-    public DecimalNode(decimal value, TextSpan span)
+    public DecimalNode(decimal value, TextSpan span = default)
     {
         Value = value;
         Id = $"{nameof(DecimalNode)}{value}{ReturnType.Name}";

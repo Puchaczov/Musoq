@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Musoq.Parser.Nodes;
-using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors;
 

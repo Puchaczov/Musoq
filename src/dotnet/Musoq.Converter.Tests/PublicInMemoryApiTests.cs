@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Tests.Components;
 using Musoq.Evaluator;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.IR.CodeGeneration;
+using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Tests.Common;
 using MusoqApi = Musoq.Converter.Musoq;
@@ -625,8 +627,9 @@ public class PublicInMemoryApiTests
                     new[] { new Person("Alice", 35, "NY") })))
             .GetEnumerator();
 
-        var exception = Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
-        StringAssert.Contains(exception.Message, "Second chunk");
+        var exception = Assert.Throws<QueryExecutionException>(() => enumerator.MoveNext());
+        Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, exception.Envelope!.Code);
+        StringAssert.Contains(exception.InnerException!.Message, "Second chunk");
     }
 
     private sealed class EmptyInMemorySchemaProvider : global::Musoq.Schema.ISchemaProvider

@@ -31,7 +31,7 @@ public class DiagnosticMetadataAndPhasesTests
     public void DiagnosticPhaseMapping_WhenCodeInMQ3xxxRange_ShouldReturnBind()
     {
         Assert.AreEqual(DiagnosticPhase.Bind, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ3001_UnknownColumn));
-        Assert.AreEqual(DiagnosticPhase.Bind, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ3004_UnknownFunction));
+        Assert.AreEqual(DiagnosticPhase.Bind, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ3086_UnknownCallable));
         Assert.AreEqual(DiagnosticPhase.Bind, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ3022_MissingAlias));
     }
 
@@ -45,29 +45,21 @@ public class DiagnosticMetadataAndPhasesTests
     [TestMethod]
     public void DiagnosticPhaseMapping_WhenCodeInMQ5xxxRange_ShouldReturnBind()
     {
-        Assert.AreEqual(DiagnosticPhase.Bind, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ5001_UnusedAlias));
         Assert.AreEqual(DiagnosticPhase.Bind, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ5003_ImplicitTypeConversion));
-    }
-
-    [TestMethod]
-    public void DiagnosticPhaseMapping_WhenCodeInMQ6xxxRange_ShouldReturnFeatureGate()
-    {
-        Assert.AreEqual(DiagnosticPhase.FeatureGate, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ6001_CteUnavailable));
-        Assert.AreEqual(DiagnosticPhase.FeatureGate, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ6003_SimpleCaseNotSupported));
-        Assert.AreEqual(DiagnosticPhase.FeatureGate, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ6004_CoalesceWithLiteralNull));
+        Assert.AreEqual(DiagnosticPhase.Bind, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ5003_ImplicitTypeConversion));
     }
 
     [TestMethod]
     public void DiagnosticPhaseMapping_WhenCodeInMQ7xxxRange_ShouldReturnRuntime()
     {
-        Assert.AreEqual(DiagnosticPhase.Runtime, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ7001_DataSourceBindingFailed));
-        Assert.AreEqual(DiagnosticPhase.Runtime, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ7002_DataSourceIteratorError));
+        Assert.AreEqual(DiagnosticPhase.DataSource, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ7010_DataSourceOpenFailed));
+        Assert.AreEqual(DiagnosticPhase.DataSource, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ7011_DataSourceReadFailed));
     }
 
     [TestMethod]
-    public void DiagnosticPhaseMapping_WhenCodeIsMQ9999_ShouldReturnRuntime()
+    public void DiagnosticPhaseMapping_WhenCodeIsInternal_ShouldReturnInternal()
     {
-        Assert.AreEqual(DiagnosticPhase.Runtime, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ9999_Unknown));
+        Assert.AreEqual(DiagnosticPhase.Internal, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ9001_InternalCompilerError));
     }
 
     [TestMethod]
@@ -193,10 +185,10 @@ public class DiagnosticMetadataAndPhasesTests
     [TestMethod]
     public void ErrorMetadataCatalog_WhenCodeIsUnknown_ShouldReturnMetadata()
     {
-        var metadata = ErrorMetadataCatalog.Get(DiagnosticCode.MQ9999_Unknown);
+        var metadata = ErrorMetadataCatalog.Get(DiagnosticCode.MQ9001_InternalCompilerError);
 
         Assert.IsNotNull(metadata);
-        Assert.AreEqual(DiagnosticPhase.Runtime, metadata.Phase);
+        Assert.AreEqual(DiagnosticPhase.Internal, metadata.Phase);
     }
 
     [TestMethod]
@@ -238,9 +230,9 @@ public class DiagnosticMetadataAndPhasesTests
     [TestMethod]
     public void OptimizationFallbackDiagnostic_ShouldBeWarningWithMetadata()
     {
-        var metadata = ErrorMetadataCatalog.Get(DiagnosticCode.MQ5012_OptimizationFallback);
+        var metadata = ErrorMetadataCatalog.Get(DiagnosticCode.MQ5013_SourceContractWarning);
 
-        Assert.AreEqual(DiagnosticSeverity.Warning, ErrorCatalog.GetDefaultSeverity(DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.AreEqual(DiagnosticSeverity.Warning, ErrorCatalog.GetDefaultSeverity(DiagnosticCode.MQ5013_SourceContractWarning));
         Assert.IsNotNull(metadata);
         Assert.AreEqual(DiagnosticPhase.Bind, metadata.Phase);
         Assert.IsFalse(string.IsNullOrWhiteSpace(metadata.Explanation));
@@ -255,19 +247,10 @@ public class DiagnosticMetadataAndPhasesTests
     }
 
     [TestMethod]
-    public void ErrorMetadataCatalog_AllFeatureGateCodes_ShouldHaveFeatureGatePhase()
-    {
-        AssertMetadataPhase(DiagnosticCode.MQ6001_CteUnavailable, DiagnosticPhase.FeatureGate);
-        AssertMetadataPhase(DiagnosticCode.MQ6002_DescUnavailable, DiagnosticPhase.FeatureGate);
-        AssertMetadataPhase(DiagnosticCode.MQ6003_SimpleCaseNotSupported, DiagnosticPhase.FeatureGate);
-        AssertMetadataPhase(DiagnosticCode.MQ6004_CoalesceWithLiteralNull, DiagnosticPhase.FeatureGate);
-    }
-
-    [TestMethod]
     public void ErrorMetadataCatalog_AllRuntimeCodes_ShouldHaveRuntimePhase()
     {
-        AssertMetadataPhase(DiagnosticCode.MQ7001_DataSourceBindingFailed, DiagnosticPhase.Runtime);
-        AssertMetadataPhase(DiagnosticCode.MQ7002_DataSourceIteratorError, DiagnosticPhase.Runtime);
+        AssertMetadataPhase(DiagnosticCode.MQ7010_DataSourceOpenFailed, DiagnosticPhase.DataSource);
+        AssertMetadataPhase(DiagnosticCode.MQ7011_DataSourceReadFailed, DiagnosticPhase.DataSource);
     }
 
     [TestMethod]

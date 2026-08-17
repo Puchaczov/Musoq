@@ -8,7 +8,6 @@ using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
 using Musoq.Schema.Reflection;
-using Musoq.Targets.Abstractions;
 
 namespace Musoq.Converter.Tests;
 

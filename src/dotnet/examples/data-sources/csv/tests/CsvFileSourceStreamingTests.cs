@@ -1,6 +1,5 @@
 using System.Text;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.Optimization;

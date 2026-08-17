@@ -89,8 +89,9 @@ public partial class Parser
     private FieldNode ConsumeField(int order)
     {
         var fieldExpression = ComposeOperations();
-        var (alias, _) = ComposeAlias();
-        return new FieldNode(fieldExpression, order, alias);
+        var alias = ComposeAlias(AliasContext.Projection);
+        EnsureAliasSyntax(alias, AliasContext.Projection);
+        return new FieldNode(fieldExpression, order, alias.Alias);
     }
 
 
@@ -99,29 +100,6 @@ public partial class Parser
         var fieldExpression = ComposeOperations();
         var ordering = ComposeOrdering();
         return new FieldOrderedNode(fieldExpression, level, string.Empty, ordering.Order, ordering.NullOrdering);
-    }
-
-
-    private (string Alias, TextSpan Span) ComposeAlias()
-    {
-        switch (Current.TokenType)
-        {
-            case TokenType.As:
-                Consume(TokenType.As);
-                var token = Current;
-                Consume(Current.TokenType);
-                return (token.Value, token.Span);
-            case TokenType.Word:
-                var wordToken = ConsumeAndGetToken(TokenType.Word);
-                return (wordToken.Value, wordToken.Span);
-            case TokenType.Identifier:
-                if (IsLikelyMisspelledClauseKeyword(Current.Value))
-                    return (string.Empty, default);
-                var idToken = ConsumeAndGetToken(TokenType.Identifier);
-                return (idToken.Value, idToken.Span);
-        }
-
-        return (string.Empty, default);
     }
 
 }

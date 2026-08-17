@@ -9,8 +9,6 @@ using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.IR.Execution.Portability;
 using Musoq.Evaluator.Utils;
 using Musoq.Converter.Tests.Schema;
-using Musoq.Schema.Optimization;
-using Musoq.Targets.Execution.Analysis;
 
 namespace Musoq.Converter.Tests;
 

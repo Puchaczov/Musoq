@@ -14,6 +14,7 @@ public enum DiagnosticCode
     MQ1006_InvalidHexNumber = 1006,
     MQ1007_InvalidBinaryNumber = 1007,
     MQ1008_InvalidOctalNumber = 1008,
+    MQ1009_NumericLiteralOutOfRange = 1009,
 
     // Parser/Syntax Errors (MQ2xxx)
     MQ2001_UnexpectedToken = 2001,
@@ -42,6 +43,7 @@ public enum DiagnosticCode
     MQ2024_InvalidSubquery = 2024,
     MQ2025_MissingSelectKeyword = 2025,
     MQ2034_InvalidNamedSourceArgument = 2034,
+    MQ2035_MissingRequiredAlias = 2035,
     MQ2026_InvalidCaseExpression = 2026,
     MQ2027_MissingWhenClause = 2027,
     MQ2028_MissingThenClause = 2028,
@@ -50,22 +52,22 @@ public enum DiagnosticCode
     MQ2031_InvalidScriptParameterDeclaration = 2031,
     MQ2032_UnsupportedScriptParameterSyntax = 2032,
     MQ2033_InvalidScriptVariableDeclaration = 2033,
+    MQ2036_MultipleExecutableStatements = 2036,
+    MQ2037_EmptyPredicateListNotAllowed = 2037,
+    MQ2038_InvalidSliceCount = 2038,
+    MQ2039_TieBreakRequiresAsOfJoin = 2039,
+    MQ2040_InvalidDiagnosticCommand = 2040,
+    MQ2041_InvalidStarModifierOrder = 2041,
 
     // Semantic Errors (MQ3xxx)
     MQ3001_UnknownColumn = 3001,
     MQ3002_AmbiguousColumn = 3002,
-    MQ3003_UnknownTable = 3003,
-    MQ3004_UnknownFunction = 3004,
     MQ3005_TypeMismatch = 3005,
-    MQ3006_InvalidArgumentCount = 3006,
     MQ3007_InvalidOperandTypes = 3007,
     MQ3008_DivisionByZero = 3008,
-    MQ3009_NullReference = 3009,
     MQ3010_UnknownSchema = 3010,
     MQ3011_AggregateNotAllowed = 3011,
     MQ3012_NonAggregateInSelect = 3012,
-    MQ3013_CannotResolveMethod = 3013,
-    MQ3014_InvalidPropertyAccess = 3014,
     MQ3015_UnknownAlias = 3015,
     MQ3016_CircularReference = 3016,
     MQ3017_ObjectNotArray = 3017,
@@ -80,9 +82,6 @@ public enum DiagnosticCode
     MQ3026_ColumnNotBindable = 3026,
     MQ3027_InvalidExpressionType = 3027,
     MQ3028_UnknownProperty = 3028,
-    MQ3029_UnresolvableMethod = 3029,
-    MQ3030_ConstructionNotSupported = 3030,
-    MQ3031_SetOperatorMissingKeys = 3031,
     MQ3032_ArithmeticOverflow = 3032,
     MQ3033_InterpretFunctionOutsideApply = 3033,
     MQ3034_AmbiguousAggregateOwner = 3034,
@@ -124,9 +123,21 @@ public enum DiagnosticCode
     MQ3079_UnknownSourceArgument = 3079,
     MQ3080_DuplicateSourceArgument = 3080,
     MQ3081_MissingRequiredSourceArgument = 3081,
-    MQ3082_AmbiguousSourceInvocation = 3082,
     MQ3083_NamedSourceArgumentsRequireMetadata = 3083,
     MQ3084_SourceEntityRequiresRuntimeReflection = 3084,
+    MQ3085_UnknownSource = 3085,
+    MQ3086_UnknownCallable = 3086,
+    MQ3087_InvalidCallableArity = 3087,
+    MQ3088_NoMatchingCallableOverload = 3088,
+    MQ3089_AmbiguousCallableOverload = 3089,
+    MQ3090_UnsupportedCastTarget = 3090,
+    MQ3091_InvalidConstantCast = 3091,
+    MQ3092_AggregateInGroupBy = 3092,
+    MQ3093_OrderByOrdinalUnsupported = 3093,
+    MQ3094_InvalidConstantRegex = 3094,
+    MQ3095_ScalarSubqueryCardinality = 3095,
+    MQ3096_UnsupportedVariableKeyAccess = 3096,
+    MQ3097_UnsupportedAggregateProjection = 3097,
 
     // Schema Definition Errors (MQ4xxx)
     MQ4001_InvalidBinarySchemaField = 4001,
@@ -144,37 +155,29 @@ public enum DiagnosticCode
     MQ4013_InvalidSwitchCaseLabel = 4013,
     MQ4014_InvalidSubstreamModifier = 4014,
     MQ4015_InvalidSubstreamTarget = 4015,
+    MQ4016_UnsupportedSchemaConstruction = 4016,
 
     // Warnings (MQ5xxx)
-    MQ5001_UnusedAlias = 5001,
-    MQ5002_SelectStar = 5002,
     MQ5003_ImplicitTypeConversion = 5003,
-    MQ5004_PotentialNullReference = 5004,
-    MQ5005_RedundantParentheses = 5005,
-    MQ5006_DeprecatedSyntax = 5006,
-    MQ5007_PerformanceWarning = 5007,
     MQ5008_UnreachableCode = 5008,
-    MQ5009_OrderByAliasBehavior = 5009,
-    MQ5010_TautologicalCondition = 5010, MQ5011_ContradictoryCondition = 5011, MQ5012_OptimizationFallback = 5012, MQ5013_SourceContractWarning = 5013,
-
-    // Feature-Gate Errors (MQ6xxx)
-    // Known limitations flagged explicitly.
-    MQ6001_CteUnavailable = 6001,
-    MQ6002_DescUnavailable = 6002,
-    MQ6003_SimpleCaseNotSupported = 6003,
-    MQ6004_CoalesceWithLiteralNull = 6004,
+    MQ5010_TautologicalCondition = 5010, MQ5011_ContradictoryCondition = 5011, MQ5013_SourceContractWarning = 5013, MQ5014_SuspiciousOrdinaryStringEscape = 5014, MQ5015_SuspiciousRegexEscape = 5015, MQ5016_GlobWildcardInLike = 5016, MQ5017_NullComparison = 5017, MQ5018_AmbiguousOuterJoinNullCheck = 5018, MQ5019_NullRejectingOuterJoinFilter = 5019, MQ5020_SetOperationOrderByScope = 5020, MQ5021_UnorderedSkip = 5021, MQ5022_UnusedCte = 5022, MQ5023_UnusedScriptVariable = 5023,
+    MQ5024_NullSensitiveNotIn = 5024,
+    MQ5025_ImpossibleImplicitConversion = 5025,
 
     // Runtime Errors (MQ7xxx)
-    MQ7001_DataSourceBindingFailed = 7001,
-    MQ7002_DataSourceIteratorError = 7002,
     MQ7003_RequiredScriptParameterMissing = 7003,
     MQ7004_ScriptParameterTypeMismatch = 7004,
     MQ7005_ScriptParameterNullNotAllowed = 7005,
     MQ7006_UnknownScriptParameter = 7006, MQ7007_RecursiveCteIterationLimitExceeded = 7007, MQ7008_RecursiveCteRowLimitExceeded = 7008, MQ7009_RecursiveCteSnapshotLimitExceeded = 7009,
+    MQ7010_DataSourceOpenFailed = 7010,
+    MQ7011_DataSourceReadFailed = 7011,
+    MQ7012_DataSourceCleanupFailed = 7012,
 
     // Code Generation Errors (MQ8xxx)
     MQ8001_CodeGenerationFailed = 8001, MQ8002_CompiledArtifactIncompatible = 8002,
 
-    // Internal/Unknown (MQ9xxx)
-    MQ9999_Unknown = 9999
+    // Internal (MQ9xxx)
+    MQ9001_InternalCompilerError = 9001,
+    MQ9002_InternalExecutionError = 9002,
+
 }

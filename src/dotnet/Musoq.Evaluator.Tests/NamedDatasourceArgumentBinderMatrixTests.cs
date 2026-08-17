@@ -12,7 +12,6 @@ using Musoq.Parser.Lexing;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Schema.Optimization;
 using Musoq.Schema.Reflection;
 using SchemaConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 
@@ -114,7 +113,7 @@ public sealed class NamedDatasourceArgumentBinderMatrixTests
             "select 1 from #matrix.source(value: 'text')",
             new MatrixSchemaProvider(MatrixSignatures.Ambiguous, _ => { })));
 
-        Assert.AreEqual(DiagnosticCode.MQ3082_AmbiguousSourceInvocation, exception.Code);
+        Assert.AreEqual(DiagnosticCode.MQ3089_AmbiguousCallableOverload, exception.Code);
     }
 
     [TestMethod]
@@ -148,7 +147,17 @@ public sealed class NamedDatasourceArgumentBinderMatrixTests
             "select 1 from #matrix.source(value: 'text')",
             new MatrixSchemaProvider(MatrixSignatures.IntegerOnly, _ => { })));
 
-        Assert.AreEqual(DiagnosticCode.MQ3013_CannotResolveMethod, exception.Code);
+        Assert.AreEqual(DiagnosticCode.MQ3088_NoMatchingCallableOverload, exception.Code);
+    }
+
+    [TestMethod]
+    public void WrongSourceArity_ReportsInvalidCallableArity()
+    {
+        var exception = Assert.Throws<CannotResolveMethodException>(() => Analyze(
+            "select 1 from #matrix.source()",
+            new MatrixSchemaProvider(MatrixSignatures.Required, _ => { })));
+
+        Assert.AreEqual(DiagnosticCode.MQ3087_InvalidCallableArity, exception.Code);
     }
 
     [TestMethod]

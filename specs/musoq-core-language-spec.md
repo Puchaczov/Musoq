@@ -1,6 +1,6 @@
 # Musoq Core SQL Language Specification
 
-**Version:** 1.4.2
+**Version:** 1.5.0
 **Status:** Specification  
 **Author:** Jakub Puchała
 
@@ -30,7 +30,7 @@
 20. [String Comparison Semantics](#20-string-comparison-semantics)
 21. [Array and Property Access](#21-array-and-property-access)
 22. [Automatic Type Coercion](#22-automatic-type-coercion)
-23. [Error Catalog](#23-error-catalog)
+23. [Diagnostic Contract and Catalog](#23-diagnostic-contract-and-catalog)
 24. [Formal Grammar](#24-formal-grammar)
 25. [Appendices](#25-appendices)
 
@@ -69,7 +69,7 @@ Musoq implements a subset of SQL with several extensions:
 |--------|-------------|-------|
 | Data sources | Tables in a database | Schema providers (`schema.method()`) |
 | Inline row sources | `VALUES (...)` table constructors in selected contexts | `FROM values { { Field: literal } } alias` creates a strongly typed inline source |
-| Script parameters | Vendor-specific variables, prepared statement parameters, or host API bindings | Optional leading `param(...)` block; references use `$name` |
+| Script parameters | Vendor-specific variables, prepared statement parameters, or host API bindings | Optional leading `param(...)` or `params(...)` block; references use `$name` |
 | Script variables | Host-language variables or SQL dialect variables | `let name: type = constantExpression` declarations; references use `$name` |
 | Pagination | `OFFSET` / `LIMIT` | `SKIP` / `TAKE` |
 | Set operation keys | Implicit (all columns) | Omitted keys and `()` compare all projected values; explicit key lists such as `UNION (col1)` compare a subset |
@@ -105,6 +105,7 @@ Musoq implements a subset of SQL with several extensions:
 | **CTE** | Common Table Expression — a named temporary result set defined with `WITH ... AS (...)` |
 | **Apply** | A correlated join where the right side can reference columns from the left side |
 | **Script parameter** | A typed value declared once at the start of a script and supplied by the host before execution |
+| **Parameter block** | One leading block introduced by `param(...)` or `params(...)`; `param(...)` is canonical |
 | **Script variable** | An immutable typed value declared in a script, evaluated at compile time, and referenced as `$name` |
 | **Source runtime settings profile** | A named host-resolved settings profile selected by `couple ... with settings ...` for one source context |
 
@@ -179,7 +180,7 @@ All keywords are **case-insensitive**. `SELECT`, `select`, and `SeLeCt` are all 
 | `QUERY` | Used in `DESC QUERY` |
 | `TRUE` | Boolean true literal |
 | `FALSE` | Boolean false literal |
-| `PARAM` | Optional script parameter declaration block when used at the start of a script |
+| `PARAM` / `PARAMS` | Contextual script parameter declaration block when used at the start of a script; neither word is globally reserved |
 | `LET` | Contextual script variable declaration keyword when used at statement start |
 | `PIVOT` | Begin a pivot query |
 | `UNPIVOT` | Begin an unpivot query |
@@ -273,7 +274,12 @@ Schema data sources are referenced directly as `Schema.Method()`.
 
 ### 2.5 String Literals
 
-String literals are enclosed in single quotes:
+Musoq supports ordinary and raw string literals. Both forms use a single quote
+as the delimiter and are accepted anywhere a string literal is accepted.
+
+#### Ordinary String Literals
+
+Ordinary string literals decode the escape sequences listed below:
 
 ```sql
 select 'Hello, World!' from system.dual()
@@ -297,10 +303,85 @@ select 'Hello, World!' from system.dual()
 | `\xXX` | — | Hex byte value (exactly 2 hex digits) |
 
 **Rules:**
-- `\uXXXX` requires exactly 4 hex digits. If fewer are available, the sequence is preserved literally: `'\u123'` → `\u123`
-- `\xXX` requires exactly 2 hex digits. If fewer are available, preserved literally.
+- `\uXXXX` requires exactly 4 hex digits. If fewer are available, the malformed
+  sequence is reported as `MQ1004` and remains literal.
+- `\xXX` requires exactly 2 hex digits. If fewer are available, the malformed
+  sequence is reported as `MQ1004` and remains literal.
 - Unknown escape sequences are preserved literally: `'\z'` → `\z`
 - Double quotes can appear unescaped inside single-quoted strings: `select '"' from ...` is valid.
+
+#### Raw String Literals
+
+Raw string literals use an adjacent lowercase or uppercase `r` prefix:
+
+```sql
+select r'C:\Some\Path\To\Directory' from system.dual()
+select r'\\server\share' from system.dual()
+select r'C:\Temp\' from system.dual()
+select r'a''b' from system.dual()
+```
+
+Raw literal rules:
+
+- The prefix and opening quote must be adjacent: `r'...'` or `R'...'`.
+- Backslashes and all other content are preserved exactly; raw literals do not
+  decode ordinary escape sequences.
+- A pair of single quotes `''` represents one embedded single quote.
+- Backslashes do not escape the closing quote. For example,
+  `r'path\'` contains one trailing backslash and then closes.
+- Raw literals are generic and may be used in expressions, function arguments,
+  schema-method arguments, script values, and every other string-literal
+  position.
+- A separated prefix such as `r 'value'` is not raw syntax; `r` remains an
+  ordinary identifier.
+
+The distinction between the two forms is observable:
+
+```sql
+select '\n' from system.dual()   -- one newline character
+select r'\n' from system.dual()  -- two literal characters: backslash and n
+```
+
+Use raw literals for Windows paths, or double each backslash in an ordinary
+literal. Unknown ordinary escapes remain literal, while malformed fixed-length
+`\u` and `\x` escapes produce `MQ1004`.
+
+#### Suspicious Ordinary-String Path Escapes
+
+Ordinary strings retain their existing escape semantics. When a recognized
+escape changes the value of text that looks like a path, Musoq reports the
+advisory warning `MQ5014_SuspiciousOrdinaryStringEscape`. The warning does not
+rewrite the literal, change its runtime value, or prevent compilation.
+
+```sql
+select FullPath
+from os.files('C:\new\test', true)
+-- MQ5014: \n and \t alter this path-like ordinary string
+
+select FullPath from os.files(r'C:\new\test', true)
+select FullPath from os.files('C:\\new\\test', true)
+```
+
+Rooted path risks such as drive-rooted, UNC, device, and explicit relative-root
+forms can be identified during parsing. A relative value such as
+`'some\text'` is warned about only when semantic binding identifies a
+path-sensitive string destination, for example `os.files('some\text', true)`;
+a bare projection such as
+`select 'some\text' from system.dual()` remains quiet because its intent cannot
+be inferred. The detector reports at most one warning per literal, at the first
+recognized value-changing escape.
+
+Intentional standalone escapes such as `select '\n' from system.dual()` and
+unknown escapes such as `\q` remain warning-free. Malformed fixed-length
+`\u` and `\x` sequences remain `MQ1004` errors. Consumers that need advisory
+diagnostics must use `CompileWithDiagnostics()` (or another diagnostic-aware
+entry point); convenience compilation that returns only `CompiledQuery` does
+not expose warnings, and warnings are never attached to `CompiledQuery`.
+
+`ValidateSyntax()` reports only parse-level warnings, such as rooted
+`MQ5014`. Relative path warnings and all other binding-dependent advisories
+require `QueryAnalyzer.Analyze()` or diagnostic-aware compilation, where
+schema and method metadata are available.
 
 **Examples:**
 
@@ -318,6 +399,77 @@ Special characters are valid inside string literals — all punctuation, braces,
 
 ```sql
 select '{', '}', '[', ']', '(', ')' from system.dual()
+```
+
+### Advisory warning contract
+
+Advisory warnings are default-on diagnostics for diagnostic-aware APIs. They
+never change parsed values, generated code, cache identity, datasource
+arguments, runtime behavior, or query results. A warning-only parse or build
+still succeeds; `Errors` and `ToEnvelopes()` contain no entries, and the
+compiled query remains runnable.
+
+The following warnings are active in the core language:
+
+| Code | Phase | Trigger | Quiet cases and limits | Correction |
+|------|-------|---------|------------------------|------------|
+| `MQ5003_ImplicitTypeConversion` | Bind | Ambiguous numeric date text is implicitly converted from `string` to `DateTime` or `DateTimeOffset`, such as `01/02/2026`. | ISO year-first text, month names, a component greater than 12, `TimeSpan`, numeric widening, and explicit format conversions remain quiet. | Use ISO year-first text or `ToDateTimeWithFormat` / `ToDateTimeOffsetWithFormat`. |
+| `MQ5008_UnreachableCode` | Bind | A searched/simple `CASE` branch or coalesce fallback is proven unreachable. | Nullable, dynamic, literal-NULL, and uncertain expressions are not guessed; one warning is emitted per unreachable region. | Remove the branch or correct the condition. |
+| `MQ5010_TautologicalCondition` | Bind | A predicate is proven always true, including safe complement proofs. | Only deterministic direct columns and compatible constants are proven; floating-point, method-call, dynamic, and null-sensitive identities are excluded. | Remove the redundant condition. |
+| `MQ5011_ContradictoryCondition` | Bind | A predicate is proven impossible, such as `x = 1 AND x = 2` or non-overlapping safe ranges. | The same conservative proof limits as `MQ5010` apply. | Remove or correct the contradictory predicate. |
+| `MQ5013_SourceContractWarning` | Bind | A datasource reports a non-fatal table-contract or read-modifier issue. | It is emitted only when the source supplies the warning. | Follow the source-provided correction. |
+| `MQ5014_SuspiciousOrdinaryStringEscape` | Parse or Bind | A recognized ordinary-string escape changes high-confidence rooted path text during parsing, or relative path-like text bound to a path-sensitive string destination. | Raw literals, doubled backslashes, unknown escapes, deliberate standalone escapes, and bare relative projections remain quiet. One warning is emitted per literal at its first hazard. | Use `r'...'` or double each intended backslash. |
+| `MQ5015_SuspiciousRegexEscape` | Bind | Ordinary source `\b` becomes a backspace before regex evaluation in `RLIKE` or a bound regex-pattern parameter. | Raw `r'\b'`, ordinary `'\\b'`, `[\b]`, and preserved `\d`, `\s`, and `\w` remain quiet. | Use a raw regex literal or double the backslash. |
+| `MQ5016_GlobWildcardInLike` | Bind | A constant `LIKE` pattern uses glob `*`, or path-like `?`, without SQL `%` or `_`. | Dynamic patterns, ordinary prose, SQL wildcards, and patterns with whitespace remain quiet. | Use `%` / `_` for `LIKE`, or `RLIKE` for regex patterns. |
+| `MQ5017_NullComparison` | Bind | `=`, `<>`, `!=`, `<`, `<=`, `>`, or `>=` compares an operand with literal or proven-NULL value in a predicate context. | Projection/order expressions, `IS NULL`, `IS NOT NULL`, and `IS [NOT] DISTINCT FROM` remain quiet. | Use an explicit NULL predicate or null-safe distinctness operator. |
+| `MQ5018_AmbiguousOuterJoinNullCheck` | Bind | `optional_alias.column IS NULL` can mean either a missing outer-join row or a present row whose original nullable column is NULL. | Original non-nullable columns and unknown derived/CTE nullability remain quiet; explicit `alias IS PRESENT` / `IS MISSING` suppresses the warning. | Test row presence or choose a non-nullable presence column. |
+| `MQ5019_NullRejectingOuterJoinFilter` | Bind | A `WHERE` predicate is provably false or UNKNOWN for the NULL-extended row of an outer join/apply. | `ON` restrictions, inner joins, preserving `OR` branches, and uncertain method semantics remain quiet. | Move an intended match restriction into `ON`, or state row-presence intent explicitly. |
+| `MQ5020_SetOperationOrderByScope` | Bind | `ORDER BY` belongs to the rightmost set operand and that operand has no branch-local `TAKE` or positive `SKIP`. | Branch ordering used for slicing and an outer query that orders the combined set suppress the warning. `SKIP 0` is not slicing. | Order the combined result in an outer query. |
+| `MQ5021_UnorderedSkip` | Bind | A positive `SKIP` has no `ORDER BY` in the same query block. | `SKIP 0`, `TAKE` without `SKIP`, and ordered slicing remain quiet. | Add a deterministic `ORDER BY` or remove `SKIP`. |
+| `MQ5022_UnusedCte` | Bind | A user-authored CTE is not transitively reachable from its outer query. | Live transitive dependencies, nested live scopes, and synthesized/internal CTEs are not reported. | Remove the CTE or reference it from a live query. |
+| `MQ5023_UnusedScriptVariable` | Bind | A `let` declaration is not used by an executable statement or live transitive initializer chain. | Script parameters are not `let` declarations; variables used only by dead declarations remain unused. | Remove the declaration or reference it from live work. |
+| `MQ5024_NullSensitiveNotIn` | Bind | A `NOT IN` list or proven collection contains `NULL`, so non-matching values can become `UNKNOWN`. | Positive `IN`, null-free collections, and values proven to exclude `NULL` remain quiet. | Filter `NULL` values or use a null-aware predicate. |
+| `MQ5025_ImpossibleImplicitConversion` | Bind | An engine-selected implicit conversion of a constant is proven unable to succeed, so the comparison cannot match. | Dynamic values, explicit soft conversions, and uncertain plugin conversions remain quiet. | Use a compatible literal or an explicit conversion. |
+
+Specific advisories take precedence over generic tautology, contradiction,
+and unreachable-branch messages for the same source region. The v17 identifiers
+`MQ5001`, `MQ5002`, `MQ5004`, `MQ5005`, `MQ5006`, `MQ5007`, `MQ5009`, and
+`MQ5012` are not active v18 enum members and are never emitted. `MQ5009` is
+retained as a compatibility documentation identifier so consumers can explain
+older reports; current tested `ORDER BY` alias behavior does not produce it.
+
+Warnings are available through `ParseResult.Warnings`,
+`QueryAnalysisResult.Warnings`, `BuildResult.Warnings`, and
+`QueryInspectionResult.Warnings`. `CompileWithDiagnostics()` is the
+warning-aware execution entry point; `CompileForExecution()` remains
+source-compatible and returns only `CompiledQuery`.
+
+Common examples:
+
+```sql
+select Name from A.entities() where Name rlike '\bword\b'
+-- MQ5015: the ordinary \b escape becomes backspace before regex matching
+
+select Name from A.entities() where Name like '*.log'
+-- MQ5016: SQL LIKE uses '%' and '_', not filesystem glob '*'
+
+select Name from A.entities() where Name = NULL
+-- MQ5017: NULL comparison is UNKNOWN; use IS NULL
+
+select a.Name, b.Name
+from A.entities() a
+left join B.entities() b on a.Id = b.Id
+where b.Name = 'match'
+-- MQ5019: the WHERE predicate removes NULL-extended unmatched rows
+
+select Name from A.entities() skip 10
+-- MQ5021: SKIP needs ORDER BY for a deterministic result
+
+select Name from A.entities() where Name not in ('Alice', NULL)
+-- MQ5024: NULL makes NOT IN non-matching results UNKNOWN
+
+select 1 from A.entities() where Time = '02/31/2026'
+-- MQ5025: the constant cannot be implicitly converted to the temporal type
 ```
 
 ### 2.6 Numeric Literals
@@ -633,7 +785,10 @@ select Name from Source();
 
 ### 4.3 Script Parameters
 
-A script MAY begin with one `param(...)` block. The block declares typed values supplied by the host before query execution. The block is optional; a script without `param(...)` is parsed, compiled, and executed as before.
+A script MAY begin with one parameter block. Either `param(...)` or `params(...)` may introduce it. Both spellings declare typed values supplied by the host before query execution.
+`param(...)` remains the canonical spelling in this specification and in user-visible diagnostics, AST rendering, and generated output.
+`params(...)` is accepted only at that leading boundary.
+The block is optional; a script without either spelling is parsed, compiled, and executed as before.
 
 ```sql
 param(author: string, minStars: int = 10)
@@ -661,8 +816,8 @@ param(name: type, optionalName: type = defaultValue)
 ```
 
 Rules:
-- A script MAY contain zero or one parameter block.
-- `param()` is valid and declares no parameters.
+- A script MAY contain zero or one parameter block. The block may begin with either `param` or `params`.
+- `param()` and `params()` are valid and declare no parameters.
 - Parameter names are case-sensitive and MUST be unique inside the block.
 - A declaration without a default value is required.
 - A declaration with a default value is optional and uses the default when the host does not provide an override.
@@ -679,6 +834,15 @@ from geo.cities()
 where Country = $country
   and Population >= $minPopulation
   and ($since is null or CreatedAt >= $since)
+
+The alias spelling is equivalent:
+
+```sql
+params(author: string)
+select Name, Stars
+from github.repositories()
+where Author = $author
+```
 
 param(ids: int[])
 select Name
@@ -747,7 +911,7 @@ Default binding rules:
 
 #### 4.3.4 Expression Type Compatibility
 
-A parameter reference has the type declared in the `param(...)` block. Comparisons, boolean clauses, function calls, `IN`, `CONTAINS`, `BETWEEN`, `CASE`, grouping, ordering, joins, windows, CTEs, and set operations use that declared type when checking expression compatibility.
+A parameter reference has the type declared in the parameter block. Comparisons, boolean clauses, function calls, `IN`, `CONTAINS`, `BETWEEN`, `CASE`, grouping, ordering, joins, windows, CTEs, and set operations use that declared type when checking expression compatibility.
 
 Valid typed comparison:
 
@@ -828,7 +992,7 @@ Script-parameter mistakes are reported through the standard Musoq error envelope
 
 | Code | Phase | Typical Cause |
 |------|-------|---------------|
-| MQ2031 | parse | Malformed `param(...)` declaration |
+| MQ2031 | parse | Malformed `param(...)` or `params(...)` declaration |
 | MQ2032 | parse | Unsupported borrowed declaration syntax |
 | MQ3056 | bind | Duplicate parameter block |
 | MQ3057 | bind | Parameter block after another statement |
@@ -868,7 +1032,7 @@ let name: type = initializer
 
 Rules:
 - Script variable names are case-sensitive.
-- Script variables and script parameters share the `$name` namespace. A name declared by `param(...)` MUST NOT be redeclared by `let`, and a `let` name MUST NOT be declared twice.
+- Script variables and script parameters share the `$name` namespace. A parameter name MUST NOT be redeclared by `let`, and a `let` name MUST NOT be declared twice.
 - A script variable declaration MAY appear anywhere in the script before its first use.
 - A script variable is immutable and has no runtime override mechanism.
 - Nullable types use the same `?` suffix used by table definitions and script parameters, for example `int?` or `datetime?`.
@@ -920,7 +1084,7 @@ Script-variable mistakes are reported through the standard Musoq error envelope 
 | Code | Phase | Typical Cause |
 |------|-------|---------------|
 | MQ2033 | parse | Malformed `let name: type = value` declaration |
-| MQ3063 | bind | Duplicate name across `param(...)` and `let` declarations |
+| MQ3063 | bind | Duplicate name across a parameter block and `let` declarations |
 | MQ3064 | bind | Unsupported script variable type |
 | MQ3065 | bind | Invalid initializer for the declared type |
 | MQ3066 | bind | Reference to a script variable before it is declared |
@@ -1203,7 +1367,7 @@ positional vector. Metadata and planning callbacks that cannot materialize a
 row-dependent expression receive only the known canonical prefix, so a later
 static/default value is never shifted into an earlier dynamic slot.
 
-### 6.2 Table Aliasing
+### 6.2 Table and Source Aliasing
 
 Data sources can be given an alias for reference in expressions:
 
@@ -1219,12 +1383,67 @@ select Name from A.entities()         -- no alias needed
 select a.Name from A.entities() a     -- alias optional
 ```
 
-In **multi-table queries** (joins, applies), aliases MUST be used to disambiguate columns. For function calls, the engine attempts auto-resolution first — see [§8.10.1](#8101-method-auto-resolution-algorithm) for details:
+Every source in a query block containing a `JOIN` or `APPLY` MUST have a stable,
+addressable name. A CTE/reference name and a named in-memory table are natural
+aliases. Schema calls, function sources, row methods, row properties, derived
+tables, and `VALUES` sources require an explicit alias in such a block. A single
+schema or function source remains backward-compatible when it is unaliased.
+Derived tables and `VALUES` sources always require an explicit alias, including
+when they are the only source in the query block. Generated evaluator aliases
+are internal implementation details and do not satisfy this syntax rule.
+
+The rule is applied independently inside every nested query block. For function
+calls in a multi-source query, the engine still attempts method-owner
+auto-resolution after the source aliases have been parsed; see
+[§8.10.1](#8101-method-auto-resolution-algorithm) for details.
 
 ```sql
 select a.Name, b.City
 from A.entities() a
 inner join B.entities() b on a.Id = b.Id
+```
+
+The first source must already have an alias before the first join or apply
+operator, and each right operand must have one before its following boundary:
+
+```sql
+select a1.Name, item.Value
+from a.b() a1
+cross apply a1.Column item
+take 10
+```
+
+If the right-side alias is omitted, the boundary remains part of the query and
+the parser reports `MQ2035_MissingRequiredAlias` at the insertion point:
+
+```sql
+select a1.Name
+from a.b() a1
+cross apply a1.Column
+take 10
+-- MQ2035 at the position immediately after Column:
+-- The CROSS APPLY source requires an alias before TAKE.
+```
+
+Clause and operator words are not consumed as implicit aliases at an active
+source boundary. Use brackets when a reserved word is intentional:
+
+```sql
+select [take].Name, [where].Name
+from A.entities() [take]
+cross apply [take].Children [where]
+take 10
+```
+
+After an explicit `AS`, a boundary is still a missing-alias error, while a
+non-boundary invalid token retains `MQ2022_InvalidAlias`:
+
+```sql
+-- MQ2035: the alias identifier is missing after AS; TAKE remains unconsumed
+cross apply a1.Column AS TAKE
+
+-- MQ2022: 123 is not an alias identifier
+cross apply a1.Column AS 123
 ```
 
 ### 6.3 CTE References
@@ -1255,6 +1474,16 @@ select cte.City from cte p
 
 CTE names do not reserve table/source aliases in unrelated query blocks. A source alias used inside a CTE body is local to that CTE body, and the outer query may reuse the same text for its own aliases.
 
+In a multi-source block, the CTE name itself is a natural stable alias and may
+be used without an explicit override:
+
+```sql
+with source as (select City from A.entities() a)
+select source.City, rightSide.City
+from source
+cross join B.entities() rightSide
+```
+
 ### 6.4 Derived Tables
 
 A parenthesized query may be used as a `FROM` or `JOIN` source when it has an alias:
@@ -1278,6 +1507,9 @@ inner join (
 Rules:
 
 - A derived table MUST have an alias after the closing parenthesis.
+- The alias is required even when the derived table is the only source in its
+  query block, and it is required again when the derived table is a JOIN/APPLY
+  operand.
 - The derived-table body may be a normal `SELECT` query, a `FROM`-first query, a query with set operators, or a `WITH` expression.
 - Query blocks outside the derived table see only the derived table output column names. Source aliases declared inside the derived-table body are not exported.
 - `*` and `alias.*` expand the derived table output columns under the derived table alias.
@@ -1323,6 +1555,8 @@ select packages.Name, packages.Score
 Rules:
 
 - A VALUES source MUST have an alias after the closing brace.
+- The alias is required whether the VALUES source is alone or participates in
+  a JOIN/APPLY block.
 - The source MUST contain at least one row.
 - Every row MUST contain at least one field.
 - Field names are case-insensitive for shape validation and MUST be unique within each row.
@@ -1464,6 +1698,12 @@ where Name like '%żółć%'        -- Polish characters
 where Name like '%привет%'      -- Cyrillic
 ```
 
+`LIKE` uses SQL wildcards, not filesystem glob syntax. A constant pattern
+such as `LIKE '*.log'` or `LIKE 'file?.txt'` produces the advisory warning
+`MQ5016_GlobWildcardInLike` when it has no `%` or `_` wildcard and looks like
+a path or filename. Use `%` / `_`, or use `RLIKE` when regex semantics are
+intended.
+
 ### 7.7 RLIKE (Regular Expression Matching)
 
 `RLIKE` matches against a regular expression (ECMAScript-compatible subset):
@@ -1475,6 +1715,18 @@ where Name not rlike '^test.*$'      -- does not match pattern
 ```
 
 > **Note**: Invalid regex patterns cause a runtime error when the query executes.
+
+An ordinary source `\b` is decoded to a backspace before the regex engine sees
+it. In a regex context this produces `MQ5015_SuspiciousRegexEscape`:
+
+```sql
+where Name rlike '\bword\b'       -- warning: use r'\bword\b'
+where Name rlike r'\bword\b'      -- warning-free word-boundary pattern
+where Name rlike '\\bword\\b'     -- warning-free ordinary spelling
+```
+
+The warning is limited to a `\b` outside a regex character class. Other
+preserved escapes and intentional character-class backspaces are not guessed.
 
 ### 7.8 Multi-Field Pattern Predicate Quantifiers
 
@@ -1720,6 +1972,13 @@ select case when Match('\d+', Name) then 'yes' else 'no' end from A.entities()
 
 ## 8. JOIN Clause
 
+Every JOIN family uses the stable-source rule from §6.2. The initial source
+must have a natural or explicit alias before the first JOIN, and every right
+operand must have a stable name before `ON` or the next source/clause boundary.
+This applies to `INNER`, `LEFT`, `RIGHT`, `FULL`, `CROSS`, `SEMI`, `ANTI`, and
+`ASOF` joins. A missing alias is a parse error (`MQ2035`), not a method-owner
+binding error (`MQ3022`).
+
 ### 8.1 INNER JOIN
 
 Returns only rows where the join condition matches in both tables:
@@ -1747,6 +2006,14 @@ left join B.entities() b on a.City = b.City
 ```
 
 `LEFT OUTER JOIN` and `LEFT JOIN` are equivalent.
+
+When a nullable column from the optional side is tested with `IS NULL`,
+`MQ5018_AmbiguousOuterJoinNullCheck` explains that NULL can mean either a
+missing row or a present row containing NULL. A `WHERE` predicate that is
+provably false or UNKNOWN for the NULL-extended row produces
+`MQ5019_NullRejectingOuterJoinFilter`. Put intended match restrictions in
+`ON`, or use `alias IS PRESENT` / `alias IS MISSING` when row existence is
+the actual condition.
 
 ### 8.3 RIGHT OUTER JOIN
 
@@ -2159,6 +2426,12 @@ asof join ... on ...
 
 ## 9. APPLY Clause
 
+`CROSS APPLY` and `OUTER APPLY` also require a stable name for both the left
+source and the APPLY result. This requirement is independent for each nested
+query block and covers schema calls, functions, row methods, properties,
+derived tables, and `VALUES` sources. `WITH ORDINALITY` follows the alias, so a
+missing alias is diagnosed before `WITH ORDINALITY` is consumed.
+
 ### 9.1 CROSS APPLY
 
 When the right side is a schema datasource, its named arguments are bound
@@ -2173,6 +2446,25 @@ including `NULL` values and reflected defaults. A row access method such as
 select a.Country, b.City
 from A.entities() a
 cross apply B.entities(a.Country) b
+```
+
+The alias is mandatory when the APPLY source is a property or method result:
+
+```sql
+select a1.Name, item.Value
+from a.b() a1
+cross apply a1.Column item
+take 10
+```
+
+The following is invalid because `TAKE` is a query boundary, not an alias:
+
+```sql
+select a1.Name
+from a.b() a1
+cross apply a1.Column
+take 10
+-- MQ2035_MissingRequiredAlias: The CROSS APPLY source requires an alias before TAKE.
 ```
 
 The right-side data source receives values from the left side as method arguments.
@@ -2825,6 +3117,9 @@ from (
 - `USING` MUST contain at least one aggregate function call.
 - Generated output column names MUST be unique.
 - Multi-column pivot value tuples MUST match the number of `ON` expressions.
+- The PIVOT source follows the source-alias rules in §6.2. Pivot values and
+  measures use the same alias grammar; bracket a reserved word when it is an
+  intentional output alias.
 
 ### 10.12 UNPIVOT Statement
 
@@ -2939,6 +3234,9 @@ from (
 - `IN (...)` name values MUST be unique.
 - Rows with `NULL` value expressions MUST be emitted.
 - Dynamic source-column discovery is not supported.
+- The UNPIVOT source follows the source-alias rules in §6.2. `IN` entry and
+  `KEEP` aliases use the same boundary-aware grammar; complex expressions
+  still require an explicit alias.
 
 ---
 
@@ -3668,6 +3966,11 @@ order by City desc    -- sorts only the right-hand query
 
 This means the final output order after the UNION is **not guaranteed** to be sorted.
 
+Musoq reports `MQ5020_SetOperationOrderByScope` for an unsliced rightmost
+branch `ORDER BY` so that the query can be made explicit. A branch-local
+`ORDER BY` used with `TAKE` or positive `SKIP` is intentional slicing and is
+not warned; order the outer combined query when the final set must be sorted.
+
 **Workaround** — wrap the set operation in a CTE and apply `ORDER BY` on the outer query:
 
 ```sql
@@ -3773,6 +4076,9 @@ select Name from A.entities() skip 2
 
 If SKIP exceeds the number of rows, zero rows are returned (no error).
 
+A positive `SKIP` without `ORDER BY` produces `MQ5021_UnorderedSkip`. `SKIP 0`
+does not count as slicing and does not produce the warning.
+
 ### 13.4 TAKE
 
 Take the first N rows of the result:
@@ -3871,6 +4177,11 @@ select LeftCountry, RightCountry from p
 ```
 
 Source aliases are scoped to the query block where they are declared. Aliases declared inside a CTE body are not visible outside that body.
+
+An authored CTE that is not transitively reachable from the outer query is
+reported as `MQ5022_UnusedCte` during binding. References from live CTEs count
+as reachability; a self-reference in an otherwise unused recursive definition
+does not. Synthesized internal CTEs are not reported.
 
 CTE definitions are independent named query expressions. A CTE definition MUST NOT reference aliases from a query block that later consumes the CTE. Subqueries nested inside a CTE body may correlate only to aliases visible in that CTE body's own query block:
 
@@ -4371,6 +4682,12 @@ where LeftValue is not distinct from RightValue
 
 `NULL IS NOT DISTINCT FROM NULL` is `true`; `NULL IS DISTINCT FROM 1` is `true`.
 
+Ordinary comparison operators applied to `NULL` do not test for nullness:
+they produce `NULL` (and therefore do not select a row in a predicate).
+Diagnostic-aware binding reports `MQ5017_NullComparison` for these comparisons
+in `WHERE`, `HAVING`, `QUALIFY`, `JOIN ON`, and aggregate `FILTER` contexts.
+Use `IS NULL`, `IS NOT NULL`, or a null-safe distinctness operator instead.
+
 ### 19.2.1 NULL Comparisons Inside `CASE WHEN`
 
 `CASE WHEN` MUST use three-valued logic: `null = null` evaluates to `null`, not `true`. Query authors MUST use explicit null predicates (`IS NULL` / `IS NOT NULL`) to test for null values.
@@ -4641,6 +4958,13 @@ Nullable date/time types (`DateTime?`, `DateTimeOffset?`, `TimeSpan?`) behave id
 - Supported formats follow the invariant culture parsing rules (ISO 8601, common date patterns)
 - Supports all comparison operators: `=`, `<>`, `>`, `<`, `>=`, `<=`
 
+Ambiguous numeric date text such as `01/02/2026` can be interpreted in more
+than one culture-specific order. When such a string is implicitly converted
+to `DateTime` or `DateTimeOffset`, binding reports
+`MQ5003_ImplicitTypeConversion`. ISO year-first text, an unambiguous
+component greater than 12, month names, `TimeSpan`, and explicit conversion
+formats remain quiet; prefer ISO text or `ToDateTimeWithFormat`.
+
 ### 22.3 Numeric Type Promotion
 
 In arithmetic and bitwise operations involving different numeric types, values are promoted to the wider type:
@@ -4659,99 +4983,205 @@ When an `object`-typed column is compared to a numeric literal, runtime conversi
 
 ---
 
-## 23. Error Catalog
+## 23. Diagnostic Contract and Catalog
 
-### 23.1 Compile-Time Errors
+Musoq exposes diagnostics as stable, code-first records. Exception class names and
+engine implementation details are not part of the language contract. Hosts and
+agents should classify a failure by its diagnostic code, phase, source domain,
+arguments, related locations, and actions.
 
-| Error | Cause | Message/Exception |
-|-------|-------|-------------------|
-| Non-aggregated column in SELECT | Column not in GROUP BY and not aggregated | `NonAggregatedColumnInSelectException` |
-| Unknown column or alias | A referenced source column or eligible SELECT alias cannot be resolved | `UnknownColumnOrAliasException` |
-| GROUP BY ordinal out of range (MQ3024) | `GROUP BY 0` or an ordinal greater than the final SELECT-list width | `GroupByIndexOutOfRangeException` |
-| Unsupported strict cast target (MQ2030) | `expr::TypeName` uses a type name outside the supported CLR-name or C# alias set | `UnsupportedSyntaxException` |
-| Duplicate alias in join | Using the same alias for two tables | `AliasAlreadyUsedException` |
-| Division by zero (literal) | `10 / 0` with literal zero | `CompilationException` |
-| Modulo by zero (literal) | `10 % 0` with literal zero | `CompilationException` |
-| `ILIKE` operator used | Using `ILIKE` (PostgreSQL syntax) | Error: *"Consider using LIKE instead."* |
-| Non-existing property | `Self.NonExistingProperty` | `UnknownPropertyException` |
-| Indexer not supported | `Self['key']` on non-indexable type | `ObjectDoesNotImplementIndexerException` |
-| Non-array indexed | `Self[0]` on non-array type | `ObjectIsNotAnArrayException` |
-| SELECT * with GROUP BY | Star expands to non-aggregated columns | `NonAggregatedColumnInSelectException` |
-| Missing alias in multi-table | Column without table qualifier in join | `AliasMissingException` |
-| Ambiguous method owner (MQ3035) | Unqualified function call resolves to different implementations across schemas — see [§8.10.1](#8101-method-auto-resolution-algorithm) | `AmbiguousMethodOwnerException` |
-| ASOF JOIN: no inequality | ASOF JOIN ON clause contains only equality conditions | `AsOfJoinRequiresInequality` |
-| ASOF JOIN: multiple inequalities | ASOF JOIN ON clause contains more than one inequality condition | `AsOfJoinSupportsOnlyOneInequality` |
-| ASOF JOIN: OR in ON clause | ASOF JOIN ON clause contains OR | `AsOfJoinDoesNotSupportOr` |
-| ASOF JOIN: one-sided inequality | ASOF JOIN inequality condition does not reference columns from both sides | `AsOfJoinInequalityMustReferenceBothSides` |
-| ASOF JOIN: non-orderable type | ASOF JOIN inequality column type does not implement `IComparable` | `AsOfJoinInequalityColumnNotOrderable` |
-| Star EXCLUDE non-existent column (MQ3041) | EXCLUDE references a column not in the star expansion | `StarModifierValidationException` |
-| Star REPLACE non-existent column (MQ3042) | REPLACE targets a column not in the table | `StarModifierValidationException` |
-| Star EXCLUDE removes all columns (MQ3043) | EXCLUDE would leave zero columns | `StarModifierValidationException` |
-| Star column in both EXCLUDE and REPLACE (MQ3044) | Same column appears in both EXCLUDE and REPLACE lists | `StarModifierValidationException` |
-| Star LIKE matches no columns (MQ3045) | LIKE/NOT LIKE pattern matched zero columns | `StarModifierValidationException` |
-| Star EXCLUDE duplicate column (MQ3046) | Same column listed twice in EXCLUDE | `StarModifierValidationException` |
-| Star REPLACE duplicate column (MQ3047) | Same column listed twice in REPLACE | `StarModifierValidationException` |
-| Star REPLACE targets removed column (MQ3048) | REPLACE targets a column already removed by LIKE or EXCLUDE | `StarModifierValidationException` |
-| Star RENAME duplicate source (MQ3068) | Same source output column listed twice in RENAME | `StarModifierValidationException` |
-| Star RENAME duplicate target (MQ3069) | RENAME targets collide with each other or with an existing output column | `StarModifierValidationException` |
-| Star RENAME unknown column (MQ3070) | RENAME references a column not present after LIKE/EXCLUDE/REPLACE | `StarModifierValidationException` |
-| Invalid subquery shape or scope (MQ2024) | Malformed subquery, scalar subquery with multiple columns, quantified subquery with multiple columns, unsupported quantified/scalar set-operator form, plain derived table with outer references, or correlated APPLY derived table hiding required local correlation columns | Parser diagnostic envelope or `VisitorException` |
-| IN subquery returns multiple columns (MQ3049) | `IN (SELECT col1, col2 FROM ...)` — subquery must return exactly one column | `VisitorException` |
-| QUALIFY without window function (MQ3050) | `QUALIFY` expression does not reference any window function | `VisitorException` |
-| FILTER on non-aggregate (MQ3051) | `FILTER (WHERE ...)` applied to a non-aggregate function | `VisitorException` |
-| Invalid PIVOT form (MQ2002/MQ2003/MQ2008) | Missing `ON`, missing static `IN (...)`, missing `USING`, non-constant pivot values, non-aggregate `USING` expression, duplicate generated output name, or multi-key tuple length mismatch | Parser diagnostic envelope |
-| Invalid UNPIVOT form (MQ2002/MQ2003/MQ2008/MQ2022/MQ3055) | Missing `ON`, empty or missing `IN (...)`, missing `USING`, entry expression without a stable alias, duplicate output name, duplicate name value, or incompatible value expression types | Parser diagnostic envelope or `ValuesSourceException` |
-| RANGE frame without ORDER BY (MQ3052) | `RANGE BETWEEN` used without `ORDER BY` in the window specification | `VisitorException` |
-| Invalid VALUES source (MQ3055) | Inline VALUES rows have inconsistent fields, duplicate field names, unsupported row-dependent expressions, invalid parameter/let references, or incompatible inferred field types | `ValuesSourceException` |
-| Invalid script parameter declaration (MQ2031) | A `param(...)` declaration is malformed, has the wrong `name: type` order, or uses an invalid default expression | Parser diagnostic envelope |
-| Unsupported script parameter syntax (MQ2032) | A script uses PowerShell, Python, SQL-variable, or another unsupported parameter declaration style | Parser diagnostic envelope |
-| Invalid script variable declaration (MQ2033) | A `let` declaration is malformed or does not use `let name: type = value` syntax | Parser diagnostic envelope |
-| Duplicate script parameter block (MQ3056) | More than one `param(...)` block appears in the script | Bind diagnostic envelope |
-| Script parameter block after statement (MQ3057) | `param(...)` appears after a query or utility statement | Bind diagnostic envelope |
-| Duplicate script parameter name (MQ3058) | The same parameter name appears more than once in the block | Bind diagnostic envelope |
-| Undeclared script parameter reference (MQ3059) | `$name` is referenced but no parameter named `name` is declared | Bind diagnostic envelope |
-| Unsupported script parameter type (MQ3060) | A parameter type is not one of the supported scalar expression types or one-dimensional collection parameter types | Bind diagnostic envelope |
-| Invalid script parameter default (MQ3061) | A default literal cannot be converted to the declared parameter type, or a collection parameter declares a default | Bind diagnostic envelope |
-| Invalid script parameter source argument (MQ3062) | A parameter used in a source argument is required or is not passed directly as `$name` | Bind diagnostic envelope |
-| Duplicate script symbol name (MQ3063) | A `let` declaration duplicates another `let` name or a `param(...)` name | Bind diagnostic envelope |
-| Unsupported script variable type (MQ3064) | A script variable type is not one of the supported primitive expression types | Bind diagnostic envelope |
-| Invalid script variable initializer (MQ3065) | A `let` initializer is not a compile-time constant or cannot be converted to the declared type | Bind diagnostic envelope |
-| Script variable used before declaration (MQ3066) | A `let` initializer references a variable declared later or a mistyped variable name | Bind diagnostic envelope |
-| Invalid named source argument (MQ2034) | A named argument is malformed, appears in an unsupported function/source context, or follows a named argument positionally | Parser diagnostic envelope |
-| Unknown source argument (MQ3079) | A named datasource argument is not present in the reflected table-constructor signature | Bind diagnostic envelope |
-| Duplicate source argument (MQ3080) | A parameter is assigned more than once positionally or by name | Bind diagnostic envelope |
-| Missing required source argument (MQ3081) | A required reflected parameter has no positional/name assignment and no usable default | Bind diagnostic envelope |
-| Ambiguous source invocation (MQ3082) | More than one reflected overload accepts the canonical runtime values with the same best match | Bind diagnostic envelope |
-| Named source arguments require metadata (MQ3083) | Named syntax targets a metadata-less/custom positional-only datasource signature | Bind diagnostic envelope |
-| Script parameter type mismatch (MQ3005) | A parameter declared type is incompatible with a comparison, boolean context, function argument, or other expression context | Bind diagnostic envelope |
+The complete machine-readable catalog is
+specs/diagnostic-catalog.json. It is generated from the
+Musoq.Parser.Diagnostics.DiagnosticDescriptorRegistry and a parser test compares
+every committed record with the registry. The JSON catalog is therefore the
+authoritative list of active codes, including exact message templates,
+severity, phase, category, explanations, documentation references, and
+suggested fixes.
 
-### 23.2 Runtime Errors
+### 23.1 Diagnostic envelope contract
 
-| Error | Cause | Behavior |
-|-------|-------|----------|
-| Invalid soft type conversion | `ToInt32('abc')` | Returns `null` where that helper's established behavior is soft |
-| Invalid strict cast | `'abc'::Int32` | Runtime conversion exception |
-| Invalid regex in RLIKE | `Name RLIKE '[invalid('` | Exception thrown |
-| Non-numeric string comparison | String `"abc"` compared to number | No match, no exception |
-| Required script parameter missing (MQ7003) | A required parameter value was not supplied by the host | Runtime diagnostic envelope before source open |
-| Script parameter type mismatch (MQ7004) | A supplied value cannot be cast to the declared CLR type | Runtime diagnostic envelope before source open |
-| Script parameter null not allowed (MQ7005) | A supplied `null` is used for a non-nullable value-type parameter | Runtime diagnostic envelope before source open |
-| Scalar subquery returns multiple rows | A scalar subquery produces more than one row for the current outer row | Runtime exception |
+Every diagnostic-aware API preserves the following fields:
 
-### 23.3 Graceful Failures
+| Field | Contract |
+|-------|----------|
+| Code | Stable MQ number and enum name; one root-cause meaning only. |
+| Severity | Error blocks the relevant phase; warning is advisory and does not change execution. |
+| Phase | Parse, Bind, Schema, DataSource, CodeGeneration, Runtime, FeatureGate, or Internal. |
+| Source domain | Query, GeneratedSource, Schema, DataSource, Runtime, or Internal. |
+| Location | Absolute offset, line, column, and end location when known. A zero-length span is a real insertion point; null means unknown. |
+| Arguments | Stable string facts such as symbol, callableKind, actualTypes, expectedCounts, schema, source, alias, and lifecycle operation. Values containing secrets are excluded. |
+| Related locations | Typed secondary locations for declarations, candidates, generated origins, and related source facts when exact mapping exists. |
+| Actions | Structured fixes and optional text edits, with the existing textual suggestions retained for compatibility. |
+| Details | Sanitized by default. Raw exception details are available only through an explicit verbose formatting operation. |
+| Correlation | Optional correlation ID for internal compiler and execution failures. |
 
-These situations are handled gracefully without exceptions:
+Query locations always refer to SQL source. Generated C# locations remain in the
+generated-source domain and are never clamped to an invented SQL location. A
+query related location is added only when an exact IR-to-source map exists.
 
-| Situation | Behavior |
-|-----------|----------|
-| Array out-of-bounds access | Returns default value |
-| Dictionary missing key | Returns `null` |
-| String character out-of-bounds | Returns `'\0'` |
-| SKIP exceeds row count | Returns 0 rows |
-| TAKE exceeds row count | Returns all available rows |
-| Null string in numeric comparison | No match |
+ParseResult.Warnings, QueryAnalysisResult.Warnings, BuildResult.Warnings, and
+QueryInspectionResult.Warnings are the authoritative warning surfaces.
+BuildResult.ToEnvelopes() remains error-only; diagnostic-aware hosts that need
+both severities use the all-diagnostics envelope operation. CompileWithDiagnostics()
+is the warning-aware execution entry point. CompileForExecution() remains
+source-compatible and returns only CompiledQuery.
 
----
+Warnings do not alter parsed values, generated code, cache identity, datasource
+arguments, runtime behavior, or query results. Errors stop the next dependent
+phase, while independent sibling roots may continue so their diagnostics can be
+reported in source order. Nodes that depend on an invalid root are suppressed
+rather than reported as misleading secondary errors.
+
+### 23.2 Phase and source-domain index
+
+The JSON catalog contains one descriptor for every active public enum member.
+The following index is a quick guide; the catalog supplies the exact message,
+explanation, and correction for each entry.
+
+| Phase | Active code families | Default source domain |
+|-------|----------------------|------------------------|
+| Parse | MQ1001–MQ1009, MQ2001–MQ2041 | Query |
+| Bind | MQ3001, MQ3002, MQ3005, MQ3007, MQ3008, MQ3010–MQ3035, MQ3036–MQ3097; MQ5003, MQ5008, MQ5010–MQ5025 | Query |
+| Schema | MQ4016 and schema-definition MQ4001–MQ4015 | Schema |
+| DataSource | Source construction and provider diagnostics | DataSource or Schema |
+| Runtime | MQ7003–MQ7012 | Runtime or DataSource |
+| CodeGeneration | MQ8001 | GeneratedSource |
+| Internal | MQ9001–MQ9002 | Internal |
+
+A diagnostic instance may override the default source domain when the failure
+comes from a different boundary. For example, a provider-reported contract
+failure can retain a Query related location while its primary source domain is
+DataSource.
+
+### 23.3 Root-cause classification
+
+Callable resolution is deterministic and always proceeds in this order:
+owner/schema exists, callable name exists, arity matches, argument types match,
+exactly one overload wins, and exactly one owner wins.
+
+| Code | Root cause | Evidence and correction |
+|------|------------|-------------------------|
+| MQ3085_UnknownSource | The schema exists but the referenced source/table method does not. | Includes schema and source facts plus bounded available-source candidates. Check the source name. |
+| MQ3086_UnknownCallable | No scalar, aggregate, row, or library callable has the requested name. | Includes callable kind and spelling candidates. Check the callable name. |
+| MQ3087_InvalidCallableArity | The name exists but no overload accepts the supplied argument count. | Includes actual and expected counts plus up to five signatures. Add/remove arguments or use the shown overload. |
+| MQ3088_NoMatchingCallableOverload | At least one overload has the right arity but none accepts the argument types. | Includes actual types and bounded candidate signatures. Convert the arguments or select a compatible overload. |
+| MQ3089_AmbiguousCallableOverload | More than one overload remains equally valid. | Includes candidate signatures and related candidate locations when available. Cast arguments or qualify the owner. |
+
+Owner ambiguity remains distinct from overload ambiguity. MQ3079, MQ3080,
+MQ3081, and MQ3083 describe named datasource argument metadata and are not
+callable-name or callable-arity fallbacks.
+
+Symbol lookup uses the same one-role contract:
+
+| Situation | Diagnostic |
+|-----------|------------|
+| Unknown schema | MQ3010_UnknownSchema |
+| Unknown source/table/CTE name | MQ3023_TableNotDefined or MQ3085_UnknownSource, depending on the lookup owner |
+| Unknown alias qualifier | MQ3015_UnknownAlias |
+| Unknown column on a known source | MQ3001_UnknownColumn |
+| Ambiguous column | MQ3002_AmbiguousColumn |
+| Unknown property on a known object type | MQ3028_UnknownProperty |
+
+Dependent column and property expressions are poisoned after these failures so
+one misspelling does not create a cascade of unrelated binder errors. A single
+close spelling candidate may be returned as a structured text edit.
+
+### 23.4 Exact parser diagnostics
+
+Parser errors are reported at the smallest useful query span. Insertion
+diagnostics use a known zero-length span immediately after the relevant token.
+The boundary token is not consumed while recovering.
+
+| Code | Trigger | Correction |
+|------|---------|------------|
+| MQ1009_NumericLiteralOutOfRange | Decimal, hexadecimal, binary, or octal literal cannot be represented by the supported numeric type. | Use a value in range or an explicitly supported type. |
+| MQ2036_MultipleExecutableStatements | More than one executable statement is supplied to an entry point that accepts one query. | Compile statements separately or use the script entry point. |
+| MQ2037_EmptyPredicateListNotAllowed | CONTAINS or another predicate list is empty. | Supply at least one predicate value. |
+| MQ2038_InvalidSliceCount | TAKE or SKIP has a negative or invalid count. | Use a non-negative integer. |
+| MQ2039_TieBreakRequiresAsOfJoin | TIE BREAK BY appears outside ASOF JOIN. | Move it into an ASOF JOIN or remove it. |
+| MQ2040_InvalidDiagnosticCommand | A diagnostic command or modifier is not valid in its position. | Use the documented diagnostic command form. |
+| MQ2041_InvalidStarModifierOrder | Star modifiers are duplicated or appear in an unsupported order. | Use the documented EXCLUDE, REPLACE, LIKE, and RENAME order. |
+| MQ2035_MissingRequiredAlias | A multi-source JOIN/APPLY source has no stable addressable alias. | Add a source alias; use brackets for a reserved word. |
+| MQ2022_InvalidAlias | An alias position contains an invalid token or malformed optional alias. | Use an identifier or bracketed identifier. |
+
+These parser diagnostics remain distinct from bind-time MQ3022_MissingAlias,
+which describes method ownership after syntax is valid.
+
+### 23.5 Active advisory warnings
+
+Advisories are default-on and never change behavior. MQ5014 is normally emitted
+during parsing for rooted paths and may also be emitted during binding for a
+relative path bound to a path-sensitive string destination. The remaining
+advisories are Bind-phase diagnostics.
+
+| Code | Trigger | Quiet cases | Correction |
+|------|---------|-------------|------------|
+| MQ5003_ImplicitTypeConversion | An ambiguous numeric date string is implicitly converted to DateTime or DateTimeOffset. | ISO/year-first text, month names, unambiguous components, TimeSpan, widening, and explicit format calls. | Use ISO text or an explicit format conversion. |
+| MQ5008_UnreachableCode | CASE branch, CASE tail, or coalesce fallback is proven unreachable. | Nullable, dynamic, literal-NULL, and uncertain values. | Remove or correct the unreachable branch. |
+| MQ5010_TautologicalCondition | A deterministic predicate is proven always true. | Floating-point, method-call, dynamic, and null-sensitive identities. | Remove the redundant predicate. |
+| MQ5011_ContradictoryCondition | A deterministic predicate is proven impossible. | The same conservative proof limits as MQ5010. | Correct the conflicting condition. |
+| MQ5013_SourceContractWarning | A datasource reports a non-fatal contract or modifier issue. | No provider warning. | Follow the provider correction. |
+| MQ5014_SuspiciousOrdinaryStringEscape | A recognized ordinary escape changes rooted path text or relative path-like text bound to a path-sensitive string destination. | Raw strings, doubled backslashes, unknown escapes, standalone escapes, and bare relative projections. | Use r'...' or double each intended backslash. |
+| MQ5015_SuspiciousRegexEscape | Ordinary source \b becomes backspace in RLIKE or a bound regex-pattern parameter. | Raw r'\b', ordinary '\\b', character-class [\b], and preserved \d, \s, \w. | Use a raw regex literal or double the backslash. |
+| MQ5016_GlobWildcardInLike | A constant LIKE pattern looks like a glob using * or path-like ?. | SQL %/_ patterns, dynamic patterns, whitespace prose, and ordinary questions. | Use %/_ for LIKE or RLIKE for regex semantics. |
+| MQ5017_NullComparison | =, <>, !=, <, <=, >, or >= compares with NULL in a predicate context. | IS NULL, IS NOT NULL, IS DISTINCT FROM, and projected/order expressions. | Use an explicit NULL or null-safe predicate. |
+| MQ5018_AmbiguousOuterJoinNullCheck | An optional-side nullable column IS NULL cannot distinguish row absence from a present NULL value. | Non-nullable/unknown derived columns and explicit PRESENT/MISSING checks. | Test row presence or use a non-nullable presence column. |
+| MQ5019_NullRejectingOuterJoinFilter | WHERE is provably false or UNKNOWN for NULL-extended optional rows. | ON predicates, inner joins, preserving OR branches, and unknown method semantics. | Move an intended match restriction into ON or state row presence. |
+| MQ5020_SetOperationOrderByScope | ORDER BY belongs to an unsliced rightmost set operand rather than the combined result. | Branch ordering used for TAKE/positive SKIP or an outer combined-result order. | Order the combined set in an outer query. |
+| MQ5021_UnorderedSkip | Positive SKIP has no ORDER BY in its query block. | SKIP 0, TAKE-only, and ordered slicing. | Add a deterministic ORDER BY or remove SKIP. |
+| MQ5022_UnusedCte | A user CTE is not transitively reachable from the outer query. | Live dependencies, nested live scopes, and synthesized CTEs. | Remove it or reference it from live work. |
+| MQ5023_UnusedScriptVariable | A let declaration is not transitively used by executable work. | Script parameters and declarations used only by live dependencies. | Remove it or use it. |
+| MQ5024_NullSensitiveNotIn | NOT IN has a literal/proven-NULL member or nullable result. | IN, null-free collections, and proven null exclusion. | Filter NULLs or use a null-aware predicate. |
+| MQ5025_ImpossibleImplicitConversion | An engine-selected implicit conversion of a constant is proven unable to succeed. | Dynamic values, explicit soft conversions, and uncertain plugin conversions. | Use a compatible literal or explicit conversion. |
+
+Specific advisories take precedence over generic tautology, contradiction, and
+unreachable diagnostics for the same source region. The legacy MQ5009
+OrderByAliasBehavior identifier is retained in compatibility documentation only
+and is not an active v18 enum member or emitted diagnostic. Tested alias
+ordering and shadowing behavior remains unchanged.
+
+### 23.6 Schema, datasource, runtime, and internal failures
+
+| Code family | Root cause | Location/detail policy |
+|-------------|------------|------------------------|
+| MQ4001–MQ4016 | Schema definition or schema construction failure. | Schema source domain; include the schema declaration location when known. |
+| MQ7003–MQ7009 | Script-parameter or recursive-CTE runtime contract failure. | Query or Runtime domain; include safe parameter/limit facts, never secret values. |
+| MQ7010 | Datasource construction/open failure. | DataSource domain; include schema, source, alias, context ID, and operation open. |
+| MQ7011 | Datasource row read or deferred enumeration failure. | DataSource domain; preserve the original exception as InnerException and never argument values. |
+| MQ7012 | Datasource cleanup/disposal failure. | DataSource domain; cancellation remains cancellation, not a cleanup error. |
+| MQ8001 | Generated code did not compile. | GeneratedSource domain; retain target-native facts and add SQL relation only for exact mappings. |
+| MQ8002 | A compiled artifact is incompatible with the current host contract. | GeneratedSource or Runtime domain; recompile rather than treating it as syntax. |
+| MQ9001–MQ9002 | An engine invariant failed without a user-owned root classification. | Internal domain, safe message, and correlation ID; raw details require explicit verbose output. |
+
+Cancellation is propagated unchanged through datasource and runtime boundaries.
+Unexpected CLR exceptions are never rewritten as unsupported SQL syntax merely
+because they crossed a query boundary.
+
+### 23.7 v17 to v18 migration
+
+Removed values are not reused. Hosts upgrading diagnostic consumers should use
+the following replacements:
+
+| v17 code or behavior | v18 replacement |
+|----------------------|-----------------|
+| MQ3003 unknown table | MQ3023_TableNotDefined or MQ3085_UnknownSource |
+| MQ3004 unknown function | MQ3086_UnknownCallable |
+| MQ3006 invalid argument count | MQ3087_InvalidCallableArity |
+| MQ3009 null reference | The role-specific symbol, cast, member, datasource, or internal code |
+| MQ3013 cannot resolve method | MQ3086–MQ3089 according to the callable decision tree |
+| MQ3014 invalid property access | MQ3028_UnknownProperty or the precise index/member code |
+| MQ3029 unresolvable method | MQ3086–MQ3089 |
+| MQ3030 construction not supported | MQ4016_UnsupportedSchemaConstruction |
+| MQ3031 set operator missing keys | The applicable set-column/count/type diagnostic |
+| MQ3082 ambiguous source invocation | MQ3089 for overload ambiguity or MQ3035 for owner ambiguity |
+| MQ5001, MQ5002, MQ5004–MQ5007, MQ5009, MQ5012 | No active style/optimization warning; MQ5009 remains a compatibility documentation identifier only |
+| MQ6001–MQ6004 | The precise parse, bind, schema, or runtime diagnostic |
+| MQ7001 datasource binding failed | MQ7010_DataSourceOpenFailed |
+| MQ7002 datasource iterator error | MQ7011_DataSourceReadFailed |
+| MQ9999 unknown | MQ9001_InternalCompilerError or MQ9002_InternalExecutionError |
+
+Agents should not infer a root cause from exception text. Read the code,
+phase, source domain, arguments, related locations, and suggested action.
 
 ## 24. Formal Grammar
 
@@ -4775,7 +5205,8 @@ root           ::= [parameter_block [';']] script_item { ';' script_item } [';']
 script_item    ::= script_variable_decl
                  | statement
 
-parameter_block ::= PARAM '(' [parameter_decl {',' parameter_decl}] ')'
+parameter_block ::= parameter_keyword '(' [parameter_decl {',' parameter_decl}] ')'
+parameter_keyword ::= PARAM | PARAMS
 
 parameter_decl ::= identifier ':' parameter_type ['=' parameter_default]
 
@@ -4861,12 +5292,12 @@ group_by_clause ::= GROUP BY (expression_list | ALL) [HAVING expression]
 
 pivot_key_list ::= expression {',' expression}
 
-pivot_value    ::= pivot_scalar_value [[AS] alias_name]
-                 | '(' pivot_scalar_value {',' pivot_scalar_value} ')' [[AS] alias_name]
+pivot_value    ::= pivot_scalar_value [[AS] select_alias_name]
+                 | '(' pivot_scalar_value {',' pivot_scalar_value} ')' [[AS] select_alias_name]
 
 pivot_scalar_value ::= literal
 
-pivot_measure  ::= identifier {'.' identifier} '(' [DISTINCT] [arg_list | '*'] ')' [[AS] alias_name]
+pivot_measure  ::= identifier {'.' identifier} '(' [DISTINCT] [arg_list | '*'] ')' [[AS] select_alias_name]
 
 unpivot_query  ::= UNPIVOT from_clause
                    {join_or_apply}
@@ -4879,22 +5310,54 @@ unpivot_query  ::= UNPIVOT from_clause
 
 simple_reference ::= identifier {'.' identifier}
 
-unpivot_entry  ::= simple_reference [[AS] alias_name]
-                 | expression [AS] alias_name
+unpivot_entry  ::= simple_reference [[AS] select_alias_name]
+                 | expression [AS] select_alias_name
 
-unpivot_keep   ::= simple_reference [[AS] alias_name]
-                 | expression [AS] alias_name
+unpivot_keep   ::= simple_reference [[AS] select_alias_name]
+                 | expression [AS] select_alias_name
 ```
 
 ### 24.4 FROM Clause Grammar
 
 ```ebnf
-from_clause    ::= schema_source [alias]
+from_clause    ::= single_source | multi_source
+
+single_source  ::= named_source [alias]
+                 | schema_source [alias]
+                 | function_source [alias]
+                 | row_method_source [alias]
+                 | row_property_source [alias]
+                 | derived_source
                  | values_source
-                 | identifier [alias]
-                 | derived_table
+
+-- A query block containing JOIN/APPLY uses this production. The first source
+-- and every right operand must therefore have a stable addressable name.
+multi_source   ::= stable_source {join_or_apply}
+
+named_source   ::= cte_reference | in_memory_reference
+
+explicit_source ::= schema_source
+                  | function_source
+                  | row_method_source
+                  | row_property_source
+                  | derived_source
+                  | values_source
+
+stable_source  ::= named_source [alias]
+                 | explicit_source alias
+
+cte_reference  ::= identifier
+in_memory_reference ::= identifier
 
 schema_source  ::= identifier '.' identifier '(' [source_arg_list] ')'
+
+function_source ::= function_call
+
+row_method_source ::= identifier '.' method_call
+
+row_property_source ::= identifier '.' property_path
+
+derived_source ::= '(' (set_operators | cte_expression) ')' alias
 
 source_arg_list ::= source_arg {',' source_arg}
 
@@ -4916,18 +5379,23 @@ values_expression ::= literal
 
 arithmetic_op  ::= '+' | '-' | '*' | '/' | '%'
 
-alias          ::= identifier | AS identifier
+alias          ::= [AS] alias_name
 
-derived_table  ::= '(' (set_operators | cte_expression) ')' alias
+alias_name     ::= identifier | bracketed_identifier
+
+bracketed_identifier ::= '[' any_text ']'
 
 join_or_apply  ::= join_clause | apply_clause
 
-join_clause    ::= [INNER] JOIN from_clause ON expression
-                 | LEFT [OUTER] JOIN from_clause ON expression
-                 | RIGHT [OUTER] JOIN from_clause ON expression
-                 | FULL [OUTER] JOIN from_clause ON expression
-                 | ASOF JOIN from_clause ON asof_condition [tie_break_clause]
-                 | ASOF LEFT [OUTER] JOIN from_clause ON asof_condition [tie_break_clause]
+join_clause    ::= [INNER] JOIN stable_source ON expression
+                 | LEFT [OUTER] JOIN stable_source ON expression
+                 | RIGHT [OUTER] JOIN stable_source ON expression
+                 | FULL [OUTER] JOIN stable_source ON expression
+                 | SEMI JOIN stable_source ON expression
+                 | ANTI JOIN stable_source ON expression
+                 | CROSS JOIN stable_source
+                 | ASOF JOIN stable_source ON asof_condition [tie_break_clause]
+                 | ASOF LEFT [OUTER] JOIN stable_source ON asof_condition [tie_break_clause]
 
 asof_condition ::= asof_expr { AND asof_expr }
 
@@ -4938,13 +5406,8 @@ inequality_op  ::= '>=' | '>' | '<=' | '<'
 
 tie_break_clause ::= TIE BREAK BY ordered_field
 
-apply_clause   ::= CROSS APPLY apply_source [WITH ORDINALITY]
-                 | OUTER APPLY apply_source [WITH ORDINALITY]
-
-apply_source   ::= from_clause
-                 | schema_source
-                 | identifier '.' method_call
-                 | identifier '.' property_path
+apply_clause   ::= CROSS APPLY stable_source [WITH ORDINALITY]
+                 | OUTER APPLY stable_source [WITH ORDINALITY]
 ```
 
 ### 24.5 SELECT List Grammar
@@ -4953,7 +5416,7 @@ apply_source   ::= from_clause
 select_list    ::= select_item {',' select_item}
 
 select_item    ::= star_expr
-                 | expression [[AS] alias_name]
+                 | expression [[AS] select_alias_name]
 
 star_expr      ::= ('*' | identifier '.' '*') [star_modifiers]
 
@@ -4972,9 +5435,9 @@ rename_modifier ::= RENAME '(' rename_item {',' rename_item} ')'
 
 rename_item   ::= identifier {'.' identifier} AS identifier
 
-alias_name     ::= identifier
-                 | string_literal
-                 | '[' any_text ']'
+select_alias_name ::= identifier
+                    | string_literal
+                    | bracketed_identifier
 ```
 
 ### 24.6 Expression Grammar (by precedence, lowest to highest)
@@ -5062,7 +5525,13 @@ literal        ::= string_literal
                  | TRUE | FALSE
                  | NULL
 
-string_literal ::= "'" {char | escape_seq} "'"
+string_literal ::= ordinary_string_literal | raw_string_literal
+
+ordinary_string_literal ::= "'" {char | escape_seq} "'"
+
+raw_string_literal ::= ("r" | "R") "'" {raw_char | "''"} "'"
+
+raw_char       ::= any source character except "'"
 
 escape_seq     ::= '\' ('\\' | "'" | '"' | 'n' | 'r' | 't' | 'b' | 'f' | 'e' | '0')
                  | '\u' hex_digit hex_digit hex_digit hex_digit
@@ -5199,7 +5668,9 @@ From **lowest** to **highest** precedence:
 
 At level 0, `??` is right-associative; the bitwise operators are left-associative.
 
-### Appendix C: Escape Sequence Reference
+### Appendix C: String Literal Reference
+
+#### C.1 Ordinary Escape Sequences
 
 | Sequence | Character | Code Point |
 |----------|-----------|------------|
@@ -5215,6 +5686,43 @@ At level 0, `??` is right-associative; the bitwise operators are left-associativ
 | `\0` | Null | U+0000 |
 | `\uXXXX` | Unicode | U+XXXX |
 | `\xXX` | Hex byte | — |
+
+Ordinary strings decode the supported sequences. Unknown escapes such as `\q`
+remain literal. A fixed-length `\u` or `\x` sequence with too few hexadecimal
+digits is malformed and produces `MQ1004` while preserving the source text.
+
+#### C.2 Raw String Literals
+
+| Syntax | Meaning |
+|--------|---------|
+| `r'...'` | Raw literal with a lowercase prefix |
+| `R'...'` | Raw literal with an uppercase prefix |
+| `''` inside a raw literal | One embedded single quote |
+
+Raw literals preserve backslashes, whitespace, Unicode, separators, glob
+characters, brackets, braces, punctuation, and other content exactly. The
+prefix must be adjacent to the opening quote, and a backslash never escapes a
+quote in a raw literal.
+
+#### C.3 Suspicious Ordinary-String Path Escapes
+
+`MQ5014_SuspiciousOrdinaryStringEscape` is advisory. It does not change the
+ordinary literal's decoded value. It is reported for high-confidence rooted
+paths during lexical parsing and for relative paths only after semantic
+binding identifies a path-sensitive string parameter or variable. Because
+user intent cannot always be inferred, an ordinary string in an unknown
+context may remain warning-free.
+
+Use either a raw literal or doubled backslashes when the path text should be
+preserved:
+
+```sql
+select FullPath from os.files(r'C:\new\test', true)
+select FullPath from os.files('C:\\new\\test', true)
+```
+
+Standalone intentional escapes and unknown preserved escapes do not produce
+`MQ5014`. Malformed `\u` and `\x` sequences remain `MQ1004` errors.
 
 ### Appendix D: Numeric Literal Format Summary
 
@@ -5241,7 +5749,7 @@ At level 0, `??` is right-associative; the bitwise operators are left-associativ
 |---------|-------------|-------|
 | Data sources | `FROM table_name` | `FROM schema.method()` |
 | Inline row sources | `VALUES (...)` | `FROM values { { Field: literalOrStaticExpression } } alias`; scalar params/lets are allowed |
-| Script parameters | Vendor-specific | Optional leading `param(name: type = default)` block; scalar refs use `$name`, collection params use `type[]` and `IN $name` |
+| Script parameters | Vendor-specific | Optional leading `param(name: type = default)` or `params(name: type = default)` block; `param(...)` is canonical; scalar refs use `$name`, collection params use `type[]` and `IN $name` |
 | Script variables | Host-language or dialect-specific variables | `let name: type = constantExpression`; references use `$name` |
 | Pagination | `OFFSET n LIMIT m` | `SKIP n TAKE m` |
 | Not-equal | `<>` and `!=` | Both `<>` and `!=` are supported |
@@ -5331,6 +5839,13 @@ select 1 + (case when 2 > 1 then 1 else 0 end) - 1 from system.dual()
 -- Short-circuit evaluation: only the matching branch is evaluated
 select case when City <> 'X' then 'safe' else ThrowException() end from ...
 ```
+
+Static `CASE` conditions and coalesce operands are inspected during binding.
+`MQ5008_UnreachableCode` reports a false or null branch, a duplicate
+deterministic condition/label, an unreachable tail after a proven-true branch,
+or a fallback hidden by a statically non-null left operand. Nullable, dynamic,
+and uncertain values remain quiet; branch evaluation and short-circuit
+semantics are unchanged.
 
 ### Appendix G: Runtime V2 Cast and Grouping Quick Reference
 

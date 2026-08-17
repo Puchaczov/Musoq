@@ -8,7 +8,6 @@ using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Plugins;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -25,6 +24,7 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
 
     private readonly IReadOnlyDictionary<string, string[]> _columns;
     private readonly CompilationOptions _compilationOptions;
+    private readonly HashSet<string> _diagnosticRecoveryAliases = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly ILogger<BuildMetadataAndInferTypesVisitor> _logger;
     private readonly TypeConversionNodeFactory _nodeFactory;

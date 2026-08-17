@@ -4,8 +4,6 @@ using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Execution.Facts;
-using Musoq.Schema;
-using Musoq.Targets.Execution;
 
 namespace Musoq.Targets.Execution.Analysis;
 
@@ -217,7 +215,7 @@ internal static class ExecutionTargetCompatibilityAnalyzer
     {
         var currentType = entityType;
         var segments = path
-            .Split(['.', '[', ']'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            .Split(new[] { '.', '[', ']' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         foreach (var segment in segments)
         {

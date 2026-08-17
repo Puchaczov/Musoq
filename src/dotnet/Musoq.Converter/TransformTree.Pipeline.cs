@@ -1,13 +1,10 @@
 using System.Runtime.ExceptionServices;
-using Musoq.Converter.Build;
-using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Evaluator.TemporarySchemas;
-using Musoq.Evaluator.Utils;
-using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Evaluator.Visitors;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Converter.Build;
@@ -47,6 +44,7 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
         SemanticBuildArtifacts? semanticArtifacts = null;
         if (semanticCacheKey is { } cachedKey && SemanticTemplateCache.TryGet(cachedKey, out var cachedArtifacts))
         {
+            DiagnosticReplay.AddMissing(context.DiagnosticContext, cachedArtifacts.Phase.Diagnostics);
             semanticArtifacts = cachedArtifacts with
             {
                 CteExecutionPlan = context.CompilationOptions.UseCteParallelization
@@ -89,7 +87,7 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
                 if (ex is OperationCanceledException)
                     throw;
 
-                if (ex is SchemaProviderFailureException providerFailure)
+                if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
                 {
                     ExceptionDispatchInfo.Capture(providerFailure.InnerException ?? providerFailure).Throw();
                     throw new InvalidOperationException("Schema provider failure rethrow did not propagate.");
@@ -98,11 +96,23 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
                 if (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex) &&
                     !context.DiagnosticContext.HasErrors)
                     context.DiagnosticContext.ReportException(ex);
-                else if (!EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
-                    throw;
+                else if (!context.DiagnosticContext.HasErrors &&
+                         !EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
+                    context.DiagnosticContext.ReportException(
+                        InternalDiagnosticException.ForCompiler(ex));
             }
 
             if (context.DiagnosticContext.HasErrors || metadataPhase is null)
+                return;
+
+            new SemanticAdvisoryPhaseCoordinator().Analyze(
+                metadataPhase.Query,
+                metadataPhase.Metadata,
+                context.DiagnosticContext,
+                normalizedQueryTree,
+                parsedQueryTree);
+
+            if (context.DiagnosticContext.HasErrors)
                 return;
 
             var metadataQueryTree = queryTree;

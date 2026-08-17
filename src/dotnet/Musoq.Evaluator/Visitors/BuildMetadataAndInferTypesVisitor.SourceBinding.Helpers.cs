@@ -6,7 +6,6 @@ using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TemporarySchemas;
-using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
@@ -73,6 +72,9 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         var emptyTable = new DynamicTable([], typeof(object));
         UpdateQueryAliasAndSymbolTable(node, schema, emptyTable);
+        if (DiagnosticContext != null && !string.IsNullOrWhiteSpace(_sourceBinding.QueryAlias))
+            _diagnosticRecoveryAliases.Add(_sourceBinding.QueryAlias);
+
         PushSemanticNode(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertiesChain));
     }
 
@@ -109,7 +111,15 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (!schema.TryResolveMethod(node.Identifier, argTypes, entityType, out var method) &&
             !schema.TryResolveRawMethod(node.Identifier, argTypes, out method))
-            return false;
+        {
+            throw CallableResolutionDiagnostics.CreateException(
+                schema,
+                node.Identifier,
+                argTypes,
+                entityType,
+                node.SpanOrEmpty(),
+                args.Args);
+        }
 
         if (args.HasNamedArguments)
             throw new CannotResolveMethodException(
@@ -161,7 +171,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (nestedType == null) throw new InvalidOperationException("Element type is null.");
 
         if (IsPrimitiveType(nestedType))
-            return new DynamicTable([new SchemaColumn(nameof(PrimitiveTypeEntity<>.Value), 0, nestedType)]);
+            return new DynamicTable([new SchemaColumn(nameof(PrimitiveTypeEntity<object>.Value), 0, nestedType)]);
 
         foreach (var property in nestedType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             columns.Add(new SchemaColumn(property.Name, columns.Count, property.PropertyType));

@@ -5,15 +5,11 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Converter.Build;
-using Musoq.Evaluator;
 using Musoq.Evaluator.Build;
 using Musoq.Evaluator.IR.Execution;
-using Musoq.Evaluator.IR.Execution.Lowering;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
-using Musoq.Targets.CSharpClr;
 
 namespace Musoq.Evaluator.Tests.Architecture;
 

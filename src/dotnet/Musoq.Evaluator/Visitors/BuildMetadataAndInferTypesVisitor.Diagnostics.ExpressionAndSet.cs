@@ -2,7 +2,6 @@ using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tables;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 
@@ -94,6 +93,10 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         if (DiagnosticContext != null)
         {
+            if (node is { HasSpan: true } &&
+                DiagnosticContext.HasNearbyError(DiagnosticCode.MQ3028_UnknownProperty, node.Span))
+                return true;
+
             var library = new TransitionLibrary();
             var candidatesProperties = properties.Where(prop =>
                 library.Soundex(prop.Name) == library.Soundex(identifier) ||
@@ -123,29 +126,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (DiagnosticContext != null)
         {
             DiagnosticContext.ReportError(
-                DiagnosticCode.MQ3030_ConstructionNotSupported,
+                DiagnosticCode.MQ4016_UnsupportedSchemaConstruction,
                 description,
-                node);
-            return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    ///     Reports the legacy set-operator missing-key diagnostic. If diagnostics are enabled, records the error and returns true.
-    ///     Otherwise throws the exception.
-    /// </summary>
-    /// <param name="setOperator">The name of the set operator (UNION, EXCEPT, INTERSECT).</param>
-    /// <param name="node">The node where the error occurred.</param>
-    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
-    protected bool TryReportSetOperatorMissingKeys(string setOperator, Node? node)
-    {
-        if (DiagnosticContext != null)
-        {
-            DiagnosticContext.ReportError(
-                DiagnosticCode.MQ3031_SetOperatorMissingKeys,
-                SetOperatorMustHaveKeyColumnsException.CreateMessage(setOperator),
                 node);
             return true;
         }

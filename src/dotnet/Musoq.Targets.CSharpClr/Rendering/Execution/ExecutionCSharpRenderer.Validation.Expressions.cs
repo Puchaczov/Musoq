@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Evaluator.IR;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.Tables;
 

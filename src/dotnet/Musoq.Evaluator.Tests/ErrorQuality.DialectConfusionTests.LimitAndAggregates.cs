@@ -18,9 +18,7 @@ public partial class ErrorQualityDialectConfusionTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should produce a parser error, ideally suggesting TAKE
-        AssertHasOneOfErrorCodes(result, "LIMIT should suggest TAKE",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "LIMIT should suggest TAKE");
     }
 
     [TestMethod]
@@ -34,9 +32,7 @@ public partial class ErrorQualityDialectConfusionTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should produce a parser error, ideally suggesting SKIP
-        AssertHasOneOfErrorCodes(result, "OFFSET should suggest SKIP",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "OFFSET should suggest SKIP");
     }
 
     [TestMethod]
@@ -50,9 +46,7 @@ public partial class ErrorQualityDialectConfusionTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should produce a parser error, ideally suggesting TAKE/SKIP
-        AssertHasOneOfErrorCodes(result, "LIMIT/OFFSET should suggest TAKE/SKIP",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "LIMIT/OFFSET should suggest TAKE/SKIP");
     }
 
     [TestMethod]
@@ -66,9 +60,7 @@ public partial class ErrorQualityDialectConfusionTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should produce a parser error
-        AssertHasOneOfErrorCodes(result, "OFFSET..FETCH should suggest TAKE/SKIP",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2009_InvalidOrderByExpression, "OFFSET..FETCH should suggest TAKE/SKIP");
     }
 
     [TestMethod]
@@ -116,9 +108,7 @@ public partial class ErrorQualityDialectConfusionTests
         var result = analyzer.Analyze(query);
 
         // Assert — Should error at semantic level (unknown column ROWNUM)
-        AssertHasOneOfErrorCodes(result, "ROWNUM is not a Musoq concept",
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3001_UnknownColumn, "ROWNUM is not a Musoq concept");
     }
 
     #endregion

@@ -82,7 +82,7 @@ public partial class InterpreterCodeGenTests
         var exception = Assert.Throws<ConstructionNotYetSupported>(() => generator.GenerateAll());
 
         // Assert
-        Assert.AreEqual(DiagnosticCode.MQ3030_ConstructionNotSupported, exception.Code);
+        Assert.AreEqual(DiagnosticCode.MQ4016_UnsupportedSchemaConstruction, exception.Code);
         Assert.Contains("Packet", exception.Message);
         Assert.Contains("Payload", exception.Message);
         Assert.Contains(nameof(UnsupportedTypeAnnotationNode), exception.Message);

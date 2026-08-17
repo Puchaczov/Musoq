@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.Runtime;
@@ -54,7 +55,7 @@ public sealed class QueryTableEnumerable<TRow> : ITableRowBatchSource<TRow>
         catch (Exception ex)
         {
             scope.Fail(ex);
-            throw;
+            throw ConvertRuntimeFailure(ex);
         }
     }
 
@@ -68,7 +69,7 @@ public sealed class QueryTableEnumerable<TRow> : ITableRowBatchSource<TRow>
         catch (Exception ex)
         {
             scope.Fail(ex);
-            throw;
+            throw ConvertRuntimeFailure(ex);
         }
     }
 
@@ -92,7 +93,12 @@ public sealed class QueryTableEnumerable<TRow> : ITableRowBatchSource<TRow>
         {
             cancellation.Dispose();
             _onException?.Invoke(ex);
-            throw;
+            throw ConvertRuntimeFailure(ex);
         }
+    }
+
+    private static Exception ConvertRuntimeFailure(Exception exception)
+    {
+        return ExecutionFailureConverter.Convert("RowEnumeration", exception);
     }
 }

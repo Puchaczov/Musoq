@@ -7,6 +7,8 @@ using Musoq.Evaluator.Diagnostics;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tables;
 using Musoq.Schema;
+using Musoq.Schema.DataSources;
+using Musoq.Schema.Exceptions;
 
 namespace Musoq.Evaluator;
 
@@ -162,6 +164,7 @@ public class CompiledQuery : IDisposable
                 if (token.IsCancellationRequested)
                     throw new OperationCanceledException("Query execution was cancelled before it started.", token);
 
+                EnsureDataSourceLifecycleProvider(admission.Runnable);
                 BeginExecution();
                 executionStarted = true;
                 context = CaptureExecutionContext(admission.Runnable, token);
@@ -183,6 +186,22 @@ public class CompiledQuery : IDisposable
             catch (ScriptParameterBindingException ex)
             {
                 throw QueryExecutionException.ForScriptParameterBinding(ex);
+            }
+            catch (DataSourceLifecycleException ex)
+            {
+                throw QueryExecutionException.ForDataSourceFailure(ex);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (QueryExecutionException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw ExecutionFailureConverter.Convert("Execution", ex);
             }
 
             return result;
@@ -224,6 +243,7 @@ public class CompiledQuery : IDisposable
                 if (token.IsCancellationRequested)
                     throw new OperationCanceledException("Query execution was cancelled before it started.", token);
 
+                EnsureDataSourceLifecycleProvider(admission.Runnable);
                 BeginExecution();
                 executionStarted = true;
                 context = CaptureExecutionContext(admission.Runnable, token);
@@ -249,6 +269,22 @@ public class CompiledQuery : IDisposable
             catch (ScriptParameterBindingException ex)
             {
                 throw QueryExecutionException.ForScriptParameterBinding(ex);
+            }
+            catch (DataSourceLifecycleException ex)
+            {
+                throw QueryExecutionException.ForDataSourceFailure(ex);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (QueryExecutionException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw ExecutionFailureConverter.Convert("Execution", ex);
             }
 
             return result;
@@ -299,6 +335,7 @@ public class CompiledQuery : IDisposable
                 if (admission.Runnable is not IProfiledRunnable profiled)
                     throw new InvalidOperationException("Query was not compiled with profiling instrumentation.");
 
+                EnsureDataSourceLifecycleProvider(admission.Runnable);
                 profiledRunnable = profiled;
                 BeginExecution();
                 executionStarted = true;
@@ -318,6 +355,22 @@ public class CompiledQuery : IDisposable
             catch (ScriptParameterBindingException ex)
             {
                 throw QueryExecutionException.ForScriptParameterBinding(ex);
+            }
+            catch (DataSourceLifecycleException ex)
+            {
+                throw QueryExecutionException.ForDataSourceFailure(ex);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (QueryExecutionException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw ExecutionFailureConverter.Convert("Profiling", ex);
             }
 
             var profile = recorder.CreateSnapshot();
@@ -492,6 +545,12 @@ public class CompiledQuery : IDisposable
     {
         if (result == null)
             throw new InvalidOperationException("Query execution returned null result.");
+    }
+
+    private static void EnsureDataSourceLifecycleProvider(ITableRunnable runnable)
+    {
+        if (runnable.Provider is { } provider)
+            runnable.Provider = DataSourceLifecycle.WrapProvider(provider);
     }
 
     private sealed class DeferredResultLifetimeLease(Action release) : IDisposable

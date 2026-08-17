@@ -3,7 +3,6 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Diagnostics;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Schema.Tests;
 

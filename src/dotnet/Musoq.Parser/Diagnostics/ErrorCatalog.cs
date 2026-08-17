@@ -20,6 +20,7 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ1006_InvalidHexNumber] = "Invalid hexadecimal number '{0}'",
         [DiagnosticCode.MQ1007_InvalidBinaryNumber] = "Invalid binary number '{0}'",
         [DiagnosticCode.MQ1008_InvalidOctalNumber] = "Invalid octal number '{0}'",
+        [DiagnosticCode.MQ1009_NumericLiteralOutOfRange] = "Numeric literal '{0}' is outside the supported range",
 
         // Parser/Syntax Errors (MQ2xxx)
         [DiagnosticCode.MQ2001_UnexpectedToken] = "Unexpected token '{0}', expected '{1}'",
@@ -48,28 +49,29 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ2024_InvalidSubquery] = "Invalid subquery",
         [DiagnosticCode.MQ2025_MissingSelectKeyword] = "Missing SELECT keyword",
         [DiagnosticCode.MQ2034_InvalidNamedSourceArgument] = "Invalid named datasource argument: {0}",
+        [DiagnosticCode.MQ2035_MissingRequiredAlias] = "A source requires an alias in this query block",
         [DiagnosticCode.MQ2026_InvalidCaseExpression] = "Invalid CASE expression",
         [DiagnosticCode.MQ2027_MissingWhenClause] = "Missing WHEN clause in CASE expression",
         [DiagnosticCode.MQ2028_MissingThenClause] = "Missing THEN clause in CASE expression",
         [DiagnosticCode.MQ2029_MissingEndKeyword] = "Missing END keyword in CASE expression",
+        [DiagnosticCode.MQ2036_MultipleExecutableStatements] = "Multiple executable statements are not supported by this compilation entry point",
+        [DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed] = "The {0} predicate list cannot be empty",
+        [DiagnosticCode.MQ2038_InvalidSliceCount] = "{0} count must be a non-negative integer",
+        [DiagnosticCode.MQ2039_TieBreakRequiresAsOfJoin] = "TIE BREAK BY requires an ASOF JOIN",
+        [DiagnosticCode.MQ2040_InvalidDiagnosticCommand] = "Invalid diagnostic command",
+        [DiagnosticCode.MQ2041_InvalidStarModifierOrder] = "Star modifiers are out of order or duplicated",
 
         // Semantic Errors (MQ3xxx)
         [DiagnosticCode.MQ3001_UnknownColumn] = "Unknown column '{0}'",
         [DiagnosticCode.MQ3002_AmbiguousColumn] = "Ambiguous column '{0}' - matches columns in '{1}' and '{2}'",
-        [DiagnosticCode.MQ3003_UnknownTable] = "Unknown table or alias '{0}'",
-        [DiagnosticCode.MQ3004_UnknownFunction] = "Unknown function '{0}'",
         [DiagnosticCode.MQ3005_TypeMismatch] = "Type mismatch: cannot convert '{0}' to '{1}'",
-        [DiagnosticCode.MQ3006_InvalidArgumentCount] = "Function '{0}' expects {1} argument(s), but got {2}",
         [DiagnosticCode.MQ3007_InvalidOperandTypes] =
             "Operator '{0}' cannot be applied to operands of type '{1}' and '{2}'",
         [DiagnosticCode.MQ3008_DivisionByZero] = "Division by zero",
-        [DiagnosticCode.MQ3009_NullReference] = "Possible null reference",
         [DiagnosticCode.MQ3010_UnknownSchema] = "Unknown schema '{0}'",
         [DiagnosticCode.MQ3011_AggregateNotAllowed] = "Aggregate function '{0}' not allowed in this context",
         [DiagnosticCode.MQ3012_NonAggregateInSelect] =
             "Column '{0}' must appear in GROUP BY clause or be used in an aggregate function",
-        [DiagnosticCode.MQ3013_CannotResolveMethod] = "Cannot resolve method '{0}' with the given argument types",
-        [DiagnosticCode.MQ3014_InvalidPropertyAccess] = "'{0}' does not contain a property named '{1}'",
         [DiagnosticCode.MQ3015_UnknownAlias] = "Unknown alias '{0}'",
         [DiagnosticCode.MQ3016_CircularReference] = "Circular reference detected in '{0}'",
         [DiagnosticCode.MQ3022_MissingAlias] =
@@ -78,8 +80,6 @@ public static class ErrorCatalog
             "Aggregate call '{0}' is ambiguous because multiple source aliases expose different implementations: {1}",
         [DiagnosticCode.MQ3035_AmbiguousMethodOwner] =
             "Method call '{0}' is ambiguous because multiple source aliases expose different implementations: {1}",
-        [DiagnosticCode.MQ3031_SetOperatorMissingKeys] =
-            "Legacy set-operator missing-key diagnostic; omitted keys now compare all projected values, and explicit keys are optional",
         [DiagnosticCode.MQ3036_AsOfJoinMissingInequality] =
             "ASOF JOIN requires at least one inequality condition (>=, >, <=, <).",
         [DiagnosticCode.MQ3037_AsOfJoinMultipleInequalities] =
@@ -106,9 +106,21 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ3079_UnknownSourceArgument] = "Datasource argument '{0}' is not present in the selected source signature.",
         [DiagnosticCode.MQ3080_DuplicateSourceArgument] = "Datasource argument '{0}' was supplied more than once.",
         [DiagnosticCode.MQ3081_MissingRequiredSourceArgument] = "Required datasource argument '{0}' was not supplied.",
-        [DiagnosticCode.MQ3082_AmbiguousSourceInvocation] = "Datasource invocation is ambiguous: {0}",
         [DiagnosticCode.MQ3083_NamedSourceArgumentsRequireMetadata] = "Named datasource arguments require reflected source metadata for '{0}'.",
         [DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection] = "Source entity '{0}' for '{1}.{2}' cannot be emitted as generated execution code: {3}",
+        [DiagnosticCode.MQ3085_UnknownSource] = "Source '{0}' does not exist in schema '{1}'",
+        [DiagnosticCode.MQ3086_UnknownCallable] = "Unknown callable '{0}'",
+        [DiagnosticCode.MQ3087_InvalidCallableArity] = "Callable '{0}' does not accept {1} argument(s); expected {2}",
+        [DiagnosticCode.MQ3088_NoMatchingCallableOverload] = "No overload of callable '{0}' accepts argument types ({1})",
+        [DiagnosticCode.MQ3089_AmbiguousCallableOverload] = "Callable '{0}' is ambiguous for argument types ({1})",
+        [DiagnosticCode.MQ3090_UnsupportedCastTarget] = "Cast target '{0}' is not supported",
+        [DiagnosticCode.MQ3091_InvalidConstantCast] = "Constant value cannot be cast to '{0}': {1}",
+        [DiagnosticCode.MQ3092_AggregateInGroupBy] = "GROUP BY expressions cannot contain aggregate functions",
+        [DiagnosticCode.MQ3093_OrderByOrdinalUnsupported] = "ORDER BY numeric positions are not supported",
+        [DiagnosticCode.MQ3094_InvalidConstantRegex] = "The constant regex pattern is invalid: {0}",
+        [DiagnosticCode.MQ3095_ScalarSubqueryCardinality] = "Scalar subquery may return more than one row",
+        [DiagnosticCode.MQ3096_UnsupportedVariableKeyAccess] = "Variable key access is not supported",
+        [DiagnosticCode.MQ3097_UnsupportedAggregateProjection] = "This aggregate projection shape is not supported without GROUP BY",
 
         // Schema Definition Errors (MQ4xxx)
         [DiagnosticCode.MQ4001_InvalidBinarySchemaField] = "Invalid binary schema field '{0}'",
@@ -130,55 +142,66 @@ public static class ErrorCatalog
             "Substream requires a 'raw' or 'as <type>' modifier with an optional 'exact' or 'lax' mode",
         [DiagnosticCode.MQ4015_InvalidSubstreamTarget] =
             "Substream 'as' requires a valid target type",
+        [DiagnosticCode.MQ4016_UnsupportedSchemaConstruction] =
+            "This interpretation schema construction is not supported by the code generator",
 
         // Warnings (MQ5xxx)
-        [DiagnosticCode.MQ5001_UnusedAlias] = "Alias '{0}' is defined but never used",
-        [DiagnosticCode.MQ5002_SelectStar] = "SELECT * used - consider specifying columns explicitly",
-        [DiagnosticCode.MQ5003_ImplicitTypeConversion] = "Implicit conversion from '{0}' to '{1}'",
-        [DiagnosticCode.MQ5004_PotentialNullReference] = "Potential null reference",
-        [DiagnosticCode.MQ5005_RedundantParentheses] = "Redundant parentheses",
-        [DiagnosticCode.MQ5006_DeprecatedSyntax] = "Deprecated syntax: {0}",
-        [DiagnosticCode.MQ5007_PerformanceWarning] = "Performance warning: {0}",
+        [DiagnosticCode.MQ5003_ImplicitTypeConversion] = "Ambiguous date text is implicitly converted from '{0}' to '{1}'",
         [DiagnosticCode.MQ5008_UnreachableCode] = "Unreachable code detected",
-        [DiagnosticCode.MQ5009_OrderByAliasBehavior] =
-            "ORDER BY alias '{0}' may not resolve to the computed expression in this version",
-        [DiagnosticCode.MQ5012_OptimizationFallback] = "Optimization fallback: {0}",
         [DiagnosticCode.MQ5013_SourceContractWarning] = "Source contract warning: {0}",
-
-        // Feature-Gate Errors (MQ6xxx)
-        [DiagnosticCode.MQ6001_CteUnavailable] =
-            "CTE syntax (WITH ... AS ...) is currently unavailable in this parser path",
-        [DiagnosticCode.MQ6002_DescUnavailable] =
-            "DESC introspection is unavailable in this build",
-        [DiagnosticCode.MQ6003_SimpleCaseNotSupported] =
-            "Simple CASE syntax is not supported; use searched CASE (CASE WHEN ... THEN ... END)",
-        [DiagnosticCode.MQ6004_CoalesceWithLiteralNull] =
-            "Coalesce/IfNull with literal NULL is not supported in this version",
+        [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape] =
+            "Ordinary string escape '{0}' changes path-like text; use a raw literal or double the backslash if the text should be preserved.",
 
         // Runtime Errors (MQ7xxx)
-        [DiagnosticCode.MQ7001_DataSourceBindingFailed] =
-            "Could not bind to data source constructor for '{0}'",
-        [DiagnosticCode.MQ7002_DataSourceIteratorError] =
-            "Data source entered invalid iterator state",
         [DiagnosticCode.MQ7007_RecursiveCteIterationLimitExceeded] =
             "Recursive CTE iteration limit of {0} was exceeded.",
         [DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded] =
             "Recursive CTE row limit of {0} was exceeded.",
         [DiagnosticCode.MQ7009_RecursiveCteSnapshotLimitExceeded] =
             "Recursive CTE invariant snapshot row limit of {0} was exceeded.",
-
+        [DiagnosticCode.MQ7010_DataSourceOpenFailed] =
+            "The data source could not be opened for schema '{0}', source '{1}', alias '{2}'.",
+        [DiagnosticCode.MQ7011_DataSourceReadFailed] =
+            "The data source failed while reading rows for schema '{0}', source '{1}', alias '{2}'.",
+        [DiagnosticCode.MQ7012_DataSourceCleanupFailed] =
+            "The data source failed while cleaning up rows for schema '{0}', source '{1}', alias '{2}'.",
         // Code Generation Errors (MQ8xxx)
         [DiagnosticCode.MQ8001_CodeGenerationFailed] =
             "Generated C# code failed to compile: {0}",
 
-        // Unknown
-        [DiagnosticCode.MQ9999_Unknown] = "An unknown error occurred: {0}"
+        // Warnings (MQ5xxx)
+        [DiagnosticCode.MQ5015_SuspiciousRegexEscape] = "An ordinary string escape changes a regex token '{0}'",
+        [DiagnosticCode.MQ5016_GlobWildcardInLike] = "Glob wildcard '{0}' is used with SQL LIKE",
+        [DiagnosticCode.MQ5017_NullComparison] = "Comparison with NULL using '{0}' is always UNKNOWN",
+        [DiagnosticCode.MQ5018_AmbiguousOuterJoinNullCheck] = "IS NULL on optional alias '{0}.{1}' cannot distinguish a missing outer-join row from a present NULL value",
+        [DiagnosticCode.MQ5019_NullRejectingOuterJoinFilter] = "WHERE predicate rejects NULL-extended rows from optional alias '{0}' and effectively turns the outer join into an inner join",
+        [DiagnosticCode.MQ5020_SetOperationOrderByScope] = "ORDER BY on the rightmost set operand does not order the combined set result",
+        [DiagnosticCode.MQ5021_UnorderedSkip] = "SKIP {0} is used without ORDER BY, so the skipped rows are not deterministic",
+        [DiagnosticCode.MQ5022_UnusedCte] = "CTE '{0}' is not reachable from the outer query",
+        [DiagnosticCode.MQ5023_UnusedScriptVariable] = "Script variable '{0}' is not transitively used",
+        [DiagnosticCode.MQ5024_NullSensitiveNotIn] = "NOT IN contains NULL, so non-matching values evaluate to UNKNOWN",
+        [DiagnosticCode.MQ5025_ImpossibleImplicitConversion] = "This constant cannot be implicitly converted to {0}; the comparison cannot match",
+
+        // Internal
+        [DiagnosticCode.MQ9001_InternalCompilerError] = "The compiler encountered an internal failure. Reference '{0}' when reporting this issue.",
+        [DiagnosticCode.MQ9002_InternalExecutionError] = "The query encountered an internal execution failure. Reference '{0}' when reporting this issue.",
+
     }.ToFrozenDictionary();
 
     /// <summary>
     ///     Gets the message template for a diagnostic code.
     /// </summary>
     public static string GetTemplate(DiagnosticCode code)
+    {
+        return DiagnosticDescriptorRegistry.Get(code)?.MessageTemplate ?? $"Error {code}";
+    }
+
+    internal static bool HasTemplate(DiagnosticCode code)
+    {
+        return MessageTemplates.ContainsKey(code);
+    }
+
+    internal static string GetTemplateLegacy(DiagnosticCode code)
     {
         return MessageTemplates.TryGetValue(code, out var template)
             ? template
@@ -208,6 +231,11 @@ public static class ErrorCatalog
     /// </summary>
     public static DiagnosticSeverity GetDefaultSeverity(DiagnosticCode code)
     {
+        return DiagnosticDescriptorRegistry.Get(code)?.DefaultSeverity ?? GetDefaultSeverityLegacy(code);
+    }
+
+    internal static DiagnosticSeverity GetDefaultSeverityLegacy(DiagnosticCode code)
+    {
         var codeValue = (int)code;
 
         return codeValue switch
@@ -223,6 +251,11 @@ public static class ErrorCatalog
     ///     Gets a human-readable category name for a diagnostic code.
     /// </summary>
     public static string GetCategory(DiagnosticCode code)
+    {
+        return DiagnosticDescriptorRegistry.Get(code)?.Category ?? GetCategoryLegacy(code);
+    }
+
+    internal static string GetCategoryLegacy(DiagnosticCode code)
     {
         var codeValue = (int)code;
 

@@ -7,10 +7,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.IR.Execution.Portability;
-using Musoq.Targets.Abstractions;
-using Musoq.Targets.CSharpClr;
-using Musoq.Targets.Execution;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 

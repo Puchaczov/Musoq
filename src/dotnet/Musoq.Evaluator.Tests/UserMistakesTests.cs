@@ -32,34 +32,13 @@ public partial class UserMistakesTests : BasicEntityTestBase
 
     private static void AssertHasErrorCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected error code {expectedCode} ({context}) but query succeeded. IsParsed: {result.IsParsed}");
-
-        if (result.HasErrors)
-        {
-            var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.IsTrue(
-                result.Errors.Any(e => e.Code == expectedCode),
-                $"Expected error code {expectedCode} ({context}) but got:\n{errorDetails}");
-        }
+        DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, expectedCode, context);
     }
 
-    private static void AssertHasOneOfErrorCodes(QueryAnalysisResult result, string context,
-        params DiagnosticCode[] expectedCodes)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
+        string context)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but query succeeded");
-
-        if (result.HasErrors)
-        {
-            var hasExpected = result.Errors.Any(e => expectedCodes.Contains(e.Code));
-            if (!hasExpected)
-            {
-                var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-                Assert.Fail(
-                    $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but got:\n{errorDetails}");
-            }
-        }
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
 
     private static void AssertNoErrors(QueryAnalysisResult result)
@@ -112,7 +91,7 @@ public partial class UserMistakesTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert - unknown table/method reference
-        AssertHasErrorCode(result, DiagnosticCode.MQ3003_UnknownTable, "wrong method name 'Entity'");
+        AssertHasErrorCode(result, DiagnosticCode.MQ3085_UnknownSource, "wrong method name 'Entity'");
     }
 
     [TestMethod]
@@ -142,9 +121,7 @@ public partial class UserMistakesTests : BasicEntityTestBase
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2001_UnexpectedToken: "Expected token is From"
-        AssertHasOneOfErrorCodes(result, "SELECT without FROM",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2004_MissingFromClause);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "SELECT without FROM");
     }
 
     [TestMethod]
@@ -158,9 +135,7 @@ public partial class UserMistakesTests : BasicEntityTestBase
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2001_UnexpectedToken: "Cannot compose statement"
-        AssertHasOneOfErrorCodes(result, "missing SELECT keyword",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2025_MissingSelectKeyword);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "missing SELECT keyword");
     }
 
     [TestMethod]
@@ -174,9 +149,7 @@ public partial class UserMistakesTests : BasicEntityTestBase
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2030_UnsupportedSyntax or MQ2001_UnexpectedToken
-        AssertHasOneOfErrorCodes(result, "missing table reference",
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "missing table reference");
     }
 
     [TestMethod]
@@ -204,9 +177,7 @@ public partial class UserMistakesTests : BasicEntityTestBase
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2030_UnsupportedSyntax: incomplete WHERE
-        AssertHasOneOfErrorCodes(result, "missing WHERE condition",
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "missing WHERE condition");
     }
 
     [TestMethod]
@@ -220,9 +191,7 @@ public partial class UserMistakesTests : BasicEntityTestBase
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2030_UnsupportedSyntax or MQ2001: incomplete GROUP BY
-        AssertHasOneOfErrorCodes(result, "missing GROUP BY column",
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2006_MissingGroupByColumn, "missing GROUP BY column");
     }
 
     [TestMethod]
@@ -236,9 +205,7 @@ public partial class UserMistakesTests : BasicEntityTestBase
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2030_UnsupportedSyntax: incomplete ORDER BY
-        AssertHasOneOfErrorCodes(result, "missing ORDER BY column",
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "missing ORDER BY column");
     }
 
 
@@ -254,10 +221,7 @@ public partial class UserMistakesTests : BasicEntityTestBase
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Parser returns MQ2030_UnsupportedSyntax for unexpected EOF
-        AssertHasOneOfErrorCodes(result, "unclosed parenthesis in method",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2010_MissingClosingParenthesis,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "unclosed parenthesis in method");
     }
 
     [TestMethod]
@@ -271,9 +235,7 @@ public partial class UserMistakesTests : BasicEntityTestBase
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2001_UnexpectedToken: Expected RightParenthesis
-        AssertHasOneOfErrorCodes(result, "unclosed parenthesis in expression",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2010_MissingClosingParenthesis);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "unclosed parenthesis in expression");
     }
 
     [TestMethod]
@@ -303,10 +265,7 @@ public partial class UserMistakesTests : BasicEntityTestBase
         // Assert - double quotes are not string delimiters in Musoq (single quotes are),
         // so " is an unknown token (MQ1001) rather than an unterminated string (MQ1002).
         // The parser may also report MQ2001 due to the unexpected token.
-        AssertHasOneOfErrorCodes(result, "unclosed double quote",
-            DiagnosticCode.MQ1001_UnknownToken,
-            DiagnosticCode.MQ1002_UnterminatedString,
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ1001_UnknownToken, "unclosed double quote");
     }
 
     [TestMethod]
@@ -320,8 +279,7 @@ public partial class UserMistakesTests : BasicEntityTestBase
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - invalid bracketed identifier syntax
-        AssertHasOneOfErrorCodes(result, "unclosed square bracket",
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "unclosed square bracket");
     }
 
     [TestMethod]
@@ -335,9 +293,7 @@ public partial class UserMistakesTests : BasicEntityTestBase
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2001_UnexpectedToken for extra )
-        AssertHasOneOfErrorCodes(result, "extra closing parenthesis",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2003_InvalidExpression);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "extra closing parenthesis");
     }
 
 

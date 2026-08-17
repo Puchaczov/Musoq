@@ -32,9 +32,7 @@ CROSS JOIN #B.Entities() b";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should error
-        AssertHasOneOfErrorCodes(result, "NATURAL JOIN not supported",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "NATURAL JOIN not supported");
     }
 
     [TestMethod]
@@ -128,10 +126,7 @@ INNER JOIN #B.Entities() b USING (Name)";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should suggest ON clause instead
-        AssertHasOneOfErrorCodes(result, "USING should suggest ON",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2007_InvalidJoinCondition,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2007_InvalidJoinCondition, "USING should suggest ON");
     }
 
     #endregion

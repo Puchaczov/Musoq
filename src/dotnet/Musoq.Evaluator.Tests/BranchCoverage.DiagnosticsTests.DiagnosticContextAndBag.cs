@@ -50,7 +50,7 @@ public partial class BranchCoverageImprovementTests
     {
         var ctx = new DiagnosticContext();
 
-        ctx.ReportWarning(DiagnosticCode.MQ5001_UnusedAlias, "Unused alias", new TextSpan(0, 5));
+        ctx.ReportWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "Unused alias", new TextSpan(0, 5));
 
         Assert.IsFalse(ctx.HasErrors);
         Assert.AreEqual(1, ctx.Warnings.Count());
@@ -61,7 +61,7 @@ public partial class BranchCoverageImprovementTests
     {
         var ctx = new DiagnosticContext();
 
-        ctx.ReportInfo(DiagnosticCode.MQ5001_UnusedAlias, "Info msg", new TextSpan(0, 5));
+        ctx.ReportInfo(DiagnosticCode.MQ5003_ImplicitTypeConversion, "Info msg", new TextSpan(0, 5));
 
         Assert.IsFalse(ctx.HasErrors);
     }
@@ -71,7 +71,7 @@ public partial class BranchCoverageImprovementTests
     {
         var ctx = new DiagnosticContext();
 
-        ctx.ReportHint(DiagnosticCode.MQ5001_UnusedAlias, "Hint msg", new TextSpan(0, 5));
+        ctx.ReportHint(DiagnosticCode.MQ5003_ImplicitTypeConversion, "Hint msg", new TextSpan(0, 5));
 
         Assert.IsFalse(ctx.HasErrors);
     }
@@ -104,7 +104,7 @@ public partial class BranchCoverageImprovementTests
         var diagnostics = new[]
         {
             Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "error1", new TextSpan(0, 5)),
-            Diagnostic.Warning(DiagnosticCode.MQ5001_UnusedAlias, "warning1", new TextSpan(5, 3))
+            Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning1", new TextSpan(5, 3))
         };
 
         ctx.AddRange(diagnostics);
@@ -240,7 +240,7 @@ public partial class BranchCoverageImprovementTests
     {
         var ctx = new DiagnosticContext();
 
-        ctx.ReportWarning(DiagnosticCode.MQ5001_UnusedAlias, "unused", new TextSpan(0, 5));
+        ctx.ReportWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "unused", new TextSpan(0, 5));
 
         Assert.IsFalse(ctx.HasErrors);
         Assert.IsTrue(ctx.Warnings.Any());
@@ -252,7 +252,7 @@ public partial class BranchCoverageImprovementTests
         var ctx = new DiagnosticContext();
         var node = new IntegerNode("1", "i");
 
-        ctx.ReportWarning(DiagnosticCode.MQ5001_UnusedAlias, "unused", node);
+        ctx.ReportWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "unused", node);
 
         Assert.IsTrue(ctx.Warnings.Any());
     }
@@ -262,7 +262,7 @@ public partial class BranchCoverageImprovementTests
     {
         var ctx = new DiagnosticContext();
 
-        ctx.ReportInfo(DiagnosticCode.MQ5001_UnusedAlias, "info msg", new TextSpan(0, 5));
+        ctx.ReportInfo(DiagnosticCode.MQ5003_ImplicitTypeConversion, "info msg", new TextSpan(0, 5));
 
         Assert.IsTrue(ctx.Diagnostics.Any());
     }
@@ -272,7 +272,7 @@ public partial class BranchCoverageImprovementTests
     {
         var ctx = new DiagnosticContext();
 
-        ctx.ReportHint(DiagnosticCode.MQ5001_UnusedAlias, "hint msg", new TextSpan(0, 5));
+        ctx.ReportHint(DiagnosticCode.MQ5003_ImplicitTypeConversion, "hint msg", new TextSpan(0, 5));
 
         Assert.IsTrue(ctx.Diagnostics.Any());
     }
@@ -497,7 +497,7 @@ public partial class BranchCoverageImprovementTests
     {
         var bag = new DiagnosticBag();
 
-        bag.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, "warn", new TextSpan(0, 5));
+        bag.AddWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warn", new TextSpan(0, 5));
 
         Assert.AreEqual(1, bag.WarningCount);
         Assert.AreEqual(0, bag.ErrorCount);
@@ -509,7 +509,7 @@ public partial class BranchCoverageImprovementTests
     {
         var bag = new DiagnosticBag();
 
-        bag.AddInfo(DiagnosticCode.MQ5001_UnusedAlias, "info", new TextSpan(0, 5));
+        bag.AddInfo(DiagnosticCode.MQ5003_ImplicitTypeConversion, "info", new TextSpan(0, 5));
 
         Assert.AreEqual(1, bag.Count);
     }
@@ -519,7 +519,7 @@ public partial class BranchCoverageImprovementTests
     {
         var bag = new DiagnosticBag();
 
-        bag.AddHint(DiagnosticCode.MQ5001_UnusedAlias, "hint", new TextSpan(0, 5));
+        bag.AddHint(DiagnosticCode.MQ5003_ImplicitTypeConversion, "hint", new TextSpan(0, 5));
 
         Assert.AreEqual(1, bag.Count);
     }
@@ -558,7 +558,7 @@ public partial class BranchCoverageImprovementTests
     {
         var bag = new DiagnosticBag();
         bag.AddError(DiagnosticCode.MQ3001_UnknownColumn, "err", new TextSpan(0, 5));
-        bag.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, "warn", new TextSpan(5, 10));
+        bag.AddWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warn", new TextSpan(5, 10));
 
         var errors = bag.GetErrors().ToList();
 
@@ -571,7 +571,7 @@ public partial class BranchCoverageImprovementTests
     {
         var bag = new DiagnosticBag();
         bag.AddError(DiagnosticCode.MQ3001_UnknownColumn, "err", new TextSpan(0, 5));
-        bag.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, "warn", new TextSpan(5, 10));
+        bag.AddWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warn", new TextSpan(5, 10));
 
         var warnings = bag.GetWarnings().ToList();
 
@@ -584,7 +584,7 @@ public partial class BranchCoverageImprovementTests
     {
         var bag = new DiagnosticBag();
         bag.AddError(DiagnosticCode.MQ3001_UnknownColumn, "err", new TextSpan(0, 5));
-        bag.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, "warn", new TextSpan(5, 10));
+        bag.AddWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warn", new TextSpan(5, 10));
 
         bag.Clear();
 
@@ -599,7 +599,7 @@ public partial class BranchCoverageImprovementTests
     {
         var bag = new DiagnosticBag();
         bag.AddError(DiagnosticCode.MQ3001_UnknownColumn, "err", new TextSpan(0, 5));
-        bag.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, "warn", new TextSpan(5, 10));
+        bag.AddWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warn", new TextSpan(5, 10));
 
         var count = 0;
         foreach (var _ in bag)
@@ -649,7 +649,7 @@ public partial class BranchCoverageImprovementTests
     {
         var bag = new DiagnosticBag();
 
-        bag.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, new TextSpan(0, 5), "myAlias");
+        bag.AddWarning(DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape, new TextSpan(0, 5), "myAlias");
 
         var warnings = bag.GetWarnings().ToList();
         Assert.HasCount(1, warnings);
@@ -661,7 +661,7 @@ public partial class BranchCoverageImprovementTests
     {
         var bag1 = new DiagnosticBag();
         bag1.AddError(DiagnosticCode.MQ3001_UnknownColumn, "err1", new TextSpan(0, 5));
-        bag1.AddWarning(DiagnosticCode.MQ5001_UnusedAlias, "warn1", new TextSpan(5, 10));
+        bag1.AddWarning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warn1", new TextSpan(5, 10));
 
         var bag2 = new DiagnosticBag();
         bag2.AddRange(bag1);

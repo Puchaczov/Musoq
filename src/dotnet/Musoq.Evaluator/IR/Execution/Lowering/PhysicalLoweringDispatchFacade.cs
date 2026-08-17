@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Physical;
-using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Execution.Lowering;
 

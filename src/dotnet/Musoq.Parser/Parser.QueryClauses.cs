@@ -19,7 +19,11 @@ public partial class Parser
         else if (Current.TokenType == TokenType.Unpivot)
             query = ComposeUnpivotQuery();
         else
-            throw new NotSupportedException("Cannot recognize if query is regular or reordered.");
+            throw new SyntaxException(
+                "Cannot recognize if query is regular or reordered.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2030_UnsupportedSyntax,
+                Current.Span);
         return query;
     }
 
@@ -31,7 +35,7 @@ public partial class Parser
             _fromPosition += 1;
             var selectNode = ComposeSelectNode();
             var fromNode = ComposeFrom();
-            fromNode = ComposeJoinOrApply(fromNode);
+            var fromExpression = ComposeJoinOrApply(fromNode);
             var whereNode = ComposeWhere(false);
             var groupBy = ComposeGroupByNode();
             var window = ComposeWindowClause();
@@ -39,7 +43,7 @@ public partial class Parser
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
             var take = ComposeTake();
-            return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take, window, qualify, default);
+            return new QueryNode(selectNode, fromExpression, whereNode, groupBy, orderBy, skip, take, window, qualify, default);
         }
         finally
         {
@@ -54,7 +58,7 @@ public partial class Parser
         {
             _fromPosition += 1;
             var fromNode = ComposeFrom();
-            fromNode = ComposeJoinOrApply(fromNode);
+            var fromExpression = ComposeJoinOrApply(fromNode);
             var whereNode = ComposeWhere(false);
             var groupBy = ComposeGroupByNode();
             var window = ComposeWindowClause();
@@ -63,7 +67,7 @@ public partial class Parser
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
             var take = ComposeTake();
-            return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take, window, qualify, default);
+            return new QueryNode(selectNode, fromExpression, whereNode, groupBy, orderBy, skip, take, window, qualify, default);
         }
         finally
         {
@@ -84,13 +88,7 @@ public partial class Parser
         if (Current.TokenType == TokenType.Take)
         {
             Consume(TokenType.Take);
-            var valueSpan = Current.Span;
-            var intNode = ComposeInteger();
-
-            if (IsNegativeInteger(intNode))
-                RecordError(DiagnosticCode.MQ2030_UnsupportedSyntax,
-                    "TAKE value must be non-negative.",
-                    valueSpan);
+            var intNode = ComposeSliceCount("TAKE");
 
             return new TakeNode(intNode);
         }
@@ -103,18 +101,25 @@ public partial class Parser
         if (Current.TokenType == TokenType.Skip)
         {
             Consume(TokenType.Skip);
-            var valueSpan = Current.Span;
-            var intNode = ComposeInteger();
-
-            if (IsNegativeInteger(intNode))
-                RecordError(DiagnosticCode.MQ2030_UnsupportedSyntax,
-                    "SKIP value must be non-negative.",
-                    valueSpan);
+            var intNode = ComposeSliceCount("SKIP");
 
             return new SkipNode(intNode);
         }
 
         return null;
+    }
+
+    private IntegerNode ComposeSliceCount(string clause)
+    {
+        if (Current.TokenType != TokenType.Integer)
+            throw InvalidSliceCount(clause, Current.Span);
+
+        var countToken = Current;
+        var count = ComposeInteger();
+        if (countToken.Value.StartsWith("-", StringComparison.Ordinal) || IsNegativeInteger(count))
+            throw InvalidSliceCount(clause, countToken.Span);
+
+        return count;
     }
 
     private static bool IsNegativeInteger(IntegerNode intNode)
@@ -127,6 +132,15 @@ public partial class Parser
             sbyte sb => sb < 0,
             _ => false
         };
+    }
+
+    private SyntaxException InvalidSliceCount(string clause, TextSpan span)
+    {
+        return new SyntaxException(
+            $"{clause} count must be a non-negative integer.",
+            _lexer.AlreadyResolvedQueryPart,
+            DiagnosticCode.MQ2038_InvalidSliceCount,
+            span);
     }
 
     private GroupByNode? ComposeGroupByNode()
@@ -148,7 +162,12 @@ public partial class Parser
             throw new SyntaxException("Unnecessary comma found after GROUP BY clause.",
                 _lexer.AlreadyResolvedQueryPart);
 
-        if (fields.Length == 0) throw new NotSupportedException("Group by clause does not have any fields.");
+        if (fields.Length == 0)
+            throw new SyntaxException(
+                "GROUP BY requires at least one field.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2006_MissingGroupByColumn,
+                Current.Span);
         if (Current.TokenType != TokenType.Having) return new GroupByNode(fields, null);
 
         Consume(TokenType.Having);

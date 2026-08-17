@@ -179,8 +179,7 @@ public partial class MalformedQueryErrorTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT 0xFFFFFFFFFFFFFFFFFF FROM #test.single()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Hexadecimal value");
-        AssertMessageContains(ex, "too large");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ1009_NumericLiteralOutOfRange, DiagnosticPhase.Parse, "outside the supported range");
         AssertHasGuidance(ex);
     }
 
@@ -191,8 +190,7 @@ public partial class MalformedQueryErrorTests
             CompileQuery(
                 "SELECT 0b11111111111111111111111111111111111111111111111111111111111111111 FROM #test.single()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Binary value");
-        AssertMessageContains(ex, "too large");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ1009_NumericLiteralOutOfRange, DiagnosticPhase.Parse, "outside the supported range");
         AssertHasGuidance(ex);
     }
 
@@ -202,8 +200,7 @@ public partial class MalformedQueryErrorTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT 0o7777777777777777777777 FROM #test.single()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Octal value");
-        AssertMessageContains(ex, "too large");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ1009_NumericLiteralOutOfRange, DiagnosticPhase.Parse, "outside the supported range");
         AssertHasGuidance(ex);
     }
 
@@ -214,12 +211,11 @@ public partial class MalformedQueryErrorTests
     [TestMethod]
     public void WhenContainsWithEmptyArgList_ShouldThrowParseError()
     {
-        // Known quality gap: produces "Index was outside the bounds of the array"
-        // rather than a user-friendly message about empty argument list
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE Name CONTAINS ()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed, DiagnosticPhase.Parse,
+            "CONTAINS requires at least one argument");
         AssertHasGuidance(ex);
     }
 
@@ -252,7 +248,7 @@ public partial class MalformedQueryErrorTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE Age NOT IN ()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2030_UnsupportedSyntax, DiagnosticPhase.Parse, "NOT IN with an empty list is not supported");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed, DiagnosticPhase.Parse, "NOT IN does not support an empty value list");
     }
 
     [TestMethod]

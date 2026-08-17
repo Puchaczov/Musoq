@@ -6,7 +6,6 @@ using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.Tables;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.IR;
 

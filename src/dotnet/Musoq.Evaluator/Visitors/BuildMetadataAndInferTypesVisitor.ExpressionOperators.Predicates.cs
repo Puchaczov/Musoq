@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Parser;
+using System.Text.RegularExpressions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Diagnostics;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
+using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Utils.Symbols;
 using static Musoq.Evaluator.Visitors.BinaryOperatorTypeRules;
 using static Musoq.Evaluator.Visitors.SemanticExpressionDiagnosticFacts;
@@ -52,8 +53,28 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         ValidatePatternOperand(left, "RLIKE", node);
         ValidatePatternOperand(right, "RLIKE", node);
+        ValidateConstantRegex(right);
 
         PushSemanticNode(new RLikeNode(left, right));
+    }
+
+    private void ValidateConstantRegex(Node pattern)
+    {
+        if (pattern is not ConstantValueNode { ObjValue: string regexPattern })
+            return;
+
+        try
+        {
+            _ = new Regex(regexPattern, RegexOptions.Compiled, RuntimeCacheOptions.DefaultRegexTimeout);
+        }
+        catch (ArgumentException exception)
+        {
+            var message = $"Invalid constant regex pattern '{regexPattern}': {exception.Message}";
+            if (TryReportSemanticError<ArgumentException>(DiagnosticCode.MQ3094_InvalidConstantRegex, message, pattern))
+                return;
+
+            throw;
+        }
     }
 
     public override void Visit(InNode node)

@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
+using Musoq.Parser.Diagnostics;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
 
@@ -81,9 +83,10 @@ public sealed class QueryRowsRuntimeTests
             CancellationToken.None,
             onException: ex => captured = ex);
 
-        var actual = Assert.Throws<InvalidOperationException>(() => rows.ToArray());
+        var actual = Assert.Throws<QueryExecutionException>(() => rows.ToArray());
 
-        Assert.AreSame(expected, actual);
+        Assert.AreSame(expected, actual.InnerException);
+        Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, actual.Envelope!.Code);
         Assert.AreSame(expected, captured);
     }
 
@@ -97,9 +100,10 @@ public sealed class QueryRowsRuntimeTests
             CancellationToken.None,
             onException: ex => captured = ex);
 
-        var actual = Assert.Throws<InvalidOperationException>(() => rows.ToArray());
+        var actual = Assert.Throws<QueryExecutionException>(() => rows.ToArray());
 
-        Assert.AreSame(expected, actual);
+        Assert.AreSame(expected, actual.InnerException);
+        Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, actual.Envelope!.Code);
         Assert.AreSame(expected, captured);
     }
 
@@ -328,9 +332,10 @@ public sealed class QueryRowsRuntimeTests
             CancellationToken.None,
             onException: ex => captured = ex);
 
-        var actual = Assert.Throws<InvalidOperationException>(() => rows.ToArray());
+        var actual = Assert.Throws<QueryExecutionException>(() => rows.ToArray());
 
-        Assert.AreSame(expected, actual);
+        Assert.AreSame(expected, actual.InnerException);
+        Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, actual.Envelope!.Code);
         Assert.AreSame(expected, captured);
     }
 

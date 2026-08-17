@@ -51,6 +51,43 @@ public sealed class GeneratedCodeSamplesSnapshotTests
     }
 
     [TestMethod]
+    public void GeneratedCorpus_WhenScanned_ShouldNotContainRetiredRuntimeDiagnosticContracts()
+    {
+        string[] forbiddenPatterns =
+        [
+            "RuntimeExpressionBoundary",
+            "RuntimeExpressionOrigin",
+            "RuntimeExpressionException",
+            "WrapRuntimeExpressionBoundary"
+        ];
+
+        var offenders = new List<string>();
+        foreach (var directory in new[]
+                 {
+                     GeneratedCodeSampleArtifacts.SamplesDirectory,
+                     GeneratedCodeSampleArtifacts.ProfiledSamplesDirectory
+                 })
+        {
+            if (!Directory.Exists(directory))
+                continue;
+
+            foreach (var path in Directory.EnumerateFiles(directory, "*.cs", SearchOption.TopDirectoryOnly))
+            {
+                var content = File.ReadAllText(path);
+                foreach (var pattern in forbiddenPatterns)
+                {
+                    if (content.Contains(pattern, StringComparison.Ordinal))
+                        offenders.Add($"{Path.GetFileName(path)}: {pattern}");
+                }
+            }
+        }
+
+        Assert.IsEmpty(
+            offenders,
+            $"Generated code contains retired runtime diagnostic contracts: {string.Join(", ", offenders)}");
+    }
+
+    [TestMethod]
     public void Catalog_WhenLoaded_ShouldNotContainDuplicateFiles()
     {
         var duplicateFiles = GeneratedCodeSamplesCatalog.Samples

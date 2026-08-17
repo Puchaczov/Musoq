@@ -1,5 +1,4 @@
 using Musoq.Evaluator.IR.Physical;
-using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 
 namespace Musoq.Evaluator.IR.Execution.Lowering;
@@ -43,6 +42,10 @@ internal sealed class PhysicalLoweringFacade
             executionArtifacts);
     }
 
-    internal ExecutionPlanBuildResult Build(PhysicalNode physicalPlan, string identifier) =>
-        _implementation.Build(physicalPlan, identifier);
+    internal ExecutionPlanBuildResult Build(
+        PhysicalNode physicalPlan,
+        string identifier)
+    {
+        return _implementation.Build(physicalPlan, identifier);
+    }
 }

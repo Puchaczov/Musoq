@@ -5,10 +5,10 @@ using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
-using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
+using Musoq.Schema.Exceptions;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Evaluator.Visitors;
@@ -56,23 +56,31 @@ public partial class BuildMetadataAndInferTypesVisitor
         BoundSchemaInvocation? boundInvocation = null;
         if (!IsDescribingConstructors && (_sourceBinding.CurrentScope.Name != "Desc" || !string.IsNullOrWhiteSpace(node.Method)))
         {
+            var sourceMethods = SchemaProviderBoundary.Invoke(() => schema.GetRawConstructors(
+                node.Method,
+                new SourceMetadataContext(
+                    queryId,
+                    CancellationToken.None,
+                    GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
+                    new Dictionary<string, string>(),
+                    _logger)));
             var bindingResult = SchemaSourceArgumentBinder.Bind(
                 schemaArgsNode,
-                SchemaProviderBoundary.Invoke(() => schema.GetRawConstructors(
-                    node.Method,
-                    new SourceMetadataContext(
-                        queryId,
-                        CancellationToken.None,
-                        GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
-                        new Dictionary<string, string>(),
-                        _logger))));
+                sourceMethods);
             if (bindingResult.Failure is { } bindingFailure)
                 throw new CannotResolveMethodException(
                     bindingFailure.Message,
                     bindingFailure.Code,
-                    bindingFailure.Span);
+                    bindingFailure.Span,
+                    bindingFailure.Arguments);
 
             boundInvocation = bindingResult.Invocation;
+            SuspiciousOrdinaryStringEscapeDiagnostics.ReportSchemaArgumentRisks(
+                DiagnosticContext,
+                schemaArgsNode,
+                node.Parameters,
+                bindingResult,
+                sourceMethods);
         }
         var staticSchemaArguments = SchemaArgumentBinder.BindStaticArguments(
             schemaArgsNode,
@@ -97,16 +105,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 queryId,
                 mode: GetSourceRuntimeSettingsResolutionMode());
         var table = !isDesc
-            ? SchemaProviderBoundary.Invoke(() => schema.GetTableByName(
-                node.Method,
-                new SourceMetadataContext(
-                    queryId,
-                    CancellationToken.None,
-                    GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
-                    sourceRuntimeSettings,
-                    _logger
-                ),
-                staticSchemaArguments))
+            ? GetSchemaSourceTable(schema, node, queryId, sourceRuntimeSettings, staticSchemaArguments)
             : new DynamicTable([]);
 
         _sourceBinding.SchemaFromInfo.Add(_sourceBinding.QueryAlias, (_sourceBinding.SchemaFromKey, aliasedSchemaFromNode.Id));
@@ -138,5 +137,35 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         _sourceBinding.UsedSchemasQuantity += 1;
         PushSemanticNode(new Parser.SchemaMethodFromNode(node.Alias, node.Schema, node.Method));
+    }
+
+    private ISchemaTable GetSchemaSourceTable(
+        ISchema schema,
+        SchemaFromNode node,
+        string queryId,
+        IReadOnlyDictionary<string, string> sourceRuntimeSettings,
+        object?[] sourceArguments)
+    {
+        try
+        {
+            return SchemaProviderBoundary.Invoke(() => schema.GetTableByName(
+                node.Method,
+                new SourceMetadataContext(
+                    queryId,
+                    CancellationToken.None,
+                    GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
+                    sourceRuntimeSettings,
+                    _logger),
+                sourceArguments));
+        }
+        catch (TableNotFoundException)
+        {
+            throw new UnknownSourceException(node.Schema, node.Method, node.SpanOrEmpty());
+        }
+        catch (SchemaArgumentException exception) when (
+            string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal))
+        {
+            throw new UnknownSourceException(node.Schema, node.Method, node.SpanOrEmpty());
+        }
     }
 }

@@ -3,7 +3,6 @@ using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -58,12 +57,12 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(rowsName),
-            SyntaxFactory.IdentifierName(nameof(IReadOnlyCollection<>.Count)));
+            SyntaxFactory.IdentifierName(nameof(IReadOnlyCollection<object>.Count)));
     }
 
     private static GenericNameSyntax CreateReadOnlyListTypeSyntax(TypeSyntax itemType)
     {
-        return SyntaxFactory.GenericName(nameof(IReadOnlyList<>))
+        return SyntaxFactory.GenericName(nameof(IReadOnlyList<object>))
             .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(itemType)));
     }
 

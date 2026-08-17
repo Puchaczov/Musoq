@@ -104,8 +104,8 @@ public sealed partial class ExecutionCSharpRenderer
                            throw new InvalidOperationException("Partition count builder requires a partition key expression.");
         var partitionKeyType = GetArrayElementType(partitionKeys.Variable);
         var addMethodName = HasGeneratedWindowKeyType(partitionKeys) || partitionKeyType.IsValueType
-            ? nameof(WindowPartitionCountBuilder<>.AddUnchecked)
-            : nameof(WindowPartitionCountBuilder<>.AddReferenceUnchecked);
+            ? nameof(WindowPartitionCountBuilder<object>.AddUnchecked)
+            : nameof(WindowPartitionCountBuilder<object>.AddReferenceUnchecked);
         var keyExpression = HasGeneratedWindowKeyType(partitionKeys)
             ? CreateWindowPartitionKeyExpression(partitionKeys, partitionKey)
             : CastIfNeededWhenRequired(

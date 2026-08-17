@@ -8,8 +8,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
+using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 
@@ -17,6 +17,39 @@ namespace Musoq.Evaluator.Tests.Runtime;
 public sealed class CompiledQueryDeferredTableTests
 {
     private static readonly Column[] Columns = [new("Value", typeof(string), 0)];
+
+    [TestMethod]
+    public void Run_WhenUnexpectedRunnableFailureOccurs_ShouldExposeSafeExecutionDiagnostic()
+    {
+        var query = new CompiledQuery(new DeferredTableRunnable((_, _) =>
+            throw new InvalidOperationException("private execution detail")));
+
+        var exception = Assert.Throws<QueryExecutionException>(() => query.Run());
+
+        Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, exception.Envelope!.Code);
+        Assert.IsFalse(exception.FormatText().Contains("private execution detail", StringComparison.Ordinal));
+        Assert.IsTrue(exception.FormatVerboseText().Contains("private execution detail", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public void Run_WhenDeferredRowsRaiseUnexpectedFailure_ShouldExposeSafeExecutionDiagnostic()
+    {
+        var query = new CompiledQuery(new DeferredTableRunnable((_, token) =>
+            QueryRows.DeferredTable("result", Columns, Rows, token)));
+
+        var table = query.Run();
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = table.Count);
+
+        Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, exception.Envelope!.Code);
+        Assert.IsFalse(exception.FormatText().Contains("private deferred detail", StringComparison.Ordinal));
+        return;
+
+        static IEnumerable<TestRow> Rows(CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            throw new InvalidOperationException("private deferred detail");
+        }
+    }
 
     [TestMethod]
     public void Run_WhenRunnableReturnsDeferredTable_ShouldMaterializeOnlyOnFirstAccess()

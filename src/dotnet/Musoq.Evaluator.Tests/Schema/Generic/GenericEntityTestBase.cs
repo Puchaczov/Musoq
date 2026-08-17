@@ -5,7 +5,6 @@ using Moq;
 using Musoq.Converter;
 using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
-using Musoq.Evaluator;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Plugins;
 using Musoq.Schema;

@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Evaluator;
 
 internal sealed class SchemaProviderFailureException(Exception innerException)

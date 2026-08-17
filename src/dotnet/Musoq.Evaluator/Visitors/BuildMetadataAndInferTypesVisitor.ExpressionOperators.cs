@@ -1,6 +1,5 @@
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using static Musoq.Evaluator.Visitors.BinaryOperatorTypeRules;
 using static Musoq.Evaluator.Visitors.SemanticExpressionDiagnosticFacts;
@@ -87,7 +86,10 @@ public partial class BuildMetadataAndInferTypesVisitor
             !TypeConversionNodeFactory.IsDateTimeType(otherNodeType))
             return candidateNode;
 
-        return _nodeFactory.CreateDateTimeConversionNode(otherNodeType, stringNode.Value);
+        var conversion = _nodeFactory.CreateDateTimeConversionNode(otherNodeType, stringNode.Value);
+        conversion.Arguments.Args[0].WithSpan(stringNode.Span);
+        conversion.WithSpan(stringNode.Span);
+        return conversion;
     }
 
     private Node TransformToNumericTypeIfNeeded(Node candidateNode, Node otherNode,

@@ -1,4 +1,3 @@
-using System.Threading;
 using BenchmarkDotNet.Attributes;
 using Musoq.Benchmarks.Components;
 using Musoq.Converter;

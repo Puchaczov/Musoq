@@ -35,34 +35,13 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
 
     private static void AssertHasErrorCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected error code {expectedCode} ({context}) but query succeeded. IsParsed: {result.IsParsed}");
-
-        if (result.HasErrors)
-        {
-            var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.IsTrue(
-                result.Errors.Any(e => e.Code == expectedCode),
-                $"Expected error code {expectedCode} ({context}) but got:\n{errorDetails}");
-        }
+        DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, expectedCode, context);
     }
 
-    private static void AssertHasOneOfErrorCodes(QueryAnalysisResult result, string context,
-        params DiagnosticCode[] expectedCodes)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
+        string context)
     {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but query succeeded");
-
-        if (result.HasErrors)
-        {
-            var hasExpected = result.Errors.Any(e => expectedCodes.Contains(e.Code));
-            if (!hasExpected)
-            {
-                var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-                Assert.Fail(
-                    $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but got:\n{errorDetails}");
-            }
-        }
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
 
     private static void AssertNoErrors(QueryAnalysisResult result)
@@ -124,9 +103,7 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert — Should suggest ToString() or Concat()
-        AssertHasOneOfErrorCodes(result, "string + number mixed types",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3007_InvalidOperandTypes);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3007_InvalidOperandTypes, "string + number mixed types");
     }
 
     [TestMethod]
@@ -140,9 +117,7 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain boolean can't be used in arithmetic
-        AssertHasOneOfErrorCodes(result, "boolean in arithmetic context",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3007_InvalidOperandTypes);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3007_InvalidOperandTypes, "boolean in arithmetic context");
     }
 
     [TestMethod]
@@ -158,9 +133,7 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert — Should report type mismatch in JOIN condition
-        AssertHasOneOfErrorCodes(result, "JOIN condition with incompatible types",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3007_InvalidOperandTypes);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3007_InvalidOperandTypes, "JOIN condition with incompatible types");
     }
 
     [TestMethod]
@@ -174,10 +147,7 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain Sum requires numeric argument
-        AssertHasOneOfErrorCodes(result, "Sum on string type",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3088_NoMatchingCallableOverload, "Sum on string type");
     }
 
     [TestMethod]
@@ -191,10 +161,7 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain Avg requires numeric column
-        AssertHasOneOfErrorCodes(result, "Avg on string column",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3088_NoMatchingCallableOverload, "Avg on string column");
     }
 
     [TestMethod]
@@ -208,9 +175,7 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain negation requires numeric type
-        AssertHasOneOfErrorCodes(result, "negation on string",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3007_InvalidOperandTypes);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3007_InvalidOperandTypes, "negation on string");
     }
 
     [TestMethod]
@@ -224,9 +189,7 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain modulo requires numeric types
-        AssertHasOneOfErrorCodes(result, "modulo on string",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3007_InvalidOperandTypes);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3007_InvalidOperandTypes, "modulo on string");
     }
 
     [TestMethod]
@@ -240,8 +203,7 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert — LIKE should now require string operands and report a clear bind-time diagnostic.
-        AssertHasOneOfErrorCodes(result, "LIKE on non-string",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3005_TypeMismatch, "LIKE on non-string");
     }
 
     [TestMethod]
@@ -255,8 +217,7 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert — RLIKE should now require string operands and report a clear bind-time diagnostic.
-        AssertHasOneOfErrorCodes(result, "RLIKE on non-string",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3005_TypeMismatch, "RLIKE on non-string");
     }
 
     [TestMethod]
@@ -284,10 +245,7 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain Substring requires string
-        AssertHasOneOfErrorCodes(result, "Substring with integer first argument",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3088_NoMatchingCallableOverload, "Substring with integer first argument");
     }
 
     [TestMethod]
@@ -301,9 +259,7 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain CASE branches must return same type
-        AssertHasOneOfErrorCodes(result, "CASE branches with different types",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3027_InvalidExpressionType);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3027_InvalidExpressionType, "CASE branches with different types");
     }
 
     #endregion
@@ -339,8 +295,7 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert — Should report unknown column, ideally suggesting 'Name'
-        AssertHasOneOfErrorCodes(result, "wrong case 'name' vs 'Name'",
-            DiagnosticCode.MQ3001_UnknownColumn);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3001_UnknownColumn, "wrong case 'name' vs 'Name'");
     }
 
     [TestMethod]
@@ -356,9 +311,7 @@ INNER JOIN #B.Entities() b ON a.Name = b.Name";
         var result = analyzer.Analyze(query);
 
         // Assert — Should report unknown column on alias b
-        AssertHasOneOfErrorCodes(result, "non-existent column on alias b",
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3028_UnknownProperty);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3001_UnknownColumn, "non-existent column on alias b");
     }
 
     [TestMethod]
@@ -374,9 +327,7 @@ INNER JOIN #B.Entities() b ON a.Name = b.Name";
         var result = analyzer.Analyze(query);
 
         // Assert — Should report ambiguous column
-        AssertHasOneOfErrorCodes(result, "ambiguous 'Name' in JOIN",
-            DiagnosticCode.MQ3002_AmbiguousColumn,
-            DiagnosticCode.MQ3001_UnknownColumn);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3002_AmbiguousColumn, "ambiguous 'Name' in JOIN");
     }
 
     [TestMethod]
@@ -420,10 +371,7 @@ SELECT Name FROM MyData md";
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain int doesn't have properties
-        AssertHasOneOfErrorCodes(result, "property access on primitive int",
-            DiagnosticCode.MQ3014_InvalidPropertyAccess,
-            DiagnosticCode.MQ3028_UnknownProperty,
-            DiagnosticCode.MQ3001_UnknownColumn);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3028_UnknownProperty, "property access on primitive int");
     }
 
     [TestMethod]
@@ -437,9 +385,7 @@ SELECT Name FROM MyData md";
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain int doesn't support indexing
-        AssertHasOneOfErrorCodes(result, "array index on non-array",
-            DiagnosticCode.MQ3017_ObjectNotArray,
-            DiagnosticCode.MQ3018_NoIndexer);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3017_ObjectNotArray, "array index on non-array");
     }
 
     [TestMethod]
@@ -453,10 +399,7 @@ SELECT Name FROM MyData md";
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain int doesn't have nested properties
-        AssertHasOneOfErrorCodes(result, "deep property chain on primitive",
-            DiagnosticCode.MQ3014_InvalidPropertyAccess,
-            DiagnosticCode.MQ3028_UnknownProperty,
-            DiagnosticCode.MQ3001_UnknownColumn);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3028_UnknownProperty, "deep property chain on primitive");
     }
 
     [TestMethod]

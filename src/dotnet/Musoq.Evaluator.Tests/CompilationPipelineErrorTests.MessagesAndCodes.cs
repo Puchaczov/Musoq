@@ -52,11 +52,7 @@ public partial class CompilationPipelineErrorTests
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Returns MQ3029_UnresolvableMethod: "Method UnknownFunction with argument types System.String cannot be resolved"
-        AssertHasOneOfErrorCodes(result, "unknown function",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ3013_CannotResolveMethod);
+        AssertHasErrorCode(result, DiagnosticCode.MQ3086_UnknownCallable, "unknown function");
 
         // Verify message mentions the function name
         var hasMethodInMessage = result.Errors.Any(e =>
@@ -76,8 +72,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Must have syntax error
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            "Double WHERE should produce syntax error");
+        Assert.IsNotEmpty(result.Errors, "Double WHERE should produce a syntax error");
 
         // Verify no internal exception types exposed
         foreach (var error in result.Errors)
@@ -101,10 +96,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.Analyze(query);
 
         // Assert - Returns MQ3028_UnknownProperty or MQ3001_UnknownColumn for property chain issues
-        AssertHasOneOfErrorCodes(result, "invalid property chain on string",
-            DiagnosticCode.MQ3028_UnknownProperty,
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3014_InvalidPropertyAccess);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3028_UnknownProperty, "invalid property chain on string");
     }
 
     [TestMethod]
@@ -123,7 +115,7 @@ public partial class CompilationPipelineErrorTests
     }
 
     [TestMethod]
-    public void DiagnosticCode_MQ3004_UnknownFunction_IsUsed()
+    public void DiagnosticCode_MQ3086_UnknownCallable_IsUsed()
     {
         // Arrange - Function that doesn't exist
         var analyzer = CreateAnalyzer();
@@ -132,11 +124,7 @@ public partial class CompilationPipelineErrorTests
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Returns MQ3029_UnresolvableMethod: "Method NoSuchMethod with argument types System.String cannot be resolved"
-        AssertHasOneOfErrorCodes(result, "unknown function 'NoSuchMethod'",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ3013_CannotResolveMethod);
+        AssertHasErrorCode(result, DiagnosticCode.MQ3086_UnknownCallable, "unknown function 'NoSuchMethod'");
     }
 
     [TestMethod]

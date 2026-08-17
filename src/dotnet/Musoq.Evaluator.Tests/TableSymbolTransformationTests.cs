@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tables;
-using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;

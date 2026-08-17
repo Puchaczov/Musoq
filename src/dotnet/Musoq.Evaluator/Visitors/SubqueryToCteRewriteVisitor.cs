@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Optimization.Logical.Subqueries;
 using Musoq.Evaluator.Visitors.Helpers.Subqueries;

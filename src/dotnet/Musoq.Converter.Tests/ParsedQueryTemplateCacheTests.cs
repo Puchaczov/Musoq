@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Converter;
-using Musoq.Parser;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
 using ParserType = global::Musoq.Parser.Parser;
@@ -47,6 +47,69 @@ public sealed class ParsedQueryTemplateCacheTests
 
         Assert.AreEqual(1, parseCount);
         Assert.HasCount(32, roots.Distinct(ReferenceEqualityComparer.Instance));
+        Assert.AreEqual(1, ParsedQueryTemplateCache.Snapshot.Count);
+        Assert.AreEqual(31, ParsedQueryTemplateCache.Snapshot.Hits);
+        Assert.AreEqual(1, ParsedQueryTemplateCache.Snapshot.Misses);
+    }
+
+    [TestMethod]
+    public async Task SameScriptWithDiagnostics_WhenRequestedConcurrently_ShouldReplayOneWarningPerCaller()
+    {
+        const string script = @"select 'C:\new\test' from #system.dual()";
+        var parseCount = 0;
+
+        var templates = await Task.WhenAll(Enumerable.Range(0, 32).Select(_ => Task.Run(() =>
+            ParsedQueryTemplateCache.GetOrAddWithDiagnostics(
+                script,
+                ParsedQueryTemplateCache.DefaultParserContract,
+                () =>
+                {
+                    Interlocked.Increment(ref parseCount);
+                    Thread.Sleep(10);
+                    var lexer = new Lexer(script, true);
+                    var root = new ParserType(lexer).ComposeAll();
+                    return new ParsedQueryTemplate(root, lexer.Diagnostics.ToImmutableArray());
+                }))));
+
+        Assert.AreEqual(1, parseCount);
+        Assert.HasCount(32, templates.Select(static template => template.Root).Distinct(ReferenceEqualityComparer.Instance));
+        Assert.IsTrue(templates.All(static template => template.Diagnostics.Length == 1));
+        Assert.IsTrue(templates.All(static template =>
+            template.Diagnostics[0].Code == global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape));
+        Assert.AreEqual(1, ParsedQueryTemplateCache.Snapshot.Count);
+        Assert.AreEqual(31, ParsedQueryTemplateCache.Snapshot.Hits);
+        Assert.AreEqual(1, ParsedQueryTemplateCache.Snapshot.Misses);
+    }
+
+    [TestMethod]
+    public async Task SameScriptWithRequiredAliasError_WhenRequestedConcurrently_ShouldReplayOneErrorPerCaller()
+    {
+        const string script =
+            "select 1 from #system.dual() source cross apply source.Column take 10; " +
+            "select 1 from #system.dual() d";
+        var parseCount = 0;
+
+        var templates = await Task.WhenAll(Enumerable.Range(0, 32).Select(_ => Task.Run(() =>
+            ParsedQueryTemplateCache.GetOrAddWithDiagnostics(
+                script,
+                ParsedQueryTemplateCache.DefaultParserContract,
+                () =>
+                {
+                    Interlocked.Increment(ref parseCount);
+                    Thread.Sleep(10);
+                    var lexer = new Lexer(script, true);
+                    var diagnostics = new DiagnosticBag { SourceText = new SourceText(script) };
+                    var parseResult = new ParserType(lexer, diagnostics).ParseWithDiagnostics();
+                    return new ParsedQueryTemplate(
+                        parseResult.Root!,
+                        diagnostics.ToSortedList().ToImmutableArray());
+                }))));
+
+        Assert.AreEqual(1, parseCount);
+        Assert.HasCount(32, templates.Select(static template => template.Root).Distinct(ReferenceEqualityComparer.Instance));
+        Assert.IsTrue(templates.All(static template => template.Diagnostics.Length == 1));
+        Assert.IsTrue(templates.All(static template =>
+            template.Diagnostics[0].Code == DiagnosticCode.MQ2035_MissingRequiredAlias));
         Assert.AreEqual(1, ParsedQueryTemplateCache.Snapshot.Count);
         Assert.AreEqual(31, ParsedQueryTemplateCache.Snapshot.Hits);
         Assert.AreEqual(1, ParsedQueryTemplateCache.Snapshot.Misses);

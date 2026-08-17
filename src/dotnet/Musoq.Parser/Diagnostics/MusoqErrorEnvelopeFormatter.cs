@@ -1,4 +1,5 @@
 using System.Text;
+using System.Linq;
 
 namespace Musoq.Parser.Diagnostics;
 
@@ -48,6 +49,16 @@ public static class MusoqErrorEnvelopeFormatter
         else
             sb.AppendLine("At: runtime");
 
+        if (envelope.SourceKind != DiagnosticSourceKind.Query)
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
+                $"Source: {FormatSourceKind(envelope.SourceKind)}");
+
+        if (envelope.Offset.HasValue)
+        {
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
+                $"Span: offset {envelope.Offset.Value}, length {envelope.Length ?? 0}");
+        }
+
         if (!string.IsNullOrEmpty(envelope.Snippet))
         {
             sb.AppendLine("Snippet:");
@@ -63,6 +74,33 @@ public static class MusoqErrorEnvelopeFormatter
             sb.AppendLine("Try:");
             for (var i = 0; i < envelope.SuggestedFixes.Count; i++)
                 sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"  {i + 1}) {envelope.SuggestedFixes[i]}");
+        }
+
+        if (envelope.Arguments.Count > 0)
+        {
+            sb.AppendLine("Facts:");
+            foreach (var argument in envelope.Arguments.OrderBy(static pair => pair.Key, StringComparer.Ordinal))
+                sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
+                    $"  {argument.Key}: {argument.Value}");
+        }
+
+        if (envelope.RelatedLocations.Count > 0)
+        {
+            sb.AppendLine("Related:");
+            foreach (var related in envelope.RelatedLocations)
+            {
+                var message = string.IsNullOrEmpty(related.Message) ? string.Empty : $": {related.Message}";
+                sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
+                    $"  {related.Location}{message}");
+            }
+        }
+
+        if (envelope.Actions.Count > 0)
+        {
+            sb.AppendLine("Actions:");
+            foreach (var action in envelope.Actions)
+                sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
+                    $"  {FormatActionKind(action.Kind)}: {action.Title}");
         }
 
         if (!string.IsNullOrEmpty(envelope.DocsReference))
@@ -100,7 +138,12 @@ public static class MusoqErrorEnvelopeFormatter
 
         sb.Append(System.Globalization.CultureInfo.InvariantCulture, $",\"message\":\"{EscapeJson(envelope.Message)}\"");
 
-        if (envelope.Line.HasValue || envelope.Column.HasValue || envelope.Length.HasValue)
+        sb.Append(System.Globalization.CultureInfo.InvariantCulture,
+            $",\"source\":\"{EscapeJson(FormatSourceKind(envelope.SourceKind))}\"");
+
+        if (envelope.Line.HasValue || envelope.Column.HasValue || envelope.Length.HasValue ||
+            envelope.Offset.HasValue || envelope.EndOffset.HasValue || envelope.EndLine.HasValue ||
+            envelope.EndColumn.HasValue)
         {
             sb.Append(",\"location\":{");
             var first = true;
@@ -121,6 +164,34 @@ public static class MusoqErrorEnvelopeFormatter
             {
                 if (!first) sb.Append(',');
                 sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"length\":{envelope.Length.Value}");
+                first = false;
+            }
+
+            if (envelope.Offset.HasValue)
+            {
+                if (!first) sb.Append(',');
+                sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"offset\":{envelope.Offset.Value}");
+                first = false;
+            }
+
+            if (envelope.EndOffset.HasValue)
+            {
+                if (!first) sb.Append(',');
+                sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"endOffset\":{envelope.EndOffset.Value}");
+                first = false;
+            }
+
+            if (envelope.EndLine.HasValue)
+            {
+                if (!first) sb.Append(',');
+                sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"endLine\":{envelope.EndLine.Value}");
+                first = false;
+            }
+
+            if (envelope.EndColumn.HasValue)
+            {
+                if (!first) sb.Append(',');
+                sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"endColumn\":{envelope.EndColumn.Value}");
             }
 
             sb.Append('}');
@@ -141,6 +212,66 @@ public static class MusoqErrorEnvelopeFormatter
             sb.Append(']');
         }
 
+        if (envelope.Arguments.Count > 0)
+        {
+            sb.Append(",\"arguments\":{");
+            var first = true;
+            foreach (var argument in envelope.Arguments.OrderBy(static pair => pair.Key, StringComparer.Ordinal))
+            {
+                if (!first) sb.Append(',');
+                sb.Append(System.Globalization.CultureInfo.InvariantCulture,
+                    $"\"{EscapeJson(argument.Key)}\":\"{EscapeJson(argument.Value)}\"");
+                first = false;
+            }
+
+            sb.Append('}');
+        }
+
+        if (envelope.RelatedLocations.Count > 0)
+        {
+            sb.Append(",\"related\":[");
+            for (var i = 0; i < envelope.RelatedLocations.Count; i++)
+            {
+                if (i > 0) sb.Append(',');
+                var related = envelope.RelatedLocations[i];
+                sb.Append("{\"source\":\"");
+                sb.Append(EscapeJson(FormatSourceKind(related.SourceKind)));
+                sb.Append("\",\"offset\":");
+                sb.Append(related.Location.IsValid ? related.Location.Offset.ToString(System.Globalization.CultureInfo.InvariantCulture) : "null");
+                sb.Append(",\"endOffset\":");
+                sb.Append(related.EndLocation.IsValid ? related.EndLocation.Offset.ToString(System.Globalization.CultureInfo.InvariantCulture) : "null");
+                if (!string.IsNullOrEmpty(related.Message))
+                    sb.Append(System.Globalization.CultureInfo.InvariantCulture, $",\"message\":\"{EscapeJson(related.Message)}\"");
+                sb.Append('}');
+            }
+
+            sb.Append(']');
+        }
+
+        if (envelope.Actions.Count > 0)
+        {
+            sb.Append(",\"actions\":[");
+            for (var i = 0; i < envelope.Actions.Count; i++)
+            {
+                if (i > 0) sb.Append(',');
+                var action = envelope.Actions[i];
+                sb.Append(System.Globalization.CultureInfo.InvariantCulture,
+                    $"{{\"title\":\"{EscapeJson(action.Title)}\",\"kind\":\"{EscapeJson(FormatActionKind(action.Kind))}\"");
+                if (action.TextEdit != null)
+                {
+                    sb.Append(System.Globalization.CultureInfo.InvariantCulture,
+                        $",\"edit\":{{\"start\":{action.TextEdit.Span.Start},\"length\":{action.TextEdit.Span.Length},\"newText\":\"{EscapeJson(action.TextEdit.NewText)}\"}}");
+                }
+
+                sb.Append('}');
+            }
+
+            sb.Append(']');
+        }
+
+        if (!string.IsNullOrEmpty(envelope.CorrelationId))
+            sb.Append(System.Globalization.CultureInfo.InvariantCulture, $",\"correlationId\":\"{EscapeJson(envelope.CorrelationId)}\"");
+
         if (!string.IsNullOrEmpty(envelope.DocsReference))
             sb.Append(System.Globalization.CultureInfo.InvariantCulture, $",\"docs\":\"{EscapeJson(envelope.DocsReference)}\"");
 
@@ -159,5 +290,30 @@ public static class MusoqErrorEnvelopeFormatter
             .Replace("\n", "\\n", StringComparison.Ordinal)
             .Replace("\r", "\\r", StringComparison.Ordinal)
             .Replace("\t", "\\t", StringComparison.Ordinal);
+    }
+
+    private static string FormatSourceKind(DiagnosticSourceKind sourceKind)
+    {
+        return sourceKind switch
+        {
+            DiagnosticSourceKind.Query => "query",
+            DiagnosticSourceKind.GeneratedSource => "generated-source",
+            DiagnosticSourceKind.Schema => "schema",
+            DiagnosticSourceKind.DataSource => "datasource",
+            DiagnosticSourceKind.Runtime => "runtime",
+            DiagnosticSourceKind.Internal => "internal",
+            _ => "unknown"
+        };
+    }
+
+    private static string FormatActionKind(DiagnosticActionKind kind)
+    {
+        return kind switch
+        {
+            DiagnosticActionKind.QuickFix => "quick-fix",
+            DiagnosticActionKind.Refactor => "refactor",
+            DiagnosticActionKind.Suggestion => "suggestion",
+            _ => "unknown"
+        };
     }
 }

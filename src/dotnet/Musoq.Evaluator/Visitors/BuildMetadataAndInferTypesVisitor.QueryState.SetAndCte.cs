@@ -101,6 +101,10 @@ public partial class BuildMetadataAndInferTypesVisitor
                               "VisitCteInnerExpressionNode",
                               "CTE binding requires a parent scope.");
 
+        if (!hasProvisionalColumns &&
+            parentScope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(node.Name))
+            throw new AliasAlreadyUsedException(node.Name, node.SpanOrEmpty());
+
         var tableSymbol = new TableSymbol(node.Name, new TransitionSchema(node.Name, table), table, false);
         if (hasProvisionalColumns)
             parentScope.ScopeSymbolTable.UpdateSymbol(node.Name, tableSymbol);

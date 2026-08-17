@@ -13,8 +13,8 @@ public partial class Parser
         {
             _fromPosition += 1;
             Consume(TokenType.Pivot);
-            var fromNode = ComposeFrom(false);
-            fromNode = ComposeJoinOrApply(fromNode);
+            var fromNode = ComposeSource(SourceParseContext.Primary);
+            var fromExpression = ComposeJoinOrApply(fromNode);
             var keys = ComposePivotKeys();
             var values = ComposePivotValues(keys.Length);
             ConsumePivotUsingKeyword();
@@ -24,7 +24,7 @@ public partial class Parser
             var skip = ComposeSkip();
             var take = ComposeTake();
             var select = PivotQueryBuilder.BuildSelectNode(keys, values, measures, groupBy, _lexer.AlreadyResolvedQueryPart);
-            return new QueryNode(select, fromNode, null, groupBy, orderBy, skip, take, null, null, default);
+            return new QueryNode(select, fromExpression, null, groupBy, orderBy, skip, take, null, null, default);
         }
         finally
         {
@@ -69,7 +69,10 @@ public partial class Parser
         {
             var expressions = ComposePivotValueExpressions(keyCount);
             ValidatePivotValueExpressions(expressions, keyCount);
-            var (alias, aliasSpan) = ComposeAlias();
+            var aliasResult = ComposeAlias(AliasContext.Pivot);
+            EnsureAliasSyntax(aliasResult, AliasContext.Pivot);
+            var alias = aliasResult.Alias;
+            var aliasSpan = aliasResult.Span;
             alias = string.IsNullOrWhiteSpace(alias)
                 ? PivotQueryBuilder.CreateValueAlias(expressions)
                 : alias;

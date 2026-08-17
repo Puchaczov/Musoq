@@ -1,7 +1,6 @@
-using System;
 using System.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.NegativeTests;
 using Musoq.Parser.Diagnostics;
 using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
@@ -14,10 +13,12 @@ public class RuntimeErrorTests : NegativeTestsBase
     #region 5.3 Invalid RLIKE Pattern
 
     [TestMethod]
-    public void RE020_InvalidRegexPattern_ShouldThrowRuntimeError()
+    public void RE020_InvalidRegexPattern_ShouldFailDuringBinding()
     {
-        var vm = CompileQuery("SELECT * FROM #test.people() WHERE Name RLIKE '[invalid('");
-        Assert.Throws<Exception>(() => _ = vm.Run(CancellationToken.None).Count);
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CompileQuery("SELECT * FROM #test.people() WHERE Name RLIKE '[invalid('") );
+
+        AssertSingleError(ex, DiagnosticCode.MQ3094_InvalidConstantRegex, DiagnosticPhase.Bind);
     }
 
     #endregion

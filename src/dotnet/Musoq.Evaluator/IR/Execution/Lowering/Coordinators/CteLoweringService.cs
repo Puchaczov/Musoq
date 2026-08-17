@@ -1,4 +1,3 @@
-using Musoq.Evaluator.IR.Execution.Lowering;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Execution.Lowering.Coordinators;

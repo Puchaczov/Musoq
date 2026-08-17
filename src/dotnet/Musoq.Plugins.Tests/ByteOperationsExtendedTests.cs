@@ -305,7 +305,7 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     [TestMethod]
     public void ToHex_EmptyBytes_ReturnsEmptyString()
     {
-        Assert.AreEqual("", Library.ToHex([]));
+        Assert.AreEqual("", Library.ToHex(Array.Empty<byte>()));
     }
 
     [TestMethod]

@@ -246,6 +246,31 @@ public class SchemaParserTextTests : SchemaParserTestsBase
     }
 
     [TestMethod]
+    public void TextSchema_RawLiteralDelimiter_ShouldPreserveBackslashes()
+    {
+        var schema = @"text Paths {
+            LiteralPath: literal r'C:\new\test',
+            Line: until r'\r\n',
+            Comment: between r'/*' r'*/'
+        }";
+
+        var result = ParseTextSchema(schema);
+
+        var literal = result.Fields[0];
+        Assert.AreEqual(TextFieldType.Literal, literal.FieldType);
+        Assert.AreEqual(@"C:\new\test", literal.PrimaryValue);
+
+        var until = result.Fields[1];
+        Assert.AreEqual(TextFieldType.Until, until.FieldType);
+        Assert.AreEqual(@"\r\n", until.PrimaryValue);
+
+        var between = result.Fields[2];
+        Assert.AreEqual(TextFieldType.Between, between.FieldType);
+        Assert.AreEqual("/*", between.PrimaryValue);
+        Assert.AreEqual("*/", between.SecondaryValue);
+    }
+
+    [TestMethod]
     public void TextSchema_OptionalPrefix_PatternField_ShouldParse()
     {
         var schema = "text LogLine { TraceId: optional pattern '[a-f0-9]{32}' }";

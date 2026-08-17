@@ -48,7 +48,7 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName(partitionBuilder.Name),
-                        SyntaxFactory.IdentifierName(nameof(WindowPartitionBuilder<>.Add))))
+                        SyntaxFactory.IdentifierName(nameof(WindowPartitionBuilder<object>.Add))))
                 .WithArgumentList(CreateArgumentList(
                     SyntaxFactory.IdentifierName(keyName),
                     SyntaxFactory.IdentifierName(indexVariableName))));

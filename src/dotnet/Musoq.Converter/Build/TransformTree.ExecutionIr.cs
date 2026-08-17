@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Execution;
-using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.IR.Optimization.Execution;
 using Musoq.Evaluator.Visitors;
+using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Targets.Execution.Analysis;
-using Musoq.Targets.Execution;
 using PhysicalToExecutionPlanBuilder = Musoq.Evaluator.IR.Execution.PhysicalToExecutionPlanBuilder;
 
 namespace Musoq.Converter.Build;
@@ -146,14 +145,15 @@ public partial class TransformTree
         throw CreateUnsupportedExecutionIrException(executionPlanBuildResult?.UnsupportedReason);
     }
 
-    private static NotSupportedException CreateUnsupportedExecutionIrException(string? unsupportedReason)
+    private static InternalDiagnosticException CreateUnsupportedExecutionIrException(string? unsupportedReason)
     {
         var reason = string.IsNullOrWhiteSpace(unsupportedReason)
             ? "Execution IR lowering did not produce a plan."
             : unsupportedReason;
 
-        return new NotSupportedException(
-            $"Execution IR does not support this query shape and old physical rendering is disabled: {reason}");
+        return InternalDiagnosticException.ForCompiler(
+            new NotSupportedException(
+                $"Execution IR does not support this query shape and old physical rendering is disabled: {reason}"));
     }
 
     private static ExecutionStageBuildResult BuildExecutionInspection(

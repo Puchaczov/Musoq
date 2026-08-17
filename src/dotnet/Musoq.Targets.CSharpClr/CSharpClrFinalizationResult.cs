@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -50,7 +49,14 @@ internal sealed record CSharpClrFinalizationResult(
             return null;
 
         var span = diagnostic.Location.SourceSpan;
-        return new TargetSourceRange(span.Start, span.Length);
+        var lineSpan = diagnostic.Location.GetLineSpan();
+        return new TargetSourceRange(
+            span.Start,
+            span.Length,
+            lineSpan.StartLinePosition.Line + 1,
+            lineSpan.StartLinePosition.Character + 1,
+            lineSpan.EndLinePosition.Line + 1,
+            lineSpan.EndLinePosition.Character + 1);
     }
 
     private static string? CreateDiagnosticSourceSnippet(Diagnostic diagnostic)

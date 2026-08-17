@@ -1,4 +1,3 @@
-using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using NotSupportedException = System.NotSupportedException;
@@ -38,7 +37,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         const string message = "ORDER BY column position is not supported. Use a column name or alias instead of a numeric position.";
 
-        if (TryReportSemanticError<NotSupportedException>(DiagnosticCode.MQ2030_UnsupportedSyntax, message, field))
+        if (TryReportSemanticError<NotSupportedException>(DiagnosticCode.MQ3093_OrderByOrdinalUnsupported, message, field))
             return;
 
         throw new NotSupportedException(message);

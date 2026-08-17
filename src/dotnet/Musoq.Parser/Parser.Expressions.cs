@@ -1,3 +1,5 @@
+using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
 
@@ -21,8 +23,11 @@ public partial class Parser
                     node = new OrNode(node, ComposeEqualityOperators());
                     break;
                 default:
-                    throw new NotSupportedException(
-                        $"Unrecognized token for ComposeOperations(), the token was {Current.TokenType}");
+                    throw new SyntaxException(
+                        $"Unrecognized token for ComposeOperations(), the token was {Current.TokenType}.",
+                        _lexer.AlreadyResolvedQueryPart,
+                        DiagnosticCode.MQ2001_UnexpectedToken,
+                        Current.Span);
             }
 
         return node;
@@ -63,7 +68,11 @@ public partial class Parser
                 TokenType.LeftShift => new LeftShiftNode(left, right),
                 TokenType.RightShift => new RightShiftNode(left, right),
                 TokenType.NullCoalescing => new CoalesceNode(left, right),
-                _ => throw new NotSupportedException($"{curr.TokenType} is not supported while parsing expression.")
+                _ => throw new SyntaxException(
+                    $"{curr.TokenType} is not supported while parsing expression.",
+                    _lexer.AlreadyResolvedQueryPart,
+                    DiagnosticCode.MQ2001_UnexpectedToken,
+                    curr.Span)
             };
         }
 

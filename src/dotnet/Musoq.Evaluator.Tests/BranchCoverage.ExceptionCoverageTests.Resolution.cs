@@ -90,7 +90,7 @@ public partial class BranchCoverageImprovementTests
         var ex = new CannotResolveMethodException("test error");
 
         Assert.AreEqual("test error", ex.Message);
-        Assert.AreEqual(DiagnosticCode.MQ3029_UnresolvableMethod, ex.Code);
+        Assert.AreEqual(DiagnosticCode.MQ3088_NoMatchingCallableOverload, ex.Code);
         Assert.IsNull(ex.Span);
     }
 
@@ -101,16 +101,16 @@ public partial class BranchCoverageImprovementTests
         var ex = new CannotResolveMethodException("error", span);
 
         Assert.AreEqual(span, ex.Span);
-        Assert.AreEqual(DiagnosticCode.MQ3029_UnresolvableMethod, ex.Code);
+        Assert.AreEqual(DiagnosticCode.MQ3088_NoMatchingCallableOverload, ex.Code);
     }
 
     [TestMethod]
     public void CannotResolveMethod_WhenCreatedWithCustomCode_ShouldUseProvidedCode()
     {
         var span = new TextSpan(0, 5);
-        var ex = new CannotResolveMethodException("error", DiagnosticCode.MQ3004_UnknownFunction, span);
+        var ex = new CannotResolveMethodException("error", DiagnosticCode.MQ3086_UnknownCallable, span);
 
-        Assert.AreEqual(DiagnosticCode.MQ3004_UnknownFunction, ex.Code);
+        Assert.AreEqual(DiagnosticCode.MQ3086_UnknownCallable, ex.Code);
         Assert.AreEqual(span, ex.Span);
     }
 
@@ -120,7 +120,7 @@ public partial class BranchCoverageImprovementTests
         var ex = new CannotResolveMethodException("cannot resolve");
         var diagnostic = ex.ToDiagnostic();
 
-        Assert.AreEqual(DiagnosticCode.MQ3029_UnresolvableMethod, diagnostic.Code);
+        Assert.AreEqual(DiagnosticCode.MQ3088_NoMatchingCallableOverload, diagnostic.Code);
         Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
     }
 
@@ -280,7 +280,7 @@ public partial class BranchCoverageImprovementTests
         var ex = new UnknownPropertyException("property not found");
 
         Assert.AreEqual("property not found", ex.Message);
-        Assert.AreEqual(DiagnosticCode.MQ3014_InvalidPropertyAccess, ex.Code);
+        Assert.AreEqual(DiagnosticCode.MQ3028_UnknownProperty, ex.Code);
         Assert.IsNull(ex.Span);
         Assert.IsNull(ex.PropertyName);
         Assert.IsNull(ex.TypeName);
@@ -295,7 +295,7 @@ public partial class BranchCoverageImprovementTests
         Assert.AreEqual("Age", ex.PropertyName);
         Assert.AreEqual("Person", ex.TypeName);
         Assert.AreEqual(span, ex.Span);
-        Assert.AreEqual(DiagnosticCode.MQ3014_InvalidPropertyAccess, ex.Code);
+        Assert.AreEqual(DiagnosticCode.MQ3028_UnknownProperty, ex.Code);
         StringAssert.Contains(ex.Message, "Age");
         StringAssert.Contains(ex.Message, "Person");
     }
@@ -306,7 +306,7 @@ public partial class BranchCoverageImprovementTests
         var ex = new UnknownPropertyException("Age", "Person", new TextSpan(0, 5));
         var diagnostic = ex.ToDiagnostic();
 
-        Assert.AreEqual(DiagnosticCode.MQ3014_InvalidPropertyAccess, diagnostic.Code);
+        Assert.AreEqual(DiagnosticCode.MQ3028_UnknownProperty, diagnostic.Code);
         Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
     }
 

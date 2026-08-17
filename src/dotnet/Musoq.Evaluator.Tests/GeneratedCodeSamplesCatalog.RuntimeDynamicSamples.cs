@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.Tests.Schema.RuntimeDynamic;
-using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests;
 

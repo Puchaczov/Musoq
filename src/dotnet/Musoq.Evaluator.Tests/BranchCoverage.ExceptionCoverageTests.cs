@@ -14,7 +14,7 @@ public partial class BranchCoverageImprovementTests
     {
         var ex = new ConstructionNotYetSupported("test message");
 
-        Assert.AreEqual(DiagnosticCode.MQ3030_ConstructionNotSupported, ex.Code);
+        Assert.AreEqual(DiagnosticCode.MQ4016_UnsupportedSchemaConstruction, ex.Code);
         Assert.IsNull(ex.Span);
         Assert.AreEqual("test message", ex.Message);
     }
@@ -25,7 +25,7 @@ public partial class BranchCoverageImprovementTests
         var span = new TextSpan(5, 10);
         var ex = new ConstructionNotYetSupported("test", span);
 
-        Assert.AreEqual(DiagnosticCode.MQ3030_ConstructionNotSupported, ex.Code);
+        Assert.AreEqual(DiagnosticCode.MQ4016_UnsupportedSchemaConstruction, ex.Code);
         Assert.AreEqual(span, ex.Span);
     }
 
@@ -36,7 +36,7 @@ public partial class BranchCoverageImprovementTests
 
         var diagnostic = ex.ToDiagnostic();
 
-        Assert.AreEqual(DiagnosticCode.MQ3030_ConstructionNotSupported, diagnostic.Code);
+        Assert.AreEqual(DiagnosticCode.MQ4016_UnsupportedSchemaConstruction, diagnostic.Code);
         Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
         Assert.AreEqual("test message", diagnostic.Message);
     }
@@ -49,7 +49,7 @@ public partial class BranchCoverageImprovementTests
 
         var diagnostic = ex.ToDiagnostic();
 
-        Assert.AreEqual(DiagnosticCode.MQ3030_ConstructionNotSupported, diagnostic.Code);
+        Assert.AreEqual(DiagnosticCode.MQ4016_UnsupportedSchemaConstruction, diagnostic.Code);
         Assert.AreEqual("test", diagnostic.Message);
     }
 

@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Musoq.Converter;
-using Musoq.Evaluator;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests.Components;

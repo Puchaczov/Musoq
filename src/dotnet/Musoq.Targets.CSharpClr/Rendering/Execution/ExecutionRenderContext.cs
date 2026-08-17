@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Targets.CSharpClr;
 
 internal sealed class ExecutionRenderContext

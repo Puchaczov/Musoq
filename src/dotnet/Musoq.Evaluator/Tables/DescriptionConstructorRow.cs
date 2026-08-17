@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Musoq.Evaluator.Tables;
 
 internal sealed class DescriptionConstructorRow(RowLayout layout, string[] values) : Row

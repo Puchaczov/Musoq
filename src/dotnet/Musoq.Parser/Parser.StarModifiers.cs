@@ -63,7 +63,7 @@ public partial class Parser
             throw new SyntaxException(
                 "Duplicate or out-of-order star modifier. Expected order: LIKE/NOT LIKE, EXCLUDE, REPLACE, RENAME.",
                 _lexer.AlreadyResolvedQueryPart,
-                DiagnosticCode.MQ2030_UnsupportedSyntax,
+                DiagnosticCode.MQ2041_InvalidStarModifierOrder,
                 Current.Span);
 
         return new AllColumnsNode(

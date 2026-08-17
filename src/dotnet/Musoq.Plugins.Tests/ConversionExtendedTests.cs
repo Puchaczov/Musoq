@@ -20,7 +20,7 @@ public class ConversionExtendedTests : PluginsTestBase
     [TestMethod]
     public void ToBin_EmptyBytes_ReturnsEmptyString()
     {
-        Assert.AreEqual("", Library.ToBin([]));
+        Assert.AreEqual("", Library.ToBin(Array.Empty<byte>()));
     }
 
     [TestMethod]
@@ -114,7 +114,7 @@ public class ConversionExtendedTests : PluginsTestBase
     [TestMethod]
     public void ToBase64_EmptyBytes_ReturnsEmpty()
     {
-        Assert.AreEqual("", Library.ToBase64([]));
+        Assert.AreEqual("", Library.ToBase64(Array.Empty<byte>()));
     }
 
     [TestMethod]

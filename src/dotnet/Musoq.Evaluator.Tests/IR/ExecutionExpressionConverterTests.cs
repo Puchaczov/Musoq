@@ -62,6 +62,18 @@ public sealed class ExecutionExpressionConverterTests
     }
 
     [TestMethod]
+    public void Convert_WhenLiteralContainsWindowsPath_ShouldPreserveBackslashes()
+    {
+        var expression = ExecutionExpressionConverter.Convert(
+            new Literal(@"C:\new\test", typeof(string)));
+
+        Assert.IsInstanceOfType<ExecutionLiteral>(expression);
+        Assert.AreEqual(
+            @"C:\new\test",
+            ((ExecutionLiteral)expression).Value.ToClrValue());
+    }
+
+    [TestMethod]
     public void Convert_WhenTransitionRowColumnNameContainsOriginalAlias_ShouldResolveRootField()
     {
         var shape = new TableRowShape(

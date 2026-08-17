@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
-using Musoq.Schema;
 using Musoq.Schema.Optimization;
 
 namespace Musoq.Converter;

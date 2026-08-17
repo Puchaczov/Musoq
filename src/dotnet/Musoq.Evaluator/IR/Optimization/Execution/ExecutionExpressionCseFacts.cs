@@ -5,7 +5,6 @@ using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Execution.Facts;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Plugins.Attributes;
-using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Evaluator.IR.Optimization.Execution;
 

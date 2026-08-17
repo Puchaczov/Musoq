@@ -1,6 +1,5 @@
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Converter;
 using Musoq.Evaluator.Runtime;
 
 namespace Musoq.Converter.Tests;

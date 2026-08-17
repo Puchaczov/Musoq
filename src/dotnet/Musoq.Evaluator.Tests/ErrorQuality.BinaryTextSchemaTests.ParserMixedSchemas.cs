@@ -117,10 +117,7 @@ select h.Magic from #A.Entities() a cross apply Interpret<HeaderFormat>(a.Name) 
         var result = analyzer.Analyze(query);
 
         // Assert — wrong schema name in Interpret() should produce semantic error
-        AssertHasOneOfErrorCodes(result, "Interpret() referencing wrong schema name",
-            DiagnosticCode.MQ4003_UndefinedSchemaReference,
-            DiagnosticCode.MQ3010_UnknownSchema,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3010_UnknownSchema, "Interpret() referencing wrong schema name");
     }
 
     #endregion

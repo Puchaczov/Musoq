@@ -5,7 +5,6 @@ using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
-using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.IR.Optimization.Execution;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
