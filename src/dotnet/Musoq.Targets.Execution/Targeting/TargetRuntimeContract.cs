@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.IR.Execution;
 
 namespace Musoq.Targets.Execution;
 
@@ -14,7 +15,8 @@ internal sealed record TargetRuntimeContract
         TargetNullBehaviorContract nullBehavior,
         TargetCancellationContract cancellation,
         TargetDiagnosticsContract diagnostics,
-        TargetProfilingContract profiling)
+        TargetProfilingContract profiling,
+        IReadOnlyList<TargetQueryRowSourceAccessContract>? queryRowSourceAccess = null)
     {
         PlanIdentifier = planIdentifier;
         SourceAccess = Freeze(sourceAccess);
@@ -24,6 +26,7 @@ internal sealed record TargetRuntimeContract
         Cancellation = cancellation;
         Diagnostics = diagnostics;
         Profiling = profiling;
+        QueryRowSourceAccess = Freeze(queryRowSourceAccess);
     }
 
     public string PlanIdentifier { get; }
@@ -42,10 +45,124 @@ internal sealed record TargetRuntimeContract
 
     public TargetProfilingContract Profiling { get; }
 
+    public IReadOnlyList<TargetQueryRowSourceAccessContract> QueryRowSourceAccess { get; }
+
     private static IReadOnlyList<T> Freeze<T>(IEnumerable<T>? values)
     {
         return Array.AsReadOnly(values?.ToArray() ?? []);
     }
+}
+
+internal sealed record TargetQueryRowSourceAccessContract
+{
+    public TargetQueryRowSourceAccessContract(
+        string sourceContextId,
+        string schemaName,
+        string methodName,
+        ExecutionQueryRowCarrier carrier,
+        ExecutionQueryRowLifetime lifetime,
+        string shapeFingerprint,
+        IReadOnlyList<TargetQueryRowFieldContract>? fields)
+    {
+        SourceContextId = string.IsNullOrWhiteSpace(sourceContextId)
+            ? throw new ArgumentException("Source context id cannot be empty.", nameof(sourceContextId))
+            : sourceContextId;
+        SchemaName = string.IsNullOrWhiteSpace(schemaName)
+            ? throw new ArgumentException("Schema name cannot be empty.", nameof(schemaName))
+            : schemaName;
+        MethodName = string.IsNullOrWhiteSpace(methodName)
+            ? throw new ArgumentException("Method name cannot be empty.", nameof(methodName))
+            : methodName;
+        if (carrier is not (ExecutionQueryRowCarrier.ReadonlyStruct or ExecutionQueryRowCarrier.SealedClass))
+            throw new ArgumentOutOfRangeException(nameof(carrier), carrier, "Unknown query-row carrier.");
+        if (lifetime is not (ExecutionQueryRowLifetime.ScanLocal or ExecutionQueryRowLifetime.EscapesScan))
+            throw new ArgumentOutOfRangeException(nameof(lifetime), lifetime, "Unknown query-row lifetime.");
+        if (carrier == ExecutionQueryRowCarrier.ReadonlyStruct && lifetime != ExecutionQueryRowLifetime.ScanLocal)
+            throw new ArgumentException("A readonly-struct query-row carrier must remain scan-local.", nameof(lifetime));
+        if (!IsShapeFingerprint(shapeFingerprint))
+        {
+            throw new ArgumentException(
+                "A query-row shape fingerprint must be a 64-character hexadecimal digest.",
+                nameof(shapeFingerprint));
+        }
+
+        var fieldValues = (fields ?? []).OrderBy(static field => field.Slot).ToArray();
+        for (var slot = 0; slot < fieldValues.Length; slot++)
+        {
+            if (fieldValues[slot].Slot != slot)
+                throw new ArgumentException("Query-row field slots must be dense and zero-based.", nameof(fields));
+        }
+
+        if (fieldValues.Select(static field => field.SourceColumnIndex).Distinct().Count() != fieldValues.Length)
+            throw new ArgumentException("Query-row source ordinals must be unique.", nameof(fields));
+
+        Carrier = carrier;
+        Lifetime = lifetime;
+        ShapeFingerprint = shapeFingerprint.ToUpperInvariant();
+        Fields = Array.AsReadOnly(fieldValues);
+    }
+
+    public string SourceContextId { get; }
+
+    public string SchemaName { get; }
+
+    public string MethodName { get; }
+
+    public ExecutionQueryRowCarrier Carrier { get; }
+
+    public ExecutionQueryRowLifetime Lifetime { get; }
+
+    public string ShapeFingerprint { get; }
+
+    public IReadOnlyList<TargetQueryRowFieldContract> Fields { get; }
+
+    private static bool IsShapeFingerprint(string value)
+    {
+        return !string.IsNullOrWhiteSpace(value) &&
+               value.Length == 64 &&
+               value.All(static character => Uri.IsHexDigit(character));
+    }
+}
+
+internal sealed record TargetQueryRowFieldContract
+{
+    public TargetQueryRowFieldContract(
+        int slot,
+        int sourceColumnIndex,
+        string name,
+        ExecutionPortableTypeDescriptor type,
+        bool isNullable,
+        IReadOnlyDictionary<string, string>? readModifiers)
+    {
+        if (slot < 0)
+            throw new ArgumentOutOfRangeException(nameof(slot));
+        if (sourceColumnIndex < 0)
+            throw new ArgumentOutOfRangeException(nameof(sourceColumnIndex));
+
+        Slot = slot;
+        SourceColumnIndex = sourceColumnIndex;
+        Name = string.IsNullOrWhiteSpace(name)
+            ? throw new ArgumentException("Query-row field name cannot be empty.", nameof(name))
+            : name;
+        Type = type ?? throw new ArgumentNullException(nameof(type));
+        IsNullable = isNullable;
+        ReadModifiers = new System.Collections.ObjectModel.ReadOnlyDictionary<string, string>(
+            readModifiers is null
+                ? new Dictionary<string, string>(StringComparer.Ordinal)
+                : new Dictionary<string, string>(readModifiers, StringComparer.Ordinal));
+    }
+
+    public int Slot { get; }
+
+    public int SourceColumnIndex { get; }
+
+    public string Name { get; }
+
+    public ExecutionPortableTypeDescriptor Type { get; }
+
+    public bool IsNullable { get; }
+
+    public IReadOnlyDictionary<string, string> ReadModifiers { get; }
 }
 
 internal sealed record TargetSourceAccessContract

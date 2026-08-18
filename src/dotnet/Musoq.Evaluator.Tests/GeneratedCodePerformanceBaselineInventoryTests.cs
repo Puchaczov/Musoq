@@ -20,14 +20,14 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
     ];
 
     [TestMethod]
-    public void CurrentCorpus_Contains238SnapshotsAndNoGeneratedReflection()
+    public void CurrentCorpus_Contains244SnapshotsAndNoGeneratedReflection()
     {
         var files = Directory
             .EnumerateFiles(GeneratedCodeSampleArtifacts.SamplesDirectory, "*.cs")
             .ToArray();
 
-        Assert.AreEqual(238, files.Length);
-        Assert.AreEqual(238, GeneratedCodeSamplesCatalog.Samples.Count);
+        Assert.AreEqual(244, files.Length);
+        Assert.AreEqual(244, GeneratedCodeSamplesCatalog.Samples.Count);
 
         var expectedFiles = new[]
         {
@@ -41,6 +41,12 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
             "Q232_PublicDynamicRootFilterProjection.cs",
             "Q233_PublicDynamicNestedNullable.cs",
             "Q234_PublicDynamicJoinMethod.cs",
+            "Q236_QueryRowLegacyFallback.cs",
+            "Q237_QueryRowReadonlyStruct.cs",
+            "Q238_QueryRowSealedClass.cs",
+            "Q239_QueryRowZeroField.cs",
+            "Q240_QueryRowSpecialNames.cs",
+            "Q241_QueryRowLifetimeBoundary.cs",
             "Q58_BinaryGenericInterpret.cs",
             "Q59_BinaryNestedGenericInterpret.cs"
         };

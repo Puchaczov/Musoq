@@ -11,6 +11,7 @@ using System.Threading;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
+using Musoq.Evaluator.IR.Planning;
 using Musoq.Schema;
 
 namespace Musoq.Converter;
@@ -95,8 +96,16 @@ public static partial class InstanceCreator
         {
             if (ExecutionCompilationCache.TryGetValue(cacheKey, out var existing))
             {
-                AddCanonicalExecutionAliasLocked(existing, canonicalContract);
-                return;
+                if (string.Equals(
+                        existing.SemanticContractFingerprint,
+                        semanticContractFingerprint,
+                        StringComparison.Ordinal))
+                {
+                    AddCanonicalExecutionAliasLocked(existing, canonicalContract);
+                    return;
+                }
+
+                ExecutionCompilationCache.TryRemove(cacheKey, out _);
             }
 
             EnsureExecutionCompilationCapacityLocked();
@@ -119,8 +128,13 @@ public static partial class InstanceCreator
 
             if (ExecutionCompilationCache.TryGetValue(cacheKey, out var existing))
             {
-                AddCanonicalExecutionAliasLocked(existing, canonicalContract);
-                return;
+                if (ReferenceEquals(existing, cachedCompilation))
+                {
+                    AddCanonicalExecutionAliasLocked(existing, canonicalContract);
+                    return;
+                }
+
+                ExecutionCompilationCache.TryRemove(cacheKey, out _);
             }
 
             EnsureExecutionCompilationCapacityLocked();
@@ -130,12 +144,27 @@ public static partial class InstanceCreator
     }
 
     private static ExecutableQueryArtifact CreateCachedExecutableArtifact(
+        BuildItems items,
         ExecutionTargetId targetId,
-        Type runnableType)
+        Type? runnableType)
     {
+        if (ContainsQueryScopedRowTransfer(items))
+        {
+            return items.ExecutableArtifact ?? throw new InvalidOperationException(
+                "Query-scoped execution caching requires the emitted executable artifact.");
+        }
+
         return ExecutionTargetCatalog
             .ResolveActivator(targetId)
-            .CreateLoadedExecutableArtifact(runnableType);
+            .CreateLoadedExecutableArtifact(runnableType ?? throw new InvalidOperationException(
+                "Declared-row execution caching requires a loaded runnable type."));
+    }
+
+    private static bool ContainsQueryScopedRowTransfer(BuildItems items)
+    {
+        return items.PlanningResult?.ExecutionArtifacts.SourceTransferPlansBySourceId?
+            .Values
+            .Any(static plan => plan.Mode == SourceTransferMode.QueryScopedRows) == true;
     }
 
     private static void EnsureExecutionCompilationCapacityLocked()

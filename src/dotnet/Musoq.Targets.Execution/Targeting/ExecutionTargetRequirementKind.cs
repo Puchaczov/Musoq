@@ -8,6 +8,7 @@ internal enum ExecutionTargetRequirementKind
     GeneratedClrRow,
     PluginInvocation,
     HostSourceAccess,
+    QueryRowSourceAccess,
     NullTypeCoercion,
     ProfilingDiagnostics,
     Cancellation,

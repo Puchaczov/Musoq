@@ -12,7 +12,8 @@ public sealed record ExecutionSourceBinding
         IReadOnlyList<ExecutionExpression> Arguments,
         IReadOnlyList<FieldBinding> Fields,
         ExecutionColumnMetadata? InferredColumnsMetadata = null,
-        ExecutionTypeRef? SourceType = null)
+        ExecutionTypeRef? SourceType = null,
+        ExecutionQueryRowSourceTransfer? QueryRowSourceTransfer = null)
     {
         this.SchemaName = SchemaName;
         this.MethodName = MethodName;
@@ -22,6 +23,7 @@ public sealed record ExecutionSourceBinding
         this.Fields = ExecutionIrCollections.Freeze(Fields);
         this.InferredColumnsMetadata = InferredColumnsMetadata;
         this.SourceType = SourceType;
+        this.QueryRowSourceTransfer = QueryRowSourceTransfer;
     }
 
     public string SchemaName { get; init; }
@@ -40,6 +42,8 @@ public sealed record ExecutionSourceBinding
 
     public ExecutionTypeRef? SourceType { get; init; }
 
+    public ExecutionQueryRowSourceTransfer? QueryRowSourceTransfer { get; init; }
+
     internal ExecutionSourceBinding(
         string schemaName,
         string methodName,
@@ -48,7 +52,8 @@ public sealed record ExecutionSourceBinding
         IReadOnlyList<ExecutionExpression> arguments,
         IReadOnlyList<FieldBinding> fields,
         ExecutionColumnMetadata? inferredColumnsMetadata,
-        Type sourceType)
+        Type sourceType,
+        ExecutionQueryRowSourceTransfer? queryRowSourceTransfer = null)
         : this(
             schemaName,
             methodName,
@@ -57,7 +62,8 @@ public sealed record ExecutionSourceBinding
             arguments,
             fields,
             inferredColumnsMetadata,
-            ExecutionClrBindingFactory.FromClr(sourceType))
+            ExecutionClrBindingFactory.FromClr(sourceType),
+            queryRowSourceTransfer)
     {
     }
 }

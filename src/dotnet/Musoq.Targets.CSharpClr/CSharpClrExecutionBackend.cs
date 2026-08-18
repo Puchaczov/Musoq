@@ -115,7 +115,7 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
             compilationContext.TrackNamespace("Musoq.Generated.Interpreters");
             compilationContext.AddSyntaxTree(CSharpSyntaxTree.ParseText(
                 inputs.InterpreterSourceCode,
-                new CSharpParseOptions(LanguageVersion.CSharp11),
+                new CSharpParseOptions(LanguageVersion.CSharp13),
                 $"{safeNamespaceName}.interpreter.g.cs",
                 Encoding.UTF8));
         }

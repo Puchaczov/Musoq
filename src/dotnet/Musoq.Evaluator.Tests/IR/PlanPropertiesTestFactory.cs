@@ -23,6 +23,7 @@ internal static class PlanPropertiesTestFactory
             new Dictionary<string, SourceInteractionPlan>(StringComparer.Ordinal),
             new Dictionary<string, SourcePlanRequest>(StringComparer.Ordinal),
             new Dictionary<string, SourcePlanResult>(StringComparer.Ordinal),
+            new Dictionary<string, Musoq.Schema.Optimization.SourceDescriptor>(StringComparer.Ordinal),
             [],
             [],
             [],

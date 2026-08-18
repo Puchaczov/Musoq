@@ -54,6 +54,16 @@ internal static partial class SourceInteractionPlanner
 
     private static SourceInteractionColumns ResolveColumnContract(SourcePlanProperties source, ISchemaColumn[] usedColumns)
     {
+        if (source.QueryRowProjection.State == SourceProjectionState.Exact)
+        {
+            var exactColumns = source.QueryRowProjection.Columns.ToArray();
+            return new SourceInteractionColumns(
+                SourceColumnContract.ProjectedColumns,
+                exactColumns,
+                PlanningConfidence.High,
+                $"Query-row projection is exact with {exactColumns.Length} planned column(s).");
+        }
+
         if (source.ProjectedSchemaColumns.Length > 0)
         {
             return new SourceInteractionColumns(

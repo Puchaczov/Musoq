@@ -27,6 +27,13 @@ internal static class ExecutionTargetRuntimeRequirementAnalyzer
                 source.SourceType ?? source.RowsType);
         }
 
+        foreach (var source in runtimeContract.QueryRowSourceAccess)
+        {
+            yield return new ExecutionTargetRequirement(
+                ExecutionTargetRequirementKind.QueryRowSourceAccess,
+                $"{source.SourceContextId}:{source.SchemaName}.{source.MethodName}:{source.ShapeFingerprint}");
+        }
+
         foreach (var rowShape in runtimeContract.RowShapes)
         {
             if (rowShape.TypeSymbol?.Kind != ExecutionPortableTypeKind.GeneratedRow)

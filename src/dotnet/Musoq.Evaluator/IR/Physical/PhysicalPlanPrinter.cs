@@ -1,4 +1,5 @@
 using System.Text;
+using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Printing;
 using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
@@ -117,6 +118,8 @@ public static partial class PhysicalPlanPrinter
                 PlanPrinterHelpers.AppendExpressions(sb, scan.Arguments);
                 sb.Append(System.Globalization.CultureInfo.InvariantCulture, $") as {scan.Alias}]");
                 AppendPushedPredicates(sb, scan.PushedPredicates);
+                if (scan.SourceTransferStrategy is { Mode: SourceTransferMode.QueryScopedRows } transfer)
+                    sb.Append(System.Globalization.CultureInfo.InvariantCulture, $" [query-row:{transfer.Carrier};lifetime={transfer.Lifetime};shape={transfer.Shape?.Fingerprint}]");
                 sb.AppendLine();
                 break;
 

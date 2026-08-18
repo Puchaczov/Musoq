@@ -8,5 +8,6 @@ internal enum TargetRuntimeServiceRequirementKind
     NullSemantics = 3,
     Cancellation = 4,
     Diagnostics = 5,
-    Profiling = 6
+    Profiling = 6,
+    QueryRowSourceAccess = 7
 }

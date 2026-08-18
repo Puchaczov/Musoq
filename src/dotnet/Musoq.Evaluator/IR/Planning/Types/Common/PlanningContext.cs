@@ -20,5 +20,6 @@ internal sealed partial record PlanningContext(
     Scope? Scope,
     SchemaRegistry? SchemaRegistry,
     IPlanningShapeResolver ShapeResolver,
-    CteExecutionPlan? CteExecutionPlan)
+    CteExecutionPlan? CteExecutionPlan,
+    SourceTransferCapabilities TargetSourceTransferCapabilities = SourceTransferCapabilities.QueryScopedRows)
 { public LogicalNode LogicalPlan => LogicalArtifacts.OptimizedLogicalPlan; }

@@ -242,17 +242,29 @@ public static partial class InstanceCreator
 
         try
         {
-            Type runnableType;
-            using (EvaluatorPerformanceTelemetry.BeginPhase("load-runnable-type"))
-                runnableType = LoadRunnableType(items);
-
             var runnableStarted = Stopwatch.GetTimestamp();
-            var runnable = CreateRunnable(
-                runnableType,
-                CreateRuntimeBinding(items));
+            Type? runnableType = null;
+            ITableRunnable runnable;
+            string runnableTypeName;
+            if (ContainsQueryScopedRowTransfer(items))
+            {
+                using (EvaluatorPerformanceTelemetry.BeginPhase("activate-query-row-runnable"))
+                    runnable = CreateRunnable(items);
+                runnableTypeName = items.AccessToClassPath;
+            }
+            else
+            {
+                using (EvaluatorPerformanceTelemetry.BeginPhase("load-runnable-type"))
+                    runnableType = LoadRunnableType(items);
+                runnable = CreateRunnable(
+                    runnableType,
+                    CreateRuntimeBinding(items));
+                runnableTypeName = runnableType.FullName ?? runnableType.Name;
+            }
+
             runnable.Logger = loggerResolver.ResolveLogger();
             telemetry.AddPhase("create-runnable", runnableStarted);
-            telemetry.SetArtifactIdentity(runnableType.FullName ?? runnableType.Name, emitted: true, loaded: true);
+            telemetry.SetArtifactIdentity(runnableTypeName, emitted: true, loaded: true);
             telemetry.SetBindingIdentity($"{items.SchemaProvider.GetType().AssemblyQualifiedName}|{items.QueryResultMode}");
 
             if (cacheKey.HasValue && CanUseExecutionCompilationCache(items))
@@ -260,9 +272,9 @@ public static partial class InstanceCreator
                 var cacheStoreStarted = Stopwatch.GetTimestamp();
                 StoreExecutionCompilation(
                     cacheKey.Value,
-                    CreateCachedExecutableArtifact(cacheKey.Value.ExecutionTarget, runnableType),
+                    CreateCachedExecutableArtifact(items, cacheKey.Value.ExecutionTarget, runnableType),
                     semanticContractFingerprint!,
-                    runnableType.FullName ?? runnableType.Name,
+                    runnableTypeName,
                     canonicalContract);
                 telemetry.AddPhase("cache-store", cacheStoreStarted);
             }

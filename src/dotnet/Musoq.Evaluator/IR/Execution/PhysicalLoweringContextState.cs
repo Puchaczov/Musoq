@@ -38,6 +38,11 @@ internal sealed class PhysicalLoweringFacts
                 executionArtifacts.SourceInteractionPlansBySourceId ??
                 new Dictionary<string, SourceInteractionPlan>(StringComparer.Ordinal),
                 StringComparer.Ordinal));
+        SourceTransferPlansBySourceId = new ReadOnlyDictionary<string, SourceTransferStrategyPlan>(
+            new Dictionary<string, SourceTransferStrategyPlan>(
+                executionArtifacts.SourceTransferPlansBySourceId ??
+                new Dictionary<string, SourceTransferStrategyPlan>(StringComparer.Ordinal),
+                StringComparer.Ordinal));
     }
 
     public ExecutionShapeResolver ShapeResolver { get; }
@@ -51,6 +56,8 @@ internal sealed class PhysicalLoweringFacts
     public ExecutionStrategyPlan ExecutionStrategies { get; }
 
     public IReadOnlyDictionary<string, SourceInteractionPlan> SourceInteractionPlansBySourceId { get; }
+
+    public IReadOnlyDictionary<string, SourceTransferStrategyPlan> SourceTransferPlansBySourceId { get; }
 }
 
 internal sealed record RecursiveCteLoweringContext(

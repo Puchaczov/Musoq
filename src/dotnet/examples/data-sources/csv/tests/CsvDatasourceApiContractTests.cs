@@ -97,8 +97,9 @@ public sealed class CsvDatasourceApiContractTests : CsvExampleTestBase
         Assert.AreEqual(1L, plan.Request.Skip);
         Assert.AreEqual(2L, plan.Request.Take);
 
-        var rowSource = recorder.RowSourceCalls.Single();
-        Assert.AreEqual(typeof(CsvRow), rowSource.RequestedRowType);
+        var rowSource = recorder.QueryRowSourceCalls.Single();
+        Assert.AreEqual(0, recorder.RowSourceCalls.Count);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(rowSource.ShapeFingerprint));
         AssertStaticParameters(rowSource.Parameters, expectedPathArgument);
         Assert.AreEqual(runtimeSettings.Identity, rowSource.Execution.Plan.Identity);
         Assert.AreEqual(3, rowSource.Execution.Plan.AcceptedColumns.Count);
@@ -140,7 +141,7 @@ public sealed class CsvDatasourceApiContractTests : CsvExampleTestBase
 
         Assert.AreEqual(0, table.Count);
         var request = recorder.PlanCalls.Single().Request;
-        var execution = recorder.RowSourceCalls.Single().Execution;
+        var execution = recorder.QueryRowSourceCalls.Single().Execution;
 
         Assert.AreEqual(request.Identity, execution.Plan.Identity);
         Assert.AreEqual(1, execution.Plan.AcceptedOrderBy.Count);
@@ -200,7 +201,7 @@ public sealed class CsvDatasourceApiContractTests : CsvExampleTestBase
         Assert.AreEqual(0, recorder.GetTableCalls.Last().Parameters.Count);
         Assert.AreEqual(0, recorder.DescribeSourceCalls.Last().Parameters.Count);
         Assert.AreEqual(0, recorder.PlanCalls.Last().Parameters.Count);
-        Assert.AreEqual(path, recorder.RowSourceCalls.Single().Parameters.Single());
+        Assert.AreEqual(path, recorder.QueryRowSourceCalls.Single().Parameters.Single());
     }
 
     [TestMethod]

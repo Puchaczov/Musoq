@@ -4,7 +4,7 @@ namespace Musoq.Evaluator.Tests;
 
 public sealed partial class GeneratedCodeSamplesShapeTests
 {
-    private const int ExpectedSampleFileCount = 238;
+    private const int ExpectedSampleFileCount = 244;
     private const int InlineInArrayAllocationBudget = 0;
     private const string CrossApplySampleFileName = "Q19_CrossApply.cs";
     private const string OuterApplySampleFileName = "Q20_OuterApply.cs";
@@ -34,6 +34,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         "Q75_ChainedApplyGroupedAggregateQualifyWindow.cs";
     private const string ApplyWithOrdinalitySampleFileName = "Q173_ApplyWithOrdinality.cs";
     private const string NullableProviderMethodLeftJoinSampleFileName = "Q235_NullableProviderMethodLeftJoin.cs";
+    private const string QueryRowLegacyFallbackSampleFileName = "Q236_QueryRowLegacyFallback.cs";
+    private const string QueryRowReadonlyStructSampleFileName = "Q237_QueryRowReadonlyStruct.cs";
+    private const string QueryRowSealedClassSampleFileName = "Q238_QueryRowSealedClass.cs";
+    private const string QueryRowZeroFieldSampleFileName = "Q239_QueryRowZeroField.cs";
+    private const string QueryRowSpecialNamesSampleFileName = "Q240_QueryRowSpecialNames.cs";
+    private const string QueryRowLifetimeBoundarySampleFileName = "Q241_QueryRowLifetimeBoundary.cs";
     private const string CteDistinctJoinByCountrySampleFileName = "Q50_CteDistinctJoinByCountry.cs";
     private const string CteJoinFrameQualifySampleFileName = "Q47_CteJoinFrameQualify.cs";
     private const string InSubqueryBasicSampleFileName = "Q99_InSubqueryBasic.cs";

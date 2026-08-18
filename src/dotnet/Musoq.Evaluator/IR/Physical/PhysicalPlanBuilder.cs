@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Nodes;
+using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Physical;
@@ -8,15 +9,20 @@ public sealed partial class PhysicalPlanBuilder
 {
     private readonly Dictionary<JoinNode, PredicateMovementPlan[]> _predicateMovementsByJoin;
     private readonly PhysicalStrategyPlan? _strategyPlan;
+    private readonly IReadOnlyDictionary<string, SourceTransferStrategyPlan> _sourceTransferPlans;
 
     public PhysicalPlanBuilder()
-        : this(null, null)
+        : this(null, null, null)
     { }
 
-    internal PhysicalPlanBuilder(IReadOnlyList<PredicateMovementPlan>? predicateMovementPlans, PhysicalStrategyPlan? strategyPlan)
+    internal PhysicalPlanBuilder(
+        IReadOnlyList<PredicateMovementPlan>? predicateMovementPlans,
+        PhysicalStrategyPlan? strategyPlan,
+        IReadOnlyDictionary<string, SourceTransferStrategyPlan>? sourceTransferPlans = null)
     {
         _predicateMovementsByJoin = CreatePredicateMovementsByJoin(predicateMovementPlans);
         _strategyPlan = strategyPlan;
+        _sourceTransferPlans = sourceTransferPlans ?? new Dictionary<string, SourceTransferStrategyPlan>(StringComparer.Ordinal);
     }
 
     public PhysicalNode Lower(LogicalNode node)
@@ -41,7 +47,8 @@ public sealed partial class PhysicalPlanBuilder
                 [],
                 [],
                 scan.OutputSchema,
-                scan.SourceContextId),
+                scan.SourceContextId,
+                ResolveSourceTransferStrategy(scan.SourceContextId)),
             ValuesScanNode values => new PhysicalValuesScanNode(values.Alias, values.Rows, values.OutputSchema),
             UnpivotNode unpivot => LowerUnpivot(unpivot, strategyPlan),
             InterpretSourceNode interpret => new PhysicalInterpretSourceNode(
@@ -86,5 +93,14 @@ public sealed partial class PhysicalPlanBuilder
             MultiStatementNode multiStatement => LowerMultiStatement(multiStatement, strategyPlan),
             _ => throw UnsupportedShape.Of($"Logical node type '{node.GetType().Name}'", "the physical plan builder")
         };
+    }
+
+    private SourceTransferStrategyPlan? ResolveSourceTransferStrategy(string? sourceContextId)
+    {
+        return sourceContextId != null &&
+               _sourceTransferPlans.TryGetValue(sourceContextId, out var plan) &&
+               plan.Mode == SourceTransferMode.QueryScopedRows
+            ? plan
+            : null;
     }
 }

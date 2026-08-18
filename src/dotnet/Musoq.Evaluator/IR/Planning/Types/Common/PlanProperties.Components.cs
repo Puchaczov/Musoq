@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Planning.Cardinality;
 using Musoq.Schema;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.IR.Planning;
 
@@ -14,6 +15,7 @@ internal sealed record SourcePlanningFacts(
     IReadOnlyDictionary<string, SourceInteractionPlan> SourceInteractionPlansBySourceId,
     IReadOnlyDictionary<string, SourcePlanRequest> SourcePlanRequestsBySourceId,
     IReadOnlyDictionary<string, SourcePlanResult> SourcePlanResultsBySourceId,
+    IReadOnlyDictionary<string, SourceDescriptor> SourceDescriptorsBySourceId,
     IReadOnlyList<SourceBoundaryPlan> SourceBoundaryPlans,
     IReadOnlyList<SourceBoundaryStrategyPlan> SourceBoundaryStrategyPlans,
     IReadOnlyDictionary<string, SourceContractDiagnosticLocationMap> SourceContractDiagnosticLocationsBySourceId);
@@ -66,6 +68,7 @@ internal sealed partial record PlanProperties
             facts.SourcePlanning.SourceInteractionPlansBySourceId,
             facts.SourcePlanning.SourcePlanRequestsBySourceId,
             facts.SourcePlanning.SourcePlanResultsBySourceId,
+            facts.SourcePlanning.SourceDescriptorsBySourceId,
             facts.SourcePlanning.SourceBoundaryPlans,
             facts.SourcePlanning.SourceBoundaryStrategyPlans,
             facts.BoundaryPruning.BoundaryRowShapePlans,
@@ -99,6 +102,7 @@ internal sealed partial record PlanProperties
         SourceInteractionPlansBySourceId,
         SourcePlanRequestsBySourceId,
         SourcePlanResultsBySourceId,
+        SourceDescriptorsBySourceId,
         SourceBoundaryPlans,
         SourceBoundaryStrategyPlans,
         SourceContractDiagnosticLocationsBySourceId);

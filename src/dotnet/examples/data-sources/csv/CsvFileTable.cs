@@ -40,13 +40,19 @@ public sealed class CsvFileTable : ISchemaTable
     }
 
     internal CsvFileTable(ISchemaColumn[] columns)
+        : this(columns, typeof(CsvRow))
+    {
+    }
+
+    internal CsvFileTable(ISchemaColumn[] columns, Type rowType)
     {
         Columns = columns ?? throw new ArgumentNullException(nameof(columns));
+        Metadata = new SchemaTableMetadata(rowType ?? throw new ArgumentNullException(nameof(rowType)));
     }
 
     public ISchemaColumn[] Columns { get; }
 
-    public SchemaTableMetadata Metadata { get; } = new(typeof(CsvRow));
+    public SchemaTableMetadata Metadata { get; }
 
     public ISchemaColumn? GetColumnByName(string name)
     {

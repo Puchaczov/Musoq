@@ -261,8 +261,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("yield return new ResultShape0(ko3iko.FirstName, ko3iko.LastName, ko3iko.Email);", sample);
         Assert.Contains("yield return new ResultRow0(__musoqShapeRow.FirstName, __musoqShapeRow.LastName, __musoqShapeRow.Email);", sample);
         Assert.Contains("__resultTakeRemaining = (__resultTakeRemaining - 1);", sample);
-        Assert.IsLessThan(
-            sample.LastIndexOf("yield return new ResultShape0", StringComparison.Ordinal), sample.LastIndexOf("if ((__resultTakeRemaining <= 0))", StringComparison.Ordinal));
+        var shapeYield = sample.LastIndexOf("yield return new ResultShape0", StringComparison.Ordinal);
+        var preAppendStop = sample.IndexOf("if ((__resultTakeRemaining <= 0))", StringComparison.Ordinal);
+        var postAppendStop = sample.LastIndexOf("if ((__resultTakeRemaining <= 0))", StringComparison.Ordinal);
+        Assert.IsTrue(preAppendStop < shapeYield, "The zero-take guard must run before row creation.");
+        Assert.IsTrue(shapeYield < postAppendStop, "The accepted-row limit must stop before another chunk is requested.");
         Assert.IsFalse(sample.Contains("SkipTable [", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("TakeTable [", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("SliceTable [", StringComparison.Ordinal));

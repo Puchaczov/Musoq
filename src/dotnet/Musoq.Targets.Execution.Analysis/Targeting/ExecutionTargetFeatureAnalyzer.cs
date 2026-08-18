@@ -40,6 +40,15 @@ internal static class ExecutionTargetFeatureAnalyzer
                 if (source.Binding.SourceType != null)
                     sink.AddType(source.Binding.SourceType.Descriptor);
                 AddFields(source.Binding.Fields, sink);
+                if (source.Binding.QueryRowSourceTransfer is { } transfer)
+                {
+                    sink.Add(
+                        ExecutionTargetFeatureKind.QueryRowSourceAccess,
+                        $"query-row-source:{transfer.Carrier}:{transfer.Lifetime}:{transfer.ShapeFingerprint}",
+                        $"{transfer.Carrier}:{transfer.Lifetime}:{transfer.ShapeFingerprint}");
+                    foreach (var field in transfer.Fields)
+                        sink.AddType(field.FieldType.Descriptor);
+                }
                 break;
             case ExecutionInterpretSource interpret:
                 sink.AddSource("interpret");

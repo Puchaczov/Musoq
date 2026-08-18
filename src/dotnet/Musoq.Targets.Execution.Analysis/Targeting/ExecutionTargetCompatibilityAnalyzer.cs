@@ -96,6 +96,12 @@ internal static class ExecutionTargetCompatibilityAnalyzer
                 if (sourceScan.Binding.SourceType != null)
                     sink.AddClrType(sourceScan.Binding.SourceType);
                 AddFields(sourceScan.Binding.Fields, sink);
+                if (sourceScan.Binding.QueryRowSourceTransfer is { } transfer)
+                {
+                    sink.Add(
+                        ExecutionTargetRequirementKind.QueryRowSourceAccess,
+                        $"{sourceScan.Binding.RuntimeContextId}:{sourceScan.Binding.SchemaName}.{sourceScan.Binding.MethodName}:{transfer.Carrier}:{transfer.Lifetime}:{transfer.ShapeFingerprint}");
+                }
                 break;
             case ExecutionInterpretSource interpret:
                 sink.Add(

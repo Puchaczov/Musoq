@@ -75,6 +75,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         ["Parameters"] = new() { ContextsAccess = 0 },
         ["Performance"] = new() { ContextsAccess = 0 },
         ["Pivot"] = new() { ContextsAccess = 0 },
+        ["QueryScopedRows"] = new()
+        {
+            GetColumnValue = 0,
+            ConvertTableToSource = 0,
+            SmartForEach = 0,
+            ContextsAccess = 0,
+            DynamicDictionaryRead = 0
+        },
         ["RuntimeV2"] = new() { ContextsAccess = 0 },
         ["RuntimeV2CastGrouping"] = new() { ContextsAccess = 0 },
         ["RecursiveCte"] = new() { ContextsAccess = 0 },

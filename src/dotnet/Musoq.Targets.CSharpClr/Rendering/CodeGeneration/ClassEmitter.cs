@@ -280,7 +280,7 @@ public static class ClassEmitter
                 // the workspace formatter and redundant-parenthesis pass.
                 return CSharpSyntaxTree.ParseText(
                     compilationUnit.NormalizeWhitespace().ToFullString(),
-                    new CSharpParseOptions(LanguageVersion.CSharp11),
+                    new CSharpParseOptions(LanguageVersion.CSharp13),
                     path ?? string.Empty,
                     Encoding.UTF8);
             }
@@ -297,7 +297,7 @@ public static class ClassEmitter
         using (TargetRenderTelemetry.BeginPhase("render.reparse"))
             return SyntaxFactory.ParseSyntaxTree(
                 source,
-                new CSharpParseOptions(LanguageVersion.CSharp11),
+                new CSharpParseOptions(LanguageVersion.CSharp13),
                 path ?? string.Empty,
                 Encoding.UTF8);
     }

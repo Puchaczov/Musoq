@@ -92,6 +92,44 @@ public static class DataSourceLifecycle
         }
     }
 
+    public static RowSource<TRow> OpenQueryScopedRowSource<TRow, TMaterializer>(
+        IQueryScopedRowSourceSchema schema,
+        string sourceName,
+        QueryScopedRowSourceRequest request,
+        object?[] parameters,
+        string schemaName,
+        string alias,
+        string sourceContextId)
+        where TMaterializer : struct, IQueryRowMaterializer<TRow>
+    {
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(parameters);
+
+        try
+        {
+            return schema.GetQueryScopedRowSource<TRow, TMaterializer>(sourceName, request, parameters) ??
+                   throw new InvalidOperationException($"Source '{sourceName}' returned null.");
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (DataSourceLifecycleException)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            throw DataSourceLifecycleException.ForOpen(
+                schemaName,
+                sourceName,
+                alias,
+                sourceContextId,
+                exception);
+        }
+    }
+
     public static IEnumerable<IReadOnlyList<T>> Read<T>(
         RowSource<T> source,
         string schemaName,
@@ -341,7 +379,7 @@ public static class DataSourceLifecycle
         ISchema inner,
         string schemaName,
         string alias,
-        string sourceContextId) : ISchema
+        string sourceContextId) : ISchema, IQueryScopedRowSourceSchema
     {
         public string Name => inner.Name;
 
@@ -381,6 +419,41 @@ public static class DataSourceLifecycle
                 effectiveAlias,
                 effectiveContextId);
             return new LifecycleRowSource<T>(
+                source,
+                effectiveSchemaName,
+                effectiveSourceName,
+                effectiveAlias,
+                effectiveContextId);
+        }
+
+        public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer>(
+            string name,
+            QueryScopedRowSourceRequest request,
+            params object?[] parameters)
+            where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        {
+            if (inner is not IQueryScopedRowSourceSchema queryScoped)
+            {
+                throw new InvalidOperationException(
+                    $"Schema '{Name}' does not implement {nameof(IQueryScopedRowSourceSchema)}.");
+            }
+
+            var identity = request.ExecutionContext.Plan.Identity;
+            var effectiveSchemaName = string.IsNullOrEmpty(identity.SchemaName) ? schemaName : identity.SchemaName;
+            var effectiveSourceName = string.IsNullOrEmpty(identity.MethodName) ? name : identity.MethodName;
+            var effectiveAlias = string.IsNullOrEmpty(identity.Alias) ? alias : identity.Alias;
+            var effectiveContextId = string.IsNullOrEmpty(identity.SourceContextId)
+                ? sourceContextId
+                : identity.SourceContextId;
+            var source = OpenQueryScopedRowSource<TRow, TMaterializer>(
+                queryScoped,
+                name,
+                request,
+                parameters,
+                effectiveSchemaName,
+                effectiveAlias,
+                effectiveContextId);
+            return new LifecycleRowSource<TRow>(
                 source,
                 effectiveSchemaName,
                 effectiveSourceName,

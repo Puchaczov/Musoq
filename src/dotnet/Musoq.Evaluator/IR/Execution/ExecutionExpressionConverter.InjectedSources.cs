@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Musoq.Plugins.Attributes;
+using Musoq.Evaluator.IR;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -14,7 +14,7 @@ public static partial class ExecutionExpressionConverter
     {
         ArgumentNullException.ThrowIfNull(method);
         ArgumentNullException.ThrowIfNull(sourceShapes);
-        var parameter = FindInjectedSourceParameter(method);
+        var parameter = SourceInjectionMethodFacts.FindInjectedSourceParameter(method);
         if (parameter == null)
             return null;
 
@@ -26,19 +26,6 @@ public static partial class ExecutionExpressionConverter
         }
 
         return CreateUniqueCompatibleInjectedSourceExpression(parameter.ParameterType, sourceShapes);
-    }
-
-    private static ParameterInfo? FindInjectedSourceParameter(MethodInfo method)
-    {
-        return method.GetParameters()
-            .FirstOrDefault(static parameter => parameter.GetCustomAttributes(true)
-                .OfType<InjectTypeAttribute>()
-                .Any(static attribute => IsSourceInjectionAttribute(attribute)));
-    }
-
-    private static bool IsSourceInjectionAttribute(InjectTypeAttribute attribute)
-    {
-        return attribute.GetType().Name is nameof(InjectSpecificSourceAttribute) or "InjectSourceAttribute";
     }
 
     private static ExecutionExpression? CreateAliasedInjectedSourceExpression(

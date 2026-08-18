@@ -21,22 +21,22 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
     private readonly Encoding _encoding;
 
     public CsvFileSource(SourceExecutionContext context)
-        : this(new CsvFileSourceOptions(null, false, 0, DefaultDelimiter), context)
+        : this(new CsvSourceOptions(null, false, 0, DefaultDelimiter), context)
     {
     }
 
     public CsvFileSource(string path, SourceExecutionContext context)
-        : this(new CsvFileSourceOptions(path, false, 0, DefaultDelimiter), context)
+        : this(new CsvSourceOptions(path, false, 0, DefaultDelimiter), context)
     {
     }
 
     public CsvFileSource(string path, bool hasHeader, SourceExecutionContext context)
-        : this(new CsvFileSourceOptions(path, hasHeader, 0, DefaultDelimiter), context)
+        : this(new CsvSourceOptions(path, hasHeader, 0, DefaultDelimiter), context)
     {
     }
 
     public CsvFileSource(string path, bool hasHeader, int skipRows, SourceExecutionContext context)
-        : this(new CsvFileSourceOptions(path, hasHeader, skipRows, DefaultDelimiter), context)
+        : this(new CsvSourceOptions(path, hasHeader, skipRows, DefaultDelimiter), context)
     {
     }
 
@@ -46,7 +46,7 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
         int skipRows,
         string delimiter,
         SourceExecutionContext context)
-        : this(new CsvFileSourceOptions(path, hasHeader, skipRows, delimiter), context)
+        : this(new CsvSourceOptions(path, hasHeader, skipRows, delimiter), context)
     {
     }
 
@@ -110,7 +110,7 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
     }
 
     private CsvFileSource(
-        CsvFileSourceOptions options,
+        CsvSourceOptions options,
         SourceExecutionContext context)
         : base(context, SourceName)
     {
@@ -147,7 +147,7 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
         };
     }
 
-    private static Encoding ResolveEncoding(IReadOnlyCollection<ISchemaColumn> columns)
+    internal static Encoding ResolveEncoding(IReadOnlyCollection<ISchemaColumn> columns)
     {
         string? requestedEncoding = null;
 
@@ -172,7 +172,7 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
         return ResolveEncoding(requestedEncoding);
     }
 
-    private static ISchemaColumn[] ResolveExecutionColumns(
+    internal static ISchemaColumn[] ResolveExecutionColumns(
         IReadOnlyCollection<ISchemaColumn> columns,
         IReadOnlyList<SourceColumnRef> acceptedColumns)
     {
@@ -205,7 +205,7 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
         return Encoding.GetEncoding(encoding);
     }
 
-    private static void SkipRecords(
+    internal static void SkipRecords(
         IEnumerator<string[]> records,
         int skipRows,
         CancellationToken token)
@@ -339,7 +339,7 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
         }
     }
 
-    private static CsvColumnMapping[] CreateMappings(
+    internal static CsvColumnMapping[] CreateMappings(
         IReadOnlyList<ISchemaColumn> columns,
         IReadOnlyList<string>? header,
         bool hasHeader)
@@ -371,7 +371,7 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
         return new CsvColumnMapping(column, sourceIndex, column.ColumnIndex);
     }
 
-    private static int ResolveSourceIndex(
+    internal static int ResolveSourceIndex(
         ISchemaColumn column,
         IReadOnlyDictionary<string, int> headerIndexes,
         bool hasHeader)
@@ -402,7 +402,7 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
             $"CSV header does not contain source column '{sourceName}' for table column '{column.ColumnName}'.");
     }
 
-    private static CsvRow CreateRow(
+    internal static CsvRow CreateRow(
         IReadOnlyList<string> record,
         IReadOnlyList<CsvColumnMapping> mappings)
     {
@@ -422,7 +422,7 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
         return new CsvRow(values);
     }
 
-    private static object? ConvertValue(string? rawValue, ISchemaColumn column)
+    internal static object? ConvertValue(string? rawValue, ISchemaColumn column)
     {
         if (rawValue == null)
             return null;
@@ -459,7 +459,7 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
         return Convert.ChangeType(text, targetType, culture);
     }
 
-    private static DateTime ParseDateTime(
+    internal static DateTime ParseDateTime(
         string text,
         IReadOnlyDictionary<string, string> modifiers,
         CultureInfo culture)
@@ -469,7 +469,7 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
             : DateTime.Parse(text, culture);
     }
 
-    private static DateTimeOffset ParseDateTimeOffset(
+    internal static DateTimeOffset ParseDateTimeOffset(
         string text,
         IReadOnlyDictionary<string, string> modifiers,
         CultureInfo culture)
@@ -479,7 +479,7 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
             : DateTimeOffset.Parse(text, culture);
     }
 
-    private static TimeSpan ParseTimeSpan(
+    internal static TimeSpan ParseTimeSpan(
         string text,
         IReadOnlyDictionary<string, string> modifiers,
         CultureInfo culture)
@@ -489,7 +489,7 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
             : TimeSpan.Parse(text, culture);
     }
 
-    private static CultureInfo ResolveCulture(IReadOnlyDictionary<string, string> modifiers)
+    internal static CultureInfo ResolveCulture(IReadOnlyDictionary<string, string> modifiers)
     {
         return modifiers.TryGetValue(ColumnReadModifiers.Culture, out var culture)
             ? CultureInfo.GetCultureInfo(culture)
@@ -507,8 +507,6 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
         return rowsWritten;
     }
 
-    private sealed record CsvColumnMapping(ISchemaColumn Column, int SourceIndex, int ValueIndex);
-
     private sealed record CsvRecordReadResult(bool Found, string[] Record)
     {
         public static CsvRecordReadResult Missing { get; } = new(false, []);
@@ -519,9 +517,4 @@ public sealed class CsvFileSource : DiagnosticChunkedRowSource<CsvRow>
         }
     }
 
-    private sealed record CsvFileSourceOptions(
-        string? Path,
-        bool HasHeader,
-        int SkipRows,
-        string Delimiter);
 }

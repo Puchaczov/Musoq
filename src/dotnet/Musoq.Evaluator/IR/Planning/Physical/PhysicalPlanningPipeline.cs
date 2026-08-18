@@ -11,7 +11,8 @@ internal sealed class PhysicalPlanningPipeline
     public PhysicalPlanningPipelineResult Plan(
         PlanningContext context,
         PlanningFacts initialFacts,
-        IPlanningShapeResolver shapeResolver)
+        IPlanningShapeResolver shapeResolver,
+        IReadOnlyDictionary<string, SourceTransferStrategyPlan>? sourceTransferPlans = null)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(initialFacts);
@@ -27,7 +28,8 @@ internal sealed class PhysicalPlanningPipeline
         var initialPhysicalPlan = BuildInitialPhysicalPlan(
             context,
             initialFacts.PhysicalStrategies,
-            strategyResult.Strategies);
+            strategyResult.Strategies,
+            sourceTransferPlans);
         var initialCardinalityFacts = CardinalityFactPlanner.Plan(initialPhysicalPlan, initialFacts.SourcePlanning);
         var propertiesWithCardinalityFacts = initialProperties with
         {
@@ -52,10 +54,12 @@ internal sealed class PhysicalPlanningPipeline
     private static PhysicalNode BuildInitialPhysicalPlan(
         PlanningContext context,
         PhysicalStrategyFacts physicalStrategies,
-        PhysicalStrategyPlan strategyPlan)
+        PhysicalStrategyPlan strategyPlan,
+        IReadOnlyDictionary<string, SourceTransferStrategyPlan>? sourceTransferPlans)
     {
         var physicalBuilder = new PhysicalPlanBuilder(physicalStrategies.PredicateMovementPlans,
-            strategyPlan);
+            strategyPlan,
+            sourceTransferPlans);
 
         return physicalBuilder.Lower(context.LogicalPlan);
     }

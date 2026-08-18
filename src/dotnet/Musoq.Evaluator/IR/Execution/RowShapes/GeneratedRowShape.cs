@@ -42,6 +42,19 @@ public sealed record GeneratedRowShape : RowShape
 
     public bool EmitAsValueType { get; init; }
 
+    /// <summary>
+    /// Indicates that this carrier is the private row type selected for a
+    /// query-scoped source. Such a carrier is always an internal execution
+    /// boundary, even when the planner selected the sealed-class policy.
+    /// </summary>
+    public bool IsQueryScopedRow { get; init; }
+
+    /// <summary>
+    /// Alias used while a query-scoped carrier is still the source row shape.
+    /// Ordinary generated result shapes intentionally leave this unset.
+    /// </summary>
+    public string? SourceAlias { get; init; }
+
     public GeneratedRowShape(
         string typeName,
         IReadOnlyList<FieldBinding> fields)

@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
+using Musoq.Schema;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Targets.CSharpClr;
@@ -48,6 +49,70 @@ public sealed partial class ExecutionCSharpRenderer
             sourceScan.Binding.SchemaFromIndex,
             SyntaxFactory.IdentifierName(infoTableName),
             IsInstrumentationEnabled ? CreateSourceDiagnosticsExpression(sourceProfileName) : null);
+
+        if (sourceScan.Binding.QueryRowSourceTransfer is { } queryRowTransfer)
+        {
+            var carrierTypeName = QueryRowSourceNaming.CreateCarrierTypeName(
+                queryRowTransfer.ShapeFingerprint,
+                queryRowTransfer.Carrier);
+            var materializerTypeName = QueryRowSourceNaming.CreateMaterializerTypeName(
+                queryRowTransfer.ShapeFingerprint,
+                queryRowTransfer.Carrier);
+            var querySchemaVariableName = $"{schemaVariableName}QueryRows";
+            var querySchemaAsExpression = SyntaxFactory.BinaryExpression(
+                SyntaxKind.AsExpression,
+                SyntaxFactory.IdentifierName(schemaVariableName),
+                CreateTypeSyntax(typeof(IQueryScopedRowSourceSchema)));
+            var querySchemaGuard = SyntaxFactory.BinaryExpression(
+                SyntaxKind.CoalesceExpression,
+                querySchemaAsExpression,
+                SyntaxFactory.ThrowExpression(CreateObjectCreation(
+                    nameof(InvalidOperationException),
+                    CreateStringLiteral(
+                        $"Source '{sourceScan.Binding.SchemaName}.{sourceScan.Binding.MethodName}' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape {queryRowTransfer.ShapeFingerprint})."))));
+            statements.Add(CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                querySchemaVariableName,
+                querySchemaGuard));
+
+            var getQueryRowSourceName = SyntaxFactory.GenericName("GetQueryScopedRowSource")
+                .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
+                    SyntaxFactory.SeparatedList<TypeSyntax>(new TypeSyntax[]
+                    {
+                        SyntaxFactory.ParseTypeName(carrierTypeName),
+                        SyntaxFactory.ParseTypeName(materializerTypeName)
+                    })));
+            var queryInvocation = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(querySchemaVariableName),
+                        getQueryRowSourceName))
+                .WithArgumentList(CreateArgumentList(
+                    CreateStringLiteral(sourceScan.Binding.MethodName),
+                    CreateObjectCreation(
+                        nameof(QueryScopedRowSourceRequest),
+                        runtimeContext,
+                        SyntaxFactory.IdentifierName(
+                            QueryRowSourceNaming.CreateShapeFieldName(queryRowTransfer.ShapeFingerprint))),
+                    argsExpression));
+            var queryRowSourceName = CreateRowSourceVariableName(sourceScan.Rows.Name);
+            var queryRows = SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(queryRowSourceName),
+                    SyntaxFactory.IdentifierName("Chunks"));
+            var carrierType = SyntaxFactory.ParseTypeName(carrierTypeName);
+
+            statements.Add(CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), queryRowSourceName, queryInvocation));
+            statements.Add(CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                sourceScan.Rows.Name,
+                IsInstrumentationEnabled
+                    ? CreateProfiledChunksExpression(queryRows, sourceProfileName, carrierType)
+                    : queryRows));
+
+            return statements;
+        }
+
         var sourceType = sourceScan.Binding.SourceType?.RequireClrType() ?? sourceScan.Source.Type.RequireClrType();
         if (!CanReferenceType(sourceType))
             throw new InvalidOperationException(

@@ -41,7 +41,12 @@ public static partial class ExecutionPlanPrinter
         switch (node)
         {
             case ExecutionSourceScan sourceScan:
-                builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}SourceScan [{sourceScan.Source.Name}: {FormatType(sourceScan.Source.Type)}] -> {sourceScan.Rows.Name}");
+                var sourceDescription =
+                    $"{prefix}SourceScan [{sourceScan.Source.Name}: {FormatType(sourceScan.Source.Type)}] -> {sourceScan.Rows.Name}" +
+                    (sourceScan.Binding.QueryRowSourceTransfer is { } transfer
+                        ? $" [query-row:{transfer.Carrier};lifetime={transfer.Lifetime};shape={transfer.ShapeFingerprint}]"
+                        : string.Empty);
+                builder.AppendLine(sourceDescription);
                 break;
             case ExecutionInterpretSource interpret:
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}InterpretSource [{interpret.SchemaName}.{interpret.Kind}({FormatExpressionList(interpret.Arguments)}) -> {interpret.Rows.Name}]");

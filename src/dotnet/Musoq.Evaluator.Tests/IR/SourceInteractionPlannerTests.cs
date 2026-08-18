@@ -53,6 +53,25 @@ public class SourceInteractionPlannerTests
         Assert.Contains("outer alias", plan.ArgumentReason);
     }
 
+    [TestMethod]
+    public void Plan_WhenQueryRowProjectionIsExactlyEmpty_ShouldPreserveEmptyProjectedContract()
+    {
+        var sourceContextId = "t:0";
+        var scan = CreateScan("t", sourceContextId);
+        var sourceNode = CreateSourceNode("t", 0);
+        var context = CreatePlanningContext(scan, sourceNode);
+        var sources = CreateSourceProperties(
+            scan,
+            SourceQueryRowProjection.Exact([], "no fields are required"));
+
+        var result = SourceInteractionPlanner.Plan(context, [scan], sources, new Dictionary<string, SourcePredicatePlan>());
+
+        var plan = result.PlansBySourceId[sourceContextId];
+        Assert.AreEqual(SourceColumnContract.ProjectedColumns, plan.ColumnContract);
+        Assert.IsEmpty(plan.QuerySourceColumns);
+        Assert.Contains("exact with 0", plan.ColumnReason);
+    }
+
     private static PlanningContext CreatePlanningContext(SchemaScanNode scan, ParserSchemaFromNode sourceNode)
     {
         ISchemaColumn[] usedColumns = [new SchemaColumn("Name", 0, typeof(string))];
@@ -78,7 +97,9 @@ public class SourceInteractionPlannerTests
             null);
     }
 
-    private static Dictionary<string, SourcePlanProperties> CreateSourceProperties(SchemaScanNode scan)
+    private static Dictionary<string, SourcePlanProperties> CreateSourceProperties(
+        SchemaScanNode scan,
+        SourceQueryRowProjection? queryRowProjection = null)
     {
         return new Dictionary<string, SourcePlanProperties>(StringComparer.Ordinal)
         {
@@ -91,6 +112,7 @@ public class SourceInteractionPlannerTests
                 [],
                 [],
                 [],
+                queryRowProjection ?? SourceQueryRowProjection.Unavailable("test metadata is unavailable"),
                 PlanningConfidence.Low,
                 "Source entity type could not be resolved from metadata.")
         };

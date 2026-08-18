@@ -195,6 +195,7 @@ internal sealed record TargetHostAbiInventory
             TargetRuntimeServiceRequirementKind.Cancellation => TargetHostAbiImportKind.Cancellation,
             TargetRuntimeServiceRequirementKind.Diagnostics => TargetHostAbiImportKind.Diagnostics,
             TargetRuntimeServiceRequirementKind.Profiling => TargetHostAbiImportKind.Profiling,
+            TargetRuntimeServiceRequirementKind.QueryRowSourceAccess => TargetHostAbiImportKind.QueryRowSourceAccess,
             _ => throw new ArgumentOutOfRangeException(nameof(service), service, "Unknown runtime service.")
         };
     }
@@ -210,6 +211,7 @@ internal sealed record TargetHostAbiInventory
             TargetHostAbiImportKind.Cancellation => TargetRuntimeServiceRequirementKind.Cancellation,
             TargetHostAbiImportKind.Diagnostics => TargetRuntimeServiceRequirementKind.Diagnostics,
             TargetHostAbiImportKind.Profiling => TargetRuntimeServiceRequirementKind.Profiling,
+            TargetHostAbiImportKind.QueryRowSourceAccess => TargetRuntimeServiceRequirementKind.QueryRowSourceAccess,
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown ABI import kind.")
         };
     }

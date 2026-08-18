@@ -83,6 +83,16 @@ public sealed partial class ExecutionCSharpRendererTests
 
     private static ExecutionPlan CreateScalarEnumerableLoopPlan()
     {
+        return CreateScalarEnumerableLoopPlan(breakAfterFirstRow: false);
+    }
+
+    private static ExecutionPlan CreateScalarEnumerableBreakLoopPlan()
+    {
+        return CreateScalarEnumerableLoopPlan(breakAfterFirstRow: true);
+    }
+
+    private static ExecutionPlan CreateScalarEnumerableLoopPlan(bool breakAfterFirstRow)
+    {
         var sourceShape = new SourceEntityShape(
             "n",
             typeof(int),
@@ -98,9 +108,16 @@ public sealed partial class ExecutionCSharpRendererTests
         var sourceRows = new ExecutionVariable("nRows", typeof(object));
         var source = new ExecutionVariable("n", typeof(int));
         var resultTable = new ExecutionVariable("result", typeof(object));
+        var append = new ExecutionAppendRow(
+            resultTable,
+            resultShape,
+            [new ExecutionRowValue("Value", new ExecutionFieldRead("n", "Value", typeof(int), new DirectScalarValueAccess()))]);
+        var loopBody = breakAfterFirstRow
+            ? new ExecutionBlock([append, new ExecutionBreak()])
+            : new ExecutionBlock([append]);
 
         return new ExecutionPlan(
-            "Q_ScalarEnumerableLoop",
+            breakAfterFirstRow ? "Q_ScalarEnumerableBreakLoop" : "Q_ScalarEnumerableLoop",
             [sourceShape, resultShape],
             new ExecutionBlock(
             [
@@ -114,13 +131,7 @@ public sealed partial class ExecutionCSharpRendererTests
                 new ExecutionForEach(
                     source,
                     new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Chunks),
-                    new ExecutionBlock(
-                    [
-                        new ExecutionAppendRow(
-                            resultTable,
-                            resultShape,
-                            [new ExecutionRowValue("Value", new ExecutionFieldRead("n", "Value", typeof(int), new DirectScalarValueAccess()))])
-                    ])),
+                    loopBody),
                 new ExecutionReturnTable(resultTable)
             ]));
     }

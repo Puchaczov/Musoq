@@ -11,6 +11,7 @@ internal static class TargetHostAbiInventoryBuilder
 
         var imports = new List<TargetHostAbiImport>();
         AddSourceAccess(runtimeContract, imports);
+        AddQueryRowSourceAccess(runtimeContract, imports);
         AddPluginInvocations(runtimeContract, imports);
         AddRowShapes(runtimeContract, imports);
         AddNullBehavior(runtimeContract, imports);
@@ -50,6 +51,34 @@ internal static class TargetHostAbiInventoryBuilder
                         field.ReadModifiers)),
                     source.AcceptedOperations,
                     source.RuntimeSettings)));
+        }
+    }
+
+    private static void AddQueryRowSourceAccess(
+        TargetRuntimeContract runtimeContract,
+        ICollection<TargetHostAbiImport> imports)
+    {
+        foreach (var source in runtimeContract.QueryRowSourceAccess)
+        {
+            imports.Add(new TargetHostAbiImport(
+                TargetHostAbiImportKind.QueryRowSourceAccess,
+                $"{source.SourceContextId}:{source.SchemaName}.{source.MethodName}",
+                "query-row-source-access-v1",
+                1,
+                new TargetQueryRowSourceAccessAbiDetails(
+                    source.SourceContextId,
+                    source.SchemaName,
+                    source.MethodName,
+                    source.Carrier.ToString(),
+                    source.Lifetime.ToString(),
+                    source.ShapeFingerprint,
+                    source.Fields.Select(static field => new TargetQueryRowFieldAbiContract(
+                        field.Slot,
+                        field.SourceColumnIndex,
+                        field.Name,
+                        field.Type,
+                        field.IsNullable,
+                        field.ReadModifiers)))));
         }
     }
 

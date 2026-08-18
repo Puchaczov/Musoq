@@ -195,6 +195,30 @@ internal static class CsvSourcePlan
         };
     }
 
+    internal static bool EvaluatePredicate(
+        SourcePredicateExpression predicate,
+        Func<string, object?> valueReader)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        ArgumentNullException.ThrowIfNull(valueReader);
+
+        return predicate switch
+        {
+            SourcePredicateComparison comparison => EvaluateComparison(comparison, valueReader),
+            SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.And } logical =>
+                EvaluatePredicate(logical.Left, valueReader) &&
+                EvaluatePredicate(logical.Right, valueReader),
+            SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.Or } logical =>
+                EvaluatePredicate(logical.Left, valueReader) ||
+                EvaluatePredicate(logical.Right, valueReader),
+            SourcePredicateIn inPredicate => EvaluateIn(inPredicate, valueReader),
+            SourcePredicateNullCheck nullCheck =>
+                (EvaluateValue(nullCheck.Expression, valueReader) == null) ^ nullCheck.IsNegated,
+            _ => throw new InvalidOperationException(
+                $"CSV source cannot evaluate predicate '{predicate.GetType().Name}'.")
+        };
+    }
+
     private static bool EvaluateComparison(
         SourcePredicateComparison comparison,
         CsvRow row,
@@ -202,6 +226,27 @@ internal static class CsvSourcePlan
     {
         var left = EvaluateValue(comparison.Left, row, columnsByName);
         var right = EvaluateValue(comparison.Right, row, columnsByName);
+        var valueComparison = CompareValues(left, right);
+
+        return comparison.Operator switch
+        {
+            SourcePredicateComparisonOperator.Equal => ValuesEqual(left, right),
+            SourcePredicateComparisonOperator.NotEqual => !ValuesEqual(left, right),
+            SourcePredicateComparisonOperator.GreaterThan => valueComparison > 0,
+            SourcePredicateComparisonOperator.GreaterOrEqual => valueComparison >= 0,
+            SourcePredicateComparisonOperator.LessThan => valueComparison < 0,
+            SourcePredicateComparisonOperator.LessOrEqual => valueComparison <= 0,
+            _ => throw new InvalidOperationException(
+                $"CSV source cannot evaluate comparison '{comparison.Operator}'.")
+        };
+    }
+
+    private static bool EvaluateComparison(
+        SourcePredicateComparison comparison,
+        Func<string, object?> valueReader)
+    {
+        var left = EvaluateValue(comparison.Left, valueReader);
+        var right = EvaluateValue(comparison.Right, valueReader);
         var valueComparison = CompareValues(left, right);
 
         return comparison.Operator switch
@@ -229,6 +274,17 @@ internal static class CsvSourcePlan
         return inPredicate.IsNegated ? !contains : contains;
     }
 
+    private static bool EvaluateIn(
+        SourcePredicateIn inPredicate,
+        Func<string, object?> valueReader)
+    {
+        var value = EvaluateValue(inPredicate.Expression, valueReader);
+        var contains = inPredicate.Values.Any(item => ValuesEqual(
+            EvaluateValue(item, valueReader),
+            value));
+        return inPredicate.IsNegated ? !contains : contains;
+    }
+
     private static object? EvaluateValue(
         SourcePredicateExpression expression,
         CsvRow row,
@@ -237,6 +293,19 @@ internal static class CsvSourcePlan
         return expression switch
         {
             SourcePredicateColumn column => ReadColumnValue(row, columnsByName, column.Column.Name),
+            SourcePredicateLiteral literal => literal.Value,
+            _ => throw new InvalidOperationException(
+                $"CSV source cannot evaluate value expression '{expression.GetType().Name}'.")
+        };
+    }
+
+    private static object? EvaluateValue(
+        SourcePredicateExpression expression,
+        Func<string, object?> valueReader)
+    {
+        return expression switch
+        {
+            SourcePredicateColumn column => valueReader(column.Column.Name),
             SourcePredicateLiteral literal => literal.Value,
             _ => throw new InvalidOperationException(
                 $"CSV source cannot evaluate value expression '{expression.GetType().Name}'.")
@@ -280,7 +349,7 @@ internal static class CsvSourcePlan
         return Equals(left, right);
     }
 
-    private static int CompareValues(object? left, object? right)
+    internal static int CompareValues(object? left, object? right)
     {
         if (ReferenceEquals(left, right))
             return 0;

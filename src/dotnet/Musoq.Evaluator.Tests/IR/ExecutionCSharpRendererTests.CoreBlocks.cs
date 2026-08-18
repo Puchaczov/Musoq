@@ -354,6 +354,19 @@ public sealed partial class ExecutionCSharpRendererTests
         Assert.IsFalse(code.Contains("new ObjectsRow(new object[]", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("nRows.Rows", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("__nResolver.Contexts[0]", StringComparison.Ordinal));
+        Assert.IsFalse(code.Contains("ChunkLoopEnd", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public void RenderMethod_WhenChunkedLogicalLoopBreaks_ShouldExitAllChunks()
+    {
+        var renderer = new ExecutionCSharpRenderer();
+        var method = renderer.RenderMethod(CreateScalarEnumerableBreakLoopPlan(), "ExecutePlan");
+        var code = method.NormalizeWhitespace().ToFullString();
+
+        Assert.Contains("goto __nChunkLoopEnd;", code);
+        Assert.Contains("__nChunkLoopEnd:", code);
+        Assert.IsFalse(code.Contains("result.Add(new ResultRow0(n)); break;", StringComparison.Ordinal));
     }
 
     [TestMethod]

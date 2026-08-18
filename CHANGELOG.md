@@ -4,6 +4,30 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.7-alpha.1
+
+See [release-notes/v17.0.7-alpha.1.md](release-notes/v17.0.7-alpha.1.md) for the curated full-train release notes.
+
+### Musoq.Schema
+
+- Added the optional query-scoped row transfer contracts for exact dynamic-source shapes, including immutable field metadata, deterministic shape fingerprints, concrete field readers, and generic materializers.
+- Preserved the existing declared-row datasource contract as the compatibility fallback whenever a provider, target, metadata shape, or query requires it.
+
+### Musoq.Evaluator and Musoq.Converter
+
+- Added planner-owned query-scoped transfer selection with source identity, projected fields, lifetime, carrier kind, capability checks, deterministic fallback reasons, cache identity, and runtime capability mismatch diagnostics carried through physical planning and Execution IR.
+- Added private generated row carriers and materializers that use readonly structs for conservative scan-local payloads and sealed classes for wider or escaping lifetimes, without object-array storage, reflection, delegates, or boxed readers in the hot loop.
+
+### Musoq.Targets.CSharpClr and examples
+
+- Added target support for the query-row-source host import and generated-code coverage for legacy fallback, readonly structs, sealed classes, empty shapes, special names, and escaping lifetimes.
+- Added an opt-in-capable CSV example with concrete ref-struct readers, dynamic header/ordinal metadata, source planning, pushdown, chunking, diagnostics, cancellation, and the explicit `enableQueryScopedRows: false` legacy comparison path.
+
+### Tooling and verification
+
+- Added format-neutral provider guidance, lifecycle and collectible-context ownership rules, exact CLR eligibility requirements, architecture guardrails, generated samples, benchmark baselines, and qualification gates.
+- Published the full train: `Musoq.Parser`, `Musoq.Plugins`, `Musoq.Schema`, `Musoq.Evaluator`, and `Musoq.Converter`.
+
 ## 17.0.6-alpha.1
 
 See [release-notes/v17.0.6-alpha.1.md](release-notes/v17.0.6-alpha.1.md) for the curated full-train release notes.

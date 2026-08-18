@@ -10,6 +10,7 @@ internal sealed class QueryPlanner
     {
         ArgumentNullException.ThrowIfNull(context);
         var propertyResult = PlanningPropertyDeriver.Derive(context);
+        var sourceTransferResult = SourceTransferPlanner.Plan(context, propertyResult.Facts.SourcePlanning);
         var decisions = new List<PlanningDecision>(propertyResult.Decisions)
         {
             new(
@@ -20,11 +21,13 @@ internal sealed class QueryPlanner
                 PlanningConfidence.High,
                 "Physical planning is routed through QueryPlanner.")
         };
+        decisions.AddRange(sourceTransferResult.Decisions);
 
         var physicalPlanningResult = new PhysicalPlanningPipeline().Plan(
             context,
             propertyResult.Facts,
-            context.ShapeResolver);
+            context.ShapeResolver,
+            sourceTransferResult.PlansBySourceId);
         var physicalPlanningArtifacts = physicalPlanningResult.Artifacts;
         decisions.AddRange(physicalPlanningArtifacts.Decisions);
         var physicalPlan = physicalPlanningArtifacts.OptimizedPhysicalPlan;
@@ -59,7 +62,11 @@ internal sealed class QueryPlanner
             .WithSourceBoundaryStrategies(planFacts.SourcePlanning.SourceBoundaryStrategyPlans)
             .WithRowWidthPruningPlans(rowWidthPruningResult.Plans)
             .WithCardinalityFacts(cardinalityFactResult.Facts);
-        var executionPlanningArtifacts = new ExecutionPlanningArtifacts(executionStrategies, planFacts.SourcePlanning.SourceInteractionPlansBySourceId, executionStrategyResult.Decisions);
+        var executionPlanningArtifacts = new ExecutionPlanningArtifacts(
+            executionStrategies,
+            planFacts.SourcePlanning.SourceInteractionPlansBySourceId,
+            executionStrategyResult.Decisions,
+            sourceTransferResult.PlansBySourceId);
         decisions.AddRange(executionPlanningArtifacts.Decisions);
         decisions.AddRange(MaterializationPlanner.Plan(physicalPlan, executionPlanningArtifacts.ExecutionStrategies));
 

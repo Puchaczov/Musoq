@@ -110,9 +110,26 @@ public sealed class CsvProviderAndSchemaTests : CsvExampleTestBase
 
         Assert.AreEqual(identity, descriptor.Identity);
         Assert.AreEqual(typeof(CsvRow), descriptor.RowType);
+        Assert.AreEqual(SourceTransferCapabilities.QueryScopedRows, descriptor.TransferCapabilities);
         Assert.AreEqual("Name", descriptor.Columns.Single().ColumnName);
         Assert.AreEqual("Name", recorder.DescribeSourceCalls.Single().Columns.Single().ColumnName);
         Assert.AreEqual("describe-query", recorder.DescribeSourceCalls.Single().Metadata.QueryId);
+    }
+
+    [TestMethod]
+    public void Schema_WhenQueryScopedRowsAreExplicitlyDisabled_ShouldAdvertiseNoTransferCapability()
+    {
+        var schema = new CsvSchema(recorder: null, enableQueryScopedRows: false);
+        var identity = new SourceIdentity("csv", "file", "source-id", "Rows");
+        var columns = new ISchemaColumn[] { Column("Name", 0, typeof(string)) };
+
+        var descriptor = schema.DescribeSource(
+            CsvSchema.File,
+            new SourceDescribeContext(identity, CreateMetadataContext(columns, "legacy-query")),
+            "people.csv");
+
+        Assert.AreEqual(SourceTransferCapabilities.None, descriptor.TransferCapabilities);
+        Assert.AreEqual(typeof(CsvRow), descriptor.RowType);
     }
 
     [TestMethod]

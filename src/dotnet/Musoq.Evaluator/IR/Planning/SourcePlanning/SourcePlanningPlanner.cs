@@ -34,6 +34,7 @@ internal static partial class SourcePlanningPlanner
             sourcePredicatePlansBySourceId);
         var requests = new Dictionary<string, SourcePlanRequest>(StringComparer.Ordinal);
         var results = new Dictionary<string, SourcePlanResult>(StringComparer.Ordinal);
+        var descriptors = new Dictionary<string, SourceDescriptor>(StringComparer.Ordinal);
         var decisions = new List<PlanningDecision>();
 
         foreach (var scan in scans)
@@ -48,17 +49,18 @@ internal static partial class SourcePlanningPlanner
             var request = sourceLocalRequests.TryGetValue(scan.SourceContextId, out var sourceLocalRequest)
                 ? sourceLocalRequest
                 : CreateEmptyRequest(context, identity, scan, requiredColumnUsagesBySourceId, sourcePredicatePlansBySourceId);
-            var result = PlanSource(context, scan, sourceNode, request);
+            var sourcePlan = PlanSource(context, scan, sourceNode, request);
 
             requests[scan.SourceContextId] = request;
-            results[scan.SourceContextId] = result;
-            decisions.Add(CreateDecision(scan, request, result));
+            results[scan.SourceContextId] = sourcePlan.Result;
+            descriptors[scan.SourceContextId] = sourcePlan.Descriptor;
+            decisions.Add(CreateDecision(scan, request, sourcePlan.Result));
         }
 
-        return new SourcePlanningResult(requests, results, decisions);
+        return new SourcePlanningResult(requests, results, descriptors, decisions);
     }
 
-    private static SourcePlanResult PlanSource(
+    private static (SourcePlanResult Result, SourceDescriptor Descriptor) PlanSource(
         PlanningContext context,
         SchemaScanNode scan,
         SchemaFromNode? sourceNode,
@@ -89,7 +91,8 @@ internal static partial class SourcePlanningPlanner
         result = OptimizationDiagnosticOriginMarker.Mark(result, "TryPlanSource");
         result = SourceContractDiagnosticOriginMarker.Mark(result, "TryPlanSource");
         result = OptimizationDiagnosticOriginMarker.Prepend(result, descriptor.Diagnostics, "DescribeSource");
-        return SourceContractDiagnosticOriginMarker.Prepend(result, descriptor.ContractDiagnostics, "DescribeSource");
+        result = SourceContractDiagnosticOriginMarker.Prepend(result, descriptor.ContractDiagnostics, "DescribeSource");
+        return (result, descriptor);
     }
 
     private static Dictionary<string, SourcePlanRequest> BuildSourceLocalRequests(

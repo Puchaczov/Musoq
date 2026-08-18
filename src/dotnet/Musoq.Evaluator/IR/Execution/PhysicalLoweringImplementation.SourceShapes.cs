@@ -47,6 +47,8 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         return source switch
         {
+            PhysicalSchemaScanNode scan when sourceShape is GeneratedRowShape { IsQueryScopedRow: true } queryRowShape =>
+                new ExecutionVariable(scan.Alias, typeof(object), queryRowShape.TypeName),
             PhysicalSchemaScanNode scan => new ExecutionVariable(scan.Alias, RowShapeLookup.ResolveSourceRuntimeType(sourceShape)),
             PhysicalInterpretSourceNode interpret => new ExecutionVariable(interpret.Alias, RowShapeLookup.ResolveSourceRuntimeType(sourceShape)),
             PhysicalPropertySourceNode property => new ExecutionVariable(property.Alias, RowShapeLookup.ResolveSourceRuntimeType(sourceShape)),

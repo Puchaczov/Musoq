@@ -6,14 +6,22 @@ namespace Musoq.Examples.DataSources.Csv;
 public sealed class CsvSchemaProvider : ISchemaProvider
 {
     private readonly CsvDataSourceApiRecorder? _recorder;
+    private readonly bool _enableQueryScopedRows;
 
     public CsvSchemaProvider()
+        : this(null, true)
     {
     }
 
-    internal CsvSchemaProvider(CsvDataSourceApiRecorder recorder)
+    public CsvSchemaProvider(bool enableQueryScopedRows)
+        : this(null, enableQueryScopedRows)
     {
-        _recorder = recorder ?? throw new ArgumentNullException(nameof(recorder));
+    }
+
+    internal CsvSchemaProvider(CsvDataSourceApiRecorder? recorder, bool enableQueryScopedRows = true)
+    {
+        _recorder = recorder;
+        _enableQueryScopedRows = enableQueryScopedRows;
     }
 
     public ISchema GetSchema(string schema)
@@ -23,7 +31,7 @@ public sealed class CsvSchemaProvider : ISchemaProvider
         if (string.Equals(schema, CsvSchema.SchemaName, StringComparison.OrdinalIgnoreCase) ||
             string.Equals(schema, $"#{CsvSchema.SchemaName}", StringComparison.OrdinalIgnoreCase))
         {
-            return new CsvSchema(_recorder);
+            return new CsvSchema(_recorder, _enableQueryScopedRows);
         }
 
         throw new SourceNotFoundException($"CSV example schema provider does not expose schema '{schema}'.");

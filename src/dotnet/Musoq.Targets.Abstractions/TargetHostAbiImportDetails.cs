@@ -390,6 +390,139 @@ internal sealed record TargetSourceAccessAbiDetails : TargetHostAbiImportDetails
     public override IReadOnlyDictionary<string, string> Attributes { get; }
 }
 
+internal sealed record TargetQueryRowSourceAccessAbiDetails : TargetHostAbiImportDetails
+{
+    public TargetQueryRowSourceAccessAbiDetails(
+        string sourceContextId,
+        string schemaName,
+        string methodName,
+        string carrier,
+        string lifetime,
+        string shapeFingerprint,
+        IEnumerable<TargetQueryRowFieldAbiContract>? fields)
+    {
+        SourceContextId = RequireText(sourceContextId, nameof(sourceContextId));
+        SchemaName = RequireText(schemaName, nameof(schemaName));
+        MethodName = RequireText(methodName, nameof(methodName));
+        Carrier = RequireText(carrier, nameof(carrier));
+        Lifetime = RequireText(lifetime, nameof(lifetime));
+        if (Carrier is not ("ReadonlyStruct" or "SealedClass"))
+            throw new ArgumentException($"Unknown query-row carrier '{Carrier}'.", nameof(carrier));
+        if (Lifetime is not ("ScanLocal" or "EscapesScan"))
+            throw new ArgumentException($"Unknown query-row lifetime '{Lifetime}'.", nameof(lifetime));
+        if (Carrier == "ReadonlyStruct" && Lifetime != "ScanLocal")
+            throw new ArgumentException("A readonly-struct query-row carrier must remain scan-local.", nameof(lifetime));
+        if (string.IsNullOrWhiteSpace(shapeFingerprint) || shapeFingerprint.Length != 64 ||
+            shapeFingerprint.Any(static character => !Uri.IsHexDigit(character)))
+        {
+            throw new ArgumentException(
+                "A query-row shape fingerprint must be a 64-character hexadecimal digest.",
+                nameof(shapeFingerprint));
+        }
+
+        ShapeFingerprint = shapeFingerprint.ToUpperInvariant();
+        var values = Freeze(fields).OrderBy(static field => field.Slot).ToArray();
+        for (var slot = 0; slot < values.Length; slot++)
+        {
+            if (values[slot].Slot != slot)
+                throw new ArgumentException("Query-row field slots must be dense and zero-based.", nameof(fields));
+        }
+
+        if (values.Select(static field => field.SourceColumnIndex).Distinct().Count() != values.Length)
+            throw new ArgumentException("Query-row source ordinals must be unique.", nameof(fields));
+
+        Fields = Array.AsReadOnly(values);
+        Attributes = BuildAttributes(
+            ("sourceContextId", SourceContextId),
+            ("schemaName", SchemaName),
+            ("methodName", MethodName),
+            ("carrier", Carrier),
+            ("lifetime", Lifetime),
+            ("shapeFingerprint", ShapeFingerprint),
+            ("fieldCount", Fields.Count));
+    }
+
+    public string SourceContextId { get; }
+
+    public string SchemaName { get; }
+
+    public string MethodName { get; }
+
+    public string Carrier { get; }
+
+    public string Lifetime { get; }
+
+    public string ShapeFingerprint { get; }
+
+    public IReadOnlyList<TargetQueryRowFieldAbiContract> Fields { get; }
+
+    public override TargetHostAbiImportKind Kind => TargetHostAbiImportKind.QueryRowSourceAccess;
+
+    public override IReadOnlyDictionary<string, string> Attributes { get; }
+
+    internal override string CanonicalDefinition => CreateCanonicalDefinition(
+        Kind.ToString(),
+        builder =>
+        {
+            AppendField(builder, "sourceContextId", SourceContextId);
+            AppendField(builder, "schemaName", SchemaName);
+            AppendField(builder, "methodName", MethodName);
+            AppendField(builder, "carrier", Carrier);
+            AppendField(builder, "lifetime", Lifetime);
+            AppendField(builder, "shapeFingerprint", ShapeFingerprint);
+            AppendField(builder, "fields.count", Fields.Count);
+            foreach (var rowField in Fields)
+            {
+                AppendField(builder, "fields.slot", rowField.Slot);
+                AppendField(builder, "fields.sourceColumnIndex", rowField.SourceColumnIndex);
+                AppendField(builder, "fields.name", rowField.Name);
+                AppendType(builder, "fields.type", rowField.TypeSymbol);
+                AppendField(builder, "fields.nullable", rowField.IsNullable);
+                AppendDictionary(builder, "fields.readModifiers", rowField.ReadModifiers);
+            }
+        });
+}
+
+internal sealed record TargetQueryRowFieldAbiContract
+{
+    public TargetQueryRowFieldAbiContract(
+        int slot,
+        int sourceColumnIndex,
+        string name,
+        ExecutionPortableTypeDescriptor typeSymbol,
+        bool isNullable,
+        IReadOnlyDictionary<string, string>? readModifiers)
+    {
+        Slot = slot < 0
+            ? throw new ArgumentOutOfRangeException(nameof(slot))
+            : slot;
+        SourceColumnIndex = sourceColumnIndex < 0
+            ? throw new ArgumentOutOfRangeException(nameof(sourceColumnIndex))
+            : sourceColumnIndex;
+        Name = string.IsNullOrWhiteSpace(name)
+            ? throw new ArgumentException("Value cannot be null or whitespace.", nameof(name))
+            : name;
+        TypeSymbol = typeSymbol ?? throw new ArgumentNullException(nameof(typeSymbol));
+        IsNullable = isNullable;
+        ReadModifiers = new ReadOnlyDictionary<string, string>(
+            readModifiers is null
+                ? new Dictionary<string, string>(StringComparer.Ordinal)
+                : new Dictionary<string, string>(readModifiers, StringComparer.Ordinal));
+    }
+
+    public int Slot { get; }
+
+    public int SourceColumnIndex { get; }
+
+    public string Name { get; }
+
+    public ExecutionPortableTypeDescriptor TypeSymbol { get; }
+
+    public bool IsNullable { get; }
+
+    public IReadOnlyDictionary<string, string> ReadModifiers { get; }
+}
+
 internal sealed record TargetPluginInvocationAbiDetails(
     string Detail,
     string Callable,

@@ -17,6 +17,7 @@ internal static class TargetRuntimeContractBuilder
 
         var nodes = ExecutionIrAnalysis.FlattenNodes(plan.Body).ToArray();
         var sourceAccess = CreateSourceAccess(nodes, sourceRuntimeMetadata);
+        var queryRowSourceAccess = CreateQueryRowSourceAccess(nodes);
         var pluginInvocations = compatibilityReport.Requirements
             .Where(static requirement => requirement.Kind == ExecutionTargetRequirementKind.PluginInvocation)
             .Where(static requirement => requirement.CallableSymbol != null)
@@ -50,7 +51,8 @@ internal static class TargetRuntimeContractBuilder
                 SupportsSourceBoundaryProfiling: sourceAccess.Count > 0,
                 SupportsOperatorProfiling: nodes.Length > 0,
                 SourceBoundaryCount: sourceAccess.Count,
-                OperatorCount: nodes.Length));
+                OperatorCount: nodes.Length),
+            queryRowSourceAccess);
     }
 
     private static IReadOnlyList<TargetSourceAccessContract> CreateSourceAccess(
@@ -111,6 +113,34 @@ internal static class TargetRuntimeContractBuilder
         return sources
             .OrderBy(static source => source.SourceContextId, StringComparer.Ordinal)
             .ThenBy(static source => source.Kind, StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    private static IReadOnlyList<TargetQueryRowSourceAccessContract> CreateQueryRowSourceAccess(
+        IReadOnlyList<ExecutionNode> nodes)
+    {
+        return nodes
+            .OfType<ExecutionSourceScan>()
+            .Where(static scan => scan.Binding.QueryRowSourceTransfer != null)
+            .Select(static scan =>
+            {
+                var transfer = scan.Binding.QueryRowSourceTransfer!;
+                return new TargetQueryRowSourceAccessContract(
+                    scan.Binding.RuntimeContextId,
+                    scan.Binding.SchemaName,
+                    scan.Binding.MethodName,
+                    transfer.Carrier,
+                    transfer.Lifetime,
+                    transfer.ShapeFingerprint,
+                    transfer.Fields.Select(static field => new TargetQueryRowFieldContract(
+                        field.Slot,
+                        field.SourceColumnIndex,
+                        field.Name,
+                        field.FieldType.Descriptor,
+                        field.IsNullable,
+                        field.ReadModifiers)).ToArray());
+            })
+            .OrderBy(static source => source.SourceContextId, StringComparer.Ordinal)
             .ToArray();
     }
 

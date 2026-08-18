@@ -58,3 +58,23 @@ Accepted predicates include comparisons, `and`, `or`, `in`/`not in`, and null ch
 Order is accepted when all order keys are CSV columns. Skip/take are accepted only when no residual predicate or residual order can change row cardinality or ordering before slicing.
 
 At execution time the datasource parses and converts only the execution columns it needs for projection plus accepted predicate/order work, then applies the accepted `SourceExecutionPlan` before emitting fixed-size chunks.
+
+## Query-scoped rows
+
+The example advertises query-scoped CLR rows by default. With exact `TABLE`/`COUPLE` metadata,
+the engine can emit a private typed carrier and the datasource materializes accepted records
+through a concrete CSV ref-struct reader. Direct header mode exposes header names as nullable
+strings; headerless mode exposes `Column0`, `Column1`, and so on. The legacy `CsvRow` source is
+preserved and can be selected explicitly for comparison or compatibility:
+
+```csharp
+var optimized = new CsvSchemaProvider();
+var legacy = new CsvSchemaProvider(enableQueryScopedRows: false);
+```
+
+Both paths use the same source plan, conversion rules, chunking, diagnostics, cancellation, and
+error behavior. Accepted predicates, ordering, skip, and take run on raw CSV records before the
+query-scoped materializer, so rejected records do not allocate a generated carrier. See
+[Query-scoped CLR rows for dynamic sources](../../../../../docs/query-scoped-dynamic-sources.md)
+for the format-neutral contract, lifecycle obligations, qualification evidence, and provider
+activation checklist.

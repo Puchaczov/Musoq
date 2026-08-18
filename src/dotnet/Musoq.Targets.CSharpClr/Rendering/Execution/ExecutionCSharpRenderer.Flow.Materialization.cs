@@ -299,6 +299,7 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateChunkedLoop(
             item,
             source,
+            CreateChunkedLoopBreakTarget(item, context.Session),
             context,
             (itemAccessExpression, indexVariableName) =>
             [

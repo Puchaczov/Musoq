@@ -149,15 +149,19 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         var session = context.Session;
+        var breakTarget = CreateChunkedLoopBreakTarget(item, session);
         return CreateChunkedLoop(
             item,
             source,
+            breakTarget,
             context,
             (itemAccessExpression, indexVariableName) =>
             {
                 var bodyStatements = CreateChunkedLoopBodyPrefix(item, itemAccessExpression, indexVariableName, context);
                 bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, operatorNode));
-                bodyStatements.AddRange(RenderBlock(body, context).Statements);
+                bodyStatements.AddRange(ChunkedLoopBreakRewriter.Rewrite(
+                    RenderBlock(body, context).Statements,
+                    breakTarget));
                 return bodyStatements;
             });
     }
@@ -171,6 +175,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         var session = context.Session;
+        var breakTarget = CreateChunkedLoopBreakTarget(item, session);
         return StatementEmitter.CreateBlock(
             CreateLocalDeclaration(
                 CreateTypeSyntax(typeof(int)),
@@ -181,12 +186,15 @@ public sealed partial class ExecutionCSharpRenderer
             CreateChunkedLoop(
                 item,
                 source,
+                breakTarget,
                 context,
                 (itemAccessExpression, indexVariableName) =>
                 {
                     var bodyStatements = CreateChunkedLoopBodyPrefix(item, itemAccessExpression, indexVariableName, context);
                     bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, operatorNode));
-                    bodyStatements.AddRange(RenderBlock(body, context).Statements);
+                    bodyStatements.AddRange(ChunkedLoopBreakRewriter.Rewrite(
+                        RenderBlock(body, context).Statements,
+                        breakTarget));
                     bodyStatements.Add(SyntaxFactory.ExpressionStatement(
                         SyntaxFactory.PrefixUnaryExpression(
                             SyntaxKind.PreIncrementExpression,
@@ -198,13 +206,25 @@ public sealed partial class ExecutionCSharpRenderer
     private StatementSyntax CreateChunkedLoop(
         ExecutionVariable item,
         ExecutionExpression source,
+        string breakTarget,
         ExecutionRenderContext context,
         Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements)
     {
         return ChunkedLoopSyntaxFactory.Create(
             item,
             RenderExpression(source, context),
+            breakTarget,
             createBodyStatements);
+    }
+
+    private static string CreateChunkedLoopBreakTarget(
+        ExecutionVariable item,
+        ExecutionRenderSession session)
+    {
+        var disambiguator = session.ChunkedLoopBreakTargetCount++;
+        return GeneratedRowNamingPolicy.CreateRendererIdentifierCandidate(
+            $"__{item.Name}ChunkLoopEnd",
+            disambiguator);
     }
 
     private List<StatementSyntax> CreateChunkedLoopBodyPrefix(

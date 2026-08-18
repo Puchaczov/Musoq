@@ -27,6 +27,8 @@ internal sealed class CsvDataSourceApiRecorder
     public List<CsvPlanCall> PlanCalls { get; } = [];
 
     public List<CsvRowSourceCall> RowSourceCalls { get; } = [];
+
+    public List<CsvQueryRowSourceCall> QueryRowSourceCalls { get; } = [];
 }
 
 internal sealed record CsvSourceMetadataSnapshot(
@@ -106,3 +108,10 @@ internal sealed record CsvRowSourceCall(
     CsvSourceExecutionSnapshot Execution,
     IReadOnlyList<object?> Parameters,
     Type RequestedRowType);
+
+internal sealed record CsvQueryRowSourceCall(
+    string Name,
+    CsvSourceExecutionSnapshot Execution,
+    IReadOnlyList<object?> Parameters,
+    Type RequestedRowType,
+    string ShapeFingerprint);

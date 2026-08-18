@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Linq;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -54,6 +56,76 @@ internal static class ExecutionBindingInvariantValidator
                 }
             }
         }
+
+        foreach (var sourceScan in ExecutionIrAnalysis.FlattenNodes(plan.Body).OfType<ExecutionSourceScan>())
+        {
+            if (sourceScan.Binding.QueryRowSourceTransfer is not { } transfer)
+                continue;
+
+            ValidateQueryRowTransfer(sourceScan, transfer);
+        }
+    }
+
+    private static void ValidateQueryRowTransfer(
+        ExecutionSourceScan sourceScan,
+        ExecutionQueryRowSourceTransfer transfer)
+    {
+        var sourceId = sourceScan.Binding.RuntimeContextId;
+        if (sourceScan.Binding.Fields.Count != transfer.Fields.Count)
+        {
+            throw new InvalidOperationException(
+                $"Execution query-row transfer for source '{sourceId}' has {transfer.Fields.Count} fields, " +
+                $"but its generated source binding has {sourceScan.Binding.Fields.Count} fields.");
+        }
+
+        for (var slot = 0; slot < transfer.Fields.Count; slot++)
+        {
+            var transferField = transfer.Fields[slot];
+            if (transferField.Slot != slot)
+            {
+                throw new InvalidOperationException(
+                    $"Execution query-row transfer for source '{sourceId}' has non-dense field slots.");
+            }
+
+            Type fieldType;
+            try
+            {
+                fieldType = transferField.FieldType.ResolveClrType();
+            }
+            catch (NotSupportedException exception)
+            {
+                throw new InvalidOperationException(
+                    $"Execution query-row transfer field '{sourceId}.{transferField.Name}' has no usable CLR binding.",
+                    exception);
+            }
+
+            if (fieldType == typeof(object) || !QueryRowField.IsSupportedFieldType(fieldType))
+            {
+                throw new InvalidOperationException(
+                    $"Execution query-row transfer field '{sourceId}.{transferField.Name}' has unsupported CLR type '{fieldType}'.");
+            }
+
+            var binding = sourceScan.Binding.Fields[slot];
+            var expectedAccess = QueryRowSourceNaming.CreateFieldName(slot);
+            if (binding.OutputIndex != slot ||
+                !string.Equals(binding.Name, transferField.Name, StringComparison.Ordinal) ||
+                !string.Equals(binding.Type.StableId, transferField.FieldType.StableId, StringComparison.Ordinal) ||
+                binding.AccessStrategy is not GeneratedFieldAccess generatedAccess ||
+                !string.Equals(generatedAccess.FieldName, expectedAccess, StringComparison.Ordinal) ||
+                !ReadModifiersMatch(binding.ReadModifiers, transferField.ReadModifiers))
+            {
+                throw new InvalidOperationException(
+                    $"Execution query-row transfer field '{sourceId}.{transferField.Name}' is incompatible with its generated source binding at slot {slot}.");
+            }
+        }
+    }
+
+    private static bool ReadModifiersMatch(
+        IReadOnlyDictionary<string, string> left,
+        IReadOnlyDictionary<string, string> right)
+    {
+        return left.Count == right.Count && left.All(pair =>
+            right.TryGetValue(pair.Key, out var value) && string.Equals(pair.Value, value, StringComparison.Ordinal));
     }
 
     private static bool TryFindField(RowShape shape, string fieldName, out FieldBinding field)

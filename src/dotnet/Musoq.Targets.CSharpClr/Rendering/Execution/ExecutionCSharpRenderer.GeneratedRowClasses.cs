@@ -78,6 +78,9 @@ public sealed partial class ExecutionCSharpRenderer
         GeneratedRowShape shape,
         ExecutionRenderContext context)
     {
+        if (shape.IsQueryScopedRow)
+            return GeneratedRowCarrierBoundary.Internal;
+
         if (context.Session.GeneratedRowTypesUsedAtPublicBoundary.Contains(shape.TypeName))
             return GeneratedRowCarrierBoundary.Public;
 

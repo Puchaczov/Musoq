@@ -87,6 +87,9 @@ public sealed partial class ExecutionCSharpRenderer
             var tableRowShapesByVariableName = CreateTableRowShapeMap(plan.Body);
             session.TableRowShapesByVariableName = tableRowShapesByVariableName;
 
+            members.AddRange(CreateQueryRowShapeFields(plan.Body));
+            members.AddRange(CreateQueryRowMaterializers(plan.Body));
+
             foreach (var shape in plan.Shapes)
             {
                 switch (shape)

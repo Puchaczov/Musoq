@@ -49,6 +49,8 @@ ExecutionPlan [compiled]
         Break
       AppendShape [result <- ResultShape0(FirstName: ko3iko.FirstName, LastName: ko3iko.LastName, Email: ko3iko.Email)]
       Assign [__resultTakeRemaining = (__resultTakeRemaining - 1)]
+      If [(__resultTakeRemaining <= 0)]
+        Break
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
 
@@ -119,91 +121,108 @@ namespace GeneratedSample_Q103_RuntimeV2SkipTakeNoOrder
                 var ko3ikoRows = ko3ikoRowsSource.Chunks;
                 int __resultSkipRemaining = 100;
                 int __resultTakeRemaining = 100;
-                foreach (var ko3ikoChunk in ko3ikoRows)
                 {
-                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity> ko3ikoChunkView)
+                    foreach (var ko3ikoChunk in ko3ikoRows)
                     {
-                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity[] ko3ikoChunkViewArray)
+                        if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity> ko3ikoChunkView)
                         {
-                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                            if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity[] ko3ikoChunkViewArray)
                             {
-                                if ((ko3ikoIndex & 1023) == 0)
+                                int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                                for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                                 {
-                                    token.ThrowIfCancellationRequested();
+                                    if ((ko3ikoIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                    if ((__resultSkipRemaining > 0))
+                                    {
+                                        __resultSkipRemaining = (__resultSkipRemaining - 1);
+                                        continue;
+                                    }
+
+                                    if ((__resultTakeRemaining <= 0))
+                                    {
+                                        goto __ko3ikoChunkLoopEnd;
+                                    }
+
+                                    yield return new ResultShape0(ko3iko.FirstName, ko3iko.LastName, ko3iko.Email);
+                                    __resultTakeRemaining = (__resultTakeRemaining - 1);
+                                    if ((__resultTakeRemaining <= 0))
+                                    {
+                                        goto __ko3ikoChunkLoopEnd;
+                                    }
                                 }
 
-                                var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                if ((__resultSkipRemaining > 0))
-                                {
-                                    __resultSkipRemaining = (__resultSkipRemaining - 1);
-                                    continue;
-                                }
-
-                                if ((__resultTakeRemaining <= 0))
-                                {
-                                    break;
-                                }
-
-                                yield return new ResultShape0(ko3iko.FirstName, ko3iko.LastName, ko3iko.Email);
-                                __resultTakeRemaining = (__resultTakeRemaining - 1);
+                                continue;
                             }
 
-                            continue;
+                            if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity> ko3ikoChunkViewList)
+                            {
+                                int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                                for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                                {
+                                    if ((ko3ikoIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                    if ((__resultSkipRemaining > 0))
+                                    {
+                                        __resultSkipRemaining = (__resultSkipRemaining - 1);
+                                        continue;
+                                    }
+
+                                    if ((__resultTakeRemaining <= 0))
+                                    {
+                                        goto __ko3ikoChunkLoopEnd;
+                                    }
+
+                                    yield return new ResultShape0(ko3iko.FirstName, ko3iko.LastName, ko3iko.Email);
+                                    __resultTakeRemaining = (__resultTakeRemaining - 1);
+                                    if ((__resultTakeRemaining <= 0))
+                                    {
+                                        goto __ko3ikoChunkLoopEnd;
+                                    }
+                                }
+
+                                continue;
+                            }
                         }
 
-                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity> ko3ikoChunkViewList)
+                        for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                         {
-                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                            if ((ko3ikoIndex & 1023) == 0)
                             {
-                                if ((ko3ikoIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                if ((__resultSkipRemaining > 0))
-                                {
-                                    __resultSkipRemaining = (__resultSkipRemaining - 1);
-                                    continue;
-                                }
-
-                                if ((__resultTakeRemaining <= 0))
-                                {
-                                    break;
-                                }
-
-                                yield return new ResultShape0(ko3iko.FirstName, ko3iko.LastName, ko3iko.Email);
-                                __resultTakeRemaining = (__resultTakeRemaining - 1);
+                                token.ThrowIfCancellationRequested();
                             }
 
-                            continue;
+                            var ko3iko = ko3ikoChunk[ko3ikoIndex];
+                            if ((__resultSkipRemaining > 0))
+                            {
+                                __resultSkipRemaining = (__resultSkipRemaining - 1);
+                                continue;
+                            }
+
+                            if ((__resultTakeRemaining <= 0))
+                            {
+                                goto __ko3ikoChunkLoopEnd;
+                            }
+
+                            yield return new ResultShape0(ko3iko.FirstName, ko3iko.LastName, ko3iko.Email);
+                            __resultTakeRemaining = (__resultTakeRemaining - 1);
+                            if ((__resultTakeRemaining <= 0))
+                            {
+                                goto __ko3ikoChunkLoopEnd;
+                            }
                         }
                     }
 
-                    for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
-                    {
-                        if ((ko3ikoIndex & 1023) == 0)
-                        {
-                            token.ThrowIfCancellationRequested();
-                        }
-
-                        var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                        if ((__resultSkipRemaining > 0))
-                        {
-                            __resultSkipRemaining = (__resultSkipRemaining - 1);
-                            continue;
-                        }
-
-                        if ((__resultTakeRemaining <= 0))
-                        {
-                            break;
-                        }
-
-                        yield return new ResultShape0(ko3iko.FirstName, ko3iko.LastName, ko3iko.Email);
-                        __resultTakeRemaining = (__resultTakeRemaining - 1);
-                    }
+                    __ko3ikoChunkLoopEnd:
+                        ;
                 }
             }
             finally

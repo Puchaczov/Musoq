@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -9,12 +10,13 @@ internal static class ChunkedLoopSyntaxFactory
     public static StatementSyntax Create(
         ExecutionVariable item,
         ExpressionSyntax sourceExpression,
+        string breakTarget,
         Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements)
     {
         var chunkVariableName = CreateIdentifierCandidate($"{item.Name}Chunk", 0);
         var indexVariableName = CreateIdentifierCandidate($"{item.Name}Index", 0);
 
-        return StatementEmitter.CreateForeach(
+        var loop = StatementEmitter.CreateForeach(
             chunkVariableName,
             sourceExpression,
             TryCreateFastPathItemType(item, out var itemType)
@@ -27,6 +29,19 @@ internal static class ChunkedLoopSyntaxFactory
                     chunkVariableName,
                     indexVariableName,
                     createBodyStatements));
+
+        var exitsLogicalLoop = loop.DescendantNodes()
+            .OfType<GotoStatementSyntax>()
+            .Any(statement => statement.Expression is IdentifierNameSyntax identifier &&
+                              identifier.Identifier.ValueText == breakTarget);
+        if (!exitsLogicalLoop)
+            return loop;
+
+        return StatementEmitter.CreateBlock(
+            loop,
+            SyntaxFactory.LabeledStatement(
+                breakTarget,
+                SyntaxFactory.EmptyStatement()));
     }
 
     private static bool TryCreateFastPathItemType(ExecutionVariable item, out TypeSyntax itemType)

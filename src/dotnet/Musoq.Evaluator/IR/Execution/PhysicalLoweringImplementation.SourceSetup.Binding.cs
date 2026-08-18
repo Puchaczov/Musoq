@@ -76,7 +76,10 @@ internal sealed partial class PhysicalLoweringImplementation
             scan.Arguments.Select(argument => ExecutionExpressionConverter.Convert(argument, sourceLookup, cteIndexes)).ToArray(),
             sourceShape.Fields,
             CreateColumnMetadata(scan.Alias, sourceShape.Fields, ExecutionColumnMetadataKind.SourceSchemaColumns),
-            RowShapeLookup.ResolveSourceRequestType(sourceShape));
+            RowShapeLookup.ResolveSourceRequestType(sourceShape),
+            scan.SourceTransferStrategy is { Mode: SourceTransferMode.QueryScopedRows } transfer
+                ? ExecutionQueryRowSourceTransfer.FromPlanner(transfer)
+                : null);
     }
 
     private static string CreateRuntimeContextIdentifier(string alias)

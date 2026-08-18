@@ -10,6 +10,17 @@ public sealed partial class ExecutionShapeResolver
     public RowShape ResolveSourceShape(PhysicalSchemaScanNode scan)
     {
         ArgumentNullException.ThrowIfNull(scan);
+
+        if (scan.SourceTransferStrategy is
+            {
+                Mode: SourceTransferMode.QueryScopedRows,
+                Carrier: not null,
+                Shape: not null
+            } transfer)
+        {
+            return QueryRowSourceShapeFactory.Create(scan.Alias, transfer);
+        }
+
         var entityType = ResolveEntityType(scan.Alias);
         var columns = ResolveColumns(scan);
         var scalarShape = IsScalar(entityType)

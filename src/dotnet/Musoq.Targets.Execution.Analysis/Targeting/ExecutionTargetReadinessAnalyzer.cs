@@ -109,6 +109,7 @@ internal static class ExecutionTargetReadinessAnalyzer
             ExecutionTargetRequirementKind.GeneratedClrRow => ExecutionTargetReadinessCategory.GeneratedRowShape,
             ExecutionTargetRequirementKind.PluginInvocation => ExecutionTargetReadinessCategory.PluginInvocation,
             ExecutionTargetRequirementKind.HostSourceAccess => ExecutionTargetReadinessCategory.HostSourceAccess,
+            ExecutionTargetRequirementKind.QueryRowSourceAccess => ExecutionTargetReadinessCategory.HostSourceAccess,
             ExecutionTargetRequirementKind.NullTypeCoercion => ExecutionTargetReadinessCategory.NullTypeCoercion,
             ExecutionTargetRequirementKind.ProfilingDiagnostics => ExecutionTargetReadinessCategory.ProfilingDiagnostics,
             ExecutionTargetRequirementKind.Cancellation => ExecutionTargetReadinessCategory.Cancellation,

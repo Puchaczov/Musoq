@@ -14,6 +14,8 @@ public sealed record SourceDescriptor
 
     public IReadOnlyList<SourceContractDiagnostic> ContractDiagnostics { get; init; } = [];
 
+    public SourceTransferCapabilities TransferCapabilities { get; init; }
+
     public static SourceDescriptor Empty(SourceIdentity identity)
     {
         return new SourceDescriptor { Identity = identity };

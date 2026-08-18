@@ -27,7 +27,7 @@ public sealed class CsvSourcePlanningExecutionTests : CsvExampleTestBase
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("Ada", table[0][0]);
         Assert.AreEqual("Cyd", table[1][0]);
-        Assert.IsNotNull(recorder.RowSourceCalls.Single().Execution.Plan.AcceptedPredicate);
+        Assert.IsNotNull(recorder.QueryRowSourceCalls.Single().Execution.Plan.AcceptedPredicate);
     }
 
     [TestMethod]
@@ -52,7 +52,7 @@ public sealed class CsvSourcePlanningExecutionTests : CsvExampleTestBase
         Assert.AreEqual("Cyd", table[0][0]);
         Assert.AreEqual("Dee", table[1][0]);
 
-        var executionPlan = recorder.RowSourceCalls.Single().Execution.Plan;
+        var executionPlan = recorder.QueryRowSourceCalls.Single().Execution.Plan;
         Assert.AreEqual(1, executionPlan.AcceptedOrderBy.Count);
         Assert.AreEqual("Amount", executionPlan.AcceptedOrderBy[0].Column.Name);
         Assert.AreEqual(OrderDirection.Descending, executionPlan.AcceptedOrderBy[0].Direction);

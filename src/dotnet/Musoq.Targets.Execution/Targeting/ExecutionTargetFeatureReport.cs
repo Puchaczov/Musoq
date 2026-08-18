@@ -17,7 +17,8 @@ internal enum ExecutionTargetFeatureKind
     ReadModifier,
     TypePortability,
     Container,
-    DynamicValue
+    DynamicValue,
+    QueryRowSourceAccess
 }
 
 internal sealed record ExecutionTargetFeature

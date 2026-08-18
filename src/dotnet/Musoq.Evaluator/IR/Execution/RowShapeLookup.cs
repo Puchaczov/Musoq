@@ -107,6 +107,7 @@ internal static class RowShapeLookup
             TableRowShape tableRow => tableRow.Alias,
             ValuesRowShape values => values.Alias,
             ExpandoAdapterShape expando => expando.Alias,
+            GeneratedRowShape generated when generated.IsQueryScopedRow => generated.SourceAlias ?? string.Empty,
             _ => string.Empty
         };
 

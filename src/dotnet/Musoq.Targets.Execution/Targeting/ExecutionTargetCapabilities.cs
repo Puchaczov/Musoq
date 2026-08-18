@@ -37,6 +37,7 @@ internal sealed record ExecutionTargetCapabilities(
             ExecutionTargetRequirementKind.GeneratedClrRow,
             ExecutionTargetRequirementKind.PluginInvocation,
             ExecutionTargetRequirementKind.HostSourceAccess,
+            ExecutionTargetRequirementKind.QueryRowSourceAccess,
             ExecutionTargetRequirementKind.NullTypeCoercion,
             ExecutionTargetRequirementKind.ProfilingDiagnostics,
             ExecutionTargetRequirementKind.Cancellation,
@@ -44,6 +45,7 @@ internal sealed record ExecutionTargetCapabilities(
         ],
         [
             ExecutionTargetRequirementKind.HostSourceAccess,
+            ExecutionTargetRequirementKind.QueryRowSourceAccess,
             ExecutionTargetRequirementKind.GeneratedClrRow,
             ExecutionTargetRequirementKind.PluginInvocation,
             ExecutionTargetRequirementKind.NullTypeCoercion,
@@ -65,7 +67,8 @@ internal sealed record ExecutionTargetCapabilities(
             ExecutionTargetFeatureKind.ReadModifier,
             ExecutionTargetFeatureKind.TypePortability,
             ExecutionTargetFeatureKind.Container,
-            ExecutionTargetFeatureKind.DynamicValue
+            ExecutionTargetFeatureKind.DynamicValue,
+            ExecutionTargetFeatureKind.QueryRowSourceAccess
         ]);
 
     public static ExecutionTargetCapabilities Create(params ExecutionTargetRequirementKind[] supportedRequirementKinds)

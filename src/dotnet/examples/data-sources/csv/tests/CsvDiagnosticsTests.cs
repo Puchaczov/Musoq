@@ -130,7 +130,7 @@ public sealed class CsvDiagnosticsTests : CsvExampleTestBase
     }
 
     [TestMethod]
-    public void Inspect_WhenCsvQueryIsGenerated_ShouldUsePositionalCsvRowAccess()
+    public void Inspect_WhenCsvQueryIsGenerated_ShouldUseTypedQueryRowAccess()
     {
         var path = WriteTempCsv("Name\nAda\n");
         var query =
@@ -138,11 +138,12 @@ public sealed class CsvDiagnosticsTests : CsvExampleTestBase
             "couple #csv.file with table CsvShape as Rows;" +
             $"select Name from Rows({SqlString(path)}, true)";
 
-        var inspection = Inspect(query);
+        var inspection = Inspect(query, new CsvSchemaProvider(enableQueryScopedRows: true));
 
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "CsvRow");
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "GetRowSource<Musoq.Examples.DataSources.Csv.CsvRow>");
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "[0]");
+        StringAssert.Contains(inspection.GeneratedCSharpCode, "GetQueryScopedRowSource<");
+        StringAssert.Contains(inspection.GeneratedCSharpCode, "IQuerySourceFieldReader");
+        StringAssert.Contains(inspection.GeneratedCSharpCode, "Read<string>(0)");
+        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetRowSource<Musoq.Examples.DataSources.Csv.CsvRow>", StringComparison.Ordinal));
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetRowSourceChunks", StringComparison.Ordinal));
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetColumnValue", StringComparison.Ordinal));
     }

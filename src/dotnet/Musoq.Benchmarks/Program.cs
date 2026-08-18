@@ -7,6 +7,10 @@ if (args is ["compare-reports", .. var comparisonArgs])
     return BenchmarkComparisonCommand.Run(comparisonArgs, Console.Out, Console.Error);
 if (args is ["gate-recursive", .. var recursiveArgs])
     return RecursiveCteBenchmarkGateCommand.Run(recursiveArgs, Console.Out, Console.Error);
+if (args is ["gate-query-rows", .. var queryRowArgs])
+    return QueryRowQualificationGateCommand.Run(queryRowArgs, Console.Out, Console.Error);
+if (args is ["jit-query-row"])
+    return QueryRowJitProbe.Run(Console.Out);
 
 #if DEBUG
 BenchmarkRunner.Run<JoinBenchmark>(new DebugInProcessConfig());
