@@ -10,6 +10,7 @@ public partial class BinaryOrTextualAdvancedFormatsTests
     #region Advanced Text Schema Tests
 
     [TestMethod]
+    [FeatureEvidence("text-interpretation", FeatureEvidenceKind.RuntimePositive)]
     public void Query_SelectParse_KeyValueConfig_WithTrim_ShouldParse()
     {
         // Arrange: Simple key=value configuration parsing

@@ -23,8 +23,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             .ToArray();
         var missingTableContractSamples = samples
             .Where(static sample =>
-                !sample.Content.Contains("BaseOperations, ITableRunnable, IParameterizedRunnable", StringComparison.Ordinal) &&
-                !sample.Content.Contains("BaseOperations, ITableRunnable, IContextTableRunnable, IParameterizedRunnable", StringComparison.Ordinal))
+                !sample.Content.Contains("BaseOperations, ITableRunnable,", StringComparison.Ordinal) ||
+                !sample.Content.Contains("IQueryProgressSource", StringComparison.Ordinal))
             .Select(static sample => sample.FileName)
             .ToArray();
 
@@ -111,13 +111,16 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         var simpleSelect = samples["Q01_SimpleSelectWhere.cs"].Content;
         Assert.Contains("var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource", simpleSelect);
-        Assert.Contains("var ko3ikoRows = ko3ikoRowsSource.Chunks;", simpleSelect);
+        Assert.Contains("var ko3ikoRows =", simpleSelect);
+        Assert.Contains("ko3ikoRowsSource.Chunks", simpleSelect);
 
         var innerJoin = samples["Q03_InnerJoin.cs"].Content;
         Assert.Contains("var aRowsSource = __aSchema.GetRowSource", innerJoin);
-        Assert.Contains("var aRows = aRowsSource.Chunks;", innerJoin);
+        Assert.Contains("var aRows =", innerJoin);
+        Assert.Contains("aRowsSource.Chunks", innerJoin);
         Assert.Contains("var bRowsSource = __bSchema.GetRowSource", innerJoin);
-        Assert.Contains("var bRows = bRowsSource.Chunks;", innerJoin);
+        Assert.Contains("var bRows =", innerJoin);
+        Assert.Contains("bRowsSource.Chunks", innerJoin);
     }
 
     [TestMethod]
@@ -148,6 +151,34 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                 sample,
                 Regex.Escape(aggressiveInliningAttribute) + @"\s+private void OnPhaseChanged"),
             "OnPhaseChanged should be aggressively inlined.");
+    }
+
+    [TestMethod]
+    public void GeneratedQueryProgressAndPhaseMarkers_WhenCheckedIn_ShouldStayOutsideRowLoops()
+    {
+        var generatedCode = ExtractGeneratedCodeSection(ReadSample("Q01_SimpleSelectWhere.cs").Content);
+
+        Assert.DoesNotContain("private void CompleteQueryProgress(", generatedCode);
+        Assert.DoesNotContain("private void OnQueryProgress(", generatedCode);
+        Assert.DoesNotContain("Action CompleteQueryProgress", generatedCode);
+        Assert.Contains("__musoqProgressContext?.CompleteQueryProgress();", generatedCode);
+        Assert.Contains("__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks", generatedCode);
+
+        var beginIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.Begin);", StringComparison.Ordinal);
+        var fromIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.From);", StringComparison.Ordinal);
+        var sourceIndex = generatedCode.IndexOf("var __ko3ikoSchema = provider.GetSchema", StringComparison.Ordinal);
+        var rowsIndex = generatedCode.IndexOf("var ko3ikoRows =", StringComparison.Ordinal);
+        var whereIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.Where);", StringComparison.Ordinal);
+        var selectIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.Select);", StringComparison.Ordinal);
+        var loopIndex = generatedCode.IndexOf("foreach (var ko3ikoChunk in ko3ikoRows)", StringComparison.Ordinal);
+
+        Assert.IsGreaterThanOrEqualTo(0, beginIndex);
+        Assert.IsLessThan(fromIndex, beginIndex);
+        Assert.IsLessThan(sourceIndex, fromIndex);
+        Assert.IsLessThan(rowsIndex, sourceIndex);
+        Assert.IsLessThan(whereIndex, rowsIndex);
+        Assert.IsLessThan(selectIndex, whereIndex);
+        Assert.IsLessThan(loopIndex, selectIndex);
     }
 
     [TestMethod]
@@ -247,7 +278,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "ParallelSingleKeyAggregate_0(");
 
         AssertScriptParameterBinderCount(ScriptParameterJoinHelperCaptureSampleFileName, join, 2);
-        Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults, paramSuffix);", join);
+        Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, paramSuffix);", join);
         Assert.Contains("CteRowResults _cteRowResults, string paramSuffix)", join);
         Assert.Contains("var __storedTable0Rows = _cteRowResults.Slot0;", join);
         Assert.Contains("Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];", join);
@@ -260,7 +291,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "_cteRowResults.Slot0 = BuildCte0(");
 
         AssertScriptParameterBinderCount(ScriptParameterCteHelperCaptureSampleFileName, cte, 1);
-        Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults, _cteIndexResults, paramCountry);", cte);
+        Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, _cteIndexResults, paramCountry);", cte);
         Assert.Contains("CteRowResults _cteRowResults, CteIndexResults _cteIndexResults, string paramCountry)", cte);
         Assert.Contains("if ((ko3iko.Country == paramCountry))", cte);
         AssertTopLevelBindingBefore(

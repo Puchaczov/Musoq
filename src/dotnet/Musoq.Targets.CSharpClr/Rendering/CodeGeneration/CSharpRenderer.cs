@@ -124,6 +124,7 @@ public sealed partial class CSharpRenderer
                     rowsMethodName,
                     tableResultInfo,
                     tableRenderPlan.FinalSinkPlans.TableDirectProjection,
+                    useQueryRunContext: _context.EnableContextualExecution,
                     out var tableDirectRowsMethod,
                     out tableDirectRowsMetadata))
             {
@@ -139,6 +140,7 @@ public sealed partial class CSharpRenderer
                     shapeRowsMethodName,
                     rowsMethodName,
                     tableResultInfo,
+                    useQueryRunContext: _context.EnableContextualExecution,
                     out var tableShapeStreamingRowsAdapterMethod,
                     out var tableShapeStreamingRowsMetadata))
             {
@@ -153,7 +155,11 @@ public sealed partial class CSharpRenderer
             return ExecutionQueryRenderOutcome.Rendered(
                 new QueryMethodRenderResult(
                     rowsMethodName,
-                    CreateTableBackedRowsFromTableMethod(rowsMethodName, tableMethodName, tableResultInfo.RowTypeName),
+                    CreateTableBackedRowsFromTableMethod(
+                        rowsMethodName,
+                        tableMethodName,
+                        tableResultInfo.RowTypeName,
+                        _context.EnableContextualExecution),
                     tableDirectRowsMetadata));
         }
 
@@ -203,6 +209,7 @@ public sealed partial class CSharpRenderer
                 rowsMethodName,
                 resultInfo,
                 renderPlan.FinalSinkPlans.TableDirectProjection,
+                useQueryRunContext: _context.EnableContextualExecution,
                 out var tableDirectRowsMethod,
                 out tableDirectRowsMetadata))
         {
@@ -218,6 +225,7 @@ public sealed partial class CSharpRenderer
                 shapeRowsMethodName,
                 rowsMethodName,
                 resultInfo,
+                useQueryRunContext: _context.EnableContextualExecution,
                 out var tableShapeStreamingRowsAdapterMethod,
                 out var tableShapeStreamingRowsMetadata))
         {
@@ -230,9 +238,13 @@ public sealed partial class CSharpRenderer
 
         _context.AddClassMember(executionRenderer.RenderMethod(plan, tableMethodName, queryIdentifier));
         return ExecutionQueryRenderOutcome.Rendered(
-            new QueryMethodRenderResult(
-                rowsMethodName,
-                CreateRowsFromTableMethod(rowsMethodName, tableMethodName, resultInfo.RowTypeName),
+                new QueryMethodRenderResult(
+                    rowsMethodName,
+                CreateRowsFromTableMethod(
+                    rowsMethodName,
+                    tableMethodName,
+                    resultInfo.RowTypeName,
+                    _context.EnableContextualExecution),
                 tableDirectRowsMetadata));
     }
 
@@ -342,9 +354,12 @@ public sealed partial class CSharpRenderer
     private static MethodDeclarationSyntax CreateRowsFromTableMethod(
         string rowsMethodName,
         string tableMethodName,
-        string rowTypeName)
+        string rowTypeName,
+        bool useQueryRunContext)
     {
-        var tableCall = $"{tableMethodName}(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token)";
+        var tableCall = useQueryRunContext
+            ? $"{tableMethodName}(queryContext.Provider!, queryContext.SourceRuntimeSettingsBySourceContextId, queryContext.SourceExecutionPlans, queryContext.Logger!, queryContext.CancellationToken)"
+            : $"{tableMethodName}(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token)";
         var rowsExpression = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName("__musoqRowsTable"),
@@ -366,16 +381,21 @@ public sealed partial class CSharpRenderer
                 SyntaxFactory.ParseTypeName($"IEnumerable<{rowTypeName}>"),
                 SyntaxFactory.Identifier(rowsMethodName))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
-            .WithParameterList(MethodDeclarationHelper.CreateStandardParameterList())
+            .WithParameterList(useQueryRunContext
+                ? MethodDeclarationHelper.CreateTypedRunContextParameterList()
+                : MethodDeclarationHelper.CreateStandardParameterList())
             .WithBody(body);
     }
 
     private static MethodDeclarationSyntax CreateTableBackedRowsFromTableMethod(
         string rowsMethodName,
         string tableMethodName,
-        string rowTypeName)
+        string rowTypeName,
+        bool useQueryRunContext)
     {
-        var tableCall = $"{tableMethodName}(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token)";
+        var tableCall = useQueryRunContext
+            ? $"{tableMethodName}(queryContext.Provider!, queryContext.SourceRuntimeSettingsBySourceContextId, queryContext.SourceExecutionPlans, queryContext.Logger!, queryContext.CancellationToken)"
+            : $"{tableMethodName}(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token)";
         var body = SyntaxFactory.Block(SyntaxFactory.ReturnStatement(
             SyntaxFactory.ParseExpression($"QueryRows.FromTable<{rowTypeName}>({tableCall})")));
 
@@ -383,7 +403,9 @@ public sealed partial class CSharpRenderer
                 SyntaxFactory.ParseTypeName($"IEnumerable<{rowTypeName}>"),
                 SyntaxFactory.Identifier(rowsMethodName))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
-            .WithParameterList(MethodDeclarationHelper.CreateStandardParameterList())
+            .WithParameterList(useQueryRunContext
+                ? MethodDeclarationHelper.CreateTypedRunContextParameterList()
+                : MethodDeclarationHelper.CreateStandardParameterList())
             .WithBody(body);
     }
 

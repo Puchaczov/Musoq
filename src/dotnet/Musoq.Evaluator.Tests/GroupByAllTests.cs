@@ -29,6 +29,7 @@ public class GroupByAllTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    [FeatureEvidence("group-by-all", FeatureEvidenceKind.RuntimePositive)]
     public void GroupByAll_WhenSelectHasMultipleKeys_ShouldGroupByAllNonAggregates()
     {
         const string query = "select Country, City, Sum(Population) as Total from #A.Entities() group by all order by Country, City";

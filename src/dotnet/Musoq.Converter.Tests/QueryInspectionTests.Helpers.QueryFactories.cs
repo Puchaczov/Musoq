@@ -97,7 +97,7 @@ public partial class QueryInspectionTests
         return "select d.Dummy as Dummy, Count(1) as Count from #system.dual() d group by d.Dummy union all (Dummy) select e.Dummy as Dummy, Count(1) as Count from #system.dual() e group by e.Dummy";
     }
 
-    private static string CreateRightSortedUnionAllQuery()
+    private static string CreateGloballySortedUnionAllQuery()
     {
         return "select 'b' as Dummy from #system.dual() d union all (Dummy) select 'a' as Dummy from #system.dual() e order by Dummy";
     }

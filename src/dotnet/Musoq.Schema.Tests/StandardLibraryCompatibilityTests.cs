@@ -63,6 +63,19 @@ public class StandardLibraryCompatibilityTests
     }
 
     [TestMethod]
+    public void StandardLibrary_DistributionRankingFactoriesShouldBePubliclyDiscoverable()
+    {
+        var aggregator = new MethodsAggregator(_methodsManager);
+
+        Assert.IsTrue(aggregator.TryResolveWindowFunction("percent_rank", out var percentRank));
+        Assert.IsTrue(aggregator.TryResolveWindowFunction("CUME_DIST", out var cumeDist));
+        Assert.AreEqual(nameof(LibraryBase.WindowPercentRank), percentRank.Name);
+        Assert.AreEqual(nameof(LibraryBase.WindowCumeDist), cumeDist.Name);
+        Assert.AreEqual(typeof(IWindowFunction<object, double>), percentRank.ReturnType);
+        Assert.AreEqual(typeof(IWindowFunction<object, double>), cumeDist.ReturnType);
+    }
+
+    [TestMethod]
     public void StandardLibrary_ExactMatchShouldTakePrecedence()
     {
         var commonMethods = new[]

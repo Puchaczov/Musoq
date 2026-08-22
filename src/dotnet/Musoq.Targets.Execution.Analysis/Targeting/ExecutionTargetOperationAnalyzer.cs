@@ -11,6 +11,7 @@ internal static class ExecutionTargetOperationAnalyzer
         ArgumentNullException.ThrowIfNull(plan);
 
         var operationIds = ExecutionIrAnalysis.FlattenNodes(plan.Body)
+            .Where(static node => node is not ExecutionPhaseBoundary)
             .Select(ExecutionOperationCatalog.Resolve)
             .Concat(ExecutionIrAnalysis.FlattenExpressions(plan.Body)
                 .Select(ExecutionOperationCatalog.Resolve));

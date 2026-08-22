@@ -49,9 +49,13 @@ ExecutionPlan [compiled]
       DistinctMax: int? <- field DistinctMax
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [i: GeneratedApplySampleEntity] -> iRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [GroupBy]
     CreateSingleKeyAggregateContext [groups: string -> ResultAggregateGroup]
+    PhaseBoundary [Select]
     ChunkedForEach [i in iRows]
       EnumerableSource [i.Numbers -> nRows]
       ChunkedForEach [n in nRows]
@@ -89,7 +93,7 @@ namespace GeneratedSample_Q70_ChainedApplyMixedDistinctMinMaxAggregateSort
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -111,6 +115,7 @@ namespace GeneratedSample_Q70_ChainedApplyMixedDistinctMinMaxAggregateSort
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -126,22 +131,25 @@ namespace GeneratedSample_Q70_ChainedApplyMixedDistinctMinMaxAggregateSort
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.GroupBy);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __iSchema = provider.GetSchema("#apply");
                 var iRowsSource = __iSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity>("items", new SourceExecutionContext("i:1", sourceExecutionPlans["i:1"], token, __schemaColumns_compiled_i_0, sourceRuntimeSettingsBySourceContextId["i:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var iRows = iRowsSource.Chunks;
+                var iRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity>(iRowsSource.Chunks, __musoqProgressContext, "i:1") : iRowsSource.Chunks;
                 var result = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.GroupBy);
                 var groupsToFinalize = new List<ResultAggregateGroup>();
                 var groups = new Dictionary<string, ResultAggregateGroup>();
                 ResultAggregateGroup nullGroup = null;
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var iChunk in iRows)
                 {
                     if (iChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity> iChunkView)
@@ -230,7 +238,14 @@ namespace GeneratedSample_Q70_ChainedApplyMixedDistinctMinMaxAggregateSort
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

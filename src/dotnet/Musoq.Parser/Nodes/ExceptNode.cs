@@ -10,6 +10,21 @@ public class ExceptNode : SetOperatorNode
         ResultTableName = tableName;
     }
 
+    public ExceptNode(
+        string tableName,
+        string[] keys,
+        Node left,
+        Node right,
+        bool isNested,
+        bool isTheLastOne,
+        OrderByNode? resultOrderBy,
+        SkipNode? resultSkip,
+        TakeNode? resultTake)
+        : base(TokenType.Except, keys, left, right, isNested, isTheLastOne, resultOrderBy, resultSkip, resultTake)
+    {
+        ResultTableName = tableName;
+    }
+
     public override void Accept(IExpressionVisitor visitor)
     {
         ArgumentNullException.ThrowIfNull(visitor);
@@ -19,6 +34,6 @@ public class ExceptNode : SetOperatorNode
     public override string ToString()
     {
         var keys = Keys.Length == 0 ? string.Empty : string.Join(",", Keys);
-        return $"{Left.ToString()} except ({keys}) {Right.ToString()}";
+        return $"{Left.ToString()} except ({keys}) {Right.ToString()}{FormatResultModifiers()}";
     }
 }

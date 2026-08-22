@@ -24,7 +24,7 @@ public sealed class NamedDatasourceDocumentationRatchetTests
         StringAssert.Contains(coreSpec, "known canonical prefix");
         StringAssert.Contains(coreSpec, "reflection enumeration order");
         StringAssert.Contains(coverage, "Named datasource arguments");
-        StringAssert.Contains(coverage, "16710 passed and 4 skipped");
+        StringAssert.Contains(coverage, "18353 passed, 4 intentionally skipped refresh utilities");
         StringAssert.Contains(coverage, "generated C# label erasure");
         StringAssert.Contains(readme, "reflected optional constructor defaults");
         StringAssert.Contains(readme, "never a dictionary");

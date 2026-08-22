@@ -10,6 +10,21 @@ public class IntersectNode : SetOperatorNode
         ResultTableName = tableName;
     }
 
+    public IntersectNode(
+        string tableName,
+        string[] keys,
+        Node left,
+        Node right,
+        bool isNested,
+        bool isTheLastOne,
+        OrderByNode? resultOrderBy,
+        SkipNode? resultSkip,
+        TakeNode? resultTake)
+        : base(TokenType.Intersect, keys, left, right, isNested, isTheLastOne, resultOrderBy, resultSkip, resultTake)
+    {
+        ResultTableName = tableName;
+    }
+
     public override void Accept(IExpressionVisitor visitor)
     {
         ArgumentNullException.ThrowIfNull(visitor);
@@ -19,6 +34,6 @@ public class IntersectNode : SetOperatorNode
     public override string ToString()
     {
         var keys = Keys.Length == 0 ? string.Empty : string.Join(",", Keys);
-        return $"{Left.ToString()} intersect ({keys}) {Right.ToString()}";
+        return $"{Left.ToString()} intersect ({keys}) {Right.ToString()}{FormatResultModifiers()}";
     }
 }

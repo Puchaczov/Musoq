@@ -44,10 +44,18 @@ internal sealed class SingleUsePipelineFusionPass : IExecutionIrOptimizationPass
             }
 
             var body = RewriteBlock(candidate.Body);
-            expandedNodes = [new ExecutionRelatedCtePhase(candidate.RelatedTableIndex), .. body.Nodes];
+            expandedNodes =
+            [
+                new ExecutionPhaseBoundary(
+                    QueryPhase.Begin,
+                    $":cte{candidate.RelatedTableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}"),
+                .. body.Nodes,
+                new ExecutionPhaseBoundary(
+                    QueryPhase.End,
+                    $":cte{candidate.RelatedTableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}")
+            ];
             ExpandedCandidates++;
             return true;
         }
     }
 }
-

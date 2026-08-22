@@ -35,10 +35,14 @@ ExecutionPlan [compiled]
       RunSum: decimal <- field RunSum
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [ko3iko: BasicEntity] -> ko3ikoRows
     MaterializeFilteredChunked [ko3ikoRows where (ko3iko.Population > 100) -> resultWindowRows]
     ComputeSumWindowKernel[BoundedRows] [resultSums <- resultWindowRows value ko3iko.Population order by ko3iko.Name ASC frame rows between 1 preceding and current row]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [Where]
+    PhaseBoundary [Select]
     ForEachIndexed [windowIndex, ko3iko in resultWindowRows]
       AppendShape [result <- ResultShape0(Name: ko3iko.Name, Population: ko3iko.Population, RunSum: resultSums[windowIndex])]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
@@ -63,7 +67,7 @@ namespace GeneratedSample_Q46_WindowFrameWithWhere
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -83,6 +87,7 @@ namespace GeneratedSample_Q46_WindowFrameWithWhere
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -98,17 +103,19 @@ namespace GeneratedSample_Q46_WindowFrameWithWhere
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#A");
                 var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var ko3ikoRows = ko3ikoRowsSource.Chunks;
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 var resultWindowRows = new List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>();
                 foreach (var ko3ikoChunk in ko3ikoRows)
                 {
@@ -214,6 +221,8 @@ namespace GeneratedSample_Q46_WindowFrameWithWhere
                     System.Buffers.ArrayPool<decimal>.Shared.Return(resultSumsPrefixSum, false);
                 }
 
+                OnPhaseChanged("compiled", QueryPhase.Where);
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
                 {
                     if ((windowIndex & 1023) == 0)
@@ -229,7 +238,14 @@ namespace GeneratedSample_Q46_WindowFrameWithWhere
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

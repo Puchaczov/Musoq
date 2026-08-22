@@ -35,8 +35,11 @@ ExecutionPlan [compiled]
       r.G4: Guid <- field r_G4
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [r: object] -> rRows [query-row:SealedClass;lifetime=ScanLocal;shape=3F21025D96A6B7D492BFE57A38A7B2401A9D57F3A7ED84E165BB67F084923A23]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [Select]
     ChunkedForEach [r in rRows]
       AppendShape [result <- ResultShape0(r.G0: r.G0, r.G1: r.G1, r.G2: r.G2, r.G3: r.G3, r.G4: r.G4)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
@@ -61,7 +64,7 @@ namespace GeneratedSample_Q238_QueryRowSealedClass
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -84,6 +87,7 @@ namespace GeneratedSample_Q238_QueryRowSealedClass
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -91,22 +95,49 @@ namespace GeneratedSample_Q238_QueryRowSealedClass
 
         private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             var __musoqExecutionState = ExecutionState.Capture(Parameters);
             ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
+            this.OnPhaseChanged("compiled", QueryPhase.Begin);
+            this.OnPhaseChanged("compiled", QueryPhase.From);
             var __rSchema = provider.GetSchema("#queryrowsample");
             var __rSchemaQueryRows = __rSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape 3F21025D96A6B7D492BFE57A38A7B2401A9D57F3A7ED84E165BB67F084923A23).");
             var rRowsSource = __rSchemaQueryRows.GetQueryScopedRowSource<QueryRow_3F21025D96A6_C, QueryRowMaterializer_3F21025D96A6_C>("rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("r:1", sourceExecutionPlans["r:1"], token, __schemaColumns_compiled_r_0, sourceRuntimeSettingsBySourceContextId["r:1"], logger, OnDataSourceProgress), __queryRowShape_3F21025D96A6), Array.Empty<object>());
-            var rRows = rRowsSource.Chunks;
+            var rRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_3F21025D96A6_C>(rRowsSource.Chunks, __musoqProgressContext, "r:1") : rRowsSource.Chunks;
             var __musoqTableSourceRows = rRows;
+            this.OnPhaseChanged("compiled", QueryPhase.Select);
             return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<QueryRow_3F21025D96A6_C, ResultRow0>(__musoqTableSourceRows, (r) => true, (r) => new ResultRow0(r.Field0, r.Field1, r.Field2, r.Field3, r.Field4), token), token, onCompleted: () =>
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            }, onException: (Exception _) =>
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }, onDisposed: () =>
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             });
         }
 

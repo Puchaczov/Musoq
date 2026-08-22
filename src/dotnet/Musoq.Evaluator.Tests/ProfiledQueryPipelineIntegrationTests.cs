@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -43,5 +44,38 @@ public sealed class ProfiledQueryPipelineIntegrationTests : BasicEntityTestBase
         var appendShape = profileResult.Profile.Operators.Single(operation => operation.Name == "AppendShape");
         Assert.AreEqual(2, appendShape.OutputRows);
         Assert.AreEqual(0, appendShape.ExceptionCount);
+    }
+
+    [TestMethod]
+    public void RunWithProfile_WithPerRunQueryProgressOptions_ShouldPublishFinalSnapshot()
+    {
+        const string query = "select Name, Population from #A.Entities() where Population > 0";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A",
+                [
+                    new BasicEntity { Name = "A", Population = 10 },
+                    new BasicEntity { Name = "B", Population = 20 }
+                ]
+            }
+        };
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            TestCompilationOptions.WithInstrumentationMode(QueryInstrumentationMode.Full));
+        var snapshots = new List<QueryProgressEventArgs>();
+        vm.QueryProgress += (_, args) => snapshots.Add(args);
+
+        var profileResult = vm.RunWithProfile(new QueryProgressOptions
+        {
+            RowsPerUpdate = 1,
+            MinimumInterval = TimeSpan.FromDays(1)
+        });
+
+        Assert.AreEqual(2, profileResult.Result.Count);
+        Assert.IsTrue(snapshots.Count > 0);
+        Assert.IsTrue(snapshots[^1].IsFinal);
+        Assert.AreEqual(2, snapshots[^1].QueryRowsProcessed);
     }
 }

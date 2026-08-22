@@ -110,6 +110,7 @@ internal abstract partial class ExecutionIrRewriter
             ExecutionOrderRecordList orderList => RewriteOrderRecordList(orderList),
             ExecutionMaterializeRecordListToTable materialize => RewriteMaterializeRecordListToTable(materialize),
             ExecutionStoreTable storeTable => RewriteStoreTable(storeTable),
+            ExecutionPhaseBoundary phaseBoundary => RewritePhaseBoundary(phaseBoundary),
             ExecutionRelatedCtePhase relatedPhase => RewriteRelatedCtePhase(relatedPhase),
             ExecutionFusedCteProducer fusedProducer => RewriteFusedCteProducer(fusedProducer),
             ExecutionSingleUsePipelineFusionCandidate candidate => RewriteSingleUsePipelineFusionCandidate(candidate),

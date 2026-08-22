@@ -111,12 +111,13 @@ public sealed partial class ExecutionCSharpRenderer
 
         try
         {
-            var bodyStatements = RenderIsolatedHelperBlock(
-                new ExecutionBlock(build.Nodes),
-                context,
-                IsInstrumentationEnabled,
-                emitChunkLoopCancellationChecks: true,
-                trailingStatements: [SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName(build.Table.Name))]);
+            var helperNodes = build.Nodes
+                .Concat(build.TrailingPhaseNodes)
+                .ToArray();
+            var bodyStatements = RenderStoredTableBuildBody(
+                helperNodes,
+                build.Table.Name,
+                context);
 
             return SyntaxFactory.MethodDeclaration(
                     CreateStoredTableBuildReturnType(build, context),
@@ -130,6 +131,69 @@ public sealed partial class ExecutionCSharpRenderer
         {
             context.Session.TypedRowBufferVariables = previousTypedRowBufferVariables;
         }
+    }
+
+    private StatementSyntax[] RenderStoredTableBuildBody(
+        IReadOnlyList<ExecutionNode> helperNodes,
+        string tableName,
+        ExecutionRenderContext context)
+    {
+        var beginIndex = -1;
+        var endIndex = -1;
+        string? suffix = null;
+        for (var index = 0; index < helperNodes.Count; index++)
+        {
+            if (helperNodes[index] is ExecutionPhaseBoundary beginBoundary &&
+                beginBoundary.Phase == QueryPhase.Begin &&
+                !string.IsNullOrEmpty(beginBoundary.QueryIdSuffix))
+            {
+                beginIndex = index;
+                suffix = beginBoundary.QueryIdSuffix;
+                break;
+            }
+        }
+
+        if (beginIndex >= 0)
+        {
+            for (var index = beginIndex + 1; index < helperNodes.Count; index++)
+            {
+                if (helperNodes[index] is ExecutionPhaseBoundary endBoundary &&
+                    endBoundary.Phase == QueryPhase.End &&
+                    string.Equals(endBoundary.QueryIdSuffix, suffix, StringComparison.Ordinal))
+                {
+                    endIndex = index;
+                    break;
+                }
+            }
+        }
+
+        if (beginIndex < 0 || endIndex < 0)
+        {
+            return RenderIsolatedHelperBlock(
+                new ExecutionBlock(helperNodes),
+                context,
+                IsInstrumentationEnabled,
+                emitChunkLoopCancellationChecks: true,
+                trailingStatements: [SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName(tableName))]);
+        }
+
+        var bodyNodes = helperNodes
+            .Where((_, index) => index != beginIndex && index != endIndex)
+            .Where(static node => node is not ExecutionPhaseBoundary)
+            .ToArray();
+        var bodyStatements = RenderIsolatedHelperBlock(
+            new ExecutionBlock(bodyNodes),
+            context,
+            IsInstrumentationEnabled,
+            emitChunkLoopCancellationChecks: true,
+            trailingStatements: [SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName(tableName))]);
+        var beginStatements = RenderNode(helperNodes[beginIndex], context).ToArray();
+        var endStatements = RenderNode(helperNodes[endIndex], context).ToArray();
+        var guardedBody = SyntaxFactory.TryStatement()
+            .WithBlock(StatementEmitter.CreateBlock(bodyStatements))
+            .WithFinally(SyntaxFactory.FinallyClause(StatementEmitter.CreateBlock(endStatements)));
+
+        return [..beginStatements, guardedBody];
     }
 
     private TypeSyntax CreateStoredTableBuildReturnType(
@@ -150,11 +214,14 @@ public sealed partial class ExecutionCSharpRenderer
             build.Table.Name
         };
 
-        foreach (var variableName in CollectDeclaredVariableNames(new ExecutionBlock(build.Nodes)))
+        var helperNodes = build.Nodes
+            .Concat(build.TrailingPhaseNodes)
+            .ToArray();
+        foreach (var variableName in CollectDeclaredVariableNames(new ExecutionBlock(helperNodes)))
             excludedNames.Add(variableName);
 
         var captures = new Dictionary<string, CapturedLocal>(StringComparer.Ordinal);
-        AddHelperCaptures(new ExecutionBlock(build.Nodes), excludedNames, captures);
+        AddHelperCaptures(new ExecutionBlock(helperNodes), excludedNames, captures);
         return captures.Values.ToArray();
     }
 }

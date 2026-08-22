@@ -20,6 +20,6 @@ public partial class ExtractRawColumnsVisitor
 
         _generatedAliases.Add(_queryAlias);
         _columns.Add(_queryAlias, []);
-        _aliasToColumnKey[alias] = _queryAlias;
+        RegisterSource(alias, _queryAlias);
     }
 }

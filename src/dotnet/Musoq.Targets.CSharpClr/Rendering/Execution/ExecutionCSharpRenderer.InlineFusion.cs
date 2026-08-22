@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Musoq.Evaluator.Tables;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -15,13 +16,26 @@ public sealed partial class ExecutionCSharpRenderer
         string GroupName,
         string InputFingerprint,
         Type ParameterType);
-
     private IEnumerable<StatementSyntax> RenderBlockNodes(
         IReadOnlyList<ExecutionNode> nodes,
         ExecutionRenderContext context)
     {
         for (var index = 0; index < nodes.Count;)
         {
+            if (nodes[index] is ExecutionPhaseBoundary
+                {
+                    Phase: QueryPhase.Begin,
+                    QueryIdSuffix: { Length: > 0 } queryIdSuffix
+                } &&
+                !string.Equals(queryIdSuffix, ":left", StringComparison.Ordinal) &&
+                !string.Equals(queryIdSuffix, ":right", StringComparison.Ordinal) &&
+                TryFindPhaseEnd(nodes, index, queryIdSuffix, out var phaseEndIndex))
+            {
+                foreach (var statement in RenderPhaseScope(nodes, index, phaseEndIndex, context))
+                    yield return statement;
+                index = phaseEndIndex + 1;
+                continue;
+            }
             if (TryRenderFusedInlineAggregateSets(nodes, index, context, out var fusedStatements, out var consumed))
             {
                 foreach (var statement in fusedStatements)
@@ -36,6 +50,128 @@ public sealed partial class ExecutionCSharpRenderer
 
             index++;
         }
+    }
+
+    private static bool TryFindPhaseEnd(
+        IReadOnlyList<ExecutionNode> nodes,
+        int beginIndex,
+        string queryIdSuffix,
+        out int endIndex)
+    {
+        for (var index = beginIndex + 1; index < nodes.Count; index++)
+        {
+            if (nodes[index] is ExecutionPhaseBoundary
+                {
+                    Phase: QueryPhase.End,
+                    QueryIdSuffix: var suffix
+                } && string.Equals(suffix, queryIdSuffix, StringComparison.Ordinal))
+            {
+                endIndex = index;
+                return true;
+            }
+        }
+
+        endIndex = -1;
+        return false;
+    }
+
+    private IReadOnlyList<StatementSyntax> RenderPhaseScope(
+        IReadOnlyList<ExecutionNode> nodes,
+        int beginIndex,
+        int endIndex,
+        ExecutionRenderContext context)
+    {
+        var begin = RenderNode(nodes[beginIndex], context).ToArray();
+        var bodyNodes = nodes.Skip(beginIndex + 1).Take(endIndex - beginIndex - 1).ToArray();
+        var hoistedTables = bodyNodes
+            .OfType<ExecutionCreateTable>()
+            .ToArray();
+        var hoistedLibraries = bodyNodes
+            .OfType<ExecutionCreateAggregateLibrary>()
+            .ToArray();
+        var hoistedObjects = bodyNodes
+            .OfType<ExecutionCreateObject>()
+            .ToArray();
+        var hoistedStoredRowsCaches = ExecutionPhaseScopeStoredRowsHoister.Find(nodes, beginIndex, endIndex, bodyNodes, context.Session.StoredRowsCacheNames, context.Session.DeclaredStoredRowsCaches);
+        var body = RenderBlockNodes(bodyNodes, context)
+            .Select(statement => RewriteHoistedDeclaration(statement, hoistedTables, hoistedLibraries, hoistedObjects))
+            .ToArray();
+        var end = RenderNode(nodes[endIndex], context).ToArray();
+        var guardedBody = SyntaxFactory.TryStatement()
+            .WithBlock(StatementEmitter.CreateBlock(body))
+            .WithFinally(SyntaxFactory.FinallyClause(StatementEmitter.CreateBlock(end)));
+
+        return [
+            ..begin,
+            ..hoistedTables.Select(table => CreateHoistedTableDeclaration(table, context)),
+            ..hoistedLibraries.Select(CreateHoistedLibraryDeclaration),
+            ..hoistedObjects.Select(CreateHoistedObjectDeclaration),
+            ..hoistedStoredRowsCaches.Select(cache => CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), cache.CacheName, CreateStoredTableRowsRead(cache.StoredRows, context))),
+            guardedBody
+        ];
+    }
+
+    private static LocalDeclarationStatementSyntax CreateHoistedLibraryDeclaration(
+        ExecutionCreateAggregateLibrary library)
+    {
+        return CreateLocalDeclaration(
+            CreateTypeSyntax(library.LibraryType),
+            library.Library.Name,
+            SyntaxFactory.PostfixUnaryExpression(
+                SyntaxKind.SuppressNullableWarningExpression,
+                SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)));
+    }
+
+    private static LocalDeclarationStatementSyntax CreateHoistedObjectDeclaration(
+        ExecutionCreateObject createObject)
+    {
+        return CreateLocalDeclaration(
+            CreateTypeSyntax(createObject.Target.Type),
+            createObject.Target.Name,
+            SyntaxFactory.PostfixUnaryExpression(
+                SyntaxKind.SuppressNullableWarningExpression,
+                SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)));
+    }
+
+    private LocalDeclarationStatementSyntax CreateHoistedTableDeclaration(
+        ExecutionCreateTable createTable,
+        ExecutionRenderContext context)
+    {
+        TypeSyntax type = TryGetFinalShapeSourceBuffer(createTable.Table.Name, context, out var finalShapeBuffer)
+            ? CreateListTypeSyntax(finalShapeBuffer.ShapeTypeName)
+            : TryGetTypedRowBufferShape(createTable.Table.Name, context, out var rowShape)
+                ? CreateListTypeSyntax(rowShape.TypeName)
+                : CreateTypeSyntax(typeof(Table));
+
+        return CreateLocalDeclaration(
+            type,
+            createTable.Table.Name,
+            SyntaxFactory.PostfixUnaryExpression(
+                SyntaxKind.SuppressNullableWarningExpression,
+                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
+    }
+
+    private static StatementSyntax RewriteHoistedDeclaration(
+        StatementSyntax statement,
+        IReadOnlyList<ExecutionCreateTable> hoistedTables,
+        IReadOnlyList<ExecutionCreateAggregateLibrary> hoistedLibraries,
+        IReadOnlyList<ExecutionCreateObject> hoistedObjects)
+    {
+        if (statement is not LocalDeclarationStatementSyntax declaration ||
+            declaration.Declaration.Variables is not [var variable] ||
+            variable.Initializer is not { Value: var initializer } ||
+            !hoistedTables.Any(table => string.Equals(table.Table.Name, variable.Identifier.ValueText, StringComparison.Ordinal)) &&
+            !hoistedLibraries.Any(library => string.Equals(library.Library.Name, variable.Identifier.ValueText, StringComparison.Ordinal)) &&
+            !hoistedObjects.Any(createObject => string.Equals(createObject.Target.Name, variable.Identifier.ValueText, StringComparison.Ordinal)))
+        {
+            return statement;
+        }
+
+        return SyntaxFactory.ExpressionStatement(
+            SyntaxFactory.AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression,
+                SyntaxFactory.IdentifierName(variable.Identifier),
+                initializer));
     }
 
     private bool TryRenderFusedInlineAggregateSets(

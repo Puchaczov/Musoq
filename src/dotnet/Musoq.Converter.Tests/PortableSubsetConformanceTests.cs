@@ -137,7 +137,7 @@ public sealed class PortableSubsetConformanceTests
         "hash.",
         DisplayName = "join")]
     [DataRow(
-        "with sourceRows as (select d.Dummy from #system.dual() d) select s.Dummy from sourceRows s",
+        "with sourceRows as (select d.Dummy from #system.dual() d) select s.Dummy, t.Dummy from sourceRows s inner join sourceRows t on s.Dummy = t.Dummy",
         "cte.",
         DisplayName = "cte")]
     [DataRow(

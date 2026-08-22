@@ -203,9 +203,7 @@ public static partial class PhysicalPlanPrinter
                 break;
 
             case PhysicalNestedLoopApplyNode nlApply:
-                sb.Append(prefix).AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalNestedLoopApply [{nlApply.Kind}{(nlApply.WithOrdinality ? ", with ordinality" : string.Empty)}]");
-                PrintNode(nlApply.Left, sb, indent + 2);
-                PrintNode(nlApply.Right, sb, indent + 2);
+                PrintApply(nlApply, sb, prefix, indent);
                 break;
 
             case PhysicalSetOperationNode setOp:

@@ -37,10 +37,13 @@ ExecutionPlan [compiled]
       rn: long <- field rn
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [ko3iko: RuntimeV2RegressionEntity] -> ko3ikoRows
     MaterializeChunked [ko3ikoRows -> resultWindowRows]
     ComputeDenseRankWindow [resultDenseRanks <- resultWindowRows partition by ko3iko.Department order by ko3iko.Salary DESC]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [Select]
     ForEachIndexed [windowIndex, ko3iko in resultWindowRows]
       AppendShape [result <- ResultShape0(Name: ko3iko.Name, Department: ko3iko.Department, rn: resultDenseRanks[windowIndex])]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
@@ -65,7 +68,7 @@ namespace GeneratedSample_Q114_RuntimeV2WindowBenchmarkDenseRankPartitioned
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -85,6 +88,7 @@ namespace GeneratedSample_Q114_RuntimeV2WindowBenchmarkDenseRankPartitioned
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -100,17 +104,19 @@ namespace GeneratedSample_Q114_RuntimeV2WindowBenchmarkDenseRankPartitioned
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#test");
                 var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var ko3ikoRows = ko3ikoRowsSource.Chunks;
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 var resultWindowRows = EvaluationHelper.MaterializeChunkedRowsList(ko3ikoRows);
                 var resultDenseRanksIntOrderBuilder = new Musoq.Evaluator.Helpers.WindowIntOrderBuilder<string>(resultWindowRows.Count);
                 for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
@@ -121,6 +127,7 @@ namespace GeneratedSample_Q114_RuntimeV2WindowBenchmarkDenseRankPartitioned
 
                 var resultDenseRanksPartitions = resultDenseRanksIntOrderBuilder.ToSortedPartitionSet(true);
                 var resultDenseRanks = resultDenseRanksIntOrderBuilder.ComputeDenseRank(resultDenseRanksPartitions);
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
                 {
                     if ((windowIndex & 1023) == 0)
@@ -136,7 +143,14 @@ namespace GeneratedSample_Q114_RuntimeV2WindowBenchmarkDenseRankPartitioned
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

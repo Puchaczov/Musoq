@@ -24,14 +24,15 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IdentifierName("sourceExecutionPlans"),
             SyntaxFactory.IdentifierName("logger"),
             SyntaxFactory.IdentifierName("token"),
-            SyntaxFactory.IdentifierName("OnDataSourceProgress")
+            SyntaxFactory.IdentifierName("__musoqProgressContext"),
+            SyntaxFactory.IdentifierName("OnDataSourceProgress"),
+            SyntaxFactory.IdentifierName("OnQueryProgress")
         };
+
+        arguments.Add(SyntaxFactory.IdentifierName("OnPhaseChanged"));
 
         if (IsInstrumentationEnabled)
             arguments.Add(SyntaxFactory.IdentifierName(ProfileRecorderVariableName));
-
-        if (NeedsParallelTaskPhaseChanged(parallel))
-            arguments.Add(SyntaxFactory.IdentifierName("OnPhaseChanged"));
 
         if (context.Session.IncludeTableResults)
             arguments.Add(SyntaxFactory.IdentifierName("_tableResults"));
@@ -106,7 +107,10 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.ParseTypeName("IReadOnlyDictionary<string, SourceExecutionPlan>")),
             new("logger", "_logger", CreateTypeSyntax(typeof(ILogger))),
             new("token", "_token", CreateTypeSyntax(typeof(CancellationToken))),
-            new("OnDataSourceProgress", "_onDataSourceProgress", CreateTypeSyntax(typeof(DataSourceEventHandler)))
+            new("__musoqProgressContext", "_musoqProgressContext", SyntaxFactory.ParseTypeName("QueryRunContext?")),
+            new("OnDataSourceProgress", "_onDataSourceProgress", CreateTypeSyntax(typeof(DataSourceEventHandler))),
+            new("OnQueryProgress", "_onQueryProgress", CreateTypeSyntax(typeof(QueryProgressEventHandler))),
+            new("OnPhaseChanged", "_onPhaseChanged", SyntaxFactory.ParseTypeName("Action<string, QueryPhase>"))
         };
 
         if (IsInstrumentationEnabled)
@@ -116,12 +120,6 @@ public sealed partial class ExecutionCSharpRenderer
                 $"_{ProfileRecorderVariableName}",
                 CreateTypeSyntax(typeof(QueryProfileRecorder))));
         }
-
-        if (NeedsParallelTaskPhaseChanged(parallel))
-            members.Add(new ParallelRunnerRuntimeMember(
-                "OnPhaseChanged",
-                "_onPhaseChanged",
-                SyntaxFactory.ParseTypeName("Action<string, QueryPhase>")));
 
         if (context.Session.IncludeTableResults)
         {
@@ -140,8 +138,4 @@ public sealed partial class ExecutionCSharpRenderer
         return members;
     }
 
-    private static bool NeedsParallelTaskPhaseChanged(ExecutionParallelBlock parallel)
-    {
-        return parallel.Tasks.Any(static task => task.RelatedQueryIdentifier != null);
-    }
 }

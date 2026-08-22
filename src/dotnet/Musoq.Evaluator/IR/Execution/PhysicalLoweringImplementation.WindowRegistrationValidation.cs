@@ -62,22 +62,7 @@ internal sealed partial class PhysicalLoweringImplementation
         WindowRegistration registration,
         ExecutionRankingWindowFunction function)
     {
-        if (registration.OrderKeys.Length == 0)
-        {
-            return WindowRegistrationBuildResult.Unsupported(
-                "Execution IR ranking window lowering requires at least one ORDER BY key.");
-        }
-
-        if (registration.ValueArguments.Length != 0)
-            return WindowRegistrationBuildResult.Unsupported("Execution IR ranking window lowering does not support value arguments.");
-
-        if (registration.ReturnType != typeof(long))
-        {
-            return WindowRegistrationBuildResult.Unsupported(
-                $"Execution IR ranking window lowering requires a long result. Found {registration.ReturnType.Name}.");
-        }
-
-        return WindowRegistrationBuildResult.SuccessRanking(registration, function);
+        return RankingWindowMetadata.ValidateRegistration(registration, function);
     }
 
     private static WindowRegistrationBuildResult ValidateOffsetRegistration(

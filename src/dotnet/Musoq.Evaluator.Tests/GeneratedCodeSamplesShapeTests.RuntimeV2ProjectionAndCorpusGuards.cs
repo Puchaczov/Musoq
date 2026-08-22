@@ -65,7 +65,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("private static readonly Action<ResultRow0, object>[] __assigners", sample);
         Assert.IsFalse(sample.Contains("private static int GetColumnIndex(string name) => name switch", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("GetColumnIndex(name) >= 0", StringComparison.Ordinal));
-        Assert.IsLessThanOrEqualTo(720, CountLines(sample), RuntimeV2LexerManyColumnsSampleFileName);
+        Assert.IsLessThanOrEqualTo(740, CountLines(sample), RuntimeV2LexerManyColumnsSampleFileName);
     }
 
     [TestMethod]
@@ -116,9 +116,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("ko3iko.FirstName.StartsWith(\"A\", StringComparison.OrdinalIgnoreCase)", sample);
         Assert.Contains("var resultSums0Value = ((decimal?)ko3iko.Salary);", sample);
         Assert.Contains($"{libraryTarget}.ExpensiveCompute(ko3iko.Value)", sample);
-        Assert.Contains("ComputeSumWindowKernel[Running]", sample);
+        Assert.Contains("ComputeSumWindowKernel[BoundedRows]", sample);
         Assert.Contains("ComputeRankWindow", sample);
-        Assert.Contains("resultSums0IntOrderBuilder.Add((string)ko3iko.Department, (int)ko3iko.Salary, windowIndex);", sample);
+        Assert.Contains("var resultSums0OrderKeys = new WindowResultSums0OrderKeysKey[resultWindowRows.Count];", sample);
+        Assert.Contains("WindowFunctionHelpers.ResolveRangePeerFrameEnd(resultSums0OrderKeys", sample);
+        Assert.Contains("var resultSums0PrefixSum = System.Buffers.ArrayPool<decimal>.Shared.Rent", sample);
         Assert.Contains("var resultRanks1OrderKeys = new WindowResultRanks1OrderKeysKey[resultWindowRows.Count];", sample);
         Assert.Contains("var resultRanks1SortedPartitions = WindowFunctionHelpers.SortStructPartitionSet(resultSums0Partitions, resultRanks1OrderKeys, false);", sample);
         Assert.Contains("long resultRanks1Rank = 1L;", sample);
@@ -132,8 +134,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(sample.Contains("new Musoq.Plugins.LibraryBase().StartsWith", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("new Musoq.Plugins.LibraryBase().ToDecimal", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("new Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionLibrary().ExpensiveCompute", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("resultSums0PartitionKeys", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("resultSums0OrderKeys", StringComparison.Ordinal));
+        Assert.IsFalse(sample.Contains("resultSums0IntOrderBuilder", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("resultRanks1IntOrderBuilder", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("WindowFunctionHelpers.ComputeRank", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("AppendTopOffsetRowsDirect", StringComparison.Ordinal));

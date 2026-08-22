@@ -126,10 +126,14 @@ public partial class SubqueryToCteRewriteVisitor
     {
         return node switch
         {
-            UnionNode => new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne),
-            UnionAllNode => new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne),
-            ExceptNode => new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne),
-            IntersectNode => new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne),
+            UnionNode => new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
+                node.ResultOrderBy, node.ResultSkip, node.ResultTake),
+            UnionAllNode => new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
+                node.ResultOrderBy, node.ResultSkip, node.ResultTake),
+            ExceptNode => new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
+                node.ResultOrderBy, node.ResultSkip, node.ResultTake),
+            IntersectNode => new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
+                node.ResultOrderBy, node.ResultSkip, node.ResultTake),
             _ => throw SubqueryDiagnosticFactory.InvalidSubquery(
                 "EXISTS subquery projection",
                 $"Unsupported set operator {node.GetType().Name} in EXISTS subquery.",

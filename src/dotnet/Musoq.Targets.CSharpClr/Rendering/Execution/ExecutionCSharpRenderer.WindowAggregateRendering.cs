@@ -18,10 +18,10 @@ public sealed partial class ExecutionCSharpRenderer
         {
             Frame.Kind: ExecutionWindowFrameKind.Range,
             Descriptor.Mode: ExecutionWindowAggregateMode.BoundedRows
-        };
+        } && WindowRangeFrameSyntax.HasRangeOffsetBound(kernel.Frame);
         var rangeKeys = requiresRangeKeys
             ? new ExecutionVariable(
-                GetWindowAggregateRangeKeysName(kernel),
+                WindowRangeFrameSyntax.GetAggregateRangeKeysName(kernel),
                 kernel.OrderKeys[0].Expression.ReturnType.RequireClrType().MakeArrayType())
             : null;
         var extractionStatements = new List<StatementSyntax>();
@@ -128,6 +128,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         return statements;
     }
+
 
     private List<StatementSyntax> RenderFusedIntOrderAggregateKernel(
         ExecutionWindowAggregateKernel kernel,

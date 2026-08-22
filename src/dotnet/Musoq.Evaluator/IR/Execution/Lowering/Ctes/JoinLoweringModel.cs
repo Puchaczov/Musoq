@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
@@ -22,7 +23,14 @@ internal sealed record JoinSource(
     GeneratedRowShape? GeneratedRowShape = null,
     ExecutionVariable? OrdinalityVariable = null,
     FusedCteHashBuildSource? FusedHashBuild = null,
-    FusedHashPayload? FusedHashPayload = null);
+    FusedHashPayload? FusedHashPayload = null)
+{
+    public IReadOnlyList<ApplyPredicateMovementPlan> ApplyPredicateMovementPlans { get; init; } = [];
+
+    public IReadOnlyList<ExecutionNode> ApplyGuardNodes { get; init; } = [];
+
+    public IReadOnlyList<ApplyPredicateMovementPlan> LoweredApplyPredicateMovementPlans { get; init; } = [];
+}
 
 internal sealed record FusedHashPayload(
     HashPayloadShape Shape,

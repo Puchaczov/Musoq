@@ -19,7 +19,10 @@ public class StreamingChunkParallelProjectionBenchmark
 
     private readonly ILoggerResolver _loggerResolver = new BenchmarkLoggerResolver();
     private CompiledQuery _serialQuery = null!;
+    private CompiledQuery _serialProgressCapableQuery = null!;
     private CompiledQuery _parallelQuery = null!;
+    private CompiledQuery _serialProgressQuery = null!;
+    private CompiledQuery _parallelProgressQuery = null!;
     private StreamingBenchmarkRow[] _rows = null!;
 
     [Params(100_000, 1_000_000)]
@@ -41,9 +44,20 @@ public class StreamingChunkParallelProjectionBenchmark
         _serialQuery = Compile(new CompilationOptions(
             ParallelizationMode.None,
             maxDegreeOfParallelismOverride: MaxDegree));
+        _serialProgressCapableQuery = Compile(new CompilationOptions(
+            ParallelizationMode.None,
+            maxDegreeOfParallelismOverride: MaxDegree));
         _parallelQuery = Compile(new CompilationOptions(
             ParallelizationMode.Full,
             maxDegreeOfParallelismOverride: MaxDegree));
+        _serialProgressQuery = Compile(new CompilationOptions(
+            ParallelizationMode.None,
+            maxDegreeOfParallelismOverride: MaxDegree));
+        _parallelProgressQuery = Compile(new CompilationOptions(
+            ParallelizationMode.Full,
+            maxDegreeOfParallelismOverride: MaxDegree));
+        _serialProgressQuery.QueryProgress += ConsumeQueryProgress;
+        _parallelProgressQuery.QueryProgress += ConsumeQueryProgress;
     }
 
     [Benchmark(Baseline = true)]
@@ -52,10 +66,32 @@ public class StreamingChunkParallelProjectionBenchmark
         return _serialQuery.Run(CancellationToken.None).Count;
     }
 
+    [Benchmark(Description = "Progress-capable serial projection without subscriber")]
+    public int SerialStreamingProjectionProgressCapableWithoutSubscriber()
+    {
+        return _serialProgressCapableQuery.Run(CancellationToken.None).Count;
+    }
+
     [Benchmark]
     public int ChunkParallelStreamingProjection()
     {
         return _parallelQuery.Run(CancellationToken.None).Count;
+    }
+
+    [Benchmark(Description = "Serial streaming projection with default query progress")]
+    public int SerialStreamingProjectionWithDefaultQueryProgress()
+    {
+        return _serialProgressQuery.Run(CancellationToken.None).Count;
+    }
+
+    [Benchmark(Description = "Chunk-parallel streaming projection with default query progress")]
+    public int ChunkParallelStreamingProjectionWithDefaultQueryProgress()
+    {
+        return _parallelProgressQuery.Run(CancellationToken.None).Count;
+    }
+
+    private static void ConsumeQueryProgress(object sender, QueryProgressEventArgs args)
+    {
     }
 
     private CompiledQuery Compile(CompilationOptions options)

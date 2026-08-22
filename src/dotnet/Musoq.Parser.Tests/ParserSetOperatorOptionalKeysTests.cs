@@ -93,6 +93,50 @@ public class ParserSetOperatorOptionalKeysTests
         Assert.IsNotNull(root);
     }
 
+    [TestMethod]
+    public void Parse_WhenSetExpressionHasTrailingModifiers_ShouldAttachThemOnlyToTheCombinedResult()
+    {
+        const string query = "select Col as Result from schemaA.methodA() union select Other from schemaB.methodB() order by Result desc nulls first skip 2 take 3";
+
+        var node = ParseSetOperator(query);
+
+        Assert.IsNotNull(node.ResultOrderBy);
+        Assert.AreEqual(Order.Descending, node.ResultOrderBy.Fields[0].Order);
+        Assert.AreEqual(NullOrdering.First, node.ResultOrderBy.Fields[0].NullOrdering);
+        Assert.AreEqual(2L, node.ResultSkip?.Value);
+        Assert.AreEqual(3L, node.ResultTake?.Value);
+        var right = Assert.IsInstanceOfType<QueryNode>(node.Right);
+        Assert.IsNull(right.OrderBy);
+        Assert.IsNull(right.Skip);
+        Assert.IsNull(right.Take);
+        Assert.AreEqual(1, CountOccurrences(node.ToString(), "order by"), node.ToString());
+    }
+
+    [TestMethod]
+    public void Parse_WhenChainedSetHasTrailingModifiers_ShouldAttachThemOnlyToTheRoot()
+    {
+        var node = ParseSetOperator(
+            "select Col from schemaA.methodA() union select Col from schemaB.methodB() intersect select Col from schemaC.methodC() order by Col take 1");
+
+        Assert.IsNotNull(node.ResultOrderBy);
+        Assert.IsNotNull(node.ResultTake);
+        var nested = AssertRightSetOperator<IntersectNode>(node);
+        Assert.IsNull(nested.ResultOrderBy);
+        Assert.IsNull(nested.ResultSkip);
+        Assert.IsNull(nested.ResultTake);
+    }
+
+    [TestMethod]
+    public void SetOperatorId_ShouldIncludeResultModifiers()
+    {
+        var plain = ParseSetOperator(
+            "select Col from schemaA.methodA() union select Col from schemaB.methodB()");
+        var ordered = ParseSetOperator(
+            "select Col from schemaA.methodA() union select Col from schemaB.methodB() order by Col");
+
+        Assert.AreNotEqual(plain.Id, ordered.Id);
+    }
+
     private static SetOperatorNode ParseSetOperator(string query)
     {
         var root = Parse(query);
@@ -105,6 +149,19 @@ public class ParserSetOperatorOptionalKeysTests
     {
         Assert.IsInstanceOfType<T>(node.Right);
         return (T)node.Right;
+    }
+
+    private static int CountOccurrences(string value, string search)
+    {
+        var count = 0;
+        var index = 0;
+        while ((index = value.IndexOf(search, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += search.Length;
+        }
+
+        return count;
     }
 
     private static RootNode Parse(string query)

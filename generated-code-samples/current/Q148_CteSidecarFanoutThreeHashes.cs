@@ -119,34 +119,49 @@ ExecutionPlan [compiled]
       co.Country: string <- field co_Country
 
   Body
+    PhaseBoundary [Begin]
     ParallelBlock [cte-level-0, tasks 3, maxDegree 3]
       ParallelTask [names -> __parallelCteLevel0Task0Result]
+        PhaseBoundary [Begin:cte0]
+        PhaseBoundary [From:cte0]
         SourceScan [ko3iko: BasicEntity] -> cte0_ko3ikoRows
         CreateHash [cte0HashSidecar0Id: int -> Row]
         ChunkedForEach [ko3iko in cte0_ko3ikoRows]
           CreateHashPayload [cte0SidecarPayload0 <- Cte0HashPayload0(Id: ko3iko.Id, Name: ko3iko.Name)]
           HashAdd [cte0HashSidecar0Id[ko3iko.Id] += cte0SidecarPayload0]
         StoreCteIndex [cte0HashSidecar0Id -> _cteIndexResults.Slot0 Hash]
+        PhaseBoundary [Select:cte0]
+        PhaseBoundary [End:cte0]
       ParallelTask [cities -> __parallelCteLevel0Task1Result]
+        PhaseBoundary [Begin:cte1]
+        PhaseBoundary [From:cte1]
         SourceScan [vo04qt: BasicEntity] -> cte1_vo04qtRows
         CreateHash [cte1HashSidecar1Id: int -> Row]
         ChunkedForEach [vo04qt in cte1_vo04qtRows]
           CreateHashPayload [cte1SidecarPayload0 <- Cte1HashPayload1(Id: vo04qt.Id, City: vo04qt.City)]
           HashAdd [cte1HashSidecar1Id[vo04qt.Id] += cte1SidecarPayload0]
         StoreCteIndex [cte1HashSidecar1Id -> _cteIndexResults.Slot1 Hash]
+        PhaseBoundary [Select:cte1]
+        PhaseBoundary [End:cte1]
       ParallelTask [countries -> __parallelCteLevel0Task2Result]
+        PhaseBoundary [Begin:cte2]
+        PhaseBoundary [From:cte2]
         SourceScan [gougbq: BasicEntity] -> cte2_gougbqRows
         CreateHash [cte2HashSidecar2Id: int -> Row]
         ChunkedForEach [gougbq in cte2_gougbqRows]
           CreateHashPayload [cte2SidecarPayload0 <- Cte2HashPayload2(Id: gougbq.Id, Country: gougbq.Country)]
           HashAdd [cte2HashSidecar2Id[gougbq.Id] += cte2SidecarPayload0]
         StoreCteIndex [cte2HashSidecar2Id -> _cteIndexResults.Slot2 Hash]
+        PhaseBoundary [Select:cte2]
+        PhaseBoundary [End:cte2]
       ParallelMerge
+    PhaseBoundary [From]
     SourceScan [b: BasicEntity] -> bRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     LoadCteIndex [bnNHash <- _cteIndexResults.Slot0 Hash: int]
     LoadCteIndex [bncCHash <- _cteIndexResults.Slot1 Hash: int]
     LoadCteIndex [bnccoCoHash <- _cteIndexResults.Slot2 Hash: int]
+    PhaseBoundary [Select]
     ChunkedForEach [b in bRows]
       HashProbe [bnNHash[b.Id] -> bnNHashMatches]
         ForEach [n in bnNHashMatches]
@@ -177,7 +192,7 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_3 = new Column[]
         {
@@ -200,6 +215,7 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_3, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -215,30 +231,33 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var _cteIndexResults = new CteIndexResults();
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
                 object __parallelCteLevel0Task0Result = null;
                 object __parallelCteLevel0Task1Result = null;
                 object __parallelCteLevel0Task2Result = null;
-                var cteLevel0Runner = new CteLevel0Runner(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, OnPhaseChanged, _cteIndexResults);
+                var cteLevel0Runner = new CteLevel0Runner(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteIndexResults);
                 Parallel.Invoke(new ParallelOptions() { CancellationToken = token, MaxDegreeOfParallelism = 3 }, cteLevel0Runner.RunCteLevel0Task0, cteLevel0Runner.RunCteLevel0Task1, cteLevel0Runner.RunCteLevel0Task2);
                 token.ThrowIfCancellationRequested();
                 __parallelCteLevel0Task0Result = cteLevel0Runner.Task0Result;
                 __parallelCteLevel0Task1Result = cteLevel0Runner.Task1Result;
                 __parallelCteLevel0Task2Result = cteLevel0Runner.Task2Result;
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __bSchema = provider.GetSchema("#B");
                 var bRowsSource = __bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:4", sourceExecutionPlans["b:4"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["b:4"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var bRows = bRowsSource.Chunks;
+                var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:4") : bRowsSource.Chunks;
                 var bnNHash = _cteIndexResults.Slot0;
                 var bncCHash = _cteIndexResults.Slot1;
                 var bnccoCoHash = _cteIndexResults.Slot2;
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var bChunk in bRows)
                 {
                     if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
@@ -366,7 +385,14 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 
@@ -383,16 +409,17 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static object BuildCteLevel0Task0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Action<string, QueryPhase> OnPhaseChanged, CteIndexResults _cteIndexResults)
+        private static object BuildCteLevel0Task0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteIndexResults _cteIndexResults)
         {
+            object __parallelCteLevel0Task0Result = null;
+            token.ThrowIfCancellationRequested();
             OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
             try
             {
-                object __parallelCteLevel0Task0Result = null;
-                token.ThrowIfCancellationRequested();
+                OnPhaseChanged("compiled:cte0", QueryPhase.From);
                 var __cte0_ko3ikoSchema = provider.GetSchema("#A");
                 var cte0_ko3ikoRowsSource = __cte0_ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var cte0_ko3ikoRows = cte0_ko3ikoRowsSource.Chunks;
+                var cte0_ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : cte0_ko3ikoRowsSource.Chunks;
                 var cte0HashSidecar0Id = new Dictionary<int, HashJoinBucket<Cte0HashPayload0>>();
                 foreach (var ko3ikoChunk in cte0_ko3ikoRows)
                 {
@@ -482,25 +509,28 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
                 }
 
                 _cteIndexResults.Slot0 = cte0HashSidecar0Id;
-                return __parallelCteLevel0Task0Result;
+                OnPhaseChanged("compiled:cte0", QueryPhase.Select);
             }
             finally
             {
                 OnPhaseChanged("compiled:cte0", QueryPhase.End);
             }
+
+            return __parallelCteLevel0Task0Result;
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static object BuildCteLevel0Task1(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Action<string, QueryPhase> OnPhaseChanged, CteIndexResults _cteIndexResults)
+        private static object BuildCteLevel0Task1(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteIndexResults _cteIndexResults)
         {
+            object __parallelCteLevel0Task1Result = null;
+            token.ThrowIfCancellationRequested();
             OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
             try
             {
-                object __parallelCteLevel0Task1Result = null;
-                token.ThrowIfCancellationRequested();
+                OnPhaseChanged("compiled:cte1", QueryPhase.From);
                 var __cte1_vo04qtSchema = provider.GetSchema("#A");
                 var cte1_vo04qtRowsSource = __cte1_vo04qtSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("vo04qt:2", sourceExecutionPlans["vo04qt:2"], token, __schemaColumns_compiled_vo04qt_1, sourceRuntimeSettingsBySourceContextId["vo04qt:2"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var cte1_vo04qtRows = cte1_vo04qtRowsSource.Chunks;
+                var cte1_vo04qtRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte1_vo04qtRowsSource.Chunks, __musoqProgressContext, "vo04qt:2") : cte1_vo04qtRowsSource.Chunks;
                 var cte1HashSidecar1Id = new Dictionary<int, HashJoinBucket<Cte1HashPayload1>>();
                 foreach (var vo04qtChunk in cte1_vo04qtRows)
                 {
@@ -590,25 +620,28 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
                 }
 
                 _cteIndexResults.Slot1 = cte1HashSidecar1Id;
-                return __parallelCteLevel0Task1Result;
+                OnPhaseChanged("compiled:cte1", QueryPhase.Select);
             }
             finally
             {
                 OnPhaseChanged("compiled:cte1", QueryPhase.End);
             }
+
+            return __parallelCteLevel0Task1Result;
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static object BuildCteLevel0Task2(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Action<string, QueryPhase> OnPhaseChanged, CteIndexResults _cteIndexResults)
+        private static object BuildCteLevel0Task2(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteIndexResults _cteIndexResults)
         {
+            object __parallelCteLevel0Task2Result = null;
+            token.ThrowIfCancellationRequested();
             OnPhaseChanged("compiled:cte2", QueryPhase.Begin);
             try
             {
-                object __parallelCteLevel0Task2Result = null;
-                token.ThrowIfCancellationRequested();
+                OnPhaseChanged("compiled:cte2", QueryPhase.From);
                 var __cte2_gougbqSchema = provider.GetSchema("#A");
                 var cte2_gougbqRowsSource = __cte2_gougbqSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("gougbq:3", sourceExecutionPlans["gougbq:3"], token, __schemaColumns_compiled_gougbq_2, sourceRuntimeSettingsBySourceContextId["gougbq:3"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var cte2_gougbqRows = cte2_gougbqRowsSource.Chunks;
+                var cte2_gougbqRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte2_gougbqRowsSource.Chunks, __musoqProgressContext, "gougbq:3") : cte2_gougbqRowsSource.Chunks;
                 var cte2HashSidecar2Id = new Dictionary<int, HashJoinBucket<Cte2HashPayload2>>();
                 foreach (var gougbqChunk in cte2_gougbqRows)
                 {
@@ -698,12 +731,14 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
                 }
 
                 _cteIndexResults.Slot2 = cte2HashSidecar2Id;
-                return __parallelCteLevel0Task2Result;
+                OnPhaseChanged("compiled:cte2", QueryPhase.Select);
             }
             finally
             {
                 OnPhaseChanged("compiled:cte2", QueryPhase.End);
             }
+
+            return __parallelCteLevel0Task2Result;
         }
 
         private readonly struct Cte0HashPayload0
@@ -750,20 +785,24 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
         {
             private readonly CteIndexResults _cteIndexResults;
             private readonly Microsoft.Extensions.Logging.ILogger _logger;
+            private readonly QueryRunContext? _musoqProgressContext;
             private readonly Musoq.Schema.DataSourceEventHandler _onDataSourceProgress;
             private readonly Action<string, QueryPhase> _onPhaseChanged;
+            private readonly Musoq.Evaluator.QueryProgressEventHandler _onQueryProgress;
             private readonly Musoq.Schema.ISchemaProvider _provider;
             private readonly IReadOnlyDictionary<string, SourceExecutionPlan> _sourceExecutionPlans;
             private readonly IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> _sourceRuntimeSettingsBySourceContextId;
             private readonly CancellationToken _token;
-            public CteLevel0Runner(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Action<string, QueryPhase> OnPhaseChanged, CteIndexResults _cteIndexResults)
+            public CteLevel0Runner(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteIndexResults _cteIndexResults)
             {
                 _provider = provider;
                 _sourceRuntimeSettingsBySourceContextId = sourceRuntimeSettingsBySourceContextId;
                 _sourceExecutionPlans = sourceExecutionPlans;
                 _logger = logger;
                 _token = token;
+                _musoqProgressContext = __musoqProgressContext;
                 _onDataSourceProgress = OnDataSourceProgress;
+                _onQueryProgress = OnQueryProgress;
                 _onPhaseChanged = OnPhaseChanged;
                 this._cteIndexResults = _cteIndexResults;
             }
@@ -775,19 +814,19 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void RunCteLevel0Task0()
             {
-                Task0Result = BuildCteLevel0Task0(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _onDataSourceProgress, _onPhaseChanged, _cteIndexResults);
+                Task0Result = BuildCteLevel0Task0(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _musoqProgressContext, _onDataSourceProgress, _onQueryProgress, _onPhaseChanged, _cteIndexResults);
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void RunCteLevel0Task1()
             {
-                Task1Result = BuildCteLevel0Task1(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _onDataSourceProgress, _onPhaseChanged, _cteIndexResults);
+                Task1Result = BuildCteLevel0Task1(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _musoqProgressContext, _onDataSourceProgress, _onQueryProgress, _onPhaseChanged, _cteIndexResults);
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void RunCteLevel0Task2()
             {
-                Task2Result = BuildCteLevel0Task2(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _onDataSourceProgress, _onPhaseChanged, _cteIndexResults);
+                Task2Result = BuildCteLevel0Task2(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _musoqProgressContext, _onDataSourceProgress, _onQueryProgress, _onPhaseChanged, _cteIndexResults);
             }
         }
 

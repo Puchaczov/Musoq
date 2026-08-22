@@ -70,12 +70,20 @@ ExecutionPlan [compiled]
       rightPolicy.Approved: bool <- field rightPolicy_Approved
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [Where]
+    PhaseBoundary [From:cte0]
     CreateValuesRows [cte0_pRows: pValuesD8A584C0Row0 x 2]
     CreateTable [cte0: Cte0Row0]
+    PhaseBoundary [Select:cte0]
     ForEach [p in cte0_pRows]
       AppendRow [cte0 <- Cte0Row0(p.Name: p.Name, p.Approved: p.Approved)]
     StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]
-    CtePhase [cte1]
+    PhaseBoundary [End:cte0]
+    PhaseBoundary [Select]
+    PhaseBoundary [Begin:cte1]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateHash [rightPolicyHash: string -> Row; capacity: _cteRowResults.Slot0.Count]
     ForEach [rightPolicy in _cteRowResults.Slot0]
@@ -86,6 +94,7 @@ ExecutionPlan [compiled]
           Let [p_Approved: bool = rightPolicy.p.Approved]
           If [(p_Approved = FALSE)]
             AppendShape [result <- ResultShape0(leftPolicy.Name: leftPolicy.p.Name, rightPolicy.Approved: p_Approved)]
+    PhaseBoundary [End:cte1]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
 
@@ -108,7 +117,7 @@ namespace GeneratedSample_Q118_ValuesCteReuse
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_cte0_0 = new Column[]
         {
@@ -131,6 +140,7 @@ namespace GeneratedSample_Q118_ValuesCteReuse
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -146,65 +156,79 @@ namespace GeneratedSample_Q118_ValuesCteReuse
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Where);
-            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-            OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
-                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults);
-                var rightPolicyHash = new Dictionary<string, HashJoinBucket<Cte0Row0>>(_cteRowResults.Slot0.Count);
-                var __storedTable0Rows = _cteRowResults.Slot0;
-                foreach (var rightPolicy in __storedTable0Rows)
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                OnPhaseChanged("compiled", QueryPhase.Where);
+                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
+                OnPhaseChanged("compiled", QueryPhase.Select);
+                OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
+                try
                 {
-                    token.ThrowIfCancellationRequested();
-                    string key = rightPolicy.p_Name;
-                    if (key == null)
-                        continue;
+                    var rightPolicyHash = new Dictionary<string, HashJoinBucket<Cte0Row0>>(_cteRowResults.Slot0.Count);
+                    var __storedTable0Rows = _cteRowResults.Slot0;
+                    foreach (var rightPolicy in __storedTable0Rows)
                     {
-                        ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(rightPolicyHash, key, out var matchesExists);
-                        if (!matchesExists)
+                        token.ThrowIfCancellationRequested();
+                        string key = rightPolicy.p_Name;
+                        if (key == null)
+                            continue;
                         {
-                            matches = new HashJoinBucket<Cte0Row0>(rightPolicy);
-                        }
-                        else
-                        {
-                            matches.Add(rightPolicy);
-                        }
-                    }
-                }
-
-                foreach (var leftPolicy in __storedTable0Rows)
-                {
-                    token.ThrowIfCancellationRequested();
-                    string key = leftPolicy.p_Name;
-                    if (key != null && rightPolicyHash.TryGetValue(key, out var rightPolicyHashMatches))
-                    {
-                        foreach (var rightPolicy in rightPolicyHashMatches)
-                        {
-                            token.ThrowIfCancellationRequested();
-                            bool p_Approved = rightPolicy.p_Approved;
-                            if ((p_Approved == false))
+                            ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(rightPolicyHash, key, out var matchesExists);
+                            if (!matchesExists)
                             {
-                                __musoqFinalShapeRows.Add(new ResultShape0(leftPolicy.p_Name, p_Approved));
+                                matches = new HashJoinBucket<Cte0Row0>(rightPolicy);
+                            }
+                            else
+                            {
+                                matches.Add(rightPolicy);
                             }
                         }
                     }
+
+                    foreach (var leftPolicy in __storedTable0Rows)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        string key = leftPolicy.p_Name;
+                        if (key != null && rightPolicyHash.TryGetValue(key, out var rightPolicyHashMatches))
+                        {
+                            foreach (var rightPolicy in rightPolicyHashMatches)
+                            {
+                                token.ThrowIfCancellationRequested();
+                                bool p_Approved = rightPolicy.p_Approved;
+                                if ((p_Approved == false))
+                                {
+                                    __musoqFinalShapeRows.Add(new ResultShape0(leftPolicy.p_Name, p_Approved));
+                                }
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled:cte1", QueryPhase.End);
                 }
 
                 return __musoqFinalShapeRows;
             }
             finally
             {
-                OnPhaseChanged("compiled:cte0", QueryPhase.End);
-                OnPhaseChanged("compiled:cte1", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 
@@ -221,21 +245,29 @@ namespace GeneratedSample_Q118_ValuesCteReuse
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, CteRowResults _cteRowResults)
+        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
-            pValuesD8A584C0Row0[] cte0_pRows = new pValuesD8A584C0Row0[]
+            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+            try
             {
-                new pValuesD8A584C0Row0("Newtonsoft.Json", true),
-                new pValuesD8A584C0Row0("Legacy.Package", false)
-            };
-            var cte0 = new List<Cte0Row0>();
-            foreach (var p in cte0_pRows)
-            {
-                token.ThrowIfCancellationRequested();
-                cte0.Add(new Cte0Row0(p.Name, p.Approved));
-            }
+                pValuesD8A584C0Row0[] cte0_pRows = new pValuesD8A584C0Row0[]
+                {
+                    new pValuesD8A584C0Row0("Newtonsoft.Json", true),
+                    new pValuesD8A584C0Row0("Legacy.Package", false)
+                };
+                var cte0 = new List<Cte0Row0>();
+                foreach (var p in cte0_pRows)
+                {
+                    token.ThrowIfCancellationRequested();
+                    cte0.Add(new Cte0Row0(p.Name, p.Approved));
+                }
 
-            return cte0;
+                return cte0;
+            }
+            finally
+            {
+                OnPhaseChanged("compiled:cte0", QueryPhase.End);
+            }
         }
 
         private sealed class Cte0Row0

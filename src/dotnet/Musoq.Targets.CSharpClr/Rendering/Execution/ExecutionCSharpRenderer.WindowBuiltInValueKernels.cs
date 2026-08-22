@@ -42,6 +42,13 @@ public sealed partial class ExecutionCSharpRenderer
         var index = new ExecutionVariable(indexVariableName, typeof(int));
         var partitionKeys = ResolvePluginPartitionKeyArray(plugin);
         var orderKeys = ResolvePluginOrderKeyArray(plugin);
+        var requiresRangeKeys = plugin.Frame is { Kind: ExecutionWindowFrameKind.Range } frame &&
+                                WindowRangeFrameSyntax.HasRangeOffsetBound(frame);
+        var rangeKeys = requiresRangeKeys
+            ? new ExecutionVariable(
+                $"{plugin.Results.Name}RangeKeys",
+                plugin.OrderKeys[0].Expression.ReturnType.RequireClrType().MakeArrayType())
+            : null;
         var valueElementType = function == BuiltInDirectPluginWindowFunction.Ntile
             ? typeof(int)
             : plugin.Value.ReturnType.RequireClrType();
@@ -80,6 +87,14 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateWindowOrderKeyExpression(orderKeys, plugin.OrderKeys)));
         }
 
+        if (rangeKeys != null)
+        {
+            extractionStatements.Add(CreateWindowKeyArrayAssignment(
+                rangeKeys,
+                index.Name,
+                RenderExpression(plugin.OrderKeys[0].Expression)));
+        }
+
         extractionStatements.Add(function == BuiltInDirectPluginWindowFunction.Ntile
             ? CreateIntArrayAssignment(values.Name, index.Name, RenderExpression(plugin.Value))
             : CreateArrayAssignment(values.Name, index.Name, RenderExpression(plugin.Value), valueElementType));
@@ -101,6 +116,16 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.IdentifierName("var"),
                 orderKeys.Variable.Name,
                 CreateWindowKeyArrayCreation(orderKeys, CreateBufferCountExpression(plugin.Buffer))));
+        }
+
+        if (rangeKeys != null)
+        {
+            statements.Add(CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                rangeKeys.Name,
+                CreateSizedArrayCreation(
+                    plugin.OrderKeys[0].Expression.ReturnType,
+                    CreateBufferCountExpression(plugin.Buffer))));
         }
 
         statements.Add(CreateLocalDeclaration(
@@ -138,7 +163,14 @@ public sealed partial class ExecutionCSharpRenderer
 
         statements.AddRange(function == BuiltInDirectPluginWindowFunction.Ntile
             ? CreateNtileKernelStatements(plugin, values, partitions)
-            : CreateValueAccessKernelStatements(plugin, function, values, nthArguments, partitions));
+            : CreateValueAccessKernelStatements(
+                plugin,
+                function,
+                values,
+                nthArguments,
+                partitions,
+                orderKeys,
+                rangeKeys));
 
         return statements;
     }
@@ -148,7 +180,9 @@ public sealed partial class ExecutionCSharpRenderer
         BuiltInDirectPluginWindowFunction function,
         ExecutionVariable values,
         ExecutionVariable? nthArguments,
-        ExecutionWindowPartitionSet? partitions)
+        ExecutionWindowPartitionSet? partitions,
+        ExecutionWindowKeyArray? orderKeys,
+        ExecutionVariable? rangeKeys)
     {
         if (partitions == null)
             throw new InvalidOperationException("Value window kernels require a partition set.");
@@ -159,7 +193,14 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.IdentifierName("var"),
                 plugin.Results.Name,
                 CreateSizedArrayCreation(CreateWindowResultElementType(plugin.Results), CreateBufferCountExpression(plugin.Buffer))),
-            CreateValueAccessKernelLoop(plugin, function, values, nthArguments, partitions)
+            CreateValueAccessKernelLoop(
+                plugin,
+                function,
+                values,
+                nthArguments,
+                partitions,
+                orderKeys,
+                rangeKeys)
         ];
     }
 
@@ -168,7 +209,9 @@ public sealed partial class ExecutionCSharpRenderer
         BuiltInDirectPluginWindowFunction function,
         ExecutionVariable values,
         ExecutionVariable? nthArguments,
-        ExecutionWindowPartitionSet partitions)
+        ExecutionWindowPartitionSet partitions,
+        ExecutionWindowKeyArray? orderKeys,
+        ExecutionVariable? rangeKeys)
     {
         var result = plugin.Results.Name;
         var partitionsName = partitions.Variable.Name;
@@ -182,7 +225,16 @@ public sealed partial class ExecutionCSharpRenderer
         var frameEnd = $"{result}FrameEnd";
         var sourcePartitionIndex = $"{result}SourcePartitionIndex";
         var nth = $"{result}Nth";
-        var frameDeclarations = CreateValueAccessFrameDeclarations(plugin, partitionIndex, partitionCount, frameStart, frameEnd);
+        var frameDeclarations = CreateValueAccessFrameDeclarations(
+            plugin,
+            orderKeys,
+            rangeKeys,
+            partitionIndices,
+            partitionStart,
+            partitionIndex,
+            partitionCount,
+            frameStart,
+            frameEnd);
         var assignment = CreateValueAccessAssignment(
             plugin,
             function,
@@ -217,6 +269,10 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static string CreateValueAccessFrameDeclarations(
         ExecutionComputePluginWindow plugin,
+        ExecutionWindowKeyArray? orderKeys,
+        ExecutionVariable? rangeKeys,
+        string partitionIndices,
+        string partitionStart,
         string partitionIndex,
         string partitionCount,
         string frameStart,
@@ -233,9 +289,30 @@ public sealed partial class ExecutionCSharpRenderer
                 $"        var {frameEnd} = {end};" + Environment.NewLine;
         }
 
+        var start = WindowRangeFrameSyntax.CreatePluginWindowFrameExpression(
+            plugin,
+            plugin.Frame.Start,
+            true,
+            orderKeys,
+            rangeKeys,
+            partitionIndices,
+            partitionStart,
+            partitionIndex,
+            partitionCount);
+        var endExpression = WindowRangeFrameSyntax.CreatePluginWindowFrameExpression(
+            plugin,
+            plugin.Frame.End,
+            false,
+            orderKeys,
+            rangeKeys,
+            partitionIndices,
+            partitionStart,
+            partitionIndex,
+            partitionCount);
+
         return
-            $"        var {frameStart} = {CreateFrameStartSource(plugin.Frame, partitionIndex, partitionCount)};" + Environment.NewLine +
-            $"        var {frameEnd} = {CreateFrameEndSource(plugin.Frame, partitionIndex, partitionCount)};" + Environment.NewLine;
+            $"        var {frameStart} = {start.NormalizeWhitespace().ToFullString()};" + Environment.NewLine +
+            $"        var {frameEnd} = {endExpression.NormalizeWhitespace().ToFullString()};" + Environment.NewLine;
     }
 
     private string CreateValueAccessAssignment(

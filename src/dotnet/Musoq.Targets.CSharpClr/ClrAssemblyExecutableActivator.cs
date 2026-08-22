@@ -368,7 +368,7 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
     }
 
     private abstract class OwnedTableRunnableBase(ITableRunnable inner, IDisposable lifetimeOwner)
-        : ITableRunnable, IParameterizedRunnable, IProfiledRunnable, IDisposable
+        : ITableRunnable, IQueryProgressSource, IParameterizedRunnable, IProfiledRunnable, IContextProfiledRunnable, IDisposable
     {
         private readonly IParameterizedRunnable? _parameterized = inner as IParameterizedRunnable;
         private readonly Dictionary<string, object?> _fallbackParameters = new(StringComparer.Ordinal);
@@ -433,6 +433,20 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
             remove => Inner.DataSourceProgress -= value;
         }
 
+        public event QueryProgressEventHandler QueryProgress
+        {
+            add
+            {
+                if (Inner is IQueryProgressSource progressSource)
+                    progressSource.QueryProgress += value;
+            }
+            remove
+            {
+                if (Inner is IQueryProgressSource progressSource)
+                    progressSource.QueryProgress -= value;
+            }
+        }
+
         public abstract Table Run(CancellationToken token);
 
         public Table RunWithProfile(CancellationToken token, QueryProfileRecorder profileRecorder)
@@ -440,6 +454,14 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
             return Inner is IProfiledRunnable profiled
                 ? profiled.RunWithProfile(token, profileRecorder)
                 : throw new InvalidOperationException("Query was not compiled with profiling instrumentation.");
+        }
+
+        public Table RunWithProfile(QueryRunContext context, QueryProfileRecorder profileRecorder)
+        {
+            ArgumentNullException.ThrowIfNull(context);
+            return Inner is IContextProfiledRunnable contextual
+                ? contextual.RunWithProfile(context, profileRecorder)
+                : RunWithProfile(context.CancellationToken, profileRecorder);
         }
 
         public void Dispose()

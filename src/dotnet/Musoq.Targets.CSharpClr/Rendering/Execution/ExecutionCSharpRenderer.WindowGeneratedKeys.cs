@@ -8,7 +8,7 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static bool HasGeneratedWindowKeyType(ExecutionWindowKeyArray? keyArray)
+    internal static bool HasGeneratedWindowKeyType(ExecutionWindowKeyArray? keyArray)
     {
         return !string.IsNullOrWhiteSpace(keyArray?.Shape?.GeneratedElementTypeName);
     }
@@ -296,7 +296,7 @@ public sealed partial class ExecutionCSharpRenderer
 
                 yield return new GeneratedWindowKeyArrayUsage(
                     ResolveRankingOrderKeyArray(ranking),
-                    ranking.Function is ExecutionRankingWindowFunction.Rank or ExecutionRankingWindowFunction.DenseRank);
+                    ranking.Function is not ExecutionRankingWindowFunction.RowNumber);
                 break;
 
             case ExecutionComputeOffsetWindow offset:

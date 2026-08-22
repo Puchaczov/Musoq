@@ -57,9 +57,10 @@ public sealed partial class ExecutionCSharpRenderer
                 ExecutionOrderRecordList orderRecords => [ExecutionCSharpRenderer.RenderOrderRecordList(orderRecords)],
                 ExecutionMaterializeRecordListToTable materializeRecords => renderer.RenderMaterializeRecordListToTable(materializeRecords, renderContext),
                 ExecutionStoreTable store => [renderer.RenderStoreTable(store, renderContext)],
+                ExecutionPhaseBoundary boundary => renderer.RenderPhaseBoundary(boundary, renderContext),
                 ExecutionStoreCteIndex storeCteIndex => [ExecutionCSharpRenderer.RenderStoreCteIndex(storeCteIndex)],
                 ExecutionLoadCteIndex loadCteIndex => [ExecutionCSharpRenderer.RenderLoadCteIndex(loadCteIndex)],
-                ExecutionRelatedCtePhase => [],
+                ExecutionRelatedCtePhase phase => [QueryEmitter.GeneratePhaseChangeStatement($"{renderContext.Session.QueryIdentifier}:cte{phase.TableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}", QueryPhase.Begin)],
                 ExecutionReturnDesc desc => renderer.RenderReturnDesc(desc, renderContext),
                 ExecutionReturnTable returnTable => [StatementEmitter.CreateReturn(SyntaxFactory.IdentifierName(returnTable.Table.Name))],
                 _ => null!

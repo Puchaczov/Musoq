@@ -56,7 +56,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "          AppendShape [result <- ResultShape0(Name: p.Name, Description: o.Description)]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
     [TestMethod]
@@ -103,7 +103,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "        AppendShape [result <- ResultShape0(Name: p.Name, Description: o.Description)]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
     [TestMethod]
@@ -159,7 +159,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "          AppendShape [result <- ResultShape0(Name: p.Name, Description: o.Description)]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
 }

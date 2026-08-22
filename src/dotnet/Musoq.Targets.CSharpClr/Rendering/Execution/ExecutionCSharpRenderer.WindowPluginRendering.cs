@@ -104,7 +104,7 @@ public sealed partial class ExecutionCSharpRenderer
                 plugin.OrderKeys);
         }
 
-        statements.AddRange(CreateStreamingPluginWindowComputation(plugin));
+        statements.AddRange(CreateStreamingPluginWindowComputation(plugin, orderKeys));
 
         return statements;
     }
@@ -144,13 +144,16 @@ public sealed partial class ExecutionCSharpRenderer
             plugin.SortedPartitions,
             builder,
             plugin.OrderKeys[0].Descending);
-        statements.AddRange(CreateStreamingPluginWindowComputation(plugin));
+        statements.AddRange(CreateStreamingPluginWindowComputation(plugin, null));
 
         return statements;
     }
 
     private static bool CanUseFusedIntOrderStreamingPluginWindow(ExecutionComputePluginWindow plugin)
     {
+        if (plugin.Frame?.Kind == ExecutionWindowFrameKind.Range)
+            return false;
+
         if (!CanUseFusedIntOrderWindow(plugin.OrderKeys))
             return false;
 

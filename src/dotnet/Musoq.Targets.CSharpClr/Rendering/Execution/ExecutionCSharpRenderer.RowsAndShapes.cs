@@ -71,7 +71,7 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateSizedArrayCreation(GetArrayElementType(keyArray), size);
     }
 
-    private static Type GetArrayElementType(ExecutionVariable variable)
+    internal static Type GetArrayElementType(ExecutionVariable variable)
     {
         return variable.Type.RequireClrType().GetElementType() ?? typeof(object);
     }

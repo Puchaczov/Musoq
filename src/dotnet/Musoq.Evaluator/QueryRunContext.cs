@@ -7,6 +7,8 @@ namespace Musoq.Evaluator;
 
 public sealed class QueryRunContext
 {
+    private static readonly QueryProgressOptions DefaultQueryProgressOptions = new();
+
     public QueryRunContext(
         CancellationToken cancellationToken,
         IEnumerable<KeyValuePair<string, object?>>? parameters = null,
@@ -18,12 +20,16 @@ public sealed class QueryRunContext
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? sourceRuntimeSettingsBySourceContextId = null,
         IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>? sourceRuntimeSettingDescriptionsBySourceContextId = null,
         IReadOnlyDictionary<string, SourceExecutionPlan>? sourceExecutionPlans = null,
-        ILogger? logger = null)
+        ILogger? logger = null,
+        QueryProgressEventHandler? queryProgress = null,
+        QueryProgressOptions? queryProgressOptions = null)
     {
         CancellationToken = cancellationToken;
         RuntimeParameters = ParameterSnapshot.CaptureReadOnlyOrEmpty(parameters);
         PhaseChanged = phaseChanged;
         DataSourceProgress = dataSourceProgress;
+        QueryProgress = queryProgress;
+        _queryProgressOptions = queryProgressOptions ?? DefaultQueryProgressOptions;
         Sender = sender ?? this;
         QueryId = queryId ?? string.Empty;
         Provider = provider;
@@ -42,6 +48,10 @@ public sealed class QueryRunContext
     public QueryPhaseEventHandler? PhaseChanged { get; }
 
     public DataSourceEventHandler? DataSourceProgress { get; }
+
+    public QueryProgressEventHandler? QueryProgress { get; }
+
+    public QueryProgressOptions QueryProgressOptions => _queryProgressOptions;
 
     public object Sender { get; }
 
@@ -73,6 +83,8 @@ public sealed class QueryRunContext
                 options.CancellationToken,
                 options.PhaseChanged,
                 options.DataSourceProgress,
+                options.QueryProgress,
+                options.QueryProgressOptions,
                 sender,
                 queryId ?? runnable.GetType().FullName ?? string.Empty);
         }
@@ -83,7 +95,9 @@ public sealed class QueryRunContext
             options.PhaseChanged,
             options.DataSourceProgress,
             sender,
-            queryId);
+            queryId,
+            queryProgress: options.QueryProgress,
+            queryProgressOptions: options.QueryProgressOptions);
     }
 
     internal static QueryRunContext Create(
@@ -92,6 +106,8 @@ public sealed class QueryRunContext
         CancellationToken cancellationToken,
         QueryPhaseEventHandler? phaseChanged,
         DataSourceEventHandler? dataSourceProgress,
+        QueryProgressEventHandler? queryProgress,
+        QueryProgressOptions? queryProgressOptions,
         object sender,
         string queryId)
     {
@@ -111,7 +127,9 @@ public sealed class QueryRunContext
             binding.SourceRuntimeSettingsBySourceContextId,
             binding.SourceRuntimeSettingDescriptionsBySourceContextId,
             binding.SourceExecutionPlans,
-            binding.Logger);
+            binding.Logger,
+            queryProgress,
+            queryProgressOptions);
     }
 
     public void ThrowIfCancellationRequested()
@@ -139,4 +157,37 @@ public sealed class QueryRunContext
     {
         NotifyDataSourceProgress(args);
     }
+
+    public void CompleteQueryProgress()
+    {
+        if (QueryProgress is not { } handler)
+            return;
+
+        GetOrCreateProgressReporter(handler).Complete();
+    }
+
+    internal IEnumerable<IReadOnlyList<T>> CreateProgressChunks<T>(
+        IEnumerable<IReadOnlyList<T>> chunks,
+        string sourceContextId)
+    {
+        if (QueryProgress is not { } handler)
+            return chunks;
+
+        return new QueryProgressChunkEnumerable<T>(
+            chunks,
+            GetOrCreateProgressReporter(handler).CreateSource(sourceContextId));
+    }
+
+    private QueryProgressReporter GetOrCreateProgressReporter(QueryProgressEventHandler handler)
+    {
+        var reporter = Volatile.Read(ref _progressReporter);
+        if (reporter != null)
+            return reporter;
+
+        var created = new QueryProgressReporter(QueryId, Sender, handler, QueryProgressOptions);
+        return Interlocked.CompareExchange(ref _progressReporter, created, null) ?? created;
+    }
+
+    private QueryProgressReporter? _progressReporter;
+    private readonly QueryProgressOptions _queryProgressOptions;
 }

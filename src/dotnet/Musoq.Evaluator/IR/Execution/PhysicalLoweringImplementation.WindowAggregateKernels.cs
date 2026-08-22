@@ -16,7 +16,8 @@ internal sealed partial class PhysicalLoweringImplementation
         if (!CanUseWindowAggregateKernel(registration, arguments))
             return (false, WindowComputationBuildResult.Unsupported(string.Empty));
 
-        var mode = ResolveWindowAggregateMode(registration);
+        var frame = CreateAggregateWindowFrame(registration);
+        var mode = ResolveWindowAggregateMode(frame);
         if (!mode.IsBuilt)
             return (false, WindowComputationBuildResult.Unsupported(string.Empty));
 
@@ -45,7 +46,7 @@ internal sealed partial class PhysicalLoweringImplementation
             context.OrderKeys,
             arguments.Value,
             filterPredicate,
-            CreateWindowFrame(registration.Frame),
+            frame,
             descriptor.Descriptor,
             results,
             resources.PartitionKeyArray,
@@ -85,19 +86,26 @@ internal sealed partial class PhysicalLoweringImplementation
                valueType == typeof(double);
     }
 
-    private static (bool IsBuilt, ExecutionWindowAggregateMode Mode) ResolveWindowAggregateMode(WindowRegistration registration)
+    private static ExecutionWindowFrame? CreateAggregateWindowFrame(WindowRegistration registration)
     {
-        if (registration.Frame == null)
-        {
-            var mode = registration.OrderKeys.Length == 0
-                ? ExecutionWindowAggregateMode.WholePartition
-                : ExecutionWindowAggregateMode.Running;
-            return (true, mode);
-        }
+        if (registration.Frame != null)
+            return CreateWindowFrame(registration.Frame);
 
-        var frame = CreateWindowFrame(registration.Frame) ??
-                    throw new InvalidOperationException("Window frame metadata was expected after frame validation.");
-        if (IsUnboundedPrecedingToCurrentRow(frame))
+        return registration.OrderKeys.Length == 0
+            ? null
+            : new ExecutionWindowFrame(
+                ExecutionWindowFrameKind.Range,
+                new ExecutionWindowFrameBound(ExecutionWindowFrameBoundKind.UnboundedPreceding, 0),
+                new ExecutionWindowFrameBound(ExecutionWindowFrameBoundKind.CurrentRow, 0));
+    }
+
+    private static (bool IsBuilt, ExecutionWindowAggregateMode Mode) ResolveWindowAggregateMode(
+        ExecutionWindowFrame? frame)
+    {
+        if (frame == null)
+            return (true, ExecutionWindowAggregateMode.WholePartition);
+
+        if (frame.Kind == ExecutionWindowFrameKind.Rows && IsUnboundedPrecedingToCurrentRow(frame))
             return (true, ExecutionWindowAggregateMode.Running);
 
         if (IsUnboundedPrecedingToUnboundedFollowing(frame))

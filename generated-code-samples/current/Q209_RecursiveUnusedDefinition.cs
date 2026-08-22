@@ -43,14 +43,21 @@ ExecutionPlan [compiled]
       Value: int <- field Value
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [From:cte0]
     CreateValuesRows [cte0_rowRows: rowValues14D3BB2FRow0 x 1]
     CreateTable [cte0: Cte0Row0]
+    PhaseBoundary [Select:cte0]
     ForEach [row in cte0_rowRows]
       AppendRow [cte0 <- Cte0Row0(Value: row.Value)]
     StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]
+    PhaseBoundary [End:cte0]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [From]
     ForEach [live in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Value: live.Value)]
+    PhaseBoundary [Select]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
 
@@ -73,7 +80,7 @@ namespace GeneratedSample_Q209_RecursiveUnusedDefinition
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_cte0_0 = new Column[]
         {
@@ -90,6 +97,7 @@ namespace GeneratedSample_Q209_RecursiveUnusedDefinition
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_cte0_0, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -105,17 +113,18 @@ namespace GeneratedSample_Q209_RecursiveUnusedDefinition
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
-                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults);
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __storedTable0Rows = _cteRowResults.Slot0;
                 for (int __storedTable0Index = 0; __storedTable0Index < __storedTable0Rows.Count; ++__storedTable0Index)
                 {
@@ -128,12 +137,19 @@ namespace GeneratedSample_Q209_RecursiveUnusedDefinition
                     __musoqFinalShapeRows.Add(new ResultShape0(live.Value));
                 }
 
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 return __musoqFinalShapeRows;
             }
             finally
             {
-                OnPhaseChanged("compiled:cte0", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 
@@ -150,20 +166,28 @@ namespace GeneratedSample_Q209_RecursiveUnusedDefinition
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, CteRowResults _cteRowResults)
+        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
-            rowValues14D3BB2FRow0[] cte0_rowRows = new rowValues14D3BB2FRow0[]
+            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+            try
             {
-                new rowValues14D3BB2FRow0(42)
-            };
-            var cte0 = new List<Cte0Row0>();
-            foreach (var row in cte0_rowRows)
-            {
-                token.ThrowIfCancellationRequested();
-                cte0.Add(new Cte0Row0(row.Value));
-            }
+                rowValues14D3BB2FRow0[] cte0_rowRows = new rowValues14D3BB2FRow0[]
+                {
+                    new rowValues14D3BB2FRow0(42)
+                };
+                var cte0 = new List<Cte0Row0>();
+                foreach (var row in cte0_rowRows)
+                {
+                    token.ThrowIfCancellationRequested();
+                    cte0.Add(new Cte0Row0(row.Value));
+                }
 
-            return cte0;
+                return cte0;
+            }
+            finally
+            {
+                OnPhaseChanged("compiled:cte0", QueryPhase.End);
+            }
         }
 
         private sealed class Cte0Row0

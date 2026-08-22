@@ -113,7 +113,10 @@ internal sealed partial class PhysicalLoweringImplementation
             rows,
             shapes,
             CountSchemaScans(apply),
-                GeneratedRowShape: shouldPreserveGeneratedRows ? table.RowShape : null));
+                GeneratedRowShape: shouldPreserveGeneratedRows ? table.RowShape : null)
+        {
+            LoweredApplyPredicateMovementPlans = table.LoweredApplyPredicateMovementPlans
+        });
     }
 
     private static bool CanReuseSourceSetupAcrossApplyRows(PhysicalNode source)

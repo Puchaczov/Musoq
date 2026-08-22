@@ -13,13 +13,12 @@ internal static class OrderingSlicingAdvisoryAnalyzer
 {
     public static void Analyze(SemanticAdvisoryContext context)
     {
-        Visit(context, context.SourceQuery.Expression, insideSetChain: false, outerOrdering: false);
+        Visit(context, context.SourceQuery.Expression, outerOrdering: false);
     }
 
     private static void Visit(
         SemanticAdvisoryContext context,
         Node node,
-        bool insideSetChain,
         bool outerOrdering)
     {
         switch (node)
@@ -29,31 +28,28 @@ internal static class OrderingSlicingAdvisoryAnalyzer
                 return;
 
             case SetOperatorNode setOperator:
-                if (!insideSetChain)
-                    ReportSetOperationScope(context, setOperator, outerOrdering);
-
-                Visit(context, setOperator.Left, insideSetChain: true, outerOrdering);
-                Visit(context, setOperator.Right, insideSetChain: true, outerOrdering);
+                Visit(context, setOperator.Left, outerOrdering);
+                Visit(context, setOperator.Right, outerOrdering);
                 return;
 
             case CteExpressionNode cte:
                 var cteOuterOrdering = outerOrdering || HasTopLevelOrdering(cte.OuterExpression);
-                Visit(context, cte.OuterExpression, insideSetChain: false, outerOrdering);
+                Visit(context, cte.OuterExpression, outerOrdering);
                 foreach (var innerExpression in cte.InnerExpression)
-                    Visit(context, innerExpression.Value, insideSetChain: false, cteOuterOrdering);
+                    Visit(context, innerExpression.Value, cteOuterOrdering);
                 return;
 
             case CteInnerExpressionNode cteInner:
-                Visit(context, cteInner.Value, insideSetChain: false, outerOrdering);
+                Visit(context, cteInner.Value, outerOrdering);
                 return;
 
             case DerivedTableFromNode derivedTable:
-                Visit(context, derivedTable.Query, insideSetChain: false, outerOrdering);
+                Visit(context, derivedTable.Query, outerOrdering);
                 return;
         }
 
         foreach (var child in ParserNodeTraversalRegistry.EnumerateChildren(node))
-            Visit(context, child, insideSetChain: false, outerOrdering);
+            Visit(context, child, outerOrdering);
     }
 
     private static void VisitQuery(
@@ -71,65 +67,30 @@ internal static class OrderingSlicingAdvisoryAnalyzer
 
         var childOuterOrdering = outerOrdering || query.OrderBy != null;
 
-        Visit(context, query.From, insideSetChain: false, childOuterOrdering);
+        Visit(context, query.From, childOuterOrdering);
 
         if (query.Where != null)
-            Visit(context, query.Where, insideSetChain: false, outerOrdering);
+            Visit(context, query.Where, outerOrdering);
 
-        Visit(context, query.Select, insideSetChain: false, outerOrdering);
+        Visit(context, query.Select, outerOrdering);
 
         if (query.Take != null)
-            Visit(context, query.Take, insideSetChain: false, outerOrdering);
+            Visit(context, query.Take, outerOrdering);
 
         if (query.Skip != null)
-            Visit(context, query.Skip, insideSetChain: false, outerOrdering);
+            Visit(context, query.Skip, outerOrdering);
 
         if (query.GroupBy != null)
-            Visit(context, query.GroupBy, insideSetChain: false, outerOrdering);
+            Visit(context, query.GroupBy, outerOrdering);
 
         if (query.Window != null)
-            Visit(context, query.Window, insideSetChain: false, outerOrdering);
+            Visit(context, query.Window, outerOrdering);
 
         if (query.Qualify != null)
-            Visit(context, query.Qualify, insideSetChain: false, outerOrdering);
+            Visit(context, query.Qualify, outerOrdering);
 
         if (query.OrderBy != null)
-            Visit(context, query.OrderBy, insideSetChain: false, outerOrdering);
-    }
-
-    private static void ReportSetOperationScope(
-        SemanticAdvisoryContext context,
-        SetOperatorNode setOperator,
-        bool outerOrdering)
-    {
-        if (outerOrdering)
-            return;
-
-        var rightmostQuery = FindRightmostQuery(setOperator.Right);
-        if (rightmostQuery?.OrderBy == null ||
-            rightmostQuery.Take != null ||
-            rightmostQuery.Skip is { Value: > 0 })
-        {
-            return;
-        }
-
-        context.Report(
-            DiagnosticCode.MQ5020_SetOperationOrderByScope,
-            ErrorCatalog.GetMessage(DiagnosticCode.MQ5020_SetOperationOrderByScope),
-            rightmostQuery.OrderBy.SpanOrEmpty());
-    }
-
-    private static QueryNode? FindRightmostQuery(Node node)
-    {
-        while (node is SetOperatorNode setOperator)
-            node = setOperator.Right;
-
-        return node switch
-        {
-            QueryNode query => query,
-            SingleSetNode singleSet => singleSet.Query,
-            _ => null
-        };
+            Visit(context, query.OrderBy, outerOrdering);
     }
 
     private static bool HasTopLevelOrdering(Node node)

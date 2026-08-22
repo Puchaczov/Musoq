@@ -260,7 +260,11 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
             sample,
             FullSimpleSelectWhereFileName);
         Assert.Contains(
-            "var ko3ikoRows = ko3ikoRowsProfile == null ? ko3ikoRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Create",
+            "var ko3ikoRows = ko3ikoRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>",
+            sample,
+            FullSimpleSelectWhereFileName);
+        Assert.Contains(
+            ": ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Create",
             sample,
             FullSimpleSelectWhereFileName);
         Assert.Contains(
@@ -272,6 +276,27 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
             sample,
             FullSimpleSelectWhereFileName);
         AssertDoesNotContainAny(sample, RetiredHelperPatterns, FullSimpleSelectWhereFileName);
+    }
+
+    [TestMethod]
+    public void ProfiledSamples_WhenCheckedIn_ShouldKeepProgressAndPhasesOutsideRowLoops()
+    {
+        var generatedCode = ExtractGeneratedCodeSection(ReadProfiledSample(FullSimpleSelectWhereFileName));
+
+        Assert.DoesNotContain("private void CompleteQueryProgress(", generatedCode);
+        Assert.DoesNotContain("private void OnQueryProgress(", generatedCode);
+        Assert.Contains("__musoqProgressContext?.CompleteQueryProgress();", generatedCode);
+
+        var beginIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.Begin);", StringComparison.Ordinal);
+        var fromIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.From);", StringComparison.Ordinal);
+        var whereIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.Where);", StringComparison.Ordinal);
+        var selectIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.Select);", StringComparison.Ordinal);
+        var loopIndex = generatedCode.IndexOf("foreach (var ko3ikoChunk in ko3ikoRows)", StringComparison.Ordinal);
+
+        Assert.IsLessThan(fromIndex, beginIndex);
+        Assert.IsLessThan(whereIndex, fromIndex);
+        Assert.IsLessThan(selectIndex, whereIndex);
+        Assert.IsLessThan(loopIndex, selectIndex);
     }
 
     [TestMethod]
@@ -436,8 +461,8 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                 "Musoq.Evaluator.Diagnostics.QueryProfileRecorder profileRecorder",
                 "CteRowResults _cteRowResults",
                 "CteIndexResults _cteIndexResults",
-                "BuildCteLevel0Task0_Profiled(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _onDataSourceProgress, _profileRecorder",
-                "BuildCteLevel0Task1_Profiled(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _onDataSourceProgress, _profileRecorder",
+                "BuildCteLevel0Task0_Profiled(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _musoqProgressContext, _onDataSourceProgress, _onQueryProgress, _onPhaseChanged, _profileRecorder",
+                "BuildCteLevel0Task1_Profiled(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _musoqProgressContext, _onDataSourceProgress, _onQueryProgress, _onPhaseChanged, _profileRecorder",
                 "_cteRowResults.Slot0 = __parallelCteLevel0Task0Result",
                 "_cteIndexResults.Slot0 = cte1HashSidecar0Name",
                 "var __storedTable0Rows = _cteRowResults.Slot0;",

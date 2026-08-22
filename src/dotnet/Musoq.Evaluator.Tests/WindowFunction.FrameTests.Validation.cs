@@ -134,6 +134,7 @@ public partial class WindowFunctionFrameTests
     }
 
     [TestMethod]
+    [FeatureEvidence("range-window-frames", FeatureEvidenceKind.RuntimeNegativeDiagnostic)]
     public void WhenRangeFrameWithoutOrderBy_ShouldThrowMQ3052()
     {
         const string query = @"
@@ -159,6 +160,30 @@ public partial class WindowFunctionFrameTests
         });
 
         Assert.AreEqual(DiagnosticCode.MQ3052_RangeFrameRequiresOrderBy, ex.PrimaryEnvelope.Code);
+    }
+
+    [TestMethod]
+    [DataRow("order by Name", DisplayName = "nonnumeric key")]
+    [DataRow("order by Population, NullableValue", DisplayName = "multiple keys")]
+    public void WhenBoundedRangeHasInvalidOrderKey_ShouldThrowMQ3098(string orderBy)
+    {
+        var query = $@"
+            select Name, Sum(Population) over (
+                {orderBy}
+                range between 1 preceding and current row
+            ) as running
+            from #A.Entities()";
+        var sources = CreateSingleSource(
+            new BasicEntity("Alice") { Population = 100m, NullableValue = 1 });
+
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+        {
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            vm.Run(TestContext.CancellationToken);
+        });
+
+        Assert.AreEqual(DiagnosticCode.MQ3098_InvalidRangeFrameOrderKey, ex.PrimaryEnvelope.Code);
+        Assert.AreEqual(DiagnosticPhase.Bind, ex.PrimaryEnvelope.Phase);
     }
 
     [TestMethod]

@@ -28,7 +28,8 @@ internal sealed record RequiredColumnFacts(
 
 internal sealed record PhysicalStrategyFacts(
     IReadOnlyList<PredicatePlacementPlan> PredicatePlacementPlans,
-    IReadOnlyList<PredicateMovementPlan> PredicateMovementPlans);
+    IReadOnlyList<PredicateMovementPlan> PredicateMovementPlans,
+    IReadOnlyList<ApplyPredicateMovementPlan> ApplyPredicateMovementPlans);
 
 internal sealed record BoundaryPruningFacts(
     IReadOnlyList<BoundaryRowShapePlan> BoundaryRowShapePlans,
@@ -75,7 +76,8 @@ internal sealed partial record PlanProperties
             facts.BoundaryPruning.RowWidthPruningPlans,
             facts.Cardinality.Facts,
             facts.PhysicalStrategies.PredicatePlacementPlans,
-            facts.PhysicalStrategies.PredicateMovementPlans)
+            facts.PhysicalStrategies.PredicateMovementPlans,
+            facts.PhysicalStrategies.ApplyPredicateMovementPlans)
     {
         SourceContractDiagnosticLocationsBySourceId = facts.SourcePlanning.SourceContractDiagnosticLocationsBySourceId;
     }
@@ -115,7 +117,8 @@ internal sealed partial record PlanProperties
 
     public PhysicalStrategyFacts PhysicalStrategies => new(
         PredicatePlacementPlans,
-        PredicateMovementPlans);
+        PredicateMovementPlans,
+        ApplyPredicateMovementPlans);
 
     public BoundaryPruningFacts BoundaryPruning => new(
         BoundaryRowShapePlans,

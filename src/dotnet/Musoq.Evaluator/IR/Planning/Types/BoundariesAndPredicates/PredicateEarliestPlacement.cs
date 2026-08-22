@@ -7,6 +7,7 @@ internal enum PredicateEarliestPlacement
     SourceRuntimeFilter,
     PreInnerJoinLeft,
     PreInnerJoinRight,
+    PreApplyRight,
     PostJoin,
     PostAggregate,
     PostWindow,

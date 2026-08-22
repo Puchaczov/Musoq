@@ -78,37 +78,61 @@ ExecutionPlan [compiled]
       Sum(Population): decimal? <- field Sum_Population_
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [Begin:left]
+    PhaseBoundary [Begin:left]
+    PhaseBoundary [From:left]
+    PhaseBoundary [From:left]
+    PhaseBoundary [From]
     SourceScan [ko3iko: BasicEntity] -> leftLeft_ko3ikoRows
     CreateRowBuffer [leftLeft: List<LeftLeftRow0>]
+    PhaseBoundary [GroupBy:left]
+    PhaseBoundary [GroupBy:left]
+    PhaseBoundary [GroupBy]
     CreateSingleKeyAggregateContext [leftLeftGroups: string -> LeftLeftAggregateGroup]
     ParallelSingleKeyAggregateLoop [ko3iko in leftLeft_ko3ikoRows by ko3iko.City; threshold 4096, sample 8192/6144, maxDegree 24, group LeftLeftAggregateGroup]
       ParallelAccumulate
         Let [population: decimal = ko3iko.Population]
         TypedAggregateSet [Set(leftLeftGroup.__agg0, population)]
     EnsureRowBufferCapacity [leftLeft <- leftLeftGroupsToFinalize.Count]
+    PhaseBoundary [Select:left]
+    PhaseBoundary [Select:left]
+    PhaseBoundary [Select]
     ForEach [leftLeftFinalGroup in leftLeftGroupsToFinalize]
       AppendRowBuffer [leftLeft <- LeftLeftRow0(City: leftLeftFinalGroup.City, Sum(Population): ko3iko.Sum(ko3iko.Population))]
+    PhaseBoundary [End:left]
+    PhaseBoundary [Begin:right]
+    PhaseBoundary [From:right]
     SourceScan [vo04qt: BasicEntity] -> leftRight_vo04qtRows
     CreateRowBuffer [leftRight: List<LeftRightRow0>]
+    PhaseBoundary [GroupBy:right]
     CreateSingleKeyAggregateContext [leftRightGroups: string -> LeftRightAggregateGroup]
     ParallelSingleKeyAggregateLoop [vo04qt in leftRight_vo04qtRows by vo04qt.City; threshold 4096, sample 8192/6144, maxDegree 24, group LeftRightAggregateGroup]
       ParallelAccumulate
         Let [population: decimal = vo04qt.Population]
         TypedAggregateSet [Set(leftRightGroup.__agg0, population)]
     EnsureRowBufferCapacity [leftRight <- leftRightGroupsToFinalize.Count]
+    PhaseBoundary [Select:right]
     ForEach [leftRightFinalGroup in leftRightGroupsToFinalize]
       AppendRowBuffer [leftRight <- LeftRightRow0(City: leftRightFinalGroup.City, Sum(Population): vo04qt.Sum(vo04qt.Population))]
+    PhaseBoundary [End:right]
     SetOperation [left = leftLeft Union leftRight, HashSet]
+    PhaseBoundary [End:left]
+    PhaseBoundary [Begin:right]
+    PhaseBoundary [From:right]
     SourceScan [gougbq: BasicEntity] -> right_gougbqRows
     CreateRowBuffer [right: List<RightRow0>]
+    PhaseBoundary [GroupBy:right]
     CreateSingleKeyAggregateContext [rightGroups: string -> RightAggregateGroup]
     ParallelSingleKeyAggregateLoop [gougbq in right_gougbqRows by gougbq.City; threshold 4096, sample 8192/6144, maxDegree 24, group RightAggregateGroup]
       ParallelAccumulate
         Let [population: decimal = gougbq.Population]
         TypedAggregateSet [Set(rightGroup.__agg0, population)]
     EnsureRowBufferCapacity [right <- rightGroupsToFinalize.Count]
+    PhaseBoundary [Select:right]
     ForEach [rightFinalGroup in rightGroupsToFinalize]
       AppendRowBuffer [right <- RightRow0(City: rightFinalGroup.City, Sum(Population): gougbq.Sum(gougbq.Population))]
+    PhaseBoundary [End:right]
     SetOperation [result = left Union right, HashSet]
     ReturnDeferredTable [result: LeftLeftRow0 <- LeftLeftShape0]
 */
@@ -132,7 +156,7 @@ namespace GeneratedSample_Q99_Union3WithGroupBySides
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_leftLeft_1 = new Column[]
         {
@@ -151,6 +175,7 @@ namespace GeneratedSample_Q99_Union3WithGroupBySides
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<LeftLeftRow0>("result", __columns_compiled_leftLeft_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -166,45 +191,60 @@ namespace GeneratedSample_Q99_Union3WithGroupBySides
 
         private IEnumerable<LeftLeftShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.GroupBy);
-            OnPhaseChanged("compiled:left", QueryPhase.Begin);
-            OnPhaseChanged("compiled:right", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<LeftLeftShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled:left", QueryPhase.Begin);
+                OnPhaseChanged("compiled:left", QueryPhase.Begin);
+                OnPhaseChanged("compiled:left", QueryPhase.From);
+                OnPhaseChanged("compiled:left", QueryPhase.From);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __leftLeft_ko3ikoSchema = provider.GetSchema("#A");
                 var leftLeft_ko3ikoRowsSource = __leftLeft_ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("Entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var leftLeft_ko3ikoRows = leftLeft_ko3ikoRowsSource.Chunks;
+                var leftLeft_ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(leftLeft_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : leftLeft_ko3ikoRowsSource.Chunks;
                 var leftLeft = new List<LeftLeftRow0>();
+                OnPhaseChanged("compiled:left", QueryPhase.GroupBy);
+                OnPhaseChanged("compiled:left", QueryPhase.GroupBy);
+                OnPhaseChanged("compiled", QueryPhase.GroupBy);
                 var leftLeftGroupsToFinalize = new List<AggregateGroup0>();
                 var leftLeftGroups = new Dictionary<string, AggregateGroup0>();
                 leftLeftGroupsToFinalize = ParallelSingleKeyAggregate_0(leftLeft_ko3ikoRows, 24, token);
                 leftLeft.EnsureCapacity(leftLeftGroupsToFinalize.Count);
+                OnPhaseChanged("compiled:left", QueryPhase.Select);
+                OnPhaseChanged("compiled:left", QueryPhase.Select);
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var leftLeftFinalGroup in leftLeftGroupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
                     leftLeft.Add(new LeftLeftRow0(leftLeftFinalGroup.__key0, leftLeftFinalGroup.__agg0.HasValue ? (decimal?)leftLeftFinalGroup.__agg0.Value : null));
                 }
 
+                OnPhaseChanged("compiled:left", QueryPhase.End);
+                OnPhaseChanged("compiled:right", QueryPhase.Begin);
+                OnPhaseChanged("compiled:right", QueryPhase.From);
                 var __leftRight_vo04qtSchema = provider.GetSchema("#B");
                 var leftRight_vo04qtRowsSource = __leftRight_vo04qtSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("Entities", new SourceExecutionContext("vo04qt:2", sourceExecutionPlans["vo04qt:2"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["vo04qt:2"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var leftRight_vo04qtRows = leftRight_vo04qtRowsSource.Chunks;
+                var leftRight_vo04qtRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(leftRight_vo04qtRowsSource.Chunks, __musoqProgressContext, "vo04qt:2") : leftRight_vo04qtRowsSource.Chunks;
                 var leftRight = new List<LeftRightRow0>();
+                OnPhaseChanged("compiled:right", QueryPhase.GroupBy);
                 var leftRightGroupsToFinalize = new List<AggregateGroup0>();
                 var leftRightGroups = new Dictionary<string, AggregateGroup0>();
                 leftRightGroupsToFinalize = ParallelSingleKeyAggregate_0(leftRight_vo04qtRows, 24, token);
                 leftRight.EnsureCapacity(leftRightGroupsToFinalize.Count);
+                OnPhaseChanged("compiled:right", QueryPhase.Select);
                 foreach (var leftRightFinalGroup in leftRightGroupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
                     leftRight.Add(new LeftRightRow0(leftRightFinalGroup.__key0, leftRightFinalGroup.__agg0.HasValue ? (decimal?)leftRightFinalGroup.__agg0.Value : null));
                 }
 
+                OnPhaseChanged("compiled:right", QueryPhase.End);
                 var left = new List<LeftLeftRow0>();
                 var leftKeys = new HashSet<string>(leftLeft.Count + leftRight.Count);
                 foreach (var leftLeftRow in leftLeft)
@@ -221,20 +261,26 @@ namespace GeneratedSample_Q99_Union3WithGroupBySides
                     }
                 }
 
+                OnPhaseChanged("compiled:left", QueryPhase.End);
+                OnPhaseChanged("compiled:right", QueryPhase.Begin);
+                OnPhaseChanged("compiled:right", QueryPhase.From);
                 var __right_gougbqSchema = provider.GetSchema("#C");
                 var right_gougbqRowsSource = __right_gougbqSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("Entities", new SourceExecutionContext("gougbq:3", sourceExecutionPlans["gougbq:3"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["gougbq:3"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var right_gougbqRows = right_gougbqRowsSource.Chunks;
+                var right_gougbqRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(right_gougbqRowsSource.Chunks, __musoqProgressContext, "gougbq:3") : right_gougbqRowsSource.Chunks;
                 var right = new List<RightRow0>();
+                OnPhaseChanged("compiled:right", QueryPhase.GroupBy);
                 var rightGroupsToFinalize = new List<AggregateGroup0>();
                 var rightGroups = new Dictionary<string, AggregateGroup0>();
                 rightGroupsToFinalize = ParallelSingleKeyAggregate_0(right_gougbqRows, 24, token);
                 right.EnsureCapacity(rightGroupsToFinalize.Count);
+                OnPhaseChanged("compiled:right", QueryPhase.Select);
                 foreach (var rightFinalGroup in rightGroupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
                     right.Add(new RightRow0(rightFinalGroup.__key0, rightFinalGroup.__agg0.HasValue ? (decimal?)rightFinalGroup.__agg0.Value : null));
                 }
 
+                OnPhaseChanged("compiled:right", QueryPhase.End);
                 var resultKeys = new HashSet<string>(left.Count + right.Count);
                 foreach (var resultLeftRow in left)
                 {
@@ -254,9 +300,14 @@ namespace GeneratedSample_Q99_Union3WithGroupBySides
             }
             finally
             {
-                OnPhaseChanged("compiled:left", QueryPhase.End);
-                OnPhaseChanged("compiled:right", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

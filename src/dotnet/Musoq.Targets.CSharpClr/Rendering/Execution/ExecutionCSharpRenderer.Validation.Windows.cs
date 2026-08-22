@@ -72,7 +72,9 @@ public sealed partial class ExecutionCSharpRenderer
 
         if (IsUnboundedPrecedingToCurrentRow(plugin.Frame))
         {
-            mode = StreamingPluginWindowMode.Running;
+            mode = plugin.Frame.Kind == ExecutionWindowFrameKind.Range
+                ? StreamingPluginWindowMode.RunningPeers
+                : StreamingPluginWindowMode.Running;
             return true;
         }
 

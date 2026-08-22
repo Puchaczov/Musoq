@@ -43,13 +43,20 @@ ExecutionPlan [compiled]
       Population: decimal <- field Population
 
   Body
-    CtePhase [cte0]
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [Select]
+    PhaseBoundary [From:cte0]
     SourceScan [ko3iko: BasicEntity] -> ko3ikoRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [Where:cte0]
+    PhaseBoundary [Select:cte0]
     ChunkedForEach [ko3iko in ko3ikoRows]
       Let [population: decimal = ko3iko.Population]
       If [(population > 0)]
         AppendShape [result <- ResultShape0(Name: ko3iko.Name, Population: population)]
+    PhaseBoundary [End:cte0]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
 
@@ -72,7 +79,7 @@ namespace GeneratedSample_Q02_CteDownstream
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -91,6 +98,7 @@ namespace GeneratedSample_Q02_CteDownstream
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -106,88 +114,103 @@ namespace GeneratedSample_Q02_CteDownstream
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Where);
-            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
-                var __musoqFinalShapeRows = new List<ResultShape0>();
-                var __ko3ikoSchema = provider.GetSchema("#A");
-                var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var ko3ikoRows = ko3ikoRowsSource.Chunks;
-                foreach (var ko3ikoChunk in ko3ikoRows)
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+                try
                 {
-                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)
+                    OnPhaseChanged("compiled", QueryPhase.Select);
+                    OnPhaseChanged("compiled:cte0", QueryPhase.From);
+                    var __ko3ikoSchema = provider.GetSchema("#A");
+                    var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                    var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
+                    OnPhaseChanged("compiled:cte0", QueryPhase.Where);
+                    OnPhaseChanged("compiled:cte0", QueryPhase.Select);
+                    foreach (var ko3ikoChunk in ko3ikoRows)
                     {
-                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] ko3ikoChunkViewArray)
+                        if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)
                         {
-                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                            if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] ko3ikoChunkViewArray)
                             {
-                                if ((ko3ikoIndex & 1023) == 0)
+                                int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                                for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                                 {
-                                    token.ThrowIfCancellationRequested();
+                                    if ((ko3ikoIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                    decimal population = ko3iko.Population;
+                                    if ((population > 0))
+                                    {
+                                        yield return new ResultShape0(ko3iko.Name, population);
+                                    }
                                 }
 
-                                var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                decimal population = ko3iko.Population;
-                                if ((population > 0))
-                                {
-                                    __musoqFinalShapeRows.Add(new ResultShape0(ko3iko.Name, population));
-                                }
+                                continue;
                             }
 
-                            continue;
+                            if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkViewList)
+                            {
+                                int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                                for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                                {
+                                    if ((ko3ikoIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                    decimal population = ko3iko.Population;
+                                    if ((population > 0))
+                                    {
+                                        yield return new ResultShape0(ko3iko.Name, population);
+                                    }
+                                }
+
+                                continue;
+                            }
                         }
 
-                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkViewList)
+                        for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                         {
-                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                            if ((ko3ikoIndex & 1023) == 0)
                             {
-                                if ((ko3ikoIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                decimal population = ko3iko.Population;
-                                if ((population > 0))
-                                {
-                                    __musoqFinalShapeRows.Add(new ResultShape0(ko3iko.Name, population));
-                                }
+                                token.ThrowIfCancellationRequested();
                             }
 
-                            continue;
-                        }
-                    }
-
-                    for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
-                    {
-                        if ((ko3ikoIndex & 1023) == 0)
-                        {
-                            token.ThrowIfCancellationRequested();
-                        }
-
-                        var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                        decimal population = ko3iko.Population;
-                        if ((population > 0))
-                        {
-                            __musoqFinalShapeRows.Add(new ResultShape0(ko3iko.Name, population));
+                            var ko3iko = ko3ikoChunk[ko3ikoIndex];
+                            decimal population = ko3iko.Population;
+                            if ((population > 0))
+                            {
+                                yield return new ResultShape0(ko3iko.Name, population);
+                            }
                         }
                     }
                 }
-
-                return __musoqFinalShapeRows;
+                finally
+                {
+                    OnPhaseChanged("compiled:cte0", QueryPhase.End);
+                }
             }
             finally
             {
-                OnPhaseChanged("compiled:cte0", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

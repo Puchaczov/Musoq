@@ -48,7 +48,10 @@ ExecutionPlan [compiled]
       Scale(e.metric, l.factor): double <- field Scale_e_metric__l_factor_
 
   Body
-    CtePhase [cte0]
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [Select]
     SourceScan [e: RuntimeDynamicRow] -> eRows
     SourceScan [l: RuntimeDynamicLookupRow] -> lRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
@@ -60,6 +63,7 @@ ExecutionPlan [compiled]
       HashProbe [lHash[e.RuntimeKey] -> lHashMatches]
         ForEach [l in lHashMatches]
           AppendShape [result <- ResultShape0(Scale(e.metric, l.factor): Scale(e.Metric, l.Factor))]
+    PhaseBoundary [End:cte0]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
 
@@ -82,7 +86,7 @@ namespace GeneratedSample_Q234_PublicDynamicJoinMethod
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_2 = new Column[]
         {
@@ -101,6 +105,7 @@ namespace GeneratedSample_Q234_PublicDynamicJoinMethod
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -116,188 +121,205 @@ namespace GeneratedSample_Q234_PublicDynamicJoinMethod
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
-                var __eSchema = provider.GetSchema("#runtime");
-                var eRowsSource = __eSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>("events", new SourceExecutionContext("e:1", sourceExecutionPlans["e:1"], token, __schemaColumns_compiled_e_0, sourceRuntimeSettingsBySourceContextId["e:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var eRows = eRowsSource.Chunks;
-                var __lSchema = provider.GetSchema("#runtime");
-                var lRowsSource = __lSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow>("lookup", new SourceExecutionContext("l:1", sourceExecutionPlans["l:1"], token, __schemaColumns_compiled_l_1, sourceRuntimeSettingsBySourceContextId["l:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var lRows = lRowsSource.Chunks;
-                var lHash = new Dictionary<int, HashJoinBucket<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow>>();
-                foreach (var lChunk in lRows)
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+                Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLibrary __resultRuntimeDynamicLibrary0 = default!;
+                try
                 {
-                    if (lChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow> lChunkView)
+                    OnPhaseChanged("compiled", QueryPhase.Select);
+                    var __eSchema = provider.GetSchema("#runtime");
+                    var eRowsSource = __eSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>("events", new SourceExecutionContext("e:1", sourceExecutionPlans["e:1"], token, __schemaColumns_compiled_e_0, sourceRuntimeSettingsBySourceContextId["e:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                    var eRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>(eRowsSource.Chunks, __musoqProgressContext, "e:1") : eRowsSource.Chunks;
+                    var __lSchema = provider.GetSchema("#runtime");
+                    var lRowsSource = __lSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow>("lookup", new SourceExecutionContext("l:1", sourceExecutionPlans["l:1"], token, __schemaColumns_compiled_l_1, sourceRuntimeSettingsBySourceContextId["l:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                    var lRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow>(lRowsSource.Chunks, __musoqProgressContext, "l:1") : lRowsSource.Chunks;
+                    var lHash = new Dictionary<int, HashJoinBucket<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow>>();
+                    foreach (var lChunk in lRows)
                     {
-                        if (lChunkView.Source is Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow[] lChunkViewArray)
+                        if (lChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow> lChunkView)
                         {
-                            int lChunkViewOffset = lChunkView.Offset;
-                            for (int lIndex = 0, lIndexCount = lChunkView.Count; lIndex < lIndexCount; ++lIndex)
+                            if (lChunkView.Source is Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow[] lChunkViewArray)
                             {
-                                if ((lIndex & 1023) == 0)
+                                int lChunkViewOffset = lChunkView.Offset;
+                                for (int lIndex = 0, lIndexCount = lChunkView.Count; lIndex < lIndexCount; ++lIndex)
                                 {
-                                    token.ThrowIfCancellationRequested();
+                                    if ((lIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var l = lChunkViewArray[lChunkViewOffset + lIndex];
+                                    int key = l.Id;
+                                    {
+                                        ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(lHash, key, out var matchesExists);
+                                        if (!matchesExists)
+                                        {
+                                            matches = new HashJoinBucket<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow>(l);
+                                        }
+                                        else
+                                        {
+                                            matches.Add(l);
+                                        }
+                                    }
                                 }
 
-                                var l = lChunkViewArray[lChunkViewOffset + lIndex];
-                                int key = l.Id;
-                                {
-                                    ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(lHash, key, out var matchesExists);
-                                    if (!matchesExists)
-                                    {
-                                        matches = new HashJoinBucket<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow>(l);
-                                    }
-                                    else
-                                    {
-                                        matches.Add(l);
-                                    }
-                                }
+                                continue;
                             }
 
-                            continue;
+                            if (lChunkView.Source is List<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow> lChunkViewList)
+                            {
+                                int lChunkViewOffset = lChunkView.Offset;
+                                for (int lIndex = 0, lIndexCount = lChunkView.Count; lIndex < lIndexCount; ++lIndex)
+                                {
+                                    if ((lIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var l = lChunkViewList[lChunkViewOffset + lIndex];
+                                    int key = l.Id;
+                                    {
+                                        ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(lHash, key, out var matchesExists);
+                                        if (!matchesExists)
+                                        {
+                                            matches = new HashJoinBucket<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow>(l);
+                                        }
+                                        else
+                                        {
+                                            matches.Add(l);
+                                        }
+                                    }
+                                }
+
+                                continue;
+                            }
                         }
 
-                        if (lChunkView.Source is List<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow> lChunkViewList)
+                        for (int lIndex = 0, lIndexCount = lChunk.Count; lIndex < lIndexCount; ++lIndex)
                         {
-                            int lChunkViewOffset = lChunkView.Offset;
-                            for (int lIndex = 0, lIndexCount = lChunkView.Count; lIndex < lIndexCount; ++lIndex)
+                            if ((lIndex & 1023) == 0)
                             {
-                                if ((lIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var l = lChunkViewList[lChunkViewOffset + lIndex];
-                                int key = l.Id;
-                                {
-                                    ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(lHash, key, out var matchesExists);
-                                    if (!matchesExists)
-                                    {
-                                        matches = new HashJoinBucket<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow>(l);
-                                    }
-                                    else
-                                    {
-                                        matches.Add(l);
-                                    }
-                                }
+                                token.ThrowIfCancellationRequested();
                             }
 
-                            continue;
+                            var l = lChunk[lIndex];
+                            int key = l.Id;
+                            {
+                                ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(lHash, key, out var matchesExists);
+                                if (!matchesExists)
+                                {
+                                    matches = new HashJoinBucket<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow>(l);
+                                }
+                                else
+                                {
+                                    matches.Add(l);
+                                }
+                            }
                         }
                     }
 
-                    for (int lIndex = 0, lIndexCount = lChunk.Count; lIndex < lIndexCount; ++lIndex)
+                    __resultRuntimeDynamicLibrary0 = new Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLibrary();
+                    foreach (var eChunk in eRows)
                     {
-                        if ((lIndex & 1023) == 0)
+                        if (eChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow> eChunkView)
                         {
-                            token.ThrowIfCancellationRequested();
+                            if (eChunkView.Source is Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow[] eChunkViewArray)
+                            {
+                                int eChunkViewOffset = eChunkView.Offset;
+                                for (int eIndex = 0, eIndexCount = eChunkView.Count; eIndex < eIndexCount; ++eIndex)
+                                {
+                                    if ((eIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var e = eChunkViewArray[eChunkViewOffset + eIndex];
+                                    int key = (int)(object)((dynamic)e).RuntimeKey;
+                                    if (lHash.TryGetValue(key, out var lHashMatches))
+                                    {
+                                        foreach (var l in lHashMatches)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                            __musoqFinalShapeRows.Add(new ResultShape0((double)__resultRuntimeDynamicLibrary0.Scale((double)(object)((dynamic)e).Metric, l.Factor)));
+                                        }
+                                    }
+                                }
+
+                                continue;
+                            }
+
+                            if (eChunkView.Source is List<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow> eChunkViewList)
+                            {
+                                int eChunkViewOffset = eChunkView.Offset;
+                                for (int eIndex = 0, eIndexCount = eChunkView.Count; eIndex < eIndexCount; ++eIndex)
+                                {
+                                    if ((eIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var e = eChunkViewList[eChunkViewOffset + eIndex];
+                                    int key = (int)(object)((dynamic)e).RuntimeKey;
+                                    if (lHash.TryGetValue(key, out var lHashMatches))
+                                    {
+                                        foreach (var l in lHashMatches)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                            __musoqFinalShapeRows.Add(new ResultShape0((double)__resultRuntimeDynamicLibrary0.Scale((double)(object)((dynamic)e).Metric, l.Factor)));
+                                        }
+                                    }
+                                }
+
+                                continue;
+                            }
                         }
 
-                        var l = lChunk[lIndex];
-                        int key = l.Id;
+                        for (int eIndex = 0, eIndexCount = eChunk.Count; eIndex < eIndexCount; ++eIndex)
                         {
-                            ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(lHash, key, out var matchesExists);
-                            if (!matchesExists)
+                            if ((eIndex & 1023) == 0)
                             {
-                                matches = new HashJoinBucket<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow>(l);
+                                token.ThrowIfCancellationRequested();
                             }
-                            else
+
+                            var e = eChunk[eIndex];
+                            int key = (int)(object)((dynamic)e).RuntimeKey;
+                            if (lHash.TryGetValue(key, out var lHashMatches))
                             {
-                                matches.Add(l);
+                                foreach (var l in lHashMatches)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    __musoqFinalShapeRows.Add(new ResultShape0((double)__resultRuntimeDynamicLibrary0.Scale((double)(object)((dynamic)e).Metric, l.Factor)));
+                                }
                             }
                         }
                     }
                 }
-
-                var __resultRuntimeDynamicLibrary0 = new Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLibrary();
-                foreach (var eChunk in eRows)
+                finally
                 {
-                    if (eChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow> eChunkView)
-                    {
-                        if (eChunkView.Source is Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow[] eChunkViewArray)
-                        {
-                            int eChunkViewOffset = eChunkView.Offset;
-                            for (int eIndex = 0, eIndexCount = eChunkView.Count; eIndex < eIndexCount; ++eIndex)
-                            {
-                                if ((eIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var e = eChunkViewArray[eChunkViewOffset + eIndex];
-                                int key = (int)(object)((dynamic)e).RuntimeKey;
-                                if (lHash.TryGetValue(key, out var lHashMatches))
-                                {
-                                    foreach (var l in lHashMatches)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                        __musoqFinalShapeRows.Add(new ResultShape0((double)__resultRuntimeDynamicLibrary0.Scale((double)(object)((dynamic)e).Metric, l.Factor)));
-                                    }
-                                }
-                            }
-
-                            continue;
-                        }
-
-                        if (eChunkView.Source is List<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow> eChunkViewList)
-                        {
-                            int eChunkViewOffset = eChunkView.Offset;
-                            for (int eIndex = 0, eIndexCount = eChunkView.Count; eIndex < eIndexCount; ++eIndex)
-                            {
-                                if ((eIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var e = eChunkViewList[eChunkViewOffset + eIndex];
-                                int key = (int)(object)((dynamic)e).RuntimeKey;
-                                if (lHash.TryGetValue(key, out var lHashMatches))
-                                {
-                                    foreach (var l in lHashMatches)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                        __musoqFinalShapeRows.Add(new ResultShape0((double)__resultRuntimeDynamicLibrary0.Scale((double)(object)((dynamic)e).Metric, l.Factor)));
-                                    }
-                                }
-                            }
-
-                            continue;
-                        }
-                    }
-
-                    for (int eIndex = 0, eIndexCount = eChunk.Count; eIndex < eIndexCount; ++eIndex)
-                    {
-                        if ((eIndex & 1023) == 0)
-                        {
-                            token.ThrowIfCancellationRequested();
-                        }
-
-                        var e = eChunk[eIndex];
-                        int key = (int)(object)((dynamic)e).RuntimeKey;
-                        if (lHash.TryGetValue(key, out var lHashMatches))
-                        {
-                            foreach (var l in lHashMatches)
-                            {
-                                token.ThrowIfCancellationRequested();
-                                __musoqFinalShapeRows.Add(new ResultShape0((double)__resultRuntimeDynamicLibrary0.Scale((double)(object)((dynamic)e).Metric, l.Factor)));
-                            }
-                        }
-                    }
+                    OnPhaseChanged("compiled:cte0", QueryPhase.End);
                 }
 
                 return __musoqFinalShapeRows;
             }
             finally
             {
-                OnPhaseChanged("compiled:cte0", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

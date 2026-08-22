@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Physical;
 
 namespace Musoq.Evaluator.IR.Execution.Lowering.Sources;
@@ -10,7 +11,10 @@ internal sealed record ApplyChainSource(
 
 internal sealed record ApplyChainPhysicalSource(
     PhysicalNode Source,
-    bool WithOrdinality);
+    bool WithOrdinality)
+{
+    public IReadOnlyList<ApplyPredicateMovementPlan> ApplyPredicateMovementPlans { get; init; } = [];
+}
 
 internal sealed record ApplyChainBuildResult(
     bool IsBuilt,

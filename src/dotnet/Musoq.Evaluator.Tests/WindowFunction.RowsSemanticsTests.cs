@@ -11,9 +11,8 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
     // ========================================================================
     // ROWS Semantics Tests — Tied ORDER BY Values
     // ========================================================================
-    // Musoq uses ROWS semantics (row-by-row accumulation), not RANGE semantics
-    // (peer-group accumulation). These tests verify the documented behavior
-    // from spec section 11.11.2.
+    // Explicit ROWS frames use row-by-row accumulation rather than RANGE
+    // peer-group expansion. These tests verify spec section 11.11.2.
 
     [TestMethod]
     public void WhenRunningSumWithTiedOrderByValues_ShouldAccumulatePerRow()
@@ -23,7 +22,8 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         // Sorted: Alice(LA,100) → two NYC rows in some intra-tie order → Diana(SF,400)
         // Under RANGE semantics, both NYC rows would get the same sum. Under ROWS, they differ.
         var query = @"
-            select Name, Sum(Population) over (order by City) as RunSum
+            select Name, Sum(Population) over (
+                order by City rows between unbounded preceding and current row) as RunSum
             from #A.Entities()";
 
         var sources = CreateSingleSource(
@@ -47,7 +47,8 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
     {
         // Three rows with City="NYC" — running count should be 1,2,3 not all 3.
         var query = @"
-            select Name, Count(Name) over (order by City) as RunCount
+            select Name, Count(Name) over (
+                order by City rows between unbounded preceding and current row) as RunCount
             from #A.Entities()";
 
         var sources = CreateSingleSource(
@@ -71,7 +72,8 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
     {
         // avg changes per row even for tied ORDER BY values.
         var query = @"
-            select Name, Avg(Population) over (order by City) as RunAvg
+            select Name, Avg(Population) over (
+                order by City rows between unbounded preceding and current row) as RunAvg
             from #A.Entities()";
 
         var sources = CreateSingleSource(
@@ -93,7 +95,8 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
     public void WhenRunningMinWithTiedOrderByValues_ShouldTrackPerRow()
     {
         var query = @"
-            select Name, Min(Population) over (order by City) as RunMin
+            select Name, Min(Population) over (
+                order by City rows between unbounded preceding and current row) as RunMin
             from #A.Entities()";
 
         var sources = CreateSingleSource(
@@ -115,7 +118,8 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
     public void WhenRunningMaxWithTiedOrderByValues_ShouldTrackPerRow()
     {
         var query = @"
-            select Name, Max(Population) over (order by City) as RunMax
+            select Name, Max(Population) over (
+                order by City rows between unbounded preceding and current row) as RunMax
             from #A.Entities()";
 
         var sources = CreateSingleSource(
@@ -138,7 +142,9 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
     {
         // Tied ORDER BY within partitions — ROWS semantics applies per partition.
         var query = @"
-            select Name, Country, Sum(Population) over (partition by Country order by City) as RunSum
+            select Name, Country, Sum(Population) over (
+                partition by Country order by City
+                rows between unbounded preceding and current row) as RunSum
             from #A.Entities()";
 
         var sources = CreateSingleSource(
@@ -219,7 +225,8 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         // ROWS frame: LAST_VALUE with ORDER BY returns the current row's value
         // (frame is UNBOUNDED PRECEDING TO CURRENT ROW, so current row is "last").
         var query = @"
-            select Name, LastValue(Population) over (order by City) as LV
+            select Name, LastValue(Population) over (
+                order by City rows between unbounded preceding and current row) as LV
             from #A.Entities()";
 
         var sources = CreateSingleSource(
@@ -242,7 +249,8 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
     {
         // NTH_VALUE(col, 2) should return the 2nd accumulated row, not 2nd peer group.
         var query = @"
-            select Name, NthValue(Population, 2) over (order by City) as NV
+            select Name, NthValue(Population, 2) over (
+                order by City rows between unbounded preceding and current row) as NV
             from #A.Entities()";
 
         var sources = CreateSingleSource(
@@ -385,7 +393,8 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
     public void WhenMultipleNullsInOrderByColumnAsc_ShouldGroupNullsFirst()
     {
         var query = @"
-            select Name, Sum(Population) over (order by City) as RunSum
+            select Name, Sum(Population) over (
+                order by City rows between unbounded preceding and current row) as RunSum
             from #A.Entities()";
 
         var sources = CreateSingleSource(

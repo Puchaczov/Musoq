@@ -17,6 +17,7 @@ public sealed partial class CSharpRenderer
         string rowsMethodName,
         TableViaRowsResultInfo resultInfo,
         FinalProjectionSinkPlan sinkPlan,
+        bool useQueryRunContext,
         out MethodDeclarationSyntax rowsMethod,
         out QueryMethodRenderMetadata metadata)
     {
@@ -31,9 +32,13 @@ public sealed partial class CSharpRenderer
                 executionRenderer,
                 setup.ProjectionLoop,
                 setup.SourceSetupStatements,
+                plan.Body,
+                queryIdentifier,
                 ExecutionCSharpRenderer.CreateClosingPhaseStatements(plan.Body, queryIdentifier).ToArray(),
-                setup.RenderContext),
-            useQueryRunContext: false,
+                setup.RenderContext,
+                setup.EntryStatementCount,
+                useQueryRunContext),
+            useQueryRunContext,
             out rowsMethod,
             out metadata))
         {
@@ -49,14 +54,32 @@ public sealed partial class CSharpRenderer
         ExecutionCSharpRenderer executionRenderer,
         TypedProjectionLoop projectionLoop,
         IReadOnlyList<StatementSyntax> sourceSetupStatements,
+        ExecutionBlock planBody,
+        string queryIdentifier,
         IReadOnlyList<StatementSyntax> closingPhaseStatements,
-        ExecutionRenderContext renderContext)
+        ExecutionRenderContext renderContext,
+        int entryStatementCount,
+        bool useQueryRunContext)
     {
         const string sourceRowsName = "__musoqTableSourceRows";
-        var statements = new List<StatementSyntax>(sourceSetupStatements)
-        {
-            CreateSourceRowsLocalDeclaration(executionRenderer, projectionLoop, sourceRowsName, renderContext)
-        };
+        var statements = new List<StatementSyntax>(sourceSetupStatements);
+        statements.InsertRange(
+            Math.Clamp(entryStatementCount, 0, statements.Count),
+            CreateDirectProjectionPhaseStatements(
+                planBody,
+                queryIdentifier,
+                QueryPhase.Begin,
+                QueryPhase.From,
+                useInstanceHandler: !useQueryRunContext));
+        statements.Add(CreateSourceRowsLocalDeclaration(executionRenderer, projectionLoop, sourceRowsName, renderContext));
+        statements.AddRange(
+            CreateDirectProjectionPhaseStatements(
+                planBody,
+                queryIdentifier,
+                QueryPhase.Where,
+                QueryPhase.GroupBy,
+                QueryPhase.Select,
+                useInstanceHandler: !useQueryRunContext));
 
         if (projectionLoop.CanUseParallel)
         {
@@ -74,8 +97,32 @@ public sealed partial class CSharpRenderer
                 SyntaxFactory.ParseTypeName($"IEnumerable<{resultInfo.RowTypeName}>"),
                 SyntaxFactory.Identifier(rowsMethodName))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
-            .WithParameterList(MethodDeclarationHelper.CreateStandardParameterList())
+            .WithParameterList(useQueryRunContext
+                ? MethodDeclarationHelper.CreateTypedRunContextParameterList()
+                : MethodDeclarationHelper.CreateStandardParameterList())
             .WithBody(SyntaxFactory.Block(statements));
+    }
+
+    private static IEnumerable<StatementSyntax> CreateDirectProjectionPhaseStatements(
+        ExecutionBlock block,
+        string queryIdentifier,
+        QueryPhase firstPhase,
+        QueryPhase? secondPhase = null,
+        QueryPhase? thirdPhase = null,
+        bool useInstanceHandler = true)
+    {
+        foreach (var boundary in block.Nodes.OfType<ExecutionPhaseBoundary>())
+        {
+            if (boundary.Phase != firstPhase &&
+                boundary.Phase != secondPhase &&
+                boundary.Phase != thirdPhase)
+                continue;
+
+            yield return QueryEmitter.GeneratePhaseChangeStatement(
+                    queryIdentifier + boundary.QueryIdSuffix,
+                    boundary.Phase,
+                    useInstanceHandler);
+        }
     }
 
     private static bool TryCreateTableShapeStreamingMethod(
@@ -85,6 +132,7 @@ public sealed partial class CSharpRenderer
         string shapeRowsMethodName,
         string rowsMethodName,
         TableViaRowsResultInfo resultInfo,
+        bool useQueryRunContext,
         bool includeProfileRecorderParameter,
         out MethodDeclarationSyntax shapeRowsMethod,
         out MethodDeclarationSyntax rowsAdapterMethod,
@@ -106,14 +154,16 @@ public sealed partial class CSharpRenderer
             resultInfo.TableName,
             resultInfo.ShapeTypeName,
             resultInfo.ShapeFields,
+            useQueryRunContext: useQueryRunContext,
             includeProfileRecorderParameter: includeProfileRecorderParameter,
             bufferFinalShapes: bufferFinalShapes);
         rowsAdapterMethod = usesGeneratedRowCarrier
-            ? CreateTableRowsForwardingMethod(rowsMethodName, shapeRowsMethodName, resultInfo.RowTypeName, includeProfileRecorderParameter)
+            ? CreateTableRowsForwardingMethod(rowsMethodName, shapeRowsMethodName, resultInfo.RowTypeName, useQueryRunContext, includeProfileRecorderParameter)
             : CreateTableRowsAdapterMethod(
                 rowsMethodName,
                 shapeRowsMethodName,
                 resultInfo,
+                useQueryRunContext,
                 includeProfileRecorderParameter,
                 wrapProfiledShapeRows: includeProfileRecorderParameter &&
                                        !bufferFinalShapes &&
@@ -125,17 +175,19 @@ public sealed partial class CSharpRenderer
         string rowsMethodName,
         string shapeRowsMethodName,
         string rowTypeName,
+        bool useQueryRunContext,
         bool includeProfileRecorderParameter)
     {
+        var contextArgument = useQueryRunContext ? "queryContext" : "token";
         var shapeRowsCall = includeProfileRecorderParameter
-            ? $"{shapeRowsMethodName}(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, profileRecorder)"
-            : $"{shapeRowsMethodName}(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token)";
+            ? $"{shapeRowsMethodName}(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, {contextArgument}, profileRecorder)"
+            : $"{shapeRowsMethodName}(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, {contextArgument})";
 
         return SyntaxFactory.MethodDeclaration(
                 SyntaxFactory.ParseTypeName($"IEnumerable<{rowTypeName}>"),
                 SyntaxFactory.Identifier(rowsMethodName))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
-            .WithParameterList(CreateTableRowsAdapterParameterList(includeProfileRecorderParameter))
+            .WithParameterList(CreateTableRowsAdapterParameterList(useQueryRunContext, includeProfileRecorderParameter))
             .WithBody(SyntaxFactory.Block(SyntaxFactory.ReturnStatement(SyntaxFactory.ParseExpression(shapeRowsCall))));
     }
 
@@ -243,6 +295,7 @@ public sealed partial class CSharpRenderer
             ExecutionEnumerableSource => true,
             ExecutionCreateObject => true,
             ExecutionCreateValuesRows => true,
+            ExecutionPhaseBoundary => true,
             ExecutionCreateTable createTable => createTable.Table.Name == finalTableName,
             ExecutionEnsureTableCapacity ensureCapacity => ensureCapacity.Table.Name == finalTableName,
             ExecutionReturnTable returnTable => returnTable.Table.Name == finalTableName,
@@ -406,6 +459,8 @@ public sealed partial class CSharpRenderer
                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
                 SyntaxFactory.Argument(CreateClosingAction(closingPhaseStatements))
                     .WithNameColon(SyntaxFactory.NameColon("onCompleted")),
+                SyntaxFactory.Argument(CreateExceptionClosingAction(closingPhaseStatements))
+                    .WithNameColon(SyntaxFactory.NameColon("onException")),
                 SyntaxFactory.Argument(CreateClosingAction(closingPhaseStatements))
                     .WithNameColon(SyntaxFactory.NameColon("onDisposed"))
             ])));
@@ -611,13 +666,15 @@ public sealed partial class CSharpRenderer
         string rowsMethodName,
         string shapeRowsMethodName,
         TableViaRowsResultInfo resultInfo,
+        bool useQueryRunContext,
         bool includeProfileRecorderParameter = false,
         bool wrapProfiledShapeRows = false)
     {
         const string shapeRowName = "__musoqShapeRow";
+        var contextArgument = useQueryRunContext ? "queryContext" : "token";
         var shapeRowsCall = includeProfileRecorderParameter
-            ? $"{shapeRowsMethodName}(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, profileRecorder)"
-            : $"{shapeRowsMethodName}(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token)";
+            ? $"{shapeRowsMethodName}(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, {contextArgument}, profileRecorder)"
+            : $"{shapeRowsMethodName}(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, {contextArgument})";
         ExpressionSyntax shapeRowsExpression = SyntaxFactory.ParseExpression(shapeRowsCall);
         if (wrapProfiledShapeRows)
         {
@@ -664,13 +721,17 @@ public sealed partial class CSharpRenderer
                 SyntaxFactory.ParseTypeName($"IEnumerable<{resultInfo.RowTypeName}>"),
                 SyntaxFactory.Identifier(rowsMethodName))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
-            .WithParameterList(CreateTableRowsAdapterParameterList(includeProfileRecorderParameter))
+            .WithParameterList(CreateTableRowsAdapterParameterList(useQueryRunContext, includeProfileRecorderParameter))
             .WithBody(body);
     }
 
-    private static ParameterListSyntax CreateTableRowsAdapterParameterList(bool includeProfileRecorderParameter)
+    private static ParameterListSyntax CreateTableRowsAdapterParameterList(
+        bool useQueryRunContext,
+        bool includeProfileRecorderParameter)
     {
-        var parameterList = MethodDeclarationHelper.CreateStandardParameterList();
+        var parameterList = useQueryRunContext
+            ? MethodDeclarationHelper.CreateTypedRunContextParameterList()
+            : MethodDeclarationHelper.CreateStandardParameterList();
         return includeProfileRecorderParameter
             ? parameterList.AddParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("profileRecorder"))
                 .WithType(SyntaxFactory.IdentifierName("QueryProfileRecorder")))
@@ -729,6 +790,8 @@ public sealed partial class CSharpRenderer
                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
                 SyntaxFactory.Argument(CreateClosingAction(closingPhaseStatements))
                     .WithNameColon(SyntaxFactory.NameColon("onCompleted")),
+                SyntaxFactory.Argument(CreateExceptionClosingAction(closingPhaseStatements))
+                    .WithNameColon(SyntaxFactory.NameColon("onException")),
                 SyntaxFactory.Argument(CreateClosingAction(closingPhaseStatements))
                     .WithNameColon(SyntaxFactory.NameColon("onDisposed"))
             ])));
@@ -739,6 +802,16 @@ public sealed partial class CSharpRenderer
     {
         return SyntaxFactory.ParenthesizedLambdaExpression()
             .WithParameterList(SyntaxFactory.ParameterList())
+            .WithBlock(SyntaxFactory.Block(closingPhaseStatements));
+    }
+
+    private static ParenthesizedLambdaExpressionSyntax CreateExceptionClosingAction(
+        IReadOnlyList<StatementSyntax> closingPhaseStatements)
+    {
+        return SyntaxFactory.ParenthesizedLambdaExpression()
+            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.Parameter(SyntaxFactory.Identifier("_"))
+                    .WithType(SyntaxFactory.IdentifierName(nameof(Exception))))))
             .WithBlock(SyntaxFactory.Block(closingPhaseStatements));
     }
 }

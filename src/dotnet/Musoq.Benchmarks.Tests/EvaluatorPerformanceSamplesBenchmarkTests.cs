@@ -49,7 +49,7 @@ public sealed class EvaluatorPerformanceSamplesBenchmarkTests
             new object?[] { "Name_0", "Country_0", 1L },
             rows[0].Values);
         CollectionAssert.AreEqual(
-            new object?[] { "Name_4", "Country_0", 3L },
+            new object?[] { "Name_1", "Country_1", 1L },
             rows[4].Values);
     }
 

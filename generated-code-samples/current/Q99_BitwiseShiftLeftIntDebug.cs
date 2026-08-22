@@ -40,9 +40,12 @@ ExecutionPlan [compiled]
       ShiftLeft(1, 1): int? <- field ShiftLeft_1__1_
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [ko3iko: BasicEntity] -> ko3ikoRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateObject [__resultLibraryBase0: LibraryBase]
+    PhaseBoundary [Select]
     ParallelFilterProjectLoop [ko3iko in ko3ikoRows; threshold 4096, maxDegree 24]
       ParallelProject
         AppendShape [result <- ResultShape0(ShiftLeft(1, 1): ShiftLeft(1, 1))]
@@ -68,7 +71,7 @@ namespace GeneratedSample_Q99_BitwiseShiftLeftIntDebug
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -86,6 +89,7 @@ namespace GeneratedSample_Q99_BitwiseShiftLeftIntDebug
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -93,34 +97,85 @@ namespace GeneratedSample_Q99_BitwiseShiftLeftIntDebug
 
         private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             var __musoqExecutionState = ExecutionState.Capture(Parameters);
             ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
+            this.OnPhaseChanged("compiled", QueryPhase.Begin);
+            this.OnPhaseChanged("compiled", QueryPhase.From);
             var __ko3ikoSchema = provider.GetSchema("#A");
             var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-            var ko3ikoRows = ko3ikoRowsSource.Chunks;
+            var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
             var __resultLibraryBase0 = new Musoq.Plugins.LibraryBase();
             var __musoqTableSourceRows = ko3ikoRows;
+            this.OnPhaseChanged("compiled", QueryPhase.Select);
             if (__musoqTableSourceRows is not IReadOnlyList<IReadOnlyList<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>> _)
             {
                 return new QueryTableEnumerable<ResultRow0>((_) => EvaluationHelper.ProjectChunkedRowsParallel<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, ResultRow0>(__musoqTableSourceRows, 24, (ko3iko) => true, (ko3iko) => new ResultRow0((int?)__resultLibraryBase0.ShiftLeft(1, 1)), token), token, onCompleted: () =>
                 {
-                    OnPhaseChanged("compiled", QueryPhase.End);
+                    try
+                    {
+                        __musoqProgressContext?.CompleteQueryProgress();
+                    }
+                    finally
+                    {
+                        OnPhaseChanged("compiled", QueryPhase.End);
+                    }
+                }, onException: (Exception _) =>
+                {
+                    try
+                    {
+                        __musoqProgressContext?.CompleteQueryProgress();
+                    }
+                    finally
+                    {
+                        OnPhaseChanged("compiled", QueryPhase.End);
+                    }
                 }, onDisposed: () =>
                 {
-                    OnPhaseChanged("compiled", QueryPhase.End);
+                    try
+                    {
+                        __musoqProgressContext?.CompleteQueryProgress();
+                    }
+                    finally
+                    {
+                        OnPhaseChanged("compiled", QueryPhase.End);
+                    }
                 });
             }
 
             var __musoqTableParallelRows = EvaluationHelper.GetParallelProjectionRowsOrEmpty<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(__musoqTableSourceRows, 4096);
             return new QueryTableEnumerable<ResultRow0>((_) => QueryRows.FromRowShards(EvaluationHelper.ProjectRowsParallel<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, ResultRow0>(__musoqTableParallelRows, 24, (ko3iko) => true, (ko3iko) => new ResultRow0((int?)__resultLibraryBase0.ShiftLeft(1, 1)), token)), token, onCompleted: () =>
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            }, onException: (Exception _) =>
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }, onDisposed: () =>
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             });
         }
 

@@ -28,6 +28,7 @@ public sealed partial class ExecutionCSharpRenderer
         ArgumentException.ThrowIfNullOrWhiteSpace(queryIdentifier);
         ArgumentNullException.ThrowIfNull(context);
         var session = context.Session;
+        session.QueryIdentifier = queryIdentifier;
 
         session.TypedStoredTableResults = CreateTypedStoredTableResults(plan);
         session.IncludeCteIndexResults = PlanUsesCteIndexResults(plan);
@@ -89,8 +90,9 @@ public sealed partial class ExecutionCSharpRenderer
         session.ProfileRecorderInScope = IsInstrumentationEnabled;
 
         var statements = new List<StatementSyntax>();
-        if (session.UseQueryRunContext)
-            statements.AddRange(CreateQueryRunContextAliasStatements());
+        statements.AddRange(CreateQueryRunContextAliasStatements(
+            session.UseQueryRunContext,
+            queryIdentifier: queryIdentifier));
 
         statements.AddRange(CreateOpeningPhaseStatements(block, queryIdentifier));
         statements.AddRange(CreateExecutionStateDeclarations(plan, context));

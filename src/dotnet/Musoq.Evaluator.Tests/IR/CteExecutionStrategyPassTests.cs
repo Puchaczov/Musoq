@@ -22,9 +22,14 @@ public sealed class CteExecutionStrategyPassTests
             new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
 
         Assert.IsTrue(result.IsChanged);
-        Assert.HasCount(2, result.Plan.Body.Nodes);
-        Assert.AreEqual(9, ((ExecutionRelatedCtePhase)result.Plan.Body.Nodes[0]).TableIndex);
+        Assert.HasCount(3, result.Plan.Body.Nodes);
+        var begin = (ExecutionPhaseBoundary)result.Plan.Body.Nodes[0];
+        Assert.AreEqual(QueryPhase.Begin, begin.Phase);
+        Assert.AreEqual(":cte9", begin.QueryIdSuffix);
         Assert.AreSame(table, ((ExecutionReturnTable)result.Plan.Body.Nodes[1]).Table);
+        var end = (ExecutionPhaseBoundary)result.Plan.Body.Nodes[2];
+        Assert.AreEqual(QueryPhase.End, end.Phase);
+        Assert.AreEqual(":cte9", end.QueryIdSuffix);
     }
 
     [TestMethod]
@@ -123,7 +128,9 @@ public sealed class CteExecutionStrategyPassTests
         Assert.IsTrue(result.IsChanged);
         var producer = (ExecutionFusedCteProducer)result.Plan.Body.Nodes[0];
         Assert.AreSame(output, producer.Outputs[0]);
-        Assert.IsInstanceOfType<ExecutionReturnTable>(producer.Body.Nodes[0]);
+        Assert.IsInstanceOfType<ExecutionPhaseBoundary>(producer.Body.Nodes[0]);
+        Assert.IsInstanceOfType<ExecutionReturnTable>(producer.Body.Nodes[1]);
+        Assert.IsInstanceOfType<ExecutionPhaseBoundary>(producer.Body.Nodes[2]);
     }
 
     [TestMethod]

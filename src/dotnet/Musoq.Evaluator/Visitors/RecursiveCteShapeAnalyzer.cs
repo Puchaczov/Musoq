@@ -131,6 +131,11 @@ public sealed class RecursiveCteShapeAnalyzer
             ThrowUnsupported("UNION ALL (keys)", boundary);
         }
 
+        if (boundary.ResultOrderBy != null)
+            ThrowUnsupported("ORDER BY", boundary.ResultOrderBy, boundary);
+        if (boundary.ResultSkip != null || boundary.ResultTake != null)
+            ThrowUnsupported("pagination", boundary.ResultSkip ?? (Node)boundary.ResultTake!, boundary);
+
         ValidateRecursiveMemberOperators(recursiveMember);
 
         var unionKind = boundary switch

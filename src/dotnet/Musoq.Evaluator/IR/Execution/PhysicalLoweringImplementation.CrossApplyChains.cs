@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.IR.Execution.Lowering.ProjectionAndApply;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Execution;
@@ -42,7 +43,19 @@ internal sealed partial class PhysicalLoweringImplementation
             var joinSource = physicalSource.WithOrdinality
                 ? AddApplyOrdinalityAccess(source.Source)
                 : source.Source;
-            sources.Add(joinSource);
+            var guardResult = ApplyPredicateGuardLoweringService.Lower(
+                physicalSource.ApplyPredicateMovementPlans,
+                sourceLookup);
+            var loweredPlans = joinSource.LoweredApplyPredicateMovementPlans
+                .Concat(guardResult.LoweredPlans)
+                .DistinctBy(static plan => plan.MovementId, StringComparer.Ordinal)
+                .ToArray();
+            sources.Add(joinSource with
+            {
+                ApplyPredicateMovementPlans = physicalSource.ApplyPredicateMovementPlans,
+                ApplyGuardNodes = guardResult.GuardNodes,
+                LoweredApplyPredicateMovementPlans = loweredPlans
+            });
             currentSchemaFromIndex += source.Source.SchemaSourceCount;
             sourceLookup = JoinSourceLookupBuilder.Extend(sourceLookup, joinSource.Shape);
         }
@@ -75,8 +88,14 @@ internal sealed partial class PhysicalLoweringImplementation
         var resultTable = postOperationProjection.WorkingTable;
         var resultShape = postOperationProjection.WorkingShape;
         var appendRow = CreateAppendRow(resultTable, resultShape, postOperationProjection.MaterializedFields, chain.SourceLookup);
-        var loopBody = CreateLoopBody(
+        var loweredPlans = chain.Sources
+            .SelectMany(static source => source.LoweredApplyPredicateMovementPlans)
+            .ToArray();
+        var residualFilter = ApplyPredicateGuardLoweringService.RemoveLoweredPredicates(
             pipeline.Filter,
+            loweredPlans);
+        var loopBody = CreateLoopBody(
+            residualFilter,
             CreateOutputAppend(appendRow, scope),
             chain.SourceLookup);
         var hoistedSetup = CreateCrossApplyChainHoistedSetup(chain.Sources);
@@ -126,7 +145,7 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyList<ExecutionNode> nextSetup = nextSource.CanReuseSetupAcrossApplyRows
             ? []
             : nextSource.Setup;
-        var body = new ExecutionBlock([..nextSetup, nextLoop]);
+        var body = new ExecutionBlock([..nextSource.ApplyGuardNodes, ..nextSetup, nextLoop]);
 
         return CreateApplySourceLoop(source, body);
     }

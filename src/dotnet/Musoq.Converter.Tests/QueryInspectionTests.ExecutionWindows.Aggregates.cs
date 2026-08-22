@@ -21,9 +21,10 @@ public partial class QueryInspectionTests
             new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("ComputeSumWindowKernel[Running] [", result.ExecutionPlanText);
+        Assert.Contains("ComputeSumWindowKernel[BoundedRows] [", result.ExecutionPlanText);
         Assert.Contains("ComputeCountWindowKernel[WholePartition] [", result.ExecutionPlanText);
-        Assert.Contains("resultSums0Sum += (decimal)", result.GeneratedCSharpCode);
+        Assert.Contains("resultSums0PrefixSum[resultSums0PartitionIndex + 1]", result.GeneratedCSharpCode);
+        Assert.Contains("ResolveRangePeerFrameEnd(resultSums0OrderKeys", result.GeneratedCSharpCode);
         Assert.Contains("++resultCounts1Count;", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowSum()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowCount()", StringComparison.Ordinal));
@@ -309,8 +310,9 @@ public partial class QueryInspectionTests
             new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("ComputeSumWindowKernel[Running] [resultSums <- resultWindowRows value c.Score order by c.Score ASC frame range between unbounded preceding and current row]", result.ExecutionPlanText);
-        Assert.Contains("resultSumsSum += (decimal)", result.GeneratedCSharpCode);
+        Assert.Contains("ComputeSumWindowKernel[BoundedRows] [resultSums <- resultWindowRows value c.Score order by c.Score ASC frame range between unbounded preceding and current row]", result.ExecutionPlanText);
+        Assert.Contains("resultSumsPrefixSum[resultSumsPartitionIndex + 1]", result.GeneratedCSharpCode);
+        Assert.Contains("ResolveRangePeerFrameEnd(resultSumsOrderKeys", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowSum()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".AccumulateValue(", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("resultSumsValues", StringComparison.Ordinal));

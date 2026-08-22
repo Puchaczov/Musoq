@@ -33,10 +33,10 @@ internal sealed class SourceRuntimeSettingsResolutionService(
             columns,
             values,
             logger);
-        var requirements = schema.DescribeSourceRuntimeSettings(
+        var requirements = SchemaProviderBoundary.Invoke(() => schema.DescribeSourceRuntimeSettings(
             sourceNode.Method,
             new SourceRuntimeSettingsDescribeContext(identity, metadataContext),
-            parameters) ?? [];
+            parameters)) ?? [];
 
         if (requirements.Count > 0 || !compilationOptions.UsesDefaultSourceRuntimeSettingsResolver)
         {

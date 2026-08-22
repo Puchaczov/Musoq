@@ -102,13 +102,26 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             return;
         }
 
-        Assert.Contains("PopulateWindowSourceTableSingleKeyGroups(windowSourceTable_iRows", computeMethod, sample.FileName);
-        Assert.Contains("FinalizeWindowSourceTableSingleKeyGroups(windowSourceTable, groupsToFinalize, token);", computeMethod, sample.FileName);
-        Assert.IsFalse(computeMethod.Contains("foreach (var i in windowSourceTable_iRows)", StringComparison.Ordinal), sample.FileName);
-        Assert.Contains("private static void PopulateWindowSourceTableSingleKeyGroups", sample.Content, sample.FileName);
-        Assert.Contains("ref WindowSourceTableAggregateGroup nullGroup, CancellationToken token)", sample.Content, sample.FileName);
-        Assert.Contains("private static void FinalizeWindowSourceTableSingleKeyGroups", sample.Content, sample.FileName);
-        Assert.Contains("List<WindowSourceRow0> windowSourceTable, List<WindowSourceTableAggregateGroup> groupsToFinalize, CancellationToken token)", sample.Content, sample.FileName);
+        var usesAggregateHelpers = computeMethod.Contains(
+            "PopulateWindowSourceTableSingleKeyGroups(windowSourceTable_iRows",
+            StringComparison.Ordinal);
+        if (usesAggregateHelpers)
+        {
+            Assert.Contains("FinalizeWindowSourceTableSingleKeyGroups(windowSourceTable, groupsToFinalize, token);", computeMethod, sample.FileName);
+            Assert.IsFalse(computeMethod.Contains("foreach (var i in windowSourceTable_iRows)", StringComparison.Ordinal), sample.FileName);
+            Assert.Contains("private static void PopulateWindowSourceTableSingleKeyGroups", sample.Content, sample.FileName);
+            Assert.Contains("ref WindowSourceTableAggregateGroup nullGroup, CancellationToken token)", sample.Content, sample.FileName);
+            Assert.Contains("private static void FinalizeWindowSourceTableSingleKeyGroups", sample.Content, sample.FileName);
+            Assert.Contains("List<WindowSourceRow0> windowSourceTable, List<WindowSourceTableAggregateGroup> groupsToFinalize, CancellationToken token)", sample.Content, sample.FileName);
+        }
+        else
+        {
+            Assert.Contains("foreach (var iChunk in windowSourceTable_iRows)", computeMethod, sample.FileName);
+            Assert.Contains("TraverseWindowSourceTableNRows", sample.Content, sample.FileName);
+            Assert.Contains("UpdateGroupsAggregates", sample.Content, sample.FileName);
+            Assert.Contains("token.ThrowIfCancellationRequested();", computeMethod, sample.FileName);
+        }
+
         Assert.IsFalse(sample.Content.Contains("Musoq.Evaluator.Tables.Table windowSourceTable", StringComparison.Ordinal), sample.FileName);
     }
 

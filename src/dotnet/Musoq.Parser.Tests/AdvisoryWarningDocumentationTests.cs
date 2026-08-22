@@ -22,7 +22,6 @@ public sealed class AdvisoryWarningDocumentationTests
         DiagnosticCode.MQ5017_NullComparison,
         DiagnosticCode.MQ5018_AmbiguousOuterJoinNullCheck,
         DiagnosticCode.MQ5019_NullRejectingOuterJoinFilter,
-        DiagnosticCode.MQ5020_SetOperationOrderByScope,
         DiagnosticCode.MQ5021_UnorderedSkip,
         DiagnosticCode.MQ5022_UnusedCte,
         DiagnosticCode.MQ5023_UnusedScriptVariable,
@@ -85,6 +84,7 @@ public sealed class AdvisoryWarningDocumentationTests
         StringAssert.Contains(specification, "MQ3089_AmbiguousCallableOverload");
         StringAssert.Contains(specification, "MQ5024_NullSensitiveNotIn");
         StringAssert.Contains(specification, "MQ5025_ImpossibleImplicitConversion");
+        StringAssert.Contains(specification, "MQ5026_SetOperationSliceScope");
         StringAssert.Contains(specification, "MQ5009 remains a compatibility documentation identifier only");
         StringAssert.Contains(specification, "GeneratedSource");
         StringAssert.Contains(specification, "zero-length span");

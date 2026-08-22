@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -87,8 +88,91 @@ public class QueryPhaseTrackingTests : BasicEntityTestBase
         _ = vm.Run().Count;
 
         Assert.IsTrue(phases.Any(p => p.Phase == QueryPhase.Begin));
+        Assert.IsTrue(phases.Any(p => p.Phase == QueryPhase.Where));
         Assert.IsTrue(phases.Any(p => p.Phase == QueryPhase.GroupBy));
         Assert.IsTrue(phases.Any(p => p.Phase == QueryPhase.End));
+    }
+
+    [TestMethod]
+    public void AggregateOnlyQuery_ShouldNotReportGroupBy()
+    {
+        var query = "select Count(Name) from #A.Entities()";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
+        };
+
+        var phases = new List<QueryPhase>();
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        vm.PhaseChanged += (_, args) => phases.Add(args.Phase);
+
+        _ = vm.Run().Count;
+
+        Assert.IsFalse(
+            phases.Contains(QueryPhase.GroupBy),
+            string.Join(", ", phases));
+        Assert.IsTrue(phases.Contains(QueryPhase.Select));
+        Assert.IsTrue(phases.Contains(QueryPhase.End));
+    }
+
+    [TestMethod]
+    public void ProjectionCaseGuard_ShouldNotReportWhere()
+    {
+        var query = "select case when Name = '001' then 'match' else 'other' end from #A.Entities()";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
+        };
+
+        var phases = new List<QueryPhase>();
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        vm.PhaseChanged += (_, args) => phases.Add(args.Phase);
+
+        _ = vm.Run().Count;
+
+        Assert.IsFalse(phases.Contains(QueryPhase.Where));
+        Assert.IsTrue(phases.Contains(QueryPhase.Select));
+        Assert.IsTrue(phases.Contains(QueryPhase.End));
+    }
+
+    [TestMethod]
+    public void FailedProjection_ShouldStillTerminateTheQueryScope()
+    {
+        var query = "select e.ThrowException() from #A.Entities() e";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [new BasicEntity("001")] }
+        };
+
+        var phases = new List<QueryPhase>();
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        vm.PhaseChanged += (_, args) => phases.Add(args.Phase);
+
+        Assert.Throws<Exception>(() => _ = vm.Run().Count);
+
+        Assert.AreEqual(1, phases.Count(phase => phase == QueryPhase.Begin));
+        Assert.AreEqual(1, phases.Count(phase => phase == QueryPhase.End));
+    }
+
+    [TestMethod]
+    public void HavingFilter_ShouldNotReportWhere()
+    {
+        var query = "select Name, Count(Name) from #A.Entities() group by Name having Count(Name) > 1";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [new BasicEntity("001"), new BasicEntity("001"), new BasicEntity("002")] }
+        };
+
+        var phases = new List<QueryPhase>();
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        vm.PhaseChanged += (_, args) => phases.Add(args.Phase);
+
+        _ = vm.Run().Count;
+
+        Assert.IsFalse(phases.Contains(QueryPhase.Where));
+        Assert.IsTrue(phases.Contains(QueryPhase.GroupBy));
+        Assert.IsTrue(phases.Contains(QueryPhase.Select));
+        Assert.IsTrue(phases.Contains(QueryPhase.End));
     }
 
     [TestMethod]

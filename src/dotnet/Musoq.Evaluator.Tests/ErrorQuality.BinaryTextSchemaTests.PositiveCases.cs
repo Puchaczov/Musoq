@@ -24,11 +24,8 @@ select 1 from #A.Entities()";
 
         // Assert — should parse cleanly
         // Note: semantic errors may still occur in Analyze(), but parse should succeed
-        if (result.HasErrors)
-        {
-            var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.Inconclusive($"Well-formed binary schema produced parse errors:\n{errorDetails}");
-        }
+        var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
+        Assert.IsFalse(result.HasErrors, $"Well-formed binary schema produced parse errors:\n{errorDetails}");
     }
 
     #endregion
@@ -51,11 +48,8 @@ select 1 from #A.Entities()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — should parse cleanly
-        if (result.HasErrors)
-        {
-            var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.Inconclusive($"Well-formed text schema produced parse errors:\n{errorDetails}");
-        }
+        var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
+        Assert.IsFalse(result.HasErrors, $"Well-formed text schema produced parse errors:\n{errorDetails}");
     }
 
     #endregion
@@ -80,11 +74,8 @@ select 1 from #A.Entities()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — nested references should parse cleanly
-        if (result.HasErrors)
-        {
-            var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.Inconclusive($"Nested binary schema reference produced parse errors:\n{errorDetails}");
-        }
+        var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
+        Assert.IsFalse(result.HasErrors, $"Nested binary schema reference produced parse errors:\n{errorDetails}");
     }
 
     #endregion
@@ -111,11 +102,8 @@ select 1 from #A.Entities()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — binary+text composition should parse
-        if (result.HasErrors)
-        {
-            var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.Inconclusive($"Binary with text 'as' clause produced parse errors:\n{errorDetails}");
-        }
+        var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
+        Assert.IsFalse(result.HasErrors, $"Binary with text 'as' clause produced parse errors:\n{errorDetails}");
     }
 
     #endregion

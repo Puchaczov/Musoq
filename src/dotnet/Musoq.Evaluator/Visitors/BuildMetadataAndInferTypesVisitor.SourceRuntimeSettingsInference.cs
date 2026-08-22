@@ -1,7 +1,10 @@
 using System.Collections.Generic;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.RuntimeSettings;
+using Musoq.Parser;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
+using Musoq.Schema.Exceptions;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -16,7 +19,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private IReadOnlyDictionary<string, string> ResolveSourceRuntimeSettings(
         ISchema schema,
-        SchemaFromNode sourceNode,
+        Musoq.Evaluator.Parser.SchemaFromNode sourceNode,
         object?[] parameters,
         IReadOnlyCollection<ISchemaColumn> columns,
         string queryId,
@@ -24,16 +27,38 @@ public partial class BuildMetadataAndInferTypesVisitor
         SourceRuntimeSettingsResolutionMode mode = SourceRuntimeSettingsResolutionMode.EnforceRequiredSettings)
     {
         var sourceContextId = sourceNode.Id;
-        var resolved = _sourceRuntimeSettingsResolutionService.Resolve(
-            schema,
-            sourceNode,
-            parameters,
-            columns,
-            queryId,
-            profileName,
-            RetrieveInitialSourceRuntimeSettings(sourceContextId, sourceNode),
-            _logger,
-            mode);
+        ResolvedSourceRuntimeSettings resolved;
+        try
+        {
+            resolved = _sourceRuntimeSettingsResolutionService.Resolve(
+                schema,
+                sourceNode,
+                parameters,
+                columns,
+                queryId,
+                profileName,
+                RetrieveInitialSourceRuntimeSettings(sourceContextId, sourceNode),
+                _logger,
+                mode);
+        }
+        catch (SchemaProviderFailureException exception) when (sourceNode.HasRequiredRuntimeArguments)
+        {
+            throw new SourceMetadataRequiresDefaultException(
+                sourceNode.Schema,
+                sourceNode.Method,
+                sourceNode.HasSpan ? sourceNode.Span : TextSpan.Empty,
+                exception);
+        }
+        catch (SchemaArgumentException exception) when (
+            sourceNode.HasRequiredRuntimeArguments &&
+            !string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal))
+        {
+            throw new SourceMetadataRequiresDefaultException(
+                sourceNode.Schema,
+                sourceNode.Method,
+                sourceNode.HasSpan ? sourceNode.Span : TextSpan.Empty,
+                exception);
+        }
 
         if (resolved.HasDeclaredRequirements)
             _hasDeclaredSourceRuntimeSettings = true;

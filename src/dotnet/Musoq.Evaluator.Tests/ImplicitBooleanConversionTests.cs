@@ -32,6 +32,7 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    [FeatureEvidence("implicit-boolean-conversion", FeatureEvidenceKind.RuntimePositive)]
     public void WhenMatchFunctionUsedWithImplicitBooleanConversion_ShouldWork()
     {
         var query = "select Name from #A.entities() where Match('\\d+', Name) order by Name";

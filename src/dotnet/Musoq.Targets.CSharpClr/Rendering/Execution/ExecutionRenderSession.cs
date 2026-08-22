@@ -39,6 +39,7 @@ internal sealed class ExecutionRenderSession
     internal bool IncludeCteRowResults { get; set; }
     internal bool IncludeTableResults { get; set; } = true;
     internal bool UseQueryRunContext { get; set; }
+    internal string QueryIdentifier { get; set; } = "compiled";
     internal bool EmitChunkLoopCancellationChecks { get; set; } = true;
     internal bool SkipInitialLoopCancellationCheck { get; set; }
     internal string? RecursiveCteCancellationCounterName { get; set; }

@@ -54,7 +54,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      AppendShape [result <- ResultShape0(Name: finalGroup.p.Name, CountName: Count('p.CountName'))]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
     [TestMethod]
@@ -109,7 +109,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      AppendShape [result <- ResultShape0(Name: finalGroup.p.Name, CountPlusOne: (Count('p.Count') + 1))]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
 }

@@ -76,8 +76,11 @@ ExecutionPlan [compiled]
       literals.OctalValue: long <- field literals_OctalValue
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     CreateValuesRows [literalsRows: literalsValuesDE6D03F2Row0 x 1]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [Select]
     ForEach [literals in literalsRows]
       AppendShape [result <- ResultShape0(literals.PlainInt: literals.PlainInt, literals.UIntValue: literals.UIntValue, literals.LongValue: literals.LongValue, literals.ULongValue: literals.ULongValue, literals.ShortValue: literals.ShortValue, literals.UShortValue: literals.UShortValue, literals.SByteValue: literals.SByteValue, literals.ByteValue: literals.ByteValue, literals.DecimalValue: literals.DecimalValue, literals.HexValue: literals.HexValue, literals.BinaryValue: literals.BinaryValue, literals.OctalValue: literals.OctalValue)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
@@ -102,7 +105,7 @@ namespace GeneratedSample_Q119_ValuesNumericLiterals
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_0 = new Column[]
         {
@@ -130,6 +133,7 @@ namespace GeneratedSample_Q119_ValuesNumericLiterals
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_0, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -145,17 +149,20 @@ namespace GeneratedSample_Q119_ValuesNumericLiterals
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 literalsValuesDE6D03F2Row0[] literalsRows = new literalsValuesDE6D03F2Row0[]
                 {
                     new literalsValuesDE6D03F2Row0(10, 11u, 12L, 13ul, 14, 15, 16, 17, 18.5m, 16L, 10L, 15L)
                 };
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var literals in literalsRows)
                 {
                     token.ThrowIfCancellationRequested();
@@ -164,7 +171,14 @@ namespace GeneratedSample_Q119_ValuesNumericLiterals
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

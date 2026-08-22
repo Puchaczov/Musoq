@@ -44,8 +44,8 @@ public sealed partial class ExecutionCSharpRenderer
             $"for (int {partitionIndex} = 0; {partitionIndex} < {partitionCountName}; ++{partitionIndex})" + Environment.NewLine +
             "{" + Environment.NewLine +
             $"    var {currentIndex} = {partitionIndicesName}[{partitionStartName} + {partitionIndex}];" + Environment.NewLine +
-            $"    var {frameStart} = {CreateWindowAggregateFrameStartExpressionForKernel(kernel, frame.Start, partitionIndicesName, partitionStartName, partitionIndex, partitionCountName).NormalizeWhitespace().ToFullString()};" + Environment.NewLine +
-            $"    var {frameEnd} = {CreateWindowAggregateFrameEndExpressionForKernel(kernel, frame.End, partitionIndicesName, partitionStartName, partitionIndex, partitionCountName).NormalizeWhitespace().ToFullString()};" + Environment.NewLine +
+            $"    var {frameStart} = {WindowRangeFrameSyntax.CreateAggregateFrameStartExpressionForKernel(kernel, frame.Start, partitionIndicesName, partitionStartName, partitionIndex, partitionCountName).NormalizeWhitespace().ToFullString()};" + Environment.NewLine +
+            $"    var {frameEnd} = {WindowRangeFrameSyntax.CreateAggregateFrameEndExpressionForKernel(kernel, frame.End, partitionIndicesName, partitionStartName, partitionIndex, partitionCountName).NormalizeWhitespace().ToFullString()};" + Environment.NewLine +
             $"    while ({dequeFrameEnd} < {frameEnd})" + Environment.NewLine +
             "    {" + Environment.NewLine +
             $"        ++{dequeFrameEnd};" + Environment.NewLine +

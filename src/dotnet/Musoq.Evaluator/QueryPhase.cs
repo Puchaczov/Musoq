@@ -1,37 +1,37 @@
 ﻿namespace Musoq.Evaluator;
 
 /// <summary>
-///     Represents the execution phase of a query.
+///     Represents a once-only execution entry marker for a query.
 /// </summary>
 public enum QueryPhase
 {
     /// <summary>
-    ///     Query execution is beginning.
+    ///     Query execution or deferred enumeration is beginning.
     /// </summary>
     Begin,
 
     /// <summary>
-    ///     Executing the FROM clause - data source initialization.
+    ///     Source setup or source enumeration is beginning.
     /// </summary>
     From,
 
     /// <summary>
-    ///     Executing the WHERE clause - filtering rows.
+    ///     The SQL WHERE predicate is beginning to execute.
     /// </summary>
     Where,
 
     /// <summary>
-    ///     Executing the GROUP BY clause - grouping rows.
+    ///     SQL grouping is beginning. Aggregate-only queries do not emit this marker.
     /// </summary>
     GroupBy,
 
     /// <summary>
-    ///     Executing the SELECT clause - projecting results.
+    ///     Final projection or output production is beginning.
     /// </summary>
     Select,
 
     /// <summary>
-    ///     Query execution has completed.
+    ///     The query scope has terminated.
     /// </summary>
     End
 }

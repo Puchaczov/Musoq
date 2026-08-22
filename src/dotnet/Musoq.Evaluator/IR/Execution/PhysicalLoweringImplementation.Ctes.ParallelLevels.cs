@@ -53,6 +53,12 @@ internal sealed partial class PhysicalLoweringImplementation
             if (!result.IsBuilt)
                 return result;
 
+            result = AddCteClauseBoundaries(
+                definition,
+                cteIndex,
+                result,
+                includeScopeBoundaries: !storage.StoreRows);
+
             var usesTypedRowResult = storage.StoreRows &&
                                      StoredTableRowBufferEligibility.CanUseTypedRowBuffer(
                                          result.Nodes,

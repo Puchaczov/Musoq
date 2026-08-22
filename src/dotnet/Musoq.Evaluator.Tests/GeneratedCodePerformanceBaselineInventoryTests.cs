@@ -20,14 +20,14 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
     ];
 
     [TestMethod]
-    public void CurrentCorpus_Contains244SnapshotsAndNoGeneratedReflection()
+    public void CurrentCorpus_Contains250SnapshotsAndNoGeneratedReflection()
     {
         var files = Directory
             .EnumerateFiles(GeneratedCodeSampleArtifacts.SamplesDirectory, "*.cs")
             .ToArray();
 
-        Assert.AreEqual(244, files.Length);
-        Assert.AreEqual(244, GeneratedCodeSamplesCatalog.Samples.Count);
+        Assert.AreEqual(250, files.Length);
+        Assert.AreEqual(250, GeneratedCodeSamplesCatalog.Samples.Count);
 
         var expectedFiles = new[]
         {
@@ -82,22 +82,22 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
     }
 
     [TestMethod]
-    public void Q229_WindowSet_UsesOneTypedFinalCarrierAndAliasesTypedCteRows()
+    public void Q229_WindowSet_UsesTypedGlobalSortCarrierAndTypedCteRows()
     {
         var source = File.ReadAllText(Path.Combine(
             GeneratedCodeSampleArtifacts.SamplesDirectory,
             "Q229_PerformanceWindowCteSetOperation.cs"));
 
-        Assert.IsFalse(source.Contains("LeftShape0", StringComparison.Ordinal));
+        Assert.Contains("private sealed class LeftShape0", source);
+        Assert.IsFalse(source.Contains("ResultShape0", StringComparison.Ordinal));
         Assert.IsFalse(source.Contains("RightRow0", StringComparison.Ordinal));
-        Assert.IsFalse(source.Contains("MaterializeGeneratedRows", StringComparison.Ordinal));
-        Assert.IsFalse(source.Contains("new LeftRow0(__musoqShapeRow", StringComparison.Ordinal));
+        Assert.Contains("MaterializeGeneratedRows<Cte0Row0>", source);
+        Assert.Contains("yield return new LeftRow0(__musoqShapeRow", source);
         Assert.IsFalse(source.Contains("new List<LeftRow0>()", StringComparison.Ordinal));
-        Assert.Contains("rightSorted = right.OrderBy", source);
-        Assert.Contains("yield return resultLeftRow", source);
-        Assert.Contains("yield return resultRightRow", source);
+        Assert.Contains("resultSortedRows = result.OrderBy", source);
+        Assert.Contains("__musoqFinalShapeRows.Add(resultSortedRowsRow)", source);
         Assert.Contains("MaterializeChunkedRowsList", source);
-        Assert.Contains("ReturnDeferredTable [result: LeftRow0 <- LeftRow0]", source);
+        Assert.Contains("ReturnDeferredTable [resultSorted: LeftRow0 <- LeftShape0]", source);
     }
 
     [TestMethod]

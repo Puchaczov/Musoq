@@ -196,6 +196,7 @@ internal sealed class FusedSiblingCteLowerer
     {
         return node switch
         {
+            ExecutionPhaseBoundary => true,
             ExecutionCreateTable or ExecutionCreateHash or ExecutionCreateKeySet => true,
             ExecutionCteSidecarIndexBuildCandidate => true,
             ExecutionCteIndexOnlyStorageCandidate => true,

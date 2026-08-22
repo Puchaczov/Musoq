@@ -154,7 +154,8 @@ public partial class OrderByTests
     }
 
     [TestMethod]
-    public void WhenOrderByDescAfterUnion_ShouldUseDocumentedRightmostQueryOrdering()
+    [FeatureEvidence("set-result-modifiers", FeatureEvidenceKind.RuntimePositive)]
+    public void WhenOrderByDescAfterUnion_ShouldOrderTheCombinedResult()
     {
         var query = @"
             select City from #A.Entities() where Money > 200
@@ -179,8 +180,8 @@ public partial class OrderByTests
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "alpha" }, new object?[] { "gamma" },
-            new object?[] { "delta" }, new object?[] { "beta" });
+            new object?[] { "gamma" }, new object?[] { "delta" },
+            new object?[] { "beta" }, new object?[] { "alpha" });
     }
 
     [TestMethod]

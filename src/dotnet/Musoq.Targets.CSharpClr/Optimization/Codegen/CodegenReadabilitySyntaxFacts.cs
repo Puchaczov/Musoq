@@ -11,6 +11,7 @@ internal static class CodegenReadabilitySyntaxFacts
     public static readonly string[] LifecycleMethodNames =
     [
         "OnDataSourceProgress",
+        "OnQueryProgress",
         "OnPhaseChanged",
         "Run"
     ];
@@ -68,4 +69,3 @@ internal static class CodegenReadabilitySyntaxFacts
         };
     }
 }
-

@@ -43,12 +43,13 @@ public sealed partial class ExecutionCSharpRenderer
         var context = renderingScope.Context;
         var statements = new List<StatementSyntax>();
         statements.AddRange(CreateTypedSinkEntryStatements(plan, context));
+        var entryStatementCount = statements.Count;
         foreach (var sourceScan in sourceScans)
             statements.AddRange(RenderSourceScanForTypedSink(sourceScan, context));
         foreach (var setupNode in setupNodes)
             statements.AddRange(RenderSetupNodeForTypedSink(setupNode, context));
 
-        return new ExecutionRenderArtifacts(context, statements);
+        return new ExecutionRenderArtifacts(context, statements, entryStatementCount);
     }
 
     internal IReadOnlyList<StatementSyntax> CreateTypedSinkEntryStatements(ExecutionPlan plan)
@@ -62,8 +63,9 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         var statements = new List<StatementSyntax>();
-        if (context.Session.UseQueryRunContext)
-            statements.AddRange(CreateQueryRunContextAliasStatements());
+        statements.AddRange(CreateQueryRunContextAliasStatements(
+            context.Session.UseQueryRunContext,
+            queryIdentifier: plan.Identifier));
 
         statements.AddRange(CreateExecutionStateDeclarations(plan, context));
         statements.AddRange(CreateScriptParameterBindingStatements());

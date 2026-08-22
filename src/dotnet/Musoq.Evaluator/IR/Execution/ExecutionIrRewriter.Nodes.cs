@@ -536,6 +536,8 @@ internal abstract partial class ExecutionIrRewriter
 
     protected virtual ExecutionNode RewriteStoreTable(ExecutionStoreTable node) => node;
 
+    protected virtual ExecutionNode RewritePhaseBoundary(ExecutionPhaseBoundary node) => node;
+
     protected virtual ExecutionNode RewriteRelatedCtePhase(ExecutionRelatedCtePhase node) => node;
 
     protected virtual ExecutionNode RewriteFusedCteProducer(ExecutionFusedCteProducer node)

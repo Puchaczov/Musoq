@@ -10,9 +10,19 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExpressionVisitor
 {
+    private sealed class QueryScope
+    {
+        public string QueryAlias { get; set; } = string.Empty;
+
+        public Dictionary<string, string> AliasToColumnKey { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+        public List<string> SourceKeys { get; } = [];
+    }
+
     private readonly Dictionary<string, List<string>> _columns = new();
-    private readonly Dictionary<string, string> _aliasToColumnKey = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<string> _generatedAliases = [];
+    private readonly HashSet<string> _completeSchemaColumnKeys = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Stack<QueryScope> _queryScopes = new();
     private IReadOnlyDictionary<string, string[]> _cachedColumns = new Dictionary<string, string[]>();
     private bool _columnsCacheValid;
     private string _queryAlias = string.Empty;
@@ -25,7 +35,11 @@ public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExp
             if (_columnsCacheValid)
                 return _cachedColumns;
 
-            _cachedColumns = _columns.ToDictionary(f => f.Key, f => f.Value.Distinct().ToArray());
+            _cachedColumns = _columns.ToDictionary(
+                f => f.Key,
+                f => _completeSchemaColumnKeys.Contains(f.Key)
+                    ? []
+                    : f.Value.Distinct().ToArray());
             _columnsCacheValid = true;
             return _cachedColumns;
         }
@@ -34,13 +48,13 @@ public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExp
     public override void Visit(AccessColumnNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        _columns[ResolveColumnKey(node.Alias)].Add(node.Name);
+        AddColumn(ResolveColumnKey(node.Alias), node.Name);
     }
 
     public override void Visit(IdentifierNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        _columns[_queryAlias].Add(node.Name);
+        AddColumn(_queryAlias, node.Name);
     }
 
     public override void Visit(SchemaFromNode node)
@@ -54,7 +68,7 @@ public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExp
 
         _generatedAliases.Add(_queryAlias);
         _columns.Add(_queryAlias, []);
-        _aliasToColumnKey[alias] = _queryAlias;
+        RegisterSource(alias, _queryAlias);
     }
 
     public override void Visit(AliasedFromNode node)
@@ -64,7 +78,7 @@ public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExp
         _queryAlias = alias + _schemaFromKey;
         _generatedAliases.Add(_queryAlias);
         _columns.Add(_queryAlias, []);
-        _aliasToColumnKey[alias] = _queryAlias;
+        RegisterSource(alias, _queryAlias);
     }
 
     public override void Visit(ValuesFromNode node)
@@ -78,15 +92,78 @@ public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExp
 
         _generatedAliases.Add(_queryAlias);
         _columns.Add(_queryAlias, []);
-        _aliasToColumnKey[alias] = _queryAlias;
+        RegisterSource(alias, _queryAlias);
     }
 
     private string ResolveColumnKey(string? alias)
     {
-        if (!string.IsNullOrEmpty(alias) && _aliasToColumnKey.TryGetValue(alias, out var columnKey))
+        if (!string.IsNullOrEmpty(alias) && TryResolveColumnKey(alias, out var columnKey))
             return columnKey;
 
         return _queryAlias;
+    }
+
+    private bool TryResolveColumnKey(string alias, out string columnKey)
+    {
+        foreach (var scope in _queryScopes)
+            if (scope.AliasToColumnKey.TryGetValue(alias, out var resolvedColumnKey))
+            {
+                columnKey = resolvedColumnKey;
+                return true;
+            }
+
+        columnKey = string.Empty;
+        return false;
+    }
+
+    private void RegisterSource(string alias, string columnKey)
+    {
+        if (_queryScopes.Count == 0)
+            return;
+
+        var scope = _queryScopes.Peek();
+        scope.AliasToColumnKey[alias] = columnKey;
+        scope.SourceKeys.Add(columnKey);
+        scope.QueryAlias = columnKey;
+        InvalidateColumnsCache();
+    }
+
+    private void AddColumn(string columnKey, string columnName)
+    {
+        if (!_columns.TryGetValue(columnKey, out var columns))
+        {
+            columns = [];
+            _columns[columnKey] = columns;
+        }
+
+        columns.Add(columnName);
+        InvalidateColumnsCache();
+    }
+
+    private void InvalidateColumnsCache()
+    {
+        _columnsCacheValid = false;
+    }
+
+    internal void MarkProjectionWildcard(AllColumnsNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+
+        if (_queryScopes.Count == 0)
+            return;
+
+        var scope = _queryScopes.Peek();
+        if (string.IsNullOrEmpty(node.Alias))
+        {
+            foreach (var sourceKey in scope.SourceKeys)
+                _completeSchemaColumnKeys.Add(sourceKey);
+        }
+        else if (TryResolveColumnKey(node.Alias, out var columnKey))
+        {
+            _completeSchemaColumnKeys.Add(columnKey);
+        }
+
+        InvalidateColumnsCache();
     }
 
     public void SetScope(Scope scope)
@@ -100,10 +177,19 @@ public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExp
     public void QueryBegins()
     {
         _schemaFromKey += 1;
+        _queryScopes.Push(new QueryScope());
+        _queryAlias = string.Empty;
     }
 
     public void QueryEnds()
     {
+        if (_queryScopes.Count == 0)
+            return;
+
+        _queryScopes.Pop();
+        _queryAlias = _queryScopes.Count == 0
+            ? string.Empty
+            : _queryScopes.Peek().QueryAlias;
     }
 
     public void SetTheMostInnerIdentifierOfDotNode(IdentifierNode? node)

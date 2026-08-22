@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
+using Musoq.Evaluator.IR.Execution.Lowering.ProjectionAndApply;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
@@ -39,12 +41,17 @@ internal sealed partial class PhysicalLoweringImplementation
                 scope);
             if (chain.IsBuilt)
             {
-                return BuildCrossApplyChainTable(
+                var chainResult = BuildCrossApplyChainTable(
                     chain.Chain,
                     pipeline,
                     resultTableName,
                     resultShapeName,
                     scope);
+                var chainLoweredPlans = chain.Chain.Sources
+                    .SelectMany(static source => source.LoweredApplyPredicateMovementPlans)
+                    .DistinctBy(static plan => plan.MovementId, StringComparer.Ordinal)
+                    .ToArray();
+                return chainResult with { LoweredApplyPredicateMovementPlans = chainLoweredPlans };
             }
         }
 
@@ -60,6 +67,9 @@ internal sealed partial class PhysicalLoweringImplementation
             return TableBuildResult.Unsupported(leftSource.UnsupportedReason);
 
         var leftLookup = RowShapeLookup.CreateSourceShapeLookup(inheritedLookup, leftSource.Source.Shape);
+        var applyGuardResult = ApplyPredicateGuardLoweringService.Lower(
+            apply.ApplyPredicateMovementPlans,
+            leftLookup);
         var rightSource = BuildApplySource(
             apply.Right,
             cteIndexes,
@@ -103,8 +113,11 @@ internal sealed partial class PhysicalLoweringImplementation
             resultShapes = postOperationProjection.Shapes;
 
             var appendRow = CreateAppendRow(resultTable, resultShape, postOperationProjection.MaterializedFields, sourceLookup);
-            var loopBody = CreateLoopBody(
+            var residualFilter = ApplyPredicateGuardLoweringService.RemoveLoweredPredicates(
                 pipeline.Filter,
+                applyGuardResult.LoweredPlans);
+            var loopBody = CreateLoopBody(
+                residualFilter,
                 CreateOutputAppend(appendRow, scope),
                 sourceLookup);
             IReadOnlyList<ExecutionNode> rightSetup = rightSource.Source.CanReuseSetupAcrossApplyRows
@@ -115,7 +128,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 leftSource.Source.Shape,
                 leftSource.Source.Rows,
                 leftSource.Source.Variable,
-                new ExecutionBlock([..rightSetup, rightLoop]));
+                new ExecutionBlock([..applyGuardResult.GuardNodes, ..rightSetup, rightLoop]));
         }
         else
         {
@@ -136,7 +149,9 @@ internal sealed partial class PhysicalLoweringImplementation
                 ? []
                 : rightSource.Source.Setup;
             var appendBlocks = CreateOuterApplyAppendBlocks(
-                pipeline.Filter,
+                ApplyPredicateGuardLoweringService.RemoveLoweredPredicates(
+                    pipeline.Filter,
+                    applyGuardResult.LoweredPlans),
                 projection.MatchedAppendRow,
                 projection.UnmatchedAppendRow,
                 sourceLookup,
@@ -158,6 +173,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 leftSource.Source.Variable,
                 new ExecutionBlock(
                 [
+                    ..applyGuardResult.GuardNodes,
                     ..rightSetup,
                     new ExecutionLet(hasMatch, new ExecutionLiteral(false, typeof(bool))),
                     rightLoop,
@@ -179,7 +195,7 @@ internal sealed partial class PhysicalLoweringImplementation
         AddOutputTableCreation(nodes, resultTable, resultShape, scope);
         nodes.Add(leftLoop);
 
-        return CompleteOutputTableBuild(
+        var result = CompleteOutputTableBuild(
             scope,
             [..leftSource.Source.Shapes, ..rightSource.Source.Shapes, ..resultShapes],
             nodes,
@@ -188,6 +204,12 @@ internal sealed partial class PhysicalLoweringImplementation
             postOperations,
             pipeline.Project.IsDistinct,
             finalProjection);
+        var loweredPlans = leftSource.Source.LoweredApplyPredicateMovementPlans
+            .Concat(rightSource.Source.LoweredApplyPredicateMovementPlans)
+            .Concat(applyGuardResult.LoweredPlans)
+            .DistinctBy(static plan => plan.MovementId, StringComparer.Ordinal)
+            .ToArray();
+        return result with { LoweredApplyPredicateMovementPlans = loweredPlans };
     }
 
 }

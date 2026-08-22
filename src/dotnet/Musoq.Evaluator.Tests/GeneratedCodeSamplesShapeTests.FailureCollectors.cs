@@ -44,7 +44,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             failures.Add($"{fileName}: still emits statement transition row");
 
         if (!generatedCode.Contains("var bRowsSource = __bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>", StringComparison.Ordinal) ||
-            !generatedCode.Contains("var bRows = bRowsSource.Chunks;", StringComparison.Ordinal))
+            !generatedCode.Contains("var bRows = ", StringComparison.Ordinal) || !generatedCode.Contains("bRowsSource.Chunks", StringComparison.Ordinal))
             failures.Add($"{fileName}: missing scoped right-side generic source rows");
 
         var bRowsIndex = generatedCode.IndexOf("var bRows = ", StringComparison.Ordinal);
@@ -81,7 +81,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (planText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal))
             failures.Add($"{fileName}: execution IR fallback was used");
 
-        if (!planText.Contains("CtePhase [cte0]", StringComparison.Ordinal))
+        if (!planText.Contains("PhaseBoundary [Begin:cte0]", StringComparison.Ordinal))
             failures.Add($"{fileName}: missing related CTE phase marker for fused interpretation statement");
 
         if (!planText.Contains("InterpretSource [", StringComparison.Ordinal))
@@ -118,7 +118,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (!planText.Contains("StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]", StringComparison.Ordinal))
             failures.Add($"{fileName}: missing first interpretation materialization boundary");
 
-        if (!planText.Contains("CtePhase [cte1]", StringComparison.Ordinal))
+        if (!planText.Contains("PhaseBoundary [Begin:cte1]", StringComparison.Ordinal))
             failures.Add($"{fileName}: missing related CTE phase marker for fused expansion statement");
 
         if (planText.Contains("StoreTable [statement1 -> _tableResults[1]]", StringComparison.Ordinal))

@@ -290,7 +290,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         "AcceptedSkip",
         "AcceptedTake",
         "AcceptedColumns",
-        "ResidualPredicate",
+        ".ResidualPredicate",
         "ResidualOrderBy",
         "ResidualSkip",
         "ResidualTake",

@@ -31,8 +31,12 @@ ExecutionPlan [compiled]
       Population: decimal <- field Population
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [ko3iko: BasicEntity] -> ko3ikoRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [Where]
+    PhaseBoundary [Select]
     ChunkedForEach [ko3iko in ko3ikoRows]
       Let [population: decimal = ko3iko.Population]
       If [(population > 0)]
@@ -61,7 +65,7 @@ namespace GeneratedSample_P03_SimpleSelectWhere_Full
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable, IProfiledRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable, IProfiledRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -80,6 +84,7 @@ namespace GeneratedSample_P03_SimpleSelectWhere_Full
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -109,17 +114,20 @@ namespace GeneratedSample_P03_SimpleSelectWhere_Full
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Where);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#A");
                 var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var ko3ikoRows = ko3ikoRowsSource.Chunks;
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
+                OnPhaseChanged("compiled", QueryPhase.Where);
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var ko3ikoChunk in ko3ikoRows)
                 {
                     if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)
@@ -185,33 +193,55 @@ namespace GeneratedSample_P03_SimpleSelectWhere_Full
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0_Profiled(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token, QueryProfileRecorder profileRecorder)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Where);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
-                var __op10Handle = profileRecorder?.GetOperatorHandle("op10", "SourceScan") ?? OperatorProfileHandle.None;
-                var __op12Handle = profileRecorder?.GetOperatorHandle("op12", "ChunkedForEach") ?? OperatorProfileHandle.None;
-                var __op15Handle = profileRecorder?.GetOperatorHandle("op15", "AppendShape") ?? OperatorProfileHandle.None;
-                long __op15OutputRows = 0L;
+                var __op10Handle = profileRecorder?.GetOperatorHandle("op10", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                var __op11Handle = profileRecorder?.GetOperatorHandle("op11", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                var __op12Handle = profileRecorder?.GetOperatorHandle("op12", "SourceScan") ?? OperatorProfileHandle.None;
+                var __op14Handle = profileRecorder?.GetOperatorHandle("op14", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                var __op15Handle = profileRecorder?.GetOperatorHandle("op15", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                var __op16Handle = profileRecorder?.GetOperatorHandle("op16", "ChunkedForEach") ?? OperatorProfileHandle.None;
+                var __op19Handle = profileRecorder?.GetOperatorHandle("op19", "AppendShape") ?? OperatorProfileHandle.None;
+                long __op19OutputRows = 0L;
                 var __op10Scope = profileRecorder?.BeginOperatorValue(__op10Handle) ?? OperatorProfileValueScope.None;
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                __op10Scope.Dispose();
+                var __op11Scope = profileRecorder?.BeginOperatorValue(__op11Handle) ?? OperatorProfileValueScope.None;
+                OnPhaseChanged("compiled", QueryPhase.From);
+                __op11Scope.Dispose();
+                var __op12Scope = profileRecorder?.BeginOperatorValue(__op12Handle) ?? OperatorProfileValueScope.None;
                 var __ko3ikoSchema = provider.GetSchema("#A");
                 var ko3ikoRowsProfile = profileRecorder?.CreateSourceRecorder("ko3iko");
                 var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress, ko3ikoRowsProfile == null ? SourceDiagnostics.None : ko3ikoRowsProfile.CreateDiagnostics()), Array.Empty<object>());
-                var ko3ikoRows = ko3ikoRowsProfile == null ? ko3ikoRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Create(ko3ikoRowsSource.Chunks, ko3ikoRowsProfile);
-                __op10Scope.Dispose();
-                long __op12InputRows = 0L;
-                long __op12OutputRows = 0L;
-                var __op12Scope = profileRecorder?.BeginOperatorValue(__op12Handle) ?? OperatorProfileValueScope.None;
+                var ko3ikoRows = ko3ikoRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks, ko3ikoRowsProfile);
+                __op12Scope.Dispose();
+                var __op14Scope = profileRecorder?.BeginOperatorValue(__op14Handle) ?? OperatorProfileValueScope.None;
+                OnPhaseChanged("compiled", QueryPhase.Where);
+                __op14Scope.Dispose();
+                var __op15Scope = profileRecorder?.BeginOperatorValue(__op15Handle) ?? OperatorProfileValueScope.None;
+                OnPhaseChanged("compiled", QueryPhase.Select);
+                __op15Scope.Dispose();
+                long __op16InputRows = 0L;
+                long __op16OutputRows = 0L;
+                var __op16Scope = profileRecorder?.BeginOperatorValue(__op16Handle) ?? OperatorProfileValueScope.None;
                 try
                 {
                     foreach (var ko3ikoChunk in ko3ikoRows)
@@ -229,13 +259,13 @@ namespace GeneratedSample_P03_SimpleSelectWhere_Full
                                     }
 
                                     var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                    __op12InputRows++;
-                                    __op12OutputRows++;
+                                    __op16InputRows++;
+                                    __op16OutputRows++;
                                     decimal population = ko3iko.Population;
                                     if ((population > 0))
                                     {
                                         yield return new ResultShape0(ko3iko.Name, population);
-                                        __op15OutputRows += 1;
+                                        __op19OutputRows += 1;
                                     }
                                 }
 
@@ -253,13 +283,13 @@ namespace GeneratedSample_P03_SimpleSelectWhere_Full
                                     }
 
                                     var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                    __op12InputRows++;
-                                    __op12OutputRows++;
+                                    __op16InputRows++;
+                                    __op16OutputRows++;
                                     decimal population = ko3iko.Population;
                                     if ((population > 0))
                                     {
                                         yield return new ResultShape0(ko3iko.Name, population);
-                                        __op15OutputRows += 1;
+                                        __op19OutputRows += 1;
                                     }
                                 }
 
@@ -275,30 +305,37 @@ namespace GeneratedSample_P03_SimpleSelectWhere_Full
                             }
 
                             var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                            __op12InputRows++;
-                            __op12OutputRows++;
+                            __op16InputRows++;
+                            __op16OutputRows++;
                             decimal population = ko3iko.Population;
                             if ((population > 0))
                             {
                                 yield return new ResultShape0(ko3iko.Name, population);
-                                __op15OutputRows += 1;
+                                __op19OutputRows += 1;
                             }
                         }
                     }
                 }
                 finally
                 {
-                    __op12Scope.AddInputRows(__op12InputRows);
-                    __op12Scope.AddOutputRows(__op12OutputRows);
-                    __op12Scope.Dispose();
+                    __op16Scope.AddInputRows(__op16InputRows);
+                    __op16Scope.AddOutputRows(__op16OutputRows);
+                    __op16Scope.Dispose();
                 }
 
-                if (__op15OutputRows > 0L)
-                    profileRecorder?.AddOperatorOutputRows(__op15Handle, __op15OutputRows);
+                if (__op19OutputRows > 0L)
+                    profileRecorder?.AddOperatorOutputRows(__op19Handle, __op19OutputRows);
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

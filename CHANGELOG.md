@@ -4,6 +4,33 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.8-alpha.1
+
+See [release-notes/v17.0.8-alpha.1.md](release-notes/v17.0.8-alpha.1.md) for the curated full-train release notes.
+
+### Musoq.Parser
+
+- Hardened wildcard and star-modifier metadata semantics across query scopes and added migration guidance for set-result modifier placement.
+- Extended parser and diagnostic coverage for source parameters, range frames, set operations, and the current Runtime V2 language surface.
+
+### Musoq.Evaluator
+
+- Added required runtime datasource-parameter binding and nested source-argument traversal while preserving deterministic defaults, diagnostics, and existing positional behavior.
+- Isolated wildcard discovery and interpretation-schema caches by query scope and strengthened dynamic metadata behavior.
+- Added registry-backed sibling fusion, complete-set-tree ordering/slicing, standardized range frames, distribution ranking windows, and planner-to-generated-code guard preservation for `CROSS APPLY` and `OUTER APPLY`.
+- Added engine-owned, opt-in query row progress with source-chunk counting, configurable cadence, monotonic snapshots, terminal flushing, and low-overhead disabled behavior.
+
+### Musoq.Converter and generated execution
+
+- Carried the new source-parameter, set, window, apply-guard, and telemetry semantics through physical planning, Execution IR, contextual execution, profiling, asynchronous execution, and generated C#.
+- Replaced phase-entry heuristics with explicit Execution IR boundaries so `PhaseChanged` reports truthful clause entry without per-row-loop calls.
+
+### Tooling and verification
+
+- Added executable feature-coverage evidence, generated-code shape/runtime checks, apply-guard and telemetry integration coverage, benchmark qualification, and telemetry documentation.
+- Regenerated the complete corpus of 250 current samples, 13 profiled samples, and the tracked manifest.
+- Published the full train: `Musoq.Parser`, `Musoq.Plugins`, `Musoq.Schema`, `Musoq.Evaluator`, and `Musoq.Converter`.
+
 ## 17.0.7-alpha.1
 
 See [release-notes/v17.0.7-alpha.1.md](release-notes/v17.0.7-alpha.1.md) for the curated full-train release notes.

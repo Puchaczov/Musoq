@@ -35,8 +35,11 @@ ExecutionPlan [compiled]
       scores.Score: int <- field scores_Score
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     CreateValuesRows [scoresRows: scoresValues946DD734Row0 x 2]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [Select]
     ForEach [scores in scoresRows]
       AppendShape [result <- ResultShape0(scores.Name: scores.Name, scores.Score: scores.Score)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
@@ -61,7 +64,7 @@ namespace GeneratedSample_Q171_ValuesStaticParametersAndLets
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_0 = new Column[]
         {
@@ -87,6 +90,7 @@ namespace GeneratedSample_Q171_ValuesStaticParametersAndLets
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_0, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -102,9 +106,9 @@ namespace GeneratedSample_Q171_ValuesStaticParametersAndLets
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
@@ -112,11 +116,14 @@ namespace GeneratedSample_Q171_ValuesStaticParametersAndLets
                 var paramSuffix = ScriptParameterBinder.GetOptional<string>(__musoqExecutionState.Parameters, "suffix", "-ok");
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, new string[] { "baseScore", "suffix" });
                 const int letBonus = 5;
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 scoresValues946DD734Row0[] scoresRows = new scoresValues946DD734Row0[]
                 {
                     new scoresValues946DD734Row0(("first" + paramSuffix), paramBaseScore),
                     new scoresValues946DD734Row0(("second" + paramSuffix), (paramBaseScore + letBonus))
                 };
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var scores in scoresRows)
                 {
                     token.ThrowIfCancellationRequested();
@@ -125,7 +132,14 @@ namespace GeneratedSample_Q171_ValuesStaticParametersAndLets
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

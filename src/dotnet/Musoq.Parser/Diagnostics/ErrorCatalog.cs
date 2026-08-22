@@ -121,6 +121,7 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ3095_ScalarSubqueryCardinality] = "Scalar subquery may return more than one row",
         [DiagnosticCode.MQ3096_UnsupportedVariableKeyAccess] = "Variable key access is not supported",
         [DiagnosticCode.MQ3097_UnsupportedAggregateProjection] = "This aggregate projection shape is not supported without GROUP BY",
+        [DiagnosticCode.MQ3098_InvalidRangeFrameOrderKey] = "Bounded RANGE frames require exactly one numeric ORDER BY key",
 
         // Schema Definition Errors (MQ4xxx)
         [DiagnosticCode.MQ4001_InvalidBinarySchemaField] = "Invalid binary schema field '{0}'",
@@ -175,12 +176,13 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ5017_NullComparison] = "Comparison with NULL using '{0}' is always UNKNOWN",
         [DiagnosticCode.MQ5018_AmbiguousOuterJoinNullCheck] = "IS NULL on optional alias '{0}.{1}' cannot distinguish a missing outer-join row from a present NULL value",
         [DiagnosticCode.MQ5019_NullRejectingOuterJoinFilter] = "WHERE predicate rejects NULL-extended rows from optional alias '{0}' and effectively turns the outer join into an inner join",
-        [DiagnosticCode.MQ5020_SetOperationOrderByScope] = "ORDER BY on the rightmost set operand does not order the combined set result",
+        [DiagnosticCode.MQ5020_SetOperationOrderByScope] = "Set-operation ORDER BY scope migration advisory (compatibility only)",
         [DiagnosticCode.MQ5021_UnorderedSkip] = "SKIP {0} is used without ORDER BY, so the skipped rows are not deterministic",
         [DiagnosticCode.MQ5022_UnusedCte] = "CTE '{0}' is not reachable from the outer query",
         [DiagnosticCode.MQ5023_UnusedScriptVariable] = "Script variable '{0}' is not transitively used",
         [DiagnosticCode.MQ5024_NullSensitiveNotIn] = "NOT IN contains NULL, so non-matching values evaluate to UNKNOWN",
         [DiagnosticCode.MQ5025_ImpossibleImplicitConversion] = "This constant cannot be implicitly converted to {0}; the comparison cannot match",
+        [DiagnosticCode.MQ5026_SetOperationSliceScope] = "Set-operation SKIP/TAKE scope migration advisory (compatibility only)",
 
         // Internal
         [DiagnosticCode.MQ9001_InternalCompilerError] = "The compiler encountered an internal failure. Reference '{0}' when reporting this issue.",

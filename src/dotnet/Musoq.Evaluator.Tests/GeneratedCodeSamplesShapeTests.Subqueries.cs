@@ -126,7 +126,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(
             samples[ScalarSubqueryJoinOnSampleFileName]
                 .Contains("AppendHashJoinRows(bRows, a_sq_1Hash, result, token);", StringComparison.Ordinal));
-        Assert.Contains("CtePhase [cte2]", samples[ScalarSubqueryJoinOnSampleFileName]);
+        Assert.Contains("PhaseBoundary [Begin:cte2]", samples[ScalarSubqueryJoinOnSampleFileName]);
         Assert.IsFalse(
             samples[ScalarSubqueryJoinOnSampleFileName]
                 .Contains("BuildCte2(", StringComparison.Ordinal),

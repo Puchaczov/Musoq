@@ -26,6 +26,7 @@ public sealed partial class ExecutionCSharpRenderer
         ArgumentException.ThrowIfNullOrWhiteSpace(shapeTypeName);
         var context = InitializeRenderContext(plan);
         var session = context.Session;
+        session.QueryIdentifier = queryIdentifier;
         session.UseDirectTypedStoredRowsAlias = CanUseGeneratedFinalRowSink(plan, finalTableName);
         var previousUseQueryRunContext = session.UseQueryRunContext;
         if (useQueryRunContext)
@@ -124,8 +125,9 @@ public sealed partial class ExecutionCSharpRenderer
         session.ProfileRecorderInScope = IsInstrumentationEnabled;
 
             var statements = new List<StatementSyntax>();
-            if (session.UseQueryRunContext)
-                statements.AddRange(ExecutionCSharpRenderer.CreateQueryRunContextAliasStatements());
+            statements.AddRange(ExecutionCSharpRenderer.CreateQueryRunContextAliasStatements(
+                session.UseQueryRunContext,
+                queryIdentifier: queryIdentifier));
 
             statements.AddRange(ExecutionCSharpRenderer.CreateOpeningPhaseStatements(block, queryIdentifier));
 

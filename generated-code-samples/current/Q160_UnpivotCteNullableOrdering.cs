@@ -71,8 +71,14 @@ ExecutionPlan [compiled]
       Value: int? <- field Value
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [Select]
+    PhaseBoundary [From:cte0]
     SourceScan [s: BasicEntity] -> cte0_sRows
     CreateTable [cte0: Cte0Row0]
+    PhaseBoundary [Select:cte0]
     ChunkedForEach [s in cte0_sRows]
       ScopedBlock
         CreateGeneratedRow [__unpivot <- __unpivotUnpivotB90BD0CARow0(Label: ((s.Name || ':') || s.Country), Metric: 'NullableValue', Value: s.NullableValue)]
@@ -81,6 +87,7 @@ ExecutionPlan [compiled]
         CreateGeneratedRow [__unpivot <- __unpivotUnpivotB90BD0CARow0(Label: ((s.Name || ':') || s.Country), Metric: 'ExplicitNull', Value: NULL)]
         AppendRow [cte0 <- Cte0Row0(Label: __unpivot.Label, Metric: __unpivot.Metric, Value: __unpivot.Value)]
     StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]
+    PhaseBoundary [End:cte0]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [u in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Label: u.Label, Metric: u.Metric, Value: u.Value)]
@@ -107,7 +114,7 @@ namespace GeneratedSample_Q160_UnpivotCteNullableOrdering
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_cte0_1 = new Column[]
         {
@@ -127,6 +134,7 @@ namespace GeneratedSample_Q160_UnpivotCteNullableOrdering
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("resultTopOffset", __columns_compiled_cte0_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -142,17 +150,19 @@ namespace GeneratedSample_Q160_UnpivotCteNullableOrdering
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
-                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults);
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                OnPhaseChanged("compiled", QueryPhase.Select);
+                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
                 var result = new List<ResultShape0>();
                 var __storedTable0Rows = _cteRowResults.Slot0;
                 for (int __storedTable0Index = 0; __storedTable0Index < __storedTable0Rows.Count; ++__storedTable0Index)
@@ -185,8 +195,14 @@ namespace GeneratedSample_Q160_UnpivotCteNullableOrdering
             }
             finally
             {
-                OnPhaseChanged("compiled:cte0", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 
@@ -203,88 +219,96 @@ namespace GeneratedSample_Q160_UnpivotCteNullableOrdering
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, CteRowResults _cteRowResults)
+        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
-            var __cte0_sSchema = provider.GetSchema("#A");
-            var cte0_sRowsSource = __cte0_sSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-            var cte0_sRows = cte0_sRowsSource.Chunks;
-            var cte0 = new List<Cte0Row0>();
-            foreach (var sChunk in cte0_sRows)
+            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+            try
             {
-                if (sChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> sChunkView)
+                var __cte0_sSchema = provider.GetSchema("#A");
+                var cte0_sRowsSource = __cte0_sSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var cte0_sRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_sRowsSource.Chunks, __musoqProgressContext, "s:1") : cte0_sRowsSource.Chunks;
+                var cte0 = new List<Cte0Row0>();
+                foreach (var sChunk in cte0_sRows)
                 {
-                    if (sChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] sChunkViewArray)
+                    if (sChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> sChunkView)
                     {
-                        int sChunkViewOffset = sChunkView.Offset;
-                        for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
+                        if (sChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] sChunkViewArray)
                         {
-                            if ((sIndex & 1023) == 0)
+                            int sChunkViewOffset = sChunkView.Offset;
+                            for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
                             {
-                                token.ThrowIfCancellationRequested();
+                                if ((sIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var s = sChunkViewArray[sChunkViewOffset + sIndex];
+                                {
+                                    __unpivotUnpivotB90BD0CARow0 __unpivot = new __unpivotUnpivotB90BD0CARow0(((s.Name + ":") + s.Country), "NullableValue", s.NullableValue);
+                                    cte0.Add(new Cte0Row0(__unpivot.Label, __unpivot.Metric, __unpivot.Value));
+                                }
+
+                                {
+                                    __unpivotUnpivotB90BD0CARow0 __unpivot = new __unpivotUnpivotB90BD0CARow0(((s.Name + ":") + s.Country), "ExplicitNull", null);
+                                    cte0.Add(new Cte0Row0(__unpivot.Label, __unpivot.Metric, __unpivot.Value));
+                                }
                             }
 
-                            var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                            {
-                                __unpivotUnpivotB90BD0CARow0 __unpivot = new __unpivotUnpivotB90BD0CARow0(((s.Name + ":") + s.Country), "NullableValue", s.NullableValue);
-                                cte0.Add(new Cte0Row0(__unpivot.Label, __unpivot.Metric, __unpivot.Value));
-                            }
-
-                            {
-                                __unpivotUnpivotB90BD0CARow0 __unpivot = new __unpivotUnpivotB90BD0CARow0(((s.Name + ":") + s.Country), "ExplicitNull", null);
-                                cte0.Add(new Cte0Row0(__unpivot.Label, __unpivot.Metric, __unpivot.Value));
-                            }
+                            continue;
                         }
 
-                        continue;
+                        if (sChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> sChunkViewList)
+                        {
+                            int sChunkViewOffset = sChunkView.Offset;
+                            for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
+                            {
+                                if ((sIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var s = sChunkViewList[sChunkViewOffset + sIndex];
+                                {
+                                    __unpivotUnpivotB90BD0CARow0 __unpivot = new __unpivotUnpivotB90BD0CARow0(((s.Name + ":") + s.Country), "NullableValue", s.NullableValue);
+                                    cte0.Add(new Cte0Row0(__unpivot.Label, __unpivot.Metric, __unpivot.Value));
+                                }
+
+                                {
+                                    __unpivotUnpivotB90BD0CARow0 __unpivot = new __unpivotUnpivotB90BD0CARow0(((s.Name + ":") + s.Country), "ExplicitNull", null);
+                                    cte0.Add(new Cte0Row0(__unpivot.Label, __unpivot.Metric, __unpivot.Value));
+                                }
+                            }
+
+                            continue;
+                        }
                     }
 
-                    if (sChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> sChunkViewList)
+                    for (int sIndex = 0, sIndexCount = sChunk.Count; sIndex < sIndexCount; ++sIndex)
                     {
-                        int sChunkViewOffset = sChunkView.Offset;
-                        for (int sIndex = 0, sIndexCount = sChunkView.Count; sIndex < sIndexCount; ++sIndex)
+                        if ((sIndex & 1023) == 0)
                         {
-                            if ((sIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var s = sChunkViewList[sChunkViewOffset + sIndex];
-                            {
-                                __unpivotUnpivotB90BD0CARow0 __unpivot = new __unpivotUnpivotB90BD0CARow0(((s.Name + ":") + s.Country), "NullableValue", s.NullableValue);
-                                cte0.Add(new Cte0Row0(__unpivot.Label, __unpivot.Metric, __unpivot.Value));
-                            }
-
-                            {
-                                __unpivotUnpivotB90BD0CARow0 __unpivot = new __unpivotUnpivotB90BD0CARow0(((s.Name + ":") + s.Country), "ExplicitNull", null);
-                                cte0.Add(new Cte0Row0(__unpivot.Label, __unpivot.Metric, __unpivot.Value));
-                            }
+                            token.ThrowIfCancellationRequested();
                         }
 
-                        continue;
+                        var s = sChunk[sIndex];
+                        {
+                            __unpivotUnpivotB90BD0CARow0 __unpivot = new __unpivotUnpivotB90BD0CARow0(((s.Name + ":") + s.Country), "NullableValue", s.NullableValue);
+                            cte0.Add(new Cte0Row0(__unpivot.Label, __unpivot.Metric, __unpivot.Value));
+                        }
+
+                        {
+                            __unpivotUnpivotB90BD0CARow0 __unpivot = new __unpivotUnpivotB90BD0CARow0(((s.Name + ":") + s.Country), "ExplicitNull", null);
+                            cte0.Add(new Cte0Row0(__unpivot.Label, __unpivot.Metric, __unpivot.Value));
+                        }
                     }
                 }
 
-                for (int sIndex = 0, sIndexCount = sChunk.Count; sIndex < sIndexCount; ++sIndex)
-                {
-                    if ((sIndex & 1023) == 0)
-                    {
-                        token.ThrowIfCancellationRequested();
-                    }
-
-                    var s = sChunk[sIndex];
-                    {
-                        __unpivotUnpivotB90BD0CARow0 __unpivot = new __unpivotUnpivotB90BD0CARow0(((s.Name + ":") + s.Country), "NullableValue", s.NullableValue);
-                        cte0.Add(new Cte0Row0(__unpivot.Label, __unpivot.Metric, __unpivot.Value));
-                    }
-
-                    {
-                        __unpivotUnpivotB90BD0CARow0 __unpivot = new __unpivotUnpivotB90BD0CARow0(((s.Name + ":") + s.Country), "ExplicitNull", null);
-                        cte0.Add(new Cte0Row0(__unpivot.Label, __unpivot.Metric, __unpivot.Value));
-                    }
-                }
+                return cte0;
             }
-
-            return cte0;
+            finally
+            {
+                OnPhaseChanged("compiled:cte0", QueryPhase.End);
+            }
         }
 
         private sealed class Cte0Row0

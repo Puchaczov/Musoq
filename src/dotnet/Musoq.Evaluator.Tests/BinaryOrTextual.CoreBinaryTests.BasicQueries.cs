@@ -8,6 +8,7 @@ namespace Musoq.Evaluator.Tests;
 public partial class BinaryOrTextualCoreBinaryTests
 {
     [TestMethod]
+    [FeatureEvidence("binary-interpretation", FeatureEvidenceKind.RuntimePositive)]
     public void Query_SelectInterpret_WithBinarySchema_ShouldParseData()
     {
         // Arrange

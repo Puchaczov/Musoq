@@ -86,6 +86,7 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionOrderRecordList orderRecords => CanRenderOrderRecordList(orderRecords),
             ExecutionMaterializeRecordListToTable materialize => CanRenderRecordListMaterialization(materialize),
             ExecutionStoreTable => true,
+            ExecutionPhaseBoundary => true,
             ExecutionRelatedCtePhase => true,
             ExecutionReturnDesc desc => CanRenderExpressions(desc.Arguments),
             ExecutionReturnTable => true,

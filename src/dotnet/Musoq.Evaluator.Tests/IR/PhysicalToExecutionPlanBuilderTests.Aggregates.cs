@@ -55,7 +55,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      AppendShape [result <- ResultShape0(Name: finalGroup.p.Name, Count: Count('p.Count'))]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
     [TestMethod]
@@ -154,7 +154,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    SliceShapeRows [result -> resultSliced, skip 1, take 2; capacity: Candidate(resultSliced <- Min(Max(result.Count - 1, 0), 2))]",
             "    ReturnDeferredTable [resultSliced: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, planText);
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
         Assert.IsFalse(planText.Contains("StoreTable", StringComparison.Ordinal));
         Assert.IsFalse(planText.Contains("Statement0Row0", StringComparison.Ordinal));
     }

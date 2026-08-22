@@ -81,17 +81,17 @@ Musoq implements a subset of SQL with several extensions:
 | CROSS JOIN | Standard SQL | Supported as an uncorrelated Cartesian product; filtering belongs in `WHERE` |
 | FULL OUTER JOIN | Standard SQL | Supported; use `alias IS PRESENT` / `alias IS MISSING` to classify unmatched sides |
 | SEMI JOIN / ANTI JOIN | Common relational algebra extension | Supported as left-sided existence and non-existence joins |
-| Recursive CTEs | Supported in many dialects | **Not supported** |
+| Recursive CTEs | Supported in many dialects | Supported with `WITH RECURSIVE`; recursive members have documented operator restrictions (see §14.9 and `docs/recursive-ctes.md`) |
 | Subqueries in FROM | Supported | Supported as derived tables; plain derived tables are independent and correlation requires `CROSS APPLY` / `OUTER APPLY` |
 | `BETWEEN` operator | Supported | Supported — `x BETWEEN a AND b` is equivalent to `x >= a AND x <= b` |
 | `ORDER BY` position | `ORDER BY 1` | **Not supported** — use column names or expressions |
 | ASOF JOIN | Not standard | Supported — nearest-match join on an ordered column |
 | PIVOT | Vendor-specific | Supported as a simplified static-pivot statement with mandatory static `IN (...)` values; see §10.11 |
 | UNPIVOT | Vendor-specific | Supported as a Musoq-style static row expansion statement with explicit keep fields; see §10.12 |
-| Window functions | `OVER (PARTITION BY ... ORDER BY ...)` with frame specs | Supports `PARTITION BY`, `ORDER BY`, named `WINDOW` clause, `ROWS BETWEEN` and `RANGE BETWEEN` frame specifications, ranking (`ROW_NUMBER`, `RANK`, `DENSE_RANK`, `NTILE`), offset (`LAG`, `LEAD`), aggregate (`SUM`, `COUNT`, `AVG`, `MIN`, `MAX`), and value access (`FIRST_VALUE`, `LAST_VALUE`, `NTH_VALUE`) window functions. Data-source plugins can register custom window functions. `QUALIFY` clause is supported for filtering rows after window function evaluation. `RANGE BETWEEN` requires an `ORDER BY` clause in the window specification. |
+| Window functions | `OVER (PARTITION BY ... ORDER BY ...)` with frame specs | Supports `PARTITION BY`, `ORDER BY`, named `WINDOW` clause, `ROWS BETWEEN` and `RANGE BETWEEN` frame specifications, ranking (`ROW_NUMBER`, `RANK`, `DENSE_RANK`, `PERCENT_RANK`, `CUME_DIST`, `NTILE`), offset (`LAG`, `LEAD`), aggregate (`SUM`, `COUNT`, `AVG`, `MIN`, `MAX`), and value access (`FIRST_VALUE`, `LAST_VALUE`, `NTH_VALUE`) window functions. Data-source plugins can register custom window functions. `QUALIFY` clause is supported for filtering rows after window function evaluation. `RANGE BETWEEN` requires an `ORDER BY` clause in the window specification. |
 | FILTER on aggregates | Not standard (part of SQL:2003) | Supported — `Count(x) FILTER (WHERE condition)` restricts aggregate input; see §10.10 |
 | Subqueries | `IN`, `EXISTS`, scalar, quantified, and derived-table subqueries | Supported; correlated predicate and scalar forms are decorrelated where possible; see §7.9-§7.12 |
-| `ORDER BY` with set operations | Applies to the entire combined result | `ORDER BY` after a set operation (e.g., `UNION`) is parsed per-query, not as a clause over the combined result — see §12.10 |
+| Result modifiers with set operations | Trailing `ORDER BY` / `SKIP` / `TAKE` apply to the combined result | Supported with standard result-level semantics; wrap an operand in a derived table or CTE for branch-local modifiers — see §12.8 and §12.10 |
 
 ### 1.4 Terminology
 
@@ -424,12 +424,13 @@ The following warnings are active in the core language:
 | `MQ5017_NullComparison` | Bind | `=`, `<>`, `!=`, `<`, `<=`, `>`, or `>=` compares an operand with literal or proven-NULL value in a predicate context. | Projection/order expressions, `IS NULL`, `IS NOT NULL`, and `IS [NOT] DISTINCT FROM` remain quiet. | Use an explicit NULL predicate or null-safe distinctness operator. |
 | `MQ5018_AmbiguousOuterJoinNullCheck` | Bind | `optional_alias.column IS NULL` can mean either a missing outer-join row or a present row whose original nullable column is NULL. | Original non-nullable columns and unknown derived/CTE nullability remain quiet; explicit `alias IS PRESENT` / `IS MISSING` suppresses the warning. | Test row presence or choose a non-nullable presence column. |
 | `MQ5019_NullRejectingOuterJoinFilter` | Bind | A `WHERE` predicate is provably false or UNKNOWN for the NULL-extended row of an outer join/apply. | `ON` restrictions, inner joins, preserving `OR` branches, and uncertain method semantics remain quiet. | Move an intended match restriction into `ON`, or state row-presence intent explicitly. |
-| `MQ5020_SetOperationOrderByScope` | Bind | `ORDER BY` belongs to the rightmost set operand and that operand has no branch-local `TAKE` or positive `SKIP`. | Branch ordering used for slicing and an outer query that orders the combined set suppress the warning. `SKIP 0` is not slicing. | Order the combined result in an outer query. |
+| `MQ5020_SetOperationOrderByScope` | Bind | Compatibility identifier for the completed set-ordering migration. | Never emitted by the current language version. | No action is required; trailing ordering is result-level. |
 | `MQ5021_UnorderedSkip` | Bind | A positive `SKIP` has no `ORDER BY` in the same query block. | `SKIP 0`, `TAKE` without `SKIP`, and ordered slicing remain quiet. | Add a deterministic `ORDER BY` or remove `SKIP`. |
 | `MQ5022_UnusedCte` | Bind | A user-authored CTE is not transitively reachable from its outer query. | Live transitive dependencies, nested live scopes, and synthesized/internal CTEs are not reported. | Remove the CTE or reference it from a live query. |
 | `MQ5023_UnusedScriptVariable` | Bind | A `let` declaration is not used by an executable statement or live transitive initializer chain. | Script parameters are not `let` declarations; variables used only by dead declarations remain unused. | Remove the declaration or reference it from live work. |
 | `MQ5024_NullSensitiveNotIn` | Bind | A `NOT IN` list or proven collection contains `NULL`, so non-matching values can become `UNKNOWN`. | Positive `IN`, null-free collections, and values proven to exclude `NULL` remain quiet. | Filter `NULL` values or use a null-aware predicate. |
 | `MQ5025_ImpossibleImplicitConversion` | Bind | An engine-selected implicit conversion of a constant is proven unable to succeed, so the comparison cannot match. | Dynamic values, explicit soft conversions, and uncertain plugin conversions remain quiet. | Use a compatible literal or an explicit conversion. |
+| `MQ5026_SetOperationSliceScope` | Bind | Compatibility identifier for the completed set-slicing migration. | Never emitted by the current language version. | No action is required; trailing slicing is result-level. |
 
 Specific advisories take precedence over generic tautology, contradiction,
 and unreachable-branch messages for the same source region. The v17 identifiers
@@ -948,15 +949,15 @@ Normal expression compatibility still applies: same-type comparisons are valid, 
 
 #### 4.3.5 Source Arguments
 
-A script parameter MAY be passed into a schema source argument only as a direct `$name` argument, and only when the parameter declares a default value:
+A script parameter MAY be passed into a schema source argument only as a direct `$name` argument. Required parameters are supported when the provider can resolve the source shape without the runtime value:
 
 ```sql
--- valid
-param(path: string = 'repo')
+-- valid when files.list metadata does not depend on the path value
+param(path: string)
 select Name from files.list($path)
 
--- invalid: source argument parameter is required
-param(path: string)
+-- valid when a default is needed by files.list metadata
+param(path: string = 'repo')
 select Name from files.list($path)
 
 -- invalid: source argument parameter is nested in an expression
@@ -964,7 +965,7 @@ param(path: string = 'repo')
 select Name from files.list($path + '/src')
 ```
 
-This restriction keeps source discovery predictable. Use the parameter directly as the source argument and perform additional filtering in `WHERE` when possible.
+The complete source argument expression remains available at runtime. A provider that requires a parameter value during `GetTableByName`, `DescribeSource`, or source planning cannot resolve a required parameter at compile time; declare a default for that parameter or make the provider's metadata independent of runtime source arguments. Computed or nested parameter expressions remain unsupported. Use the parameter directly as the source argument and perform additional filtering in `WHERE` when possible.
 
 Script variables are compile-time values and may be used directly or inside supported constant source-argument expressions. See [§4.4.4](#444-source-arguments).
 
@@ -1075,7 +1076,7 @@ let root: string = 'repo'
 select Name from files.list($root + '/src')
 ```
 
-This differs from script parameters: parameters used in source arguments must still be direct `$name` references with defaults, because source metadata is discovered before runtime parameter values are supplied.
+This differs from script parameters: parameters used in source arguments must still be direct `$name` references. A default is required only when the provider needs that value while resolving compile-time source metadata; providers whose metadata is independent of the value can accept a required parameter and receive it at runtime. Computed or nested parameter expressions remain unsupported.
 
 #### 4.4.5 Diagnostics
 
@@ -1603,16 +1604,19 @@ as their signature. A declared `TABLE` controls row shape, but it does not
 rename or add constructor parameters. The same canonical positional vector is
 used for metadata, source planning, and execution.
 
-### 6.7 `system.range(start, end)` Semantics
+### 6.7 Optional host `system.range(start, end)` contract
 
-The `system.range(start, end)` source uses an **end-exclusive** interval.
+The Musoq core packages do not register a `system.range` source. A host may
+provide one; hosts that claim this optional contract use an **end-exclusive**
+interval.
 
 ```sql
 select Value from system.range(1, 5)
 -- Returns: 1, 2, 3, 4
 ```
 
-Formally, the returned sequence is equivalent to $[start, end)$.
+Formally, a conforming host returns the sequence $[start, end)$. Without host
+registration, binding reports the ordinary unknown-schema diagnostic.
 
 ---
 
@@ -1915,7 +1919,7 @@ Scalar subqueries are valid in expression contexts including `SELECT`, `WHERE`, 
 Rules:
 
 - A scalar subquery MUST return exactly one column. Otherwise Musoq raises MQ2024.
-- A scalar subquery over a set operator is not supported.
+- Scalar subqueries over `UNION`, `UNION ALL`, `EXCEPT`, and `INTERSECT` are supported. Correlated branches must expose the same equality-correlation keys; incompatible branch keys raise MQ2024 rather than falling back to per-row execution.
 - If the subquery returns zero rows, the scalar value is `NULL`.
 - If the subquery returns more than one row, query execution raises a runtime error.
 - Uncorrelated scalar subqueries may use result-shaping clauses such as `DISTINCT`, `GROUP BY`, `ORDER BY`, `SKIP`, `TAKE`, `WINDOW`, and `QUALIFY`. Musoq materializes the shaped subquery result and then applies scalar cardinality rules to the materialized rows.
@@ -3323,7 +3327,7 @@ select Name, Sum(Population) over (order by Name) from a.entities()
 
 `ORDER BY` inside the `OVER` clause determines the logical row ordering within each partition. Both `ASC` (default) and `DESC` are supported, and each key may use `NULLS FIRST` or `NULLS LAST`.
 
-- **Ranking functions** (`RowNumber`, `Rank`, `DenseRank`) require `ORDER BY` — it determines the assignment of ranks.
+- **Ranking functions** (`RowNumber`, `Rank`, `DenseRank`, `PercentRank`, `CumeDist`) require `ORDER BY` — it determines rank and peer-group boundaries.
 - **Aggregate functions** (`Sum`, `Count`, `Avg`, `Min`, `Max`) behave differently depending on whether `ORDER BY` is present:
   - **With `ORDER BY`**: Computes a running (cumulative) result from the first row in the partition up to the current row.
   - **Without `ORDER BY`**: Computes the result over the entire partition — every row in the partition receives the same value.
@@ -3351,6 +3355,8 @@ Ranking functions assign an ordinal position to each row within its partition ba
 | `RowNumber()` | `long` | Assigns a unique sequential integer to each row within the partition, starting at 1. No ties — every row gets a distinct number. |
 | `Rank()` | `long` | Assigns the same rank to rows with equal `ORDER BY` values. Leaves gaps: if two rows share rank 2, the next rank is 4. |
 | `DenseRank()` | `long` | Like `Rank()`, but without gaps: if two rows share rank 2, the next rank is 3. |
+| `PercentRank()` | `double` | Returns `(Rank() - 1) / (partition row count - 1)`. A one-row partition returns `0`. |
+| `CumeDist()` | `double` | Returns the ordinal of the peer group's final row divided by the partition row count. |
 | `Ntile(n)` | `long` | Distributes rows into `n` roughly equal-sized groups (buckets) within the partition. Assigns a bucket number from 1 to `n`. If the partition size is not evenly divisible, earlier buckets receive one extra row. |
 
 ```sql
@@ -3363,11 +3369,17 @@ select Name, Rank() over (order by Population) from a.entities()
 -- DenseRank without gaps: 1, 2, 2, 3
 select Name, DenseRank() over (order by Population) from a.entities()
 
+-- PercentRank with ties: 0, 0.333..., 0.333..., 1
+select Name, PercentRank() over (order by Population) from a.entities()
+
+-- CumeDist with ties: 0.25, 0.75, 0.75, 1
+select Name, CumeDist() over (order by Population) from a.entities()
+
 -- Ntile: distribute 5 rows into 3 buckets → 1, 1, 2, 2, 3
 select Name, Ntile(3) over (order by Name) from a.entities()
 ```
 
-`RowNumber`, `Rank`, and `DenseRank` take no arguments — the ordering is determined solely by the `ORDER BY` clause. `Ntile` takes a single integer argument specifying the number of buckets.
+`RowNumber`, `Rank`, `DenseRank`, `PercentRank`, and `CumeDist` take no arguments — the ordering is determined solely by the `ORDER BY` clause. `Ntile` takes a single integer argument specifying the number of buckets.
 
 #### 11.5.2 Offset Functions
 
@@ -3461,6 +3473,8 @@ Function names are case-insensitive and underscore-insensitive. The following pa
 |------------|-----------------|
 | `RowNumber()` | `ROW_NUMBER()` |
 | `DenseRank()` | `DENSE_RANK()` |
+| `PercentRank()` | `PERCENT_RANK()` |
+| `CumeDist()` | `CUME_DIST()` |
 | `Ntile(n)` | `NTILE(n)` |
 | `FirstValue(column)` | `FIRST_VALUE(column)` |
 | `LastValue(column)` | `LAST_VALUE(column)` |
@@ -3520,9 +3534,9 @@ from a.entities()
 
 Custom window functions support `PARTITION BY`, `ORDER BY`, and multi-argument signatures — the same capabilities as the built-in functions.
 
-### 11.11 Frame Semantics and Differences from Standard SQL
+### 11.11 Frame Semantics
 
-Musoq's implicit ordered window frames use **ROWS semantics**, not the peer-aware RANGE semantics that PostgreSQL and the SQL standard default to. Explicit `RANGE BETWEEN` syntax is accepted, but it currently uses the engine's existing ordered-frame execution semantics rather than SQL peer-group expansion. This section documents the exact behavior and where it diverges from standard SQL.
+Musoq's implicit ordered window frame uses peer-aware `RANGE` semantics. Explicit `ROWS BETWEEN` remains position-based, while explicit `RANGE BETWEEN` uses the complete peer group for `CURRENT ROW` boundaries.
 
 #### 11.11.1 Implicit Frame
 
@@ -3530,7 +3544,7 @@ When no explicit frame specification is provided, every window function operates
 
 | Condition | Implicit Frame (Musoq) | PostgreSQL Default |
 |-----------|------------------------|--------------------|
-| `ORDER BY` present | `ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW` | `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW` |
+| `ORDER BY` present | `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW` | `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW` |
 | `ORDER BY` absent | Entire partition (all rows receive the same value) | Entire partition (same) |
 
 The difference between ROWS and RANGE only matters **when ORDER BY values contain ties** (duplicate values).
@@ -3539,14 +3553,14 @@ When an explicit `ROWS BETWEEN` or `RANGE BETWEEN` frame is specified, it overri
 
 #### 11.11.2 ROWS vs RANGE: Behavior with Tied ORDER BY Values
 
-**ROWS mode** (Musoq): Each row is processed individually in sequence. Even when multiple rows share the same ORDER BY value, each row accumulates independently and may produce a different result.
+**ROWS mode**: Each row is processed individually in sequence. Even when multiple rows share the same ORDER BY value, each row accumulates independently and may produce a different result.
 
-**RANGE mode** (PostgreSQL default): All rows with the same ORDER BY value are treated as *peers*. Peers receive the **same** aggregate result — the value computed as if all peers were included.
+**RANGE mode**: Rows for which every ORDER BY key compares equal are treated as *peers*. Peers receive the **same** aggregate result — the value computed as if all peers were included. Direction and `NULLS FIRST` / `NULLS LAST` are honored independently for every key.
 
 Example with `SUM(val) OVER (ORDER BY category)`:
 
-| Row | category | val | Musoq (ROWS) | PostgreSQL (RANGE) |
-|-----|----------|-----|:------------:|:------------------:|
+| Row | category | val | Explicit ROWS | Implicit/explicit RANGE |
+|-----|----------|-----|:-------------:|:-----------------------:|
 | 1 | A | 10 | 10 | 10 |
 | 2 | B | 20 | **30** | **50** |
 | 3 | B | 20 | **50** | **50** |
@@ -3589,7 +3603,7 @@ NULL values in `PARTITION BY` columns are grouped together as their own partitio
 | Feature | Standard SQL | Musoq |
 |---------|-------------|-------|
 | `ROWS BETWEEN ... AND ...` | Explicit row-based frame | **Supported** (see section 11.12) |
-| `RANGE BETWEEN ... AND ...` | Explicit value-based frame | Partial — accepted, requires window `ORDER BY`, uses existing ordered-frame semantics |
+| `RANGE BETWEEN ... AND ...` | Explicit value-based frame | **Supported with bounded-key restrictions** — requires window `ORDER BY`; offset bounds require one numeric key |
 | `GROUPS BETWEEN ... AND ...` | Explicit peer-group-based frame | Not supported |
 | `EXCLUDE CURRENT ROW` | Excludes current row from frame | Not supported |
 | `EXCLUDE GROUP` | Excludes current row's peer group | Not supported |
@@ -3597,19 +3611,12 @@ NULL values in `PARTITION BY` columns are grouped together as their own partitio
 | `NULLS FIRST` / `NULLS LAST` | Explicit NULL ordering | **Supported** |
 | `FILTER (WHERE ...)` | Conditional window aggregation | **Supported** for aggregate window functions |
 | `QUALIFY` | Filter on window function results | **Supported** (see section 11.13) |
-| `PERCENT_RANK()` | Relative rank as fraction | Not implemented |
-| `CUME_DIST()` | Cumulative distribution | Not implemented |
+| `PERCENT_RANK()` | `(RANK() - 1) / (partition row count - 1)`; returns `0` for a one-row partition | **Supported**; returns `double` |
+| `CUME_DIST()` | Peer-group end ordinal divided by the partition row count | **Supported**; returns `double` |
 
 #### 11.11.6 Practical Implications
 
-For most real-world queries, Musoq produces identical results to PostgreSQL because:
-
-1. **Ranking functions** (`RowNumber`, `Rank`, `DenseRank`) are unaffected by frame mode.
-2. **Offset functions** (`Lag`, `Lead`) are inherently position-based in all SQL engines.
-3. **Aggregates without ORDER BY** compute the whole partition — identical in all modes.
-4. **Aggregates with ORDER BY on a unique column** (timestamps, IDs) produce identical results since there are no ties.
-
-The divergence only appears in the specific combination of **running aggregates + non-unique ORDER BY values**. If you need peer-aware behavior, add a tiebreaker column to ORDER BY to make values unique, or use `PARTITION BY` on the grouping column instead.
+Ranking and offset functions remain position-based according to their individual contracts. Ordered aggregate and value-access functions use the implicit peer-aware RANGE frame unless an explicit frame is supplied. Adding a tiebreaker ORDER BY key intentionally makes otherwise tied rows distinct peers.
 
 ### 11.12 Window Frame Specifications
 
@@ -3661,10 +3668,10 @@ This means `2 PRECEDING` on the first row of a partition includes only the curre
 | Frame Type | Supported | Notes |
 |------------|:---------:|-------|
 | `ROWS BETWEEN` | Yes | Row-based frame — counts physical rows |
-| `RANGE BETWEEN` | Partial | Parsed and accepted, but requires `ORDER BY` in the window specification (error MQ3052 if missing) |
+| `RANGE BETWEEN` | Yes, with restrictions | Requires `ORDER BY` (MQ3052); PRECEDING/FOLLOWING offsets require exactly one numeric key (MQ3098) |
 | `GROUPS BETWEEN` | No | Peer-group-based frame — not supported |
 
-`ROWS BETWEEN` is fully supported. `RANGE BETWEEN` is parsed and requires an `ORDER BY` clause in the window specification; omitting `ORDER BY` with a `RANGE` frame raises compile-time error MQ3052. `RANGE BETWEEN` currently uses the same existing ordered-frame execution model as `ROWS` rather than peer-aware SQL RANGE semantics. `GROUPS BETWEEN` is not supported.
+`ROWS BETWEEN` is fully supported. `RANGE BETWEEN` requires an `ORDER BY` clause; omitting it raises MQ3052. `CURRENT ROW` expands to the complete peer group using every ORDER BY key. Numeric PRECEDING/FOLLOWING offsets use a single numeric key; multiple or nonnumeric keys raise MQ3098 during binding. When the current bounded key is null, the frame resolves to that key's null peer group. `GROUPS BETWEEN` is not supported.
 
 #### 11.12.4 Examples
 
@@ -3917,15 +3924,28 @@ union (Name)
 select City as Name from B.Entities()   -- City aliased as Name
 ```
 
-### 12.8 SKIP/TAKE per Subquery
+### 12.8 SKIP/TAKE Scope
 
-Each subquery in a set operation can have its own SKIP/TAKE:
+Trailing `SKIP` / `TAKE` apply once to the complete set result, after set
+combination and after any trailing `ORDER BY`:
 
 ```sql
-select Name from A.Entities() skip 1
+select Name from A.Entities()
 union (Name)
-select Name from B.Entities() skip 2
+select Name from B.Entities() order by Name skip 2 take 5
 ```
+
+Use an explicit derived table or CTE when an operand-local slice is intended:
+
+```sql
+select Name from A.Entities()
+union (Name)
+select Name from (
+    select Name from B.Entities() order by Name skip 2 take 5
+) sliced_branch
+```
+
+The parser never pushes trailing result modifiers into an operand.
 
 ### 12.9 Set Operations in CTEs
 
@@ -3940,7 +3960,7 @@ with p as (
 select Id, Name from p
 ```
 
-### 12.10 ORDER BY with Set Operations (Deviation from Standard SQL)
+### 12.10 ORDER BY with Set Operations
 
 In standard SQL, an `ORDER BY` clause placed after the last query in a set operation applies to the **entire combined result**:
 
@@ -3953,25 +3973,25 @@ SELECT City FROM A WHERE Money <= 200
 ORDER BY City DESC
 ```
 
-Musoq does **not** follow this convention. Because `ORDER BY` is syntactically part of each individual query (not a clause on the set operator), writing `ORDER BY` after a `UNION` attaches it to the **rightmost query**, not to the combined result.
+Musoq follows this convention. A trailing `ORDER BY` is parsed once after the
+complete unparenthesized set tree and orders the combined result:
 
 ```sql
 -- Musoq interpretation:
--- ORDER BY applies to the second SELECT only, BEFORE the UNION combines rows
+-- ORDER BY sorts the combined UNION result
 select City from A.Entities() where Money > 200
 union (City)
 select City from A.Entities() where Money <= 200
-order by City desc    -- sorts only the right-hand query
+order by City desc
 ```
 
-This means the final output order after the UNION is **not guaranteed** to be sorted.
+Result ordering binds against the exported names of the first operand, which
+define the combined output schema. Source aliases and aliases that exist only
+in a later operand are not visible. `NULLS FIRST` / `NULLS LAST`, ascending and
+descending keys, `SKIP`, and `TAKE` retain their ordinary result-level meaning.
 
-Musoq reports `MQ5020_SetOperationOrderByScope` for an unsliced rightmost
-branch `ORDER BY` so that the query can be made explicit. A branch-local
-`ORDER BY` used with `TAKE` or positive `SKIP` is intentional slicing and is
-not warned; order the outer combined query when the final set must be sorted.
-
-**Workaround** — wrap the set operation in a CTE and apply `ORDER BY` on the outer query:
+An outer wrapper remains equivalent and can be useful when composing a set as a
+larger query:
 
 ```sql
 with combined as (
@@ -3982,7 +4002,8 @@ with combined as (
 select City from combined order by City desc
 ```
 
-> **Note:** This is a known deviation. Future versions may support `ORDER BY` as a clause over the combined set operation result.
+To preserve operand-local ordering or slicing, place that operand inside its own
+derived table or CTE.
 
 ---
 
@@ -4017,7 +4038,8 @@ ORDER BY uses **ordinal (case-sensitive) comparison** for strings: uppercase let
 
 `NULLS FIRST` and `NULLS LAST` may be added after each order key. If omitted, ascending keys place `NULL` first and descending keys place `NULL` last.
 
-> **Set operations:** `ORDER BY` placed after a set operation (e.g., `UNION`) applies to the rightmost query only, not the combined result. This is a deviation from standard SQL — see §12.10 for details and the CTE workaround.
+> **Set operations:** Trailing `ORDER BY` applies to the complete combined
+> result. See §12.10 for output-name binding and branch-local wrappers.
 
 ### 13.2 ORDER BY with SELECT Aliases
 
@@ -4284,9 +4306,15 @@ with cte as (
 select cte from cte          -- reads the column named cte
 ```
 
-### 14.9 Limitations
+### 14.9 Recursive CTEs and limitations
 
-- **No recursive CTEs**: Musoq does not support `WITH RECURSIVE` or self-referencing CTEs.
+Musoq supports `WITH RECURSIVE` with one anchor, one top-level `UNION` or
+`UNION ALL` boundary, and one recursive member. Recursive members reject
+aggregation, grouping, windows, ordering, pagination, nested set operations,
+multiple self-references, unsupported join families, pivot/unpivot, mutual
+recursion, `SEARCH`, and `CYCLE` with dedicated diagnostics. These restrictions
+do not apply to the query consuming the completed CTE. See
+`docs/recursive-ctes.md` for the complete contract.
 - **Duplicate aliases**: Using the same alias for two tables within a CTE inner expression throws `AliasAlreadyUsedException`.
 
 ```sql
@@ -5041,7 +5069,7 @@ explanation, and correction for each entry.
 | Phase | Active code families | Default source domain |
 |-------|----------------------|------------------------|
 | Parse | MQ1001–MQ1009, MQ2001–MQ2041 | Query |
-| Bind | MQ3001, MQ3002, MQ3005, MQ3007, MQ3008, MQ3010–MQ3035, MQ3036–MQ3097; MQ5003, MQ5008, MQ5010–MQ5025 | Query |
+| Bind | MQ3001, MQ3002, MQ3005, MQ3007, MQ3008, MQ3010–MQ3035, MQ3036–MQ3098; MQ5003, MQ5008, MQ5010–MQ5025 | Query |
 | Schema | MQ4016 and schema-definition MQ4001–MQ4015 | Schema |
 | DataSource | Source construction and provider diagnostics | DataSource or Schema |
 | Runtime | MQ7003–MQ7012 | Runtime or DataSource |
@@ -5127,7 +5155,6 @@ advisories are Bind-phase diagnostics.
 | MQ5017_NullComparison | =, <>, !=, <, <=, >, or >= compares with NULL in a predicate context. | IS NULL, IS NOT NULL, IS DISTINCT FROM, and projected/order expressions. | Use an explicit NULL or null-safe predicate. |
 | MQ5018_AmbiguousOuterJoinNullCheck | An optional-side nullable column IS NULL cannot distinguish row absence from a present NULL value. | Non-nullable/unknown derived columns and explicit PRESENT/MISSING checks. | Test row presence or use a non-nullable presence column. |
 | MQ5019_NullRejectingOuterJoinFilter | WHERE is provably false or UNKNOWN for NULL-extended optional rows. | ON predicates, inner joins, preserving OR branches, and unknown method semantics. | Move an intended match restriction into ON or state row presence. |
-| MQ5020_SetOperationOrderByScope | ORDER BY belongs to an unsliced rightmost set operand rather than the combined result. | Branch ordering used for TAKE/positive SKIP or an outer combined-result order. | Order the combined set in an outer query. |
 | MQ5021_UnorderedSkip | Positive SKIP has no ORDER BY in its query block. | SKIP 0, TAKE-only, and ordered slicing. | Add a deterministic ORDER BY or remove SKIP. |
 | MQ5022_UnusedCte | A user CTE is not transitively reachable from the outer query. | Live dependencies, nested live scopes, and synthesized CTEs. | Remove it or reference it from live work. |
 | MQ5023_UnusedScriptVariable | A let declaration is not transitively used by executable work. | Script parameters and declarations used only by live dependencies. | Remove it or use it. |
@@ -5139,6 +5166,10 @@ unreachable diagnostics for the same source region. The legacy MQ5009
 OrderByAliasBehavior identifier is retained in compatibility documentation only
 and is not an active v18 enum member or emitted diagnostic. Tested alias
 ordering and shadowing behavior remains unchanged.
+
+`MQ5020_SetOperationOrderByScope` and `MQ5026_SetOperationSliceScope` are
+retained as catalog compatibility identifiers for the completed set-modifier
+migration. The current language version does not emit them.
 
 ### 23.6 Schema, datasource, runtime, and internal failures
 
@@ -5628,8 +5659,9 @@ Window functions are recognized at the expression level — when a function call
 | `RowNumber()` / `ROW_NUMBER()` | `Lag(expr [, offset [, default]])` | `FirstValue(expr)` / `FIRST_VALUE(expr)` | `Sum(expr)` |
 | `Rank()` / `RANK()` | `Lead(expr [, offset [, default]])` | `LastValue(expr)` / `LAST_VALUE(expr)` | `Count(expr)` |
 | `DenseRank()` / `DENSE_RANK()` | | `NthValue(expr, n)` / `NTH_VALUE(expr, n)` | `Avg(expr)` |
-| `Ntile(n)` / `NTILE(n)` | | | `Min(expr)` |
-| | | | `Max(expr)` |
+| `PercentRank()` / `PERCENT_RANK()` | | | `Min(expr)` |
+| `CumeDist()` / `CUME_DIST()` | | | `Max(expr)` |
+| `Ntile(n)` / `NTILE(n)` | | | |
 
 ---
 
@@ -5756,7 +5788,7 @@ Standalone intentional escapes and unknown preserved escapes do not produce
 | CASE WHEN ELSE | ELSE optional | ELSE **mandatory** |
 | Simple CASE | `CASE expr WHEN value THEN ...` | Supported |
 | Set operations | Omitted keys compare all projected values | Omitted keys and `()` compare all projected values; explicit key lists such as `UNION (key_columns)` compare a subset |
-| Recursive CTEs | Supported | Not supported |
+| Recursive CTEs | Supported | Supported with one anchor and one recursive member; see §14.9 for restrictions |
 | Subqueries in FROM | Supported | Supported as independent derived tables; correlated derived tables require `CROSS APPLY` / `OUTER APPLY` |
 | `BETWEEN` | `x BETWEEN a AND b` | Supported — `x BETWEEN a AND b` is equivalent to `x >= a AND x <= b` |
 | `IS DISTINCT FROM` | Null-safe equality family | Supported — `IS DISTINCT FROM` and `IS NOT DISTINCT FROM` use null-safe semantics |

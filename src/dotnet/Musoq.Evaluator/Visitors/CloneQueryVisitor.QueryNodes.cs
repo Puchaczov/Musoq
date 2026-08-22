@@ -64,37 +64,52 @@ public partial class CloneQueryVisitor
     public override void Visit(UnionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        var take = node.ResultTake != null ? Nodes.Pop() as TakeNode : null;
+        var skip = node.ResultSkip != null ? Nodes.Pop() as SkipNode : null;
+        var orderBy = node.ResultOrderBy != null ? Nodes.Pop() as OrderByNode : null;
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        Nodes.Push(new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
+        Nodes.Push(new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
+            orderBy, skip, take));
     }
 
     public override void Visit(UnionAllNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        var take = node.ResultTake != null ? Nodes.Pop() as TakeNode : null;
+        var skip = node.ResultSkip != null ? Nodes.Pop() as SkipNode : null;
+        var orderBy = node.ResultOrderBy != null ? Nodes.Pop() as OrderByNode : null;
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
         Nodes.Push(new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested,
-            node.IsTheLastOne));
+            node.IsTheLastOne, orderBy, skip, take));
     }
 
     public override void Visit(ExceptNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        var take = node.ResultTake != null ? Nodes.Pop() as TakeNode : null;
+        var skip = node.ResultSkip != null ? Nodes.Pop() as SkipNode : null;
+        var orderBy = node.ResultOrderBy != null ? Nodes.Pop() as OrderByNode : null;
         var right = Nodes.Pop();
         var left = Nodes.Pop();
-        Nodes.Push(new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
+        Nodes.Push(new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
+            orderBy, skip, take));
     }
 
     public override void Visit(IntersectNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        var take = node.ResultTake != null ? Nodes.Pop() as TakeNode : null;
+        var skip = node.ResultSkip != null ? Nodes.Pop() as SkipNode : null;
+        var orderBy = node.ResultOrderBy != null ? Nodes.Pop() as OrderByNode : null;
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(
-            new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
+            new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
+                orderBy, skip, take));
     }
 
     public override void Visit(PutTrueNode node)
@@ -115,12 +130,26 @@ public partial class CloneQueryVisitor
 
     public override void Visit(BinarySchemaNode node)
     {
-        Nodes.Push(node);
+        ArgumentNullException.ThrowIfNull(node);
+        var fields = new SchemaFieldNode[node.Fields.Length];
+        for (var index = fields.Length - 1; index >= 0; index--)
+            fields[index] = (SchemaFieldNode)Nodes.Pop();
+
+        Nodes.Push(new BinarySchemaNode(
+            node.Name,
+            fields,
+            node.Extends,
+            (string[])node.TypeParameters.Clone()));
     }
 
     public override void Visit(TextSchemaNode node)
     {
-        Nodes.Push(node);
+        ArgumentNullException.ThrowIfNull(node);
+        var fields = new TextFieldDefinitionNode[node.Fields.Length];
+        for (var index = fields.Length - 1; index >= 0; index--)
+            fields[index] = (TextFieldDefinitionNode)Nodes.Pop();
+
+        Nodes.Push(new TextSchemaNode(node.Name, fields, node.Extends));
     }
 
     public override void Visit(CteExpressionNode node)

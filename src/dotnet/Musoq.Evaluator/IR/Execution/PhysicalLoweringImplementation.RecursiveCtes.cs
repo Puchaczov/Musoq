@@ -141,7 +141,11 @@ internal sealed partial class PhysicalLoweringImplementation
             .DistinctBy(static shape => shape.Name, StringComparer.Ordinal)
             .ToArray();
 
-        return TableBuildResult.Success(shapes, [recursiveNode], result, canonicalShape);
+        var nodes = ExecutionPhaseBoundaryPlanner.AddScopeClauseBoundaries(
+            recursive,
+            [recursiveNode],
+            ExecutionPhaseBoundaryPlanner.CreateCteSuffix(index));
+        return TableBuildResult.Success(shapes, nodes, result, canonicalShape);
     }
 
     private static bool TryResolveRecursiveIdentity(

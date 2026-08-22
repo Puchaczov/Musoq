@@ -21,12 +21,16 @@ public sealed class TypedQueryRunOptions
         CancellationToken cancellationToken,
         IEnumerable<KeyValuePair<string, object?>>? parameters,
         QueryPhaseEventHandler? phaseChanged = null,
-        DataSourceEventHandler? dataSourceProgress = null)
+        DataSourceEventHandler? dataSourceProgress = null,
+        QueryProgressEventHandler? queryProgress = null,
+        QueryProgressOptions? queryProgressOptions = null)
     {
         CancellationToken = cancellationToken;
         Parameters = ParameterSnapshot.CaptureReadOnlyOrNull(parameters);
         PhaseChanged = phaseChanged;
         DataSourceProgress = dataSourceProgress;
+        QueryProgress = queryProgress;
+        QueryProgressOptions = queryProgressOptions;
     }
 
     public CancellationToken CancellationToken { get; init; }
@@ -40,4 +44,8 @@ public sealed class TypedQueryRunOptions
     public QueryPhaseEventHandler? PhaseChanged { get; init; }
 
     public DataSourceEventHandler? DataSourceProgress { get; init; }
+
+    public QueryProgressEventHandler? QueryProgress { get; init; }
+
+    public QueryProgressOptions? QueryProgressOptions { get; init; }
 }

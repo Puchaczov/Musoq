@@ -55,7 +55,7 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
         StringAssert.Contains(code, "namespace Query.Compiled_Test");
         StringAssert.Contains(code, "using System.Threading;");
         StringAssert.Contains(code, "using Musoq.Evaluator.Tables;");
-        StringAssert.Contains(code, "public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable");
+        StringAssert.Contains(code, "public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable");
         Assert.IsFalse(code.Contains("_tableResults", StringComparison.Ordinal));
         StringAssert.Contains(code, "public IDictionary<string, System.Object> Parameters { get; } = new Dictionary<string, System.Object>(StringComparer.Ordinal);");
         StringAssert.Contains(code, "public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();");
@@ -79,7 +79,7 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
 
         var code = Normalize(renderer.Render("ab"));
 
-        StringAssert.Contains(code, "ITableRunnable, IContextTableRunnable, IParameterizedRunnable");
+        StringAssert.Contains(code, "ITableRunnable, IContextTableRunnable, IQueryProgressSource, IParameterizedRunnable");
         StringAssert.Contains(code, "public Table Run(QueryRunContext queryContext)");
     }
 

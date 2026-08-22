@@ -38,7 +38,10 @@ internal sealed class ApplyChainSourceCollector
         if (!CollectCrossApplySources(apply.Left, sources))
             return false;
 
-        sources.Add(new ApplyChainPhysicalSource(apply.Right, apply.WithOrdinality));
+        sources.Add(new ApplyChainPhysicalSource(apply.Right, apply.WithOrdinality)
+        {
+            ApplyPredicateMovementPlans = apply.ApplyPredicateMovementPlans
+        });
         return true;
     }
 }

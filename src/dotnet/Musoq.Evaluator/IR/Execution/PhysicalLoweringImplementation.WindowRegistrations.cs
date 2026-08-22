@@ -92,7 +92,7 @@ internal sealed partial class PhysicalLoweringImplementation
                     context.RegistrationResult.RankingFunction.Value,
                     registration.WindowIndex,
                     context.ResultNameMode),
-                typeof(long[]));
+                registration.ReturnType.MakeArrayType());
             var resources = CreateWindowComputationResources(context, results);
             var node = new ExecutionComputeRankingWindow(
                 context.Buffer,

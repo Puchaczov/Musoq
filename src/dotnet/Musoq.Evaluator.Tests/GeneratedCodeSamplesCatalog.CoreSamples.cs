@@ -51,6 +51,11 @@ internal static partial class GeneratedCodeSamplesCatalog
             ChainedApplyQualifyWindow(),
             ChainedApplyGroupedAggregateQualifyWindow(),
             ApplyWithOrdinality(),
+            CrossApplyWhereLeftGuard(),
+            ChainedCrossApplyScopedGuards(),
+            ChainedCrossApplyResidualPredicate(),
+            OuterApplyWhereLeftGuard(),
+            CrossApplyMethodWhereLeftGuard(),
             BasicWithOptions(
                 "Q76_NonEquiJoinSortMergeEnabled",
                 "Join",
@@ -122,6 +127,10 @@ select pairs.Label,
                 "Q175_DescQuery",
                 "Description",
                 "desc query (select Name as PersonName, Population + Money as Total from #A.entities())"),
+            Basic(
+                "Q242_WindowDistributionRankings",
+                "Window",
+                "select Name, City, PercentRank() over (partition by City order by NullableValue desc nulls last, Country) as PercentRankValue, CumeDist() over (partition by City order by NullableValue desc nulls last, Country) as CumeDistValue from #A.entities()"),
             Basic(
                 "Q87_CompilationSimpleSelect",
                 "Compilation",

@@ -83,9 +83,12 @@ public sealed class ParserNodeChildTraversalTests
     {
         var left = Id("left");
         var right = Id("right");
-        var set = new UnionNode("result", [], left, right, false, true);
+        var orderBy = new OrderByNode([new FieldOrderedNode(Id("order"), 0, "order", Order.Ascending)]);
+        var skip = new SkipNode(new IntegerNode(1));
+        var take = new TakeNode(new IntegerNode(2));
+        var set = new UnionNode("result", [], left, right, false, true, orderBy, skip, take);
 
-        AssertChildren(set, left, right);
+        AssertChildren(set, left, right, orderBy, skip, take);
 
         var firstInner = new CteInnerExpressionNode(Id("firstInner"), "first");
         var secondInner = new CteInnerExpressionNode(Id("secondInner"), "second");

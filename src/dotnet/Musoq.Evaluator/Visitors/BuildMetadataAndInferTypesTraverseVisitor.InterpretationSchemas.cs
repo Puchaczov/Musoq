@@ -32,7 +32,29 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
 
     private void TraverseSetOperatorWithScope(SetOperatorNode node)
     {
-        VisitChildrenThenNode(node);
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(Visitor);
+
+        if (node.ResultOrderBy != null || node.ResultSkip != null || node.ResultTake != null)
+        {
+            var bindingVisitor = Visitor as BuildMetadataAndInferTypesVisitor
+                                 ?? throw new InvalidOperationException(
+                                     "Set result modifiers require the metadata and type inference visitor.");
+            bindingVisitor.BeginSetResultModifierBinding();
+            try
+            {
+                node.ResultOrderBy?.Accept(this);
+                node.ResultSkip?.Accept(this);
+                node.ResultTake?.Accept(this);
+                bindingVisitor.AttachSetResultModifiers(node);
+            }
+            finally
+            {
+                bindingVisitor.EndSetResultModifierBinding();
+            }
+        }
+
         RestoreScope();
     }
 }

@@ -127,10 +127,10 @@ internal static partial class SemanticErrorMetadataCatalog
 
         yield return Entry(
             DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument,
-            "Script parameters used as data-source arguments must be direct references with defaults so source metadata can be resolved.",
+            "Script parameters used as data-source arguments must be direct references. A default is needed only when the provider requires the value to resolve compile-time source metadata; computed or nested expressions are not supported.",
             [
                 "Pass the parameter directly, for example: #Files.All($path).",
-                "Declare a default value, for example: param(path: string = '/tmp')."
+                "If source metadata requires the value, declare a default, for example: param(path: string = '/tmp'), or make the provider metadata independent of runtime source arguments."
             ],
             "Core Spec - Script Parameters");
 

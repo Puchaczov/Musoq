@@ -59,8 +59,11 @@ ExecutionPlan [compiled]
       SecondValue: int <- field SecondValue
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [i: GeneratedApplySampleEntity] -> apply_0_i_n_mTable_iRows
     CreateRowBuffer [apply_0_i_n_mTable: List<apply_0_i_n_mRow0>]
+    PhaseBoundary [Select]
     ChunkedForEach [i in apply_0_i_n_mTable_iRows]
       EnumerableSource [i.Numbers -> apply_0_i_n_mTable_nRows]
       ChunkedForEach [n in apply_0_i_n_mTable_nRows]
@@ -96,7 +99,7 @@ namespace GeneratedSample_Q74_ChainedApplyQualifyWindow
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_apply_0_i_n_mTable_1 = new Column[]
         {
@@ -123,6 +126,7 @@ namespace GeneratedSample_Q74_ChainedApplyQualifyWindow
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -138,19 +142,21 @@ namespace GeneratedSample_Q74_ChainedApplyQualifyWindow
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Where);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __apply_0_i_n_mTable_iSchema = provider.GetSchema("#apply");
                 var apply_0_i_n_mTable_iRowsSource = __apply_0_i_n_mTable_iSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity>("items", new SourceExecutionContext("i:1", sourceExecutionPlans["i:1"], token, __schemaColumns_compiled_i_0, sourceRuntimeSettingsBySourceContextId["i:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var apply_0_i_n_mTable_iRows = apply_0_i_n_mTable_iRowsSource.Chunks;
+                var apply_0_i_n_mTable_iRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity>(apply_0_i_n_mTable_iRowsSource.Chunks, __musoqProgressContext, "i:1") : apply_0_i_n_mTable_iRowsSource.Chunks;
                 var apply_0_i_n_mTable = new List<apply_0_i_n_mRow0>();
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var iChunk in apply_0_i_n_mTable_iRows)
                 {
                     if (iChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity> iChunkView)
@@ -253,7 +259,14 @@ namespace GeneratedSample_Q74_ChainedApplyQualifyWindow
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

@@ -116,25 +116,25 @@ public sealed partial class LogicalPlanBuilder
     public void Visit(UnionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        BuildSetOperation(IrNodes.SetOpKind.Union, node.Keys);
+        BuildSetOperation(IrNodes.SetOpKind.Union, node);
     }
 
     public void Visit(UnionAllNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        BuildSetOperation(IrNodes.SetOpKind.UnionAll, node.Keys);
+        BuildSetOperation(IrNodes.SetOpKind.UnionAll, node);
     }
 
     public void Visit(ExceptNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        BuildSetOperation(IrNodes.SetOpKind.Except, node.Keys);
+        BuildSetOperation(IrNodes.SetOpKind.Except, node);
     }
 
     public void Visit(IntersectNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        BuildSetOperation(IrNodes.SetOpKind.Intersect, node.Keys);
+        BuildSetOperation(IrNodes.SetOpKind.Intersect, node);
     }
 
     public void Visit(MultiStatementNode node)
@@ -235,11 +235,30 @@ public sealed partial class LogicalPlanBuilder
         }
     }
 
-    private void BuildSetOperation(IrNodes.SetOpKind kind, string[] keys)
+    private void BuildSetOperation(IrNodes.SetOpKind kind, SetOperatorNode node)
     {
         var right = _nodeStack.Pop();
         var left = _nodeStack.Pop();
-        _nodeStack.Push(LeftAssociateSetOperation(kind, left, right, keys ?? []));
+        LogicalNode result = LeftAssociateSetOperation(kind, left, right, node.Keys ?? []);
+
+        if (node.ResultOrderBy != null)
+        {
+            var orderFields = node.ResultOrderBy.Fields
+                .Select(field => new OrderField(
+                    _converter.Convert(field.Expression),
+                    field.Order == Order.Descending,
+                    ConvertNullOrdering(field.NullOrdering)))
+                .ToArray();
+            result = new IrNodes.SortNode(orderFields, result);
+        }
+
+        if (node.ResultSkip != null)
+            result = new IrNodes.SkipNode((int)node.ResultSkip.Value, result);
+
+        if (node.ResultTake != null)
+            result = new IrNodes.TakeNode((int)node.ResultTake.Value, result);
+
+        _nodeStack.Push(result);
     }
 
     private static Nodes.SetOperationNode LeftAssociateSetOperation(

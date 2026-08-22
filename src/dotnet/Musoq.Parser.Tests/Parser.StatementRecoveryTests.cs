@@ -45,6 +45,19 @@ public class ParserStatementRecoveryTests
     }
 
     [TestMethod]
+    public void Recovery_ShouldResumeAfterMalformedTrailingSetSlice()
+    {
+        var result = ParseWithDiagnostics(
+            "select Name from #some.files() union select Name from #some.files() take invalid; select Name from #some.files()");
+
+        Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
+        Assert.AreEqual(DiagnosticCode.MQ2038_InvalidSliceCount, result.Diagnostics[0].Code);
+        Assert.IsNotNull(result.Root);
+        var statements = (StatementsArrayNode)result.Root.Expression;
+        Assert.HasCount(1, statements.Statements);
+    }
+
+    [TestMethod]
     [DataRow("select Name,, City from #some.files()")]
     [DataRow("select [Name from #some.files()")]
     public void InvalidExpressionToken_ShouldReportSingleUnexpectedToken(string query)

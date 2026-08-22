@@ -9,10 +9,10 @@ internal static partial class WarningMetadataCatalog
     {
         yield return Entry(
             DiagnosticCode.MQ5020_SetOperationOrderByScope,
-            "An ORDER BY attached to the rightmost operand of a set operation orders that operand before combination, not the combined result.",
+            "Compatibility metadata for the completed migration to result-level ordering after set operations. The current language version does not emit this advisory.",
             [
-                "Move ORDER BY to a query that consumes the combined set.",
-                "Keep branch-local ORDER BY only when it is paired with TAKE or positive SKIP for intentional slicing."
+                "Use trailing ORDER BY for combined-result ordering.",
+                "Wrap an intentionally ordered operand in a derived table or CTE."
             ],
             "Core Spec - Set Operations and ORDER BY");
 
@@ -24,5 +24,14 @@ internal static partial class WarningMetadataCatalog
                 "Remove SKIP when row order is not part of the query contract."
             ],
             "Core Spec - ORDER BY and SKIP");
+
+        yield return Entry(
+            DiagnosticCode.MQ5026_SetOperationSliceScope,
+            "Compatibility metadata for the completed migration to result-level slicing after set operations. The current language version does not emit this advisory.",
+            [
+                "Use trailing SKIP or TAKE for combined-result slicing.",
+                "Wrap an intentionally sliced operand in a derived table or CTE."
+            ],
+            "Core Spec - Set Operations and SKIP/TAKE");
     }
 }

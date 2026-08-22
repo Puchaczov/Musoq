@@ -453,6 +453,9 @@ public static partial class ExecutionPlanPrinter
             case ExecutionStoreTable store:
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}StoreTable [{store.Table.Name} -> {FormatStoredTableTarget(store)}]");
                 break;
+            case ExecutionPhaseBoundary boundary:
+                builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}PhaseBoundary [{boundary.Phase}{boundary.QueryIdSuffix}]");
+                break;
             case ExecutionRelatedCtePhase phase:
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}CtePhase [cte{phase.TableIndex.ToString(CultureInfo.InvariantCulture)}]");
                 break;

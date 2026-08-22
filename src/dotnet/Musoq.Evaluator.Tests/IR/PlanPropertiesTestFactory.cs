@@ -30,6 +30,7 @@ internal static class PlanPropertiesTestFactory
             [],
             [],
             [],
+            [],
             []);
     }
 }

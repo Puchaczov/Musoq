@@ -63,6 +63,12 @@ internal static partial class PlanningPropertyDeriver
             requiredColumnUsageResult.UsagesBySourceId,
             sourcePredicatePlanningResult.PlansBySourceId);
         decisions.AddRange(sourcePlanningResult.Decisions);
+        var applyPredicateMovementPlanningResult = ApplyPredicateMovementPlanner.Plan(
+            context.LogicalPlan,
+            sources,
+            sourcePlanningResult.ResultsBySourceId,
+            sourcePredicatePlanningResult.PlansBySourceId);
+        decisions.AddRange(applyPredicateMovementPlanningResult.Decisions);
 
         var facts = new PlanningFacts(
             new SourcePlanningFacts(
@@ -85,7 +91,8 @@ internal static partial class PlanningPropertyDeriver
                 []),
             new PhysicalStrategyFacts(
                 predicatePlacementPlanningResult.Plans,
-                predicateMovementPlanningResult.Plans),
+                predicateMovementPlanningResult.Plans,
+                applyPredicateMovementPlanningResult.Plans),
             new BoundaryPruningFacts(
                 [],
                 []),

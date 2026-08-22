@@ -7,7 +7,7 @@ using Musoq.Schema;
 
 namespace Musoq.Converter;
 
-public sealed class CompiledTypedProfileQuery<TOut> : IProfiledTypedRunnable<TOut>, ITypedQueryDiagnosticsProvider
+public sealed class CompiledTypedProfileQuery<TOut> : IProfiledTypedRunnable<TOut>, IQueryProgressSource, ITypedQueryDiagnosticsProvider
 {
     private readonly TypedProfileRunnableFactory<TOut> _factory;
     private readonly ISchemaProvider _schemaProvider;
@@ -30,6 +30,12 @@ public sealed class CompiledTypedProfileQuery<TOut> : IProfiledTypedRunnable<TOu
     {
         add => _runState.AddDataSourceProgress(value);
         remove => _runState.RemoveDataSourceProgress(value);
+    }
+
+    public event QueryProgressEventHandler QueryProgress
+    {
+        add => _runState.AddQueryProgress(value);
+        remove => _runState.RemoveQueryProgress(value);
     }
 
     public IDictionary<string, object?> Parameters => _runState.Parameters;
@@ -62,10 +68,14 @@ public sealed class CompiledTypedProfileQuery<TOut> : IProfiledTypedRunnable<TOu
             compiledQuery.PhaseChanged += options.PhaseChanged;
         if (options.DataSourceProgress != null)
             compiledQuery.DataSourceProgress += options.DataSourceProgress;
+        if (options.QueryProgress != null)
+            compiledQuery.QueryProgress += options.QueryProgress;
 
         try
         {
-            var profileResult = compiledQuery.RunWithProfile(options.CancellationToken);
+            var profileResult = options.QueryProgressOptions is { } progressOptions
+                ? compiledQuery.RunWithProfile(progressOptions, options.CancellationToken)
+                : compiledQuery.RunWithProfile(options.CancellationToken);
             return CreateTypedProfileResult(profileResult);
         }
         finally
@@ -74,6 +84,8 @@ public sealed class CompiledTypedProfileQuery<TOut> : IProfiledTypedRunnable<TOu
                 compiledQuery.PhaseChanged -= options.PhaseChanged;
             if (options.DataSourceProgress != null)
                 compiledQuery.DataSourceProgress -= options.DataSourceProgress;
+            if (options.QueryProgress != null)
+                compiledQuery.QueryProgress -= options.QueryProgress;
         }
     }
 

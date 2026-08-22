@@ -62,13 +62,20 @@ ExecutionPlan [compiled]
       RightName: string <- field RightName
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [From:cte0]
     SourceScan [d: IReadOnlyDictionary<string, object>] -> cte0_dRows
     CreateTable [cte0: Cte0Row0]
+    PhaseBoundary [Select:cte0]
     ChunkedForEach [dResolver in cte0_dRows]
       AdaptExpando [d: dDynamicRow0 <- dResolver]
       AppendRow [cte0 <- Cte0Row0(Team: d.Team, Name: d.Name, Score: d.Score)]
     StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]
-    CtePhase [cte1]
+    PhaseBoundary [End:cte0]
+    PhaseBoundary [Select]
+    PhaseBoundary [Begin:cte1]
     SourceScan [l: IReadOnlyDictionary<string, object>] -> lRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateAsOfIndex [resultAsOfIndex <- _cteRowResults.Slot0 by rCandidate.Team, rCandidate.Score]
@@ -76,6 +83,7 @@ ExecutionPlan [compiled]
       AdaptExpando [l: lDynamicRow0 <- lResolver]
       AsOfProbe [r <- _cteRowResults.Slot0 using resultAsOfIndex where l.Team = rCandidate.Team and l.Score >= rCandidate.Score]
         AppendShape [result <- ResultShape0(LeftName: l.Name, RightName: r.Name)]
+    PhaseBoundary [End:cte1]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
 
@@ -98,7 +106,7 @@ namespace GeneratedSample_Q67_DynamicCteBackedAsOfJoin
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_cte0_1 = new Column[]
         {
@@ -123,6 +131,7 @@ namespace GeneratedSample_Q67_DynamicCteBackedAsOfJoin
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -138,101 +147,115 @@ namespace GeneratedSample_Q67_DynamicCteBackedAsOfJoin
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-            OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
-                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults);
-                var __lSchema = provider.GetSchema("#dynamic");
-                var lRowsSource = __lSchema.GetRowSource<IReadOnlyDictionary<string, object>>("all", new SourceExecutionContext("l:2", sourceExecutionPlans["l:2"], token, __schemaColumns_compiled_d_0, sourceRuntimeSettingsBySourceContextId["l:2"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var lRows = lRowsSource.Chunks;
-                var resultAsOfIndex = EvaluationHelper.CreateAsOfIndex<Cte0Row0, int>(_cteRowResults.Slot0, (rCandidate) => (object)rCandidate.Team, (rCandidate) => rCandidate.Score, Musoq.Evaluator.IR.Expressions.BinaryOpKind.GreaterOrEqual);
-                foreach (var lResolverChunk in lRows)
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
+                OnPhaseChanged("compiled", QueryPhase.Select);
+                OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
+                try
                 {
-                    if (lResolverChunk is global::Musoq.Schema.DataSources.RowChunk<IReadOnlyDictionary<string, object>> lResolverChunkView)
+                    var __lSchema = provider.GetSchema("#dynamic");
+                    var lRowsSource = __lSchema.GetRowSource<IReadOnlyDictionary<string, object>>("all", new SourceExecutionContext("l:2", sourceExecutionPlans["l:2"], token, __schemaColumns_compiled_d_0, sourceRuntimeSettingsBySourceContextId["l:2"], logger, OnDataSourceProgress), Array.Empty<object>());
+                    var lRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<IReadOnlyDictionary<string, object>>(lRowsSource.Chunks, __musoqProgressContext, "l:2") : lRowsSource.Chunks;
+                    var resultAsOfIndex = EvaluationHelper.CreateAsOfIndex<Cte0Row0, int>(_cteRowResults.Slot0, (rCandidate) => (object)rCandidate.Team, (rCandidate) => rCandidate.Score, Musoq.Evaluator.IR.Expressions.BinaryOpKind.GreaterOrEqual);
+                    foreach (var lResolverChunk in lRows)
                     {
-                        if (lResolverChunkView.Source is IReadOnlyDictionary<string, object>[] lResolverChunkViewArray)
+                        if (lResolverChunk is global::Musoq.Schema.DataSources.RowChunk<IReadOnlyDictionary<string, object>> lResolverChunkView)
                         {
-                            int lResolverChunkViewOffset = lResolverChunkView.Offset;
-                            for (int lResolverIndex = 0, lResolverIndexCount = lResolverChunkView.Count; lResolverIndex < lResolverIndexCount; ++lResolverIndex)
+                            if (lResolverChunkView.Source is IReadOnlyDictionary<string, object>[] lResolverChunkViewArray)
                             {
-                                if ((lResolverIndex & 1023) == 0)
+                                int lResolverChunkViewOffset = lResolverChunkView.Offset;
+                                for (int lResolverIndex = 0, lResolverIndexCount = lResolverChunkView.Count; lResolverIndex < lResolverIndexCount; ++lResolverIndex)
                                 {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var lResolver = lResolverChunkViewArray[lResolverChunkViewOffset + lResolverIndex];
-                                var l = new lDynamicRow0(lResolver.TryGetValue("Team", out var __dynamicValue9_0) ? (string)__dynamicValue9_0 : default(string), lResolver.TryGetValue("Name", out var __dynamicValue10_1) ? (string)__dynamicValue10_1 : default(string), lResolver.TryGetValue("Score", out var __dynamicValue11_2) ? (int)__dynamicValue11_2 : default(int));
-                                {
-                                    var r = resultAsOfIndex.Find((object)l.Team, l.Score);
-                                    if (r != null)
+                                    if ((lResolverIndex & 1023) == 0)
                                     {
-                                        __musoqFinalShapeRows.Add(new ResultShape0(l.Name, r.Name));
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var lResolver = lResolverChunkViewArray[lResolverChunkViewOffset + lResolverIndex];
+                                    var l = new lDynamicRow0(lResolver.TryGetValue("Team", out var __dynamicValue9_0) ? (string)__dynamicValue9_0 : default(string), lResolver.TryGetValue("Name", out var __dynamicValue10_1) ? (string)__dynamicValue10_1 : default(string), lResolver.TryGetValue("Score", out var __dynamicValue11_2) ? (int)__dynamicValue11_2 : default(int));
+                                    {
+                                        var r = resultAsOfIndex.Find((object)l.Team, l.Score);
+                                        if (r != null)
+                                        {
+                                            __musoqFinalShapeRows.Add(new ResultShape0(l.Name, r.Name));
+                                        }
                                     }
                                 }
+
+                                continue;
                             }
 
-                            continue;
-                        }
-
-                        if (lResolverChunkView.Source is List<IReadOnlyDictionary<string, object>> lResolverChunkViewList)
-                        {
-                            int lResolverChunkViewOffset = lResolverChunkView.Offset;
-                            for (int lResolverIndex = 0, lResolverIndexCount = lResolverChunkView.Count; lResolverIndex < lResolverIndexCount; ++lResolverIndex)
+                            if (lResolverChunkView.Source is List<IReadOnlyDictionary<string, object>> lResolverChunkViewList)
                             {
-                                if ((lResolverIndex & 1023) == 0)
+                                int lResolverChunkViewOffset = lResolverChunkView.Offset;
+                                for (int lResolverIndex = 0, lResolverIndexCount = lResolverChunkView.Count; lResolverIndex < lResolverIndexCount; ++lResolverIndex)
                                 {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var lResolver = lResolverChunkViewList[lResolverChunkViewOffset + lResolverIndex];
-                                var l = new lDynamicRow0(lResolver.TryGetValue("Team", out var __dynamicValue12_0) ? (string)__dynamicValue12_0 : default(string), lResolver.TryGetValue("Name", out var __dynamicValue13_1) ? (string)__dynamicValue13_1 : default(string), lResolver.TryGetValue("Score", out var __dynamicValue14_2) ? (int)__dynamicValue14_2 : default(int));
-                                {
-                                    var r = resultAsOfIndex.Find((object)l.Team, l.Score);
-                                    if (r != null)
+                                    if ((lResolverIndex & 1023) == 0)
                                     {
-                                        __musoqFinalShapeRows.Add(new ResultShape0(l.Name, r.Name));
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var lResolver = lResolverChunkViewList[lResolverChunkViewOffset + lResolverIndex];
+                                    var l = new lDynamicRow0(lResolver.TryGetValue("Team", out var __dynamicValue12_0) ? (string)__dynamicValue12_0 : default(string), lResolver.TryGetValue("Name", out var __dynamicValue13_1) ? (string)__dynamicValue13_1 : default(string), lResolver.TryGetValue("Score", out var __dynamicValue14_2) ? (int)__dynamicValue14_2 : default(int));
+                                    {
+                                        var r = resultAsOfIndex.Find((object)l.Team, l.Score);
+                                        if (r != null)
+                                        {
+                                            __musoqFinalShapeRows.Add(new ResultShape0(l.Name, r.Name));
+                                        }
                                     }
                                 }
+
+                                continue;
                             }
-
-                            continue;
-                        }
-                    }
-
-                    for (int lResolverIndex = 0, lResolverIndexCount = lResolverChunk.Count; lResolverIndex < lResolverIndexCount; ++lResolverIndex)
-                    {
-                        if ((lResolverIndex & 1023) == 0)
-                        {
-                            token.ThrowIfCancellationRequested();
                         }
 
-                        var lResolver = lResolverChunk[lResolverIndex];
-                        var l = new lDynamicRow0(lResolver.TryGetValue("Team", out var __dynamicValue15_0) ? (string)__dynamicValue15_0 : default(string), lResolver.TryGetValue("Name", out var __dynamicValue16_1) ? (string)__dynamicValue16_1 : default(string), lResolver.TryGetValue("Score", out var __dynamicValue17_2) ? (int)__dynamicValue17_2 : default(int));
+                        for (int lResolverIndex = 0, lResolverIndexCount = lResolverChunk.Count; lResolverIndex < lResolverIndexCount; ++lResolverIndex)
                         {
-                            var r = resultAsOfIndex.Find((object)l.Team, l.Score);
-                            if (r != null)
+                            if ((lResolverIndex & 1023) == 0)
                             {
-                                __musoqFinalShapeRows.Add(new ResultShape0(l.Name, r.Name));
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            var lResolver = lResolverChunk[lResolverIndex];
+                            var l = new lDynamicRow0(lResolver.TryGetValue("Team", out var __dynamicValue15_0) ? (string)__dynamicValue15_0 : default(string), lResolver.TryGetValue("Name", out var __dynamicValue16_1) ? (string)__dynamicValue16_1 : default(string), lResolver.TryGetValue("Score", out var __dynamicValue17_2) ? (int)__dynamicValue17_2 : default(int));
+                            {
+                                var r = resultAsOfIndex.Find((object)l.Team, l.Score);
+                                if (r != null)
+                                {
+                                    __musoqFinalShapeRows.Add(new ResultShape0(l.Name, r.Name));
+                                }
                             }
                         }
                     }
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled:cte1", QueryPhase.End);
                 }
 
                 return __musoqFinalShapeRows;
             }
             finally
             {
-                OnPhaseChanged("compiled:cte0", QueryPhase.End);
-                OnPhaseChanged("compiled:cte1", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 
@@ -249,67 +272,75 @@ namespace GeneratedSample_Q67_DynamicCteBackedAsOfJoin
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, CteRowResults _cteRowResults)
+        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
-            var __cte0_dSchema = provider.GetSchema("#dynamic");
-            var cte0_dRowsSource = __cte0_dSchema.GetRowSource<IReadOnlyDictionary<string, object>>("all", new SourceExecutionContext("d:1", sourceExecutionPlans["d:1"], token, __schemaColumns_compiled_d_0, sourceRuntimeSettingsBySourceContextId["d:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-            var cte0_dRows = cte0_dRowsSource.Chunks;
-            var cte0 = new List<Cte0Row0>();
-            foreach (var dResolverChunk in cte0_dRows)
+            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+            try
             {
-                if (dResolverChunk is global::Musoq.Schema.DataSources.RowChunk<IReadOnlyDictionary<string, object>> dResolverChunkView)
+                var __cte0_dSchema = provider.GetSchema("#dynamic");
+                var cte0_dRowsSource = __cte0_dSchema.GetRowSource<IReadOnlyDictionary<string, object>>("all", new SourceExecutionContext("d:1", sourceExecutionPlans["d:1"], token, __schemaColumns_compiled_d_0, sourceRuntimeSettingsBySourceContextId["d:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var cte0_dRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<IReadOnlyDictionary<string, object>>(cte0_dRowsSource.Chunks, __musoqProgressContext, "d:1") : cte0_dRowsSource.Chunks;
+                var cte0 = new List<Cte0Row0>();
+                foreach (var dResolverChunk in cte0_dRows)
                 {
-                    if (dResolverChunkView.Source is IReadOnlyDictionary<string, object>[] dResolverChunkViewArray)
+                    if (dResolverChunk is global::Musoq.Schema.DataSources.RowChunk<IReadOnlyDictionary<string, object>> dResolverChunkView)
                     {
-                        int dResolverChunkViewOffset = dResolverChunkView.Offset;
-                        for (int dResolverIndex = 0, dResolverIndexCount = dResolverChunkView.Count; dResolverIndex < dResolverIndexCount; ++dResolverIndex)
+                        if (dResolverChunkView.Source is IReadOnlyDictionary<string, object>[] dResolverChunkViewArray)
                         {
-                            if ((dResolverIndex & 1023) == 0)
+                            int dResolverChunkViewOffset = dResolverChunkView.Offset;
+                            for (int dResolverIndex = 0, dResolverIndexCount = dResolverChunkView.Count; dResolverIndex < dResolverIndexCount; ++dResolverIndex)
                             {
-                                token.ThrowIfCancellationRequested();
+                                if ((dResolverIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var dResolver = dResolverChunkViewArray[dResolverChunkViewOffset + dResolverIndex];
+                                var d = new dDynamicRow0(dResolver.TryGetValue("Team", out var __dynamicValue0_0) ? (string)__dynamicValue0_0 : default(string), dResolver.TryGetValue("Name", out var __dynamicValue1_1) ? (string)__dynamicValue1_1 : default(string), dResolver.TryGetValue("Score", out var __dynamicValue2_2) ? (int)__dynamicValue2_2 : default(int));
+                                cte0.Add(new Cte0Row0(d.Team, d.Name, d.Score));
                             }
 
-                            var dResolver = dResolverChunkViewArray[dResolverChunkViewOffset + dResolverIndex];
-                            var d = new dDynamicRow0(dResolver.TryGetValue("Team", out var __dynamicValue0_0) ? (string)__dynamicValue0_0 : default(string), dResolver.TryGetValue("Name", out var __dynamicValue1_1) ? (string)__dynamicValue1_1 : default(string), dResolver.TryGetValue("Score", out var __dynamicValue2_2) ? (int)__dynamicValue2_2 : default(int));
-                            cte0.Add(new Cte0Row0(d.Team, d.Name, d.Score));
+                            continue;
                         }
 
-                        continue;
+                        if (dResolverChunkView.Source is List<IReadOnlyDictionary<string, object>> dResolverChunkViewList)
+                        {
+                            int dResolverChunkViewOffset = dResolverChunkView.Offset;
+                            for (int dResolverIndex = 0, dResolverIndexCount = dResolverChunkView.Count; dResolverIndex < dResolverIndexCount; ++dResolverIndex)
+                            {
+                                if ((dResolverIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var dResolver = dResolverChunkViewList[dResolverChunkViewOffset + dResolverIndex];
+                                var d = new dDynamicRow0(dResolver.TryGetValue("Team", out var __dynamicValue3_0) ? (string)__dynamicValue3_0 : default(string), dResolver.TryGetValue("Name", out var __dynamicValue4_1) ? (string)__dynamicValue4_1 : default(string), dResolver.TryGetValue("Score", out var __dynamicValue5_2) ? (int)__dynamicValue5_2 : default(int));
+                                cte0.Add(new Cte0Row0(d.Team, d.Name, d.Score));
+                            }
+
+                            continue;
+                        }
                     }
 
-                    if (dResolverChunkView.Source is List<IReadOnlyDictionary<string, object>> dResolverChunkViewList)
+                    for (int dResolverIndex = 0, dResolverIndexCount = dResolverChunk.Count; dResolverIndex < dResolverIndexCount; ++dResolverIndex)
                     {
-                        int dResolverChunkViewOffset = dResolverChunkView.Offset;
-                        for (int dResolverIndex = 0, dResolverIndexCount = dResolverChunkView.Count; dResolverIndex < dResolverIndexCount; ++dResolverIndex)
+                        if ((dResolverIndex & 1023) == 0)
                         {
-                            if ((dResolverIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var dResolver = dResolverChunkViewList[dResolverChunkViewOffset + dResolverIndex];
-                            var d = new dDynamicRow0(dResolver.TryGetValue("Team", out var __dynamicValue3_0) ? (string)__dynamicValue3_0 : default(string), dResolver.TryGetValue("Name", out var __dynamicValue4_1) ? (string)__dynamicValue4_1 : default(string), dResolver.TryGetValue("Score", out var __dynamicValue5_2) ? (int)__dynamicValue5_2 : default(int));
-                            cte0.Add(new Cte0Row0(d.Team, d.Name, d.Score));
+                            token.ThrowIfCancellationRequested();
                         }
 
-                        continue;
+                        var dResolver = dResolverChunk[dResolverIndex];
+                        var d = new dDynamicRow0(dResolver.TryGetValue("Team", out var __dynamicValue6_0) ? (string)__dynamicValue6_0 : default(string), dResolver.TryGetValue("Name", out var __dynamicValue7_1) ? (string)__dynamicValue7_1 : default(string), dResolver.TryGetValue("Score", out var __dynamicValue8_2) ? (int)__dynamicValue8_2 : default(int));
+                        cte0.Add(new Cte0Row0(d.Team, d.Name, d.Score));
                     }
                 }
 
-                for (int dResolverIndex = 0, dResolverIndexCount = dResolverChunk.Count; dResolverIndex < dResolverIndexCount; ++dResolverIndex)
-                {
-                    if ((dResolverIndex & 1023) == 0)
-                    {
-                        token.ThrowIfCancellationRequested();
-                    }
-
-                    var dResolver = dResolverChunk[dResolverIndex];
-                    var d = new dDynamicRow0(dResolver.TryGetValue("Team", out var __dynamicValue6_0) ? (string)__dynamicValue6_0 : default(string), dResolver.TryGetValue("Name", out var __dynamicValue7_1) ? (string)__dynamicValue7_1 : default(string), dResolver.TryGetValue("Score", out var __dynamicValue8_2) ? (int)__dynamicValue8_2 : default(int));
-                    cte0.Add(new Cte0Row0(d.Team, d.Name, d.Score));
-                }
+                return cte0;
             }
-
-            return cte0;
+            finally
+            {
+                OnPhaseChanged("compiled:cte0", QueryPhase.End);
+            }
         }
 
         private sealed class Cte0Row0

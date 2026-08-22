@@ -35,7 +35,7 @@ public sealed partial class ExecutionCSharpRenderer
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 frameStartName,
-                CreateWindowAggregateFrameStartExpressionForKernel(
+                WindowRangeFrameSyntax.CreateAggregateFrameStartExpressionForKernel(
                     kernel,
                     frame.Start,
                     partitionIndicesName,
@@ -45,7 +45,7 @@ public sealed partial class ExecutionCSharpRenderer
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 frameEndName,
-                CreateWindowAggregateFrameEndExpressionForKernel(
+                WindowRangeFrameSyntax.CreateAggregateFrameEndExpressionForKernel(
                     kernel,
                     frame.End,
                     partitionIndicesName,
@@ -146,7 +146,7 @@ public sealed partial class ExecutionCSharpRenderer
         }
     }
 
-    private static ExpressionSyntax CreateWindowAggregateFrameStartExpression(
+    internal static ExpressionSyntax CreateWindowAggregateFrameStartExpression(
         ExecutionWindowFrameBound bound,
         string partitionIndexName,
         string partitionCountName)
@@ -177,7 +177,7 @@ public sealed partial class ExecutionCSharpRenderer
         };
     }
 
-    private static ExpressionSyntax CreateWindowAggregateFrameEndExpression(
+    internal static ExpressionSyntax CreateWindowAggregateFrameEndExpression(
         ExecutionWindowFrameBound bound,
         string partitionIndexName,
         string partitionCountName)

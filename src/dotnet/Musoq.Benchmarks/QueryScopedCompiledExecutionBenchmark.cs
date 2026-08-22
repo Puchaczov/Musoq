@@ -36,6 +36,7 @@ public class QueryScopedCompiledExecutionBenchmark
     private readonly BenchmarkLoggerResolver _loggerResolver = new();
     private CompiledQuery _legacy = null!;
     private CompiledQuery _queryScoped = null!;
+    private CompiledQuery _queryScopedProgress = null!;
     private QueryScenarioDefinition _definition = null!;
     private string _path = string.Empty;
     private string _query = string.Empty;
@@ -54,6 +55,8 @@ public class QueryScopedCompiledExecutionBenchmark
         _query = BuildQuery(_definition, _path, coldToken: null);
         _legacy = Compile(_query, enableQueryScopedRows: false);
         _queryScoped = Compile(_query, enableQueryScopedRows: true);
+        _queryScopedProgress = Compile(_query, enableQueryScopedRows: true);
+        _queryScopedProgress.QueryProgress += ConsumeQueryProgress;
 
         var legacy = Execute(_legacy);
         var queryScoped = Execute(_queryScoped);
@@ -77,6 +80,9 @@ public class QueryScopedCompiledExecutionBenchmark
 
     [Benchmark(Description = "Query-scoped warm execution")]
     public long QueryScopedWarmExecution() => Execute(_queryScoped).Consumer;
+
+    [Benchmark(Description = "Query-scoped warm execution with default query progress")]
+    public long QueryScopedWarmExecutionWithDefaultQueryProgress() => Execute(_queryScopedProgress).Consumer;
 
     [Benchmark(Description = "Legacy cold compile and first run")]
     [InvocationCount(1)]
@@ -108,6 +114,10 @@ public class QueryScopedCompiledExecutionBenchmark
     {
         using var table = query.Run();
         return CompiledOutcome.Create(table);
+    }
+
+    private static void ConsumeQueryProgress(object sender, QueryProgressEventArgs args)
+    {
     }
 
     private static string BuildQuery(

@@ -8,7 +8,7 @@ using Musoq.Schema.Exceptions;
 namespace Musoq.Evaluator;
 
 [DebuggerStepThrough]
-public class CompiledTypedQuery<TOut>
+public class CompiledTypedQuery<TOut> : IQueryProgressSource
 {
     private readonly ITypedRunnable<TOut> _runnable;
     private readonly TypedRunState _runState;
@@ -32,6 +32,12 @@ public class CompiledTypedQuery<TOut>
     {
         add => _runState.AddDataSourceProgress(value);
         remove => _runState.RemoveDataSourceProgress(value);
+    }
+
+    public event QueryProgressEventHandler QueryProgress
+    {
+        add => _runState.AddQueryProgress(value);
+        remove => _runState.RemoveQueryProgress(value);
     }
 
     public IDictionary<string, object?> Parameters => _runState.Parameters;

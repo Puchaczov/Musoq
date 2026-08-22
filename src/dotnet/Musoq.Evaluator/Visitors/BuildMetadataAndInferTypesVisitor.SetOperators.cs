@@ -3,13 +3,12 @@ using System.Linq;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
+using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
-using NotSupportedException = System.NotSupportedException;
-
 namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
@@ -275,22 +274,4 @@ public partial class BuildMetadataAndInferTypesVisitor
         throw new InvalidOperationException($"Unknown column '{missingKey}'.");
     }
 
-    private static SetOperatorNode CreateSetOperatorNode(
-        string setOperatorName,
-        SetOperatorNode node,
-        string[] keys,
-        Node left,
-        Node right)
-    {
-        return setOperatorName switch
-        {
-            "Union" => new UnionNode(node.ResultTableName, keys, left, right, node.IsNested, node.IsTheLastOne),
-            "UnionAll" => new UnionAllNode(node.ResultTableName, keys, left, right, node.IsNested,
-                node.IsTheLastOne),
-            "Except" => new ExceptNode(node.ResultTableName, keys, left, right, node.IsNested, node.IsTheLastOne),
-            "Intersect" => new IntersectNode(node.ResultTableName, keys, left, right, node.IsNested,
-                node.IsTheLastOne),
-            _ => throw new NotSupportedException($"Set operator '{setOperatorName}' is not supported.")
-        };
-    }
 }

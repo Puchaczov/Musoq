@@ -175,6 +175,30 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    public void ParamsAlias_ShouldMatchRequiredSourceArgumentExecution()
+    {
+        const string script = """
+            (key: string)
+            select Key, Value
+            from #EnvironmentVariables.All($key)
+            """;
+        var canonicalProvider = new ParameterizedSchemaProvider();
+        var aliasProvider = new ParameterizedSchemaProvider();
+        var canonical = CompileWithProvider("param" + script, canonicalProvider);
+        var alias = CompileWithProvider("params" + script, aliasProvider);
+
+        canonical.Parameters["key"] = "KEY_1";
+        alias.Parameters["key"] = "KEY_1";
+
+        AssertParameterMetadataEqual(canonical, alias);
+        AssertTablesEqual(
+            canonical.Run(CancellationToken.None),
+            alias.Run(CancellationToken.None));
+        Assert.AreEqual(1, canonicalProvider.OpenCount);
+        Assert.AreEqual(1, aliasProvider.OpenCount);
+    }
+
+    [TestMethod]
     [DataRow(
         "param(author: string); param(limit: int); select 1 from #EnvironmentVariables.All()",
         "params(author: string); params(limit: int); select 1 from #EnvironmentVariables.All()",
@@ -200,8 +224,8 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
         "params(limit: int = 'abc'); select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3061_InvalidScriptParameterDefault)]
     [DataRow(
-        "param(name: string); select 1 from #EnvironmentVariables.All($name)",
-        "params(name: string); select 1 from #EnvironmentVariables.All($name)",
+        "param(name: string = 'KEY_1'); select 1 from #EnvironmentVariables.All($name + '_2')",
+        "params(name: string = 'KEY_1'); select 1 from #EnvironmentVariables.All($name + '_2')",
         DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument)]
     [DataRow(
         "param(name: string); let name: string = 'KEY_1'; select 1 from #EnvironmentVariables.All()",

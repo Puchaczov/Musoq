@@ -40,10 +40,7 @@ public partial class Parser
             var groupBy = ComposeGroupByNode();
             var window = ComposeWindowClause();
             var qualify = ComposeQualify();
-            var orderBy = ComposeOrderBy();
-            var skip = ComposeSkip();
-            var take = ComposeTake();
-            return new QueryNode(selectNode, fromExpression, whereNode, groupBy, orderBy, skip, take, window, qualify, default);
+            return new QueryNode(selectNode, fromExpression, whereNode, groupBy, null, null, null, window, qualify, default);
         }
         finally
         {
@@ -64,10 +61,7 @@ public partial class Parser
             var window = ComposeWindowClause();
             var selectNode = ComposeSelectNode();
             var qualify = ComposeQualify();
-            var orderBy = ComposeOrderBy();
-            var skip = ComposeSkip();
-            var take = ComposeTake();
-            return new QueryNode(selectNode, fromExpression, whereNode, groupBy, orderBy, skip, take, window, qualify, default);
+            return new QueryNode(selectNode, fromExpression, whereNode, groupBy, null, null, null, window, qualify, default);
         }
         finally
         {

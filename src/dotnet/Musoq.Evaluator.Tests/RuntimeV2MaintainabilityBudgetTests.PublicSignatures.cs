@@ -65,7 +65,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "ExecutionOrderRecordList",
             "ExecutionParallelBlock",
             "ExecutionParallelFilterProjectLoop",
-            "ExecutionParallelSingleKeyAggregateLoop",
+            "ExecutionParallelSingleKeyAggregateLoop", "ExecutionPhaseBoundary",
             "ExecutionProjectTable",
             "ExecutionRangeProbe",
             "ExecutionRecursiveCte",
@@ -249,12 +249,12 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         string[] expectedSignatures =
         [
-            "CreateContextRunMethodWithBody(BlockSyntax):MethodDeclarationSyntax",
+            "CreateContextProfiledRunMethodWithBody(BlockSyntax):MethodDeclarationSyntax", "CreateContextRunMethodWithBody(BlockSyntax):MethodDeclarationSyntax",
             "CreateDataSourceProgressEvent():EventFieldDeclarationSyntax",
             "CreateOnDataSourceProgressMethod():MethodDeclarationSyntax",
             "CreateOnPhaseChangedMethod():MethodDeclarationSyntax",
             "CreatePhaseChangedEvent():EventFieldDeclarationSyntax",
-            "CreatePublicProperty(String,String):PropertyDeclarationSyntax",
+            "CreatePublicProperty(String,String):PropertyDeclarationSyntax", "CreateQueryProgressEvent():EventFieldDeclarationSyntax",
             "CreateRunMethod(String):MethodDeclarationSyntax",
             "CreateRunMethodWithBody(BlockSyntax):MethodDeclarationSyntax",
             "CreateSourceExecutionPlansProperty():PropertyDeclarationSyntax",

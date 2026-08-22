@@ -55,6 +55,8 @@ internal sealed record QueryExecutionContext(
     CancellationToken CancellationToken,
     QueryPhaseEventHandler? PhaseChanged,
     DataSourceEventHandler? DataSourceProgress,
+    QueryProgressEventHandler? QueryProgress,
+    QueryProgressOptions? QueryProgressOptions,
     object Sender,
     string QueryId)
 {
@@ -64,6 +66,8 @@ internal sealed record QueryExecutionContext(
         CancellationToken cancellationToken,
         QueryPhaseEventHandler? phaseChanged = null,
         DataSourceEventHandler? dataSourceProgress = null,
+        QueryProgressEventHandler? queryProgress = null,
+        QueryProgressOptions? queryProgressOptions = null,
         object? sender = null,
         string? queryId = null)
     {
@@ -76,6 +80,8 @@ internal sealed record QueryExecutionContext(
             cancellationToken,
             phaseChanged,
             dataSourceProgress,
+            queryProgress,
+            queryProgressOptions,
             sender ?? runnable,
             queryId ?? runnable.GetType().FullName ?? string.Empty);
     }
@@ -88,6 +94,8 @@ internal sealed record QueryExecutionContext(
             CancellationToken,
             PhaseChanged,
             DataSourceProgress,
+            QueryProgress,
+            QueryProgressOptions,
             Sender,
             QueryId);
     }

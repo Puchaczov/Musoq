@@ -20,6 +20,9 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(AccessColumnNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        if (TryBindSetResultModifierColumn(node.Name, node.Alias, node))
+            return;
+
         var hasProcessedQueryId = _sourceBinding.CurrentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId);
         var primaryIdentifier = hasProcessedQueryId
             ? _sourceBinding.CurrentScope[MetaAttributes.ProcessedQueryId]
@@ -160,6 +163,9 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(IdentifierNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        if (TryBindSetResultModifierColumn(node.Name, string.Empty, node))
+            return;
+
         if (_queryState.QueryPart != QueryPart.From)
         {
             if (_queryState.QueryPart == QueryPart.OrderBy && _resultShape.SelectFieldAliases.TryGetValue(node.Name, out var aliasExpression))

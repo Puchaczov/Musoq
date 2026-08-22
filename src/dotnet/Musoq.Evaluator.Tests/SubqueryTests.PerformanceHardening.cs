@@ -234,7 +234,7 @@ public partial class SubqueryTests
             "Materialization [SingleUseHashBuildFusion] cte:_dt_1 -> Candidate",
             inspection.PlanningText);
         Assert.Contains("SingleUseFusionCandidate [cte0]", inspection.InitialExecutionPlanText);
-        Assert.Contains("CtePhase [cte0]", inspection.OptimizedExecutionPlanText);
+        Assert.Contains("PhaseBoundary [Begin:cte0]", inspection.OptimizedExecutionPlanText);
         Assert.IsFalse(
             inspection.OptimizedExecutionPlanText.Contains("SingleUseFusionCandidate", StringComparison.Ordinal),
             inspection.OptimizedExecutionPlanText);
@@ -266,7 +266,7 @@ public partial class SubqueryTests
             "Materialization [SingleUseProjectionFusion] statement:a_sq_1b -> Candidate",
             inspection.PlanningText);
         Assert.Contains("SingleUseFusionCandidate [cte2]", inspection.InitialExecutionPlanText);
-        Assert.Contains("CtePhase [cte2]", inspection.OptimizedExecutionPlanText);
+        Assert.Contains("PhaseBoundary [Begin:cte2]", inspection.OptimizedExecutionPlanText);
         Assert.IsFalse(
             inspection.OptimizedExecutionPlanText.Contains("SingleUseFusionCandidate", StringComparison.Ordinal),
             inspection.OptimizedExecutionPlanText);

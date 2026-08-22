@@ -76,10 +76,10 @@ internal sealed partial class PhysicalLoweringImplementation
 
         foreach (var candidate in candidates)
         {
-            var body = RewriteFusedSiblingLoopBody(
-                candidate.Loop.Body,
-                candidate.Loop.Item,
-                canonicalLoop.Item);
+            var body = new FusedSiblingAliasRewriter(
+                    candidate.Loop.Item,
+                    canonicalLoop.Item)
+                .RewriteBlock(candidate.Loop.Body);
             bodyNodes.AddRange(body.Nodes);
         }
 

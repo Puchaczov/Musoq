@@ -122,11 +122,16 @@ public sealed partial class ExecutionCSharpRenderer
             statements.Add(CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 ranking.Results.Name,
-                CreateSizedArrayCreation(typeof(long), CreateBufferCountExpression(ranking.Buffer))));
+                CreateSizedArrayCreation(GetArrayElementType(ranking.Results), CreateBufferCountExpression(ranking.Buffer))));
         }
 
         if (rankings.Any(static ranking => ranking.QualifyUpperBound is null or > 0))
-            statements.Add(CreateFusedRankingKernelLoop(rankings, orderKeys, sortedPartitions));
+        {
+            statements.Add(rankings.Any(static ranking => ranking.Function is
+                    ExecutionRankingWindowFunction.PercentRank or ExecutionRankingWindowFunction.CumeDist)
+                ? WindowDistributionRankingSyntax.CreateKernelLoop(rankings, orderKeys, sortedPartitions)
+                : CreateFusedRankingKernelLoop(rankings, orderKeys, sortedPartitions));
+        }
 
         return statements;
     }
@@ -230,7 +235,7 @@ public sealed partial class ExecutionCSharpRenderer
                 if ({{partitionIndex}} > 0)
                 {
                     var {{previousIndex}} = {{partitionIndices}}[{{partitionStart}} + {{partitionIndex}} - 1];
-                    if (!{{CreateRankingPeerEqualityExpression(orderKeys, currentIndex, previousIndex)}})
+                    if (!{{WindowDistributionRankingSyntax.CreatePeerEqualityExpression(orderKeys, currentIndex, previousIndex)}})
                     {
 {{string.Join(Environment.NewLine, updates)}}
                     }

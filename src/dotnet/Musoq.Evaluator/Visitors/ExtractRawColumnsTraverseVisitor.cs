@@ -13,7 +13,12 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
         ArgumentNullException.ThrowIfNull(node);
         SetQueryPart(QueryPart.Select);
         foreach (var field in node.Fields)
+        {
+            if (field.Expression is AllColumnsNode allColumns && Visitor is ExtractRawColumnsVisitor extractor)
+                extractor.MarkProjectionWildcard(allColumns);
+
             field.Accept(this);
+        }
         node.Accept(Visitor);
     }
 

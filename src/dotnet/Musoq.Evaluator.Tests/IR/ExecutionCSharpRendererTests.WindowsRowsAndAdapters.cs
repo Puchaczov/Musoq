@@ -223,7 +223,8 @@ public sealed partial class ExecutionCSharpRendererTests
         Assert.Contains(
             "var pRowsSource = __pSchema.GetRowSource<IReadOnlyDictionary<string, object>>(\"data\", new SourceExecutionContext(\"p:1\", sourceExecutionPlans[\"p:1\"], token, __schemaColumns_Q_Dynamic_p_0, sourceRuntimeSettingsBySourceContextId[\"p:1\"], logger, OnDataSourceProgress), Array.Empty<object>());",
             code);
-        Assert.Contains("var pRows = pRowsSource.Chunks;", code);
+        Assert.Contains("var pRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks", code);
+        Assert.Contains(": pRowsSource.Chunks;", code);
         Assert.Contains("foreach (var pDynamicSourceChunk in pRows)", code);
         Assert.Contains("var pDynamicSource = pDynamicSourceChunk[pDynamicSourceIndex];", code);
         Assert.Contains(

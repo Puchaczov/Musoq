@@ -4,7 +4,7 @@ namespace Musoq.Evaluator.Tests;
 
 public sealed partial class GeneratedCodeSamplesShapeTests
 {
-    private const int ExpectedSampleFileCount = 244;
+    private const int ExpectedSampleFileCount = 250;
     private const int InlineInArrayAllocationBudget = 0;
     private const string CrossApplySampleFileName = "Q19_CrossApply.cs";
     private const string OuterApplySampleFileName = "Q20_OuterApply.cs";
@@ -33,6 +33,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private const string ChainedApplyGroupedAggregateQualifyWindowSampleFileName =
         "Q75_ChainedApplyGroupedAggregateQualifyWindow.cs";
     private const string ApplyWithOrdinalitySampleFileName = "Q173_ApplyWithOrdinality.cs";
+    private const string CrossApplyWhereLeftGuardSampleFileName = "Q243_CrossApplyWhereLeftGuard.cs";
+    private const string ChainedCrossApplyScopedGuardsSampleFileName = "Q244_ChainedCrossApplyScopedGuards.cs";
+    private const string ChainedCrossApplyResidualPredicateSampleFileName = "Q245_ChainedCrossApplyResidualPredicate.cs";
+    private const string OuterApplyWhereLeftGuardSampleFileName = "Q246_OuterApplyWhereLeftGuard.cs";
+    private const string CrossApplyMethodWhereLeftGuardSampleFileName = "Q247_CrossApplyMethodWhereLeftGuard.cs";
     private const string NullableProviderMethodLeftJoinSampleFileName = "Q235_NullableProviderMethodLeftJoin.cs";
     private const string QueryRowLegacyFallbackSampleFileName = "Q236_QueryRowLegacyFallback.cs";
     private const string QueryRowReadonlyStructSampleFileName = "Q237_QueryRowReadonlyStruct.cs";
@@ -55,6 +60,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private const string WindowLagSampleFileName = "Q12_WindowLag.cs";
     private const string WindowLeadSampleFileName = "Q27_WindowLead.cs";
     private const string WindowRankDenseRankSampleFileName = "Q26_WindowRankDenseRank.cs";
+    private const string WindowDistributionRankingsSampleFileName = "Q242_WindowDistributionRankings.cs";
     private const string GroupBySkipTakeSampleFileName = "Q30_GroupBySkipTake.cs";
     private const string OrderBySkipTakeSampleFileName = "Q22_OrderBySkipTake.cs";
     private const string OrderByTopOffsetHiddenKeySampleFileName = "Q110_OrderByTopOffsetHiddenKey.cs";

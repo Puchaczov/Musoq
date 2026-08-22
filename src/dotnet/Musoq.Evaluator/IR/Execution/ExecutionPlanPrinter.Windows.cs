@@ -13,6 +13,8 @@ public static partial class ExecutionPlanPrinter
             ExecutionRankingWindowFunction.RowNumber => "ComputeRowNumberWindow",
             ExecutionRankingWindowFunction.Rank => "ComputeRankWindow",
             ExecutionRankingWindowFunction.DenseRank => "ComputeDenseRankWindow",
+            ExecutionRankingWindowFunction.PercentRank => "ComputePercentRankWindow",
+            ExecutionRankingWindowFunction.CumeDist => "ComputeCumeDistWindow",
             _ => $"ComputeUnknownRankingWindow({function})"
         };
     }

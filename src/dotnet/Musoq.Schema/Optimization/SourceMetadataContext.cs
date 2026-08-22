@@ -15,6 +15,14 @@ public class SourceMetadataContext(
 
     public CancellationToken EndWorkToken { get; } = endWorkToken;
 
+    /// <summary>
+    /// Gets the columns inferred before the source table is opened.
+    /// </summary>
+    /// <remarks>
+    /// An empty collection is the established unrestricted metadata request: the source may return its
+    /// complete schema. Core uses that request for direct SELECT-field wildcard projections, while
+    /// non-projection uses of <c>AllColumnsNode</c> such as <c>Count(*)</c> do not independently activate it.
+    /// </remarks>
     public IReadOnlyCollection<ISchemaColumn> AllColumns { get; } = originallyInferredColumns;
 
     public IReadOnlyDictionary<string, string> SourceRuntimeSettings { get; } = sourceRuntimeSettings;

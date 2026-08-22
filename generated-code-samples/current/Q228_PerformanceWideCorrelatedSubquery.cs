@@ -362,19 +362,30 @@ ExecutionPlan [compiled]
       Lookup: string <- field Lookup
 
   Body
-    CtePhase [cte0]
-    CtePhase [cte1]
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    PhaseBoundary [Begin:cte2]
+    PhaseBoundary [Select]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [End:cte0]
+    PhaseBoundary [Begin:cte1]
+    PhaseBoundary [End:cte1]
+    PhaseBoundary [From:cte2]
     SourceScan [b: BasicEntity] -> cte2_bRows
     CreateTable [cte2: Cte2Row0]
+    PhaseBoundary [GroupBy:cte2]
     CreateValueTupleAggregateContext [cte2Groups: (string, string, string, decimal, string, decimal, int, int?) -> Cte2AggregateGroup]
     ChunkedForEach [b in cte2_bRows]
       Let [city: string = b.City]
       GetOrAddValueTupleAggregateGroup [cte2Group = cte2Groups[(b.Name, city, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue)] by b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue; typed: Cte2AggregateGroup]
       TypedAggregateSet [Set(cte2Group.__agg0, city)]
     EnsureCapacity [cte2 <- cte2GroupsToFinalize.Count]
+    PhaseBoundary [Select:cte2]
     ForEach [cte2FinalGroup in cte2GroupsToFinalize]
       AppendRow [cte2 <- Cte2Row0(_sq_3_corr_0: cte2FinalGroup.b.Name, _sq_3_corr_1: cte2FinalGroup.b.City, _sq_3_corr_2: cte2FinalGroup.b.Country, _sq_3_corr_3: cte2FinalGroup.b.Population, _sq_3_corr_4: cte2FinalGroup.b.Month, _sq_3_corr_5: cte2FinalGroup.b.Money, _sq_3_corr_6: cte2FinalGroup.b.Id, _sq_3_corr_7: cte2FinalGroup.b.NullableValue, _sq_3_value: b.__CorrelatedScalarSubqueryValue(b.City))]
     StoreTable [cte2 -> _cteRowResults.Slot2: List<Cte2Row0>]
+    PhaseBoundary [End:cte2]
+    PhaseBoundary [Begin:cte3]
     SourceScan [a: BasicEntity] -> statement0_aRows
     SourceScan [b: BasicEntity] -> cte0_bRows
     CreateTable [statement0: Statement0Row0]
@@ -395,6 +406,8 @@ ExecutionPlan [compiled]
       KeySetProbeNoMatch
         AppendRow [statement0 <- Statement0Row0(a.Name: a.Name, a.City: a.City, a.Country: a.Country, a.Population: a.Population, a.Money: a.Money, a.Month: a.Month, a.Id: a.Id, a.NullableValue: a.NullableValue, _sq_1._sq_1_key: NULL, _sq_1._sq_1_corr_0: NULL, _sq_1._sq_1_corr_1: NULL, _sq_1._sq_1_corr_2: NULL, _sq_1._sq_1_corr_3: NULL, _sq_1._sq_1_corr_4: NULL, _sq_1._sq_1_corr_5: NULL, _sq_1._sq_1_corr_6: NULL, _sq_1._sq_1_corr_7: NULL)]
     StoreTable [statement0 -> _cteRowResults.Slot3: List<Statement0Row0>]
+    PhaseBoundary [End:cte3]
+    PhaseBoundary [Begin:cte4]
     SourceScan [b: BasicEntity] -> cte1_bRows
     CreateTable [statement1: Statement1Row0]
     CreateKeySet [statement1_sq_2Keys: ValueTuple<int?, string, string, string, decimal?, string, decimal?, ValueTuple<int?, int?>>]
@@ -414,6 +427,8 @@ ExecutionPlan [compiled]
       KeySetProbeNoMatch
         AppendRow [statement1 <- Statement1Row0(a.Name: a_sq_1.a.Name, a.City: a_sq_1.a.City, a.Country: a_sq_1.a.Country, a.Population: a_sq_1.a.Population, a.Money: a_sq_1.a.Money, a.Month: a_sq_1.a.Month, a.Id: a_sq_1.a.Id, a.NullableValue: a_sq_1.a.NullableValue, _sq_1._sq_1_key: a_sq_1._sq_1._sq_1_key, _sq_1._sq_1_corr_0: a_sq_1._sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1: a_sq_1._sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2: a_sq_1._sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3: a_sq_1._sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4: a_sq_1._sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5: a_sq_1._sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6: a_sq_1._sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7: a_sq_1._sq_1._sq_1_corr_7, _sq_2._sq_2_key: NULL, _sq_2._sq_2_corr_0: NULL, _sq_2._sq_2_corr_1: NULL, _sq_2._sq_2_corr_2: NULL, _sq_2._sq_2_corr_3: NULL, _sq_2._sq_2_corr_4: NULL, _sq_2._sq_2_corr_5: NULL, _sq_2._sq_2_corr_6: NULL, _sq_2._sq_2_corr_7: NULL)]
     StoreTable [statement1 -> _cteRowResults.Slot4: List<Statement1Row0>]
+    PhaseBoundary [End:cte4]
+    PhaseBoundary [Begin:cte5]
     CreateTable [statement2: Statement2Row0]
     CreateObject [statement2_sq_3HashEmptyState: State<string>]
     Let [statement2_sq_3HashEmptyValue: CorrelatedScalarSubqueryResult<string> = Get(statement2_sq_3HashEmptyState)]
@@ -428,6 +443,7 @@ ExecutionPlan [compiled]
       HashProbeNoMatch
         AppendRow [statement2 <- Statement2Row0(a.Name: a_sq_1_sq_2.a.Name, a.City: a_sq_1_sq_2.a.City, a.Country: a_sq_1_sq_2.a.Country, a.Population: a_sq_1_sq_2.a.Population, a.Money: a_sq_1_sq_2.a.Money, a.Month: a_sq_1_sq_2.a.Month, a.Id: a_sq_1_sq_2.a.Id, a.NullableValue: a_sq_1_sq_2.a.NullableValue, _sq_1._sq_1_key: a_sq_1_sq_2._sq_1._sq_1_key, _sq_1._sq_1_corr_0: a_sq_1_sq_2._sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1: a_sq_1_sq_2._sq_1._sq_1_corr_1, _sq_1._sq_1_corr_2: a_sq_1_sq_2._sq_1._sq_1_corr_2, _sq_1._sq_1_corr_3: a_sq_1_sq_2._sq_1._sq_1_corr_3, _sq_1._sq_1_corr_4: a_sq_1_sq_2._sq_1._sq_1_corr_4, _sq_1._sq_1_corr_5: a_sq_1_sq_2._sq_1._sq_1_corr_5, _sq_1._sq_1_corr_6: a_sq_1_sq_2._sq_1._sq_1_corr_6, _sq_1._sq_1_corr_7: a_sq_1_sq_2._sq_1._sq_1_corr_7, _sq_2._sq_2_key: a_sq_1_sq_2._sq_2._sq_2_key, _sq_2._sq_2_corr_0: a_sq_1_sq_2._sq_2._sq_2_corr_0, _sq_2._sq_2_corr_1: a_sq_1_sq_2._sq_2._sq_2_corr_1, _sq_2._sq_2_corr_2: a_sq_1_sq_2._sq_2._sq_2_corr_2, _sq_2._sq_2_corr_3: a_sq_1_sq_2._sq_2._sq_2_corr_3, _sq_2._sq_2_corr_4: a_sq_1_sq_2._sq_2._sq_2_corr_4, _sq_2._sq_2_corr_5: a_sq_1_sq_2._sq_2._sq_2_corr_5, _sq_2._sq_2_corr_6: a_sq_1_sq_2._sq_2._sq_2_corr_6, _sq_2._sq_2_corr_7: a_sq_1_sq_2._sq_2._sq_2_corr_7, _sq_3_corr_0: NULL, _sq_3_corr_1: NULL, _sq_3_corr_2: NULL, _sq_3_corr_3: NULL, _sq_3_corr_4: NULL, _sq_3_corr_5: NULL, _sq_3_corr_6: NULL, _sq_3_corr_7: NULL, _sq_3_value: statement2_sq_3HashEmptyValue)]
     StoreTable [statement2 -> _cteRowResults.Slot5: List<Statement2Row0>]
+    PhaseBoundary [End:cte5]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [a_sq_1_sq_2_sq_3 in _cteRowResults.Slot5]
       AppendShape [result <- ResultShape0(a.Name: a_sq_1_sq_2_sq_3.a.Name, ExistsResult: CASE WHEN a_sq_1_sq_2_sq_3._sq_1._sq_1_key IS NOT NULL THEN 'Y' ELSE 'N' END, NotExistsResult: CASE WHEN a_sq_1_sq_2_sq_3._sq_2._sq_2_key IS NULL THEN 'Y' ELSE 'N' END, Lookup: __CorrelatedScalarSubqueryResult(a_sq_1_sq_2_sq_3._sq_3_value))]
@@ -454,7 +470,7 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_cte2_1 = new Column[]
         {
@@ -574,6 +590,7 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_5, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -589,26 +606,22 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.GroupBy);
-            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-            OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
-            OnPhaseChanged("compiled:cte2", QueryPhase.Begin);
-            OnPhaseChanged("compiled:cte3", QueryPhase.Begin);
-            OnPhaseChanged("compiled:cte4", QueryPhase.Begin);
-            OnPhaseChanged("compiled:cte5", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
-                _cteRowResults.Slot2 = BuildCte2(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults);
-                _cteRowResults.Slot3 = BuildCte3(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults);
-                _cteRowResults.Slot4 = BuildCte4(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults);
-                _cteRowResults.Slot5 = BuildCte5(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults);
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                OnPhaseChanged("compiled", QueryPhase.Select);
+                _cteRowResults.Slot2 = BuildCte2(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
+                _cteRowResults.Slot3 = BuildCte3(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
+                _cteRowResults.Slot4 = BuildCte4(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
+                _cteRowResults.Slot5 = BuildCte5(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
                 var result = new List<ResultShape0>();
                 var __storedTable5Rows = _cteRowResults.Slot5;
                 for (int __storedTable5Index = 0; __storedTable5Index < __storedTable5Rows.Count; ++__storedTable5Index)
@@ -638,13 +651,14 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
             }
             finally
             {
-                OnPhaseChanged("compiled:cte0", QueryPhase.End);
-                OnPhaseChanged("compiled:cte1", QueryPhase.End);
-                OnPhaseChanged("compiled:cte2", QueryPhase.End);
-                OnPhaseChanged("compiled:cte3", QueryPhase.End);
-                OnPhaseChanged("compiled:cte4", QueryPhase.End);
-                OnPhaseChanged("compiled:cte5", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 
@@ -661,564 +675,596 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Cte2Row0> BuildCte2(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, CteRowResults _cteRowResults)
+        private static List<Cte2Row0> BuildCte2(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
-            var __cte2_bSchema = provider.GetSchema("#B");
-            var cte2_bRowsSource = __cte2_bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:4", sourceExecutionPlans["b:4"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:4"], logger, OnDataSourceProgress), Array.Empty<object>());
-            var cte2_bRows = cte2_bRowsSource.Chunks;
-            var cte2 = new List<Cte2Row0>();
-            var cte2GroupsToFinalize = new List<Cte2AggregateGroup>();
-            var cte2Groups = new Dictionary<(string, string, string, decimal, string, decimal, int, int?), Cte2AggregateGroup>();
-            foreach (var bChunk in cte2_bRows)
+            OnPhaseChanged("compiled:cte2", QueryPhase.Begin);
+            try
             {
-                if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
+                var __cte2_bSchema = provider.GetSchema("#B");
+                var cte2_bRowsSource = __cte2_bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:4", sourceExecutionPlans["b:4"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:4"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var cte2_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte2_bRowsSource.Chunks, __musoqProgressContext, "b:4") : cte2_bRowsSource.Chunks;
+                var cte2 = new List<Cte2Row0>();
+                var cte2GroupsToFinalize = new List<Cte2AggregateGroup>();
+                var cte2Groups = new Dictionary<(string, string, string, decimal, string, decimal, int, int?), Cte2AggregateGroup>();
+                foreach (var bChunk in cte2_bRows)
                 {
-                    if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] bChunkViewArray)
+                    if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
                     {
-                        int bChunkViewOffset = bChunkView.Offset;
-                        for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                        if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] bChunkViewArray)
                         {
-                            if ((bIndex & 1023) == 0)
+                            int bChunkViewOffset = bChunkView.Offset;
+                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
                             {
-                                token.ThrowIfCancellationRequested();
+                                if ((bIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var b = bChunkViewArray[bChunkViewOffset + bIndex];
+                                string city = b.City;
+                                string groupKey0 = b.Name;
+                                string groupKey1 = city;
+                                string groupKey2 = b.Country;
+                                decimal groupKey3 = b.Population;
+                                string groupKey4 = b.Month;
+                                decimal groupKey5 = b.Money;
+                                int groupKey6 = b.Id;
+                                int? groupKey7 = b.NullableValue;
+                                ref var cte2GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte2Groups, (groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7), out var cte2GroupExists);
+                                if (!cte2GroupExists)
+                                {
+                                    cte2GroupRef = new Cte2AggregateGroup(groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7);
+                                    cte2GroupsToFinalize.Add(cte2GroupRef);
+                                }
+
+                                Cte2AggregateGroup cte2Group = cte2GroupRef;
+                                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte2Group.__agg0, (string)city);
                             }
 
-                            var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                            string city = b.City;
-                            string groupKey0 = b.Name;
-                            string groupKey1 = city;
-                            string groupKey2 = b.Country;
-                            decimal groupKey3 = b.Population;
-                            string groupKey4 = b.Month;
-                            decimal groupKey5 = b.Money;
-                            int groupKey6 = b.Id;
-                            int? groupKey7 = b.NullableValue;
-                            ref var cte2GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte2Groups, (groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7), out var cte2GroupExists);
-                            if (!cte2GroupExists)
-                            {
-                                cte2GroupRef = new Cte2AggregateGroup(groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7);
-                                cte2GroupsToFinalize.Add(cte2GroupRef);
-                            }
-
-                            Cte2AggregateGroup cte2Group = cte2GroupRef;
-                            Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte2Group.__agg0, (string)city);
+                            continue;
                         }
 
-                        continue;
+                        if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkViewList)
+                        {
+                            int bChunkViewOffset = bChunkView.Offset;
+                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                            {
+                                if ((bIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var b = bChunkViewList[bChunkViewOffset + bIndex];
+                                string city = b.City;
+                                string groupKey0 = b.Name;
+                                string groupKey1 = city;
+                                string groupKey2 = b.Country;
+                                decimal groupKey3 = b.Population;
+                                string groupKey4 = b.Month;
+                                decimal groupKey5 = b.Money;
+                                int groupKey6 = b.Id;
+                                int? groupKey7 = b.NullableValue;
+                                ref var cte2GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte2Groups, (groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7), out var cte2GroupExists);
+                                if (!cte2GroupExists)
+                                {
+                                    cte2GroupRef = new Cte2AggregateGroup(groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7);
+                                    cte2GroupsToFinalize.Add(cte2GroupRef);
+                                }
+
+                                Cte2AggregateGroup cte2Group = cte2GroupRef;
+                                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte2Group.__agg0, (string)city);
+                            }
+
+                            continue;
+                        }
                     }
 
-                    if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkViewList)
+                    for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
                     {
-                        int bChunkViewOffset = bChunkView.Offset;
-                        for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                        if ((bIndex & 1023) == 0)
                         {
-                            if ((bIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var b = bChunkViewList[bChunkViewOffset + bIndex];
-                            string city = b.City;
-                            string groupKey0 = b.Name;
-                            string groupKey1 = city;
-                            string groupKey2 = b.Country;
-                            decimal groupKey3 = b.Population;
-                            string groupKey4 = b.Month;
-                            decimal groupKey5 = b.Money;
-                            int groupKey6 = b.Id;
-                            int? groupKey7 = b.NullableValue;
-                            ref var cte2GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte2Groups, (groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7), out var cte2GroupExists);
-                            if (!cte2GroupExists)
-                            {
-                                cte2GroupRef = new Cte2AggregateGroup(groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7);
-                                cte2GroupsToFinalize.Add(cte2GroupRef);
-                            }
-
-                            Cte2AggregateGroup cte2Group = cte2GroupRef;
-                            Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte2Group.__agg0, (string)city);
+                            token.ThrowIfCancellationRequested();
                         }
 
-                        continue;
+                        var b = bChunk[bIndex];
+                        string city = b.City;
+                        string groupKey0 = b.Name;
+                        string groupKey1 = city;
+                        string groupKey2 = b.Country;
+                        decimal groupKey3 = b.Population;
+                        string groupKey4 = b.Month;
+                        decimal groupKey5 = b.Money;
+                        int groupKey6 = b.Id;
+                        int? groupKey7 = b.NullableValue;
+                        ref var cte2GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte2Groups, (groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7), out var cte2GroupExists);
+                        if (!cte2GroupExists)
+                        {
+                            cte2GroupRef = new Cte2AggregateGroup(groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7);
+                            cte2GroupsToFinalize.Add(cte2GroupRef);
+                        }
+
+                        Cte2AggregateGroup cte2Group = cte2GroupRef;
+                        Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte2Group.__agg0, (string)city);
                     }
                 }
 
-                for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
+                cte2.EnsureCapacity(cte2GroupsToFinalize.Count);
+                foreach (var cte2FinalGroup in cte2GroupsToFinalize)
                 {
-                    if ((bIndex & 1023) == 0)
-                    {
-                        token.ThrowIfCancellationRequested();
-                    }
-
-                    var b = bChunk[bIndex];
-                    string city = b.City;
-                    string groupKey0 = b.Name;
-                    string groupKey1 = city;
-                    string groupKey2 = b.Country;
-                    decimal groupKey3 = b.Population;
-                    string groupKey4 = b.Month;
-                    decimal groupKey5 = b.Money;
-                    int groupKey6 = b.Id;
-                    int? groupKey7 = b.NullableValue;
-                    ref var cte2GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte2Groups, (groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7), out var cte2GroupExists);
-                    if (!cte2GroupExists)
-                    {
-                        cte2GroupRef = new Cte2AggregateGroup(groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7);
-                        cte2GroupsToFinalize.Add(cte2GroupRef);
-                    }
-
-                    Cte2AggregateGroup cte2Group = cte2GroupRef;
-                    Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte2Group.__agg0, (string)city);
+                    token.ThrowIfCancellationRequested();
+                    cte2.Add(new Cte2Row0(cte2FinalGroup.__key0, cte2FinalGroup.__key1, cte2FinalGroup.__key2, cte2FinalGroup.__key3, cte2FinalGroup.__key4, cte2FinalGroup.__key5, cte2FinalGroup.__key6, cte2FinalGroup.__key7, Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Get(in cte2FinalGroup.__agg0)));
                 }
-            }
 
-            cte2.EnsureCapacity(cte2GroupsToFinalize.Count);
-            foreach (var cte2FinalGroup in cte2GroupsToFinalize)
+                return cte2;
+            }
+            finally
             {
-                token.ThrowIfCancellationRequested();
-                cte2.Add(new Cte2Row0(cte2FinalGroup.__key0, cte2FinalGroup.__key1, cte2FinalGroup.__key2, cte2FinalGroup.__key3, cte2FinalGroup.__key4, cte2FinalGroup.__key5, cte2FinalGroup.__key6, cte2FinalGroup.__key7, Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Get(in cte2FinalGroup.__agg0)));
+                OnPhaseChanged("compiled:cte2", QueryPhase.End);
             }
-
-            return cte2;
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Statement0Row0> BuildCte3(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, CteRowResults _cteRowResults)
+        private static List<Statement0Row0> BuildCte3(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
-            var __statement0_aSchema = provider.GetSchema("#A");
-            var statement0_aRowsSource = __statement0_aSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("a:4", sourceExecutionPlans["a:4"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["a:4"], logger, OnDataSourceProgress), Array.Empty<object>());
-            var statement0_aRows = statement0_aRowsSource.Chunks;
-            var __cte0_bSchema = provider.GetSchema("#B");
-            var cte0_bRowsSource = __cte0_bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), Array.Empty<object>());
-            var cte0_bRows = cte0_bRowsSource.Chunks;
-            var statement0 = new List<Statement0Row0>();
-            var statement0_sq_1Keys = new HashSet<ValueTuple<int?, string, string, string, decimal?, string, decimal?, ValueTuple<int?, int?>>>();
-            foreach (var bChunk in cte0_bRows)
+            OnPhaseChanged("compiled:cte3", QueryPhase.Begin);
+            try
             {
-                if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
+                var __statement0_aSchema = provider.GetSchema("#A");
+                var statement0_aRowsSource = __statement0_aSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("a:4", sourceExecutionPlans["a:4"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["a:4"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var statement0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:4") : statement0_aRowsSource.Chunks;
+                var __cte0_bSchema = provider.GetSchema("#B");
+                var cte0_bRowsSource = __cte0_bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var cte0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_bRowsSource.Chunks, __musoqProgressContext, "b:2") : cte0_bRowsSource.Chunks;
+                var statement0 = new List<Statement0Row0>();
+                var statement0_sq_1Keys = new HashSet<ValueTuple<int?, string, string, string, decimal?, string, decimal?, ValueTuple<int?, int?>>>();
+                foreach (var bChunk in cte0_bRows)
                 {
-                    if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] bChunkViewArray)
+                    if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
                     {
-                        int bChunkViewOffset = bChunkView.Offset;
-                        for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                        if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] bChunkViewArray)
                         {
-                            if ((bIndex & 1023) == 0)
+                            int bChunkViewOffset = bChunkView.Offset;
+                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
                             {
-                                token.ThrowIfCancellationRequested();
+                                if ((bIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var b = bChunkViewArray[bChunkViewOffset + bIndex];
+                                var key0 = 1;
+                                var key1 = b.Name;
+                                var key2 = b.City;
+                                var key3 = b.Country;
+                                var key4 = b.Population;
+                                var key5 = b.Month;
+                                var key6 = b.Money;
+                                var key7 = b.Id;
+                                var key8 = b.NullableValue;
+                                if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
+                                    continue;
+                                var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                                statement0_sq_1Keys.Add(key);
                             }
 
-                            var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                            var key0 = 1;
-                            var key1 = b.Name;
-                            var key2 = b.City;
-                            var key3 = b.Country;
-                            var key4 = b.Population;
-                            var key5 = b.Month;
-                            var key6 = b.Money;
-                            var key7 = b.Id;
-                            var key8 = b.NullableValue;
-                            if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
-                                continue;
-                            var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                            statement0_sq_1Keys.Add(key);
+                            continue;
                         }
 
-                        continue;
+                        if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkViewList)
+                        {
+                            int bChunkViewOffset = bChunkView.Offset;
+                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                            {
+                                if ((bIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var b = bChunkViewList[bChunkViewOffset + bIndex];
+                                var key0 = 1;
+                                var key1 = b.Name;
+                                var key2 = b.City;
+                                var key3 = b.Country;
+                                var key4 = b.Population;
+                                var key5 = b.Month;
+                                var key6 = b.Money;
+                                var key7 = b.Id;
+                                var key8 = b.NullableValue;
+                                if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
+                                    continue;
+                                var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                                statement0_sq_1Keys.Add(key);
+                            }
+
+                            continue;
+                        }
                     }
 
-                    if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkViewList)
+                    for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
                     {
-                        int bChunkViewOffset = bChunkView.Offset;
-                        for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                        if ((bIndex & 1023) == 0)
                         {
-                            if ((bIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var b = bChunkViewList[bChunkViewOffset + bIndex];
-                            var key0 = 1;
-                            var key1 = b.Name;
-                            var key2 = b.City;
-                            var key3 = b.Country;
-                            var key4 = b.Population;
-                            var key5 = b.Month;
-                            var key6 = b.Money;
-                            var key7 = b.Id;
-                            var key8 = b.NullableValue;
-                            if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
-                                continue;
-                            var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                            statement0_sq_1Keys.Add(key);
+                            token.ThrowIfCancellationRequested();
                         }
 
-                        continue;
+                        var b = bChunk[bIndex];
+                        var key0 = 1;
+                        var key1 = b.Name;
+                        var key2 = b.City;
+                        var key3 = b.Country;
+                        var key4 = b.Population;
+                        var key5 = b.Month;
+                        var key6 = b.Money;
+                        var key7 = b.Id;
+                        var key8 = b.NullableValue;
+                        if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
+                            continue;
+                        var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                        statement0_sq_1Keys.Add(key);
                     }
                 }
 
-                for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
+                foreach (var aChunk in statement0_aRows)
                 {
-                    if ((bIndex & 1023) == 0)
+                    if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkView)
                     {
-                        token.ThrowIfCancellationRequested();
+                        if (aChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] aChunkViewArray)
+                        {
+                            int aChunkViewOffset = aChunkView.Offset;
+                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            {
+                                if ((aIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var a = aChunkViewArray[aChunkViewOffset + aIndex];
+                                var key0 = 1;
+                                var key1 = a.Name;
+                                var key2 = a.City;
+                                var key3 = a.Country;
+                                var key4 = a.Population;
+                                var key5 = a.Month;
+                                var key6 = a.Money;
+                                var key7 = a.Id;
+                                var key8 = a.NullableValue;
+                                var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                                if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement0_sq_1Keys.Contains(key))
+                                {
+                                    string name = a.Name;
+                                    string city = a.City;
+                                    string country = a.Country;
+                                    decimal population = a.Population;
+                                    decimal money = a.Money;
+                                    string month = a.Month;
+                                    int id = a.Id;
+                                    int? nullableValue = a.NullableValue;
+                                    statement0.Add(new Statement0Row0(name, city, country, population, money, month, id, nullableValue, 1, name, city, country, population, month, money, id, nullableValue));
+                                }
+                                else
+                                {
+                                    statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, null));
+                                }
+                            }
+
+                            continue;
+                        }
+
+                        if (aChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkViewList)
+                        {
+                            int aChunkViewOffset = aChunkView.Offset;
+                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            {
+                                if ((aIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var a = aChunkViewList[aChunkViewOffset + aIndex];
+                                var key0 = 1;
+                                var key1 = a.Name;
+                                var key2 = a.City;
+                                var key3 = a.Country;
+                                var key4 = a.Population;
+                                var key5 = a.Month;
+                                var key6 = a.Money;
+                                var key7 = a.Id;
+                                var key8 = a.NullableValue;
+                                var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                                if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement0_sq_1Keys.Contains(key))
+                                {
+                                    string name = a.Name;
+                                    string city = a.City;
+                                    string country = a.Country;
+                                    decimal population = a.Population;
+                                    decimal money = a.Money;
+                                    string month = a.Month;
+                                    int id = a.Id;
+                                    int? nullableValue = a.NullableValue;
+                                    statement0.Add(new Statement0Row0(name, city, country, population, money, month, id, nullableValue, 1, name, city, country, population, month, money, id, nullableValue));
+                                }
+                                else
+                                {
+                                    statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, null));
+                                }
+                            }
+
+                            continue;
+                        }
                     }
 
-                    var b = bChunk[bIndex];
-                    var key0 = 1;
-                    var key1 = b.Name;
-                    var key2 = b.City;
-                    var key3 = b.Country;
-                    var key4 = b.Population;
-                    var key5 = b.Month;
-                    var key6 = b.Money;
-                    var key7 = b.Id;
-                    var key8 = b.NullableValue;
-                    if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
-                        continue;
-                    var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                    statement0_sq_1Keys.Add(key);
+                    for (int aIndex = 0, aIndexCount = aChunk.Count; aIndex < aIndexCount; ++aIndex)
+                    {
+                        if ((aIndex & 1023) == 0)
+                        {
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        var a = aChunk[aIndex];
+                        var key0 = 1;
+                        var key1 = a.Name;
+                        var key2 = a.City;
+                        var key3 = a.Country;
+                        var key4 = a.Population;
+                        var key5 = a.Month;
+                        var key6 = a.Money;
+                        var key7 = a.Id;
+                        var key8 = a.NullableValue;
+                        var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                        if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement0_sq_1Keys.Contains(key))
+                        {
+                            string name = a.Name;
+                            string city = a.City;
+                            string country = a.Country;
+                            decimal population = a.Population;
+                            decimal money = a.Money;
+                            string month = a.Month;
+                            int id = a.Id;
+                            int? nullableValue = a.NullableValue;
+                            statement0.Add(new Statement0Row0(name, city, country, population, money, month, id, nullableValue, 1, name, city, country, population, month, money, id, nullableValue));
+                        }
+                        else
+                        {
+                            statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, null));
+                        }
+                    }
                 }
+
+                return statement0;
             }
-
-            foreach (var aChunk in statement0_aRows)
+            finally
             {
-                if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkView)
+                OnPhaseChanged("compiled:cte3", QueryPhase.End);
+            }
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static List<Statement1Row0> BuildCte4(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
+        {
+            OnPhaseChanged("compiled:cte4", QueryPhase.Begin);
+            try
+            {
+                var __cte1_bSchema = provider.GetSchema("#B");
+                var cte1_bRowsSource = __cte1_bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:3", sourceExecutionPlans["b:3"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:3"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var cte1_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte1_bRowsSource.Chunks, __musoqProgressContext, "b:3") : cte1_bRowsSource.Chunks;
+                var statement1 = new List<Statement1Row0>(_cteRowResults.Slot3.Count);
+                var statement1_sq_2Keys = new HashSet<ValueTuple<int?, string, string, string, decimal?, string, decimal?, ValueTuple<int?, int?>>>();
+                foreach (var bChunk in cte1_bRows)
                 {
-                    if (aChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] aChunkViewArray)
+                    if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
                     {
-                        int aChunkViewOffset = aChunkView.Offset;
-                        for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                        if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] bChunkViewArray)
                         {
-                            if ((aIndex & 1023) == 0)
+                            int bChunkViewOffset = bChunkView.Offset;
+                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
                             {
-                                token.ThrowIfCancellationRequested();
+                                if ((bIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var b = bChunkViewArray[bChunkViewOffset + bIndex];
+                                var key0 = 1;
+                                var key1 = b.Name;
+                                var key2 = b.City;
+                                var key3 = b.Country;
+                                var key4 = b.Population;
+                                var key5 = b.Month;
+                                var key6 = b.Money;
+                                var key7 = b.Id;
+                                var key8 = b.NullableValue;
+                                if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
+                                    continue;
+                                var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                                statement1_sq_2Keys.Add(key);
                             }
 
-                            var a = aChunkViewArray[aChunkViewOffset + aIndex];
-                            var key0 = 1;
-                            var key1 = a.Name;
-                            var key2 = a.City;
-                            var key3 = a.Country;
-                            var key4 = a.Population;
-                            var key5 = a.Month;
-                            var key6 = a.Money;
-                            var key7 = a.Id;
-                            var key8 = a.NullableValue;
-                            var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                            if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement0_sq_1Keys.Contains(key))
-                            {
-                                string name = a.Name;
-                                string city = a.City;
-                                string country = a.Country;
-                                decimal population = a.Population;
-                                decimal money = a.Money;
-                                string month = a.Month;
-                                int id = a.Id;
-                                int? nullableValue = a.NullableValue;
-                                statement0.Add(new Statement0Row0(name, city, country, population, money, month, id, nullableValue, 1, name, city, country, population, month, money, id, nullableValue));
-                            }
-                            else
-                            {
-                                statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, null));
-                            }
+                            continue;
                         }
 
-                        continue;
+                        if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkViewList)
+                        {
+                            int bChunkViewOffset = bChunkView.Offset;
+                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                            {
+                                if ((bIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var b = bChunkViewList[bChunkViewOffset + bIndex];
+                                var key0 = 1;
+                                var key1 = b.Name;
+                                var key2 = b.City;
+                                var key3 = b.Country;
+                                var key4 = b.Population;
+                                var key5 = b.Month;
+                                var key6 = b.Money;
+                                var key7 = b.Id;
+                                var key8 = b.NullableValue;
+                                if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
+                                    continue;
+                                var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                                statement1_sq_2Keys.Add(key);
+                            }
+
+                            continue;
+                        }
                     }
 
-                    if (aChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkViewList)
+                    for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
                     {
-                        int aChunkViewOffset = aChunkView.Offset;
-                        for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                        if ((bIndex & 1023) == 0)
                         {
-                            if ((aIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var a = aChunkViewList[aChunkViewOffset + aIndex];
-                            var key0 = 1;
-                            var key1 = a.Name;
-                            var key2 = a.City;
-                            var key3 = a.Country;
-                            var key4 = a.Population;
-                            var key5 = a.Month;
-                            var key6 = a.Money;
-                            var key7 = a.Id;
-                            var key8 = a.NullableValue;
-                            var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                            if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement0_sq_1Keys.Contains(key))
-                            {
-                                string name = a.Name;
-                                string city = a.City;
-                                string country = a.Country;
-                                decimal population = a.Population;
-                                decimal money = a.Money;
-                                string month = a.Month;
-                                int id = a.Id;
-                                int? nullableValue = a.NullableValue;
-                                statement0.Add(new Statement0Row0(name, city, country, population, money, month, id, nullableValue, 1, name, city, country, population, month, money, id, nullableValue));
-                            }
-                            else
-                            {
-                                statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, null));
-                            }
+                            token.ThrowIfCancellationRequested();
                         }
 
-                        continue;
+                        var b = bChunk[bIndex];
+                        var key0 = 1;
+                        var key1 = b.Name;
+                        var key2 = b.City;
+                        var key3 = b.Country;
+                        var key4 = b.Population;
+                        var key5 = b.Month;
+                        var key6 = b.Money;
+                        var key7 = b.Id;
+                        var key8 = b.NullableValue;
+                        if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
+                            continue;
+                        var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
+                        statement1_sq_2Keys.Add(key);
                     }
                 }
 
-                for (int aIndex = 0, aIndexCount = aChunk.Count; aIndex < aIndexCount; ++aIndex)
+                var __storedTable3Rows = _cteRowResults.Slot3;
+                for (int __storedTable3Index = 0; __storedTable3Index < __storedTable3Rows.Count; ++__storedTable3Index)
                 {
-                    if ((aIndex & 1023) == 0)
+                    if ((__storedTable3Index & 1023) == 0)
                     {
                         token.ThrowIfCancellationRequested();
                     }
 
-                    var a = aChunk[aIndex];
+                    Statement0Row0 a_sq_1 = __storedTable3Rows[__storedTable3Index];
                     var key0 = 1;
-                    var key1 = a.Name;
-                    var key2 = a.City;
-                    var key3 = a.Country;
-                    var key4 = a.Population;
-                    var key5 = a.Month;
-                    var key6 = a.Money;
-                    var key7 = a.Id;
-                    var key8 = a.NullableValue;
+                    var key1 = a_sq_1.a_Name;
+                    var key2 = a_sq_1.a_City;
+                    var key3 = a_sq_1.a_Country;
+                    var key4 = a_sq_1.a_Population;
+                    var key5 = a_sq_1.a_Month;
+                    var key6 = a_sq_1.a_Money;
+                    var key7 = a_sq_1.a_Id;
+                    var key8 = a_sq_1.a_NullableValue;
                     var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                    if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement0_sq_1Keys.Contains(key))
+                    if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement1_sq_2Keys.Contains(key))
                     {
-                        string name = a.Name;
-                        string city = a.City;
-                        string country = a.Country;
-                        decimal population = a.Population;
-                        decimal money = a.Money;
-                        string month = a.Month;
-                        int id = a.Id;
-                        int? nullableValue = a.NullableValue;
-                        statement0.Add(new Statement0Row0(name, city, country, population, money, month, id, nullableValue, 1, name, city, country, population, month, money, id, nullableValue));
+                        string a_Name = a_sq_1.a_Name;
+                        string a_City = a_sq_1.a_City;
+                        string a_Country = a_sq_1.a_Country;
+                        decimal a_Population = a_sq_1.a_Population;
+                        decimal a_Money = a_sq_1.a_Money;
+                        string a_Month = a_sq_1.a_Month;
+                        int a_Id = a_sq_1.a_Id;
+                        int? a_NullableValue = a_sq_1.a_NullableValue;
+                        statement1.Add(new Statement1Row0(a_Name, a_City, a_Country, a_Population, a_Money, a_Month, a_Id, a_NullableValue, a_sq_1._sq_1__sq_1_key, a_sq_1._sq_1__sq_1_corr_0, a_sq_1._sq_1__sq_1_corr_1, a_sq_1._sq_1__sq_1_corr_2, a_sq_1._sq_1__sq_1_corr_3, a_sq_1._sq_1__sq_1_corr_4, a_sq_1._sq_1__sq_1_corr_5, a_sq_1._sq_1__sq_1_corr_6, a_sq_1._sq_1__sq_1_corr_7, 1, a_Name, a_City, a_Country, a_Population, a_Month, a_Money, a_Id, a_NullableValue));
                     }
                     else
                     {
-                        statement0.Add(new Statement0Row0(a.Name, a.City, a.Country, a.Population, a.Money, a.Month, a.Id, a.NullableValue, null, null, null, null, null, null, null, null, null));
+                        statement1.Add(new Statement1Row0(a_sq_1.a_Name, a_sq_1.a_City, a_sq_1.a_Country, a_sq_1.a_Population, a_sq_1.a_Money, a_sq_1.a_Month, a_sq_1.a_Id, a_sq_1.a_NullableValue, a_sq_1._sq_1__sq_1_key, a_sq_1._sq_1__sq_1_corr_0, a_sq_1._sq_1__sq_1_corr_1, a_sq_1._sq_1__sq_1_corr_2, a_sq_1._sq_1__sq_1_corr_3, a_sq_1._sq_1__sq_1_corr_4, a_sq_1._sq_1__sq_1_corr_5, a_sq_1._sq_1__sq_1_corr_6, a_sq_1._sq_1__sq_1_corr_7, null, null, null, null, null, null, null, null, null));
                     }
                 }
-            }
 
-            return statement0;
+                return statement1;
+            }
+            finally
+            {
+                OnPhaseChanged("compiled:cte4", QueryPhase.End);
+            }
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Statement1Row0> BuildCte4(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, CteRowResults _cteRowResults)
+        private static List<Statement2Row0> BuildCte5(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
-            var __cte1_bSchema = provider.GetSchema("#B");
-            var cte1_bRowsSource = __cte1_bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:3", sourceExecutionPlans["b:3"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:3"], logger, OnDataSourceProgress), Array.Empty<object>());
-            var cte1_bRows = cte1_bRowsSource.Chunks;
-            var statement1 = new List<Statement1Row0>(_cteRowResults.Slot3.Count);
-            var statement1_sq_2Keys = new HashSet<ValueTuple<int?, string, string, string, decimal?, string, decimal?, ValueTuple<int?, int?>>>();
-            foreach (var bChunk in cte1_bRows)
+            OnPhaseChanged("compiled:cte5", QueryPhase.Begin);
+            try
             {
-                if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
+                var statement2 = new List<Statement2Row0>(_cteRowResults.Slot4.Count);
+                var statement2_sq_3HashEmptyState = new Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.State();
+                Musoq.Plugins.CorrelatedScalarSubqueryResult<string> statement2_sq_3HashEmptyValue = (Musoq.Plugins.CorrelatedScalarSubqueryResult<string>)Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Get(statement2_sq_3HashEmptyState);
+                var statement2_sq_3Hash = new Dictionary<ValueTuple<string, string, string, decimal?, string, decimal?, int?, ValueTuple<int?>>, HashJoinBucket<Cte2Row0>>(_cteRowResults.Slot2.Count);
+                var __storedTable2Rows = _cteRowResults.Slot2;
+                for (int __storedTable2Index = 0; __storedTable2Index < __storedTable2Rows.Count; ++__storedTable2Index)
                 {
-                    if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] bChunkViewArray)
-                    {
-                        int bChunkViewOffset = bChunkView.Offset;
-                        for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
-                        {
-                            if ((bIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                            var key0 = 1;
-                            var key1 = b.Name;
-                            var key2 = b.City;
-                            var key3 = b.Country;
-                            var key4 = b.Population;
-                            var key5 = b.Month;
-                            var key6 = b.Money;
-                            var key7 = b.Id;
-                            var key8 = b.NullableValue;
-                            if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
-                                continue;
-                            var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                            statement1_sq_2Keys.Add(key);
-                        }
-
-                        continue;
-                    }
-
-                    if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkViewList)
-                    {
-                        int bChunkViewOffset = bChunkView.Offset;
-                        for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
-                        {
-                            if ((bIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var b = bChunkViewList[bChunkViewOffset + bIndex];
-                            var key0 = 1;
-                            var key1 = b.Name;
-                            var key2 = b.City;
-                            var key3 = b.Country;
-                            var key4 = b.Population;
-                            var key5 = b.Month;
-                            var key6 = b.Money;
-                            var key7 = b.Id;
-                            var key8 = b.NullableValue;
-                            if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
-                                continue;
-                            var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                            statement1_sq_2Keys.Add(key);
-                        }
-
-                        continue;
-                    }
-                }
-
-                for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
-                {
-                    if ((bIndex & 1023) == 0)
+                    if ((__storedTable2Index & 1023) == 0)
                     {
                         token.ThrowIfCancellationRequested();
                     }
 
-                    var b = bChunk[bIndex];
-                    var key0 = 1;
-                    var key1 = b.Name;
-                    var key2 = b.City;
-                    var key3 = b.Country;
-                    var key4 = b.Population;
-                    var key5 = b.Month;
-                    var key6 = b.Money;
-                    var key7 = b.Id;
-                    var key8 = b.NullableValue;
-                    if (key1 == null || key2 == null || key3 == null || key5 == null || key8 == null)
+                    Cte2Row0 _sq_3 = __storedTable2Rows[__storedTable2Index];
+                    var key0 = _sq_3._sq_3_corr_0;
+                    var key1 = _sq_3._sq_3_corr_1;
+                    var key2 = _sq_3._sq_3_corr_2;
+                    var key3 = _sq_3._sq_3_corr_3;
+                    var key4 = _sq_3._sq_3_corr_4;
+                    var key5 = _sq_3._sq_3_corr_5;
+                    var key6 = _sq_3._sq_3_corr_6;
+                    var key7 = _sq_3._sq_3_corr_7;
+                    if (key0 == null || key1 == null || key2 == null || key3 == null || key4 == null || key5 == null || key6 == null || key7 == null)
                         continue;
-                    var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                    statement1_sq_2Keys.Add(key);
-                }
-            }
-
-            var __storedTable3Rows = _cteRowResults.Slot3;
-            for (int __storedTable3Index = 0; __storedTable3Index < __storedTable3Rows.Count; ++__storedTable3Index)
-            {
-                if ((__storedTable3Index & 1023) == 0)
-                {
-                    token.ThrowIfCancellationRequested();
-                }
-
-                Statement0Row0 a_sq_1 = __storedTable3Rows[__storedTable3Index];
-                var key0 = 1;
-                var key1 = a_sq_1.a_Name;
-                var key2 = a_sq_1.a_City;
-                var key3 = a_sq_1.a_Country;
-                var key4 = a_sq_1.a_Population;
-                var key5 = a_sq_1.a_Month;
-                var key6 = a_sq_1.a_Money;
-                var key7 = a_sq_1.a_Id;
-                var key8 = a_sq_1.a_NullableValue;
-                var key = (key0, key1, key2, key3, key4, key5, key6, key7, key8);
-                if (key1 != null && key2 != null && key3 != null && key5 != null && key8 != null && statement1_sq_2Keys.Contains(key))
-                {
-                    string a_Name = a_sq_1.a_Name;
-                    string a_City = a_sq_1.a_City;
-                    string a_Country = a_sq_1.a_Country;
-                    decimal a_Population = a_sq_1.a_Population;
-                    decimal a_Money = a_sq_1.a_Money;
-                    string a_Month = a_sq_1.a_Month;
-                    int a_Id = a_sq_1.a_Id;
-                    int? a_NullableValue = a_sq_1.a_NullableValue;
-                    statement1.Add(new Statement1Row0(a_Name, a_City, a_Country, a_Population, a_Money, a_Month, a_Id, a_NullableValue, a_sq_1._sq_1__sq_1_key, a_sq_1._sq_1__sq_1_corr_0, a_sq_1._sq_1__sq_1_corr_1, a_sq_1._sq_1__sq_1_corr_2, a_sq_1._sq_1__sq_1_corr_3, a_sq_1._sq_1__sq_1_corr_4, a_sq_1._sq_1__sq_1_corr_5, a_sq_1._sq_1__sq_1_corr_6, a_sq_1._sq_1__sq_1_corr_7, 1, a_Name, a_City, a_Country, a_Population, a_Month, a_Money, a_Id, a_NullableValue));
-                }
-                else
-                {
-                    statement1.Add(new Statement1Row0(a_sq_1.a_Name, a_sq_1.a_City, a_sq_1.a_Country, a_sq_1.a_Population, a_sq_1.a_Money, a_sq_1.a_Month, a_sq_1.a_Id, a_sq_1.a_NullableValue, a_sq_1._sq_1__sq_1_key, a_sq_1._sq_1__sq_1_corr_0, a_sq_1._sq_1__sq_1_corr_1, a_sq_1._sq_1__sq_1_corr_2, a_sq_1._sq_1__sq_1_corr_3, a_sq_1._sq_1__sq_1_corr_4, a_sq_1._sq_1__sq_1_corr_5, a_sq_1._sq_1__sq_1_corr_6, a_sq_1._sq_1__sq_1_corr_7, null, null, null, null, null, null, null, null, null));
-                }
-            }
-
-            return statement1;
-        }
-
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Statement2Row0> BuildCte5(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, CteRowResults _cteRowResults)
-        {
-            var statement2 = new List<Statement2Row0>(_cteRowResults.Slot4.Count);
-            var statement2_sq_3HashEmptyState = new Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.State();
-            Musoq.Plugins.CorrelatedScalarSubqueryResult<string> statement2_sq_3HashEmptyValue = (Musoq.Plugins.CorrelatedScalarSubqueryResult<string>)Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Get(statement2_sq_3HashEmptyState);
-            var statement2_sq_3Hash = new Dictionary<ValueTuple<string, string, string, decimal?, string, decimal?, int?, ValueTuple<int?>>, HashJoinBucket<Cte2Row0>>(_cteRowResults.Slot2.Count);
-            var __storedTable2Rows = _cteRowResults.Slot2;
-            for (int __storedTable2Index = 0; __storedTable2Index < __storedTable2Rows.Count; ++__storedTable2Index)
-            {
-                if ((__storedTable2Index & 1023) == 0)
-                {
-                    token.ThrowIfCancellationRequested();
-                }
-
-                Cte2Row0 _sq_3 = __storedTable2Rows[__storedTable2Index];
-                var key0 = _sq_3._sq_3_corr_0;
-                var key1 = _sq_3._sq_3_corr_1;
-                var key2 = _sq_3._sq_3_corr_2;
-                var key3 = _sq_3._sq_3_corr_3;
-                var key4 = _sq_3._sq_3_corr_4;
-                var key5 = _sq_3._sq_3_corr_5;
-                var key6 = _sq_3._sq_3_corr_6;
-                var key7 = _sq_3._sq_3_corr_7;
-                if (key0 == null || key1 == null || key2 == null || key3 == null || key4 == null || key5 == null || key6 == null || key7 == null)
-                    continue;
-                var key = (key0, key1, key2, key3, key4, key5, key6, key7);
-                {
-                    ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement2_sq_3Hash, key, out var matchesExists);
-                    if (!matchesExists)
+                    var key = (key0, key1, key2, key3, key4, key5, key6, key7);
                     {
-                        matches = new HashJoinBucket<Cte2Row0>(_sq_3);
-                    }
-                    else
-                    {
-                        matches.Add(_sq_3);
+                        ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement2_sq_3Hash, key, out var matchesExists);
+                        if (!matchesExists)
+                        {
+                            matches = new HashJoinBucket<Cte2Row0>(_sq_3);
+                        }
+                        else
+                        {
+                            matches.Add(_sq_3);
+                        }
                     }
                 }
-            }
 
-            var __storedTable4Rows = _cteRowResults.Slot4;
-            for (int __storedTable4Index = 0; __storedTable4Index < __storedTable4Rows.Count; ++__storedTable4Index)
-            {
-                if ((__storedTable4Index & 1023) == 0)
+                var __storedTable4Rows = _cteRowResults.Slot4;
+                for (int __storedTable4Index = 0; __storedTable4Index < __storedTable4Rows.Count; ++__storedTable4Index)
                 {
-                    token.ThrowIfCancellationRequested();
-                }
-
-                Statement1Row0 a_sq_1_sq_2 = __storedTable4Rows[__storedTable4Index];
-                bool statement2_sq_3HashHasMatch = false;
-                var key0 = a_sq_1_sq_2.a_Name;
-                var key1 = a_sq_1_sq_2.a_City;
-                var key2 = a_sq_1_sq_2.a_Country;
-                var key3 = a_sq_1_sq_2.a_Population;
-                var key4 = a_sq_1_sq_2.a_Month;
-                var key5 = a_sq_1_sq_2.a_Money;
-                var key6 = a_sq_1_sq_2.a_Id;
-                var key7 = a_sq_1_sq_2.a_NullableValue;
-                var key = (key0, key1, key2, key3, key4, key5, key6, key7);
-                if (key0 != null && key1 != null && key2 != null && key4 != null && key7 != null && statement2_sq_3Hash.TryGetValue(key, out var statement2_sq_3HashMatches))
-                {
-                    foreach (var _sq_3 in statement2_sq_3HashMatches)
+                    if ((__storedTable4Index & 1023) == 0)
                     {
                         token.ThrowIfCancellationRequested();
-                        statement2_sq_3HashHasMatch = true;
-                        statement2.Add(new Statement2Row0(a_sq_1_sq_2.a_Name, a_sq_1_sq_2.a_City, a_sq_1_sq_2.a_Country, a_sq_1_sq_2.a_Population, a_sq_1_sq_2.a_Money, a_sq_1_sq_2.a_Month, a_sq_1_sq_2.a_Id, a_sq_1_sq_2.a_NullableValue, a_sq_1_sq_2._sq_1__sq_1_key, a_sq_1_sq_2._sq_1__sq_1_corr_0, a_sq_1_sq_2._sq_1__sq_1_corr_1, a_sq_1_sq_2._sq_1__sq_1_corr_2, a_sq_1_sq_2._sq_1__sq_1_corr_3, a_sq_1_sq_2._sq_1__sq_1_corr_4, a_sq_1_sq_2._sq_1__sq_1_corr_5, a_sq_1_sq_2._sq_1__sq_1_corr_6, a_sq_1_sq_2._sq_1__sq_1_corr_7, a_sq_1_sq_2._sq_2__sq_2_key, a_sq_1_sq_2._sq_2__sq_2_corr_0, a_sq_1_sq_2._sq_2__sq_2_corr_1, a_sq_1_sq_2._sq_2__sq_2_corr_2, a_sq_1_sq_2._sq_2__sq_2_corr_3, a_sq_1_sq_2._sq_2__sq_2_corr_4, a_sq_1_sq_2._sq_2__sq_2_corr_5, a_sq_1_sq_2._sq_2__sq_2_corr_6, a_sq_1_sq_2._sq_2__sq_2_corr_7, _sq_3._sq_3_corr_0, _sq_3._sq_3_corr_1, _sq_3._sq_3_corr_2, _sq_3._sq_3_corr_3, _sq_3._sq_3_corr_4, _sq_3._sq_3_corr_5, _sq_3._sq_3_corr_6, _sq_3._sq_3_corr_7, _sq_3._sq_3_value));
+                    }
+
+                    Statement1Row0 a_sq_1_sq_2 = __storedTable4Rows[__storedTable4Index];
+                    bool statement2_sq_3HashHasMatch = false;
+                    var key0 = a_sq_1_sq_2.a_Name;
+                    var key1 = a_sq_1_sq_2.a_City;
+                    var key2 = a_sq_1_sq_2.a_Country;
+                    var key3 = a_sq_1_sq_2.a_Population;
+                    var key4 = a_sq_1_sq_2.a_Month;
+                    var key5 = a_sq_1_sq_2.a_Money;
+                    var key6 = a_sq_1_sq_2.a_Id;
+                    var key7 = a_sq_1_sq_2.a_NullableValue;
+                    var key = (key0, key1, key2, key3, key4, key5, key6, key7);
+                    if (key0 != null && key1 != null && key2 != null && key4 != null && key7 != null && statement2_sq_3Hash.TryGetValue(key, out var statement2_sq_3HashMatches))
+                    {
+                        foreach (var _sq_3 in statement2_sq_3HashMatches)
+                        {
+                            token.ThrowIfCancellationRequested();
+                            statement2_sq_3HashHasMatch = true;
+                            statement2.Add(new Statement2Row0(a_sq_1_sq_2.a_Name, a_sq_1_sq_2.a_City, a_sq_1_sq_2.a_Country, a_sq_1_sq_2.a_Population, a_sq_1_sq_2.a_Money, a_sq_1_sq_2.a_Month, a_sq_1_sq_2.a_Id, a_sq_1_sq_2.a_NullableValue, a_sq_1_sq_2._sq_1__sq_1_key, a_sq_1_sq_2._sq_1__sq_1_corr_0, a_sq_1_sq_2._sq_1__sq_1_corr_1, a_sq_1_sq_2._sq_1__sq_1_corr_2, a_sq_1_sq_2._sq_1__sq_1_corr_3, a_sq_1_sq_2._sq_1__sq_1_corr_4, a_sq_1_sq_2._sq_1__sq_1_corr_5, a_sq_1_sq_2._sq_1__sq_1_corr_6, a_sq_1_sq_2._sq_1__sq_1_corr_7, a_sq_1_sq_2._sq_2__sq_2_key, a_sq_1_sq_2._sq_2__sq_2_corr_0, a_sq_1_sq_2._sq_2__sq_2_corr_1, a_sq_1_sq_2._sq_2__sq_2_corr_2, a_sq_1_sq_2._sq_2__sq_2_corr_3, a_sq_1_sq_2._sq_2__sq_2_corr_4, a_sq_1_sq_2._sq_2__sq_2_corr_5, a_sq_1_sq_2._sq_2__sq_2_corr_6, a_sq_1_sq_2._sq_2__sq_2_corr_7, _sq_3._sq_3_corr_0, _sq_3._sq_3_corr_1, _sq_3._sq_3_corr_2, _sq_3._sq_3_corr_3, _sq_3._sq_3_corr_4, _sq_3._sq_3_corr_5, _sq_3._sq_3_corr_6, _sq_3._sq_3_corr_7, _sq_3._sq_3_value));
+                        }
+                    }
+
+                    if (!statement2_sq_3HashHasMatch)
+                    {
+                        statement2.Add(new Statement2Row0(a_sq_1_sq_2.a_Name, a_sq_1_sq_2.a_City, a_sq_1_sq_2.a_Country, a_sq_1_sq_2.a_Population, a_sq_1_sq_2.a_Money, a_sq_1_sq_2.a_Month, a_sq_1_sq_2.a_Id, a_sq_1_sq_2.a_NullableValue, a_sq_1_sq_2._sq_1__sq_1_key, a_sq_1_sq_2._sq_1__sq_1_corr_0, a_sq_1_sq_2._sq_1__sq_1_corr_1, a_sq_1_sq_2._sq_1__sq_1_corr_2, a_sq_1_sq_2._sq_1__sq_1_corr_3, a_sq_1_sq_2._sq_1__sq_1_corr_4, a_sq_1_sq_2._sq_1__sq_1_corr_5, a_sq_1_sq_2._sq_1__sq_1_corr_6, a_sq_1_sq_2._sq_1__sq_1_corr_7, a_sq_1_sq_2._sq_2__sq_2_key, a_sq_1_sq_2._sq_2__sq_2_corr_0, a_sq_1_sq_2._sq_2__sq_2_corr_1, a_sq_1_sq_2._sq_2__sq_2_corr_2, a_sq_1_sq_2._sq_2__sq_2_corr_3, a_sq_1_sq_2._sq_2__sq_2_corr_4, a_sq_1_sq_2._sq_2__sq_2_corr_5, a_sq_1_sq_2._sq_2__sq_2_corr_6, a_sq_1_sq_2._sq_2__sq_2_corr_7, null, null, null, null, null, null, null, null, statement2_sq_3HashEmptyValue));
                     }
                 }
 
-                if (!statement2_sq_3HashHasMatch)
-                {
-                    statement2.Add(new Statement2Row0(a_sq_1_sq_2.a_Name, a_sq_1_sq_2.a_City, a_sq_1_sq_2.a_Country, a_sq_1_sq_2.a_Population, a_sq_1_sq_2.a_Money, a_sq_1_sq_2.a_Month, a_sq_1_sq_2.a_Id, a_sq_1_sq_2.a_NullableValue, a_sq_1_sq_2._sq_1__sq_1_key, a_sq_1_sq_2._sq_1__sq_1_corr_0, a_sq_1_sq_2._sq_1__sq_1_corr_1, a_sq_1_sq_2._sq_1__sq_1_corr_2, a_sq_1_sq_2._sq_1__sq_1_corr_3, a_sq_1_sq_2._sq_1__sq_1_corr_4, a_sq_1_sq_2._sq_1__sq_1_corr_5, a_sq_1_sq_2._sq_1__sq_1_corr_6, a_sq_1_sq_2._sq_1__sq_1_corr_7, a_sq_1_sq_2._sq_2__sq_2_key, a_sq_1_sq_2._sq_2__sq_2_corr_0, a_sq_1_sq_2._sq_2__sq_2_corr_1, a_sq_1_sq_2._sq_2__sq_2_corr_2, a_sq_1_sq_2._sq_2__sq_2_corr_3, a_sq_1_sq_2._sq_2__sq_2_corr_4, a_sq_1_sq_2._sq_2__sq_2_corr_5, a_sq_1_sq_2._sq_2__sq_2_corr_6, a_sq_1_sq_2._sq_2__sq_2_corr_7, null, null, null, null, null, null, null, null, statement2_sq_3HashEmptyValue));
-                }
+                return statement2;
             }
-
-            return statement2;
+            finally
+            {
+                OnPhaseChanged("compiled:cte5", QueryPhase.End);
+            }
         }
 
         private sealed class Cte2AggregateGroup

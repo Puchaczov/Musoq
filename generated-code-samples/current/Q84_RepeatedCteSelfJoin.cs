@@ -64,6 +64,10 @@ ExecutionPlan [compiled]
       r.City: string <- field r_City
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [From:cte0]
     SourceScan [ko3iko: BasicEntity] -> cte0_ko3ikoRows
     CreateTable [cte0: Cte0Row0]
     CreateHash [cte0HashSidecar0Name: string -> Row]
@@ -73,14 +77,18 @@ ExecutionPlan [compiled]
       CreateHashPayload [cte0SidecarPayload0 <- Cte0HashPayload0(Name: ko3iko.Name, City: ko3iko.City)]
       HashAdd [cte0HashSidecar0Name[ko3iko.Name] += cte0SidecarPayload0]
     StoreCteIndex [cte0HashSidecar0Name -> _cteIndexResults.Slot0 Hash]
+    PhaseBoundary [Select:cte0]
     StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]
-    CtePhase [cte1]
+    PhaseBoundary [End:cte0]
+    PhaseBoundary [Select]
+    PhaseBoundary [Begin:cte1]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     LoadCteIndex [rHash <- _cteIndexResults.Slot0 Hash: string]
     ForEach [l in _cteRowResults.Slot0]
       HashProbe [rHash[l.Name] -> rHashMatches]
         ForEach [r in rHashMatches]
           AppendShape [result <- ResultShape0(l.Name: l.Name, r.City: r.City)]
+    PhaseBoundary [End:cte1]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
 
@@ -103,7 +111,7 @@ namespace GeneratedSample_Q84_RepeatedCteSelfJoin
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_cte0_1 = new Column[]
         {
@@ -127,6 +135,7 @@ namespace GeneratedSample_Q84_RepeatedCteSelfJoin
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -142,11 +151,9 @@ namespace GeneratedSample_Q84_RepeatedCteSelfJoin
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-            OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var _cteRowResults = new CteRowResults();
@@ -154,35 +161,51 @@ namespace GeneratedSample_Q84_RepeatedCteSelfJoin
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
-                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults, _cteIndexResults);
-                var rHash = _cteIndexResults.Slot0;
-                var __storedTable0Rows = _cteRowResults.Slot0;
-                for (int __storedTable0Index = 0; __storedTable0Index < __storedTable0Rows.Count; ++__storedTable0Index)
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, _cteIndexResults);
+                OnPhaseChanged("compiled", QueryPhase.Select);
+                OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
+                try
                 {
-                    if ((__storedTable0Index & 1023) == 0)
+                    var rHash = _cteIndexResults.Slot0;
+                    var __storedTable0Rows = _cteRowResults.Slot0;
+                    for (int __storedTable0Index = 0; __storedTable0Index < __storedTable0Rows.Count; ++__storedTable0Index)
                     {
-                        token.ThrowIfCancellationRequested();
-                    }
-
-                    Cte0Row0 l = __storedTable0Rows[__storedTable0Index];
-                    string key = l.Name;
-                    if (key != null && rHash.TryGetValue(key, out var rHashMatches))
-                    {
-                        foreach (var r in rHashMatches)
+                        if ((__storedTable0Index & 1023) == 0)
                         {
                             token.ThrowIfCancellationRequested();
-                            __musoqFinalShapeRows.Add(new ResultShape0(l.Name, r.City));
+                        }
+
+                        Cte0Row0 l = __storedTable0Rows[__storedTable0Index];
+                        string key = l.Name;
+                        if (key != null && rHash.TryGetValue(key, out var rHashMatches))
+                        {
+                            foreach (var r in rHashMatches)
+                            {
+                                token.ThrowIfCancellationRequested();
+                                __musoqFinalShapeRows.Add(new ResultShape0(l.Name, r.City));
+                            }
                         }
                     }
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled:cte1", QueryPhase.End);
                 }
 
                 return __musoqFinalShapeRows;
             }
             finally
             {
-                OnPhaseChanged("compiled:cte0", QueryPhase.End);
-                OnPhaseChanged("compiled:cte1", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 
@@ -199,117 +222,125 @@ namespace GeneratedSample_Q84_RepeatedCteSelfJoin
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, CteRowResults _cteRowResults, CteIndexResults _cteIndexResults)
+        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults, CteIndexResults _cteIndexResults)
         {
-            var __cte0_ko3ikoSchema = provider.GetSchema("#A");
-            var cte0_ko3ikoRowsSource = __cte0_ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-            var cte0_ko3ikoRows = cte0_ko3ikoRowsSource.Chunks;
-            var cte0 = new List<Cte0Row0>();
-            var cte0HashSidecar0Name = new Dictionary<string, HashJoinBucket<Cte0HashPayload0>>();
-            foreach (var ko3ikoChunk in cte0_ko3ikoRows)
+            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+            try
             {
-                if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)
+                var __cte0_ko3ikoSchema = provider.GetSchema("#A");
+                var cte0_ko3ikoRowsSource = __cte0_ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var cte0_ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : cte0_ko3ikoRowsSource.Chunks;
+                var cte0 = new List<Cte0Row0>();
+                var cte0HashSidecar0Name = new Dictionary<string, HashJoinBucket<Cte0HashPayload0>>();
+                foreach (var ko3ikoChunk in cte0_ko3ikoRows)
                 {
-                    if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] ko3ikoChunkViewArray)
+                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)
                     {
-                        int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                        for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] ko3ikoChunkViewArray)
                         {
-                            if ((ko3ikoIndex & 1023) == 0)
+                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                             {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                            Cte0Row0 cte0SidecarRow0 = new Cte0Row0(ko3iko.Name, ko3iko.City);
-                            cte0.Add(cte0SidecarRow0);
-                            Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Name, ko3iko.City);
-                            string cte0HashSidecar0NameKey0 = ko3iko.Name;
-                            if (cte0HashSidecar0NameKey0 != null)
-                            {
+                                if ((ko3ikoIndex & 1023) == 0)
                                 {
-                                    ref var cte0HashSidecar0NameBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0HashSidecar0Name, cte0HashSidecar0NameKey0, out var cte0HashSidecar0NameBucket0Exists);
-                                    if (!cte0HashSidecar0NameBucket0Exists)
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                Cte0Row0 cte0SidecarRow0 = new Cte0Row0(ko3iko.Name, ko3iko.City);
+                                cte0.Add(cte0SidecarRow0);
+                                Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Name, ko3iko.City);
+                                string cte0HashSidecar0NameKey0 = ko3iko.Name;
+                                if (cte0HashSidecar0NameKey0 != null)
+                                {
                                     {
-                                        cte0HashSidecar0NameBucket0 = new HashJoinBucket<Cte0HashPayload0>(cte0SidecarPayload0);
-                                    }
-                                    else
-                                    {
-                                        cte0HashSidecar0NameBucket0.Add(cte0SidecarPayload0);
+                                        ref var cte0HashSidecar0NameBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0HashSidecar0Name, cte0HashSidecar0NameKey0, out var cte0HashSidecar0NameBucket0Exists);
+                                        if (!cte0HashSidecar0NameBucket0Exists)
+                                        {
+                                            cte0HashSidecar0NameBucket0 = new HashJoinBucket<Cte0HashPayload0>(cte0SidecarPayload0);
+                                        }
+                                        else
+                                        {
+                                            cte0HashSidecar0NameBucket0.Add(cte0SidecarPayload0);
+                                        }
                                     }
                                 }
                             }
+
+                            continue;
                         }
 
-                        continue;
-                    }
-
-                    if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkViewList)
-                    {
-                        int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                        for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkViewList)
                         {
-                            if ((ko3ikoIndex & 1023) == 0)
+                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                             {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                            Cte0Row0 cte0SidecarRow0 = new Cte0Row0(ko3iko.Name, ko3iko.City);
-                            cte0.Add(cte0SidecarRow0);
-                            Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Name, ko3iko.City);
-                            string cte0HashSidecar0NameKey0 = ko3iko.Name;
-                            if (cte0HashSidecar0NameKey0 != null)
-                            {
+                                if ((ko3ikoIndex & 1023) == 0)
                                 {
-                                    ref var cte0HashSidecar0NameBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0HashSidecar0Name, cte0HashSidecar0NameKey0, out var cte0HashSidecar0NameBucket0Exists);
-                                    if (!cte0HashSidecar0NameBucket0Exists)
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                Cte0Row0 cte0SidecarRow0 = new Cte0Row0(ko3iko.Name, ko3iko.City);
+                                cte0.Add(cte0SidecarRow0);
+                                Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Name, ko3iko.City);
+                                string cte0HashSidecar0NameKey0 = ko3iko.Name;
+                                if (cte0HashSidecar0NameKey0 != null)
+                                {
                                     {
-                                        cte0HashSidecar0NameBucket0 = new HashJoinBucket<Cte0HashPayload0>(cte0SidecarPayload0);
-                                    }
-                                    else
-                                    {
-                                        cte0HashSidecar0NameBucket0.Add(cte0SidecarPayload0);
+                                        ref var cte0HashSidecar0NameBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0HashSidecar0Name, cte0HashSidecar0NameKey0, out var cte0HashSidecar0NameBucket0Exists);
+                                        if (!cte0HashSidecar0NameBucket0Exists)
+                                        {
+                                            cte0HashSidecar0NameBucket0 = new HashJoinBucket<Cte0HashPayload0>(cte0SidecarPayload0);
+                                        }
+                                        else
+                                        {
+                                            cte0HashSidecar0NameBucket0.Add(cte0SidecarPayload0);
+                                        }
                                     }
                                 }
                             }
+
+                            continue;
                         }
-
-                        continue;
-                    }
-                }
-
-                for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
-                {
-                    if ((ko3ikoIndex & 1023) == 0)
-                    {
-                        token.ThrowIfCancellationRequested();
                     }
 
-                    var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                    Cte0Row0 cte0SidecarRow0 = new Cte0Row0(ko3iko.Name, ko3iko.City);
-                    cte0.Add(cte0SidecarRow0);
-                    Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Name, ko3iko.City);
-                    string cte0HashSidecar0NameKey0 = ko3iko.Name;
-                    if (cte0HashSidecar0NameKey0 != null)
+                    for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                     {
+                        if ((ko3ikoIndex & 1023) == 0)
                         {
-                            ref var cte0HashSidecar0NameBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0HashSidecar0Name, cte0HashSidecar0NameKey0, out var cte0HashSidecar0NameBucket0Exists);
-                            if (!cte0HashSidecar0NameBucket0Exists)
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        var ko3iko = ko3ikoChunk[ko3ikoIndex];
+                        Cte0Row0 cte0SidecarRow0 = new Cte0Row0(ko3iko.Name, ko3iko.City);
+                        cte0.Add(cte0SidecarRow0);
+                        Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Name, ko3iko.City);
+                        string cte0HashSidecar0NameKey0 = ko3iko.Name;
+                        if (cte0HashSidecar0NameKey0 != null)
+                        {
                             {
-                                cte0HashSidecar0NameBucket0 = new HashJoinBucket<Cte0HashPayload0>(cte0SidecarPayload0);
-                            }
-                            else
-                            {
-                                cte0HashSidecar0NameBucket0.Add(cte0SidecarPayload0);
+                                ref var cte0HashSidecar0NameBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0HashSidecar0Name, cte0HashSidecar0NameKey0, out var cte0HashSidecar0NameBucket0Exists);
+                                if (!cte0HashSidecar0NameBucket0Exists)
+                                {
+                                    cte0HashSidecar0NameBucket0 = new HashJoinBucket<Cte0HashPayload0>(cte0SidecarPayload0);
+                                }
+                                else
+                                {
+                                    cte0HashSidecar0NameBucket0.Add(cte0SidecarPayload0);
+                                }
                             }
                         }
                     }
                 }
+
+                _cteIndexResults.Slot0 = cte0HashSidecar0Name;
+                return cte0;
             }
-
-            _cteIndexResults.Slot0 = cte0HashSidecar0Name;
-            return cte0;
+            finally
+            {
+                OnPhaseChanged("compiled:cte0", QueryPhase.End);
+            }
         }
 
         private readonly struct Cte0HashPayload0

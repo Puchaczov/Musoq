@@ -283,7 +283,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var rowSourcePattern =
             $@"var [A-Za-z0-9_]*{escapedAlias}RowsSource = __[A-Za-z0-9_]*{escapedAlias}Schema\.GetRowSource<";
         var rowsPattern =
-            $@"var [A-Za-z0-9_]*{escapedAlias}Rows = [A-Za-z0-9_]*{escapedAlias}RowsSource\.Chunks;";
+            $@"var [A-Za-z0-9_]*{escapedAlias}Rows = .*?[A-Za-z0-9_]*{escapedAlias}RowsSource\.Chunks;";
 
         return Regex.IsMatch(content, rowSourcePattern) && Regex.IsMatch(content, rowsPattern);
     }

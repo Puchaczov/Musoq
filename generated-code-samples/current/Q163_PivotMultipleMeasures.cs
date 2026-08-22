@@ -46,8 +46,11 @@ ExecutionPlan [compiled]
       Feb_Orders: long <- field Feb_Orders
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [ko3iko: BasicEntity] -> ko3ikoRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [GroupBy]
     CreateSingleKeyAggregateContext [groups: string -> ResultAggregateGroup]
     ParallelSingleKeyAggregateLoop [ko3iko in ko3ikoRows by ko3iko.City; threshold 4096, sample 8192/6144, maxDegree 24, group ResultAggregateGroup]
       ParallelAccumulate
@@ -57,6 +60,7 @@ ExecutionPlan [compiled]
         TypedAggregateSet [Set(group.__agg2) filter (ko3iko.Month = 'Jan')]
         TypedAggregateSet [Set(group.__agg3, money) filter (ko3iko.Month = 'Jan')]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
+    PhaseBoundary [Select]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(City: finalGroup.City, Jan_Sales: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan'), Jan_Orders: ko3iko.Count(*) filter (where Month = 'Jan'), Feb_Sales: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'), Feb_Orders: ko3iko.Count(*) filter (where Month = 'Feb'))]
     SortShapeRows [result -> resultSorted by City ASC]
@@ -82,7 +86,7 @@ namespace GeneratedSample_Q163_PivotMultipleMeasures
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -104,6 +108,7 @@ namespace GeneratedSample_Q163_PivotMultipleMeasures
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -119,23 +124,26 @@ namespace GeneratedSample_Q163_PivotMultipleMeasures
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.GroupBy);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#A");
                 var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var ko3ikoRows = ko3ikoRowsSource.Chunks;
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 var result = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.GroupBy);
                 var groupsToFinalize = new List<ResultAggregateGroup>();
                 var groups = new Dictionary<string, ResultAggregateGroup>();
                 groupsToFinalize = ParallelSingleKeyAggregate_0(ko3ikoRows, 24, token);
                 result.EnsureCapacity(groupsToFinalize.Count);
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
@@ -158,7 +166,14 @@ namespace GeneratedSample_Q163_PivotMultipleMeasures
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

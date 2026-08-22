@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.Helpers;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -21,7 +20,7 @@ public sealed partial class ExecutionCSharpRenderer
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 ranking.Results.Name,
-                CreateSizedArrayCreation(typeof(long), CreateBufferCountExpression(ranking.Buffer)))
+                CreateSizedArrayCreation(GetArrayElementType(ranking.Results), CreateBufferCountExpression(ranking.Buffer)))
         };
 
         if (ranking.QualifyUpperBound is <= 0)
@@ -76,6 +75,12 @@ public sealed partial class ExecutionCSharpRenderer
                 partitionIndex,
                 currentIndex,
                 previousIndex),
+            ExecutionRankingWindowFunction.PercentRank or ExecutionRankingWindowFunction.CumeDist =>
+                WindowDistributionRankingSyntax.CreateKernelBody(
+                    [ranking],
+                    orderKeys,
+                    new WindowDistributionRankingSyntax.DistributionRankingKernelNames(
+                        result, partitionStart, partitionCount, partitionIndices)),
             _ => throw new ArgumentOutOfRangeException(nameof(ranking), ranking.Function, null)
         };
 
@@ -141,7 +146,7 @@ public sealed partial class ExecutionCSharpRenderer
                     if ({{partitionIndex}} > 0)
                     {
                         var {{previousIndex}} = {{partitionIndices}}[{{partitionStart}} + {{partitionIndex}} - 1];
-                        if (!{{CreateRankingPeerEqualityExpression(orderKeys, currentIndex, previousIndex)}})
+                        if (!{{WindowDistributionRankingSyntax.CreatePeerEqualityExpression(orderKeys, currentIndex, previousIndex)}})
                             {{result}}Rank = {{partitionIndex}} + 1L;
                     }{{maxRankGuard}}
 
@@ -177,25 +182,12 @@ public sealed partial class ExecutionCSharpRenderer
                     if ({{partitionIndex}} > 0)
                     {
                         var {{previousIndex}} = {{partitionIndices}}[{{partitionStart}} + {{partitionIndex}} - 1];
-                        if (!{{CreateRankingPeerEqualityExpression(orderKeys, currentIndex, previousIndex)}})
+                        if (!{{WindowDistributionRankingSyntax.CreatePeerEqualityExpression(orderKeys, currentIndex, previousIndex)}})
                             {{result}}DenseRank++;
                     }{{maxRankGuard}}
 
                     {{result}}[{{currentIndex}}] = {{result}}DenseRank;
                 }
 """;
-    }
-
-    private static string CreateRankingPeerEqualityExpression(
-        ExecutionWindowKeyArray orderKeys,
-        string currentIndex,
-        string previousIndex)
-    {
-        if (HasGeneratedWindowKeyType(orderKeys))
-            return $"{orderKeys.Variable.Name}[{currentIndex}].PeerEquals({orderKeys.Variable.Name}[{previousIndex}])";
-
-        var elementTypeName = EvaluationHelper.GetCastableType(GetArrayElementType(orderKeys.Variable));
-
-        return $"System.Collections.Generic.EqualityComparer<{elementTypeName}>.Default.Equals({orderKeys.Variable.Name}[{currentIndex}], {orderKeys.Variable.Name}[{previousIndex}])";
     }
 }

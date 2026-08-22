@@ -113,7 +113,8 @@ public static class ClassEmitter
         string className,
         IList<SyntaxNode> members,
         bool implementsProfiledRunnable = false,
-        bool implementsContextualRunnable = false)
+        bool implementsContextualRunnable = false,
+        bool implementsContextualProfiledRunnable = false)
     {
         ArgumentNullException.ThrowIfNull(generator);
         var orderedMembers = ReorderMembers(members);
@@ -121,6 +122,7 @@ public static class ClassEmitter
         {
             SyntaxFactory.IdentifierName(nameof(BaseOperations)),
             SyntaxFactory.IdentifierName(nameof(ITableRunnable)),
+            SyntaxFactory.IdentifierName(nameof(IQueryProgressSource)),
             SyntaxFactory.IdentifierName(nameof(IParameterizedRunnable))
         };
 
@@ -129,6 +131,9 @@ public static class ClassEmitter
 
         if (implementsProfiledRunnable)
             baseTypes.Add(SyntaxFactory.IdentifierName(nameof(IProfiledRunnable)));
+
+        if (implementsContextualProfiledRunnable)
+            baseTypes.Add(SyntaxFactory.IdentifierName(nameof(IContextProfiledRunnable)));
 
         return generator.ClassDeclaration(
             className,
@@ -156,6 +161,7 @@ public static class ClassEmitter
                 .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
                     SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
                         LegacyCodeGenerationSyntaxFactory.CreateTypeSyntax(outputType)))),
+            SyntaxFactory.IdentifierName(nameof(IQueryProgressSource)),
             SyntaxFactory.IdentifierName(nameof(IParameterizedRunnable))
         };
 
@@ -326,7 +332,8 @@ public static class ClassEmitter
         string profiledMethodCallExpression,
         IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions = null,
         string? contextMethodCallExpression = null,
-        bool enableContextualExecution = false)
+        bool enableContextualExecution = false,
+        string? contextProfiledMethodCallExpression = null)
     {
         ArgumentNullException.ThrowIfNull(members);
         var method = MethodDeclarationHelper.CreateRunMethod(methodCallExpression);
@@ -335,6 +342,9 @@ public static class ClassEmitter
             members.Add(MethodDeclarationHelper.CreateContextRunMethodWithBody(
                 SyntaxFactory.Block(SyntaxFactory.ParseStatement($"return {contextMethodCallExpression};"))));
         members.Add(MethodDeclarationHelper.CreateProfiledRunMethod(profiledMethodCallExpression));
+        if (enableContextualExecution && contextProfiledMethodCallExpression != null)
+            members.Add(MethodDeclarationHelper.CreateContextProfiledRunMethodWithBody(
+                SyntaxFactory.Block(SyntaxFactory.ParseStatement($"return {contextProfiledMethodCallExpression};"))));
     }
 
     /// <summary>
@@ -364,7 +374,13 @@ public static class ClassEmitter
         ArgumentNullException.ThrowIfNull(resultInfo);
 
         var method = MethodDeclarationHelper.CreateRunMethodWithBody(
-            CreateTableViaRowsRunBody(rowsMethodName, resultInfo, null, forceTableResultMaterialization, useContext: false));
+            CreateTableViaRowsRunBody(
+                rowsMethodName,
+                resultInfo,
+                null,
+                forceTableResultMaterialization,
+                useContext: enableContextualExecution,
+                createContext: enableContextualExecution));
 
         AddRunnableMembersCore(members, method, parameterDefinitions);
         if (enableContextualExecution)
@@ -374,7 +390,8 @@ public static class ClassEmitter
                     resultInfo,
                     null,
                     forceTableResultMaterialization,
-                    useContext: true)));
+                    useContext: true,
+                    createContext: false)));
     }
 
     public static void AddProfiledTableViaRowsRunnableMembers(
@@ -396,7 +413,8 @@ public static class ClassEmitter
                 resultInfo,
                 null,
                 forceTableResultMaterialization,
-                useContext: false));
+                useContext: enableContextualExecution,
+                createContext: enableContextualExecution));
         AddRunnableMembersCore(members, method, parameterDefinitions);
         if (enableContextualExecution)
             members.Add(MethodDeclarationHelper.CreateContextRunMethodWithBody(
@@ -405,18 +423,33 @@ public static class ClassEmitter
                     resultInfo,
                     null,
                     forceTableResultMaterialization,
-                    useContext: true)));
+                    useContext: true,
+                    createContext: false)));
 
         members.Add(CreateProfiledTableViaRowsRunMethod(
             profiledRowsMethodName,
             resultInfo,
-            forceTableResultMaterialization));
+            forceTableResultMaterialization,
+            useContext: enableContextualExecution,
+            createContext: enableContextualExecution,
+            methodUsesContext: false));
+        if (enableContextualExecution)
+            members.Add(CreateProfiledTableViaRowsRunMethod(
+                profiledRowsMethodName,
+                resultInfo,
+                forceTableResultMaterialization,
+                useContext: true,
+                createContext: false,
+                methodUsesContext: true));
     }
 
     private static MethodDeclarationSyntax CreateProfiledTableViaRowsRunMethod(
         string rowsMethodName,
         TableViaRowsResultInfo resultInfo,
-        bool forceTableResultMaterialization)
+        bool forceTableResultMaterialization,
+        bool useContext,
+        bool createContext,
+        bool methodUsesContext)
     {
         var statements = new List<StatementSyntax>
         {
@@ -427,21 +460,30 @@ public static class ClassEmitter
             resultInfo,
             SyntaxFactory.IdentifierName("profileRecorder"),
             forceTableResultMaterialization,
-            useContext: false).Statements);
+            useContext,
+            createContext).Statements);
+
+        var parameterList = methodUsesContext
+            ? SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(
+            [
+                SyntaxFactory.Parameter(SyntaxFactory.Identifier("queryContext"))
+                    .WithType(SyntaxFactory.IdentifierName(nameof(QueryRunContext))),
+                SyntaxFactory.Parameter(SyntaxFactory.Identifier("profileRecorder"))
+                    .WithType(SyntaxFactory.IdentifierName("QueryProfileRecorder"))
+            ]))
+            : SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(
+            [
+                SyntaxFactory.Parameter(SyntaxFactory.Identifier("token"))
+                    .WithType(SyntaxFactory.IdentifierName(nameof(CancellationToken))),
+                SyntaxFactory.Parameter(SyntaxFactory.Identifier("profileRecorder"))
+                    .WithType(SyntaxFactory.IdentifierName("QueryProfileRecorder"))
+            ]));
 
         return SyntaxFactory.MethodDeclaration(
                 SyntaxFactory.IdentifierName(nameof(Table)),
                 SyntaxFactory.Identifier(nameof(IProfiledRunnable.RunWithProfile)))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-            .WithParameterList(
-                SyntaxFactory.ParameterList(
-                    SyntaxFactory.SeparatedList(
-                    [
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("token"))
-                            .WithType(SyntaxFactory.IdentifierName(nameof(CancellationToken))),
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("profileRecorder"))
-                            .WithType(SyntaxFactory.IdentifierName("QueryProfileRecorder"))
-                    ])))
+            .WithParameterList(parameterList)
             .WithBody(SyntaxFactory.Block(statements));
     }
 
@@ -450,21 +492,32 @@ public static class ClassEmitter
         TableViaRowsResultInfo resultInfo,
         ExpressionSyntax? profileRecorderArgument,
         bool forceTableResultMaterialization,
-        bool useContext)
+        bool useContext,
+        bool createContext)
     {
         var tableExpression = CreateDeferredTableExpression(rowsMethodName, resultInfo, profileRecorderArgument, useContext);
+        var statements = new List<StatementSyntax>();
+        if (createContext)
+        {
+            statements.Add(SyntaxFactory.ParseStatement(
+                "var queryContext = new QueryRunContext(token, Parameters, PhaseChanged, DataSourceProgress, this, queryId: \"compiled\", provider: Provider, sourceRuntimeSettingsBySourceContextId: SourceRuntimeSettingsBySourceContextId, sourceRuntimeSettingDescriptionsBySourceContextId: SourceRuntimeSettingDescriptionsBySourceContextId, sourceExecutionPlans: SourceExecutionPlans, logger: Logger, queryProgress: QueryProgress);"));
+        }
+
         if (!forceTableResultMaterialization)
-            return SyntaxFactory.Block(SyntaxFactory.ReturnStatement(tableExpression));
+        {
+            statements.Add(SyntaxFactory.ReturnStatement(tableExpression));
+            return SyntaxFactory.Block(statements);
+        }
 
         const string materializedTableName = "__musoqMaterializedTable";
-        return SyntaxFactory.Block(
-            SyntaxFactory.LocalDeclarationStatement(
+        statements.Add(SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
                     .WithVariables(SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(materializedTableName))
-                            .WithInitializer(SyntaxFactory.EqualsValueClause(tableExpression))))),
-            SyntaxFactory.ParseStatement($"_ = {materializedTableName}.Count;"),
-            SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName(materializedTableName)));
+                            .WithInitializer(SyntaxFactory.EqualsValueClause(tableExpression))))));
+        statements.Add(SyntaxFactory.ParseStatement($"_ = {materializedTableName}.Count;"));
+        statements.Add(SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName(materializedTableName)));
+        return SyntaxFactory.Block(statements);
     }
 
     private static InvocationExpressionSyntax CreateDeferredTableExpression(
@@ -498,7 +551,9 @@ public static class ClassEmitter
             SyntaxFactory.Argument(useContext
                 ? SyntaxFactory.ParseExpression("queryContext.Logger!")
                 : SyntaxFactory.IdentifierName(nameof(IQueryRunnable.Logger))),
-            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("queryToken"))
+            SyntaxFactory.Argument(useContext
+                ? SyntaxFactory.IdentifierName("queryContext")
+                : SyntaxFactory.IdentifierName("queryToken"))
         };
         if (profileRecorderArgument != null)
             rowsArguments.Add(SyntaxFactory.Argument(profileRecorderArgument));
@@ -545,30 +600,44 @@ public static class ClassEmitter
         ArgumentNullException.ThrowIfNull(outputType);
 
         const string initialContextName = "__musoqInitialRunContext";
+        const string enumerationContextName = "__musoqEnumerationRunContext";
+        const string localContextName = "queryContext";
+        var rowsFactoryBody = SyntaxFactory.Block(
+            CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                localContextName,
+                CreatePerEnumerationRunContext(initialContextName)),
+            SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    SyntaxFactory.IdentifierName(enumerationContextName),
+                    SyntaxFactory.IdentifierName(localContextName))),
+            SyntaxFactory.ReturnStatement(
+                SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(rowsMethodName))
+                    .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                    [
+                        SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(initialContextName),
+                            SyntaxFactory.IdentifierName(nameof(QueryRunContext.Provider)))),
+                        SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(initialContextName),
+                            SyntaxFactory.IdentifierName(nameof(QueryRunContext.SourceRuntimeSettingsBySourceContextId)))),
+                        SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(initialContextName),
+                            SyntaxFactory.IdentifierName(nameof(QueryRunContext.SourceExecutionPlans)))),
+                        SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(initialContextName),
+                            SyntaxFactory.IdentifierName(nameof(QueryRunContext.Logger)))),
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName(localContextName))
+                    ])))));
         var rowsFactory = SyntaxFactory.ParenthesizedLambdaExpression()
             .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(
                 SyntaxFactory.Parameter(SyntaxFactory.Identifier("queryToken")))))
-            .WithExpressionBody(SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(rowsMethodName))
-                .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
-                [
-                    SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(initialContextName),
-                        SyntaxFactory.IdentifierName(nameof(QueryRunContext.Provider)))),
-                    SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(initialContextName),
-                        SyntaxFactory.IdentifierName(nameof(QueryRunContext.SourceRuntimeSettingsBySourceContextId)))),
-                    SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(initialContextName),
-                        SyntaxFactory.IdentifierName(nameof(QueryRunContext.SourceExecutionPlans)))),
-                    SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(initialContextName),
-                        SyntaxFactory.IdentifierName(nameof(QueryRunContext.Logger)))),
-                    SyntaxFactory.Argument(CreatePerEnumerationRunContext(initialContextName))
-                ]))));
+            .WithBody(rowsFactoryBody);
         var rowEnumerable = SyntaxFactory.ObjectCreationExpression(
                 SyntaxFactory.GenericName(nameof(QueryEnumerable<object>))
                     .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
@@ -580,10 +649,26 @@ public static class ClassEmitter
                 SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName("options"),
-                    SyntaxFactory.IdentifierName(nameof(TypedQueryRunOptions.CancellationToken))))
+                    SyntaxFactory.IdentifierName(nameof(TypedQueryRunOptions.CancellationToken)))),
+                SyntaxFactory.Argument(SyntaxFactory.ParseExpression(
+                        $"{initialContextName}.{nameof(QueryRunContext.QueryProgress)} == null ? null : " +
+                        $"(Action)(() => {enumerationContextName}?.{nameof(QueryRunContext.CompleteQueryProgress)}())"))
+                    .WithNameColon(SyntaxFactory.NameColon("onCompleted")),
+                SyntaxFactory.Argument(SyntaxFactory.ParseExpression(
+                        $"{initialContextName}.{nameof(QueryRunContext.QueryProgress)} == null ? null : " +
+                        $"(Action<Exception>)(_ => {enumerationContextName}?.{nameof(QueryRunContext.CompleteQueryProgress)}())"))
+                    .WithNameColon(SyntaxFactory.NameColon("onException")),
+                SyntaxFactory.Argument(SyntaxFactory.ParseExpression(
+                        $"{initialContextName}.{nameof(QueryRunContext.QueryProgress)} == null ? null : " +
+                        $"(Action)(() => {enumerationContextName}?.{nameof(QueryRunContext.CompleteQueryProgress)}())"))
+                    .WithNameColon(SyntaxFactory.NameColon("onDisposed"))
             ])));
         var body = SyntaxFactory.Block(
             SyntaxFactory.ParseStatement("ArgumentNullException.ThrowIfNull(options);"),
+            CreateLocalDeclaration(
+                SyntaxFactory.ParseTypeName("QueryRunContext?"),
+                enumerationContextName,
+                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 initialContextName,
@@ -632,6 +717,7 @@ public static class ClassEmitter
         var onPhaseChangedMethod = MethodDeclarationHelper.CreateOnPhaseChangedMethod();
         var dataSourceProgressEvent = MethodDeclarationHelper.CreateDataSourceProgressEvent();
         var onDataSourceProgressMethod = MethodDeclarationHelper.CreateOnDataSourceProgressMethod();
+        var queryProgressEvent = MethodDeclarationHelper.CreateQueryProgressEvent();
 
         foreach (var runMethod in runMethods)
             members.Add(runMethod);
@@ -647,6 +733,7 @@ public static class ClassEmitter
         members.Add(onPhaseChangedMethod);
         members.Add(dataSourceProgressEvent);
         members.Add(onDataSourceProgressMethod);
+        members.Add(queryProgressEvent);
     }
 
     private static ObjectCreationExpressionSyntax CreatePerEnumerationRunContext(string initialContextName)
@@ -675,6 +762,16 @@ public static class ClassEmitter
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(initialContextName),
                     SyntaxFactory.IdentifierName(nameof(QueryRunContext.QueryId))))
+                    .WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName("queryId"))),
+                SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(initialContextName),
+                    SyntaxFactory.IdentifierName(nameof(QueryRunContext.QueryProgress))))
+                    .WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName("queryProgress"))),
+                SyntaxFactory.Argument(SyntaxFactory.ParseExpression(
+                        $"{initialContextName}.{nameof(QueryRunContext.QueryProgress)} == null ? null : " +
+                        $"{initialContextName}.{nameof(QueryRunContext.QueryProgressOptions)}"))
+                    .WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName("queryProgressOptions")))
             ])));
     }
 

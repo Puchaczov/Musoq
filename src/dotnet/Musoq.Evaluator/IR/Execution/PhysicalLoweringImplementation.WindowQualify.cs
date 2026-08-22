@@ -15,7 +15,10 @@ internal sealed partial class PhysicalLoweringImplementation
             return new WindowQualifyTopRankPlan(null, new Dictionary<int, long>());
 
         var rankingIndexes = registrations
-            .Where(static registration => registration.RankingFunction != null)
+            .Where(static registration => registration.RankingFunction is
+                ExecutionRankingWindowFunction.RowNumber or
+                ExecutionRankingWindowFunction.Rank or
+                ExecutionRankingWindowFunction.DenseRank)
             .Select(static registration => registration.Registration!.WindowIndex)
             .ToHashSet();
 

@@ -30,8 +30,10 @@ internal static class SchemaArgumentBinder
         {
             foreach (var arg in args.Args)
             {
-                if (TryBindStaticArgument(arg, scriptParameters, scriptVariables, out var value))
-                    values.Add(value);
+                if (!TryBindStaticArgument(arg, scriptParameters, scriptVariables, out var value))
+                    break;
+
+                values.Add(value);
             }
 
             return values.ToArray();

@@ -155,7 +155,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("public List<Cte1Row0> Slot1;", StringComparison.Ordinal), result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("public List<Cte2Row0> Slot2;", StringComparison.Ordinal), result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("public List<Cte3Row0> Slot3;", StringComparison.Ordinal), result.GeneratedCSharpCode);
-        Assert.Contains("CtePhase [cte0]", result.ExecutionPlanText);
+        Assert.Contains("PhaseBoundary [Begin:cte0]", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("CreateTable [cte0:", StringComparison.Ordinal), result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [cte0 ->", StringComparison.Ordinal), result.ExecutionPlanText);
         Assert.Contains("ForEach [ko3iko in cte0_ko3ikoRows]", result.ExecutionPlanText);
@@ -301,7 +301,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(staged.Contains("public List<Cte3Row0> Slot3;", StringComparison.Ordinal), staged);
         Assert.IsFalse(staged.Contains("private static List<Cte0Row0> BuildCte0(", StringComparison.Ordinal), staged);
         Assert.Contains("FusedCteProducer [cte1 -> sidecar-only, cte2 -> sidecar-only, cte3 -> sidecar-only]", staged);
-        Assert.Contains("CtePhase [cte0]", staged);
+        Assert.Contains("PhaseBoundary [Begin:cte0]", staged);
         Assert.Contains("ForEach [ko3iko in cte0_ko3ikoRows]", staged);
         Assert.IsFalse(staged.Contains("CreateTable [cte0:", StringComparison.Ordinal), staged);
         Assert.IsFalse(staged.Contains("StoreTable [cte0 ->", StringComparison.Ordinal), staged);

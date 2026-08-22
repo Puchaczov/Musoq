@@ -1,17 +1,18 @@
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Plugins;
-
 namespace Musoq.Targets.CSharpClr;
-
 public sealed partial class ExecutionCSharpRenderer
 {
-    private List<StatementSyntax> CreateStreamingPluginWindowComputation(ExecutionComputePluginWindow plugin)
+    private List<StatementSyntax> CreateStreamingPluginWindowComputation(
+        ExecutionComputePluginWindow plugin,
+        ExecutionWindowKeyArray? orderKeys)
     {
         if (!TryGetStreamingPluginWindowMode(plugin, out var mode))
             throw new InvalidOperationException("Streaming plugin window frame shape is not supported.");
-
         var statements = new List<StatementSyntax>();
         var functionName = $"{plugin.Results.Name}Function";
         var resultElementType = plugin.Results.Type.RequireClrType().GetElementType() ?? typeof(object);
@@ -19,7 +20,6 @@ public sealed partial class ExecutionCSharpRenderer
 
         if (!TryGetTypedPluginWindowCallTypes(plugin, out var inputType, out var resultType))
             throw new InvalidOperationException("Streaming plugin windows require typed no-boxing plugin contracts.");
-
         statements.Add(CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             functionName,
@@ -33,7 +33,12 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IdentifierName("var"),
             plugin.Results.Name,
             CreateSizedArrayCreation(resultElementType, CreateBufferCountExpression(plugin.Buffer))));
-        statements.Add(CreateStreamingPluginPartitionLoop(plugin, functionName, partitions, mode));
+        statements.Add(CreateStreamingPluginPartitionLoop(
+            plugin,
+            functionName,
+            partitions,
+            mode,
+            orderKeys));
 
         return statements;
     }
@@ -42,7 +47,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionComputePluginWindow plugin,
         StreamingPluginWindowMode mode)
     {
-        if (mode == StreamingPluginWindowMode.Running || plugin.OrderKeys.Count > 0)
+        if (mode is StreamingPluginWindowMode.Running or StreamingPluginWindowMode.RunningPeers ||
+            plugin.OrderKeys.Count > 0)
         {
             return plugin.SortedPartitions ?? plugin.Partitions ??
                    throw new InvalidOperationException("Streaming plugin windows require resolved partitions.");
@@ -56,7 +62,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionComputePluginWindow plugin,
         string functionName,
         ExecutionWindowPartitionSet partitions,
-        StreamingPluginWindowMode mode)
+        StreamingPluginWindowMode mode,
+        ExecutionWindowKeyArray? orderKeys)
     {
         var partitionSetIndexName = $"{plugin.Results.Name}PartitionSetIndex";
         var partitionStartName = $"{plugin.Results.Name}PartitionStart";
@@ -89,6 +96,17 @@ public sealed partial class ExecutionCSharpRenderer
                 partitionStartName,
                 partitionCountName));
         }
+        else if (mode == StreamingPluginWindowMode.RunningPeers)
+        {
+            body.Add(CreateStreamingPluginPeerRowsLoop(
+                plugin,
+                functionName,
+                orderKeys ?? throw new InvalidOperationException(
+                    "Peer-aware streaming plugin windows require order keys."),
+                partitionIndicesName,
+                partitionStartName,
+                partitionCountName));
+        }
         else
         {
             body.Add(CreateStreamingPluginUnsortedAccumulationLoop(
@@ -112,6 +130,37 @@ public sealed partial class ExecutionCSharpRenderer
             partitionSetIndexName,
             partitions.Variable.Name,
             StatementEmitter.CreateBlock(body));
+    }
+
+    private StatementSyntax CreateStreamingPluginPeerRowsLoop(
+        ExecutionComputePluginWindow plugin,
+        string functionName,
+        ExecutionWindowKeyArray orderKeys,
+        string partitionIndicesName,
+        string partitionStartName,
+        string partitionCountName)
+    {
+        var resultName = plugin.Results.Name;
+        var currentIndexName = $"{resultName}CurrentIndex";
+        var currentIndex = new ExecutionVariable(currentIndexName, typeof(int));
+        var itemDeclarations = string.Join(
+            Environment.NewLine,
+            CreateIndexedItemDeclarations(plugin.Item, plugin.Buffer, currentIndex, plugin.RowAccessMode)
+                .Select(static statement => "            " + statement.NormalizeWhitespace().ToFullString()));
+        var accumulate = CreateStreamingPluginAccumulateStatement(plugin, functionName)
+            .NormalizeWhitespace()
+            .ToFullString();
+
+        return WindowRangeFrameSyntax.CreateStreamingPluginPeerRowsLoop(
+            resultName,
+            functionName,
+            orderKeys.Variable.Name,
+            partitionIndicesName,
+            partitionStartName,
+            partitionCountName,
+            currentIndexName,
+            itemDeclarations,
+            accumulate);
     }
 
     private ForStatementSyntax CreateStreamingPluginSortedRowsLoop(

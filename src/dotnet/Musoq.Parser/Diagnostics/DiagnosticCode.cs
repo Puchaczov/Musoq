@@ -138,6 +138,7 @@ public enum DiagnosticCode
     MQ3095_ScalarSubqueryCardinality = 3095,
     MQ3096_UnsupportedVariableKeyAccess = 3096,
     MQ3097_UnsupportedAggregateProjection = 3097,
+    MQ3098_InvalidRangeFrameOrderKey = 3098,
 
     // Schema Definition Errors (MQ4xxx)
     MQ4001_InvalidBinarySchemaField = 4001,
@@ -163,6 +164,7 @@ public enum DiagnosticCode
     MQ5010_TautologicalCondition = 5010, MQ5011_ContradictoryCondition = 5011, MQ5013_SourceContractWarning = 5013, MQ5014_SuspiciousOrdinaryStringEscape = 5014, MQ5015_SuspiciousRegexEscape = 5015, MQ5016_GlobWildcardInLike = 5016, MQ5017_NullComparison = 5017, MQ5018_AmbiguousOuterJoinNullCheck = 5018, MQ5019_NullRejectingOuterJoinFilter = 5019, MQ5020_SetOperationOrderByScope = 5020, MQ5021_UnorderedSkip = 5021, MQ5022_UnusedCte = 5022, MQ5023_UnusedScriptVariable = 5023,
     MQ5024_NullSensitiveNotIn = 5024,
     MQ5025_ImpossibleImplicitConversion = 5025,
+    MQ5026_SetOperationSliceScope = 5026,
 
     // Runtime Errors (MQ7xxx)
     MQ7003_RequiredScriptParameterMissing = 7003,

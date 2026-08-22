@@ -64,9 +64,13 @@ ExecutionPlan [compiled]
       Value + ExpensiveCompute(Value) + Value * 2: decimal <- field Value___ExpensiveCompute_Value____Value___2
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [ko3iko: BenchmarkParityEntity] -> ko3ikoRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateObject [__resultBenchmarkParityLibrary0: BenchmarkParityLibrary]
+    PhaseBoundary [Where]
+    PhaseBoundary [Select]
     ParallelFilterProjectLoop [ko3iko in ko3ikoRows where (((ko3iko.Value > 50) AND (ExpensiveCompute(ko3iko.Value) > 0)) AND (ko3iko.Value < 900)); threshold 4096, maxDegree 24]
       ParallelProject
         Let [value: int = ko3iko.Value]
@@ -97,7 +101,7 @@ namespace GeneratedSample_Q179_BenchmarkOptimizedHeavyMixedMaterialized
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -126,6 +130,7 @@ namespace GeneratedSample_Q179_BenchmarkOptimizedHeavyMixedMaterialized
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             var __musoqMaterializedTable = QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -135,18 +140,21 @@ namespace GeneratedSample_Q179_BenchmarkOptimizedHeavyMixedMaterialized
 
         private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Where);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             var __musoqExecutionState = ExecutionState.Capture(Parameters);
             ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
             var __resultExpensiveComputeCache0 = new System.Collections.Concurrent.ConcurrentDictionary<int, decimal>();
+            this.OnPhaseChanged("compiled", QueryPhase.Begin);
+            this.OnPhaseChanged("compiled", QueryPhase.From);
             var __ko3ikoSchema = provider.GetSchema("#test");
             var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.RuntimeV2.BenchmarkParityEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-            var ko3ikoRows = ko3ikoRowsSource.Chunks;
+            var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.RuntimeV2.BenchmarkParityEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
             var __resultBenchmarkParityLibrary0 = new Musoq.Evaluator.Tests.Schema.RuntimeV2.BenchmarkParityLibrary();
             var __musoqTableSourceRows = ko3ikoRows;
+            this.OnPhaseChanged("compiled", QueryPhase.Where);
+            this.OnPhaseChanged("compiled", QueryPhase.Select);
             if (__musoqTableSourceRows is not IReadOnlyList<IReadOnlyList<Musoq.Evaluator.Tests.Schema.RuntimeV2.BenchmarkParityEntity>> _)
             {
                 return new QueryTableEnumerable<ResultRow0>((_) => EvaluationHelper.ProjectChunkedRowsParallel<Musoq.Evaluator.Tests.Schema.RuntimeV2.BenchmarkParityEntity, ResultRow0>(__musoqTableSourceRows, 24, (ko3iko) =>
@@ -163,10 +171,34 @@ namespace GeneratedSample_Q179_BenchmarkOptimizedHeavyMixedMaterialized
                     return null;
                 }, token), token, onCompleted: () =>
                 {
-                    OnPhaseChanged("compiled", QueryPhase.End);
+                    try
+                    {
+                        __musoqProgressContext?.CompleteQueryProgress();
+                    }
+                    finally
+                    {
+                        OnPhaseChanged("compiled", QueryPhase.End);
+                    }
+                }, onException: (Exception _) =>
+                {
+                    try
+                    {
+                        __musoqProgressContext?.CompleteQueryProgress();
+                    }
+                    finally
+                    {
+                        OnPhaseChanged("compiled", QueryPhase.End);
+                    }
                 }, onDisposed: () =>
                 {
-                    OnPhaseChanged("compiled", QueryPhase.End);
+                    try
+                    {
+                        __musoqProgressContext?.CompleteQueryProgress();
+                    }
+                    finally
+                    {
+                        OnPhaseChanged("compiled", QueryPhase.End);
+                    }
                 });
             }
 
@@ -185,10 +217,34 @@ namespace GeneratedSample_Q179_BenchmarkOptimizedHeavyMixedMaterialized
                 return null;
             }, token)), token, onCompleted: () =>
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            }, onException: (Exception _) =>
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }, onDisposed: () =>
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             });
         }
 

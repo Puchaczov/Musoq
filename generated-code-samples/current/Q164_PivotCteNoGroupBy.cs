@@ -59,6 +59,9 @@ ExecutionPlan [compiled]
       Feb: decimal? <- field Feb
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [From:cte0]
     SourceScan [ko3iko: BasicEntity] -> cte0_ko3ikoRows
     CreateTable [cte0: Cte0Row0]
     CreateAggregateContext [cte0RootGroup, cte0Group, cte0GroupsToFinalize; typed: Cte0AggregateGroup]
@@ -68,12 +71,16 @@ ExecutionPlan [compiled]
       TypedAggregateSet [Set(cte0Group.__agg0, money) filter (ko3iko.Month = 'Feb')]
       TypedAggregateSet [Set(cte0Group.__agg1, money) filter (ko3iko.Month = 'Jan')]
     EnsureCapacity [cte0 <- cte0GroupsToFinalize.Count]
+    PhaseBoundary [Select:cte0]
     ForEach [cte0FinalGroup in cte0GroupsToFinalize]
       AppendRow [cte0 <- Cte0Row0(Jan: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan'), Feb: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'))]
     StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]
+    PhaseBoundary [End:cte0]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [From]
     ForEach [p in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Jan: p.Jan, Feb: p.Feb)]
+    PhaseBoundary [Select]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
 
@@ -96,7 +103,7 @@ namespace GeneratedSample_Q164_PivotCteNoGroupBy
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_cte0_1 = new Column[]
         {
@@ -115,6 +122,7 @@ namespace GeneratedSample_Q164_PivotCteNoGroupBy
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_cte0_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -130,18 +138,18 @@ namespace GeneratedSample_Q164_PivotCteNoGroupBy
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.GroupBy);
-            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
-                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults);
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __storedTable0Rows = _cteRowResults.Slot0;
                 for (int __storedTable0Index = 0; __storedTable0Index < __storedTable0Rows.Count; ++__storedTable0Index)
                 {
@@ -154,12 +162,19 @@ namespace GeneratedSample_Q164_PivotCteNoGroupBy
                     __musoqFinalShapeRows.Add(new ResultShape0(p.Jan, p.Feb));
                 }
 
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 return __musoqFinalShapeRows;
             }
             finally
             {
-                OnPhaseChanged("compiled:cte0", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 
@@ -176,167 +191,175 @@ namespace GeneratedSample_Q164_PivotCteNoGroupBy
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, CteRowResults _cteRowResults)
+        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
-            var __cte0_ko3ikoSchema = provider.GetSchema("#A");
-            var cte0_ko3ikoRowsSource = __cte0_ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-            var cte0_ko3ikoRows = cte0_ko3ikoRowsSource.Chunks;
-            var cte0 = new List<Cte0Row0>();
-            var cte0GroupsToFinalize = new List<Cte0AggregateGroup>();
-            Cte0AggregateGroup cte0Group = new Cte0AggregateGroup();
-            cte0GroupsToFinalize.Add(cte0Group);
-            foreach (var ko3ikoChunk in cte0_ko3ikoRows)
+            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+            try
             {
-                if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)
+                var __cte0_ko3ikoSchema = provider.GetSchema("#A");
+                var cte0_ko3ikoRowsSource = __cte0_ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var cte0_ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : cte0_ko3ikoRowsSource.Chunks;
+                var cte0 = new List<Cte0Row0>();
+                var cte0GroupsToFinalize = new List<Cte0AggregateGroup>();
+                Cte0AggregateGroup cte0Group = new Cte0AggregateGroup();
+                cte0GroupsToFinalize.Add(cte0Group);
+                foreach (var ko3ikoChunk in cte0_ko3ikoRows)
                 {
-                    if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] ko3ikoChunkViewArray)
+                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)
                     {
-                        int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                        for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] ko3ikoChunkViewArray)
                         {
-                            if ((ko3ikoIndex & 1023) == 0)
+                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                             {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                            decimal money = ko3iko.Money;
-                            if (cte0Group == null)
-                            {
-                                cte0Group = new Cte0AggregateGroup();
-                                cte0GroupsToFinalize.Add(cte0Group);
-                            }
-
-                            if ((ko3iko.Month == "Feb"))
-                            {
+                                if ((ko3ikoIndex & 1023) == 0)
                                 {
-                                    var __agg0Input = (decimal?)money;
-                                    if (__agg0Input.HasValue)
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                decimal money = ko3iko.Money;
+                                if (cte0Group == null)
+                                {
+                                    cte0Group = new Cte0AggregateGroup();
+                                    cte0GroupsToFinalize.Add(cte0Group);
+                                }
+
+                                if ((ko3iko.Month == "Feb"))
+                                {
                                     {
-                                        var __agg0Current = __agg0Input.GetValueOrDefault();
-                                        cte0Group.__agg0.Value = cte0Group.__agg0.HasValue ? checked(cte0Group.__agg0.Value + __agg0Current) : __agg0Current;
-                                        cte0Group.__agg0.HasValue = true;
+                                        var __agg0Input = (decimal?)money;
+                                        if (__agg0Input.HasValue)
+                                        {
+                                            var __agg0Current = __agg0Input.GetValueOrDefault();
+                                            cte0Group.__agg0.Value = cte0Group.__agg0.HasValue ? checked(cte0Group.__agg0.Value + __agg0Current) : __agg0Current;
+                                            cte0Group.__agg0.HasValue = true;
+                                        }
+                                    }
+                                }
+
+                                if ((ko3iko.Month == "Jan"))
+                                {
+                                    {
+                                        var __agg1Input = (decimal?)money;
+                                        if (__agg1Input.HasValue)
+                                        {
+                                            var __agg1Current = __agg1Input.GetValueOrDefault();
+                                            cte0Group.__agg1.Value = cte0Group.__agg1.HasValue ? checked(cte0Group.__agg1.Value + __agg1Current) : __agg1Current;
+                                            cte0Group.__agg1.HasValue = true;
+                                        }
                                     }
                                 }
                             }
 
-                            if ((ko3iko.Month == "Jan"))
-                            {
-                                {
-                                    var __agg1Input = (decimal?)money;
-                                    if (__agg1Input.HasValue)
-                                    {
-                                        var __agg1Current = __agg1Input.GetValueOrDefault();
-                                        cte0Group.__agg1.Value = cte0Group.__agg1.HasValue ? checked(cte0Group.__agg1.Value + __agg1Current) : __agg1Current;
-                                        cte0Group.__agg1.HasValue = true;
-                                    }
-                                }
-                            }
+                            continue;
                         }
 
-                        continue;
+                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkViewList)
+                        {
+                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                            {
+                                if ((ko3ikoIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                decimal money = ko3iko.Money;
+                                if (cte0Group == null)
+                                {
+                                    cte0Group = new Cte0AggregateGroup();
+                                    cte0GroupsToFinalize.Add(cte0Group);
+                                }
+
+                                if ((ko3iko.Month == "Feb"))
+                                {
+                                    {
+                                        var __agg0Input = (decimal?)money;
+                                        if (__agg0Input.HasValue)
+                                        {
+                                            var __agg0Current = __agg0Input.GetValueOrDefault();
+                                            cte0Group.__agg0.Value = cte0Group.__agg0.HasValue ? checked(cte0Group.__agg0.Value + __agg0Current) : __agg0Current;
+                                            cte0Group.__agg0.HasValue = true;
+                                        }
+                                    }
+                                }
+
+                                if ((ko3iko.Month == "Jan"))
+                                {
+                                    {
+                                        var __agg1Input = (decimal?)money;
+                                        if (__agg1Input.HasValue)
+                                        {
+                                            var __agg1Current = __agg1Input.GetValueOrDefault();
+                                            cte0Group.__agg1.Value = cte0Group.__agg1.HasValue ? checked(cte0Group.__agg1.Value + __agg1Current) : __agg1Current;
+                                            cte0Group.__agg1.HasValue = true;
+                                        }
+                                    }
+                                }
+                            }
+
+                            continue;
+                        }
                     }
 
-                    if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkViewList)
+                    for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                     {
-                        int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                        for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                        if ((ko3ikoIndex & 1023) == 0)
                         {
-                            if ((ko3ikoIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
+                            token.ThrowIfCancellationRequested();
+                        }
 
-                            var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                            decimal money = ko3iko.Money;
-                            if (cte0Group == null)
-                            {
-                                cte0Group = new Cte0AggregateGroup();
-                                cte0GroupsToFinalize.Add(cte0Group);
-                            }
+                        var ko3iko = ko3ikoChunk[ko3ikoIndex];
+                        decimal money = ko3iko.Money;
+                        if (cte0Group == null)
+                        {
+                            cte0Group = new Cte0AggregateGroup();
+                            cte0GroupsToFinalize.Add(cte0Group);
+                        }
 
-                            if ((ko3iko.Month == "Feb"))
+                        if ((ko3iko.Month == "Feb"))
+                        {
                             {
+                                var __agg0Input = (decimal?)money;
+                                if (__agg0Input.HasValue)
                                 {
-                                    var __agg0Input = (decimal?)money;
-                                    if (__agg0Input.HasValue)
-                                    {
-                                        var __agg0Current = __agg0Input.GetValueOrDefault();
-                                        cte0Group.__agg0.Value = cte0Group.__agg0.HasValue ? checked(cte0Group.__agg0.Value + __agg0Current) : __agg0Current;
-                                        cte0Group.__agg0.HasValue = true;
-                                    }
-                                }
-                            }
-
-                            if ((ko3iko.Month == "Jan"))
-                            {
-                                {
-                                    var __agg1Input = (decimal?)money;
-                                    if (__agg1Input.HasValue)
-                                    {
-                                        var __agg1Current = __agg1Input.GetValueOrDefault();
-                                        cte0Group.__agg1.Value = cte0Group.__agg1.HasValue ? checked(cte0Group.__agg1.Value + __agg1Current) : __agg1Current;
-                                        cte0Group.__agg1.HasValue = true;
-                                    }
+                                    var __agg0Current = __agg0Input.GetValueOrDefault();
+                                    cte0Group.__agg0.Value = cte0Group.__agg0.HasValue ? checked(cte0Group.__agg0.Value + __agg0Current) : __agg0Current;
+                                    cte0Group.__agg0.HasValue = true;
                                 }
                             }
                         }
 
-                        continue;
+                        if ((ko3iko.Month == "Jan"))
+                        {
+                            {
+                                var __agg1Input = (decimal?)money;
+                                if (__agg1Input.HasValue)
+                                {
+                                    var __agg1Current = __agg1Input.GetValueOrDefault();
+                                    cte0Group.__agg1.Value = cte0Group.__agg1.HasValue ? checked(cte0Group.__agg1.Value + __agg1Current) : __agg1Current;
+                                    cte0Group.__agg1.HasValue = true;
+                                }
+                            }
+                        }
                     }
                 }
 
-                for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                cte0.EnsureCapacity(cte0GroupsToFinalize.Count);
+                foreach (var cte0FinalGroup in cte0GroupsToFinalize)
                 {
-                    if ((ko3ikoIndex & 1023) == 0)
-                    {
-                        token.ThrowIfCancellationRequested();
-                    }
-
-                    var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                    decimal money = ko3iko.Money;
-                    if (cte0Group == null)
-                    {
-                        cte0Group = new Cte0AggregateGroup();
-                        cte0GroupsToFinalize.Add(cte0Group);
-                    }
-
-                    if ((ko3iko.Month == "Feb"))
-                    {
-                        {
-                            var __agg0Input = (decimal?)money;
-                            if (__agg0Input.HasValue)
-                            {
-                                var __agg0Current = __agg0Input.GetValueOrDefault();
-                                cte0Group.__agg0.Value = cte0Group.__agg0.HasValue ? checked(cte0Group.__agg0.Value + __agg0Current) : __agg0Current;
-                                cte0Group.__agg0.HasValue = true;
-                            }
-                        }
-                    }
-
-                    if ((ko3iko.Month == "Jan"))
-                    {
-                        {
-                            var __agg1Input = (decimal?)money;
-                            if (__agg1Input.HasValue)
-                            {
-                                var __agg1Current = __agg1Input.GetValueOrDefault();
-                                cte0Group.__agg1.Value = cte0Group.__agg1.HasValue ? checked(cte0Group.__agg1.Value + __agg1Current) : __agg1Current;
-                                cte0Group.__agg1.HasValue = true;
-                            }
-                        }
-                    }
+                    token.ThrowIfCancellationRequested();
+                    cte0.Add(new Cte0Row0(cte0FinalGroup.__agg1.HasValue ? (decimal?)cte0FinalGroup.__agg1.Value : null, cte0FinalGroup.__agg0.HasValue ? (decimal?)cte0FinalGroup.__agg0.Value : null));
                 }
-            }
 
-            cte0.EnsureCapacity(cte0GroupsToFinalize.Count);
-            foreach (var cte0FinalGroup in cte0GroupsToFinalize)
+                return cte0;
+            }
+            finally
             {
-                token.ThrowIfCancellationRequested();
-                cte0.Add(new Cte0Row0(cte0FinalGroup.__agg1.HasValue ? (decimal?)cte0FinalGroup.__agg1.Value : null, cte0FinalGroup.__agg0.HasValue ? (decimal?)cte0FinalGroup.__agg0.Value : null));
+                OnPhaseChanged("compiled:cte0", QueryPhase.End);
             }
-
-            return cte0;
         }
 
         private sealed class Cte0AggregateGroup

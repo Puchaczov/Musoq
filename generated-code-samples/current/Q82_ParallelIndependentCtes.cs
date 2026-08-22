@@ -68,29 +68,41 @@ ExecutionPlan [compiled]
       q.Name: string <- field q_Name
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     ParallelBlock [cte-level-0, tasks 2, maxDegree 2]
       ParallelTask [p -> __parallelCteLevel0Task0Result]
+        PhaseBoundary [Begin:cte0]
+        PhaseBoundary [From:cte0]
         SourceScan [ko3iko: BasicEntity] -> cte0_ko3ikoRows
         CreateTable [cte0: Cte0Row0]
+        PhaseBoundary [Select:cte0]
         ChunkedForEach [ko3iko in cte0_ko3ikoRows]
           AppendRow [cte0 <- Cte0Row0(Name: ko3iko.Name)]
         Assign [__parallelCteLevel0Task0Result = cte0]
+        PhaseBoundary [End:cte0]
       ParallelTask [q -> __parallelCteLevel0Task1Result]
+        PhaseBoundary [Begin:cte1]
+        PhaseBoundary [From:cte1]
         SourceScan [vo04qt: BasicEntity] -> cte1_vo04qtRows
         CreateHash [cte1HashSidecar0Name: string -> Row]
         ChunkedForEach [vo04qt in cte1_vo04qtRows]
           CreateHashPayload [cte1SidecarPayload0 <- Cte1HashPayload0(Name: vo04qt.Name)]
           HashAdd [cte1HashSidecar0Name[vo04qt.Name] += cte1SidecarPayload0]
         StoreCteIndex [cte1HashSidecar0Name -> _cteIndexResults.Slot0 Hash]
+        PhaseBoundary [Select:cte1]
+        PhaseBoundary [End:cte1]
       ParallelMerge
         StoreTable [__parallelCteLevel0Task0Result -> _cteRowResults.Slot0: List<Cte0Row0>]
-    CtePhase [cte2]
+    PhaseBoundary [Select]
+    PhaseBoundary [Begin:cte2]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     LoadCteIndex [qHash <- _cteIndexResults.Slot0 Hash: string]
     ForEach [p in _cteRowResults.Slot0]
       HashProbe [qHash[p.Name] -> qHashMatches]
         ForEach [q in qHashMatches]
           AppendShape [result <- ResultShape0(p.Name: p.Name, q.Name: q.Name)]
+    PhaseBoundary [End:cte2]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
 
@@ -113,7 +125,7 @@ namespace GeneratedSample_Q82_ParallelIndependentCtes
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_cte0_1 = new Column[]
         {
@@ -136,6 +148,7 @@ namespace GeneratedSample_Q82_ParallelIndependentCtes
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -151,10 +164,9 @@ namespace GeneratedSample_Q82_ParallelIndependentCtes
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled:cte2", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var _cteRowResults = new CteRowResults();
@@ -162,41 +174,58 @@ namespace GeneratedSample_Q82_ParallelIndependentCtes
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 List<Cte0Row0> __parallelCteLevel0Task0Result = null;
                 object __parallelCteLevel0Task1Result = null;
-                var cteLevel0Runner = new CteLevel0Runner(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, OnPhaseChanged, _cteRowResults, _cteIndexResults);
+                var cteLevel0Runner = new CteLevel0Runner(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, _cteIndexResults);
                 Parallel.Invoke(new ParallelOptions() { CancellationToken = token, MaxDegreeOfParallelism = 2 }, cteLevel0Runner.RunCteLevel0Task0, cteLevel0Runner.RunCteLevel0Task1);
                 token.ThrowIfCancellationRequested();
                 __parallelCteLevel0Task0Result = cteLevel0Runner.Task0Result;
                 __parallelCteLevel0Task1Result = cteLevel0Runner.Task1Result;
                 _cteRowResults.Slot0 = __parallelCteLevel0Task0Result;
-                var qHash = _cteIndexResults.Slot0;
-                var __storedTable0Rows = _cteRowResults.Slot0;
-                for (int __storedTable0Index = 0; __storedTable0Index < __storedTable0Rows.Count; ++__storedTable0Index)
+                OnPhaseChanged("compiled", QueryPhase.Select);
+                OnPhaseChanged("compiled:cte2", QueryPhase.Begin);
+                try
                 {
-                    if ((__storedTable0Index & 1023) == 0)
+                    var qHash = _cteIndexResults.Slot0;
+                    var __storedTable0Rows = _cteRowResults.Slot0;
+                    for (int __storedTable0Index = 0; __storedTable0Index < __storedTable0Rows.Count; ++__storedTable0Index)
                     {
-                        token.ThrowIfCancellationRequested();
-                    }
-
-                    Cte0Row0 p = __storedTable0Rows[__storedTable0Index];
-                    string key = p.Name;
-                    if (key != null && qHash.TryGetValue(key, out var qHashMatches))
-                    {
-                        foreach (var q in qHashMatches)
+                        if ((__storedTable0Index & 1023) == 0)
                         {
                             token.ThrowIfCancellationRequested();
-                            __musoqFinalShapeRows.Add(new ResultShape0(p.Name, q.Name));
+                        }
+
+                        Cte0Row0 p = __storedTable0Rows[__storedTable0Index];
+                        string key = p.Name;
+                        if (key != null && qHash.TryGetValue(key, out var qHashMatches))
+                        {
+                            foreach (var q in qHashMatches)
+                            {
+                                token.ThrowIfCancellationRequested();
+                                __musoqFinalShapeRows.Add(new ResultShape0(p.Name, q.Name));
+                            }
                         }
                     }
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled:cte2", QueryPhase.End);
                 }
 
                 return __musoqFinalShapeRows;
             }
             finally
             {
-                OnPhaseChanged("compiled:cte2", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 
@@ -213,80 +242,93 @@ namespace GeneratedSample_Q82_ParallelIndependentCtes
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Cte0Row0> BuildCteLevel0Task0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults, CteIndexResults _cteIndexResults)
+        private static List<Cte0Row0> BuildCteLevel0Task0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults, CteIndexResults _cteIndexResults)
         {
             List<Cte0Row0> __parallelCteLevel0Task0Result = null;
             token.ThrowIfCancellationRequested();
-            var __cte0_ko3ikoSchema = provider.GetSchema("#A");
-            var cte0_ko3ikoRowsSource = __cte0_ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-            var cte0_ko3ikoRows = cte0_ko3ikoRowsSource.Chunks;
-            var cte0 = new List<Cte0Row0>();
-            foreach (var ko3ikoChunk in cte0_ko3ikoRows)
+            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+            List<Cte0Row0> cte0 = null!;
+            try
             {
-                if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)
+                OnPhaseChanged("compiled:cte0", QueryPhase.From);
+                var __cte0_ko3ikoSchema = provider.GetSchema("#A");
+                var cte0_ko3ikoRowsSource = __cte0_ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var cte0_ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : cte0_ko3ikoRowsSource.Chunks;
+                cte0 = new List<Cte0Row0>();
+                OnPhaseChanged("compiled:cte0", QueryPhase.Select);
+                foreach (var ko3ikoChunk in cte0_ko3ikoRows)
                 {
-                    if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] ko3ikoChunkViewArray)
+                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)
                     {
-                        int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                        for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] ko3ikoChunkViewArray)
                         {
-                            if ((ko3ikoIndex & 1023) == 0)
+                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                             {
-                                token.ThrowIfCancellationRequested();
+                                if ((ko3ikoIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                cte0.Add(new Cte0Row0(ko3iko.Name));
                             }
 
-                            var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                            cte0.Add(new Cte0Row0(ko3iko.Name));
+                            continue;
                         }
 
-                        continue;
+                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkViewList)
+                        {
+                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                            {
+                                if ((ko3ikoIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                cte0.Add(new Cte0Row0(ko3iko.Name));
+                            }
+
+                            continue;
+                        }
                     }
 
-                    if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkViewList)
+                    for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                     {
-                        int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                        for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                        if ((ko3ikoIndex & 1023) == 0)
                         {
-                            if ((ko3ikoIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                            cte0.Add(new Cte0Row0(ko3iko.Name));
+                            token.ThrowIfCancellationRequested();
                         }
 
-                        continue;
+                        var ko3iko = ko3ikoChunk[ko3ikoIndex];
+                        cte0.Add(new Cte0Row0(ko3iko.Name));
                     }
                 }
 
-                for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
-                {
-                    if ((ko3ikoIndex & 1023) == 0)
-                    {
-                        token.ThrowIfCancellationRequested();
-                    }
-
-                    var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                    cte0.Add(new Cte0Row0(ko3iko.Name));
-                }
+                __parallelCteLevel0Task0Result = cte0;
+            }
+            finally
+            {
+                OnPhaseChanged("compiled:cte0", QueryPhase.End);
             }
 
-            __parallelCteLevel0Task0Result = cte0;
             return __parallelCteLevel0Task0Result;
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static object BuildCteLevel0Task1(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults, CteIndexResults _cteIndexResults)
+        private static object BuildCteLevel0Task1(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults, CteIndexResults _cteIndexResults)
         {
+            object __parallelCteLevel0Task1Result = null;
+            token.ThrowIfCancellationRequested();
             OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
             try
             {
-                object __parallelCteLevel0Task1Result = null;
-                token.ThrowIfCancellationRequested();
+                OnPhaseChanged("compiled:cte1", QueryPhase.From);
                 var __cte1_vo04qtSchema = provider.GetSchema("#B");
                 var cte1_vo04qtRowsSource = __cte1_vo04qtSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("vo04qt:2", sourceExecutionPlans["vo04qt:2"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["vo04qt:2"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var cte1_vo04qtRows = cte1_vo04qtRowsSource.Chunks;
+                var cte1_vo04qtRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte1_vo04qtRowsSource.Chunks, __musoqProgressContext, "vo04qt:2") : cte1_vo04qtRowsSource.Chunks;
                 var cte1HashSidecar0Name = new Dictionary<string, HashJoinBucket<Cte1HashPayload0>>();
                 foreach (var vo04qtChunk in cte1_vo04qtRows)
                 {
@@ -385,12 +427,14 @@ namespace GeneratedSample_Q82_ParallelIndependentCtes
                 }
 
                 _cteIndexResults.Slot0 = cte1HashSidecar0Name;
-                return __parallelCteLevel0Task1Result;
+                OnPhaseChanged("compiled:cte1", QueryPhase.Select);
             }
             finally
             {
                 OnPhaseChanged("compiled:cte1", QueryPhase.End);
             }
+
+            return __parallelCteLevel0Task1Result;
         }
 
         private sealed class Cte0Row0
@@ -422,20 +466,24 @@ namespace GeneratedSample_Q82_ParallelIndependentCtes
             private readonly CteIndexResults _cteIndexResults;
             private readonly CteRowResults _cteRowResults;
             private readonly Microsoft.Extensions.Logging.ILogger _logger;
+            private readonly QueryRunContext? _musoqProgressContext;
             private readonly Musoq.Schema.DataSourceEventHandler _onDataSourceProgress;
             private readonly Action<string, QueryPhase> _onPhaseChanged;
+            private readonly Musoq.Evaluator.QueryProgressEventHandler _onQueryProgress;
             private readonly Musoq.Schema.ISchemaProvider _provider;
             private readonly IReadOnlyDictionary<string, SourceExecutionPlan> _sourceExecutionPlans;
             private readonly IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> _sourceRuntimeSettingsBySourceContextId;
             private readonly CancellationToken _token;
-            public CteLevel0Runner(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults, CteIndexResults _cteIndexResults)
+            public CteLevel0Runner(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults, CteIndexResults _cteIndexResults)
             {
                 _provider = provider;
                 _sourceRuntimeSettingsBySourceContextId = sourceRuntimeSettingsBySourceContextId;
                 _sourceExecutionPlans = sourceExecutionPlans;
                 _logger = logger;
                 _token = token;
+                _musoqProgressContext = __musoqProgressContext;
                 _onDataSourceProgress = OnDataSourceProgress;
+                _onQueryProgress = OnQueryProgress;
                 _onPhaseChanged = OnPhaseChanged;
                 this._cteRowResults = _cteRowResults;
                 this._cteIndexResults = _cteIndexResults;
@@ -447,13 +495,13 @@ namespace GeneratedSample_Q82_ParallelIndependentCtes
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void RunCteLevel0Task0()
             {
-                Task0Result = BuildCteLevel0Task0(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _onDataSourceProgress, _onPhaseChanged, _cteRowResults, _cteIndexResults);
+                Task0Result = BuildCteLevel0Task0(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _musoqProgressContext, _onDataSourceProgress, _onQueryProgress, _onPhaseChanged, _cteRowResults, _cteIndexResults);
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void RunCteLevel0Task1()
             {
-                Task1Result = BuildCteLevel0Task1(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _onDataSourceProgress, _onPhaseChanged, _cteRowResults, _cteIndexResults);
+                Task1Result = BuildCteLevel0Task1(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _musoqProgressContext, _onDataSourceProgress, _onQueryProgress, _onPhaseChanged, _cteRowResults, _cteIndexResults);
             }
         }
 

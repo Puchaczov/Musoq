@@ -132,12 +132,17 @@ public sealed partial class ExecutionCSharpRenderer
                     task.Output.Name,
                     SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))
             };
+            statements.AddRange(CreateQueryRunContextAliasStatements(
+                useQueryRunContext: false,
+                useInstanceSender: false,
+                includePhaseAlias: false,
+                includeProgressAlias: false,
+                includeProgressContextAlias: false,
+                queryIdentifier: context.Session.QueryIdentifier));
             statements.AddRange(RenderParallelTaskBody(task, context).Statements);
             statements.Add(SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName(task.Output.Name)));
 
-            return task.RelatedQueryIdentifier is { } relatedQueryIdentifier
-                ? CreateRelatedParallelTaskStatements(relatedQueryIdentifier, statements)
-                : statements;
+            return statements;
         }
         finally
         {
@@ -158,20 +163,6 @@ public sealed partial class ExecutionCSharpRenderer
                context.Session.TypedStoredTableResults.TryGetValue(tableIndex, out var typedResult) &&
                TypedStoredTableResultResolver.TryGetParallelTaskResultTable(task, out table) &&
                (rowShape = typedResult.RowShape) != null;
-    }
-
-    private List<StatementSyntax> CreateRelatedParallelTaskStatements(
-        string queryIdentifier,
-        IReadOnlyList<StatementSyntax> taskStatements)
-    {
-        return
-        [
-            QueryEmitter.GeneratePhaseChangeStatement(queryIdentifier, QueryPhase.Begin),
-            SyntaxFactory.TryStatement()
-                .WithBlock(StatementEmitter.CreateBlock(taskStatements))
-                .WithFinally(SyntaxFactory.FinallyClause(StatementEmitter.CreateBlock(
-                    QueryEmitter.GeneratePhaseChangeStatement(queryIdentifier, QueryPhase.End))))
-        ];
     }
 
     private ClassDeclarationSyntax CreateParallelRunnerClass(
@@ -359,7 +350,9 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var session = context.Session;
         var previousDeclaredStoredRowsCaches = session.DeclaredStoredRowsCaches;
+        var previousUseQueryRunContext = session.UseQueryRunContext;
         session.DeclaredStoredRowsCaches = new HashSet<int>(previousDeclaredStoredRowsCaches);
+        session.UseQueryRunContext = false;
 
         try
         {
@@ -373,6 +366,7 @@ public sealed partial class ExecutionCSharpRenderer
         finally
         {
             session.DeclaredStoredRowsCaches = previousDeclaredStoredRowsCaches;
+            session.UseQueryRunContext = previousUseQueryRunContext;
         }
     }
 

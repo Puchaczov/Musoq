@@ -90,7 +90,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "ParallelSingleKeyAggregate_0(");
 
         AssertScriptVariableBindingCount(ScriptVariableJoinHelperCaptureSampleFileName, join, 2);
-        Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults, letSuffix);", join);
+        Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, letSuffix);", join);
         Assert.Contains("CteRowResults _cteRowResults, string letSuffix)", join);
         Assert.Contains("var __storedTable0Rows = _cteRowResults.Slot0;", join);
         Assert.Contains("Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];", join);
@@ -103,7 +103,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "_cteRowResults.Slot0 = BuildCte0(");
 
         AssertScriptVariableBindingCount(ScriptVariableCteHelperCaptureSampleFileName, cte, 1);
-        Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults, _cteIndexResults, letCountry);", cte);
+        Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, _cteIndexResults, letCountry);", cte);
         Assert.Contains("CteRowResults _cteRowResults, CteIndexResults _cteIndexResults, string letCountry)", cte);
         Assert.Contains("if ((ko3iko.Country == letCountry))", cte);
         AssertTopLevelBindingBefore(

@@ -22,7 +22,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var sample = ReadSample(CteDownstreamSampleFileName);
 
-        Assert.Contains("CtePhase [cte0]", sample.Content);
+        Assert.Contains("PhaseBoundary [Begin:cte0]", sample.Content);
         Assert.Contains("ForEach [ko3iko in ko3ikoRows]", sample.Content);
         Assert.Contains("AppendShape [result <- ResultShape0(Name: ko3iko.Name, Population: population)]", sample.Content);
         Assert.Contains("OnPhaseChanged(\"compiled:cte0\", QueryPhase.Begin);", sample.Content);
@@ -42,8 +42,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var sample = ReadSample(MultipleCteChainedSampleFileName);
 
         Assert.Contains("private sealed class ResultRow0", sample.Content);
-        Assert.Contains("CtePhase [cte0]", sample.Content);
-        Assert.Contains("CtePhase [cte1]", sample.Content);
+        Assert.Contains("PhaseBoundary [Begin:cte0]", sample.Content);
+        Assert.Contains("PhaseBoundary [Begin:cte1]", sample.Content);
         Assert.Contains("ForEach [ko3iko in ko3ikoRows]", sample.Content);
         Assert.Contains("If [((ko3iko.Population > 0) AND city IS NOT NULL)]", sample.Content);
         Assert.Contains("AppendShape [result <- ResultShape0(Name: ko3iko.Name, City: city)]", sample.Content);
@@ -119,7 +119,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
             result.ExecutionPlanText);
         Assert.Contains("PhysicalHashJoin [LeftSemi]", result.PhysicalPlanText);
-        Assert.Contains("CtePhase [cte0]", result.ExecutionPlanText);
+        Assert.Contains("PhaseBoundary [Begin:cte0]", result.ExecutionPlanText);
         Assert.Contains("CreateKeySet [_sq_1Keys: string]", result.ExecutionPlanText);
         Assert.Contains("ForEach [b in cte0_bRows]", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultShape0(a.City: a.City)]", result.ExecutionPlanText);
@@ -238,7 +238,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.AreEqual(0, CountOccurrences(sample, "private sealed class LeftRightAggregateGroup"));
         Assert.AreEqual(0, CountOccurrences(sample, "private sealed class RightAggregateGroup"));
         Assert.AreEqual(0, CountOccurrences(sample, "Func<"));
-        Assert.AreEqual(0, CountOccurrences(sample, "Action<"));
+        Assert.AreEqual(1, CountOccurrences(sample, "Action<"));
+        Assert.Contains("Action<string, QueryPhase> OnPhaseChanged", sample);
         Assert.AreEqual(0, CountOccurrences(sample, ".GetValue<"));
         Assert.AreEqual(0, CountOccurrences(sample, ".SetValue<"));
         Assert.AreEqual(0, CountOccurrences(sample, "GroupSlot"));

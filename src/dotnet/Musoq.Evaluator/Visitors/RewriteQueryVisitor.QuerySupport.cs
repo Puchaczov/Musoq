@@ -73,35 +73,50 @@ public sealed partial class RewriteQueryVisitor
     public void Visit(UnionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        var take = node.ResultTake != null ? Nodes.Pop() as TakeNode : null;
+        var skip = node.ResultSkip != null ? Nodes.Pop() as SkipNode : null;
+        var orderBy = node.ResultOrderBy != null ? Nodes.Pop() as OrderByNode : null;
         var right = Nodes.Pop();
         var left = Nodes.Pop();
-        Nodes.Push(new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
+        Nodes.Push(new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
+            orderBy, skip, take));
     }
 
     public void Visit(UnionAllNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        var take = node.ResultTake != null ? Nodes.Pop() as TakeNode : null;
+        var skip = node.ResultSkip != null ? Nodes.Pop() as SkipNode : null;
+        var orderBy = node.ResultOrderBy != null ? Nodes.Pop() as OrderByNode : null;
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested,
-            node.IsTheLastOne));
+            node.IsTheLastOne, orderBy, skip, take));
     }
 
     public void Visit(ExceptNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        var take = node.ResultTake != null ? Nodes.Pop() as TakeNode : null;
+        var skip = node.ResultSkip != null ? Nodes.Pop() as SkipNode : null;
+        var orderBy = node.ResultOrderBy != null ? Nodes.Pop() as OrderByNode : null;
         var right = Nodes.Pop();
         var left = Nodes.Pop();
-        Nodes.Push(new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
+        Nodes.Push(new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
+            orderBy, skip, take));
     }
 
     public void Visit(IntersectNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        var take = node.ResultTake != null ? Nodes.Pop() as TakeNode : null;
+        var skip = node.ResultSkip != null ? Nodes.Pop() as SkipNode : null;
+        var orderBy = node.ResultOrderBy != null ? Nodes.Pop() as OrderByNode : null;
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(
-            new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
+            new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
+                orderBy, skip, take));
     }
 
     public void Visit(PutTrueNode node)

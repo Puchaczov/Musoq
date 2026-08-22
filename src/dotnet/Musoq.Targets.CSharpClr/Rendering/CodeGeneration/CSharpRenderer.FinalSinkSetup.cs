@@ -10,7 +10,8 @@ public sealed partial class CSharpRenderer
         FinalProjectionSinkPlan SinkPlan,
         TypedProjectionLoop ProjectionLoop,
         IReadOnlyList<StatementSyntax> SourceSetupStatements,
-        ExecutionRenderContext RenderContext);
+        ExecutionRenderContext RenderContext,
+        int EntryStatementCount);
 
     private static bool TryCreateFinalSinkMethod(
         ExecutionPlan plan,
@@ -36,13 +37,15 @@ public sealed partial class CSharpRenderer
             sinkPlan.SetupNodes,
             useQueryRunContext);
         var statements = new List<StatementSyntax>(leadingStatements);
+        var leadingStatementCount = statements.Count;
         statements.AddRange(renderArtifacts.SetupStatements);
 
         var setup = new FinalSinkRenderSetup(
             sinkPlan,
             sinkPlan.ProjectionLoop!,
             statements,
-            renderArtifacts.RenderContext);
+            renderArtifacts.RenderContext,
+            leadingStatementCount + renderArtifacts.EntryStatementCount);
         method = createMethod(setup);
         metadata = sinkPlan.ResultMetadata;
         return true;

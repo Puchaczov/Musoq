@@ -16,7 +16,8 @@ public sealed partial class ExecutionCSharpRendererTests
         var method = renderer.RenderMethod(CreatePlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
-        Assert.Contains("var pRows = pRowsSource.Chunks;", code);
+        Assert.Contains("var pRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks", code);
+        Assert.Contains(": pRowsSource.Chunks;", code);
         Assert.Contains("foreach (var pChunk in pRows)", code);
         Assert.IsFalse(code.Contains("pChunk is Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.Person[]", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("pChunk is List<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.Person>", StringComparison.Ordinal));

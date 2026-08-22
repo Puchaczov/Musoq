@@ -37,13 +37,24 @@ ExecutionPlan [compiled]
       Name: string <- field Name
 
   Body
+    PhaseBoundary [Begin]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [Begin:left]
+    PhaseBoundary [From:left]
+    PhaseBoundary [From]
     SourceScan [ko3iko: BasicEntity] -> left_ko3ikoRows
+    PhaseBoundary [Select:left]
+    PhaseBoundary [Select]
     ChunkedForEach [ko3iko in left_ko3ikoRows]
       AppendShape [result <- ResultShape0(Name: ko3iko.Name)]
+    PhaseBoundary [End:left]
+    PhaseBoundary [Begin:right]
+    PhaseBoundary [From:right]
     SourceScan [vo04qt: BasicEntity] -> right_vo04qtRows
+    PhaseBoundary [Select:right]
     ChunkedForEach [vo04qt in right_vo04qtRows]
       AppendShape [result <- ResultShape0(Name: vo04qt.Name)]
+    PhaseBoundary [End:right]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
 
@@ -66,7 +77,7 @@ namespace GeneratedSample_Q25_UnionAll
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_0 = new Column[]
         {
@@ -84,6 +95,7 @@ namespace GeneratedSample_Q25_UnionAll
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_0, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -99,17 +111,23 @@ namespace GeneratedSample_Q25_UnionAll
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled:left", QueryPhase.Begin);
+                OnPhaseChanged("compiled:left", QueryPhase.From);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __left_ko3ikoSchema = provider.GetSchema("#A");
                 var left_ko3ikoRowsSource = __left_ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_1, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var left_ko3ikoRows = left_ko3ikoRowsSource.Chunks;
+                var left_ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(left_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : left_ko3ikoRowsSource.Chunks;
+                OnPhaseChanged("compiled:left", QueryPhase.Select);
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var ko3ikoChunk in left_ko3ikoRows)
                 {
                     if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)
@@ -161,9 +179,13 @@ namespace GeneratedSample_Q25_UnionAll
                     }
                 }
 
+                OnPhaseChanged("compiled:left", QueryPhase.End);
+                OnPhaseChanged("compiled:right", QueryPhase.Begin);
+                OnPhaseChanged("compiled:right", QueryPhase.From);
                 var __right_vo04qtSchema = provider.GetSchema("#A");
                 var right_vo04qtRowsSource = __right_vo04qtSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("vo04qt:2", sourceExecutionPlans["vo04qt:2"], token, __schemaColumns_compiled_ko3iko_1, sourceRuntimeSettingsBySourceContextId["vo04qt:2"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var right_vo04qtRows = right_vo04qtRowsSource.Chunks;
+                var right_vo04qtRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(right_vo04qtRowsSource.Chunks, __musoqProgressContext, "vo04qt:2") : right_vo04qtRowsSource.Chunks;
+                OnPhaseChanged("compiled:right", QueryPhase.Select);
                 foreach (var vo04qtChunk in right_vo04qtRows)
                 {
                     if (vo04qtChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> vo04qtChunkView)
@@ -215,11 +237,19 @@ namespace GeneratedSample_Q25_UnionAll
                     }
                 }
 
+                OnPhaseChanged("compiled:right", QueryPhase.End);
                 return __musoqFinalShapeRows;
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

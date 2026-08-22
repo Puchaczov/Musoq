@@ -12,6 +12,7 @@ internal static class ParserNodeTraversalRegistry
         Children<SelectNode>(static node => node.Fields, includeDerivedTypes: true),
         Children<ParameterBlockNode>(static node => node.Parameters),
         Children<ParameterDeclarationNode>(static node => Optional(node.DefaultValue)),
+        Special<SetOperatorNode>(SetOperatorChildren, includeDerivedTypes: true),
         Children<BinaryNode>(static node => Optional(node.Left, node.Right), includeDerivedTypes: true),
         Children<AccessRefreshAggregationScoreNode>(static node => Optional(node.FilterExpression, node.Arguments)),
         Children<AccessMethodNode>(static node => Optional(node.FilterExpression, node.Arguments)),
@@ -271,6 +272,21 @@ internal static class ParserNodeTraversalRegistry
 
         if (node.OrderBy != null)
             yield return node.OrderBy;
+    }
+
+    private static IEnumerable<Node> SetOperatorChildren(SetOperatorNode node)
+    {
+        yield return node.Left;
+        yield return node.Right;
+
+        if (node.ResultOrderBy != null)
+            yield return node.ResultOrderBy;
+
+        if (node.ResultSkip != null)
+            yield return node.ResultSkip;
+
+        if (node.ResultTake != null)
+            yield return node.ResultTake;
     }
 
     private static IEnumerable<Node> TranslatedSetOperatorChildren(TranslatedSetOperatorNode node)

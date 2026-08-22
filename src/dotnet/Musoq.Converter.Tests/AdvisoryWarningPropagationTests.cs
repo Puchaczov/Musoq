@@ -371,10 +371,6 @@ public sealed class AdvisoryWarningPropagationTests
                 DiagnosticCode.MQ5019_NullRejectingOuterJoinFilter,
                 static () => new NullableJoinSchemaProvider()),
             new(
-                @"select d.Dummy from #system.dual() d union select e.Dummy from #system.dual() e order by Dummy",
-                DiagnosticCode.MQ5020_SetOperationOrderByScope,
-                static () => new SystemSchemaProvider()),
-            new(
                 @"select d.Dummy from #system.dual() d skip 1",
                 DiagnosticCode.MQ5021_UnorderedSkip,
                 static () => new SystemSchemaProvider()),

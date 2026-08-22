@@ -14,6 +14,7 @@ public sealed class TypedRunState
     private readonly IReadOnlyList<ScriptParameterDefinition> _requiredParameters;
     private event QueryPhaseEventHandler? PhaseChangedHandlers;
     private event DataSourceEventHandler? DataSourceProgressHandlers;
+    private event QueryProgressEventHandler? QueryProgressHandlers;
 
     public TypedRunState(
         IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions = null,
@@ -59,12 +60,24 @@ public sealed class TypedRunState
         DataSourceProgressHandlers -= handler;
     }
 
+    public void AddQueryProgress(QueryProgressEventHandler? handler)
+    {
+        QueryProgressHandlers += handler;
+    }
+
+    public void RemoveQueryProgress(QueryProgressEventHandler? handler)
+    {
+        QueryProgressHandlers -= handler;
+    }
+
     public TypedQueryRunOptions CreateOptions(CancellationToken token)
     {
         return new TypedQueryRunOptions(
             token,
             _parameters.Snapshot(),
             PhaseChangedHandlers,
-            DataSourceProgressHandlers);
+            DataSourceProgressHandlers,
+            QueryProgressHandlers,
+            null);
     }
 }

@@ -75,11 +75,12 @@ internal sealed class CteSidecarIndexLoweringPass : IExecutionIrOptimizationPass
                 }
                 case ExecutionCteFusedProducerCandidate candidate:
                 {
+                    var body = RewriteBlock(candidate.Body);
                     expandedNodes =
                     [
                         new ExecutionFusedCteProducer(
                             candidate.Outputs,
-                            RewriteBlock(candidate.Body))
+                            AddProducerScopes(candidate.Outputs, body))
                     ];
                     ExpandedFusedProducerCandidates++;
                     return true;
@@ -113,6 +114,35 @@ internal sealed class CteSidecarIndexLoweringPass : IExecutionIrOptimizationPass
                 node.RowType,
                 node.GeneratedRowTypeName);
         }
+
+        protected override ExecutionNode RewriteFusedCteProducer(ExecutionFusedCteProducer node)
+        {
+            var rewritten = (ExecutionFusedCteProducer)base.RewriteFusedCteProducer(node);
+            return rewritten with { Body = AddProducerScopes(rewritten.Outputs, rewritten.Body) };
+        }
+
+        private static ExecutionBlock AddProducerScopes(
+            IReadOnlyList<ExecutionFusedCteOutput> outputs,
+            ExecutionBlock body)
+        {
+            var scopedBody = new List<ExecutionNode>(body.Nodes.Count + outputs.Count * 2);
+            foreach (var output in outputs)
+            {
+                scopedBody.Add(new ExecutionPhaseBoundary(
+                    QueryPhase.Begin,
+                    $":cte{output.TableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}"));
+            }
+
+            scopedBody.AddRange(body.Nodes);
+            for (var outputIndex = outputs.Count - 1; outputIndex >= 0; outputIndex--)
+            {
+                var output = outputs[outputIndex];
+                scopedBody.Add(new ExecutionPhaseBoundary(
+                    QueryPhase.End,
+                    $":cte{output.TableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}"));
+            }
+
+            return new ExecutionBlock(scopedBody);
+        }
     }
 }
-

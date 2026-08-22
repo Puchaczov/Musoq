@@ -1425,11 +1425,11 @@
       "severity": "Error",
       "category": "Semantic",
       "messageTemplate": "Error MQ3062_InvalidScriptParameterSourceArgument",
-      "explanation": "Script parameters used as data-source arguments must be direct references with defaults so source metadata can be resolved.",
+      "explanation": "Script parameters used as data-source arguments must be direct references. A default is needed only when the provider requires the value to resolve compile-time source metadata; computed or nested expressions are not supported.",
       "docsReference": "Core Spec - Script Parameters",
       "suggestedFixes": [
         "Pass the parameter directly, for example: #Files.All($path).",
-        "Declare a default value, for example: param(path: string = '/tmp')."
+        "If source metadata requires the value, declare a default, for example: param(path: string = '/tmp'), or make the provider metadata independent of runtime source arguments."
       ]
     },
     {
@@ -1901,6 +1901,20 @@
       ]
     },
     {
+      "code": "MQ3098_InvalidRangeFrameOrderKey",
+      "number": 3098,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Bounded RANGE frames require exactly one numeric ORDER BY key",
+      "explanation": "A RANGE frame with a PRECEDING or FOLLOWING offset requires exactly one numeric ORDER BY key.",
+      "docsReference": "Core Spec - Window Frames",
+      "suggestedFixes": [
+        "Use one numeric ORDER BY expression for a bounded RANGE frame.",
+        "Use CURRENT ROW boundaries for peer-aware RANGE frames with composite or nonnumeric ordering."
+      ]
+    },
+    {
       "code": "MQ4001_InvalidBinarySchemaField",
       "number": 4001,
       "phase": "DataSource",
@@ -2283,12 +2297,12 @@
       "phase": "Bind",
       "severity": "Warning",
       "category": "Warning",
-      "messageTemplate": "ORDER BY on the rightmost set operand does not order the combined set result",
-      "explanation": "An ORDER BY attached to the rightmost operand of a set operation orders that operand before combination, not the combined result.",
+      "messageTemplate": "Set-operation ORDER BY scope migration advisory (compatibility only)",
+      "explanation": "Compatibility metadata for the completed migration to result-level ordering after set operations. The current language version does not emit this advisory.",
       "docsReference": "Core Spec - Set Operations and ORDER BY",
       "suggestedFixes": [
-        "Move ORDER BY to a query that consumes the combined set.",
-        "Keep branch-local ORDER BY only when it is paired with TAKE or positive SKIP for intentional slicing."
+        "Use trailing ORDER BY for combined-result ordering.",
+        "Wrap an intentionally ordered operand in a derived table or CTE."
       ]
     },
     {
@@ -2359,6 +2373,20 @@
       "suggestedFixes": [
         "Use a valid value for the target type.",
         "Use an explicit conversion or format when the text has a non-default representation."
+      ]
+    },
+    {
+      "code": "MQ5026_SetOperationSliceScope",
+      "number": 5026,
+      "phase": "Bind",
+      "severity": "Warning",
+      "category": "Warning",
+      "messageTemplate": "Set-operation SKIP/TAKE scope migration advisory (compatibility only)",
+      "explanation": "Compatibility metadata for the completed migration to result-level slicing after set operations. The current language version does not emit this advisory.",
+      "docsReference": "Core Spec - Set Operations and SKIP/TAKE",
+      "suggestedFixes": [
+        "Use trailing SKIP or TAKE for combined-result slicing.",
+        "Wrap an intentionally sliced operand in a derived table or CTE."
       ]
     },
     {

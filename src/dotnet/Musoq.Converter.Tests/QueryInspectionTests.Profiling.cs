@@ -479,7 +479,7 @@ public partial class QueryInspectionTests
             _schemaProvider,
             _loggerResolver);
 
-        StringAssert.Contains(cte.ExecutionPlanText, "CtePhase");
+        StringAssert.Contains(cte.ExecutionPlanText, "PhaseBoundary [Begin:cte0]");
         AssertActualOperator(cte, "CreateTable");
         AssertActualOperator(cte, "AppendRow");
     }

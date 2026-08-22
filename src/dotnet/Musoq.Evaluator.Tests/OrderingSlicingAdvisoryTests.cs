@@ -14,94 +14,56 @@ public sealed class OrderingSlicingAdvisoryTests
     [DataRow("union all")]
     [DataRow("except")]
     [DataRow("intersect")]
-    public void SetOperation_RightmostOrderBy_ReportsOneScopeWarning(string setOperator)
+    public void SetOperation_ResultModifiers_DoNotReportRetiredScopeWarnings(string setOperator)
     {
         var query =
-            $"select Name from #A.Entities() {setOperator} select Name from #A.Entities() order by Name";
+            $"select Name as Result from #A.Entities() {setOperator} select City as Other from #A.Entities() order by Result skip 0 take 1";
         var result = Analyze(query);
 
         AssertNoErrors(result);
-        var warnings = result.Warnings.Where(static warning =>
-            warning.Code == DiagnosticCode.MQ5020_SetOperationOrderByScope).ToArray();
-        Assert.AreEqual(1, warnings.Length, string.Join(" | ", result.Diagnostics));
-        Assert.AreEqual(DiagnosticSeverity.Warning, warnings[0].Severity);
-        Assert.AreEqual(DiagnosticPhase.Bind, warnings[0].Phase);
-        Assert.IsTrue(warnings[0].Span.Start >= query.IndexOf("order by", System.StringComparison.Ordinal));
-    }
-
-    [TestMethod]
-    public void SetOperation_Chain_ReportsOnlyTheRightmostScope()
-    {
-        var result = Analyze(
-            "select Name from #A.Entities() union select Name from #A.Entities() union all select Name from #A.Entities() order by Name");
-
-        AssertNoErrors(result);
-        Assert.AreEqual(
-            1,
-            result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5020_SetOperationOrderByScope),
+        Assert.IsFalse(result.Warnings.Any(static warning =>
+            warning.Code is DiagnosticCode.MQ5020_SetOperationOrderByScope or
+                DiagnosticCode.MQ5026_SetOperationSliceScope),
             string.Join(" | ", result.Diagnostics));
     }
 
     [TestMethod]
-    public void SetOperation_BranchSlicing_MakesOrderMaterial()
-    {
-        var take = Analyze(
-            "select Name from #A.Entities() union select Name from #A.Entities() order by Name take 1");
-        var skip = Analyze(
-            "select Name from #A.Entities() union select Name from #A.Entities() order by Name skip 1");
-        var skipZero = Analyze(
-            "select Name from #A.Entities() union select Name from #A.Entities() order by Name skip 0");
-        var takeOnly = Analyze(
-            "select Name from #A.Entities() order by Name take 1");
-
-        AssertNoErrors(take);
-        AssertNoErrors(skip);
-        AssertNoErrors(skipZero);
-        AssertNoErrors(takeOnly);
-        Assert.IsFalse(take.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5020_SetOperationOrderByScope));
-        Assert.IsFalse(skip.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5020_SetOperationOrderByScope));
-        Assert.AreEqual(1, skipZero.Warnings.Count(static warning =>
-            warning.Code == DiagnosticCode.MQ5020_SetOperationOrderByScope));
-        Assert.IsFalse(takeOnly.Warnings.Any(static warning =>
-            warning.Code == DiagnosticCode.MQ5020_SetOperationOrderByScope));
-    }
-
-    [TestMethod]
-    public void SetOperation_OuterOrderedConsumer_SuppressesBranchScopeWarning()
+    public void SetOperation_Chain_DoesNotReportRetiredScopeWarnings()
     {
         var result = Analyze(
-            """
-            with combined as (
-                select Name from #A.Entities()
-                union
-                select Name from #A.Entities() order by Name
-            )
-            select Name from combined order by Name
-            """);
+            "select Name from #A.Entities() union select Name from #A.Entities() union all select Name from #A.Entities() order by Name skip 1 take 2");
 
         AssertNoErrors(result);
         Assert.IsFalse(result.Warnings.Any(static warning =>
-            warning.Code == DiagnosticCode.MQ5020_SetOperationOrderByScope),
+                warning.Code is DiagnosticCode.MQ5020_SetOperationOrderByScope or
+                    DiagnosticCode.MQ5026_SetOperationSliceScope),
             string.Join(" | ", result.Diagnostics));
     }
 
     [TestMethod]
-    public void DerivedSetWrappedByOrderedOuterQuery_SuppressesBranchScopeWarning()
+    public void SetOperation_ResultOrderBy_ShouldRejectRightOperandAliasAndSourceQualifier()
+    {
+        var rightAlias = Analyze(
+            "select Name as Result from #A.Entities() union select City as Other from #A.Entities() order by Other");
+        var sourceQualifier = Analyze(
+            "select a.Name as Result from #A.Entities() a union select b.City from #A.Entities() b order by b.City");
+
+        Assert.IsTrue(rightAlias.HasErrors);
+        Assert.IsTrue(rightAlias.Errors.Any(static error => error.Code == DiagnosticCode.MQ3001_UnknownColumn));
+        Assert.IsTrue(sourceQualifier.HasErrors);
+        Assert.IsTrue(sourceQualifier.Errors.Any(static error => error.Code == DiagnosticCode.MQ3015_UnknownAlias));
+    }
+
+    [TestMethod]
+    public void ExplicitCteOperand_PreservesBranchLocalSliceWithoutMigrationWarning()
     {
         var result = Analyze(
-            """
-            select Name
-            from (
-                select Name from #A.Entities()
-                union
-                select Name from #A.Entities() order by Name
-            ) combined
-            order by Name
-            """);
+            "with sliced as (select Name from #A.Entities() order by Name take 1) select Name from #A.Entities() union select Name from sliced");
 
         AssertNoErrors(result);
         Assert.IsFalse(result.Warnings.Any(static warning =>
-            warning.Code == DiagnosticCode.MQ5020_SetOperationOrderByScope),
+            warning.Code is DiagnosticCode.MQ5020_SetOperationOrderByScope or
+                DiagnosticCode.MQ5026_SetOperationSliceScope),
             string.Join(" | ", result.Diagnostics));
     }
 
@@ -109,7 +71,7 @@ public sealed class OrderingSlicingAdvisoryTests
     public void PositiveSkipWithoutOrderBy_ReportsOneWarningPerQuery()
     {
         var result = Analyze(
-            "select Name from #A.Entities() skip 2 union select Name from #A.Entities() skip 3");
+            "with first_slice as (select Name from #A.Entities() skip 2), second_slice as (select Name from #A.Entities() skip 3) select Name from first_slice union select Name from second_slice");
 
         AssertNoErrors(result);
         Assert.AreEqual(

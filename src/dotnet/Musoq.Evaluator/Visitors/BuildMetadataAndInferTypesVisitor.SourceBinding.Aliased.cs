@@ -212,6 +212,9 @@ public partial class BuildMetadataAndInferTypesVisitor
             _scriptParameters.DefinitionsByName,
             _scriptVariables.DefinitionsByName,
             boundInvocation);
+        aliasedSchemaFromNode.SetStaticMetadataArguments(
+            staticSchemaArguments,
+            _scriptParameters.HasRequiredSourceParameter(aliasedSchemaFromNode.Parameters));
         var metadataColumns = table?.Columns ?? GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey);
         var sourceRuntimeSettings = ResolveSourceRuntimeSettings(
             schema,
@@ -222,17 +225,18 @@ public partial class BuildMetadataAndInferTypesVisitor
             definition.ProfileName,
             GetSourceRuntimeSettingsResolutionMode());
 
-        table = SchemaProviderBoundary.Invoke(() => schema.GetTableByName(
+        table = GetSchemaSourceTable(
+            schema,
+            schemaInfo.Schema,
             schemaInfo.Method,
-            new SourceMetadataContext(
-                queryId,
-                CancellationToken.None,
-                metadataColumns,
-                sourceRuntimeSettings,
-                _logger
-            ),
-            staticSchemaArguments
-        )) ?? table ?? throw new InvalidOperationException($"Schema method '{schemaInfo.Method}' did not provide table metadata.");
+            aliasedSchemaFromNode.SpanOrEmpty(),
+            queryId,
+            metadataColumns,
+            sourceRuntimeSettings,
+            staticSchemaArguments,
+            aliasedSchemaFromNode.HasRequiredRuntimeArguments)
+            ?? table
+            ?? throw new InvalidOperationException($"Schema method '{schemaInfo.Method}' did not provide table metadata.");
         var tableSymbol = new TableSymbol(
             _sourceBinding.QueryAlias,
             schema,

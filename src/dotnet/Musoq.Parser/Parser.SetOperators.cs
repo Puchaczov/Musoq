@@ -8,6 +8,11 @@ public partial class Parser
 {
     private Node ComposeSetOperators(int nestingLevel)
     {
+        return ComposeSetOperators(nestingLevel, composeResultModifiers: true);
+    }
+
+    private Node ComposeSetOperators(int nestingLevel, bool composeResultModifiers)
+    {
         var isSet = false;
         var query = ComposeQuery();
 
@@ -20,7 +25,7 @@ public partial class Parser
 
             var keys = ComposeSetOperatorKeys();
 
-            var nextSet = ComposeSetOperators(nestingLevel + 1);
+            var nextSet = ComposeSetOperators(nestingLevel + 1, composeResultModifiers: false);
             var isQuery = nextSet is QueryNode;
             node = setOperatorType switch
             {
@@ -34,7 +39,82 @@ public partial class Parser
             };
         }
 
-        return isSet || nestingLevel > 0 ? node : new SingleSetNode(query);
+        if (!composeResultModifiers)
+            return node;
+
+        var orderBy = ComposeOrderBy() ?? query.OrderBy;
+        var skip = ComposeSkip() ?? query.Skip;
+        var take = ComposeTake() ?? query.Take;
+
+        if (isSet)
+            return AttachResultModifiers((SetOperatorNode)node, orderBy, skip, take);
+
+        var completedQuery = new QueryNode(
+            query.Select,
+            query.From,
+            query.Where,
+            query.GroupBy,
+            orderBy,
+            skip,
+            take,
+            query.Window,
+            query.Qualify,
+            default);
+        return nestingLevel == 0
+            ? new SingleSetNode(completedQuery)
+            : completedQuery;
+    }
+
+    private static SetOperatorNode AttachResultModifiers(
+        SetOperatorNode node,
+        OrderByNode? orderBy,
+        SkipNode? skip,
+        TakeNode? take)
+    {
+        return node switch
+        {
+            UnionNode => new UnionNode(
+                node.ResultTableName,
+                node.Keys,
+                node.Left,
+                node.Right,
+                node.IsNested,
+                node.IsTheLastOne,
+                orderBy,
+                skip,
+                take),
+            UnionAllNode => new UnionAllNode(
+                node.ResultTableName,
+                node.Keys,
+                node.Left,
+                node.Right,
+                node.IsNested,
+                node.IsTheLastOne,
+                orderBy,
+                skip,
+                take),
+            ExceptNode => new ExceptNode(
+                node.ResultTableName,
+                node.Keys,
+                node.Left,
+                node.Right,
+                node.IsNested,
+                node.IsTheLastOne,
+                orderBy,
+                skip,
+                take),
+            IntersectNode => new IntersectNode(
+                node.ResultTableName,
+                node.Keys,
+                node.Left,
+                node.Right,
+                node.IsNested,
+                node.IsTheLastOne,
+                orderBy,
+                skip,
+                take),
+            _ => throw new NotSupportedException($"Set operator '{node.GetType().Name}' is not supported.")
+        };
     }
 
 

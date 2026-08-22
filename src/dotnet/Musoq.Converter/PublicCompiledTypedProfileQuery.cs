@@ -5,7 +5,7 @@ using Musoq.Schema;
 
 namespace Musoq.Converter;
 
-internal sealed class PublicCompiledTypedProfileQuery<TOut> : ICompiledTypedProfileQuery<TOut>, ITypedQueryDiagnosticsProvider
+internal sealed class PublicCompiledTypedProfileQuery<TOut> : ICompiledTypedProfileQuery<TOut>, IQueryProgressSource, ITypedQueryDiagnosticsProvider
 {
     private readonly TypedProfileRunnableFactory<TOut> _factory;
     private readonly InMemorySourceBinding _sourceBinding;
@@ -39,6 +39,12 @@ internal sealed class PublicCompiledTypedProfileQuery<TOut> : ICompiledTypedProf
     {
         add => _runState.AddDataSourceProgress(value);
         remove => _runState.RemoveDataSourceProgress(value);
+    }
+
+    public event QueryProgressEventHandler QueryProgress
+    {
+        add => _runState.AddQueryProgress(value);
+        remove => _runState.RemoveQueryProgress(value);
     }
 
     public IDictionary<string, object?> Parameters => _runState.Parameters;

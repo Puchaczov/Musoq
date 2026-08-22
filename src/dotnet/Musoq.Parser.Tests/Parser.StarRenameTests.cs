@@ -49,6 +49,26 @@ public sealed class ParserStarRenameTests
     }
 
     [TestMethod]
+    public void StarRename_WithQualifiedFullModifierChain_ShouldPreserveScopeAndOrder()
+    {
+        var star = ParseStar(
+            "select a.* like 'S%' exclude (Other) replace (Score + 1 as Score) " +
+            "rename (a.Name as DisplayName) from #some.a() a");
+
+        Assert.AreEqual("a", star.Alias);
+        Assert.AreEqual("S%", star.LikePattern);
+        Assert.IsNotNull(star.ExcludeColumns);
+        CollectionAssert.AreEqual(new[] { "Other" }, star.ExcludeColumns);
+        Assert.IsNotNull(star.ReplaceItems);
+        Assert.HasCount(1, star.ReplaceItems);
+        Assert.AreEqual("Score", star.ReplaceItems[0].ColumnName);
+        Assert.IsNotNull(star.RenameItems);
+        Assert.HasCount(1, star.RenameItems);
+        Assert.AreEqual("a.Name", star.RenameItems[0].SourceName);
+        Assert.AreEqual("DisplayName", star.RenameItems[0].TargetName);
+    }
+
+    [TestMethod]
     public void StarRename_BeforeReplace_ShouldReportOutOfOrderModifier()
     {
         var ex = Assert.Throws<SyntaxException>(() =>

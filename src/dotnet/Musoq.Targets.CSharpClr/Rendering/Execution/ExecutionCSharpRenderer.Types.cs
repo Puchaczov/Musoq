@@ -8,6 +8,7 @@ public sealed partial class ExecutionCSharpRenderer
     private enum StreamingPluginWindowMode
     {
         Running,
+        RunningPeers,
         WholePartition
     }
 

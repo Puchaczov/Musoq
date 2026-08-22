@@ -238,12 +238,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             WindowSumRunningDecimalSampleFileName,
             samples[WindowSumRunningDecimalSampleFileName],
             "resultSums",
-            "ComputeSumWindowKernel[Running]");
+            "ComputeSumWindowKernel[BoundedRows]");
         AssertWindowAggregateKernelUsesDirectNumericConversion(
             WindowAvgRunningDecimalSampleFileName,
             samples[WindowAvgRunningDecimalSampleFileName],
             "resultAvgs",
-            "ComputeAvgWindowKernel[Running]");
+            "ComputeAvgWindowKernel[BoundedRows]");
         AssertStreamingWindowUsesDirectNumericConversion(
             WindowRunningProductPluginSampleFileName,
             samples[WindowRunningProductPluginSampleFileName],
@@ -271,7 +271,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("cteLevel0Runner.RunCteLevel0Task1", sample);
         Assert.Contains("CancellationToken = token", sample);
         Assert.Contains("MaxDegreeOfParallelism = 2", sample);
-        Assert.Contains("var cte0 = new List<Cte0Row0>();", sample);
+        Assert.Contains("List<Cte0Row0> cte0 = null!;", sample);
         Assert.Contains("var cte1HashSidecar0Name = new Dictionary<string, HashJoinBucket<Cte1HashPayload0>>();", sample);
         Assert.Contains("_cteRowResults.Slot0 = __parallelCteLevel0Task0Result", sample);
         Assert.Contains("_cteIndexResults.Slot0 = cte1HashSidecar0Name", sample);
@@ -289,7 +289,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(sample.Contains("_tableResults[1]", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("CastGeneratedRows<Cte0Row0>(_tableResults[0].Rows)", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("CastGeneratedRows<Cte1Row0>(_tableResults[1].Rows)", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("() =>", StringComparison.Ordinal));
+        Assert.Contains("Parallel.Invoke(new ParallelOptions", sample);
     }
 
     [TestMethod]

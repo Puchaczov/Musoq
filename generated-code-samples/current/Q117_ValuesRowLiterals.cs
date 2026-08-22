@@ -37,8 +37,12 @@ ExecutionPlan [compiled]
       packages.Score: uint <- field packages_Score
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     CreateValuesRows [packagesRows: packagesValuesF78867FBRow0 x 2]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [Where]
+    PhaseBoundary [Select]
     ForEach [packages in packagesRows]
       If [(packages.Approved = FALSE)]
         AppendShape [result <- ResultShape0(packages.Name: packages.Name, packages.Score: packages.Score)]
@@ -64,7 +68,7 @@ namespace GeneratedSample_Q117_ValuesRowLiterals
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_0 = new Column[]
         {
@@ -82,6 +86,7 @@ namespace GeneratedSample_Q117_ValuesRowLiterals
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_0, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -97,19 +102,22 @@ namespace GeneratedSample_Q117_ValuesRowLiterals
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Where);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 packagesValuesF78867FBRow0[] packagesRows = new packagesValuesF78867FBRow0[]
                 {
                     new packagesValuesF78867FBRow0("Newtonsoft.Json", true, 10u),
                     new packagesValuesF78867FBRow0("Legacy.Package", false, 20u)
                 };
+                OnPhaseChanged("compiled", QueryPhase.Where);
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var packages in packagesRows)
                 {
                     token.ThrowIfCancellationRequested();
@@ -121,7 +129,14 @@ namespace GeneratedSample_Q117_ValuesRowLiterals
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

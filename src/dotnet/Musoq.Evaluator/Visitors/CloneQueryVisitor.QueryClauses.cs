@@ -53,6 +53,8 @@ public partial class CloneQueryVisitor
         if (node is Parser.SchemaFromNode boundSource &&
             boundSource.BoundInvocation is { } boundInvocation)
             cloned.SetBoundInvocation(boundInvocation);
+        if (node is Parser.SchemaFromNode metadataSource)
+            cloned.SetStaticMetadataArguments(metadataSource.StaticMetadataArguments, metadataSource.HasRequiredRuntimeArguments);
         Nodes.Push(cloned);
     }
 

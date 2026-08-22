@@ -182,6 +182,19 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext? context = null)
     {
         var renderContext = context ?? CreateIsolatedRenderContext();
+        if (TryGetFinalShapeSourceBuffer(setOperation.Target.Name, renderContext, out var finalShapeBuffer))
+        {
+            var argumentList = capacity == null
+                ? SyntaxFactory.ArgumentList()
+                : CreateArgumentList(capacity);
+
+            return CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                setOperation.Target.Name,
+                SyntaxFactory.ObjectCreationExpression(CreateListTypeSyntax(finalShapeBuffer.ShapeTypeName))
+                    .WithArgumentList(argumentList));
+        }
+
         if (TryGetTypedRowBufferShape(setOperation.Target.Name, renderContext, out var rowShape))
         {
             var argumentList = capacity == null
@@ -339,7 +352,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         var rowExpression = CreateSetOperationTargetRowExpression(setOperation, rowName, source, context);
-        return TryGetTypedRowBufferShape(setOperation.Target.Name, context, out _)
+        return TryGetFinalShapeSourceBuffer(setOperation.Target.Name, context, out _) ||
+               TryGetTypedRowBufferShape(setOperation.Target.Name, context, out _)
             ? CreateRowBufferAddStatement(setOperation.Target.Name, rowExpression)
             : CreateTableAddStatement(setOperation.Target.Name, rowExpression, ExecutionAppendMode.Direct);
     }
@@ -350,6 +364,9 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionVariable source,
         ExecutionRenderContext context)
     {
+        if (TryGetFinalShapeSourceBuffer(setOperation.Target.Name, context, out _))
+            return CreateFinalShapeCreationFromSetRow(rowName, source, context);
+
         if (!TryGetTypedRowBufferShape(setOperation.Target.Name, context, out var targetShape))
             return SyntaxFactory.IdentifierName(rowName);
 

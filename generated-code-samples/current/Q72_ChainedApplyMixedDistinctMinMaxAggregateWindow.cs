@@ -65,9 +65,13 @@ ExecutionPlan [compiled]
       MixedMinMaxRowNo: long <- field MixedMinMaxRowNo
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [i: GeneratedApplySampleEntity] -> windowSourceTable_iRows
     CreateRowBuffer [windowSourceTable: List<WindowSourceRow0>]
+    PhaseBoundary [GroupBy]
     CreateSingleKeyAggregateContext [groups: string -> WindowSourceTableAggregateGroup]
+    PhaseBoundary [Select]
     ChunkedForEach [i in windowSourceTable_iRows]
       EnumerableSource [i.Numbers -> windowSourceTable_nRows]
       ChunkedForEach [n in windowSourceTable_nRows]
@@ -110,7 +114,7 @@ namespace GeneratedSample_Q72_ChainedApplyMixedDistinctMinMaxAggregateWindow
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_2 = new Column[]
         {
@@ -141,6 +145,7 @@ namespace GeneratedSample_Q72_ChainedApplyMixedDistinctMinMaxAggregateWindow
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -156,24 +161,83 @@ namespace GeneratedSample_Q72_ChainedApplyMixedDistinctMinMaxAggregateWindow
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.GroupBy);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __windowSourceTable_iSchema = provider.GetSchema("#apply");
                 var windowSourceTable_iRowsSource = __windowSourceTable_iSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity>("items", new SourceExecutionContext("i:1", sourceExecutionPlans["i:1"], token, __schemaColumns_compiled_i_0, sourceRuntimeSettingsBySourceContextId["i:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var windowSourceTable_iRows = windowSourceTable_iRowsSource.Chunks;
+                var windowSourceTable_iRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity>(windowSourceTable_iRowsSource.Chunks, __musoqProgressContext, "i:1") : windowSourceTable_iRowsSource.Chunks;
                 var windowSourceTable = new List<WindowSourceRow0>();
+                OnPhaseChanged("compiled", QueryPhase.GroupBy);
                 var groupsToFinalize = new List<WindowSourceTableAggregateGroup>();
                 var groups = new Dictionary<string, WindowSourceTableAggregateGroup>();
                 WindowSourceTableAggregateGroup nullGroup = null;
-                PopulateWindowSourceTableSingleKeyGroups(windowSourceTable_iRows, groupsToFinalize, groups, ref nullGroup, token);
-                FinalizeWindowSourceTableSingleKeyGroups(windowSourceTable, groupsToFinalize, token);
+                OnPhaseChanged("compiled", QueryPhase.Select);
+                foreach (var iChunk in windowSourceTable_iRows)
+                {
+                    if (iChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity> iChunkView)
+                    {
+                        if (iChunkView.Source is Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity[] iChunkViewArray)
+                        {
+                            int iChunkViewOffset = iChunkView.Offset;
+                            for (int iIndex = 0, iIndexCount = iChunkView.Count; iIndex < iIndexCount; ++iIndex)
+                            {
+                                if ((iIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var i = iChunkViewArray[iChunkViewOffset + iIndex];
+                                TraverseWindowSourceTableNRows(token, i, groupsToFinalize, groups, ref nullGroup);
+                            }
+
+                            continue;
+                        }
+
+                        if (iChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity> iChunkViewList)
+                        {
+                            int iChunkViewOffset = iChunkView.Offset;
+                            for (int iIndex = 0, iIndexCount = iChunkView.Count; iIndex < iIndexCount; ++iIndex)
+                            {
+                                if ((iIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var i = iChunkViewList[iChunkViewOffset + iIndex];
+                                TraverseWindowSourceTableNRows(token, i, groupsToFinalize, groups, ref nullGroup);
+                            }
+
+                            continue;
+                        }
+                    }
+
+                    for (int iIndex = 0, iIndexCount = iChunk.Count; iIndex < iIndexCount; ++iIndex)
+                    {
+                        if ((iIndex & 1023) == 0)
+                        {
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        var i = iChunk[iIndex];
+                        TraverseWindowSourceTableNRows(token, i, groupsToFinalize, groups, ref nullGroup);
+                    }
+                }
+
+                windowSourceTable.EnsureCapacity(groupsToFinalize.Count);
+                foreach (var finalGroup in groupsToFinalize)
+                {
+                    token.ThrowIfCancellationRequested();
+                    windowSourceTable.Add(new WindowSourceRow0(finalGroup.__key0, finalGroup.__agg0.HasValue ? (int?)finalGroup.__agg0.Value : null, Musoq.Plugins.MinDistinctAggregateKernel<int>.Get(in finalGroup.__agg1), finalGroup.__agg2.HasValue ? (int?)finalGroup.__agg2.Value : null, Musoq.Plugins.MaxDistinctAggregateKernel<int>.Get(in finalGroup.__agg3)));
+                }
+
                 var resultWindowRows = EvaluationHelper.MaterializeGeneratedRows<WindowSourceRow0>(windowSourceTable);
                 var resultRowNumbersOrderKeys = new WindowResultRowNumbersOrderKeysKey[resultWindowRows.Count];
                 ExtractResultRowNumbersWindowKeys(resultWindowRows, resultRowNumbersOrderKeys);
@@ -221,7 +285,14 @@ namespace GeneratedSample_Q72_ChainedApplyMixedDistinctMinMaxAggregateWindow
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 
@@ -244,74 +315,6 @@ namespace GeneratedSample_Q72_ChainedApplyMixedDistinctMinMaxAggregateWindow
             {
                 WindowSourceRow0 windowSource = resultWindowRows[windowIndex];
                 resultRowNumbersOrderKeys[windowIndex] = new WindowResultRowNumbersOrderKeysKey(windowSource.DistinctMax, windowSource.RepeatedMax, windowSource.DistinctMin, windowSource.RepeatedMin, windowSource.i_Name);
-            }
-        }
-
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static void FinalizeWindowSourceTableSingleKeyGroups(List<WindowSourceRow0> windowSourceTable, List<WindowSourceTableAggregateGroup> groupsToFinalize, CancellationToken token)
-        {
-            token.ThrowIfCancellationRequested();
-            windowSourceTable.EnsureCapacity(groupsToFinalize.Count);
-            foreach (var finalGroup in groupsToFinalize)
-            {
-                token.ThrowIfCancellationRequested();
-                windowSourceTable.Add(new WindowSourceRow0(finalGroup.__key0, finalGroup.__agg0.HasValue ? (int?)finalGroup.__agg0.Value : null, Musoq.Plugins.MinDistinctAggregateKernel<int>.Get(in finalGroup.__agg1), finalGroup.__agg2.HasValue ? (int?)finalGroup.__agg2.Value : null, Musoq.Plugins.MaxDistinctAggregateKernel<int>.Get(in finalGroup.__agg3)));
-            }
-        }
-
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static void PopulateWindowSourceTableSingleKeyGroups(IEnumerable<IReadOnlyList<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity>> rows, List<WindowSourceTableAggregateGroup> groupsToFinalize, Dictionary<string, WindowSourceTableAggregateGroup> groups, ref WindowSourceTableAggregateGroup nullGroup, CancellationToken token)
-        {
-            token.ThrowIfCancellationRequested();
-            foreach (var iChunk in rows)
-            {
-                if (iChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity> iChunkView)
-                {
-                    if (iChunkView.Source is Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity[] iChunkViewArray)
-                    {
-                        int iChunkViewOffset = iChunkView.Offset;
-                        for (int iIndex = 0, iIndexCount = iChunkView.Count; iIndex < iIndexCount; ++iIndex)
-                        {
-                            if ((iIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var i = iChunkViewArray[iChunkViewOffset + iIndex];
-                            TraverseWindowSourceTableNRows(token, i, groupsToFinalize, groups, ref nullGroup);
-                        }
-
-                        continue;
-                    }
-
-                    if (iChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity> iChunkViewList)
-                    {
-                        int iChunkViewOffset = iChunkView.Offset;
-                        for (int iIndex = 0, iIndexCount = iChunkView.Count; iIndex < iIndexCount; ++iIndex)
-                        {
-                            if ((iIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var i = iChunkViewList[iChunkViewOffset + iIndex];
-                            TraverseWindowSourceTableNRows(token, i, groupsToFinalize, groups, ref nullGroup);
-                        }
-
-                        continue;
-                    }
-                }
-
-                for (int iIndex = 0, iIndexCount = iChunk.Count; iIndex < iIndexCount; ++iIndex)
-                {
-                    if ((iIndex & 1023) == 0)
-                    {
-                        token.ThrowIfCancellationRequested();
-                    }
-
-                    var i = iChunk[iIndex];
-                    TraverseWindowSourceTableNRows(token, i, groupsToFinalize, groups, ref nullGroup);
-                }
             }
         }
 

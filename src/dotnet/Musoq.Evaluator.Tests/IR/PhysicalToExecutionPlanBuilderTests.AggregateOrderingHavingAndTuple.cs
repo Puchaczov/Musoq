@@ -57,7 +57,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    SortShapeRows [result -> resultSorted by Count DESC; capacity: Candidate(resultSorted <- result.Count)]",
             "    ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
     [TestMethod]
@@ -110,7 +110,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      AppendShape [result <- ResultShape0(AgePlusOne: finalGroup.p.AgePlusOne, Count: Count('p.Count'))]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
     [TestMethod]
@@ -166,7 +166,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "        AppendShape [result <- ResultShape0(Name: finalGroup.p.Name, Count: Count('p.Count'))]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
     [TestMethod]
@@ -216,6 +216,6 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      AppendShape [result <- ResultShape0(Name: finalGroup.p.Name, Age: finalGroup.p.Age, Count: Count('p.Count'))]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 }

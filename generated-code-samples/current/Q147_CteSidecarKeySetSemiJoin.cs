@@ -48,14 +48,21 @@ ExecutionPlan [compiled]
       b.Name: string <- field b_Name
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [From:cte0]
     SourceScan [ko3iko: BasicEntity] -> cte0_ko3ikoRows
     CreateKeySet [cte0KeySetSidecar0Id: int]
     ChunkedForEach [ko3iko in cte0_ko3ikoRows]
       KeySetAdd [cte0KeySetSidecar0Id += ko3iko.Id]
     StoreCteIndex [cte0KeySetSidecar0Id -> _cteIndexResults.Slot0 KeySet]
+    PhaseBoundary [Select:cte0]
+    PhaseBoundary [End:cte0]
+    PhaseBoundary [From]
     SourceScan [b: BasicEntity] -> bRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     LoadCteIndex [iKeys <- _cteIndexResults.Slot0 KeySet: int]
+    PhaseBoundary [Select]
     ChunkedForEach [b in bRows]
       KeySetProbe [iKeys[b.Id]]
         AppendShape [result <- ResultShape0(b.Name: b.Name)]
@@ -81,7 +88,7 @@ namespace GeneratedSample_Q147_CteSidecarKeySetSemiJoin
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_2 = new Column[]
         {
@@ -100,6 +107,7 @@ namespace GeneratedSample_Q147_CteSidecarKeySetSemiJoin
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -115,78 +123,92 @@ namespace GeneratedSample_Q147_CteSidecarKeySetSemiJoin
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var _cteIndexResults = new CteIndexResults();
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
-                var __cte0_ko3ikoSchema = provider.GetSchema("#A");
-                var cte0_ko3ikoRowsSource = __cte0_ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var cte0_ko3ikoRows = cte0_ko3ikoRowsSource.Chunks;
-                var cte0KeySetSidecar0Id = new HashSet<int>();
-                foreach (var ko3ikoChunk in cte0_ko3ikoRows)
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+                try
                 {
-                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)
+                    OnPhaseChanged("compiled:cte0", QueryPhase.From);
+                    var __cte0_ko3ikoSchema = provider.GetSchema("#A");
+                    var cte0_ko3ikoRowsSource = __cte0_ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                    var cte0_ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : cte0_ko3ikoRowsSource.Chunks;
+                    var cte0KeySetSidecar0Id = new HashSet<int>();
+                    foreach (var ko3ikoChunk in cte0_ko3ikoRows)
                     {
-                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] ko3ikoChunkViewArray)
+                        if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)
                         {
-                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                            if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] ko3ikoChunkViewArray)
                             {
-                                if ((ko3ikoIndex & 1023) == 0)
+                                int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                                for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                                 {
-                                    token.ThrowIfCancellationRequested();
+                                    if ((ko3ikoIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                    int cte0KeySetSidecar0IdKey0 = ko3iko.Id;
+                                    cte0KeySetSidecar0Id.Add(cte0KeySetSidecar0IdKey0);
                                 }
 
-                                var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                int cte0KeySetSidecar0IdKey0 = ko3iko.Id;
-                                cte0KeySetSidecar0Id.Add(cte0KeySetSidecar0IdKey0);
+                                continue;
                             }
 
-                            continue;
+                            if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkViewList)
+                            {
+                                int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                                for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                                {
+                                    if ((ko3ikoIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                    int cte0KeySetSidecar0IdKey0 = ko3iko.Id;
+                                    cte0KeySetSidecar0Id.Add(cte0KeySetSidecar0IdKey0);
+                                }
+
+                                continue;
+                            }
                         }
 
-                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkViewList)
+                        for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                         {
-                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                            if ((ko3ikoIndex & 1023) == 0)
                             {
-                                if ((ko3ikoIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                int cte0KeySetSidecar0IdKey0 = ko3iko.Id;
-                                cte0KeySetSidecar0Id.Add(cte0KeySetSidecar0IdKey0);
+                                token.ThrowIfCancellationRequested();
                             }
 
-                            continue;
+                            var ko3iko = ko3ikoChunk[ko3ikoIndex];
+                            int cte0KeySetSidecar0IdKey0 = ko3iko.Id;
+                            cte0KeySetSidecar0Id.Add(cte0KeySetSidecar0IdKey0);
                         }
                     }
 
-                    for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
-                    {
-                        if ((ko3ikoIndex & 1023) == 0)
-                        {
-                            token.ThrowIfCancellationRequested();
-                        }
-
-                        var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                        int cte0KeySetSidecar0IdKey0 = ko3iko.Id;
-                        cte0KeySetSidecar0Id.Add(cte0KeySetSidecar0IdKey0);
-                    }
+                    _cteIndexResults.Slot0 = cte0KeySetSidecar0Id;
+                    OnPhaseChanged("compiled:cte0", QueryPhase.Select);
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled:cte0", QueryPhase.End);
                 }
 
-                _cteIndexResults.Slot0 = cte0KeySetSidecar0Id;
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __bSchema = provider.GetSchema("#B");
                 var bRowsSource = __bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var bRows = bRowsSource.Chunks;
+                var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:2") : bRowsSource.Chunks;
                 var iKeys = _cteIndexResults.Slot0;
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var bChunk in bRows)
                 {
                     if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
@@ -254,7 +276,14 @@ namespace GeneratedSample_Q147_CteSidecarKeySetSemiJoin
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

@@ -4,5 +4,7 @@ public enum ExecutionRankingWindowFunction
 {
     RowNumber,
     Rank,
-    DenseRank
+    DenseRank,
+    PercentRank,
+    CumeDist
 }

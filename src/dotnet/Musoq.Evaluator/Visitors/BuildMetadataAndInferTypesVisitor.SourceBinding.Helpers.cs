@@ -38,12 +38,9 @@ public partial class BuildMetadataAndInferTypesVisitor
             _logger
         );
 
-        var boundInvocation = schemaFrom is Musoq.Evaluator.Parser.SchemaFromNode semanticSource
-            ? semanticSource.BoundInvocation
-            : null;
-        var parameters = SchemaArgumentBinder.BindStaticArguments(
-            schemaFrom.Parameters,
-            invocation: boundInvocation);
+        var parameters = schemaFrom is Musoq.Evaluator.Parser.SchemaFromNode semanticSource
+            ? semanticSource.StaticMetadataArguments
+            : SchemaArgumentBinder.BindStaticArguments(schemaFrom.Parameters);
 
         return SchemaProviderBoundary.Invoke(() =>
             schema.GetTableByName(schemaFrom.Method, metadataContext, parameters));

@@ -42,7 +42,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      AppendShape [result <- ResultShape0(FirstName: p.Name, SecondName: p.Name)]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
     [TestMethod]
@@ -80,7 +80,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "        AppendShape [result <- ResultShape0(Age: p.Age)]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
     [TestMethod]
@@ -118,7 +118,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    SliceShapeRows [resultSorted -> resultSortedSliced, skip 1, take 2; capacity: Candidate(resultSortedSliced <- Min(Max(resultSorted.Count - 1, 0), 2))]",
             "    ReturnDeferredTable [resultSortedSliced: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
     [TestMethod]

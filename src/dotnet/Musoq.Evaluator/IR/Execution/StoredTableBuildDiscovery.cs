@@ -53,7 +53,38 @@ internal static class StoredTableBuildDiscovery
             return false;
         }
 
-        build = new StoredTableBuild(store.TableIndex, pendingNodes.ToArray(), store.Table, []);
+        var enclosingPhaseNodes = pendingNodes
+            .OfType<ExecutionPhaseBoundary>()
+            .Where(static boundary => string.IsNullOrEmpty(boundary.QueryIdSuffix))
+            .Cast<ExecutionNode>()
+            .ToArray();
+        var nestedPhaseSuffixes = pendingNodes
+            .OfType<ExecutionPhaseBoundary>()
+            .Where(static boundary =>
+                boundary.Phase == QueryPhase.Begin &&
+                !string.IsNullOrEmpty(boundary.QueryIdSuffix))
+            .Select(static boundary => boundary.QueryIdSuffix)
+            .ToHashSet(StringComparer.Ordinal);
+        var trailingPhaseNodes = nodes
+            .Skip(storeIndex + 1)
+            .TakeWhile(node => node is ExecutionPhaseBoundary
+            {
+                Phase: QueryPhase.End,
+                QueryIdSuffix: { Length: > 0 } suffix
+            } && nestedPhaseSuffixes.Contains(suffix))
+            .ToArray();
+        var helperNodes = pendingNodes
+            .Where(static node => node is not ExecutionPhaseBoundary
+            {
+                QueryIdSuffix: null or ""
+            })
+            .ToArray();
+
+        build = new StoredTableBuild(store.TableIndex, helperNodes, store.Table, [])
+        {
+            EnclosingPhaseNodes = enclosingPhaseNodes,
+            TrailingPhaseNodes = trailingPhaseNodes
+        };
         return true;
     }
 }

@@ -31,6 +31,8 @@ public sealed partial class RewriteQueryVisitor
         if (node is Parser.SchemaFromNode boundSource &&
             boundSource.BoundInvocation is { } boundInvocation)
             rewritten.SetBoundInvocation(boundInvocation);
+        if (node is Parser.SchemaFromNode metadataSource)
+            rewritten.SetStaticMetadataArguments(metadataSource.StaticMetadataArguments, metadataSource.HasRequiredRuntimeArguments);
         Nodes.Push(rewritten);
     }
 

@@ -16,6 +16,7 @@ namespace Musoq.Evaluator.Tests;
 public partial class DescStatementTests
 {
     [TestMethod]
+    [FeatureEvidence("desc-query-metadata", FeatureEvidenceKind.RuntimePositive)]
     public void DescQuery_WithProjectedAlias_ShouldReturnProjectedMetadata()
     {
         const string query =

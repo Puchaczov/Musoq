@@ -49,16 +49,4 @@ internal static partial class PredicatePlacementPlanner
         return $"{origin}:{index}";
     }
 
-    private static string FormatPlacement(PredicateEarliestPlacement placement)
-    {
-        return placement switch
-        {
-            PredicateEarliestPlacement.PreInnerJoinLeft => "pre-inner-join left",
-            PredicateEarliestPlacement.PreInnerJoinRight => "pre-inner-join right",
-            PredicateEarliestPlacement.PostJoin => "post-join",
-            PredicateEarliestPlacement.PostAggregate => "post-aggregate",
-            PredicateEarliestPlacement.PostWindow => "post-window",
-            _ => placement.ToString()
-        };
-    }
 }

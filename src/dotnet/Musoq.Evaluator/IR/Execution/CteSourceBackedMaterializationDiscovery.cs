@@ -57,11 +57,16 @@ internal static class CteSourceBackedMaterializationDiscovery
         [NotNullWhen(true)] out CteSourceBackedMaterialization? materialization)
     {
         materialization = null;
-        if (builtNodes.Count < 3 ||
-            builtNodes[^1] is not ExecutionStoreTable storeTable ||
+        var materializationNodes = builtNodes
+            .Select((node, index) => (node, index))
+            .Where(static item => item.node is not ExecutionPhaseBoundary)
+            .ToArray();
+
+        if (materializationNodes.Length < 3 ||
+            materializationNodes[^1].node is not ExecutionStoreTable storeTable ||
             storeTable.TableIndex != tableIndex ||
-            builtNodes[^2] is not ExecutionSourceLoop loop ||
-            builtNodes[^3] is not ExecutionCreateTable createTable ||
+            materializationNodes[^2].node is not ExecutionSourceLoop loop ||
+            materializationNodes[^3].node is not ExecutionCreateTable createTable ||
             !string.Equals(createTable.Table.Name, storeTable.Table.Name, StringComparison.Ordinal) ||
             !TryFindSingleTargetAppend(loop.Body, createTable, out var appendRow) ||
             !TryResolveLoopRowsVariable(loop.Source, out var rowsVariable) ||
@@ -73,8 +78,8 @@ internal static class CteSourceBackedMaterializationDiscovery
         }
 
         materialization = new CteSourceBackedMaterialization(
-            builtNodes.Count - 3,
-            builtNodes.Count - 1,
+            materializationNodes[^3].index,
+            materializationNodes[^1].index,
             createTable,
             loop,
             appendRow);

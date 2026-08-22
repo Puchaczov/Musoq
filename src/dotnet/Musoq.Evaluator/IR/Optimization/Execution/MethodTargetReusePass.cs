@@ -473,4 +473,3 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
 
     }
 }
-

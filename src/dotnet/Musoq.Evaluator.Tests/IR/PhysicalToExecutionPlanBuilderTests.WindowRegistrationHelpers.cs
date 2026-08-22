@@ -45,6 +45,34 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         return CreateRankingRegistration(nameof(LibraryBase.WindowDenseRank), "DenseRank", orderFields, partitionKeys);
     }
 
+    private static WindowRegistration CreatePercentRankRegistration(
+        OrderField[] orderFields,
+        IrExpression[] partitionKeys,
+        int windowIndex = 0)
+    {
+        return CreateRankingRegistration(
+            nameof(LibraryBase.WindowPercentRank),
+            "PercentRank",
+            orderFields,
+            partitionKeys,
+            typeof(double),
+            windowIndex);
+    }
+
+    private static WindowRegistration CreateCumeDistRegistration(
+        OrderField[] orderFields,
+        IrExpression[] partitionKeys,
+        int windowIndex = 0)
+    {
+        return CreateRankingRegistration(
+            nameof(LibraryBase.WindowCumeDist),
+            "CumeDist",
+            orderFields,
+            partitionKeys,
+            typeof(double),
+            windowIndex);
+    }
+
     private static WindowRegistration CreateLagRegistration(
         IrExpression value,
         OrderField[] orderFields,
@@ -106,7 +134,9 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         string methodName,
         string functionName,
         OrderField[] orderFields,
-        IrExpression[] partitionKeys)
+        IrExpression[] partitionKeys,
+        Type? returnType = null,
+        int windowIndex = 0)
     {
         var method = typeof(LibraryBase).GetMethod(methodName, Type.EmptyTypes) ??
                      throw new InvalidOperationException($"{functionName} window method was not found.");
@@ -117,8 +147,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             partitionKeys,
             orderFields,
             [],
-            0,
-            typeof(long));
+            windowIndex,
+            returnType ?? typeof(long));
     }
 
 }

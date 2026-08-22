@@ -33,6 +33,8 @@ ExecutionPlan [compiled]
       Total: long <- field Total
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [r: object] -> rRows [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateAggregateContext [rootGroup, group, groupsToFinalize; typed: ResultAggregateGroup]
@@ -40,6 +42,7 @@ ExecutionPlan [compiled]
       EnsureAggregateGroup [group; typed: ResultAggregateGroup]
       TypedAggregateSet [Set(group.__agg0)]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
+    PhaseBoundary [Select]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(Total: r.Count(*))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
@@ -64,7 +67,7 @@ namespace GeneratedSample_Q239_QueryRowZeroField
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -83,6 +86,7 @@ namespace GeneratedSample_Q239_QueryRowZeroField
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -98,19 +102,20 @@ namespace GeneratedSample_Q239_QueryRowZeroField
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.GroupBy);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __rSchema = provider.GetSchema("#queryrowsample");
                 var __rSchemaQueryRows = __rSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855).");
                 var rRowsSource = __rSchemaQueryRows.GetQueryScopedRowSource<QueryRow_E3B0C44298FC_S, QueryRowMaterializer_E3B0C44298FC_S>("rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("r:1", sourceExecutionPlans["r:1"], token, __schemaColumns_compiled_r_0, sourceRuntimeSettingsBySourceContextId["r:1"], logger, OnDataSourceProgress), __queryRowShape_E3B0C44298FC), Array.Empty<object>());
-                var rRows = rRowsSource.Chunks;
+                var rRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_E3B0C44298FC_S>(rRowsSource.Chunks, __musoqProgressContext, "r:1") : rRowsSource.Chunks;
                 var groupsToFinalize = new List<ResultAggregateGroup>();
                 ResultAggregateGroup group = new ResultAggregateGroup();
                 groupsToFinalize.Add(group);
@@ -183,6 +188,7 @@ namespace GeneratedSample_Q239_QueryRowZeroField
                     }
                 }
 
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
@@ -193,7 +199,14 @@ namespace GeneratedSample_Q239_QueryRowZeroField
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

@@ -65,7 +65,10 @@ public partial class SetsOperatorsTests
     [TestMethod]
     public void UnionWithSkipTest()
     {
-        var query = @"select Name from #A.Entities() skip 1 union (Name) select Name from #B.Entities() skip 2";
+        var query = @"
+with left_slice as (select Name from #A.Entities() skip 1),
+right_slice as (select Name from #B.Entities() skip 2)
+select Name from left_slice union (Name) select Name from right_slice";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
@@ -82,7 +85,10 @@ public partial class SetsOperatorsTests
     [TestMethod]
     public void UnionAllWithSkipTest()
     {
-        var query = @"select Name from #A.Entities() skip 1 union all (Name) select Name from #B.Entities() skip 2";
+        var query = @"
+with left_slice as (select Name from #A.Entities() skip 1),
+right_slice as (select Name from #B.Entities() skip 2)
+select Name from left_slice union all (Name) select Name from right_slice";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("005")] },
@@ -186,11 +192,12 @@ select Id, Name from p
     public void MultipleUnionAllWithSkipTest()
     {
         var query = @"
-select Name from #A.Entities() skip 1
-union all (Name)
-select Name from #B.Entities() skip 2
-union all (Name)
-select Name from #C.Entities() skip 3";
+with first_slice as (select Name from #A.Entities() skip 1),
+second_slice as (select Name from #B.Entities() skip 2),
+third_slice as (select Name from #C.Entities() skip 3)
+select Name from first_slice
+union all (Name) select Name from second_slice
+union all (Name) select Name from third_slice";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("005")] },

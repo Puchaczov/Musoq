@@ -40,7 +40,10 @@ ExecutionPlan [compiled]
       b.Name: string <- field b_Name
 
   Body
-    CtePhase [cte0]
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [Select]
     SourceScan [a: BasicEntity] -> aRows
     SourceScan [b: BasicEntity] -> bRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
@@ -49,6 +52,7 @@ ExecutionPlan [compiled]
       RangeProbe [b <- resultRangeIndex where a.Population]
         If [(a.Population > (b.Population + 950))]
           AppendShape [result <- ResultShape0(a.Name: a.Name, b.Name: b.Name)]
+    PhaseBoundary [End:cte0]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
 
@@ -71,7 +75,7 @@ namespace GeneratedSample_Q76_NonEquiJoinSortMergeEnabled
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -90,6 +94,7 @@ namespace GeneratedSample_Q76_NonEquiJoinSortMergeEnabled
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -105,98 +110,113 @@ namespace GeneratedSample_Q76_NonEquiJoinSortMergeEnabled
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Where);
-            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
-                var __aSchema = provider.GetSchema("#A");
-                var aRowsSource = __aSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var aRows = aRowsSource.Chunks;
-                var __bSchema = provider.GetSchema("#A");
-                var bRowsSource = __bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var bRows = bRowsSource.Chunks;
-                var resultRangeIndex = EvaluationHelper.CreateRangeJoinIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal>(bRows, (bRangeCandidate) => (bRangeCandidate.Population + 950), Musoq.Evaluator.IR.Expressions.BinaryOpKind.GreaterThan);
-                foreach (var aChunk in aRows)
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+                try
                 {
-                    if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkView)
+                    OnPhaseChanged("compiled", QueryPhase.Select);
+                    var __aSchema = provider.GetSchema("#A");
+                    var aRowsSource = __aSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                    var aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(aRowsSource.Chunks, __musoqProgressContext, "a:1") : aRowsSource.Chunks;
+                    var __bSchema = provider.GetSchema("#A");
+                    var bRowsSource = __bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                    var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:1") : bRowsSource.Chunks;
+                    var resultRangeIndex = EvaluationHelper.CreateRangeJoinIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal>(bRows, (bRangeCandidate) => (bRangeCandidate.Population + 950), Musoq.Evaluator.IR.Expressions.BinaryOpKind.GreaterThan);
+                    foreach (var aChunk in aRows)
                     {
-                        if (aChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] aChunkViewArray)
+                        if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkView)
                         {
-                            int aChunkViewOffset = aChunkView.Offset;
-                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            if (aChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] aChunkViewArray)
                             {
-                                if ((aIndex & 1023) == 0)
+                                int aChunkViewOffset = aChunkView.Offset;
+                                for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
                                 {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var a = aChunkViewArray[aChunkViewOffset + aIndex];
-                                foreach (var b in resultRangeIndex.Find(a.Population))
-                                {
-                                    if ((a.Population > (b.Population + 950)))
+                                    if ((aIndex & 1023) == 0)
                                     {
-                                        __musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Name));
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var a = aChunkViewArray[aChunkViewOffset + aIndex];
+                                    foreach (var b in resultRangeIndex.Find(a.Population))
+                                    {
+                                        if ((a.Population > (b.Population + 950)))
+                                        {
+                                            __musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Name));
+                                        }
                                     }
                                 }
+
+                                continue;
                             }
 
-                            continue;
-                        }
-
-                        if (aChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkViewList)
-                        {
-                            int aChunkViewOffset = aChunkView.Offset;
-                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            if (aChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkViewList)
                             {
-                                if ((aIndex & 1023) == 0)
+                                int aChunkViewOffset = aChunkView.Offset;
+                                for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
                                 {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var a = aChunkViewList[aChunkViewOffset + aIndex];
-                                foreach (var b in resultRangeIndex.Find(a.Population))
-                                {
-                                    if ((a.Population > (b.Population + 950)))
+                                    if ((aIndex & 1023) == 0)
                                     {
-                                        __musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Name));
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var a = aChunkViewList[aChunkViewOffset + aIndex];
+                                    foreach (var b in resultRangeIndex.Find(a.Population))
+                                    {
+                                        if ((a.Population > (b.Population + 950)))
+                                        {
+                                            __musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Name));
+                                        }
                                     }
                                 }
+
+                                continue;
                             }
-
-                            continue;
-                        }
-                    }
-
-                    for (int aIndex = 0, aIndexCount = aChunk.Count; aIndex < aIndexCount; ++aIndex)
-                    {
-                        if ((aIndex & 1023) == 0)
-                        {
-                            token.ThrowIfCancellationRequested();
                         }
 
-                        var a = aChunk[aIndex];
-                        foreach (var b in resultRangeIndex.Find(a.Population))
+                        for (int aIndex = 0, aIndexCount = aChunk.Count; aIndex < aIndexCount; ++aIndex)
                         {
-                            if ((a.Population > (b.Population + 950)))
+                            if ((aIndex & 1023) == 0)
                             {
-                                __musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Name));
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            var a = aChunk[aIndex];
+                            foreach (var b in resultRangeIndex.Find(a.Population))
+                            {
+                                if ((a.Population > (b.Population + 950)))
+                                {
+                                    __musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Name));
+                                }
                             }
                         }
                     }
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled:cte0", QueryPhase.End);
                 }
 
                 return __musoqFinalShapeRows;
             }
             finally
             {
-                OnPhaseChanged("compiled:cte0", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

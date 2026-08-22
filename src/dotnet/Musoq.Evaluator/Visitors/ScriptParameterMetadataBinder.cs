@@ -114,22 +114,27 @@ internal sealed class ScriptParameterMetadataBinder(
     {
         foreach (var arg in args.Args)
         {
-            if (arg is ParameterReferenceNode parameterReference)
-            {
-                ValidateDirectSchemaArgument(parameterReference, schemaFromNode);
+            if (arg is ParameterReferenceNode)
                 continue;
-            }
 
             if (!ContainsParameterReference(arg))
                 continue;
 
             var message =
-                $"Script parameters in source arguments for '{schemaFromNode.Schema}.{schemaFromNode.Method}' must be passed directly and have a default value.";
+                $"Script parameters in source arguments for '{schemaFromNode.Schema}.{schemaFromNode.Method}' must be passed directly; computed expressions are not supported.";
             if (reportScriptParameterError(DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument, message, arg))
                 continue;
 
             throw new NotSupportedException(message);
         }
+    }
+
+    public bool HasRequiredSourceParameter(ArgsListNode args)
+    {
+        return args.Args.Any(arg =>
+            arg is ParameterReferenceNode parameterReference &&
+            _definitionsByName.TryGetValue(parameterReference.Name, out var definition) &&
+            !definition.HasDefaultValue);
     }
 
     private bool ReportAndSkipParameterBlock(DiagnosticCode code, string message, ParameterBlockNode node)
@@ -148,37 +153,12 @@ internal sealed class ScriptParameterMetadataBinder(
         return $"Script parameter '{parameter.Name}' type '{parameter.DeclaredTypeName}' is not supported.";
     }
 
-    private void ValidateDirectSchemaArgument(
-        ParameterReferenceNode parameterReference,
-        SchemaFromNode schemaFromNode)
-    {
-        if (_definitionsByName.TryGetValue(parameterReference.Name, out var definition) &&
-            definition.HasDefaultValue)
-            return;
-
-        var message =
-            $"Script parameter '{parameterReference.Name}' is used in source arguments for '{schemaFromNode.Schema}.{schemaFromNode.Method}' and must declare a default value.";
-        if (reportScriptParameterError(DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument, message, parameterReference))
-            return;
-
-        throw new NotSupportedException(message);
-    }
-
     private static bool ContainsParameterReference(Node node)
     {
-        return node switch
-        {
-            null => false,
-            ParameterReferenceNode => true,
-            ArgsListNode args => args.Args.Any(ContainsParameterReference),
-            AccessMethodNode accessMethod => ContainsParameterReference(accessMethod.Arguments),
-            DotNode dot => ContainsParameterReference(dot.Root) || ContainsParameterReference(dot.Expression),
-            CaseNode caseNode => ContainsParameterReference(caseNode.Else) ||
-                                 caseNode.WhenThenPairs.Any(pair =>
-                                     ContainsParameterReference(pair.When) || ContainsParameterReference(pair.Then)),
-            BinaryNode binary => ContainsParameterReference(binary.Left) || ContainsParameterReference(binary.Right),
-            UnaryNode unary => ContainsParameterReference(unary.Expression),
-            _ => false
-        };
+        if (node is null || node is ParameterReferenceNode)
+            return node is ParameterReferenceNode;
+
+        return ParserNodeTraversalRegistry.EnumerateChildren(node)
+            .Any(ContainsParameterReference);
     }
 }

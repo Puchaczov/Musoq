@@ -79,13 +79,21 @@ ExecutionPlan [compiled]
       RunSum: decimal <- field RunSum
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    PhaseBoundary [Begin:cte1]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [From:cte0]
     SourceScan [ko3iko: BasicEntity] -> cte0_ko3ikoRows
     CreateHash [cte0HashSidecar0Name: string -> Row]
+    PhaseBoundary [Where:cte0]
     ChunkedForEach [ko3iko in cte0_ko3ikoRows]
       If [(ko3iko.Population > 0)]
         CreateHashPayload [cte0SidecarPayload0 <- Cte0HashPayload0(Name: ko3iko.Name, Population: ko3iko.Population)]
         HashAdd [cte0HashSidecar0Name[ko3iko.Name] += cte0SidecarPayload0]
     StoreCteIndex [cte0HashSidecar0Name -> _cteIndexResults.Slot0 Hash]
+    PhaseBoundary [Select:cte0]
+    PhaseBoundary [End:cte0]
     SourceScan [a: BasicEntity] -> statement0_aRows
     CreateTable [statement0: Statement0Row0]
     LoadCteIndex [statement0BHash <- _cteIndexResults.Slot0 Hash: string]
@@ -94,9 +102,11 @@ ExecutionPlan [compiled]
         ForEach [b in statement0BHashMatches]
           AppendRow [statement0 <- Statement0Row0(b.Name: b.Name, b.Population: b.Population, a.Name: a.Name, a.City: a.City)]
     StoreTable [statement0 -> _cteRowResults.Slot1: List<Statement0Row0>]
+    PhaseBoundary [End:cte1]
     Materialize [_cteRowResults.Slot1 -> resultWindowRows]
     ComputeSumWindowKernel[Running] [resultSums <- resultWindowRows value ba.b.Population partition by ba.a.City order by ba.b.Name ASC frame rows between unbounded preceding and current row]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [Select]
     ForEachIndexed [windowIndex, ba in resultWindowRows]
       If [(resultSums[windowIndex] > 100)]
         AppendShape [result <- ResultShape0(b.Name: ba.b.Name, a.City: ba.a.City, RunSum: resultSums[windowIndex])]
@@ -122,7 +132,7 @@ namespace GeneratedSample_Q47_CteJoinFrameQualify
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_3 = new Column[]
         {
@@ -150,6 +160,7 @@ namespace GeneratedSample_Q47_CteJoinFrameQualify
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_3, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -165,11 +176,9 @@ namespace GeneratedSample_Q47_CteJoinFrameQualify
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Where);
-            OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var _cteRowResults = new CteRowResults();
@@ -177,7 +186,9 @@ namespace GeneratedSample_Q47_CteJoinFrameQualify
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
-                _cteRowResults.Slot1 = BuildCte1(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults, _cteIndexResults);
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                _cteRowResults.Slot1 = BuildCte1(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, _cteIndexResults);
                 var resultWindowRows = EvaluationHelper.MaterializeGeneratedRows<Statement0Row0>(_cteRowResults.Slot1);
                 var resultSumsPartitionBuilder = new Musoq.Evaluator.Helpers.WindowPartitionBuilder<string>(resultWindowRows.Count);
                 var resultSumsOrderKeys = new WindowResultSumsOrderKeysKey[resultWindowRows.Count];
@@ -207,6 +218,7 @@ namespace GeneratedSample_Q47_CteJoinFrameQualify
                     }
                 }
 
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
                 {
                     if ((windowIndex & 1023) == 0)
@@ -225,8 +237,14 @@ namespace GeneratedSample_Q47_CteJoinFrameQualify
             }
             finally
             {
-                OnPhaseChanged("compiled:cte1", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 
@@ -243,199 +261,207 @@ namespace GeneratedSample_Q47_CteJoinFrameQualify
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Statement0Row0> BuildCte1(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, CteRowResults _cteRowResults, CteIndexResults _cteIndexResults)
+        private static List<Statement0Row0> BuildCte1(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults, CteIndexResults _cteIndexResults)
         {
-            var __cte0_ko3ikoSchema = provider.GetSchema("#A");
-            var cte0_ko3ikoRowsSource = __cte0_ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-            var cte0_ko3ikoRows = cte0_ko3ikoRowsSource.Chunks;
-            var cte0HashSidecar0Name = new Dictionary<string, HashJoinBucket<Cte0HashPayload0>>();
-            foreach (var ko3ikoChunk in cte0_ko3ikoRows)
+            OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
+            try
             {
-                if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)
+                var __cte0_ko3ikoSchema = provider.GetSchema("#A");
+                var cte0_ko3ikoRowsSource = __cte0_ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var cte0_ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : cte0_ko3ikoRowsSource.Chunks;
+                var cte0HashSidecar0Name = new Dictionary<string, HashJoinBucket<Cte0HashPayload0>>();
+                foreach (var ko3ikoChunk in cte0_ko3ikoRows)
                 {
-                    if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] ko3ikoChunkViewArray)
+                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)
                     {
-                        int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                        for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] ko3ikoChunkViewArray)
                         {
-                            if ((ko3ikoIndex & 1023) == 0)
+                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                             {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                            if ((ko3iko.Population > 0))
-                            {
-                                Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Name, ko3iko.Population);
-                                string cte0HashSidecar0NameKey0 = ko3iko.Name;
-                                if (cte0HashSidecar0NameKey0 != null)
+                                if ((ko3ikoIndex & 1023) == 0)
                                 {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                if ((ko3iko.Population > 0))
+                                {
+                                    Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Name, ko3iko.Population);
+                                    string cte0HashSidecar0NameKey0 = ko3iko.Name;
+                                    if (cte0HashSidecar0NameKey0 != null)
                                     {
-                                        ref var cte0HashSidecar0NameBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0HashSidecar0Name, cte0HashSidecar0NameKey0, out var cte0HashSidecar0NameBucket0Exists);
-                                        if (!cte0HashSidecar0NameBucket0Exists)
                                         {
-                                            cte0HashSidecar0NameBucket0 = new HashJoinBucket<Cte0HashPayload0>(cte0SidecarPayload0);
-                                        }
-                                        else
-                                        {
-                                            cte0HashSidecar0NameBucket0.Add(cte0SidecarPayload0);
+                                            ref var cte0HashSidecar0NameBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0HashSidecar0Name, cte0HashSidecar0NameKey0, out var cte0HashSidecar0NameBucket0Exists);
+                                            if (!cte0HashSidecar0NameBucket0Exists)
+                                            {
+                                                cte0HashSidecar0NameBucket0 = new HashJoinBucket<Cte0HashPayload0>(cte0SidecarPayload0);
+                                            }
+                                            else
+                                            {
+                                                cte0HashSidecar0NameBucket0.Add(cte0SidecarPayload0);
+                                            }
                                         }
                                     }
                                 }
                             }
+
+                            continue;
                         }
 
-                        continue;
-                    }
-
-                    if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkViewList)
-                    {
-                        int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                        for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkViewList)
                         {
-                            if ((ko3ikoIndex & 1023) == 0)
+                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
+                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                             {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                            if ((ko3iko.Population > 0))
-                            {
-                                Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Name, ko3iko.Population);
-                                string cte0HashSidecar0NameKey0 = ko3iko.Name;
-                                if (cte0HashSidecar0NameKey0 != null)
+                                if ((ko3ikoIndex & 1023) == 0)
                                 {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
+                                if ((ko3iko.Population > 0))
+                                {
+                                    Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Name, ko3iko.Population);
+                                    string cte0HashSidecar0NameKey0 = ko3iko.Name;
+                                    if (cte0HashSidecar0NameKey0 != null)
                                     {
-                                        ref var cte0HashSidecar0NameBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0HashSidecar0Name, cte0HashSidecar0NameKey0, out var cte0HashSidecar0NameBucket0Exists);
-                                        if (!cte0HashSidecar0NameBucket0Exists)
                                         {
-                                            cte0HashSidecar0NameBucket0 = new HashJoinBucket<Cte0HashPayload0>(cte0SidecarPayload0);
-                                        }
-                                        else
-                                        {
-                                            cte0HashSidecar0NameBucket0.Add(cte0SidecarPayload0);
+                                            ref var cte0HashSidecar0NameBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0HashSidecar0Name, cte0HashSidecar0NameKey0, out var cte0HashSidecar0NameBucket0Exists);
+                                            if (!cte0HashSidecar0NameBucket0Exists)
+                                            {
+                                                cte0HashSidecar0NameBucket0 = new HashJoinBucket<Cte0HashPayload0>(cte0SidecarPayload0);
+                                            }
+                                            else
+                                            {
+                                                cte0HashSidecar0NameBucket0.Add(cte0SidecarPayload0);
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
 
-                        continue;
-                    }
-                }
-
-                for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
-                {
-                    if ((ko3ikoIndex & 1023) == 0)
-                    {
-                        token.ThrowIfCancellationRequested();
-                    }
-
-                    var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                    if ((ko3iko.Population > 0))
-                    {
-                        Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Name, ko3iko.Population);
-                        string cte0HashSidecar0NameKey0 = ko3iko.Name;
-                        if (cte0HashSidecar0NameKey0 != null)
-                        {
-                            {
-                                ref var cte0HashSidecar0NameBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0HashSidecar0Name, cte0HashSidecar0NameKey0, out var cte0HashSidecar0NameBucket0Exists);
-                                if (!cte0HashSidecar0NameBucket0Exists)
-                                {
-                                    cte0HashSidecar0NameBucket0 = new HashJoinBucket<Cte0HashPayload0>(cte0SidecarPayload0);
-                                }
-                                else
-                                {
-                                    cte0HashSidecar0NameBucket0.Add(cte0SidecarPayload0);
-                                }
-                            }
+                            continue;
                         }
                     }
-                }
-            }
 
-            _cteIndexResults.Slot0 = cte0HashSidecar0Name;
-            var __statement0_aSchema = provider.GetSchema("#A");
-            var statement0_aRowsSource = __statement0_aSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("a:2", sourceExecutionPlans["a:2"], token, __schemaColumns_compiled_a_1, sourceRuntimeSettingsBySourceContextId["a:2"], logger, OnDataSourceProgress), Array.Empty<object>());
-            var statement0_aRows = statement0_aRowsSource.Chunks;
-            var statement0 = new List<Statement0Row0>();
-            var statement0BHash = _cteIndexResults.Slot0;
-            foreach (var aChunk in statement0_aRows)
-            {
-                if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkView)
-                {
-                    if (aChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] aChunkViewArray)
+                    for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
                     {
-                        int aChunkViewOffset = aChunkView.Offset;
-                        for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
-                        {
-                            if ((aIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var a = aChunkViewArray[aChunkViewOffset + aIndex];
-                            string key = a.Name;
-                            if (key != null && statement0BHash.TryGetValue(key, out var statement0BHashMatches))
-                            {
-                                foreach (var b in statement0BHashMatches)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                    statement0.Add(new Statement0Row0(b.Name, b.Population, a.Name, a.City));
-                                }
-                            }
-                        }
-
-                        continue;
-                    }
-
-                    if (aChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkViewList)
-                    {
-                        int aChunkViewOffset = aChunkView.Offset;
-                        for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
-                        {
-                            if ((aIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var a = aChunkViewList[aChunkViewOffset + aIndex];
-                            string key = a.Name;
-                            if (key != null && statement0BHash.TryGetValue(key, out var statement0BHashMatches))
-                            {
-                                foreach (var b in statement0BHashMatches)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                    statement0.Add(new Statement0Row0(b.Name, b.Population, a.Name, a.City));
-                                }
-                            }
-                        }
-
-                        continue;
-                    }
-                }
-
-                for (int aIndex = 0, aIndexCount = aChunk.Count; aIndex < aIndexCount; ++aIndex)
-                {
-                    if ((aIndex & 1023) == 0)
-                    {
-                        token.ThrowIfCancellationRequested();
-                    }
-
-                    var a = aChunk[aIndex];
-                    string key = a.Name;
-                    if (key != null && statement0BHash.TryGetValue(key, out var statement0BHashMatches))
-                    {
-                        foreach (var b in statement0BHashMatches)
+                        if ((ko3ikoIndex & 1023) == 0)
                         {
                             token.ThrowIfCancellationRequested();
-                            statement0.Add(new Statement0Row0(b.Name, b.Population, a.Name, a.City));
+                        }
+
+                        var ko3iko = ko3ikoChunk[ko3ikoIndex];
+                        if ((ko3iko.Population > 0))
+                        {
+                            Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Name, ko3iko.Population);
+                            string cte0HashSidecar0NameKey0 = ko3iko.Name;
+                            if (cte0HashSidecar0NameKey0 != null)
+                            {
+                                {
+                                    ref var cte0HashSidecar0NameBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0HashSidecar0Name, cte0HashSidecar0NameKey0, out var cte0HashSidecar0NameBucket0Exists);
+                                    if (!cte0HashSidecar0NameBucket0Exists)
+                                    {
+                                        cte0HashSidecar0NameBucket0 = new HashJoinBucket<Cte0HashPayload0>(cte0SidecarPayload0);
+                                    }
+                                    else
+                                    {
+                                        cte0HashSidecar0NameBucket0.Add(cte0SidecarPayload0);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-            }
 
-            return statement0;
+                _cteIndexResults.Slot0 = cte0HashSidecar0Name;
+                var __statement0_aSchema = provider.GetSchema("#A");
+                var statement0_aRowsSource = __statement0_aSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("a:2", sourceExecutionPlans["a:2"], token, __schemaColumns_compiled_a_1, sourceRuntimeSettingsBySourceContextId["a:2"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var statement0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:2") : statement0_aRowsSource.Chunks;
+                var statement0 = new List<Statement0Row0>();
+                var statement0BHash = _cteIndexResults.Slot0;
+                foreach (var aChunk in statement0_aRows)
+                {
+                    if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkView)
+                    {
+                        if (aChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] aChunkViewArray)
+                        {
+                            int aChunkViewOffset = aChunkView.Offset;
+                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            {
+                                if ((aIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var a = aChunkViewArray[aChunkViewOffset + aIndex];
+                                string key = a.Name;
+                                if (key != null && statement0BHash.TryGetValue(key, out var statement0BHashMatches))
+                                {
+                                    foreach (var b in statement0BHashMatches)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                        statement0.Add(new Statement0Row0(b.Name, b.Population, a.Name, a.City));
+                                    }
+                                }
+                            }
+
+                            continue;
+                        }
+
+                        if (aChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkViewList)
+                        {
+                            int aChunkViewOffset = aChunkView.Offset;
+                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            {
+                                if ((aIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var a = aChunkViewList[aChunkViewOffset + aIndex];
+                                string key = a.Name;
+                                if (key != null && statement0BHash.TryGetValue(key, out var statement0BHashMatches))
+                                {
+                                    foreach (var b in statement0BHashMatches)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                        statement0.Add(new Statement0Row0(b.Name, b.Population, a.Name, a.City));
+                                    }
+                                }
+                            }
+
+                            continue;
+                        }
+                    }
+
+                    for (int aIndex = 0, aIndexCount = aChunk.Count; aIndex < aIndexCount; ++aIndex)
+                    {
+                        if ((aIndex & 1023) == 0)
+                        {
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        var a = aChunk[aIndex];
+                        string key = a.Name;
+                        if (key != null && statement0BHash.TryGetValue(key, out var statement0BHashMatches))
+                        {
+                            foreach (var b in statement0BHashMatches)
+                            {
+                                token.ThrowIfCancellationRequested();
+                                statement0.Add(new Statement0Row0(b.Name, b.Population, a.Name, a.City));
+                            }
+                        }
+                    }
+                }
+
+                return statement0;
+            }
+            finally
+            {
+                OnPhaseChanged("compiled:cte1", QueryPhase.End);
+            }
         }
 
         private readonly struct Cte0HashPayload0

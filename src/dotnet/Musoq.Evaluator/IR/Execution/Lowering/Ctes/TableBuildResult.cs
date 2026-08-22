@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.IR.Planning;
 
 namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 
@@ -12,6 +13,8 @@ internal sealed record TableBuildResult(
     FinalShapeResult? FinalResult,
     string UnsupportedReason)
 {
+    public IReadOnlyList<ApplyPredicateMovementPlan> LoweredApplyPredicateMovementPlans { get; init; } = [];
+
     public static TableBuildResult Success(
         IReadOnlyList<RowShape> shapes,
         IReadOnlyList<ExecutionNode> nodes,
@@ -57,13 +60,24 @@ internal sealed record LoweredTable(
     GeneratedRowShape RowShape,
     FinalShapeResult FinalResult)
 {
+    public IReadOnlyList<ApplyPredicateMovementPlan> LoweredApplyPredicateMovementPlans { get; init; } = [];
+
     public static LoweredTable FromBuilt(TableBuildResult result)
     {
         ArgumentNullException.ThrowIfNull(result);
         if (!result.IsBuilt || result.FinalResult is not { } finalResult)
             throw new InvalidOperationException("A lowered table product requires a complete built result.");
-        return new(result.Shapes, result.Nodes, result.Table, result.RowShape, finalResult);
+        return new(result.Shapes, result.Nodes, result.Table, result.RowShape, finalResult)
+        {
+            LoweredApplyPredicateMovementPlans = result.LoweredApplyPredicateMovementPlans
+        };
     }
 
-    public TableBuildResult ToCompatibilityResult() => TableBuildResult.Success(Shapes, Nodes, Table, RowShape);
+    public TableBuildResult ToCompatibilityResult()
+    {
+        return TableBuildResult.Success(Shapes, Nodes, Table, RowShape) with
+        {
+            LoweredApplyPredicateMovementPlans = LoweredApplyPredicateMovementPlans
+        };
+    }
 }

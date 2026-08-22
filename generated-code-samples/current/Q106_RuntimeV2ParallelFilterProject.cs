@@ -38,9 +38,13 @@ ExecutionPlan [compiled]
       Heavy: int <- field Heavy
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [ko3iko: RuntimeV2RegressionEntity] -> ko3ikoRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateObject [__resultRuntimeV2RegressionLibrary0: RuntimeV2RegressionLibrary]
+    PhaseBoundary [Where]
+    PhaseBoundary [Select]
     ParallelFilterProjectLoop [ko3iko in ko3ikoRows where (ko3iko.Value > 100); threshold 4096, maxDegree 24]
       ParallelProject
         Let [value: int = ko3iko.Value]
@@ -68,7 +72,7 @@ namespace GeneratedSample_Q106_RuntimeV2ParallelFilterProject
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -90,6 +94,7 @@ namespace GeneratedSample_Q106_RuntimeV2ParallelFilterProject
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -97,35 +102,86 @@ namespace GeneratedSample_Q106_RuntimeV2ParallelFilterProject
 
         private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Where);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             var __musoqExecutionState = ExecutionState.Capture(Parameters);
             ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
+            this.OnPhaseChanged("compiled", QueryPhase.Begin);
+            this.OnPhaseChanged("compiled", QueryPhase.From);
             var __ko3ikoSchema = provider.GetSchema("#test");
             var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-            var ko3ikoRows = ko3ikoRowsSource.Chunks;
+            var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
             var __resultRuntimeV2RegressionLibrary0 = new Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionLibrary();
             var __musoqTableSourceRows = ko3ikoRows;
+            this.OnPhaseChanged("compiled", QueryPhase.Where);
+            this.OnPhaseChanged("compiled", QueryPhase.Select);
             if (__musoqTableSourceRows is not IReadOnlyList<IReadOnlyList<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity>> _)
             {
                 return new QueryTableEnumerable<ResultRow0>((_) => EvaluationHelper.ProjectChunkedRowsParallel<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity, ResultRow0>(__musoqTableSourceRows, 24, (ko3iko) => (ko3iko.Value > 100), (ko3iko) => new ResultRow0(ko3iko.Id, ko3iko.Name, ko3iko.Value, ko3iko.Category, (int)__resultRuntimeV2RegressionLibrary0.HeavyComputation(ko3iko.Value)), token), token, onCompleted: () =>
                 {
-                    OnPhaseChanged("compiled", QueryPhase.End);
+                    try
+                    {
+                        __musoqProgressContext?.CompleteQueryProgress();
+                    }
+                    finally
+                    {
+                        OnPhaseChanged("compiled", QueryPhase.End);
+                    }
+                }, onException: (Exception _) =>
+                {
+                    try
+                    {
+                        __musoqProgressContext?.CompleteQueryProgress();
+                    }
+                    finally
+                    {
+                        OnPhaseChanged("compiled", QueryPhase.End);
+                    }
                 }, onDisposed: () =>
                 {
-                    OnPhaseChanged("compiled", QueryPhase.End);
+                    try
+                    {
+                        __musoqProgressContext?.CompleteQueryProgress();
+                    }
+                    finally
+                    {
+                        OnPhaseChanged("compiled", QueryPhase.End);
+                    }
                 });
             }
 
             var __musoqTableParallelRows = EvaluationHelper.GetParallelProjectionRowsOrEmpty<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity>(__musoqTableSourceRows, 4096);
             return new QueryTableEnumerable<ResultRow0>((_) => QueryRows.FromRowShards(EvaluationHelper.ProjectRowsParallel<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity, ResultRow0>(__musoqTableParallelRows, 24, (ko3iko) => (ko3iko.Value > 100), (ko3iko) => new ResultRow0(ko3iko.Id, ko3iko.Name, ko3iko.Value, ko3iko.Category, (int)__resultRuntimeV2RegressionLibrary0.HeavyComputation(ko3iko.Value)), token)), token, onCompleted: () =>
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            }, onException: (Exception _) =>
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }, onDisposed: () =>
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             });
         }
 

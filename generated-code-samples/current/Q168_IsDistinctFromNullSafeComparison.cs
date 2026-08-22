@@ -39,8 +39,11 @@ ExecutionPlan [compiled]
       IsSame: bool <- field IsSame
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     CreateValuesRows [pairsRows: pairsValues691436E3Row0 x 4]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [Select]
     ForEach [pairs in pairsRows]
       Let [leftValue: int? = pairs.LeftValue]
       Let [rightValue: int? = pairs.RightValue]
@@ -67,7 +70,7 @@ namespace GeneratedSample_Q168_IsDistinctFromNullSafeComparison
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_0 = new Column[]
         {
@@ -86,6 +89,7 @@ namespace GeneratedSample_Q168_IsDistinctFromNullSafeComparison
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_0, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -101,13 +105,15 @@ namespace GeneratedSample_Q168_IsDistinctFromNullSafeComparison
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 pairsValues691436E3Row0[] pairsRows = new pairsValues691436E3Row0[]
                 {
                     new pairsValues691436E3Row0("same", 1, 1),
@@ -115,6 +121,7 @@ namespace GeneratedSample_Q168_IsDistinctFromNullSafeComparison
                     new pairsValues691436E3Row0("both-null", null, null),
                     new pairsValues691436E3Row0("left-null", null, 3)
                 };
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var pairs in pairsRows)
                 {
                     token.ThrowIfCancellationRequested();
@@ -125,7 +132,14 @@ namespace GeneratedSample_Q168_IsDistinctFromNullSafeComparison
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

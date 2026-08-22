@@ -5,24 +5,6 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static IEnumerable<string> CreateRelatedPhaseQueryIdentifiers(ExecutionBlock block, string queryIdentifier)
-    {
-        if (ContainsNode<ExecutionSetOperation>(block))
-        {
-            yield return $"{queryIdentifier}:left";
-            yield return $"{queryIdentifier}:right";
-        }
-
-        var taskScopedTableIndexes = CollectTaskScopedStoredTableIndexes(block).ToHashSet();
-        foreach (var tableIndex in CollectStoredTableIndexes(block)
-                     .Where(index => !taskScopedTableIndexes.Contains(index))
-                     .Distinct()
-                     .OrderBy(static index => index))
-        {
-            yield return CreateRelatedCtePhaseQueryIdentifier(queryIdentifier, tableIndex);
-        }
-    }
-
     private static IEnumerable<int> CollectStoredTableIndexes(ExecutionBlock block)
     {
         foreach (var node in block.Nodes)
@@ -40,24 +22,6 @@ public sealed partial class ExecutionCSharpRenderer
                 yield return phase.TableIndex;
 
             foreach (var tableIndex in CollectNestedValues(node, CollectStoredTableIndexes))
-                yield return tableIndex;
-        }
-    }
-
-    private static IEnumerable<int> CollectTaskScopedStoredTableIndexes(ExecutionBlock block)
-    {
-        foreach (var node in block.Nodes)
-        {
-            if (node is ExecutionParallelBlock parallel)
-            {
-                foreach (var task in parallel.Tasks)
-                {
-                    if (task.RelatedTableIndex is { } tableIndex)
-                        yield return tableIndex;
-                }
-            }
-
-            foreach (var tableIndex in CollectNestedValues(node, CollectTaskScopedStoredTableIndexes))
                 yield return tableIndex;
         }
     }

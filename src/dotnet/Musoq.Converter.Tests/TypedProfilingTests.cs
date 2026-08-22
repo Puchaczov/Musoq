@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
 using MusoqTypedProfileFixtures;
 using Musoq.Tests.Common;
@@ -39,6 +40,27 @@ public class TypedProfilingTests
         Assert.IsNull(result.Exception);
         Assert.IsGreaterThan(0, result.Profile.Sources.Count);
         StringAssert.Contains(result.ProfileText, "Musoq query profile");
+    }
+
+    [TestMethod]
+    public void RunWithProfile_WithQueryProgressOptions_ShouldPublishFinalSnapshot()
+    {
+        var snapshots = new List<QueryProgressEventArgs>();
+        var result = CreateProfileQuery<NameDto>().RunWithProfile(new TypedQueryRunOptions
+        {
+            QueryProgress = (_, args) => snapshots.Add(args),
+            QueryProgressOptions = new QueryProgressOptions
+            {
+                RowsPerUpdate = 1,
+                MinimumInterval = TimeSpan.FromDays(1)
+            }
+        }, CreatePeopleSource());
+
+        _ = result.Rows.ToArray();
+
+        Assert.IsTrue(snapshots.Count > 0);
+        Assert.IsTrue(snapshots[^1].IsFinal);
+        Assert.AreEqual(2, snapshots[^1].QueryRowsProcessed);
     }
 
     [TestMethod]

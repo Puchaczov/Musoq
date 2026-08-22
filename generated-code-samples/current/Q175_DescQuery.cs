@@ -19,7 +19,9 @@ ExecutionPlan [compiled]
   Shapes
 
   Body
+    PhaseBoundary [Begin]
     ReturnDesc [query Query]
+    PhaseBoundary [Select]
 */
 
 // === Generated C# ===
@@ -40,7 +42,7 @@ namespace GeneratedSample_Q175_DescQuery
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_descQuery_0 = new Column[]
         {
@@ -58,6 +60,7 @@ namespace GeneratedSample_Q175_DescQuery
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return ComputeTable_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token);
@@ -65,13 +68,23 @@ namespace GeneratedSample_Q175_DescQuery
 
         private Table ComputeTable_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             var __musoqExecutionState = ExecutionState.Capture(Parameters);
             ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
-            OnPhaseChanged("compiled", QueryPhase.End);
+            OnPhaseChanged("compiled", QueryPhase.Begin);
+            try
+            {
+                __musoqProgressContext?.CompleteQueryProgress();
+            }
+            finally
+            {
+                OnPhaseChanged("compiled", QueryPhase.End);
+            }
+
             return EvaluationHelper.GetQueryDescription(__columns_compiled_descQuery_0);
+            OnPhaseChanged("compiled", QueryPhase.Select);
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]

@@ -91,6 +91,9 @@ public partial class BuildMetadataAndInferTypesVisitor
             _sourceBinding.QueryAlias, node.QueryId, hasExternallyProvidedTypes);
         if (boundInvocation != null)
             aliasedSchemaFromNode.SetBoundInvocation(boundInvocation);
+        aliasedSchemaFromNode.SetStaticMetadataArguments(
+            staticSchemaArguments,
+            _scriptParameters.HasRequiredSourceParameter(schemaArgsNode));
         if (node.HasSpan)
             aliasedSchemaFromNode.WithSpan(node.Span);
 
@@ -105,7 +108,13 @@ public partial class BuildMetadataAndInferTypesVisitor
                 queryId,
                 mode: GetSourceRuntimeSettingsResolutionMode());
         var table = !isDesc
-            ? GetSchemaSourceTable(schema, node, queryId, sourceRuntimeSettings, staticSchemaArguments)
+            ? GetSchemaSourceTable(
+                schema,
+                node,
+                queryId,
+                sourceRuntimeSettings,
+                staticSchemaArguments,
+                aliasedSchemaFromNode.HasRequiredRuntimeArguments)
             : new DynamicTable([]);
 
         _sourceBinding.SchemaFromInfo.Add(_sourceBinding.QueryAlias, (_sourceBinding.SchemaFromKey, aliasedSchemaFromNode.Id));
@@ -144,19 +153,21 @@ public partial class BuildMetadataAndInferTypesVisitor
         SchemaFromNode node,
         string queryId,
         IReadOnlyDictionary<string, string> sourceRuntimeSettings,
-        object?[] sourceArguments)
+        object?[] sourceArguments,
+        bool hasRequiredRuntimeArguments)
     {
         try
         {
-            return SchemaProviderBoundary.Invoke(() => schema.GetTableByName(
+            return GetSchemaSourceTable(
+                schema,
+                node.Schema,
                 node.Method,
-                new SourceMetadataContext(
-                    queryId,
-                    CancellationToken.None,
-                    GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
-                    sourceRuntimeSettings,
-                    _logger),
-                sourceArguments));
+                node.SpanOrEmpty(),
+                queryId,
+                GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
+                sourceRuntimeSettings,
+                sourceArguments,
+                hasRequiredRuntimeArguments);
         }
         catch (TableNotFoundException)
         {
@@ -166,6 +177,41 @@ public partial class BuildMetadataAndInferTypesVisitor
             string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal))
         {
             throw new UnknownSourceException(node.Schema, node.Method, node.SpanOrEmpty());
+        }
+    }
+
+    private ISchemaTable GetSchemaSourceTable(
+        ISchema schema,
+        string schemaName,
+        string methodName,
+        TextSpan span,
+        string queryId,
+        IReadOnlyCollection<ISchemaColumn> columns,
+        IReadOnlyDictionary<string, string> sourceRuntimeSettings,
+        object?[] sourceArguments,
+        bool hasRequiredRuntimeArguments)
+    {
+        try
+        {
+            return SchemaProviderBoundary.Invoke(() => schema.GetTableByName(
+                methodName,
+                new SourceMetadataContext(
+                    queryId,
+                    CancellationToken.None,
+                    columns,
+                    sourceRuntimeSettings,
+                    _logger),
+                sourceArguments));
+        }
+        catch (SchemaProviderFailureException exception) when (hasRequiredRuntimeArguments)
+        {
+            throw new SourceMetadataRequiresDefaultException(schemaName, methodName, span, exception);
+        }
+        catch (SchemaArgumentException exception) when (
+            !string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal) &&
+            hasRequiredRuntimeArguments)
+        {
+            throw new SourceMetadataRequiresDefaultException(schemaName, methodName, span, exception);
         }
     }
 }

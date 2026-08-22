@@ -73,8 +73,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (node.Frame is { FrameType: WindowFrameType.Range } && orderByFields.Length == 0)
             ThrowRangeFrameRequiresOrderBy(node);
 
-        if (node.Frame != null)
-            ValidateWindowFrameBounds(node);
+        WindowFrameSemanticValidator.Validate(node, orderByFields, TryReportException);
 
         PushSemanticNode(new WindowSpecificationNode(partitionFields, orderByFields, node.Frame));
     }
@@ -102,7 +101,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         MethodInfo? resolvedFactory = null;
         var isBuiltInOffset = normalizedName is "LAG" or "LEAD";
-        var isBuiltInRanking = normalizedName is "ROWNUMBER" or "RANK" or "DENSERANK";
+        var isBuiltInRanking = normalizedName is "ROWNUMBER" or "RANK" or "DENSERANK" or "PERCENTRANK" or "CUMEDIST";
 
         if (!isBuiltInOffset && !isBuiltInRanking)
             TryResolveWindowFunctionFactory(functionName, out resolvedFactory);
@@ -123,6 +122,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 "LAG" or "LEAD" => MakeNullableIfValueType(
                     args.Length > 0 ? args[0].ReturnType ?? typeof(object) : typeof(object)),
                 "ROWNUMBER" or "RANK" or "DENSERANK" => typeof(long),
+                "PERCENTRANK" or "CUMEDIST" => typeof(double),
                 _ => typeof(object)
             };
         }
@@ -218,55 +218,6 @@ public partial class BuildMetadataAndInferTypesVisitor
             "Visit(WindowSpecificationNode)",
             message,
             DiagnosticCode.MQ3052_RangeFrameRequiresOrderBy,
-            span);
-
-        if (TryReportException(exception, node))
-            return;
-
-        throw exception;
-    }
-
-    private void ValidateWindowFrameBounds(WindowSpecificationNode node)
-    {
-        var frame = node.Frame ??
-                    throw new InvalidOperationException("Window frame validation requires a frame.");
-        var startRank = GetBoundRank(frame.Start.BoundType);
-        var endRank = GetBoundRank(frame.End.BoundType);
-
-        if (startRank > endRank)
-            ThrowInvalidWindowFrameBounds(node);
-    }
-
-    private static int GetBoundRank(WindowFrameBoundType boundType)
-    {
-        return boundType switch
-        {
-            WindowFrameBoundType.UnboundedPreceding => 0,
-            WindowFrameBoundType.OffsetPreceding => 1,
-            WindowFrameBoundType.CurrentRow => 2,
-            WindowFrameBoundType.OffsetFollowing => 3,
-            WindowFrameBoundType.UnboundedFollowing => 4,
-            _ => throw new InvalidOperationException($"Unknown bound type: {boundType}")
-        };
-    }
-
-    private void ThrowInvalidWindowFrameBounds(WindowSpecificationNode node)
-    {
-        var frame = node.Frame ??
-                    throw new VisitorException(
-                        nameof(BuildMetadataAndInferTypesVisitor),
-                        "Visit(WindowSpecificationNode)",
-                        "Window frame validation requires a frame.",
-                        DiagnosticCode.MQ3053_InvalidWindowFrameBounds,
-                        node.HasSpan ? node.Span : TextSpan.Empty);
-        var span = node.HasSpan ? node.Span : TextSpan.Empty;
-        var message = $"Invalid window frame: start bound '{frame.Start}' is logically after end bound '{frame.End}'.";
-
-        var exception = new VisitorException(
-            nameof(BuildMetadataAndInferTypesVisitor),
-            "Visit(WindowSpecificationNode)",
-            message,
-            DiagnosticCode.MQ3053_InvalidWindowFrameBounds,
             span);
 
         if (TryReportException(exception, node))

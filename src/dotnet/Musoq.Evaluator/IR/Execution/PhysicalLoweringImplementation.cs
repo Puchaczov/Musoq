@@ -61,7 +61,13 @@ internal sealed partial class PhysicalLoweringImplementation :
         var unwrapped = UnwrapSingleStatement(physicalPlan);
         var loweringContext = new PhysicalToExecutionLoweringContext(unwrapped, identifier, scope);
 
-        return _physicalLoweringFacade.BuildPlan(loweringContext, CreateUnsupported);
+        var result = _physicalLoweringFacade.BuildPlan(loweringContext, CreateUnsupported);
+        return result is { Supported: true, ExecutionPlan: { } executionPlan }
+            ? result with
+            {
+                ExecutionPlan = ExecutionPhaseBoundaryPlanner.AddRootBoundaries(unwrapped, executionPlan)
+            }
+            : result;
     }
 
     private ExecutionStrategyPlan ExecutionStrategies => _facts.ExecutionStrategies;

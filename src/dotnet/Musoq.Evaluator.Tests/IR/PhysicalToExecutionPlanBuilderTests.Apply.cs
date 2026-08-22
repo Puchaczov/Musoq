@@ -63,7 +63,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "          AppendShape [result <- ResultShape0(Name: p.Name, Description: NULL)]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
     [TestMethod]
@@ -114,7 +114,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "        AppendShape [result <- ResultShape0(Name: p.Name, NextAge: NULL)]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
     [TestMethod]
@@ -163,7 +163,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "        AppendShape [result <- ResultShape0(Name: p.Name, Value: b.Value)]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
     [TestMethod]
@@ -239,8 +239,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var optimizedText = ExecutionPlanPrinter.Print(new ExecutionIrOptimizer().Optimize(plan).OptimizedPlan);
 
         StringAssert.Contains(initialText, "SingleUseFusionCandidate [cte0]");
-        Assert.IsFalse(initialText.Contains("CtePhase [cte0]", StringComparison.Ordinal), initialText);
-        StringAssert.Contains(optimizedText, "CtePhase [cte0]");
+        Assert.IsFalse(initialText.Contains("PhaseBoundary [Begin:cte0]", StringComparison.Ordinal), initialText);
+        StringAssert.Contains(optimizedText, "PhaseBoundary [Begin:cte0]");
         Assert.IsFalse(optimizedText.Contains("SingleUseFusionCandidate", StringComparison.Ordinal), optimizedText);
     }
 }

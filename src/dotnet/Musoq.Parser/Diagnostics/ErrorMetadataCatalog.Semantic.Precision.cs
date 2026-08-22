@@ -54,5 +54,11 @@ internal static partial class SemanticErrorMetadataCatalog
             "The selected aggregate and non-aggregate expressions cannot be lowered without a grouping boundary.",
             ["Add GROUP BY for the non-aggregate projection.", "Aggregate every selected expression that is not a grouping key."],
             "Core Spec - GROUP BY and Aggregation");
+
+        yield return Entry(
+            DiagnosticCode.MQ3098_InvalidRangeFrameOrderKey,
+            "A RANGE frame with a PRECEDING or FOLLOWING offset requires exactly one numeric ORDER BY key.",
+            ["Use one numeric ORDER BY expression for a bounded RANGE frame.", "Use CURRENT ROW boundaries for peer-aware RANGE frames with composite or nonnumeric ordering."],
+            "Core Spec - Window Frames");
     }
 }

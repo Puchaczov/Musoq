@@ -65,9 +65,14 @@ internal sealed partial class PhysicalLoweringImplementation
         if (!result.IsBuilt)
             return result;
 
+        var resultNodes = ExecutionPhaseBoundaryPlanner.AddScopeClauseBoundaries(
+            rootDefinition.Plan,
+            result.Nodes,
+            ExecutionPhaseBoundaryPlanner.CreateCteSuffix(fusion.RootDefinitionIndex));
+
         return TableBuildResult.Success(
             [..prefix.Shapes, ..result.Shapes],
-            [..prefix.Nodes, ..ReadOnceCteProjectionLowerer.CreateCandidates(fusion.FusedDefinitionIndexes, result.Nodes)],
+            [..prefix.Nodes, ..ReadOnceCteProjectionLowerer.CreateCandidates(fusion.FusedDefinitionIndexes, resultNodes)],
             result.Table,
             result.RowShape);
     }

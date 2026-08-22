@@ -62,12 +62,13 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
                 members);
         }
 
-        return ClassEmitter.CreateClassDeclaration(
-            _context.Generator,
-            DefaultClassName,
-            members,
-            IsInstrumentationEnabled,
-            _context.EnableContextualExecution);
+            return ClassEmitter.CreateClassDeclaration(
+                _context.Generator,
+                DefaultClassName,
+                members,
+                IsInstrumentationEnabled,
+                _context.EnableContextualExecution,
+                IsInstrumentationEnabled && _context.EnableContextualExecution);
     }
 
     private IEnumerable<string> ResolveNamespaces(IReadOnlyList<SyntaxNode> members)
@@ -190,7 +191,8 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
                 $"{profiledComputeMethodName}(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token, profileRecorder)",
                 _context.ScriptParameterDefinitions,
                 $"{computeMethodName}(queryContext.Provider!, queryContext.SourceRuntimeSettingsBySourceContextId, queryContext.SourceExecutionPlans, queryContext.Logger!, queryContext.CancellationToken)",
-                _context.EnableContextualExecution);
+                _context.EnableContextualExecution,
+                $"{profiledComputeMethodName}(queryContext.Provider!, queryContext.SourceRuntimeSettingsBySourceContextId, queryContext.SourceExecutionPlans, queryContext.Logger!, queryContext.CancellationToken, profileRecorder)");
         }
         else
         {

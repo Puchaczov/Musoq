@@ -64,8 +64,12 @@ ExecutionPlan [compiled]
       d.City: string <- field d_City
 
   Body
-    CtePhase [cte0]
-    CtePhase [cte1]
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [End:cte0]
+    PhaseBoundary [Select]
+    PhaseBoundary [Begin:cte1]
     SourceScan [a: BasicEntity] -> aRows
     SourceScan [b: BasicEntity] -> cte0_bRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
@@ -81,6 +85,7 @@ ExecutionPlan [compiled]
       HashProbe [dHash[(a.Country, a.City)] -> dHashMatches]
         ForEach [d in dHashMatches]
           AppendShape [result <- ResultShape0(a.City: a.City, d.City: d.b.City)]
+    PhaseBoundary [End:cte1]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
 
@@ -103,7 +108,7 @@ namespace GeneratedSample_Q145_CorrelatedApplySelectiveDerivedTable
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -122,6 +127,7 @@ namespace GeneratedSample_Q145_CorrelatedApplySelectiveDerivedTable
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -137,219 +143,242 @@ namespace GeneratedSample_Q145_CorrelatedApplySelectiveDerivedTable
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-            OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
-                var __aSchema = provider.GetSchema("#A");
-                var aRowsSource = __aSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var aRows = aRowsSource.Chunks;
-                var __cte0_bSchema = provider.GetSchema("#B");
-                var cte0_bRowsSource = __cte0_bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var cte0_bRows = cte0_bRowsSource.Chunks;
-                var dHash = new Dictionary<ValueTuple<string, string>, HashJoinBucket<DHashPayload0>>();
-                foreach (var bChunk in cte0_bRows)
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+                try
                 {
-                    if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled:cte0", QueryPhase.End);
+                }
+
+                OnPhaseChanged("compiled", QueryPhase.Select);
+                OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
+                try
+                {
+                    var __aSchema = provider.GetSchema("#A");
+                    var aRowsSource = __aSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                    var aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(aRowsSource.Chunks, __musoqProgressContext, "a:1") : aRowsSource.Chunks;
+                    var __cte0_bSchema = provider.GetSchema("#B");
+                    var cte0_bRowsSource = __cte0_bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), Array.Empty<object>());
+                    var cte0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_bRowsSource.Chunks, __musoqProgressContext, "b:2") : cte0_bRowsSource.Chunks;
+                    var dHash = new Dictionary<ValueTuple<string, string>, HashJoinBucket<DHashPayload0>>();
+                    foreach (var bChunk in cte0_bRows)
                     {
-                        if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] bChunkViewArray)
+                        if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
                         {
-                            int bChunkViewOffset = bChunkView.Offset;
-                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                            if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] bChunkViewArray)
                             {
-                                if ((bIndex & 1023) == 0)
+                                int bChunkViewOffset = bChunkView.Offset;
+                                for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
                                 {
-                                    token.ThrowIfCancellationRequested();
+                                    if ((bIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var b = bChunkViewArray[bChunkViewOffset + bIndex];
+                                    string key0 = b.Country;
+                                    string key1 = b.City;
+                                    if (((key0 == null) || (key1 == null)))
+                                    {
+                                        continue;
+                                    }
+
+                                    ValueTuple<string, string> key = (key0, key1);
+                                    DHashPayload0 d = new DHashPayload0(b.City);
+                                    {
+                                        ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(dHash, key, out var matchesExists);
+                                        if (!matchesExists)
+                                        {
+                                            matches = new HashJoinBucket<DHashPayload0>(d);
+                                        }
+                                        else
+                                        {
+                                            matches.Add(d);
+                                        }
+                                    }
                                 }
 
-                                var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                string key0 = b.Country;
-                                string key1 = b.City;
-                                if (((key0 == null) || (key1 == null)))
-                                {
-                                    continue;
-                                }
-
-                                ValueTuple<string, string> key = (key0, key1);
-                                DHashPayload0 d = new DHashPayload0(b.City);
-                                {
-                                    ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(dHash, key, out var matchesExists);
-                                    if (!matchesExists)
-                                    {
-                                        matches = new HashJoinBucket<DHashPayload0>(d);
-                                    }
-                                    else
-                                    {
-                                        matches.Add(d);
-                                    }
-                                }
+                                continue;
                             }
 
-                            continue;
+                            if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkViewList)
+                            {
+                                int bChunkViewOffset = bChunkView.Offset;
+                                for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                                {
+                                    if ((bIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var b = bChunkViewList[bChunkViewOffset + bIndex];
+                                    string key0 = b.Country;
+                                    string key1 = b.City;
+                                    if (((key0 == null) || (key1 == null)))
+                                    {
+                                        continue;
+                                    }
+
+                                    ValueTuple<string, string> key = (key0, key1);
+                                    DHashPayload0 d = new DHashPayload0(b.City);
+                                    {
+                                        ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(dHash, key, out var matchesExists);
+                                        if (!matchesExists)
+                                        {
+                                            matches = new HashJoinBucket<DHashPayload0>(d);
+                                        }
+                                        else
+                                        {
+                                            matches.Add(d);
+                                        }
+                                    }
+                                }
+
+                                continue;
+                            }
                         }
 
-                        if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkViewList)
+                        for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
                         {
-                            int bChunkViewOffset = bChunkView.Offset;
-                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                            if ((bIndex & 1023) == 0)
                             {
-                                if ((bIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                string key0 = b.Country;
-                                string key1 = b.City;
-                                if (((key0 == null) || (key1 == null)))
-                                {
-                                    continue;
-                                }
-
-                                ValueTuple<string, string> key = (key0, key1);
-                                DHashPayload0 d = new DHashPayload0(b.City);
-                                {
-                                    ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(dHash, key, out var matchesExists);
-                                    if (!matchesExists)
-                                    {
-                                        matches = new HashJoinBucket<DHashPayload0>(d);
-                                    }
-                                    else
-                                    {
-                                        matches.Add(d);
-                                    }
-                                }
+                                token.ThrowIfCancellationRequested();
                             }
 
-                            continue;
+                            var b = bChunk[bIndex];
+                            string key0 = b.Country;
+                            string key1 = b.City;
+                            if (((key0 == null) || (key1 == null)))
+                            {
+                                continue;
+                            }
+
+                            ValueTuple<string, string> key = (key0, key1);
+                            DHashPayload0 d = new DHashPayload0(b.City);
+                            {
+                                ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(dHash, key, out var matchesExists);
+                                if (!matchesExists)
+                                {
+                                    matches = new HashJoinBucket<DHashPayload0>(d);
+                                }
+                                else
+                                {
+                                    matches.Add(d);
+                                }
+                            }
                         }
                     }
 
-                    for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
+                    foreach (var aChunk in aRows)
                     {
-                        if ((bIndex & 1023) == 0)
+                        if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkView)
                         {
-                            token.ThrowIfCancellationRequested();
-                        }
-
-                        var b = bChunk[bIndex];
-                        string key0 = b.Country;
-                        string key1 = b.City;
-                        if (((key0 == null) || (key1 == null)))
-                        {
-                            continue;
-                        }
-
-                        ValueTuple<string, string> key = (key0, key1);
-                        DHashPayload0 d = new DHashPayload0(b.City);
-                        {
-                            ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(dHash, key, out var matchesExists);
-                            if (!matchesExists)
+                            if (aChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] aChunkViewArray)
                             {
-                                matches = new HashJoinBucket<DHashPayload0>(d);
+                                int aChunkViewOffset = aChunkView.Offset;
+                                for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                                {
+                                    if ((aIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var a = aChunkViewArray[aChunkViewOffset + aIndex];
+                                    var key0 = a.Country;
+                                    var key1 = a.City;
+                                    var key = (key0, key1);
+                                    if (key0 != null && key1 != null && dHash.TryGetValue(key, out var dHashMatches))
+                                    {
+                                        foreach (var d in dHashMatches)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                            __musoqFinalShapeRows.Add(new ResultShape0(a.City, d.b_City));
+                                        }
+                                    }
+                                }
+
+                                continue;
                             }
-                            else
+
+                            if (aChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkViewList)
                             {
-                                matches.Add(d);
+                                int aChunkViewOffset = aChunkView.Offset;
+                                for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                                {
+                                    if ((aIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var a = aChunkViewList[aChunkViewOffset + aIndex];
+                                    var key0 = a.Country;
+                                    var key1 = a.City;
+                                    var key = (key0, key1);
+                                    if (key0 != null && key1 != null && dHash.TryGetValue(key, out var dHashMatches))
+                                    {
+                                        foreach (var d in dHashMatches)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                            __musoqFinalShapeRows.Add(new ResultShape0(a.City, d.b_City));
+                                        }
+                                    }
+                                }
+
+                                continue;
+                            }
+                        }
+
+                        for (int aIndex = 0, aIndexCount = aChunk.Count; aIndex < aIndexCount; ++aIndex)
+                        {
+                            if ((aIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            var a = aChunk[aIndex];
+                            var key0 = a.Country;
+                            var key1 = a.City;
+                            var key = (key0, key1);
+                            if (key0 != null && key1 != null && dHash.TryGetValue(key, out var dHashMatches))
+                            {
+                                foreach (var d in dHashMatches)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    __musoqFinalShapeRows.Add(new ResultShape0(a.City, d.b_City));
+                                }
                             }
                         }
                     }
                 }
-
-                foreach (var aChunk in aRows)
+                finally
                 {
-                    if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkView)
-                    {
-                        if (aChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] aChunkViewArray)
-                        {
-                            int aChunkViewOffset = aChunkView.Offset;
-                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
-                            {
-                                if ((aIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var a = aChunkViewArray[aChunkViewOffset + aIndex];
-                                var key0 = a.Country;
-                                var key1 = a.City;
-                                var key = (key0, key1);
-                                if (key0 != null && key1 != null && dHash.TryGetValue(key, out var dHashMatches))
-                                {
-                                    foreach (var d in dHashMatches)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                        __musoqFinalShapeRows.Add(new ResultShape0(a.City, d.b_City));
-                                    }
-                                }
-                            }
-
-                            continue;
-                        }
-
-                        if (aChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkViewList)
-                        {
-                            int aChunkViewOffset = aChunkView.Offset;
-                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
-                            {
-                                if ((aIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var a = aChunkViewList[aChunkViewOffset + aIndex];
-                                var key0 = a.Country;
-                                var key1 = a.City;
-                                var key = (key0, key1);
-                                if (key0 != null && key1 != null && dHash.TryGetValue(key, out var dHashMatches))
-                                {
-                                    foreach (var d in dHashMatches)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                        __musoqFinalShapeRows.Add(new ResultShape0(a.City, d.b_City));
-                                    }
-                                }
-                            }
-
-                            continue;
-                        }
-                    }
-
-                    for (int aIndex = 0, aIndexCount = aChunk.Count; aIndex < aIndexCount; ++aIndex)
-                    {
-                        if ((aIndex & 1023) == 0)
-                        {
-                            token.ThrowIfCancellationRequested();
-                        }
-
-                        var a = aChunk[aIndex];
-                        var key0 = a.Country;
-                        var key1 = a.City;
-                        var key = (key0, key1);
-                        if (key0 != null && key1 != null && dHash.TryGetValue(key, out var dHashMatches))
-                        {
-                            foreach (var d in dHashMatches)
-                            {
-                                token.ThrowIfCancellationRequested();
-                                __musoqFinalShapeRows.Add(new ResultShape0(a.City, d.b_City));
-                            }
-                        }
-                    }
+                    OnPhaseChanged("compiled:cte1", QueryPhase.End);
                 }
 
                 return __musoqFinalShapeRows;
             }
             finally
             {
-                OnPhaseChanged("compiled:cte0", QueryPhase.End);
-                OnPhaseChanged("compiled:cte1", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

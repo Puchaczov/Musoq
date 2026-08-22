@@ -94,6 +94,7 @@ internal static class FinalProjectionDirectProjectionAnalyzer
         return node switch
         {
             ExecutionSourceScan => true,
+            ExecutionPhaseBoundary => true,
             ExecutionCreateObject => true,
             ExecutionCreateTable createTable => createTable.Table.Name == table.Name,
             ExecutionReturnTable returnTable => returnTable.Table.Name == table.Name,

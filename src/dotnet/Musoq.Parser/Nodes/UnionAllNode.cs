@@ -10,6 +10,21 @@ public class UnionAllNode : SetOperatorNode
         ResultTableName = tableName;
     }
 
+    public UnionAllNode(
+        string tableName,
+        string[] keys,
+        Node left,
+        Node right,
+        bool isNested,
+        bool isTheLastOne,
+        OrderByNode? resultOrderBy,
+        SkipNode? resultSkip,
+        TakeNode? resultTake)
+        : base(TokenType.UnionAll, keys, left, right, isNested, isTheLastOne, resultOrderBy, resultSkip, resultTake)
+    {
+        ResultTableName = tableName;
+    }
+
     public override void Accept(IExpressionVisitor visitor)
     {
         ArgumentNullException.ThrowIfNull(visitor);
@@ -19,6 +34,6 @@ public class UnionAllNode : SetOperatorNode
     public override string ToString()
     {
         var keys = Keys.Length == 0 ? string.Empty : string.Join(",", Keys);
-        return $"{Left.ToString()} union all ({keys}) {Right.ToString()}";
+        return $"{Left.ToString()} union all ({keys}) {Right.ToString()}{FormatResultModifiers()}";
     }
 }

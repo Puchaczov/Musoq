@@ -105,6 +105,9 @@ ExecutionPlan [compiled]
       Code: string <- field Code
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [From:cte0]
     RecursiveCte [wide; result cte0; frontiers cte0CurrentFrontier, cte0NextFrontier; identity Keyed via cte0Seen (Id); max iterations 1000; max rows 10000000; max snapshot rows 10000000]
       Anchor
         CreateValuesRows [cte0CurrentFrontier_seedRows: seedValuesD6F9BDFERow0 x 1]
@@ -114,10 +117,15 @@ ExecutionPlan [compiled]
         ForEach [w in cte0CurrentFrontier]
           If [(w.Depth < 2)]
             RecursiveAppend [cte0NextFrontier <- Cte0Row0(Id: (w.Id + 1), Depth: (w.Depth + 1), A: w.A, B: w.B, C: w.C, D: w.D, E: w.E, F: w.F, Name: (w.Name || 'x'), Flag: w.Flag, Amount: (w.Amount + 1)::Decimal, Code: w.Code); identity cte0Seen (Id); guard cte0.Count + cte0NextFrontier.Count < 10000000]
+    PhaseBoundary [Where:cte0]
+    PhaseBoundary [Select:cte0]
     StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]
+    PhaseBoundary [End:cte0]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [From]
     ForEach [wide in _cteRowResults.Slot0]
       AppendShape [result <- ResultShape0(Id: wide.Id, Depth: wide.Depth, A: wide.A, B: wide.B, C: wide.C, D: wide.D, E: wide.E, F: wide.F, Name: wide.Name, Flag: wide.Flag, Amount: wide.Amount, Code: wide.Code)]
+    PhaseBoundary [Select]
     SortShapeRows [result -> resultSorted by Id ASC]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
@@ -141,7 +149,7 @@ namespace GeneratedSample_Q218_RecursiveWidePayload
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_0 = new Column[]
         {
@@ -169,6 +177,7 @@ namespace GeneratedSample_Q218_RecursiveWidePayload
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("resultSorted", __columns_compiled_result_0, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -184,116 +193,128 @@ namespace GeneratedSample_Q218_RecursiveWidePayload
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Where);
-            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
-                var cte0 = new List<Cte0Row0>();
-                var cte0CurrentFrontier = new List<Cte0Row0>();
-                var cte0NextFrontier = new List<Cte0Row0>();
-                var cte0Seen = new HashSet<int>();
-                int __cte0Iteration = 0;
-                int __cte0CancellationCounter = 0;
-                seedValuesD6F9BDFERow0[] cte0CurrentFrontier_seedRows = new seedValuesD6F9BDFERow0[]
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+                try
                 {
-                    new seedValuesD6F9BDFERow0(1)
-                };
-                foreach (var seed in cte0CurrentFrontier_seedRows)
-                {
-                    token.ThrowIfCancellationRequested();
-                    var __cte0CurrentFrontierCandidate0 = 1;
-                    var __cte0CurrentFrontierCandidate1 = 0;
-                    var __cte0CurrentFrontierCandidate2 = 10;
-                    var __cte0CurrentFrontierCandidate3 = 20;
-                    var __cte0CurrentFrontierCandidate4 = 30;
-                    var __cte0CurrentFrontierCandidate5 = 40;
-                    var __cte0CurrentFrontierCandidate6 = 50;
-                    var __cte0CurrentFrontierCandidate7 = 60;
-                    var __cte0CurrentFrontierCandidate8 = "row";
-                    var __cte0CurrentFrontierCandidate9 = true;
-                    var __cte0CurrentFrontierCandidate10 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(1);
-                    var __cte0CurrentFrontierCandidate11 = "x";
-                    if (cte0Seen.Add(__cte0CurrentFrontierCandidate0))
+                    OnPhaseChanged("compiled:cte0", QueryPhase.From);
+                    var cte0 = new List<Cte0Row0>();
+                    var cte0CurrentFrontier = new List<Cte0Row0>();
+                    var cte0NextFrontier = new List<Cte0Row0>();
+                    var cte0Seen = new HashSet<int>();
+                    int __cte0Iteration = 0;
+                    int __cte0CancellationCounter = 0;
+                    seedValuesD6F9BDFERow0[] cte0CurrentFrontier_seedRows = new seedValuesD6F9BDFERow0[]
                     {
-                        if (cte0.Count + cte0CurrentFrontier.Count >= 10000000)
-                        {
-                            throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("wide", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded, 10000000);
-                        }
-
-                        cte0CurrentFrontier.Add(new Cte0Row0(__cte0CurrentFrontierCandidate0, __cte0CurrentFrontierCandidate1, __cte0CurrentFrontierCandidate2, __cte0CurrentFrontierCandidate3, __cte0CurrentFrontierCandidate4, __cte0CurrentFrontierCandidate5, __cte0CurrentFrontierCandidate6, __cte0CurrentFrontierCandidate7, __cte0CurrentFrontierCandidate8, __cte0CurrentFrontierCandidate9, __cte0CurrentFrontierCandidate10, __cte0CurrentFrontierCandidate11));
-                    }
-                }
-
-                cte0.AddRange(cte0CurrentFrontier);
-                while (cte0CurrentFrontier.Count > 0)
-                {
-                    if ((__cte0Iteration & 63) == 0)
+                        new seedValuesD6F9BDFERow0(1)
+                    };
+                    foreach (var seed in cte0CurrentFrontier_seedRows)
                     {
                         token.ThrowIfCancellationRequested();
+                        var __cte0CurrentFrontierCandidate0 = 1;
+                        var __cte0CurrentFrontierCandidate1 = 0;
+                        var __cte0CurrentFrontierCandidate2 = 10;
+                        var __cte0CurrentFrontierCandidate3 = 20;
+                        var __cte0CurrentFrontierCandidate4 = 30;
+                        var __cte0CurrentFrontierCandidate5 = 40;
+                        var __cte0CurrentFrontierCandidate6 = 50;
+                        var __cte0CurrentFrontierCandidate7 = 60;
+                        var __cte0CurrentFrontierCandidate8 = "row";
+                        var __cte0CurrentFrontierCandidate9 = true;
+                        var __cte0CurrentFrontierCandidate10 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(1);
+                        var __cte0CurrentFrontierCandidate11 = "x";
+                        if (cte0Seen.Add(__cte0CurrentFrontierCandidate0))
+                        {
+                            if (cte0.Count + cte0CurrentFrontier.Count >= 10000000)
+                            {
+                                throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("wide", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded, 10000000);
+                            }
+
+                            cte0CurrentFrontier.Add(new Cte0Row0(__cte0CurrentFrontierCandidate0, __cte0CurrentFrontierCandidate1, __cte0CurrentFrontierCandidate2, __cte0CurrentFrontierCandidate3, __cte0CurrentFrontierCandidate4, __cte0CurrentFrontierCandidate5, __cte0CurrentFrontierCandidate6, __cte0CurrentFrontierCandidate7, __cte0CurrentFrontierCandidate8, __cte0CurrentFrontierCandidate9, __cte0CurrentFrontierCandidate10, __cte0CurrentFrontierCandidate11));
+                        }
                     }
 
-                    if (__cte0Iteration >= 1000)
+                    cte0.AddRange(cte0CurrentFrontier);
+                    while (cte0CurrentFrontier.Count > 0)
                     {
-                        throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("wide", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7007_RecursiveCteIterationLimitExceeded, 1000);
-                    }
-
-                    __cte0Iteration++;
-                    cte0NextFrontier.Clear();
-                    for (int cte0CurrentFrontierIndex = 0; cte0CurrentFrontierIndex < cte0CurrentFrontier.Count; ++cte0CurrentFrontierIndex)
-                    {
-                        if (cte0CurrentFrontierIndex != 0 && (cte0CurrentFrontierIndex & 1023) == 0)
+                        if ((__cte0Iteration & 63) == 0)
                         {
                             token.ThrowIfCancellationRequested();
                         }
 
-                        Cte0Row0 w = (Cte0Row0)cte0CurrentFrontier[cte0CurrentFrontierIndex];
-                        if ((w.Depth < 2))
+                        if (__cte0Iteration >= 1000)
                         {
-                            ++__cte0CancellationCounter;
-                            if ((__cte0CancellationCounter & 1023) == 0)
+                            throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("wide", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7007_RecursiveCteIterationLimitExceeded, 1000);
+                        }
+
+                        __cte0Iteration++;
+                        cte0NextFrontier.Clear();
+                        for (int cte0CurrentFrontierIndex = 0; cte0CurrentFrontierIndex < cte0CurrentFrontier.Count; ++cte0CurrentFrontierIndex)
+                        {
+                            if (cte0CurrentFrontierIndex != 0 && (cte0CurrentFrontierIndex & 1023) == 0)
                             {
                                 token.ThrowIfCancellationRequested();
                             }
 
-                            var __cte0NextFrontierCandidate0 = (w.Id + 1);
-                            var __cte0NextFrontierCandidate1 = (w.Depth + 1);
-                            var __cte0NextFrontierCandidate2 = w.A;
-                            var __cte0NextFrontierCandidate3 = w.B;
-                            var __cte0NextFrontierCandidate4 = w.C;
-                            var __cte0NextFrontierCandidate5 = w.D;
-                            var __cte0NextFrontierCandidate6 = w.E;
-                            var __cte0NextFrontierCandidate7 = w.F;
-                            var __cte0NextFrontierCandidate8 = (w.Name + "x");
-                            var __cte0NextFrontierCandidate9 = w.Flag;
-                            var __cte0NextFrontierCandidate10 = (decimal?)(decimal)(w.Amount + 1);
-                            var __cte0NextFrontierCandidate11 = w.Code;
-                            if (cte0Seen.Add(__cte0NextFrontierCandidate0))
+                            Cte0Row0 w = (Cte0Row0)cte0CurrentFrontier[cte0CurrentFrontierIndex];
+                            if ((w.Depth < 2))
                             {
-                                if (cte0.Count + cte0NextFrontier.Count >= 10000000)
+                                ++__cte0CancellationCounter;
+                                if ((__cte0CancellationCounter & 1023) == 0)
                                 {
-                                    throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("wide", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded, 10000000);
+                                    token.ThrowIfCancellationRequested();
                                 }
 
-                                cte0NextFrontier.Add(new Cte0Row0(__cte0NextFrontierCandidate0, __cte0NextFrontierCandidate1, __cte0NextFrontierCandidate2, __cte0NextFrontierCandidate3, __cte0NextFrontierCandidate4, __cte0NextFrontierCandidate5, __cte0NextFrontierCandidate6, __cte0NextFrontierCandidate7, __cte0NextFrontierCandidate8, __cte0NextFrontierCandidate9, __cte0NextFrontierCandidate10, __cte0NextFrontierCandidate11));
+                                var __cte0NextFrontierCandidate0 = (w.Id + 1);
+                                var __cte0NextFrontierCandidate1 = (w.Depth + 1);
+                                var __cte0NextFrontierCandidate2 = w.A;
+                                var __cte0NextFrontierCandidate3 = w.B;
+                                var __cte0NextFrontierCandidate4 = w.C;
+                                var __cte0NextFrontierCandidate5 = w.D;
+                                var __cte0NextFrontierCandidate6 = w.E;
+                                var __cte0NextFrontierCandidate7 = w.F;
+                                var __cte0NextFrontierCandidate8 = (w.Name + "x");
+                                var __cte0NextFrontierCandidate9 = w.Flag;
+                                var __cte0NextFrontierCandidate10 = (decimal?)(decimal)(w.Amount + 1);
+                                var __cte0NextFrontierCandidate11 = w.Code;
+                                if (cte0Seen.Add(__cte0NextFrontierCandidate0))
+                                {
+                                    if (cte0.Count + cte0NextFrontier.Count >= 10000000)
+                                    {
+                                        throw new global::Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException("wide", global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded, 10000000);
+                                    }
+
+                                    cte0NextFrontier.Add(new Cte0Row0(__cte0NextFrontierCandidate0, __cte0NextFrontierCandidate1, __cte0NextFrontierCandidate2, __cte0NextFrontierCandidate3, __cte0NextFrontierCandidate4, __cte0NextFrontierCandidate5, __cte0NextFrontierCandidate6, __cte0NextFrontierCandidate7, __cte0NextFrontierCandidate8, __cte0NextFrontierCandidate9, __cte0NextFrontierCandidate10, __cte0NextFrontierCandidate11));
+                                }
                             }
                         }
+
+                        cte0.AddRange(cte0NextFrontier);
+                        var __cte0FrontierSwap = cte0CurrentFrontier;
+                        cte0CurrentFrontier = cte0NextFrontier;
+                        cte0NextFrontier = __cte0FrontierSwap;
                     }
 
-                    cte0.AddRange(cte0NextFrontier);
-                    var __cte0FrontierSwap = cte0CurrentFrontier;
-                    cte0CurrentFrontier = cte0NextFrontier;
-                    cte0NextFrontier = __cte0FrontierSwap;
+                    OnPhaseChanged("compiled:cte0", QueryPhase.Where);
+                    OnPhaseChanged("compiled:cte0", QueryPhase.Select);
+                    _cteRowResults.Slot0 = cte0;
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled:cte0", QueryPhase.End);
                 }
 
-                _cteRowResults.Slot0 = cte0;
                 var result = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __storedTable0Rows = _cteRowResults.Slot0;
                 for (int __storedTable0Index = 0; __storedTable0Index < __storedTable0Rows.Count; ++__storedTable0Index)
                 {
@@ -306,6 +327,7 @@ namespace GeneratedSample_Q218_RecursiveWidePayload
                     result.Add(new ResultShape0(wide.Id, wide.Depth, wide.A, wide.B, wide.C, wide.D, wide.E, wide.F, wide.Name, wide.Flag, wide.Amount, wide.Code));
                 }
 
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 var resultSortedRows = result.OrderBy(static __musoqOrderRow => __musoqOrderRow, Comparer<ResultShape0>.Create((left, right) =>
                 {
                     var comparison = left.Id.CompareTo(right.Id);
@@ -322,8 +344,14 @@ namespace GeneratedSample_Q218_RecursiveWidePayload
             }
             finally
             {
-                OnPhaseChanged("compiled:cte0", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

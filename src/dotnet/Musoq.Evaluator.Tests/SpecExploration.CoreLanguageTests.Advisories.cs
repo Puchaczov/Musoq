@@ -24,7 +24,6 @@ public partial class SpecExplorationCoreLanguageTests
             ("select Name from #A.Entities() where Name = NULL", DiagnosticCode.MQ5017_NullComparison),
             ("select a.Name, b.Name from #A.Entities() a left join #B.Entities() b on a.Id = b.Id where b.Name is null", DiagnosticCode.MQ5018_AmbiguousOuterJoinNullCheck),
             ("select a.Name, b.Name from #A.Entities() a left join #B.Entities() b on a.Id = b.Id where b.Name = 'match'", DiagnosticCode.MQ5019_NullRejectingOuterJoinFilter),
-            ("select Name from #A.Entities() union select Name from #A.Entities() order by Name", DiagnosticCode.MQ5020_SetOperationOrderByScope),
             ("select Name from #A.Entities() skip 10", DiagnosticCode.MQ5021_UnorderedSkip),
             ("with dead as (select Name from #A.Entities()) select Name from #A.Entities()", DiagnosticCode.MQ5022_UnusedCte),
             ("let dead: int = 1; select Name from #A.Entities()", DiagnosticCode.MQ5023_UnusedScriptVariable),

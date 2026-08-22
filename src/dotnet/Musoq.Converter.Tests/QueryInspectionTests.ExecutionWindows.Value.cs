@@ -70,8 +70,8 @@ public partial class QueryInspectionTests
             new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("ComputeFirstValueWindow [resultFirstValues0 <- resultWindowRows value c.Name order by c.Score ASC]", result.ExecutionPlanText);
-        Assert.Contains("ComputeNthValueWindow [resultNthValues1 <- resultWindowRows value c.Name order by c.Score ASC args 2]", result.ExecutionPlanText);
+        Assert.Contains("ComputeFirstValueWindow [resultFirstValues0 <- resultWindowRows value c.Name order by c.Score ASC frame range between unbounded preceding and current row]", result.ExecutionPlanText);
+        Assert.Contains("ComputeNthValueWindow [resultNthValues1 <- resultWindowRows value c.Name order by c.Score ASC frame range between unbounded preceding and current row args 2]", result.ExecutionPlanText);
     }
 
     [TestMethod]
@@ -126,7 +126,7 @@ public partial class QueryInspectionTests
             new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("ComputeNthValueWindow [resultNthValues <- resultWindowRows value c.Name order by c.Score ASC args c.Position]", result.ExecutionPlanText);
+        Assert.Contains("ComputeNthValueWindow [resultNthValues <- resultWindowRows value c.Name order by c.Score ASC frame range between unbounded preceding and current row args c.Position]", result.ExecutionPlanText);
         Assert.Contains("resultNthValuesArguments", result.GeneratedCSharpCode);
         Assert.Contains("resultNthValuesSourcePartitionIndex", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputePluginWindowFunction", StringComparison.Ordinal));

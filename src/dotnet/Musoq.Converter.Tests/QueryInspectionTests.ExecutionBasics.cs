@@ -9,29 +9,6 @@ namespace Musoq.Converter.Tests;
 public partial class QueryInspectionTests
 {
     [TestMethod]
-    public void CompileForInspection_WhenQueryIsValid_ShouldReturnExecutionPlanText()
-    {
-        var result = CreateInspection();
-
-        AssertTextEquals(
-            string.Join("\n",
-                "ExecutionPlan [compiled]",
-                "  Shapes",
-                "    SourceEntity [d: DualEntity]",
-                "      Dummy: string <- property Dummy",
-                "    Generated [ResultRow0]",
-                "      d.Dummy: string <- field d_Dummy",
-                string.Empty,
-                "  Body",
-                "    SourceScan [d: DualEntity] -> dRows",
-                "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
-                "    ChunkedForEach [d in dRows]",
-                "      AppendShape [result <- ResultShape0(d.Dummy: d.Dummy)]",
-                "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]"),
-            result.ExecutionPlanText);
-    }
-
-    [TestMethod]
     public void CompileForInspection_WhenQueryIsValid_ShouldReturnGeneratedCSharpCode()
     {
         var result = CreateInspection();
@@ -440,7 +417,7 @@ public partial class QueryInspectionTests
         var result = Inspect("with p as (select d.Dummy as Dummy from #system.dual() d) select p.Dummy from p");
 
         AssertUsesExecutionBackend(result);
-        Assert.Contains("CtePhase [cte0]", result.ExecutionPlanText);
+        Assert.Contains("PhaseBoundary [Begin:cte0]", result.ExecutionPlanText);
         Assert.Contains("CteStrategy [CteReuseStrategy] cte:p -> FuseReadOnce", result.PlanningText);
         Assert.Contains("Materialization [CteFusionBoundary] cte:p -> Candidate", result.PlanningText);
         Assert.Contains("ForEach [d in dRows]", result.ExecutionPlanText);
@@ -458,8 +435,8 @@ public partial class QueryInspectionTests
         var result = Inspect("with p as (select d.Dummy as Dummy from #system.dual() d), q as (select Dummy from p where Dummy is not null) select Dummy from q");
 
         AssertUsesExecutionBackend(result);
-        Assert.Contains("CtePhase [cte0]", result.ExecutionPlanText);
-        Assert.Contains("CtePhase [cte1]", result.ExecutionPlanText);
+        Assert.Contains("PhaseBoundary [Begin:cte0]", result.ExecutionPlanText);
+        Assert.Contains("PhaseBoundary [Begin:cte1]", result.ExecutionPlanText);
         Assert.Contains("CteStrategy [CteReuseStrategy] cte:p -> FuseReadOnce", result.PlanningText);
         Assert.Contains("CteStrategy [CteReuseStrategy] cte:q -> FuseReadOnce", result.PlanningText);
         Assert.Contains("ForEach [d in dRows]", result.ExecutionPlanText);

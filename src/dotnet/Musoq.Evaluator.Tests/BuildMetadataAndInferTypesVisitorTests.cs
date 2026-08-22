@@ -4,10 +4,13 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Musoq.Converter;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 using Musoq.Evaluator.Visitors;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -141,10 +144,59 @@ public class BuildMetadataAndInferTypesVisitorTests
     }
 
     [TestMethod]
-    public void ScriptParameters_WhenRequiredParameterUsedInSchemaArgument_ShouldThrow()
+    public void ScriptParameters_WhenRequiredParameterUsedInSchemaArgument_ShouldLeaveMetadataArgumentUnmaterialized()
     {
-        Assert.Throws<NotSupportedException>(() =>
-            Analyze("param (name: string); select 1 from #EnvironmentVariables.All($name)"));
+        object?[]? capturedArguments = null;
+        Analyze(
+            "param (name: string); select 1 from #capture.any($name)",
+            new CaptureArgumentsSchemaProvider(arguments => capturedArguments = arguments));
+
+        Assert.IsNotNull(capturedArguments);
+        Assert.IsEmpty(capturedArguments);
+    }
+
+    [TestMethod]
+    public void ScriptParameters_WhenMetadataNeedsRuntimeValue_ShouldReportStableDefaultGuidance()
+    {
+        object?[]? attemptedArguments = null;
+        var provider = new MetadataDependentSchemaProvider(arguments => attemptedArguments = arguments);
+        var exception = Assert.Throws<SourceMetadataRequiresDefaultException>(() =>
+            Analyze(
+                "param (value: string); select 1 from #metadata.any($value)",
+                provider));
+
+        Assert.AreEqual(DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument, exception.Code);
+        StringAssert.Contains(exception.Message, "requires a value for a direct script parameter");
+        StringAssert.Contains(exception.Message, "Declare a default value");
+        StringAssert.Contains(exception.Message, "metadata independent");
+        Assert.IsNotNull(attemptedArguments);
+        Assert.IsEmpty(attemptedArguments);
+    }
+
+    [TestMethod]
+    public void ScriptParameters_WhenMetadataNeedsRuntimeValue_ShouldUseDefault()
+    {
+        object?[]? capturedArguments = null;
+        Analyze(
+            "param (value: string = 'fallback'); select 1 from #metadata.any($value)",
+            new MetadataDependentSchemaProvider(arguments => capturedArguments = arguments));
+
+        Assert.IsNotNull(capturedArguments);
+        CollectionAssert.AreEqual(new object?[] { "fallback" }, capturedArguments);
+    }
+
+    [TestMethod]
+    public void ScriptParameters_WhenSourcePlanningNeedsRuntimeValue_ShouldReportStableDefaultGuidance()
+    {
+        var exception = Assert.Throws<MusoqQueryException>(() =>
+            InstanceCreator.CompileForExecution(
+                "param (value: string); select 1 from #planningmetadata.any($value)",
+                Guid.NewGuid().ToString(),
+                new PlanningMetadataDependentSchemaProvider(),
+                new TestsLoggerResolver()));
+
+        Assert.AreEqual(DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument, exception.PrimaryEnvelope.Code);
+        StringAssert.Contains(exception.PrimaryEnvelope.Message, "Declare a default value");
     }
 
     [TestMethod]
@@ -397,5 +449,83 @@ public class BuildMetadataAndInferTypesVisitorTests
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(object));
     }
+
+    private sealed class MetadataDependentSchemaProvider(Action<object?[]>? capture = null) : ISchemaProvider
+    {
+        public ISchema GetSchema(string schema) => new MetadataDependentSchema(
+            arguments =>
+            {
+                capture?.Invoke(arguments);
+            });
+    }
+
+    private sealed class MetadataDependentSchema(Action<object?[]> onTable)
+        : SchemaBase("metadata", new MethodsAggregator(new MethodsManager()))
+    {
+        public override ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext metadataContext,
+            params object?[] parameters)
+        {
+            onTable(parameters);
+            if (parameters.Length == 0)
+                throw new Musoq.Schema.Exceptions.SchemaArgumentException(
+                    "value",
+                    "Metadata requires the runtime source value.");
+
+            onTable(parameters);
+            return new MetadataDependentTable();
+        }
+
+        public override RowSource<T> GetRowSource<T>(
+            string name,
+            SourceExecutionContext executionContext,
+            params object?[] parameters) => throw new NotSupportedException();
+    }
+
+    private sealed class PlanningMetadataDependentSchemaProvider : ISchemaProvider
+    {
+        public ISchema GetSchema(string schema) => new PlanningMetadataDependentSchema();
+    }
+
+    private sealed class PlanningMetadataDependentSchema()
+        : SchemaBase("planningmetadata", new MethodsAggregator(new MethodsManager()))
+    {
+        public override ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext metadataContext,
+            params object?[] parameters) => new MetadataDependentTable();
+
+        public override SourceDescriptor DescribeSource(
+            string name,
+            SourceDescribeContext context,
+            params object?[] parameters)
+        {
+            if (parameters.Length == 0)
+                throw new Musoq.Schema.Exceptions.SchemaArgumentException(
+                    "value",
+                    "Planning requires the runtime source value.");
+
+            return base.DescribeSource(name, context, parameters);
+        }
+
+        public override RowSource<T> GetRowSource<T>(
+            string name,
+            SourceExecutionContext executionContext,
+            params object?[] parameters) => throw new NotSupportedException();
+    }
+
+    private sealed class MetadataDependentTable : ISchemaTable
+    {
+        public ISchemaColumn[] Columns => [];
+
+        public ISchemaColumn? GetColumnByName(string name) => null;
+
+        public ISchemaColumn[] GetColumnsByName(string name) => [];
+
+        public SchemaTableMetadata Metadata { get; } = new(typeof(MetadataDependentEntity));
+    }
+
+    public sealed class MetadataDependentEntity;
 
 }

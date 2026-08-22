@@ -118,6 +118,7 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
         Assert.AreSame(properties.SourceContractDiagnosticLocationsBySourceId, properties.SourcePlanning.SourceContractDiagnosticLocationsBySourceId);
         Assert.AreSame(properties.RequiredColumnBoundaryPlans, properties.RequiredColumns.RequiredColumnBoundaryPlans);
         Assert.AreSame(properties.PredicateMovementPlans, properties.PhysicalStrategies.PredicateMovementPlans);
+        Assert.AreSame(properties.ApplyPredicateMovementPlans, properties.PhysicalStrategies.ApplyPredicateMovementPlans);
         Assert.AreSame(properties.BoundaryRowShapePlans, properties.BoundaryPruning.BoundaryRowShapePlans);
         Assert.AreSame(properties.CardinalityFacts, properties.Cardinality.Facts);
     }
@@ -140,6 +141,7 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
         Assert.AreSame(facts.SourcePlanning.SourceContractDiagnosticLocationsBySourceId, roundTrip.SourceContractDiagnosticLocationsBySourceId);
         Assert.AreSame(facts.RequiredColumns.RequiredColumnBoundaryPlans, roundTrip.RequiredColumnBoundaryPlans);
         Assert.AreSame(facts.PhysicalStrategies.PredicateMovementPlans, roundTrip.PredicateMovementPlans);
+        Assert.AreSame(facts.PhysicalStrategies.ApplyPredicateMovementPlans, roundTrip.ApplyPredicateMovementPlans);
         Assert.AreSame(facts.BoundaryPruning.BoundaryRowShapePlans, roundTrip.BoundaryRowShapePlans);
         Assert.AreSame(facts.Cardinality.Facts, roundTrip.CardinalityFacts);
     }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
+using Musoq.Evaluator.IR.Execution.Lowering.ProjectionAndApply;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Execution;
@@ -158,18 +159,36 @@ internal sealed partial class PhysicalLoweringImplementation
                 "Execution IR single-key aggregate apply-chain fusion does not support WITH ORDINALITY inputs.");
         }
 
+        var loweredPlans = chain.Sources
+            .SelectMany(static source => source.LoweredApplyPredicateMovementPlans)
+            .DistinctBy(static plan => plan.MovementId, StringComparer.Ordinal)
+            .ToArray();
+        if (loweredPlans.Length > 0)
+        {
+            pipeline = pipeline with
+            {
+                Source = pipeline.Source with
+                {
+                    Filter = ApplyPredicateGuardLoweringService.RemoveLoweredPredicates(
+                        pipeline.Source.Filter,
+                        loweredPlans)
+                }
+            };
+        }
+
         var source = new SingleKeyAggregateExecutionSource(
             chain.SourceLookup,
             chain.Shapes,
             chain.Sources[0].Setup,
             body => CreateCrossApplyAggregateChainLoop(chain.Sources, body));
 
-        return BuildSingleKeyAggregateTableCore(
+        var result = BuildSingleKeyAggregateTableCore(
             pipeline,
             source,
             resultTableName,
             resultShapeName,
             scopeAggregateVariables);
+        return result with { LoweredApplyPredicateMovementPlans = loweredPlans };
     }
 
     private static ExecutionSourceLoop CreateCrossApplyAggregateChainLoop(

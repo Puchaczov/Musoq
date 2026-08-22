@@ -125,7 +125,13 @@ public partial class LibraryBase
     /// <returns>Converted to double value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? ToDouble(float? value) => value;
+    public double? ToDouble(float? value)
+    {
+        if (!value.HasValue || float.IsNaN(value.Value) || float.IsInfinity(value.Value))
+            return null;
+
+        return value;
+    }
 
     /// <summary>
     ///     Converts given value to double
@@ -134,7 +140,13 @@ public partial class LibraryBase
     /// <returns>Converted to double value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? ToDouble(double? value) => value;
+    public double? ToDouble(double? value)
+    {
+        if (!value.HasValue || double.IsNaN(value.Value) || double.IsInfinity(value.Value))
+            return null;
+
+        return value;
+    }
 
     /// <summary>
     ///     Converts given value to double

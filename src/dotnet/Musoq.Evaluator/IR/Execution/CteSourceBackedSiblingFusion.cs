@@ -45,8 +45,13 @@ internal static class CteSourceBackedSiblingFusion
         builtNodes.RemoveRange(
             materialization.CreateTableIndex,
             materialization.StoreTableIndex - materialization.CreateTableIndex + 1);
+
+        var sourceSuffix = ExecutionPhaseBoundaryPlanner.CreateCteSuffix(sourceTableIndex);
+        builtNodes.RemoveAll(node => node is ExecutionPhaseBoundary boundary &&
+                                     string.Equals(boundary.QueryIdSuffix, sourceSuffix, StringComparison.Ordinal));
+
         builtNodes.Insert(
-            materialization.CreateTableIndex,
+            Math.Min(materialization.CreateTableIndex, builtNodes.Count),
             new ExecutionCteReadOnceFusionCandidate(sourceTableIndex, new ExecutionBlock([])));
         shapes.RemoveAll(shape => shape is GeneratedRowShape generated &&
                                   string.Equals(generated.TypeName, materialization.CreateTable.RowShape.TypeName, StringComparison.Ordinal));

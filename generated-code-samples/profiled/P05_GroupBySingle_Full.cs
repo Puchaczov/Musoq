@@ -35,14 +35,18 @@ ExecutionPlan [compiled]
       Count(City): long <- field Count_City_
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [ko3iko: BasicEntity] -> ko3ikoRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [GroupBy]
     CreateSingleKeyAggregateContext [groups: string -> ResultAggregateGroup]
     ParallelSingleKeyAggregateLoop [ko3iko in ko3ikoRows by ko3iko.City; threshold 4096, sample 8192/6144, maxDegree 24, group ResultAggregateGroup]
       ParallelAccumulate
         Let [city: string = ko3iko.City]
         TypedAggregateSet [Set(group.__agg0, city)]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
+    PhaseBoundary [Select]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(City: finalGroup.City, Count(City): ko3iko.Count(ko3iko.City))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
@@ -69,7 +73,7 @@ namespace GeneratedSample_P05_GroupBySingle_Full
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable, IProfiledRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable, IProfiledRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -88,6 +92,7 @@ namespace GeneratedSample_P05_GroupBySingle_Full
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -117,21 +122,24 @@ namespace GeneratedSample_P05_GroupBySingle_Full
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.GroupBy);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#A");
                 var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var ko3ikoRows = ko3ikoRowsSource.Chunks;
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
+                OnPhaseChanged("compiled", QueryPhase.GroupBy);
                 var groupsToFinalize = new List<ResultAggregateGroup>();
                 var groups = new Dictionary<string, ResultAggregateGroup>();
                 groupsToFinalize = ParallelSingleKeyAggregate_0(ko3ikoRows, 24, token);
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
@@ -142,7 +150,14 @@ namespace GeneratedSample_P05_GroupBySingle_Full
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 
@@ -151,70 +166,92 @@ namespace GeneratedSample_P05_GroupBySingle_Full
             var __profileScopeDepth = profileRecorder?.GetCurrentOperatorScopeDepth() ?? 0;
             try
             {
-                OnPhaseChanged("compiled", QueryPhase.Begin);
-                OnPhaseChanged("compiled", QueryPhase.From);
-                OnPhaseChanged("compiled", QueryPhase.GroupBy);
-                OnPhaseChanged("compiled", QueryPhase.Select);
+                QueryProgressEventHandler OnQueryProgress = QueryProgress;
+                var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+                Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
                 try
                 {
                     var __musoqExecutionState = ExecutionState.Capture(Parameters);
                     ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                     var __musoqFinalShapeRows = new List<ResultShape0>();
-                    var __op10Handle = profileRecorder?.GetOperatorHandle("op10", "SourceScan") ?? OperatorProfileHandle.None;
-                    var __op12Handle = profileRecorder?.GetOperatorHandle("op12", "CreateSingleKeyAggregateContext") ?? OperatorProfileHandle.None;
-                    var __op13Handle = profileRecorder?.GetOperatorHandle("op13", "ParallelSingleKeyAggregateLoop") ?? OperatorProfileHandle.None;
-                    var __op18Handle = profileRecorder?.GetOperatorHandle("op18", "ForEach") ?? OperatorProfileHandle.None;
-                    var __op19Handle = profileRecorder?.GetOperatorHandle("op19", "AppendShape") ?? OperatorProfileHandle.None;
-                    long __op19OutputRows = 0L;
+                    var __op10Handle = profileRecorder?.GetOperatorHandle("op10", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                    var __op11Handle = profileRecorder?.GetOperatorHandle("op11", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                    var __op12Handle = profileRecorder?.GetOperatorHandle("op12", "SourceScan") ?? OperatorProfileHandle.None;
+                    var __op14Handle = profileRecorder?.GetOperatorHandle("op14", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                    var __op15Handle = profileRecorder?.GetOperatorHandle("op15", "CreateSingleKeyAggregateContext") ?? OperatorProfileHandle.None;
+                    var __op16Handle = profileRecorder?.GetOperatorHandle("op16", "ParallelSingleKeyAggregateLoop") ?? OperatorProfileHandle.None;
+                    var __op21Handle = profileRecorder?.GetOperatorHandle("op21", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                    var __op22Handle = profileRecorder?.GetOperatorHandle("op22", "ForEach") ?? OperatorProfileHandle.None;
+                    var __op23Handle = profileRecorder?.GetOperatorHandle("op23", "AppendShape") ?? OperatorProfileHandle.None;
+                    long __op23OutputRows = 0L;
                     var __op10Scope = profileRecorder?.BeginOperatorValue(__op10Handle) ?? OperatorProfileValueScope.None;
+                    OnPhaseChanged("compiled", QueryPhase.Begin);
+                    __op10Scope.Dispose();
+                    var __op11Scope = profileRecorder?.BeginOperatorValue(__op11Handle) ?? OperatorProfileValueScope.None;
+                    OnPhaseChanged("compiled", QueryPhase.From);
+                    __op11Scope.Dispose();
+                    var __op12Scope = profileRecorder?.BeginOperatorValue(__op12Handle) ?? OperatorProfileValueScope.None;
                     var __ko3ikoSchema = provider.GetSchema("#A");
                     var ko3ikoRowsProfile = profileRecorder?.CreateSourceRecorder("ko3iko");
                     var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress, ko3ikoRowsProfile == null ? SourceDiagnostics.None : ko3ikoRowsProfile.CreateDiagnostics()), Array.Empty<object>());
-                    var ko3ikoRows = ko3ikoRowsProfile == null ? ko3ikoRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Create(ko3ikoRowsSource.Chunks, ko3ikoRowsProfile);
-                    __op10Scope.Dispose();
-                    var __op12Scope = profileRecorder?.BeginOperatorValue(__op12Handle) ?? OperatorProfileValueScope.None;
+                    var ko3ikoRows = ko3ikoRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks : ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Create(__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks, ko3ikoRowsProfile);
+                    __op12Scope.Dispose();
+                    var __op14Scope = profileRecorder?.BeginOperatorValue(__op14Handle) ?? OperatorProfileValueScope.None;
+                    OnPhaseChanged("compiled", QueryPhase.GroupBy);
+                    __op14Scope.Dispose();
+                    var __op15Scope = profileRecorder?.BeginOperatorValue(__op15Handle) ?? OperatorProfileValueScope.None;
                     var groupsToFinalize = new List<ResultAggregateGroup>();
                     var groups = new Dictionary<string, ResultAggregateGroup>();
-                    __op12Scope.Dispose();
-                    var __op13Scope = profileRecorder?.BeginOperatorValue(__op13Handle) ?? OperatorProfileValueScope.None;
+                    __op15Scope.Dispose();
+                    var __op16Scope = profileRecorder?.BeginOperatorValue(__op16Handle) ?? OperatorProfileValueScope.None;
                     try
                     {
                         groupsToFinalize = ParallelSingleKeyAggregate_0(ko3ikoRows, 24, token);
-                        __op13Scope.AddOutputRows(groupsToFinalize.Count);
+                        __op16Scope.AddOutputRows(groupsToFinalize.Count);
                     }
                     finally
                     {
-                        __op13Scope.Dispose();
+                        __op16Scope.Dispose();
                     }
 
-                    long __op18InputRows = 0L;
-                    long __op18OutputRows = 0L;
-                    var __op18Scope = profileRecorder?.BeginOperatorValue(__op18Handle) ?? OperatorProfileValueScope.None;
+                    var __op21Scope = profileRecorder?.BeginOperatorValue(__op21Handle) ?? OperatorProfileValueScope.None;
+                    OnPhaseChanged("compiled", QueryPhase.Select);
+                    __op21Scope.Dispose();
+                    long __op22InputRows = 0L;
+                    long __op22OutputRows = 0L;
+                    var __op22Scope = profileRecorder?.BeginOperatorValue(__op22Handle) ?? OperatorProfileValueScope.None;
                     try
                     {
                         foreach (var finalGroup in groupsToFinalize)
                         {
                             token.ThrowIfCancellationRequested();
-                            __op18InputRows++;
-                            __op18OutputRows++;
+                            __op22InputRows++;
+                            __op22OutputRows++;
                             __musoqFinalShapeRows.Add(new ResultShape0(finalGroup.__key0, finalGroup.__agg0.Count));
-                            __op19OutputRows += 1;
+                            __op23OutputRows += 1;
                         }
                     }
                     finally
                     {
-                        __op18Scope.AddInputRows(__op18InputRows);
-                        __op18Scope.AddOutputRows(__op18OutputRows);
-                        __op18Scope.Dispose();
+                        __op22Scope.AddInputRows(__op22InputRows);
+                        __op22Scope.AddOutputRows(__op22OutputRows);
+                        __op22Scope.Dispose();
                     }
 
-                    if (__op19OutputRows > 0L)
-                        profileRecorder?.AddOperatorOutputRows(__op19Handle, __op19OutputRows);
+                    if (__op23OutputRows > 0L)
+                        profileRecorder?.AddOperatorOutputRows(__op23Handle, __op23OutputRows);
                     return __musoqFinalShapeRows;
                 }
                 finally
                 {
-                    OnPhaseChanged("compiled", QueryPhase.End);
+                    try
+                    {
+                        __musoqProgressContext?.CompleteQueryProgress();
+                    }
+                    finally
+                    {
+                        OnPhaseChanged("compiled", QueryPhase.End);
+                    }
                 }
             }
             catch (Exception __profileException)when (profileRecorder != null && profileRecorder.RecordActiveOperatorException(__profileException, __profileScopeDepth))

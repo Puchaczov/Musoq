@@ -80,15 +80,15 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             .Content;
 
         Assert.Contains("Sum(ToDecimal(Salary)) over (partition by Department order by Salary)", sample);
-        Assert.Contains("ComputeSumWindowKernel[Running]", sample);
-        Assert.Contains("var resultSumsIntOrderBuilder = new Musoq.Evaluator.Helpers.WindowIntOrderBuilder<string>(resultWindowRows.Count);", sample);
-        Assert.Contains("resultSumsIntOrderBuilder.Add((string)ko3iko.Department, (int)ko3iko.Salary, windowIndex);", sample);
-        Assert.Contains("var resultSumsPartitions = resultSumsIntOrderBuilder.ToSortedPartitionSet(false);", sample);
+        Assert.Contains("ComputeSumWindowKernel[BoundedRows]", sample);
+        Assert.Contains("var resultSumsPartitionBuilder = new Musoq.Evaluator.Helpers.WindowPartitionBuilder<string>(resultWindowRows.Count);", sample);
+        Assert.Contains("var resultSumsOrderKeys = new WindowResultSumsOrderKeysKey[resultWindowRows.Count];", sample);
+        Assert.Contains("WindowFunctionHelpers.SortStructPartitionSetInPlace(resultSumsPartitions, resultSumsOrderKeys, false);", sample);
+        Assert.Contains("WindowFunctionHelpers.ResolveRangePeerFrameEnd(resultSumsOrderKeys", sample);
+        Assert.Contains("var resultSumsPrefixSum = System.Buffers.ArrayPool<decimal>.Shared.Rent", sample);
         Assert.Contains("var resultSums = new decimal[resultWindowRows.Count];", sample);
-        Assert.Contains("resultSums[resultSumsCurrentIndex] = resultSumsSum;", sample);
-        Assert.AreEqual(1, CountOccurrences(sample, "resultSumsIntOrderBuilder.Add((string)ko3iko.Department, (int)ko3iko.Salary, windowIndex);"));
-        Assert.IsFalse(sample.Contains("resultSumsOrderKeys", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("resultSumsPartitionBuilder", StringComparison.Ordinal));
+        Assert.Contains("resultSums[resultSumsCurrentIndex] = resultSumsPrefixSum[resultSumsFramePrefixEnd] - resultSumsPrefixSum[resultSumsFramePrefixStart];", sample);
+        Assert.IsFalse(sample.Contains("resultSumsIntOrderBuilder", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("var resultSumsPartitionKeys = new string[resultWindowRows.Count];", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("Execution IR does not support this query shape", StringComparison.Ordinal));

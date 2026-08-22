@@ -67,8 +67,8 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         Assert.IsFalse(result.ExecutionPlanText.Contains("ParallelBlock", StringComparison.Ordinal));
-        Assert.Contains("CtePhase [cte0]", result.ExecutionPlanText);
-        Assert.Contains("CtePhase [cte1]", result.ExecutionPlanText);
+        Assert.Contains("PhaseBoundary [Begin:cte0]", result.ExecutionPlanText);
+        Assert.Contains("PhaseBoundary [Begin:cte1]", result.ExecutionPlanText);
         Assert.Contains("ParallelEligibility [ParallelCte] PhysicalCteNode -> Skipped", result.PlanningText);
         AssertNoFallbackWarning(result);
     }

@@ -12,6 +12,7 @@ public sealed partial class CSharpRenderer
         string shapeRowsMethodName,
         string rowsMethodName,
         TableViaRowsResultInfo resultInfo,
+        bool useQueryRunContext,
         out MethodDeclarationSyntax rowsAdapterMethod,
         out QueryMethodRenderMetadata metadata)
     {
@@ -24,6 +25,7 @@ public sealed partial class CSharpRenderer
                     shapeRowsMethodName,
                     rowsMethodName,
                     resultInfo,
+                    useQueryRunContext,
                     includeProfileRecorderParameter: false,
                     out var shapeRowsMethod,
                     out rowsAdapterMethod,
@@ -43,6 +45,7 @@ public sealed partial class CSharpRenderer
                 shapeRowsMethodName,
                 rowsMethodName,
                 resultInfo,
+                useQueryRunContext,
                 includeProfileRecorderParameter: false,
                 out var unprofiledShapeRowsMethod,
                 out rowsAdapterMethod,
@@ -60,6 +63,7 @@ public sealed partial class CSharpRenderer
                 profiledShapeRowsMethodName,
                 profiledRowsMethodName,
                 resultInfo,
+                useQueryRunContext,
                 includeProfileRecorderParameter: true,
                 out var profiledShapeRowsMethod,
                 out var profiledRowsAdapterMethod,

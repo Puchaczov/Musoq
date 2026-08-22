@@ -5,6 +5,14 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
+    private IEnumerable<StatementSyntax> RenderPhaseBoundary(
+        ExecutionPhaseBoundary boundary,
+        ExecutionRenderContext context)
+    {
+        var queryIdentifier = context.Session.QueryIdentifier + boundary.QueryIdSuffix;
+        return [QueryEmitter.GeneratePhaseChangeStatement(queryIdentifier, boundary.Phase)];
+    }
+
     private IEnumerable<StatementSyntax> RenderNode(ExecutionNode node)
     {
         return RenderNode(node, CreateIsolatedRenderContext());

@@ -1,10 +1,16 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Converter.Exceptions;
+using Musoq.Evaluator.Visitors;
 using Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
+using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
+using Musoq.Parser.Tokens;
 using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
@@ -59,15 +65,30 @@ public sealed class ScriptParameterDiagnosticTests : EnvironmentVariablesTestBas
         "cannot declare a default value",
         DisplayName = "collection parameter default")]
     [DataRow(
-        "param(name: string); select 1 from #EnvironmentVariables.All($name)",
-        DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument,
-        "must declare a default value",
-        DisplayName = "required parameter as source argument")]
-    [DataRow(
         "param(name: string = 'KEY_1'); select 1 from #EnvironmentVariables.All($name + '_2')",
         DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument,
         "must be passed directly",
         DisplayName = "nested parameter as source argument")]
+    [DataRow(
+        "param(name: string = 'KEY_1'); select 1 from #EnvironmentVariables.All($name::string)",
+        DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument,
+        "must be passed directly",
+        DisplayName = "cast parameter as source argument")]
+    [DataRow(
+        "param(name: string = 'KEY_1'); select 1 from #EnvironmentVariables.All($name is null)",
+        DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument,
+        "must be passed directly",
+        DisplayName = "null-check parameter as source argument")]
+    [DataRow(
+        "param(name: string = 'KEY_1'); select 1 from #EnvironmentVariables.All($name between 'A' and 'Z')",
+        DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument,
+        "must be passed directly",
+        DisplayName = "between parameter as source argument")]
+    [DataRow(
+        "param(name: string = 'KEY_1'); select 1 from #EnvironmentVariables.All(name: $name + '_2') sourceAlias",
+        DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument,
+        "must be passed directly",
+        DisplayName = "named aliased parameter as source argument")]
     [DataRow(
         "param(name: string); let name: string = 'KEY_1'; select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3063_DuplicateScriptSymbolName,
@@ -104,6 +125,47 @@ public sealed class ScriptParameterDiagnosticTests : EnvironmentVariablesTestBas
         AssertHasGuidance(exception);
         StringAssert.Contains(exception.FormatText(), "Core Spec");
         StringAssert.Contains(exception.FormatJson(), $"MQ{(int)expectedCode}");
+    }
+
+    [TestMethod]
+    public void ValidateSchemaArguments_WhenParameterIsNestedInAnyRegisteredExpression_ShouldReportMq3062()
+    {
+        var parameter = new ParameterReferenceNode("name", typeof(string));
+        var nestedExpressions = new Node[]
+        {
+            new CastNode(parameter, "string"),
+            new ArrayIndexNode(new ParameterReferenceNode("names", typeof(string[])), new IntegerNode("0", string.Empty)),
+            new IsNullNode(parameter, false),
+            new BetweenNode(parameter, new StringNode("A"), new StringNode("Z")),
+            new AccessMethodNode(
+                new FunctionToken("ToString", TextSpan.Empty),
+                new ArgsListNode([parameter]),
+                null,
+                false),
+            new AddNode(parameter, new StringNode("_suffix"))
+        };
+        var diagnostics = new List<DiagnosticCode>();
+        var binder = new ScriptParameterMetadataBinder(
+            (code, _, _) =>
+            {
+                diagnostics.Add(code);
+                return true;
+            },
+            _ => { });
+        var source = new SchemaFromNode(
+            "schema",
+            "method",
+            ArgsListNode.Empty,
+            "source",
+            typeof(object),
+            0);
+
+        foreach (var expression in nestedExpressions)
+            binder.ValidateSchemaArguments(new ArgsListNode([expression]), source);
+
+        CollectionAssert.AreEqual(
+            Enumerable.Repeat(DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument, nestedExpressions.Length).ToArray(),
+            diagnostics);
     }
 
     [TestMethod]

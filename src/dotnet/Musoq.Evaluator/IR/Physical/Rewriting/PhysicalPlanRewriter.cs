@@ -159,7 +159,10 @@ internal static class PhysicalPlanRewriter
                 apply.Left,
                 apply.Right,
                 rewriteNode,
-                (left, right) => new PhysicalNestedLoopApplyNode(apply.Kind, left, right, apply.WithOrdinality),
+                (left, right) => new PhysicalNestedLoopApplyNode(apply.Kind, left, right, apply.WithOrdinality)
+                {
+                    ApplyPredicateMovementPlans = apply.ApplyPredicateMovementPlans
+                },
                 apply),
             PhysicalSetOperationNode setOperation => RewritePair(
                 setOperation.Left,

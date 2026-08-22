@@ -58,7 +58,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var sample = ReadSample(InnerJoinSampleFileName).Content;
 
-        Assert.Contains("CtePhase [cte0]", sample);
+        Assert.Contains("PhaseBoundary [Begin:cte0]", sample);
         Assert.Contains("OnPhaseChanged(\"compiled:cte0\", QueryPhase.Begin);", sample);
         Assert.Contains("OnPhaseChanged(\"compiled:cte0\", QueryPhase.End);", sample);
         Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Country));", sample);

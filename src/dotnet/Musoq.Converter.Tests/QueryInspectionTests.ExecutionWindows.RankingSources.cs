@@ -354,13 +354,14 @@ public partial class QueryInspectionTests
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         AssertExecutionPlanContains("MaterializeChunkedExpando [dRows as dDynamicRow0 -> resultWindowRows]", result.ExecutionPlanText);
-        Assert.Contains("ComputeSumWindowKernel[Running] [", result.ExecutionPlanText);
+        Assert.Contains("ComputeSumWindowKernel[BoundedRows] [", result.ExecutionPlanText);
         Assert.Contains("value d.Score partition by d.Team order by d.Score ASC", result.ExecutionPlanText);
         Assert.Contains("ComputeFirstValueWindow [", result.ExecutionPlanText);
         Assert.Contains("value d.Name partition by d.Team order by d.Score ASC", result.ExecutionPlanText);
         Assert.Contains("resultFirstValues1Values", result.GeneratedCSharpCode);
         Assert.Contains("resultFirstValues1SourcePartitionIndex", result.GeneratedCSharpCode);
-        Assert.Contains("resultSums0Sum += (decimal)d.Score;", result.GeneratedCSharpCode);
+        Assert.Contains("resultSums0PrefixSum[resultSums0PartitionIndex + 1]", result.GeneratedCSharpCode);
+        Assert.Contains("ResolveRangePeerFrameEnd(resultSums0OrderKeys", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowSum()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowFirstValue()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".AccumulateValue(d.Name);", StringComparison.Ordinal));

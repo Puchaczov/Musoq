@@ -36,9 +36,10 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static ExecutionWindowFrame? CreatePluginWindowFrame(WindowRegistration registration)
     {
-        return IsNtileWindowFunction(registration.FunctionName)
-            ? null
-            : CreateWindowFrame(registration.Frame);
+        if (IsNtileWindowFunction(registration.FunctionName))
+            return null;
+
+        return CreateAggregateWindowFrame(registration);
     }
 
     private static ExecutionWindowFrame? CreateWindowFrame(WindowFrameNode? frame)

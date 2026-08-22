@@ -95,6 +95,7 @@ public partial class MalformedQueryErrorTests
     #region ORDER BY edge cases
 
     [TestMethod]
+    [FeatureEvidence("positional-order-by", FeatureEvidenceKind.RuntimeNegativeDiagnostic)]
     public void WhenOrderByPositionNumber_ShouldReportDedicatedDiagnostic()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>

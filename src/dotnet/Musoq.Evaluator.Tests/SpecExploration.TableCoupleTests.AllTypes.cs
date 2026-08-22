@@ -7,6 +7,7 @@ namespace Musoq.Evaluator.Tests;
 public partial class SpecExplorationTableCoupleTests
 {
     [TestMethod]
+    [FeatureEvidence("table-couple-type-matrix", FeatureEvidenceKind.RuntimePositive)]
     public void Spec_TableCouple_AllSupportedTypes_ShouldPreserveSchemaValuesAndNulls()
     {
         const string query =

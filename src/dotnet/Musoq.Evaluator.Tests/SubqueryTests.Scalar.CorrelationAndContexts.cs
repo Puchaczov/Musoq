@@ -114,7 +114,7 @@ public partial class SubqueryTests
             ["PARIS", "PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("CtePhase [cte2]", inspection.ExecutionPlanText);
+        Assert.Contains("PhaseBoundary [Begin:cte2]", inspection.ExecutionPlanText);
         Assert.IsFalse(
             inspection.ExecutionPlanText.Contains("StoreTable [statement1 -> _tableResults[2]]", StringComparison.Ordinal),
             inspection.ExecutionPlanText);

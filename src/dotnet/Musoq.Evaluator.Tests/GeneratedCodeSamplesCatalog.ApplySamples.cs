@@ -195,4 +195,69 @@ internal static partial class GeneratedCodeSamplesCatalog
             CreateSchemaProvider = CreateGeneratedApplySchemaProvider
         };
     }
+
+    private static GeneratedCodeSample CrossApplyWhereLeftGuard()
+    {
+        return new GeneratedCodeSample
+        {
+            Name = "Q243_CrossApplyWhereLeftGuard",
+            FileName = "Q243_CrossApplyWhereLeftGuard.cs",
+            Query = "select n.Value as Value from #apply.items() i cross apply i.Numbers n where i.Name = 'left'",
+            Category = "Apply",
+            Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+        };
+    }
+
+    private static GeneratedCodeSample ChainedCrossApplyScopedGuards()
+    {
+        return new GeneratedCodeSample
+        {
+            Name = "Q244_ChainedCrossApplyScopedGuards",
+            FileName = "Q244_ChainedCrossApplyScopedGuards.cs",
+            Query = "select m.Value as Value from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m where i.Name = 'left' and n.Value = 1",
+            Category = "Apply",
+            Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+        };
+    }
+
+    private static GeneratedCodeSample ChainedCrossApplyResidualPredicate()
+    {
+        return new GeneratedCodeSample
+        {
+            Name = "Q245_ChainedCrossApplyResidualPredicate",
+            FileName = "Q245_ChainedCrossApplyResidualPredicate.cs",
+            Query = "select m.Value as Value from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m where i.Name = 'left' and n.Value = 1 and m.Value = 2",
+            Category = "Apply",
+            Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+        };
+    }
+
+    private static GeneratedCodeSample OuterApplyWhereLeftGuard()
+    {
+        return new GeneratedCodeSample
+        {
+            Name = "Q246_OuterApplyWhereLeftGuard",
+            FileName = "Q246_OuterApplyWhereLeftGuard.cs",
+            Query = "select i.Name as Name, n.Value as Value from #applyempty.items() i outer apply i.Numbers n where i.Name = 'empty'",
+            Category = "Apply",
+            Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
+            CreateSchemaProvider = CreateGeneratedEmptyChildApplySchemaProvider
+        };
+    }
+
+    private static GeneratedCodeSample CrossApplyMethodWhereLeftGuard()
+    {
+        return new GeneratedCodeSample
+        {
+            Name = "Q247_CrossApplyMethodWhereLeftGuard",
+            FileName = "Q247_CrossApplyMethodWhereLeftGuard.cs",
+            Query = "select s.Value as Text from #apply.items() i cross apply i.JustReturnArrayOfString() s where i.Name = 'left'",
+            Category = "Apply",
+            Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+        };
+    }
 }

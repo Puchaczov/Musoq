@@ -38,13 +38,13 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "  Body",
             "    SourceScan [p: Person] -> pRows",
             "    MaterializeChunked [pRows -> resultWindowRows]",
-            "    ComputeFirstValueWindow [resultFirstValues <- resultWindowRows value p.Name order by p.Age ASC]",
+            "    ComputeFirstValueWindow [resultFirstValues <- resultWindowRows value p.Name order by p.Age ASC frame range between unbounded preceding and current row]",
             "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
             "      AppendShape [result <- ResultShape0(FirstName: resultFirstValues[windowIndex])]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
     [TestMethod]
@@ -86,7 +86,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      AppendShape [result <- ResultShape0(FirstName: resultFirstValues[windowIndex])]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 
     [TestMethod]
@@ -130,6 +130,6 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "        AppendShape [result <- ResultShape0(Name: p.Name)]",
             "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
 
-        Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
+        Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
 }

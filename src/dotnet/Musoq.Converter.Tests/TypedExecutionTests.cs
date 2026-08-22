@@ -116,6 +116,53 @@ public class TypedExecutionTests
     }
 
     [TestMethod]
+    public void TypedRun_WithPerRunQueryProgressOptions_ShouldReportFinalSnapshot()
+    {
+        var query = Compile<PropertyDto>("select d.Dummy as Dummy from #system.dual() d");
+        var snapshots = new List<QueryProgressEventArgs>();
+
+        var rows = query.Run(new TypedQueryRunOptions
+        {
+            QueryProgress = (_, args) => snapshots.Add(args),
+            QueryProgressOptions = new QueryProgressOptions
+            {
+                RowsPerUpdate = 1,
+                MinimumInterval = TimeSpan.FromDays(1)
+            }
+        }).ToArray();
+
+        Assert.AreEqual(1, rows.Length);
+        Assert.IsTrue(snapshots.Count > 0);
+        Assert.IsTrue(
+            snapshots[^1].IsFinal,
+            string.Join(", ", snapshots.Select(static snapshot =>
+                $"{snapshot.QueryRowsProcessed}:{snapshot.SourceContextId}:{snapshot.IsFinal}")));
+        Assert.AreEqual(1, snapshots.Count(static snapshot => snapshot.IsFinal));
+        Assert.AreEqual(1, snapshots[^1].QueryRowsProcessed);
+    }
+
+    [TestMethod]
+    public void TypedRun_WhenProjectionFails_ShouldFlushFinalProgress()
+    {
+        var query = Compile<ThrowingConstructorDto>("select d.Dummy as Dummy from #system.dual() d");
+        var snapshots = new List<QueryProgressEventArgs>();
+
+        Assert.Throws<QueryExecutionException>(() => query.Run(new TypedQueryRunOptions
+        {
+            QueryProgress = (_, args) => snapshots.Add(args),
+            QueryProgressOptions = new QueryProgressOptions
+            {
+                RowsPerUpdate = 1,
+                MinimumInterval = TimeSpan.FromDays(1)
+            }
+        }).ToArray());
+
+        Assert.IsTrue(snapshots.Count > 0);
+        Assert.IsTrue(snapshots[^1].IsFinal);
+        Assert.AreEqual(1, snapshots[^1].QueryRowsProcessed);
+    }
+
+    [TestMethod]
     public void TypedRun_WhenProjectionThrows_ShouldPropagateProjectionException()
     {
         var query = Compile<ThrowingConstructorDto>("select d.Dummy as Dummy from #system.dual() d");

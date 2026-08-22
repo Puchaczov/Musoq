@@ -7,24 +7,6 @@ using Musoq.Evaluator.IR.Physical.Nodes;
 namespace Musoq.Evaluator.IR.Physical;
 public sealed partial class PhysicalPlanBuilder
 {
-    private readonly Dictionary<JoinNode, PredicateMovementPlan[]> _predicateMovementsByJoin;
-    private readonly PhysicalStrategyPlan? _strategyPlan;
-    private readonly IReadOnlyDictionary<string, SourceTransferStrategyPlan> _sourceTransferPlans;
-
-    public PhysicalPlanBuilder()
-        : this(null, null, null)
-    { }
-
-    internal PhysicalPlanBuilder(
-        IReadOnlyList<PredicateMovementPlan>? predicateMovementPlans,
-        PhysicalStrategyPlan? strategyPlan,
-        IReadOnlyDictionary<string, SourceTransferStrategyPlan>? sourceTransferPlans = null)
-    {
-        _predicateMovementsByJoin = CreatePredicateMovementsByJoin(predicateMovementPlans);
-        _strategyPlan = strategyPlan;
-        _sourceTransferPlans = sourceTransferPlans ?? new Dictionary<string, SourceTransferStrategyPlan>(StringComparer.Ordinal);
-    }
-
     public PhysicalNode Lower(LogicalNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
@@ -86,7 +68,7 @@ public sealed partial class PhysicalPlanBuilder
             DescNode desc => new PhysicalDescNode(desc.SchemaName, desc.MethodName, desc.Type, desc.Column, desc.Arguments, desc.SourceContextId, desc.OutputSchema, desc.QueryOutputSchema),
             AggregateNode aggregate => LowerAggregate(aggregate, strategyPlan),
             JoinNode join => LowerJoin(join, strategyPlan),
-            ApplyNode apply => new PhysicalNestedLoopApplyNode(apply.Kind, Lower(apply.Left, strategyPlan), Lower(apply.Right, strategyPlan), apply.WithOrdinality),
+            ApplyNode apply => LowerApply(apply, strategyPlan),
             SetOperationNode setOperation => LowerSetOperation(setOperation, strategyPlan),
             RecursiveCteNode recursiveCte => LowerRecursiveCte(recursiveCte, strategyPlan),
             CteNode cte => LowerCte(cte, strategyPlan),

@@ -39,7 +39,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         Assert.IsEmpty(parallelProjects);
         StringAssert.Contains(printed, "Generated [ResultRow0]");
         StringAssert.Contains(printed, "CteReadOnceFusionCandidate [cte0]");
-        Assert.IsFalse(printed.Contains("CtePhase [cte0]", StringComparison.Ordinal), printed);
+        Assert.IsFalse(printed.Contains("PhaseBoundary [Begin:cte0]", StringComparison.Ordinal), printed);
         StringAssert.Contains(printed, "SourceScan [p: Person] -> pRows");
         StringAssert.Contains(printed, "ChunkedForEach [p in pRows]");
         StringAssert.Contains(printed, "AppendShape [result <- ResultShape0(Name: p.Name)]");
@@ -49,7 +49,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         StringAssert.Contains(printed, "ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
         StringAssert.Contains(
             ExecutionPlanPrinter.Print(new ExecutionIrOptimizer().Optimize(plan).OptimizedPlan),
-            "CtePhase [cte0]");
+            "PhaseBoundary [Begin:cte0]");
     }
 
     [TestMethod]
@@ -84,9 +84,9 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var optimizedText = ExecutionPlanPrinter.Print(new ExecutionIrOptimizer().Optimize(plan).OptimizedPlan);
 
         StringAssert.Contains(initialText, "SingleUseFusionCandidate [cte0]");
-        Assert.IsFalse(initialText.Contains("CtePhase [cte0]", StringComparison.Ordinal), initialText);
+        Assert.IsFalse(initialText.Contains("PhaseBoundary [Begin:cte0]", StringComparison.Ordinal), initialText);
         StringAssert.Contains(initialText, "If [(p.Age > 18)]");
-        StringAssert.Contains(optimizedText, "CtePhase [cte0]");
+        StringAssert.Contains(optimizedText, "PhaseBoundary [Begin:cte0]");
         Assert.IsFalse(optimizedText.Contains("SingleUseFusionCandidate", StringComparison.Ordinal), optimizedText);
         Assert.IsFalse(optimizedText.Contains("StoreTable [statement0 -> _tableResults[0]]", StringComparison.Ordinal), optimizedText);
     }

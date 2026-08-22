@@ -143,6 +143,7 @@ public class BinaryInterpretationOopTests : BinaryInterpretationTestBase
     #region Generic Schema Tests
 
     [TestMethod]
+    [FeatureEvidence("generic-interpretation-schema-sql", FeatureEvidenceKind.InterpreterPositive)]
     public void Interpret_GenericSchema_SingleTypeParameter_ShouldWork()
     {
         var registry = new SchemaRegistry();

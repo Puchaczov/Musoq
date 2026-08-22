@@ -332,7 +332,7 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState.Parameters, \"country\");", methodCode);
         Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
-        Assert.Contains("BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults, paramCountry)", methodCode);
+        Assert.Contains("BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, paramCountry)", methodCode);
         Assert.IsLessThan(
             methodCode.IndexOf("BuildCte0(", StringComparison.Ordinal), methodCode.IndexOf("var paramCountry =", StringComparison.Ordinal));
         Assert.Contains("private static List<ResultRow0> BuildCte0(", helperCode);

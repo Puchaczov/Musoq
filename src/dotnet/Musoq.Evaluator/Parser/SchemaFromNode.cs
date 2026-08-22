@@ -23,9 +23,20 @@ public class SchemaFromNode(
 
     internal BoundSchemaInvocation? BoundInvocation { get; private set; }
 
+    internal object?[] StaticMetadataArguments { get; private set; } = [];
+
+    internal bool HasRequiredRuntimeArguments { get; private set; }
+
     internal void SetBoundInvocation(BoundSchemaInvocation invocation)
     {
         BoundInvocation = invocation ?? throw new ArgumentNullException(nameof(invocation));
+    }
+
+    internal void SetStaticMetadataArguments(object?[] arguments, bool hasRequiredRuntimeArguments)
+    {
+        ArgumentNullException.ThrowIfNull(arguments);
+        StaticMetadataArguments = [.. arguments];
+        HasRequiredRuntimeArguments = hasRequiredRuntimeArguments;
     }
 
     public override int GetHashCode()

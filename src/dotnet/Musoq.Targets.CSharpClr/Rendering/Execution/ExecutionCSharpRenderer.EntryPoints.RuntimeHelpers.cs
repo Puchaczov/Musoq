@@ -33,8 +33,12 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IdentifierName("sourceExecutionPlans"),
             SyntaxFactory.IdentifierName("logger"),
             SyntaxFactory.IdentifierName("token"),
-            SyntaxFactory.IdentifierName("OnDataSourceProgress")
+            SyntaxFactory.IdentifierName("__musoqProgressContext"),
+            SyntaxFactory.IdentifierName("OnDataSourceProgress"),
+            SyntaxFactory.IdentifierName("OnQueryProgress")
         };
+
+        arguments.Add(SyntaxFactory.IdentifierName("OnPhaseChanged"));
 
         if (IsInstrumentationEnabled)
             arguments.Add(SyntaxFactory.IdentifierName(ProfileRecorderVariableName));
@@ -72,8 +76,12 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.ParseTypeName("IReadOnlyDictionary<string, SourceExecutionPlan>")),
             CreateParameter("logger", CreateTypeSyntax(typeof(ILogger))),
             CreateParameter("token", CreateTypeSyntax(typeof(CancellationToken))),
-            CreateParameter("OnDataSourceProgress", CreateTypeSyntax(typeof(DataSourceEventHandler)))
+            CreateParameter("__musoqProgressContext", SyntaxFactory.ParseTypeName("QueryRunContext?")),
+            CreateParameter("OnDataSourceProgress", CreateTypeSyntax(typeof(DataSourceEventHandler))),
+            CreateParameter("OnQueryProgress", CreateTypeSyntax(typeof(QueryProgressEventHandler)))
         };
+
+        parameters.Add(CreateParameter("OnPhaseChanged", SyntaxFactory.ParseTypeName("Action<string, QueryPhase>")));
 
         if (IsInstrumentationEnabled)
             parameters.Add(CreateParameter(ProfileRecorderVariableName, CreateTypeSyntax(typeof(QueryProfileRecorder))));
@@ -130,7 +138,10 @@ public sealed partial class ExecutionCSharpRenderer
             "sourceExecutionPlans",
             "logger",
             "token",
-            "OnDataSourceProgress"
+            "__musoqProgressContext",
+            "OnDataSourceProgress",
+            "OnQueryProgress",
+            "OnPhaseChanged"
         };
 
         if (IsInstrumentationEnabled)

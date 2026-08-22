@@ -47,12 +47,15 @@ ExecutionPlan [compiled]
       NameCount: long <- field NameCount
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [a: BasicEntity] -> aRows
     SourceScan [b: BasicEntity] -> bRows
     CreateHash [bHash: int -> BasicEntity]
     ChunkedForEach [b in bRows]
       HashAdd [bHash[b.Id] += b]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [GroupBy]
     CreateSingleKeyAggregateContext [groups: string -> ResultAggregateGroup]
     ChunkedForEach [a in aRows]
       HashProbe [bHash[a.Id] -> bHashMatches]
@@ -61,6 +64,7 @@ ExecutionPlan [compiled]
           GetOrAddSingleKeyAggregateGroup [group = groups[a.Country] by a.Country; typed: ResultAggregateGroup]
           TypedAggregateSet [Set(group.__agg0, name)]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
+    PhaseBoundary [Select]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(a.Country: finalGroup.a.Country, NameCount: a.Count(a.Name))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
@@ -85,7 +89,7 @@ namespace GeneratedSample_Q167_MultiSourceAggregateOwnerResolution
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_2 = new Column[]
         {
@@ -105,6 +109,7 @@ namespace GeneratedSample_Q167_MultiSourceAggregateOwnerResolution
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -120,21 +125,22 @@ namespace GeneratedSample_Q167_MultiSourceAggregateOwnerResolution
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.GroupBy);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __aSchema = provider.GetSchema("#A");
                 var aRowsSource = __aSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var aRows = aRowsSource.Chunks;
+                var aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(aRowsSource.Chunks, __musoqProgressContext, "a:1") : aRowsSource.Chunks;
                 var __bSchema = provider.GetSchema("#B");
                 var bRowsSource = __bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var bRows = bRowsSource.Chunks;
+                var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:1") : bRowsSource.Chunks;
                 var bHash = new Dictionary<int, HashJoinBucket<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>>();
                 foreach (var bChunk in bRows)
                 {
@@ -220,6 +226,7 @@ namespace GeneratedSample_Q167_MultiSourceAggregateOwnerResolution
                     }
                 }
 
+                OnPhaseChanged("compiled", QueryPhase.GroupBy);
                 var groupsToFinalize = new List<ResultAggregateGroup>();
                 var groups = new Dictionary<string, ResultAggregateGroup>();
                 ResultAggregateGroup nullGroup = null;
@@ -298,6 +305,7 @@ namespace GeneratedSample_Q167_MultiSourceAggregateOwnerResolution
                     }
                 }
 
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
@@ -308,7 +316,14 @@ namespace GeneratedSample_Q167_MultiSourceAggregateOwnerResolution
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

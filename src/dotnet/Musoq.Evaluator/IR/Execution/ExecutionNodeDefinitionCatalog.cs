@@ -61,6 +61,7 @@ internal static class ExecutionNodeDefinitionCatalog
         yield return Definition<ExecutionOrderRecordList>("record-list.order", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionMaterializeRecordListToTable>("record-list.to-table", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionStoreTable>("cte.table.store", ExecutionRendererNodeFamily.TableControlFlow);
+        yield return Definition<ExecutionPhaseBoundary>("phase.boundary", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionRelatedCtePhase>("cte.phase.related", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionReturnDesc>("return.desc", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionReturnTable>("return.table", ExecutionRendererNodeFamily.TableControlFlow);

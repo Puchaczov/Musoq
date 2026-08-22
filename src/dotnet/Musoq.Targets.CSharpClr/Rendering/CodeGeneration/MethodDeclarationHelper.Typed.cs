@@ -55,7 +55,9 @@ public static partial class MethodDeclarationHelper
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IParameterizedRunnable.Parameters))),
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.PhaseChanged))),
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.DataSourceProgress)))
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.DataSourceProgress))),
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("QueryProgress")),
+                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))
                         ])))))))));
 
         return SyntaxFactory.MethodDeclaration(

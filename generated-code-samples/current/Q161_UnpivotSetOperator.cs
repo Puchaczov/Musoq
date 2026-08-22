@@ -70,19 +70,30 @@ ExecutionPlan [compiled]
       Amount: decimal <- field Amount
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [Begin:left]
+    PhaseBoundary [From:left]
+    PhaseBoundary [From]
     SourceScan [s: BasicEntity] -> left_sRows
     CreateRowBuffer [left: List<LeftRow0>]
+    PhaseBoundary [Select:left]
+    PhaseBoundary [Select]
     ChunkedForEach [s in left_sRows]
       ScopedBlock
         CreateGeneratedRow [__unpivot <- __unpivotUnpivot3E19C520Row0(Name: s.Name, Metric: 'Population', Amount: s.Population)]
         AppendRowBuffer [left <- LeftRow0(Name: __unpivot.Name, Metric: __unpivot.Metric, Amount: __unpivot.Amount)]
+    PhaseBoundary [End:left]
+    PhaseBoundary [Begin:right]
+    PhaseBoundary [From:right]
     SourceScan [s: BasicEntity] -> right_sRows
     CreateRowBuffer [right: List<RightRow0>]
+    PhaseBoundary [Select:right]
     ChunkedForEach [s in right_sRows]
       ScopedBlock
         CreateGeneratedRow [__unpivot <- __unpivotUnpivotEE6A24A5Row0(Name: s.Name, Metric: 'Money', Amount: s.Money)]
         AppendRowBuffer [right <- RightRow0(Name: __unpivot.Name, Metric: __unpivot.Metric, Amount: __unpivot.Amount)]
     SortRowBuffer [right -> rightSorted by Name ASC]
+    PhaseBoundary [End:right]
     SetOperation [result = left UnionAll rightSorted, AppendLoop]
     ReturnDeferredTable [result: LeftRow0 <- LeftShape0]
 */
@@ -106,7 +117,7 @@ namespace GeneratedSample_Q161_UnpivotSetOperator
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_left_1 = new Column[]
         {
@@ -126,6 +137,7 @@ namespace GeneratedSample_Q161_UnpivotSetOperator
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<LeftRow0>("result", __columns_compiled_left_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -141,20 +153,24 @@ namespace GeneratedSample_Q161_UnpivotSetOperator
 
         private IEnumerable<LeftShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled:left", QueryPhase.Begin);
-            OnPhaseChanged("compiled:right", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<LeftShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled:left", QueryPhase.Begin);
+                OnPhaseChanged("compiled:left", QueryPhase.From);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __left_sSchema = provider.GetSchema("#A");
                 var left_sRowsSource = __left_sSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("s:1", sourceExecutionPlans["s:1"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var left_sRows = left_sRowsSource.Chunks;
+                var left_sRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(left_sRowsSource.Chunks, __musoqProgressContext, "s:1") : left_sRowsSource.Chunks;
                 var left = new List<LeftRow0>();
+                OnPhaseChanged("compiled:left", QueryPhase.Select);
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var sChunk in left_sRows)
                 {
                     if (sChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> sChunkView)
@@ -215,10 +231,14 @@ namespace GeneratedSample_Q161_UnpivotSetOperator
                     }
                 }
 
+                OnPhaseChanged("compiled:left", QueryPhase.End);
+                OnPhaseChanged("compiled:right", QueryPhase.Begin);
+                OnPhaseChanged("compiled:right", QueryPhase.From);
                 var __right_sSchema = provider.GetSchema("#B");
                 var right_sRowsSource = __right_sSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("s:2", sourceExecutionPlans["s:2"], token, __schemaColumns_compiled_s_0, sourceRuntimeSettingsBySourceContextId["s:2"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var right_sRows = right_sRowsSource.Chunks;
+                var right_sRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(right_sRowsSource.Chunks, __musoqProgressContext, "s:2") : right_sRowsSource.Chunks;
                 var right = new List<RightRow0>();
+                OnPhaseChanged("compiled:right", QueryPhase.Select);
                 foreach (var sChunk in right_sRows)
                 {
                     if (sChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> sChunkView)
@@ -287,6 +307,7 @@ namespace GeneratedSample_Q161_UnpivotSetOperator
                     rightSorted.Add(copiedRow);
                 }
 
+                OnPhaseChanged("compiled:right", QueryPhase.End);
                 foreach (var resultLeftRow in left)
                 {
                     __musoqFinalShapeRows.Add(new LeftShape0((string)resultLeftRow.Name, (string)resultLeftRow.Metric, (decimal)resultLeftRow.Amount));
@@ -301,9 +322,14 @@ namespace GeneratedSample_Q161_UnpivotSetOperator
             }
             finally
             {
-                OnPhaseChanged("compiled:left", QueryPhase.End);
-                OnPhaseChanged("compiled:right", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "features": [
+    {
+      "id": "table-couple-type-matrix",
+      "title": "TABLE/COUPLE supported type matrix",
+      "owner": "core",
+      "status": "exact-runtime",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-positive"]
+    },
+    {
+      "id": "contains-null-semantics",
+      "title": "CONTAINS null semantics",
+      "owner": "core",
+      "status": "exact-runtime",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-positive"]
+    },
+    {
+      "id": "group-by-all",
+      "title": "GROUP BY ALL result contracts",
+      "owner": "core",
+      "status": "exact-runtime",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-positive"]
+    },
+    {
+      "id": "implicit-boolean-conversion",
+      "title": "Implicit boolean conversion result contracts",
+      "owner": "core",
+      "status": "exact-runtime",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-positive"]
+    },
+    {
+      "id": "regex-null-semantics",
+      "title": "RLIKE and NOT RLIKE nullable result contracts",
+      "owner": "core",
+      "status": "exact-runtime",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-positive"]
+    },
+    {
+      "id": "outer-join-empty-results",
+      "title": "Semantic empty and outer-join result contracts",
+      "owner": "core",
+      "status": "exact-runtime",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-positive"]
+    },
+    {
+      "id": "desc-query-metadata",
+      "title": "DESC QUERY metadata result contracts",
+      "owner": "core",
+      "status": "exact-runtime",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-positive"]
+    },
+    {
+      "id": "text-interpretation",
+      "title": "Text interpretation query results",
+      "owner": "core",
+      "status": "exact-runtime",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-positive"]
+    },
+    {
+      "id": "binary-interpretation",
+      "title": "Binary interpretation query results",
+      "owner": "core",
+      "status": "exact-runtime",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-positive"]
+    },
+    {
+      "id": "recursive-ctes",
+      "title": "Recursive common table expressions",
+      "owner": "core",
+      "status": "partial-runtime",
+      "documentation": ["docs/recursive-ctes.md", "specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-positive", "runtime-negative-diagnostic"]
+    },
+    {
+      "id": "correlated-scalar-set-operations",
+      "title": "Correlated scalar subqueries over set operations",
+      "owner": "core",
+      "status": "partial-runtime",
+      "documentation": ["docs/correlated-subqueries.md", "specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-positive", "runtime-negative-diagnostic"]
+    },
+    {
+      "id": "generic-interpretation-schema-sql",
+      "title": "Generic interpretation schemas in SQL",
+      "owner": "core",
+      "status": "interpreter-only",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["interpreter-positive", "runtime-negative-diagnostic"]
+    },
+    {
+      "id": "set-result-modifiers",
+      "title": "Result-level ordering and slicing after set operations",
+      "owner": "core",
+      "status": "exact-runtime",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-positive"]
+    },
+    {
+      "id": "range-window-frames",
+      "title": "RANGE window frames",
+      "owner": "core",
+      "status": "partial-runtime",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-positive", "runtime-negative-diagnostic"]
+    },
+    {
+      "id": "system-range-source",
+      "title": "system.range(start, end)",
+      "owner": "host",
+      "status": "unsupported",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-negative-diagnostic"]
+    },
+    {
+      "id": "asof-right-join",
+      "title": "ASOF RIGHT JOIN",
+      "owner": "core",
+      "status": "unsupported",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-negative-diagnostic"]
+    },
+    {
+      "id": "groups-exclude-window-frames",
+      "title": "GROUPS and EXCLUDE window frames",
+      "owner": "core",
+      "status": "unsupported",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-negative-diagnostic"]
+    },
+    {
+      "id": "percent-rank-cume-dist",
+      "title": "PERCENT_RANK and CUME_DIST window functions",
+      "owner": "core",
+      "status": "exact-runtime",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-positive"]
+    },
+    {
+      "id": "positional-order-by",
+      "title": "Positional ORDER BY",
+      "owner": "core",
+      "status": "unsupported",
+      "documentation": ["specs/musoq-core-language-spec.md"],
+      "requiredEvidence": ["runtime-negative-diagnostic"]
+    },
+    {
+      "id": "ai-syntax",
+      "title": "AI-assisted language syntax",
+      "owner": "language-proposal",
+      "status": "proposal",
+      "documentation": ["specs/musoq-ai-spec.md"],
+      "requiredEvidence": []
+    }
+  ]
+}

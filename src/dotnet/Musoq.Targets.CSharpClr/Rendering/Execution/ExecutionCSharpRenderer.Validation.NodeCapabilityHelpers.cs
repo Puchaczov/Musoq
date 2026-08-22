@@ -99,7 +99,10 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return ExecutionNodeFacts.TryGetWindowComputation(ranking, out var window) &&
                CanRenderWindowComputationCommon(window, requireOrderKeys: true) &&
-               ranking.Results.Type.RequireClrType() == typeof(long[]);
+               ranking.Results.Type.RequireClrType() ==
+               (ranking.Function is ExecutionRankingWindowFunction.PercentRank or ExecutionRankingWindowFunction.CumeDist
+                   ? typeof(double[])
+                   : typeof(long[]));
     }
 
     private static bool CanRenderOffsetWindow(ExecutionComputeOffsetWindow offset)

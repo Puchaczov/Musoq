@@ -44,17 +44,7 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static ExecutionRankingWindowFunction? ResolveRankingFunction(string functionName)
     {
-        var normalized = functionName.Replace("_", string.Empty, StringComparison.Ordinal);
-        if (string.Equals(normalized, "RowNumber", StringComparison.OrdinalIgnoreCase))
-            return ExecutionRankingWindowFunction.RowNumber;
-
-        if (string.Equals(normalized, "Rank", StringComparison.OrdinalIgnoreCase))
-            return ExecutionRankingWindowFunction.Rank;
-
-        if (string.Equals(normalized, "DenseRank", StringComparison.OrdinalIgnoreCase))
-            return ExecutionRankingWindowFunction.DenseRank;
-
-        return null;
+        return RankingWindowMetadata.ResolveFunction(functionName);
     }
 
     private static ExecutionOffsetWindowFunction? ResolveOffsetFunction(string functionName)
@@ -99,15 +89,10 @@ internal sealed partial class PhysicalLoweringImplementation
         int windowIndex,
         WindowResultNameMode mode)
     {
-        var name = function switch
-        {
-            ExecutionRankingWindowFunction.RowNumber => $"{resultTableName}RowNumbers",
-            ExecutionRankingWindowFunction.Rank => $"{resultTableName}Ranks",
-            ExecutionRankingWindowFunction.DenseRank => $"{resultTableName}DenseRanks",
-            _ => throw new ArgumentOutOfRangeException(nameof(function), function, null)
-        };
-
-        return FormatWindowResultVariableName(name, windowIndex, mode);
+        return FormatWindowResultVariableName(
+            RankingWindowMetadata.CreateResultVariableName(resultTableName, function),
+            windowIndex,
+            mode);
     }
 
     private static string CreateOffsetResultVariableName(

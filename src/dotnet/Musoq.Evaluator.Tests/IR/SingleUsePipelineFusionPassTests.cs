@@ -22,9 +22,14 @@ public sealed class SingleUsePipelineFusionPassTests
             new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
 
         Assert.IsTrue(result.IsChanged);
-        Assert.HasCount(2, result.Plan.Body.Nodes);
-        Assert.AreEqual(4, ((ExecutionRelatedCtePhase)result.Plan.Body.Nodes[0]).TableIndex);
+        Assert.HasCount(3, result.Plan.Body.Nodes);
+        var begin = (ExecutionPhaseBoundary)result.Plan.Body.Nodes[0];
+        Assert.AreEqual(QueryPhase.Begin, begin.Phase);
+        Assert.AreEqual(":cte4", begin.QueryIdSuffix);
         Assert.AreSame(table, ((ExecutionReturnTable)result.Plan.Body.Nodes[1]).Table);
+        var end = (ExecutionPhaseBoundary)result.Plan.Body.Nodes[2];
+        Assert.AreEqual(QueryPhase.End, end.Phase);
+        Assert.AreEqual(":cte4", end.QueryIdSuffix);
     }
 
     [TestMethod]

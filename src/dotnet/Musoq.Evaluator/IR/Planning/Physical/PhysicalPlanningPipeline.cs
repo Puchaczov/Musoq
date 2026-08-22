@@ -57,9 +57,11 @@ internal sealed class PhysicalPlanningPipeline
         PhysicalStrategyPlan strategyPlan,
         IReadOnlyDictionary<string, SourceTransferStrategyPlan>? sourceTransferPlans)
     {
-        var physicalBuilder = new PhysicalPlanBuilder(physicalStrategies.PredicateMovementPlans,
+        var physicalBuilder = new PhysicalPlanBuilder(
+            physicalStrategies.PredicateMovementPlans,
             strategyPlan,
-            sourceTransferPlans);
+            sourceTransferPlans,
+            physicalStrategies.ApplyPredicateMovementPlans);
 
         return physicalBuilder.Lower(context.LogicalPlan);
     }

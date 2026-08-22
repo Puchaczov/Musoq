@@ -398,6 +398,131 @@ public class ScriptParameterExecutionTests : EnvironmentVariablesTestBase
     }
 
     [TestMethod]
+    public void WhenRequiredScriptParameterIsUsedAsSourceArgument_ShouldCompileAndPassRuntimeValue()
+    {
+        const string query =
+            "param(key: string) select Key, Value from #Parameterized.Items($key)";
+        var provider = new ParameterizedEnvironmentSchemaProvider();
+        var vm = CompileWithProvider(query, provider);
+
+        vm.Parameters["key"] = "KEY_2";
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("KEY_2", table[0][0]);
+        Assert.AreEqual("VALUE_2", table[0][1]);
+        Assert.AreEqual(1, provider.OpenCount);
+    }
+
+    [TestMethod]
+    public void WhenRequiredSourceParameterIsMissing_ShouldFailBeforeOpeningSource()
+    {
+        const string query =
+            "param(key: string) select Key, Value from #Parameterized.Items($key)";
+        var provider = new ParameterizedEnvironmentSchemaProvider();
+        var vm = CompileWithProvider(query, provider);
+
+        var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
+
+        AssertRuntimeEnvelope(
+            ex,
+            DiagnosticCode.MQ7003_RequiredScriptParameterMissing,
+            "Required script parameter 'key' was not provided.");
+        Assert.AreEqual(0, provider.OpenCount);
+    }
+
+    [TestMethod]
+    public void WhenRequiredSourceParameterIsNull_ShouldFailBeforeOpeningSource()
+    {
+        const string query =
+            "param(limit: int) select Key, Value from #Parameterized.Items($limit)";
+        var provider = new ParameterizedEnvironmentSchemaProvider();
+        var vm = CompileWithProvider(query, provider);
+        vm.Parameters["limit"] = null;
+
+        var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
+
+        AssertRuntimeEnvelope(
+            ex,
+            DiagnosticCode.MQ7005_ScriptParameterNullNotAllowed,
+            "Script parameter 'limit' expected a non-null value of type 'int'.");
+        Assert.AreEqual(0, provider.OpenCount);
+    }
+
+    [TestMethod]
+    public void WhenRequiredSourceParameterHasWrongType_ShouldFailBeforeOpeningSource()
+    {
+        const string query =
+            "param(limit: int) select Key, Value from #Parameterized.Items($limit)";
+        var provider = new ParameterizedEnvironmentSchemaProvider();
+        var vm = CompileWithProvider(query, provider);
+        vm.Parameters["limit"] = "42";
+
+        var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
+
+        AssertRuntimeEnvelope(
+            ex,
+            DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
+            "Script parameter 'limit' expected a value of type 'int' but received 'string'.");
+        Assert.AreEqual(0, provider.OpenCount);
+    }
+
+    [TestMethod]
+    public void WhenUnknownParameterIsProvidedForRequiredSourceParameter_ShouldFailBeforeOpeningSource()
+    {
+        const string query =
+            "param(key: string) select Key, Value from #Parameterized.Items($key)";
+        var provider = new ParameterizedEnvironmentSchemaProvider();
+        var vm = CompileWithProvider(query, provider);
+        vm.Parameters["key"] = "KEY_1";
+        vm.Parameters["extra"] = "ignored";
+
+        var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
+
+        AssertRuntimeEnvelope(
+            ex,
+            DiagnosticCode.MQ7006_UnknownScriptParameter,
+            "Script parameter 'extra' was provided but is not declared.");
+        Assert.AreEqual(0, provider.OpenCount);
+    }
+
+    [TestMethod]
+    public void WhenRequiredSourceParameterIsRebound_ShouldUseCurrentValueOnEachExecution()
+    {
+        const string query =
+            "param(key: string) select Key, Value from #Parameterized.Items($key)";
+        var provider = new ParameterizedEnvironmentSchemaProvider();
+        var vm = CompileWithProvider(query, provider);
+
+        vm.Parameters["key"] = "KEY_1";
+        var first = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
+        vm.Parameters["key"] = "KEY_2";
+        var second = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
+
+        Assert.AreEqual("KEY_1", first[0][0]);
+        Assert.AreEqual("VALUE_1", first[0][1]);
+        Assert.AreEqual("KEY_2", second[0][0]);
+        Assert.AreEqual("VALUE_2", second[0][1]);
+        Assert.AreEqual(2, provider.OpenCount);
+    }
+
+    [TestMethod]
+    public void WhenDefaultedScriptParameterIsUsedAsSourceArgumentWithoutOverride_ShouldUseDefault()
+    {
+        const string query =
+            "param(key: string = 'KEY_2') select Key, Value from #Parameterized.Items($key)";
+        var provider = new ParameterizedEnvironmentSchemaProvider();
+        var vm = CompileWithProvider(query, provider);
+
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("KEY_2", table[0][0]);
+        Assert.AreEqual("VALUE_2", table[0][1]);
+        Assert.AreEqual(1, provider.OpenCount);
+    }
+
+    [TestMethod]
     public void WhenCompiledQueryRunsRepeatedly_ShouldRebindCurrentParameterValues()
     {
         const string query = "param(key: string) select Key, Value from #EnvironmentVariables.All() where Key = $key";

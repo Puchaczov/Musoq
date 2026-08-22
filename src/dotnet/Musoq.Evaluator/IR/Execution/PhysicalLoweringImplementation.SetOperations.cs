@@ -112,10 +112,12 @@ internal sealed partial class PhysicalLoweringImplementation
             return TableBuildResult.Unsupported(right.UnsupportedReason);
 
         var result = new ExecutionVariable(resultTableName, typeof(object));
-        var nodes = new List<ExecutionNode>(left.Nodes.Count + right.Nodes.Count + 2);
+        var leftNodes = CreateSetOperationArmNodes(leftArm, left.Nodes, ":left");
+        var rightNodes = CreateSetOperationArmNodes(rightArm, right.Nodes, ":right");
+        var nodes = new List<ExecutionNode>(leftNodes.Count + rightNodes.Count + 2);
 
-        nodes.AddRange(left.Nodes);
-        nodes.AddRange(right.Nodes);
+        nodes.AddRange(leftNodes);
+        nodes.AddRange(rightNodes);
         nodes.Add(new ExecutionSetOperation(
             result,
             left.Table,
@@ -214,15 +216,21 @@ internal sealed partial class PhysicalLoweringImplementation
             return TableBuildResult.Unsupported(
                 $"Planner selected streaming UnionAll, but the right arm could not be lowered: {right.UnsupportedReason}");
 
+        var leftNodes = CreateSetOperationArmNodes(
+            UnwrapSingleStatement(setOperation.Left),
+            [..left.Value.Setup, left.Value.Loop],
+            ":left");
+        var rightNodes = CreateSetOperationArmNodes(
+            UnwrapSingleStatement(setOperation.Right),
+            [..right.Value.Setup, right.Value.Loop],
+            ":right");
         var nodes = new List<ExecutionNode>(
-            left.Value.Setup.Count + right.Value.Setup.Count + 3)
+            leftNodes.Count + rightNodes.Count + 3)
         {
             CreateTable(resultTable, resultShape)
         };
-        nodes.AddRange(left.Value.Setup);
-        nodes.Add(left.Value.Loop);
-        nodes.AddRange(right.Value.Setup);
-        nodes.Add(right.Value.Loop);
+        nodes.AddRange(leftNodes);
+        nodes.AddRange(rightNodes);
 
         return CompleteTableBuild(
             [left.Value.SourceShape, right.Value.SourceShape, resultShape],

@@ -182,7 +182,9 @@ public partial class TransformTree
         {
             var optimizationResult = new ExecutionIrOptimizer().Optimize(result.ExecutionPlan, context.CompilationOptions);
             var updatedContext = context.AppendTrace(optimizationResult.Trace);
-            var optimizedPlan = optimizationResult.OptimizedPlan;
+            var optimizedPlan = ExecutionPhaseBoundaryPlanner.RepositionRootBoundaries(
+                planning.PhysicalPlan,
+                optimizationResult.OptimizedPlan);
 
             var artifacts = new ExecutionBuildArtifacts
             {

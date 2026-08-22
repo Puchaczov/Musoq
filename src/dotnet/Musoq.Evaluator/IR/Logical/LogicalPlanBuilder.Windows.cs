@@ -180,7 +180,9 @@ public sealed partial class LogicalPlanBuilder
             || string.Equals(normalized, "lead", StringComparison.OrdinalIgnoreCase)
             || string.Equals(normalized, "rownumber", StringComparison.OrdinalIgnoreCase)
             || string.Equals(normalized, "rank", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(normalized, "denserank", StringComparison.OrdinalIgnoreCase);
+            || string.Equals(normalized, "denserank", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(normalized, "percentrank", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(normalized, "cumedist", StringComparison.OrdinalIgnoreCase);
     }
 
     private WindowSpecificationNode? ResolveWindowSpecification(WindowFunctionNode node)

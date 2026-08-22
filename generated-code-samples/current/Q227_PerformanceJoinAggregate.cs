@@ -49,12 +49,15 @@ ExecutionPlan [compiled]
       MatchCount: long <- field MatchCount
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [a: PerformanceJoinEntity] -> aRows
     SourceScan [b: PerformanceJoinEntity] -> bRows
     CreateHash [bHash: string -> PerformanceJoinEntity]
     ChunkedForEach [b in bRows]
       HashAdd [bHash[b.City] += b]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [GroupBy]
     CreateSingleKeyAggregateContext [groups: string -> ResultAggregateGroup]
     ChunkedForEach [a in aRows]
       HashProbe [bHash[a.City] -> bHashMatches]
@@ -63,6 +66,7 @@ ExecutionPlan [compiled]
           GetOrAddSingleKeyAggregateGroup [group = groups[a.City] by a.City; typed: ResultAggregateGroup]
           TypedAggregateSet [Set(group.__agg0, name)]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
+    PhaseBoundary [Select]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(City: finalGroup.a.City, MatchCount: a.Count(b.Name))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
@@ -87,7 +91,7 @@ namespace GeneratedSample_Q227_PerformanceJoinAggregate
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_2 = new Column[]
         {
@@ -107,6 +111,7 @@ namespace GeneratedSample_Q227_PerformanceJoinAggregate
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -122,21 +127,22 @@ namespace GeneratedSample_Q227_PerformanceJoinAggregate
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.GroupBy);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __aSchema = provider.GetSchema("#A");
                 var aRowsSource = __aSchema.GetRowSource<Musoq.Evaluator.Tests.PerformanceJoinEntity>("entities", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var aRows = aRowsSource.Chunks;
+                var aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.PerformanceJoinEntity>(aRowsSource.Chunks, __musoqProgressContext, "a:1") : aRowsSource.Chunks;
                 var __bSchema = provider.GetSchema("#B");
                 var bRowsSource = __bSchema.GetRowSource<Musoq.Evaluator.Tests.PerformanceJoinEntity>("entities", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var bRows = bRowsSource.Chunks;
+                var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.PerformanceJoinEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:1") : bRowsSource.Chunks;
                 var bHash = new Dictionary<string, HashJoinBucket<Musoq.Evaluator.Tests.PerformanceJoinEntity>>();
                 foreach (var bChunk in bRows)
                 {
@@ -228,6 +234,7 @@ namespace GeneratedSample_Q227_PerformanceJoinAggregate
                     }
                 }
 
+                OnPhaseChanged("compiled", QueryPhase.GroupBy);
                 var groupsToFinalize = new List<ResultAggregateGroup>();
                 var groups = new Dictionary<string, ResultAggregateGroup>();
                 ResultAggregateGroup nullGroup = null;
@@ -306,6 +313,7 @@ namespace GeneratedSample_Q227_PerformanceJoinAggregate
                     }
                 }
 
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
@@ -316,7 +324,14 @@ namespace GeneratedSample_Q227_PerformanceJoinAggregate
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

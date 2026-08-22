@@ -72,12 +72,19 @@ ExecutionPlan [compiled]
       HasEarlierPeer: string <- field HasEarlierPeer
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [From:cte0]
     SourceScan [b: BasicEntity] -> cte0_bRows
     CreateTable [cte0: Cte0Row0]
+    PhaseBoundary [Select:cte0]
     ChunkedForEach [b in cte0_bRows]
       AppendRow [cte0 <- Cte0Row0(_sq_1_key: 1, _sq_1_corr_0: b.Country, _sq_1_corr_1: b.City, _sq_1_corr_2: b.Population)]
     StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]
-    CtePhase [cte1]
+    PhaseBoundary [End:cte0]
+    PhaseBoundary [Select]
+    PhaseBoundary [Begin:cte1]
     SourceScan [a: BasicEntity] -> aRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateRangeIndex [resultRangeIndex <- _cteRowResults.Slot0 by _sq_1RangeCandidate._sq_1_corr_0, _sq_1RangeCandidate._sq_1_corr_1, _sq_1RangeCandidate._sq_1_corr_2 >]
@@ -91,6 +98,7 @@ ExecutionPlan [compiled]
           Break
       RangeProbeNoMatch
         AppendShape [result <- ResultShape0(a.City: a.City, HasEarlierPeer: CASE WHEN FALSE THEN 'Y' ELSE 'N' END)]
+    PhaseBoundary [End:cte1]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
 
@@ -113,7 +121,7 @@ namespace GeneratedSample_Q186_CorrelatedCompositeRangeMark
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_cte0_1 = new Column[]
         {
@@ -139,6 +147,7 @@ namespace GeneratedSample_Q186_CorrelatedCompositeRangeMark
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -154,135 +163,148 @@ namespace GeneratedSample_Q186_CorrelatedCompositeRangeMark
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Where);
-            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-            OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var _cteRowResults = new CteRowResults();
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
-                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults);
-                var __aSchema = provider.GetSchema("#A");
-                var aRowsSource = __aSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("a:2", sourceExecutionPlans["a:2"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["a:2"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var aRows = aRowsSource.Chunks;
-                var resultRangeIndex = EvaluationHelper.CreateRangeJoinIndex<Cte0Row0, ValueTuple<string, string>?, decimal?>(_cteRowResults.Slot0, (_sq_1RangeCandidate) => _sq_1RangeCandidate._sq_1_corr_0 == null || _sq_1RangeCandidate._sq_1_corr_1 == null ? default(ValueTuple<string, string>?) : (_sq_1RangeCandidate._sq_1_corr_0, _sq_1RangeCandidate._sq_1_corr_1), (_sq_1RangeCandidate) => _sq_1RangeCandidate._sq_1_corr_2, Musoq.Evaluator.IR.Expressions.BinaryOpKind.GreaterThan);
-                foreach (var aChunk in aRows)
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
+                OnPhaseChanged("compiled", QueryPhase.Select);
+                OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
+                try
                 {
-                    if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkView)
+                    var __aSchema = provider.GetSchema("#A");
+                    var aRowsSource = __aSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("a:2", sourceExecutionPlans["a:2"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["a:2"], logger, OnDataSourceProgress), Array.Empty<object>());
+                    var aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(aRowsSource.Chunks, __musoqProgressContext, "a:2") : aRowsSource.Chunks;
+                    var resultRangeIndex = EvaluationHelper.CreateRangeJoinIndex<Cte0Row0, ValueTuple<string, string>?, decimal?>(_cteRowResults.Slot0, (_sq_1RangeCandidate) => _sq_1RangeCandidate._sq_1_corr_0 == null || _sq_1RangeCandidate._sq_1_corr_1 == null ? default(ValueTuple<string, string>?) : (_sq_1RangeCandidate._sq_1_corr_0, _sq_1RangeCandidate._sq_1_corr_1), (_sq_1RangeCandidate) => _sq_1RangeCandidate._sq_1_corr_2, Musoq.Evaluator.IR.Expressions.BinaryOpKind.GreaterThan);
+                    foreach (var aChunk in aRows)
                     {
-                        if (aChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] aChunkViewArray)
+                        if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkView)
                         {
-                            int aChunkViewOffset = aChunkView.Offset;
-                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            if (aChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] aChunkViewArray)
                             {
-                                if ((aIndex & 1023) == 0)
+                                int aChunkViewOffset = aChunkView.Offset;
+                                for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
                                 {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var a = aChunkViewArray[aChunkViewOffset + aIndex];
-                                {
-                                    bool resultRangeHasMatch = false;
-                                    foreach (var _sq_1 in resultRangeIndex.Find(a.Country == null || a.City == null ? default(ValueTuple<string, string>?) : (a.Country, a.City), a.Population))
+                                    if ((aIndex & 1023) == 0)
                                     {
-                                        int? _sq_1_key = _sq_1._sq_1_key;
-                                        string city = a.City;
-                                        if (((1 == _sq_1_key) && (((_sq_1._sq_1_corr_0 == a.Country) && (_sq_1._sq_1_corr_1 == city)) && (_sq_1._sq_1_corr_2 < a.Population))))
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var a = aChunkViewArray[aChunkViewOffset + aIndex];
+                                    {
+                                        bool resultRangeHasMatch = false;
+                                        foreach (var _sq_1 in resultRangeIndex.Find(a.Country == null || a.City == null ? default(ValueTuple<string, string>?) : (a.Country, a.City), a.Population))
                                         {
-                                            resultRangeHasMatch = true;
-                                            __musoqFinalShapeRows.Add(new ResultShape0(city, (_sq_1_key != null) ? (string)"Y" : (string)"N"));
-                                            break;
+                                            int? _sq_1_key = _sq_1._sq_1_key;
+                                            string city = a.City;
+                                            if (((1 == _sq_1_key) && (((_sq_1._sq_1_corr_0 == a.Country) && (_sq_1._sq_1_corr_1 == city)) && (_sq_1._sq_1_corr_2 < a.Population))))
+                                            {
+                                                resultRangeHasMatch = true;
+                                                __musoqFinalShapeRows.Add(new ResultShape0(city, (_sq_1_key != null) ? (string)"Y" : (string)"N"));
+                                                break;
+                                            }
+                                        }
+
+                                        if (!resultRangeHasMatch)
+                                        {
+                                            __musoqFinalShapeRows.Add(new ResultShape0(a.City, false ? (string)"Y" : (string)"N"));
                                         }
                                     }
-
-                                    if (!resultRangeHasMatch)
-                                    {
-                                        __musoqFinalShapeRows.Add(new ResultShape0(a.City, false ? (string)"Y" : (string)"N"));
-                                    }
                                 }
+
+                                continue;
                             }
 
-                            continue;
-                        }
-
-                        if (aChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkViewList)
-                        {
-                            int aChunkViewOffset = aChunkView.Offset;
-                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            if (aChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkViewList)
                             {
-                                if ((aIndex & 1023) == 0)
+                                int aChunkViewOffset = aChunkView.Offset;
+                                for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
                                 {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var a = aChunkViewList[aChunkViewOffset + aIndex];
-                                {
-                                    bool resultRangeHasMatch = false;
-                                    foreach (var _sq_1 in resultRangeIndex.Find(a.Country == null || a.City == null ? default(ValueTuple<string, string>?) : (a.Country, a.City), a.Population))
+                                    if ((aIndex & 1023) == 0)
                                     {
-                                        int? _sq_1_key = _sq_1._sq_1_key;
-                                        string city = a.City;
-                                        if (((1 == _sq_1_key) && (((_sq_1._sq_1_corr_0 == a.Country) && (_sq_1._sq_1_corr_1 == city)) && (_sq_1._sq_1_corr_2 < a.Population))))
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var a = aChunkViewList[aChunkViewOffset + aIndex];
+                                    {
+                                        bool resultRangeHasMatch = false;
+                                        foreach (var _sq_1 in resultRangeIndex.Find(a.Country == null || a.City == null ? default(ValueTuple<string, string>?) : (a.Country, a.City), a.Population))
                                         {
-                                            resultRangeHasMatch = true;
-                                            __musoqFinalShapeRows.Add(new ResultShape0(city, (_sq_1_key != null) ? (string)"Y" : (string)"N"));
-                                            break;
+                                            int? _sq_1_key = _sq_1._sq_1_key;
+                                            string city = a.City;
+                                            if (((1 == _sq_1_key) && (((_sq_1._sq_1_corr_0 == a.Country) && (_sq_1._sq_1_corr_1 == city)) && (_sq_1._sq_1_corr_2 < a.Population))))
+                                            {
+                                                resultRangeHasMatch = true;
+                                                __musoqFinalShapeRows.Add(new ResultShape0(city, (_sq_1_key != null) ? (string)"Y" : (string)"N"));
+                                                break;
+                                            }
+                                        }
+
+                                        if (!resultRangeHasMatch)
+                                        {
+                                            __musoqFinalShapeRows.Add(new ResultShape0(a.City, false ? (string)"Y" : (string)"N"));
                                         }
                                     }
+                                }
 
-                                    if (!resultRangeHasMatch)
+                                continue;
+                            }
+                        }
+
+                        for (int aIndex = 0, aIndexCount = aChunk.Count; aIndex < aIndexCount; ++aIndex)
+                        {
+                            if ((aIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            var a = aChunk[aIndex];
+                            {
+                                bool resultRangeHasMatch = false;
+                                foreach (var _sq_1 in resultRangeIndex.Find(a.Country == null || a.City == null ? default(ValueTuple<string, string>?) : (a.Country, a.City), a.Population))
+                                {
+                                    int? _sq_1_key = _sq_1._sq_1_key;
+                                    string city = a.City;
+                                    if (((1 == _sq_1_key) && (((_sq_1._sq_1_corr_0 == a.Country) && (_sq_1._sq_1_corr_1 == city)) && (_sq_1._sq_1_corr_2 < a.Population))))
                                     {
-                                        __musoqFinalShapeRows.Add(new ResultShape0(a.City, false ? (string)"Y" : (string)"N"));
+                                        resultRangeHasMatch = true;
+                                        __musoqFinalShapeRows.Add(new ResultShape0(city, (_sq_1_key != null) ? (string)"Y" : (string)"N"));
+                                        break;
                                     }
                                 }
-                            }
 
-                            continue;
-                        }
-                    }
-
-                    for (int aIndex = 0, aIndexCount = aChunk.Count; aIndex < aIndexCount; ++aIndex)
-                    {
-                        if ((aIndex & 1023) == 0)
-                        {
-                            token.ThrowIfCancellationRequested();
-                        }
-
-                        var a = aChunk[aIndex];
-                        {
-                            bool resultRangeHasMatch = false;
-                            foreach (var _sq_1 in resultRangeIndex.Find(a.Country == null || a.City == null ? default(ValueTuple<string, string>?) : (a.Country, a.City), a.Population))
-                            {
-                                int? _sq_1_key = _sq_1._sq_1_key;
-                                string city = a.City;
-                                if (((1 == _sq_1_key) && (((_sq_1._sq_1_corr_0 == a.Country) && (_sq_1._sq_1_corr_1 == city)) && (_sq_1._sq_1_corr_2 < a.Population))))
+                                if (!resultRangeHasMatch)
                                 {
-                                    resultRangeHasMatch = true;
-                                    __musoqFinalShapeRows.Add(new ResultShape0(city, (_sq_1_key != null) ? (string)"Y" : (string)"N"));
-                                    break;
+                                    __musoqFinalShapeRows.Add(new ResultShape0(a.City, false ? (string)"Y" : (string)"N"));
                                 }
                             }
-
-                            if (!resultRangeHasMatch)
-                            {
-                                __musoqFinalShapeRows.Add(new ResultShape0(a.City, false ? (string)"Y" : (string)"N"));
-                            }
                         }
                     }
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled:cte1", QueryPhase.End);
                 }
 
                 return __musoqFinalShapeRows;
             }
             finally
             {
-                OnPhaseChanged("compiled:cte0", QueryPhase.End);
-                OnPhaseChanged("compiled:cte1", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 
@@ -299,64 +321,72 @@ namespace GeneratedSample_Q186_CorrelatedCompositeRangeMark
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, CteRowResults _cteRowResults)
+        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
         {
-            var __cte0_bSchema = provider.GetSchema("#B");
-            var cte0_bRowsSource = __cte0_bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), Array.Empty<object>());
-            var cte0_bRows = cte0_bRowsSource.Chunks;
-            var cte0 = new List<Cte0Row0>();
-            foreach (var bChunk in cte0_bRows)
+            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+            try
             {
-                if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
+                var __cte0_bSchema = provider.GetSchema("#B");
+                var cte0_bRowsSource = __cte0_bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_b_0, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var cte0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_bRowsSource.Chunks, __musoqProgressContext, "b:2") : cte0_bRowsSource.Chunks;
+                var cte0 = new List<Cte0Row0>();
+                foreach (var bChunk in cte0_bRows)
                 {
-                    if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] bChunkViewArray)
+                    if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
                     {
-                        int bChunkViewOffset = bChunkView.Offset;
-                        for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                        if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] bChunkViewArray)
                         {
-                            if ((bIndex & 1023) == 0)
+                            int bChunkViewOffset = bChunkView.Offset;
+                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
                             {
-                                token.ThrowIfCancellationRequested();
+                                if ((bIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var b = bChunkViewArray[bChunkViewOffset + bIndex];
+                                cte0.Add(new Cte0Row0(1, b.Country, b.City, b.Population));
                             }
 
-                            var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                            cte0.Add(new Cte0Row0(1, b.Country, b.City, b.Population));
+                            continue;
                         }
 
-                        continue;
+                        if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkViewList)
+                        {
+                            int bChunkViewOffset = bChunkView.Offset;
+                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                            {
+                                if ((bIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var b = bChunkViewList[bChunkViewOffset + bIndex];
+                                cte0.Add(new Cte0Row0(1, b.Country, b.City, b.Population));
+                            }
+
+                            continue;
+                        }
                     }
 
-                    if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkViewList)
+                    for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
                     {
-                        int bChunkViewOffset = bChunkView.Offset;
-                        for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                        if ((bIndex & 1023) == 0)
                         {
-                            if ((bIndex & 1023) == 0)
-                            {
-                                token.ThrowIfCancellationRequested();
-                            }
-
-                            var b = bChunkViewList[bChunkViewOffset + bIndex];
-                            cte0.Add(new Cte0Row0(1, b.Country, b.City, b.Population));
+                            token.ThrowIfCancellationRequested();
                         }
 
-                        continue;
+                        var b = bChunk[bIndex];
+                        cte0.Add(new Cte0Row0(1, b.Country, b.City, b.Population));
                     }
                 }
 
-                for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
-                {
-                    if ((bIndex & 1023) == 0)
-                    {
-                        token.ThrowIfCancellationRequested();
-                    }
-
-                    var b = bChunk[bIndex];
-                    cte0.Add(new Cte0Row0(1, b.Country, b.City, b.Population));
-                }
+                return cte0;
             }
-
-            return cte0;
+            finally
+            {
+                OnPhaseChanged("compiled:cte0", QueryPhase.End);
+            }
         }
 
         private sealed class Cte0Row0

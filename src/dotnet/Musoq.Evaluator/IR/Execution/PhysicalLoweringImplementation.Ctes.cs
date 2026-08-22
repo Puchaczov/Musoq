@@ -189,6 +189,12 @@ internal sealed partial class PhysicalLoweringImplementation
                 if (!result.IsBuilt)
                     return ExecutionPlanBuildResult.CreateUnsupported(result.UnsupportedReason);
 
+                result = AddCteClauseBoundaries(
+                    definition,
+                    index,
+                    result,
+                    includeScopeBoundaries: !storage.StoreRows);
+
                 cteShapesByName[definition.Name] = result.RowShape;
                 shapes.AddRange(result.Shapes);
                 nodes.AddRange(result.Nodes);
@@ -277,33 +283,6 @@ internal sealed partial class PhysicalLoweringImplementation
             shapes,
             new ExecutionBlock(nodes),
             queryResult.FinalResult));
-    }
-
-    private TableBuildResult BuildCteDefinitionTable(
-        PhysicalCteDefinition definition,
-        int index,
-        IReadOnlyCollection<string> cteDefinitionNames,
-        IReadOnlyDictionary<string, int> cteIndexes,
-        IReadOnlyDictionary<string, GeneratedRowShape> cteShapesByName,
-        int schemaFromIndex,
-        CteDefinitionPruningPlan pruningPlan,
-        LoweringScope scope)
-    {
-        definition = ApplyCteDefinitionPruning(definition, pruningPlan);
-        var cteName = CreateCteTableName(index, cteDefinitionNames);
-        var result = BuildPlanTable(
-            definition.Plan,
-            cteName,
-            $"Cte{index.ToString(CultureInfo.InvariantCulture)}Row0",
-            cteIndexes,
-            cteShapesByName,
-            schemaFromIndex,
-            scopeAggregateVariables: true,
-            scope: scope);
-
-        return _compilationOptions.UseCteSidecarIndexes
-            ? ApplyCteRowBufferCapacity(result)
-            : result;
     }
 
 }

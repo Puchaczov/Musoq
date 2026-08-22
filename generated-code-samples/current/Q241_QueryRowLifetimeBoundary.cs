@@ -38,7 +38,10 @@ ExecutionPlan [compiled]
       RightId: int <- field RightId
 
   Body
-    CtePhase [cte0]
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [Select]
     SourceScan [l: object] -> lRows [query-row:SealedClass;lifetime=EscapesScan;shape=4D941F6DC39F3C2653416E1578297526ECBFC21554FF5DF542D95CB50BE5B018]
     SourceScan [r: object] -> rRows [query-row:SealedClass;lifetime=EscapesScan;shape=4D941F6DC39F3C2653416E1578297526ECBFC21554FF5DF542D95CB50BE5B018]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
@@ -49,6 +52,7 @@ ExecutionPlan [compiled]
       HashProbe [rHash[l.Id] -> rHashMatches]
         ForEach [r in rHashMatches]
           AppendShape [result <- ResultShape0(LeftId: l.Id, RightId: r.Id)]
+    PhaseBoundary [End:cte0]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
 
@@ -71,7 +75,7 @@ namespace GeneratedSample_Q241_QueryRowLifetimeBoundary
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -91,6 +95,7 @@ namespace GeneratedSample_Q241_QueryRowLifetimeBoundary
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -106,189 +111,205 @@ namespace GeneratedSample_Q241_QueryRowLifetimeBoundary
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
-                var __lSchema = provider.GetSchema("#queryrowsample");
-                var __lSchemaQueryRows = __lSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape 4D941F6DC39F3C2653416E1578297526ECBFC21554FF5DF542D95CB50BE5B018).");
-                var lRowsSource = __lSchemaQueryRows.GetQueryScopedRowSource<QueryRow_4D941F6DC39F_C, QueryRowMaterializer_4D941F6DC39F_C>("rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("l:1", sourceExecutionPlans["l:1"], token, __schemaColumns_compiled_l_0, sourceRuntimeSettingsBySourceContextId["l:1"], logger, OnDataSourceProgress), __queryRowShape_4D941F6DC39F), Array.Empty<object>());
-                var lRows = lRowsSource.Chunks;
-                var __rSchema = provider.GetSchema("#queryrowsample");
-                var __rSchemaQueryRows = __rSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape 4D941F6DC39F3C2653416E1578297526ECBFC21554FF5DF542D95CB50BE5B018).");
-                var rRowsSource = __rSchemaQueryRows.GetQueryScopedRowSource<QueryRow_4D941F6DC39F_C, QueryRowMaterializer_4D941F6DC39F_C>("rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("r:1", sourceExecutionPlans["r:1"], token, __schemaColumns_compiled_l_0, sourceRuntimeSettingsBySourceContextId["r:1"], logger, OnDataSourceProgress), __queryRowShape_4D941F6DC39F), Array.Empty<object>());
-                var rRows = rRowsSource.Chunks;
-                var rHash = new Dictionary<int, HashJoinBucket<QueryRow_4D941F6DC39F_C>>();
-                foreach (var rChunk in rRows)
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+                try
                 {
-                    if (rChunk is global::Musoq.Schema.DataSources.RowChunk<QueryRow_4D941F6DC39F_C> rChunkView)
+                    OnPhaseChanged("compiled", QueryPhase.Select);
+                    var __lSchema = provider.GetSchema("#queryrowsample");
+                    var __lSchemaQueryRows = __lSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape 4D941F6DC39F3C2653416E1578297526ECBFC21554FF5DF542D95CB50BE5B018).");
+                    var lRowsSource = __lSchemaQueryRows.GetQueryScopedRowSource<QueryRow_4D941F6DC39F_C, QueryRowMaterializer_4D941F6DC39F_C>("rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("l:1", sourceExecutionPlans["l:1"], token, __schemaColumns_compiled_l_0, sourceRuntimeSettingsBySourceContextId["l:1"], logger, OnDataSourceProgress), __queryRowShape_4D941F6DC39F), Array.Empty<object>());
+                    var lRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_4D941F6DC39F_C>(lRowsSource.Chunks, __musoqProgressContext, "l:1") : lRowsSource.Chunks;
+                    var __rSchema = provider.GetSchema("#queryrowsample");
+                    var __rSchemaQueryRows = __rSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape 4D941F6DC39F3C2653416E1578297526ECBFC21554FF5DF542D95CB50BE5B018).");
+                    var rRowsSource = __rSchemaQueryRows.GetQueryScopedRowSource<QueryRow_4D941F6DC39F_C, QueryRowMaterializer_4D941F6DC39F_C>("rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("r:1", sourceExecutionPlans["r:1"], token, __schemaColumns_compiled_l_0, sourceRuntimeSettingsBySourceContextId["r:1"], logger, OnDataSourceProgress), __queryRowShape_4D941F6DC39F), Array.Empty<object>());
+                    var rRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_4D941F6DC39F_C>(rRowsSource.Chunks, __musoqProgressContext, "r:1") : rRowsSource.Chunks;
+                    var rHash = new Dictionary<int, HashJoinBucket<QueryRow_4D941F6DC39F_C>>();
+                    foreach (var rChunk in rRows)
                     {
-                        if (rChunkView.Source is QueryRow_4D941F6DC39F_C[] rChunkViewArray)
+                        if (rChunk is global::Musoq.Schema.DataSources.RowChunk<QueryRow_4D941F6DC39F_C> rChunkView)
                         {
-                            int rChunkViewOffset = rChunkView.Offset;
-                            for (int rIndex = 0, rIndexCount = rChunkView.Count; rIndex < rIndexCount; ++rIndex)
+                            if (rChunkView.Source is QueryRow_4D941F6DC39F_C[] rChunkViewArray)
                             {
-                                if ((rIndex & 1023) == 0)
+                                int rChunkViewOffset = rChunkView.Offset;
+                                for (int rIndex = 0, rIndexCount = rChunkView.Count; rIndex < rIndexCount; ++rIndex)
                                 {
-                                    token.ThrowIfCancellationRequested();
+                                    if ((rIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var r = rChunkViewArray[rChunkViewOffset + rIndex];
+                                    int key = r.Field0;
+                                    {
+                                        ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(rHash, key, out var matchesExists);
+                                        if (!matchesExists)
+                                        {
+                                            matches = new HashJoinBucket<QueryRow_4D941F6DC39F_C>(r);
+                                        }
+                                        else
+                                        {
+                                            matches.Add(r);
+                                        }
+                                    }
                                 }
 
-                                var r = rChunkViewArray[rChunkViewOffset + rIndex];
-                                int key = r.Field0;
-                                {
-                                    ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(rHash, key, out var matchesExists);
-                                    if (!matchesExists)
-                                    {
-                                        matches = new HashJoinBucket<QueryRow_4D941F6DC39F_C>(r);
-                                    }
-                                    else
-                                    {
-                                        matches.Add(r);
-                                    }
-                                }
+                                continue;
                             }
 
-                            continue;
+                            if (rChunkView.Source is List<QueryRow_4D941F6DC39F_C> rChunkViewList)
+                            {
+                                int rChunkViewOffset = rChunkView.Offset;
+                                for (int rIndex = 0, rIndexCount = rChunkView.Count; rIndex < rIndexCount; ++rIndex)
+                                {
+                                    if ((rIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var r = rChunkViewList[rChunkViewOffset + rIndex];
+                                    int key = r.Field0;
+                                    {
+                                        ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(rHash, key, out var matchesExists);
+                                        if (!matchesExists)
+                                        {
+                                            matches = new HashJoinBucket<QueryRow_4D941F6DC39F_C>(r);
+                                        }
+                                        else
+                                        {
+                                            matches.Add(r);
+                                        }
+                                    }
+                                }
+
+                                continue;
+                            }
                         }
 
-                        if (rChunkView.Source is List<QueryRow_4D941F6DC39F_C> rChunkViewList)
+                        for (int rIndex = 0, rIndexCount = rChunk.Count; rIndex < rIndexCount; ++rIndex)
                         {
-                            int rChunkViewOffset = rChunkView.Offset;
-                            for (int rIndex = 0, rIndexCount = rChunkView.Count; rIndex < rIndexCount; ++rIndex)
+                            if ((rIndex & 1023) == 0)
                             {
-                                if ((rIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var r = rChunkViewList[rChunkViewOffset + rIndex];
-                                int key = r.Field0;
-                                {
-                                    ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(rHash, key, out var matchesExists);
-                                    if (!matchesExists)
-                                    {
-                                        matches = new HashJoinBucket<QueryRow_4D941F6DC39F_C>(r);
-                                    }
-                                    else
-                                    {
-                                        matches.Add(r);
-                                    }
-                                }
+                                token.ThrowIfCancellationRequested();
                             }
 
-                            continue;
+                            var r = rChunk[rIndex];
+                            int key = r.Field0;
+                            {
+                                ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(rHash, key, out var matchesExists);
+                                if (!matchesExists)
+                                {
+                                    matches = new HashJoinBucket<QueryRow_4D941F6DC39F_C>(r);
+                                }
+                                else
+                                {
+                                    matches.Add(r);
+                                }
+                            }
                         }
                     }
 
-                    for (int rIndex = 0, rIndexCount = rChunk.Count; rIndex < rIndexCount; ++rIndex)
+                    foreach (var lChunk in lRows)
                     {
-                        if ((rIndex & 1023) == 0)
+                        if (lChunk is global::Musoq.Schema.DataSources.RowChunk<QueryRow_4D941F6DC39F_C> lChunkView)
                         {
-                            token.ThrowIfCancellationRequested();
+                            if (lChunkView.Source is QueryRow_4D941F6DC39F_C[] lChunkViewArray)
+                            {
+                                int lChunkViewOffset = lChunkView.Offset;
+                                for (int lIndex = 0, lIndexCount = lChunkView.Count; lIndex < lIndexCount; ++lIndex)
+                                {
+                                    if ((lIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var l = lChunkViewArray[lChunkViewOffset + lIndex];
+                                    int key = l.Field0;
+                                    if (rHash.TryGetValue(key, out var rHashMatches))
+                                    {
+                                        foreach (var r in rHashMatches)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                            __musoqFinalShapeRows.Add(new ResultShape0(l.Field0, r.Field0));
+                                        }
+                                    }
+                                }
+
+                                continue;
+                            }
+
+                            if (lChunkView.Source is List<QueryRow_4D941F6DC39F_C> lChunkViewList)
+                            {
+                                int lChunkViewOffset = lChunkView.Offset;
+                                for (int lIndex = 0, lIndexCount = lChunkView.Count; lIndex < lIndexCount; ++lIndex)
+                                {
+                                    if ((lIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var l = lChunkViewList[lChunkViewOffset + lIndex];
+                                    int key = l.Field0;
+                                    if (rHash.TryGetValue(key, out var rHashMatches))
+                                    {
+                                        foreach (var r in rHashMatches)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                            __musoqFinalShapeRows.Add(new ResultShape0(l.Field0, r.Field0));
+                                        }
+                                    }
+                                }
+
+                                continue;
+                            }
                         }
 
-                        var r = rChunk[rIndex];
-                        int key = r.Field0;
+                        for (int lIndex = 0, lIndexCount = lChunk.Count; lIndex < lIndexCount; ++lIndex)
                         {
-                            ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(rHash, key, out var matchesExists);
-                            if (!matchesExists)
+                            if ((lIndex & 1023) == 0)
                             {
-                                matches = new HashJoinBucket<QueryRow_4D941F6DC39F_C>(r);
+                                token.ThrowIfCancellationRequested();
                             }
-                            else
+
+                            var l = lChunk[lIndex];
+                            int key = l.Field0;
+                            if (rHash.TryGetValue(key, out var rHashMatches))
                             {
-                                matches.Add(r);
+                                foreach (var r in rHashMatches)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    __musoqFinalShapeRows.Add(new ResultShape0(l.Field0, r.Field0));
+                                }
                             }
                         }
                     }
                 }
-
-                foreach (var lChunk in lRows)
+                finally
                 {
-                    if (lChunk is global::Musoq.Schema.DataSources.RowChunk<QueryRow_4D941F6DC39F_C> lChunkView)
-                    {
-                        if (lChunkView.Source is QueryRow_4D941F6DC39F_C[] lChunkViewArray)
-                        {
-                            int lChunkViewOffset = lChunkView.Offset;
-                            for (int lIndex = 0, lIndexCount = lChunkView.Count; lIndex < lIndexCount; ++lIndex)
-                            {
-                                if ((lIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var l = lChunkViewArray[lChunkViewOffset + lIndex];
-                                int key = l.Field0;
-                                if (rHash.TryGetValue(key, out var rHashMatches))
-                                {
-                                    foreach (var r in rHashMatches)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                        __musoqFinalShapeRows.Add(new ResultShape0(l.Field0, r.Field0));
-                                    }
-                                }
-                            }
-
-                            continue;
-                        }
-
-                        if (lChunkView.Source is List<QueryRow_4D941F6DC39F_C> lChunkViewList)
-                        {
-                            int lChunkViewOffset = lChunkView.Offset;
-                            for (int lIndex = 0, lIndexCount = lChunkView.Count; lIndex < lIndexCount; ++lIndex)
-                            {
-                                if ((lIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var l = lChunkViewList[lChunkViewOffset + lIndex];
-                                int key = l.Field0;
-                                if (rHash.TryGetValue(key, out var rHashMatches))
-                                {
-                                    foreach (var r in rHashMatches)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                        __musoqFinalShapeRows.Add(new ResultShape0(l.Field0, r.Field0));
-                                    }
-                                }
-                            }
-
-                            continue;
-                        }
-                    }
-
-                    for (int lIndex = 0, lIndexCount = lChunk.Count; lIndex < lIndexCount; ++lIndex)
-                    {
-                        if ((lIndex & 1023) == 0)
-                        {
-                            token.ThrowIfCancellationRequested();
-                        }
-
-                        var l = lChunk[lIndex];
-                        int key = l.Field0;
-                        if (rHash.TryGetValue(key, out var rHashMatches))
-                        {
-                            foreach (var r in rHashMatches)
-                            {
-                                token.ThrowIfCancellationRequested();
-                                __musoqFinalShapeRows.Add(new ResultShape0(l.Field0, r.Field0));
-                            }
-                        }
-                    }
+                    OnPhaseChanged("compiled:cte0", QueryPhase.End);
                 }
 
                 return __musoqFinalShapeRows;
             }
             finally
             {
-                OnPhaseChanged("compiled:cte0", QueryPhase.End);
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

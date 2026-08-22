@@ -34,10 +34,13 @@ ExecutionPlan [compiled]
       running_avg: decimal <- field running_avg
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [ko3iko: BasicEntity] -> ko3ikoRows
     MaterializeChunked [ko3ikoRows -> resultWindowRows]
-    ComputeAvgWindowKernel[Running] [resultAvgs <- resultWindowRows value ToDecimal(ko3iko.Population) partition by ko3iko.City order by ko3iko.Population ASC]
+    ComputeAvgWindowKernel[BoundedRows] [resultAvgs <- resultWindowRows value ToDecimal(ko3iko.Population) partition by ko3iko.City order by ko3iko.Population ASC frame range between unbounded preceding and current row]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [Select]
     ForEachIndexed [windowIndex, ko3iko in resultWindowRows]
       AppendShape [result <- ResultShape0(Name: ko3iko.Name, City: ko3iko.City, running_avg: resultAvgs[windowIndex])]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
@@ -62,7 +65,7 @@ namespace GeneratedSample_Q80_WindowAvgRunningDecimal
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -82,6 +85,7 @@ namespace GeneratedSample_Q80_WindowAvgRunningDecimal
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -97,17 +101,19 @@ namespace GeneratedSample_Q80_WindowAvgRunningDecimal
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#A");
                 var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var ko3ikoRows = ko3ikoRowsSource.Chunks;
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 var resultWindowRows = EvaluationHelper.MaterializeChunkedRowsList(ko3ikoRows);
                 var resultAvgsPartitionBuilder = new Musoq.Evaluator.Helpers.WindowPartitionBuilder<string>(resultWindowRows.Count);
                 var resultAvgsOrderKeys = new WindowResultAvgsOrderKeysKey[resultWindowRows.Count];
@@ -127,23 +133,36 @@ namespace GeneratedSample_Q80_WindowAvgRunningDecimal
                     var resultAvgsPartitionStart = resultAvgsPartitions.GetStart(resultAvgsPartitionSetIndex);
                     var resultAvgsPartitionCount = resultAvgsPartitions.GetLength(resultAvgsPartitionSetIndex);
                     var resultAvgsPartitionIndices = resultAvgsPartitions.Indices;
-                    decimal resultAvgsSum = default(decimal);
-                    int resultAvgsCount = default(int);
+                    var resultAvgsPrefixSum = System.Buffers.ArrayPool<decimal>.Shared.Rent(resultAvgsPartitionCount + 1);
+                    resultAvgsPrefixSum[0] = default(decimal);
+                    var resultAvgsPrefixCount = System.Buffers.ArrayPool<int>.Shared.Rent(resultAvgsPartitionCount + 1);
+                    resultAvgsPrefixCount[0] = default(int);
                     for (int resultAvgsPartitionIndex = 0; resultAvgsPartitionIndex < resultAvgsPartitionCount; ++resultAvgsPartitionIndex)
                     {
                         var resultAvgsCurrentIndex = resultAvgsPartitionIndices[resultAvgsPartitionStart + resultAvgsPartitionIndex];
                         Musoq.Evaluator.Tests.Schema.Basic.BasicEntity ko3iko = resultWindowRows[resultAvgsCurrentIndex];
                         var resultAvgsValue = ((decimal?)ko3iko.Population);
-                        if (resultAvgsValue.HasValue)
-                        {
-                            resultAvgsSum += (decimal)resultAvgsValue.Value;
-                            ++resultAvgsCount;
-                        }
-
-                        resultAvgs[resultAvgsCurrentIndex] = resultAvgsCount > 0 ? resultAvgsSum / resultAvgsCount : 0M;
+                        resultAvgsPrefixSum[resultAvgsPartitionIndex + 1] = resultAvgsValue.HasValue ? resultAvgsPrefixSum[resultAvgsPartitionIndex] + (decimal)resultAvgsValue.Value : resultAvgsPrefixSum[resultAvgsPartitionIndex];
+                        resultAvgsPrefixCount[resultAvgsPartitionIndex + 1] = resultAvgsPrefixCount[resultAvgsPartitionIndex] + (resultAvgsValue.HasValue ? 1 : 0);
                     }
+
+                    for (int resultAvgsPartitionIndex = 0; resultAvgsPartitionIndex < resultAvgsPartitionCount; ++resultAvgsPartitionIndex)
+                    {
+                        var resultAvgsCurrentIndex = resultAvgsPartitionIndices[resultAvgsPartitionStart + resultAvgsPartitionIndex];
+                        var resultAvgsFrameStart = 0;
+                        var resultAvgsFrameEnd = WindowFunctionHelpers.ResolveRangePeerFrameEnd(resultAvgsOrderKeys, resultAvgsPartitionIndices, resultAvgsPartitionStart, resultAvgsPartitionCount, resultAvgsPartitionIndex);
+                        var resultAvgsFramePrefixStart = Math.Max(0, resultAvgsFrameStart);
+                        var resultAvgsFramePrefixEnd = Math.Max(0, resultAvgsFrameEnd + 1);
+                        var resultAvgsFrameSum = resultAvgsPrefixSum[resultAvgsFramePrefixEnd] - resultAvgsPrefixSum[resultAvgsFramePrefixStart];
+                        var resultAvgsFrameCount = resultAvgsPrefixCount[resultAvgsFramePrefixEnd] - resultAvgsPrefixCount[resultAvgsFramePrefixStart];
+                        resultAvgs[resultAvgsCurrentIndex] = resultAvgsFrameCount > 0 ? resultAvgsFrameSum / resultAvgsFrameCount : 0M;
+                    }
+
+                    System.Buffers.ArrayPool<decimal>.Shared.Return(resultAvgsPrefixSum, false);
+                    System.Buffers.ArrayPool<int>.Shared.Return(resultAvgsPrefixCount, false);
                 }
 
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
                 {
                     if ((windowIndex & 1023) == 0)
@@ -159,7 +178,14 @@ namespace GeneratedSample_Q80_WindowAvgRunningDecimal
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

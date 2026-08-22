@@ -70,4 +70,5 @@ public sealed partial class PhysicalPlanBuilder
 
         return [.. predicates];
     }
+
 }

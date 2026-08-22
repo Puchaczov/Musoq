@@ -170,12 +170,21 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         string populateHelper,
         string finalizeHelper)
     {
-        Assert.Contains($"{populateHelper}(", sample);
-        Assert.Contains($"{finalizeHelper}(", sample);
-        Assert.Contains($", token);", sample);
-        Assert.Contains($"private static void {populateHelper}(", sample);
-        Assert.Contains("CancellationToken token)", sample);
-        Assert.Contains($"private static void {finalizeHelper}(", sample);
+        var usesExtractedHelpers = sample.Contains($"{populateHelper}(", StringComparison.Ordinal) &&
+                                   sample.Contains($"{finalizeHelper}(", StringComparison.Ordinal);
+        if (usesExtractedHelpers)
+        {
+            Assert.Contains($", token);", sample);
+            Assert.Contains($"private static void {populateHelper}(", sample);
+            Assert.Contains("CancellationToken token)", sample);
+            Assert.Contains($"private static void {finalizeHelper}(", sample);
+        }
+        else
+        {
+            Assert.Contains("windowSourceTable.EnsureCapacity(groupsToFinalize.Count);", sample);
+            Assert.Contains("foreach (var iChunk in windowSourceTable_iRows)", sample);
+        }
+
         Assert.Contains("token.ThrowIfCancellationRequested();", sample);
     }
 

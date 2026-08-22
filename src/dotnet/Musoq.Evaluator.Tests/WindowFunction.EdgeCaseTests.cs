@@ -231,6 +231,30 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    public void WhenCustomWindowUsesImplicitOrExplicitRange_ShouldPublishCompletePeerGroup()
+    {
+        const string query = @"
+            select Name,
+                   RunningProduct(Population) over (order by NullableValue) as ImplicitProduct,
+                   RunningProduct(Population) over (
+                       order by NullableValue
+                       range between unbounded preceding and current row) as ExplicitProduct
+            from #A.Entities()";
+        var sources = CreateSingleSource(
+            new BasicEntity("Alice") { NullableValue = 1, Population = 2 },
+            new BasicEntity("Bob") { NullableValue = 1, Population = 3 },
+            new BasicEntity("Charlie") { NullableValue = 2, Population = 4 });
+
+        var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 6m, 6m],
+            ["Bob", 6m, 6m],
+            ["Charlie", 24m, 24m]);
+    }
+
+    [TestMethod]
     public void WhenCustomRunningProductWithPartition_ShouldResetPerPartition()
     {
         var query = @"

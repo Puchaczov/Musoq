@@ -66,6 +66,10 @@ internal sealed partial class PhysicalLoweringImplementation
         scope = sidecarUpdatedScope;
         storeRows = storage.StoreRows;
         updatedScope = scope;
-        return result;
+        return AddCteClauseBoundaries(
+            definition,
+            index,
+            result,
+            includeScopeBoundaries: !storeRows);
     }
 }

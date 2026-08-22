@@ -28,7 +28,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionSourceScan sourceScan,
         string schemaVariableName,
         string infoTableName,
-        ExpressionSyntax[] arguments)
+        ExpressionSyntax[] arguments,
+        ExecutionRenderContext context)
     {
         ExpressionSyntax argsExpression = arguments.Length == 0
             ? SyntaxHelper.ArrayEmptyOf("object")
@@ -103,12 +104,17 @@ public sealed partial class ExecutionCSharpRenderer
             var carrierType = SyntaxFactory.ParseTypeName(carrierTypeName);
 
             statements.Add(CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), queryRowSourceName, queryInvocation));
+            var queryProgressRows = CreateProgressChunksExpression(
+                queryRows,
+                carrierType,
+                sourceScan.Binding.RuntimeContextId,
+                context);
             statements.Add(CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 sourceScan.Rows.Name,
                 IsInstrumentationEnabled
-                    ? CreateProfiledChunksExpression(queryRows, sourceProfileName, carrierType)
-                    : queryRows));
+                    ? CreateProfiledChunksExpression(queryProgressRows, sourceProfileName, carrierType)
+                    : queryProgressRows));
 
             return statements;
         }
@@ -135,14 +141,19 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.IdentifierName(rowSourceName),
                 SyntaxFactory.IdentifierName("Chunks"));
+        var progressRows = CreateProgressChunksExpression(
+            rows,
+            CreateTypeSyntax(sourceType),
+            sourceScan.Binding.RuntimeContextId,
+            context);
 
         statements.Add(CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), rowSourceName, invocation));
         statements.Add(CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             sourceScan.Rows.Name,
             IsInstrumentationEnabled
-                ? CreateProfiledChunksExpression(rows, sourceProfileName, CreateTypeSyntax(sourceType))
-                : rows));
+                ? CreateProfiledChunksExpression(progressRows, sourceProfileName, CreateTypeSyntax(sourceType))
+                : progressRows));
 
         return statements;
     }
@@ -162,6 +173,36 @@ public sealed partial class ExecutionCSharpRenderer
     private static string CreateRowSourceVariableName(string rowsVariableName)
     {
         return $"{rowsVariableName}Source";
+    }
+
+    private ExpressionSyntax CreateProgressChunksExpression(
+        ExpressionSyntax chunks,
+        TypeSyntax elementType,
+        string sourceContextId,
+        ExecutionRenderContext context)
+    {
+        var queryContext = SyntaxFactory.IdentifierName("__musoqProgressContext");
+        var wrapMethod = SyntaxFactory.MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            SyntaxFactory.IdentifierName(nameof(QueryProgressRuntime)),
+            SyntaxFactory.GenericName(nameof(QueryProgressRuntime.WrapChunks))
+                .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(elementType))));
+        var wrapped = SyntaxFactory.InvocationExpression(wrapMethod)
+            .WithArgumentList(CreateArgumentList(
+                chunks,
+                queryContext,
+                CreateStringLiteral(sourceContextId)));
+
+        var progressCondition = SyntaxFactory.BinaryExpression(
+            SyntaxKind.NotEqualsExpression,
+            queryContext,
+            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+
+        return SyntaxFactory.ConditionalExpression(
+            progressCondition,
+            wrapped,
+            chunks);
     }
 
 }

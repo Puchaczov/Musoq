@@ -298,28 +298,29 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenExecutionIrRendererIsEnabledForUnionAllWithSortedRightArm_ShouldComposeSortedArm()
+    public void CompileForInspection_WhenUnionAllHasTrailingOrderBy_ShouldSortTheCombinedResult()
     {
         var result = Inspect(
-            CreateRightSortedUnionAllQuery(),
+            CreateGloballySortedUnionAllQuery(),
             new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("SortRowBuffer [right -> rightSorted by Dummy ASC]", result.ExecutionPlanText);
-        Assert.Contains("SetOperation [result = left UnionAll rightSorted, AppendLoop]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultShape0(Dummy: 'b')]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultShape0(Dummy: 'a')]", result.ExecutionPlanText);
+        Assert.Contains("SortShapeRows [result -> resultSorted by Dummy ASC]", result.ExecutionPlanText);
     }
 
     [TestMethod]
-    public void CompileForExecution_WhenExecutionIrRendererIsEnabledForUnionAllWithSortedRightArm_ShouldRunExecutableQuery()
+    public void CompileForExecution_WhenUnionAllHasTrailingOrderBy_ShouldReturnGloballySortedRows()
     {
-        var compiled = CompileForExecution(CreateRightSortedUnionAllQuery(),
+        var compiled = CompileForExecution(CreateGloballySortedUnionAllQuery(),
             new CompilationOptions());
 
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("b", table[0][0]);
-        Assert.AreEqual("a", table[1][0]);
+        Assert.AreEqual("a", table[0][0]);
+        Assert.AreEqual("b", table[1][0]);
     }
 
     [TestMethod]

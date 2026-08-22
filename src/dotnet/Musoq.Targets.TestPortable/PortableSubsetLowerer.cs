@@ -37,6 +37,9 @@ internal static class PortableSubsetLowerer
                 continue;
             }
 
+            if (node is ExecutionPhaseBoundary)
+                continue;
+
             instructions.Add(LowerNode(node, state));
         }
 

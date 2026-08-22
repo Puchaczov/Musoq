@@ -36,7 +36,7 @@ public class SchemaArgumentBinderTests
     }
 
     [TestMethod]
-    public void BindStaticArguments_ShouldSkipDynamicArguments()
+    public void BindStaticArguments_ShouldStopAtFirstDynamicArgument()
     {
         var args = new ArgsListNode(
         [
@@ -46,7 +46,22 @@ public class SchemaArgumentBinderTests
 
         var values = SchemaArgumentBinder.BindStaticArguments(args);
 
-        CollectionAssert.AreEqual(new object[] { "static" }, values);
+        CollectionAssert.AreEqual(Array.Empty<object?>(), values);
+    }
+
+    [TestMethod]
+    public void BindStaticArguments_ShouldKeepOnlyTheMaterializablePrefix()
+    {
+        var args = new ArgsListNode(
+        [
+            new StringNode("first"),
+            new IdentifierNode("rowValue", typeof(string)),
+            new IntegerNode("3")
+        ]);
+
+        var values = SchemaArgumentBinder.BindStaticArguments(args);
+
+        CollectionAssert.AreEqual(new object?[] { "first" }, values);
     }
 
     [TestMethod]

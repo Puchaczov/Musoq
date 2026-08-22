@@ -57,16 +57,20 @@ ExecutionPlan [compiled]
       SalaryRank: long <- field SalaryRank
 
   Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
     SourceScan [ko3iko: RuntimeV2RegressionEntity] -> ko3ikoRows
     CreateObject [__resultRuntimeV2RegressionLibrary0: RuntimeV2RegressionLibrary]
     MaterializeFilteredChunked [ko3ikoRows where (((Contains(ko3iko.Email, 'gmail') = TRUE) AND (StartsWith(ko3iko.FirstName, 'A') = TRUE)) AND (ExpensiveCompute(ko3iko.Value) > 50)) -> resultWindowRows]
-    ComputeSumWindowKernel[Running] [resultSums0 <- resultWindowRows value ToDecimal(ko3iko.Salary) partition by ko3iko.Department order by ko3iko.Salary ASC]
+    ComputeSumWindowKernel[BoundedRows] [resultSums0 <- resultWindowRows value ToDecimal(ko3iko.Salary) partition by ko3iko.Department order by ko3iko.Salary ASC frame range between unbounded preceding and current row]
     ComputeRankWindow [resultRanks1 <- resultWindowRows partition by ko3iko.Department order by ko3iko.Salary DESC]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [Where]
     ForEachIndexed [windowIndex, ko3iko in resultWindowRows]
       AppendShape [result <- ResultShape0(Name: ko3iko.Name, Department: ko3iko.Department, Salary: ko3iko.Salary, Computed: ExpensiveCompute(ko3iko.Value), RunningSalary: resultSums0[windowIndex], SalaryRank: resultRanks1[windowIndex])]
     TopOffsetShapeRows [result -> resultTopOffset by Department ASC, Salary DESC, Computed DESC, skip 10, take 20, BoundedHeap]
     ReturnDeferredTable [resultTopOffset: ResultRow0 <- ResultShape0]
+    PhaseBoundary [Select]
 */
 
 // === Generated C# ===
@@ -88,7 +92,7 @@ namespace GeneratedSample_Q109_RuntimeV2CompositeRegressionCanary
     using Musoq.Schema.DataSources;
     using System.Linq;
 
-    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IParameterizedRunnable
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
     {
         private static readonly Column[] __columns_compiled_result_1 = new Column[]
         {
@@ -111,6 +115,7 @@ namespace GeneratedSample_Q109_RuntimeV2CompositeRegressionCanary
 
         public event DataSourceEventHandler DataSourceProgress;
         public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
             return QueryRows.DeferredTable<ResultRow0>("resultTopOffset", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
@@ -126,17 +131,19 @@ namespace GeneratedSample_Q109_RuntimeV2CompositeRegressionCanary
 
         private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            OnPhaseChanged("compiled", QueryPhase.Begin);
-            OnPhaseChanged("compiled", QueryPhase.From);
-            OnPhaseChanged("compiled", QueryPhase.Select);
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
                 var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#test");
                 var ko3ikoRowsSource = __ko3ikoSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity>("entities", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress), Array.Empty<object>());
-                var ko3ikoRows = ko3ikoRowsSource.Chunks;
+                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 var __resultRuntimeV2RegressionLibrary0 = new Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionLibrary();
                 var resultWindowRows = new List<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity>();
                 foreach (var ko3ikoChunk in ko3ikoRows)
@@ -205,34 +212,44 @@ namespace GeneratedSample_Q109_RuntimeV2CompositeRegressionCanary
                     }
                 }
 
-                var resultSums0IntOrderBuilder = new Musoq.Evaluator.Helpers.WindowIntOrderBuilder<string>(resultWindowRows.Count);
+                var resultSums0PartitionKeys = new string[resultWindowRows.Count];
+                var resultSums0OrderKeys = new WindowResultSums0OrderKeysKey[resultWindowRows.Count];
                 for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
                 {
                     Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity ko3iko = resultWindowRows[windowIndex];
-                    resultSums0IntOrderBuilder.Add((string)ko3iko.Department, (int)ko3iko.Salary, windowIndex);
+                    resultSums0PartitionKeys[windowIndex] = (string)ko3iko.Department;
+                    resultSums0OrderKeys[windowIndex] = new WindowResultSums0OrderKeysKey(ko3iko.Salary);
                 }
 
-                var resultSums0Partitions = resultSums0IntOrderBuilder.ToSortedPartitionSet(false);
-                var resultSums0SortedPartitions = resultSums0Partitions;
+                var resultSums0Partitions = WindowFunctionHelpers.ResolvePartitionSet(resultWindowRows.Count, resultSums0PartitionKeys);
+                var resultSums0SortedPartitions = WindowFunctionHelpers.SortStructPartitionSet(resultSums0Partitions, resultSums0OrderKeys, false);
                 var resultSums0 = new decimal[resultWindowRows.Count];
                 for (int resultSums0PartitionSetIndex = 0; resultSums0PartitionSetIndex < resultSums0SortedPartitions.PartitionCount; ++resultSums0PartitionSetIndex)
                 {
                     var resultSums0PartitionStart = resultSums0SortedPartitions.GetStart(resultSums0PartitionSetIndex);
                     var resultSums0PartitionCount = resultSums0SortedPartitions.GetLength(resultSums0PartitionSetIndex);
                     var resultSums0PartitionIndices = resultSums0SortedPartitions.Indices;
-                    decimal resultSums0Sum = default(decimal);
+                    var resultSums0PrefixSum = System.Buffers.ArrayPool<decimal>.Shared.Rent(resultSums0PartitionCount + 1);
+                    resultSums0PrefixSum[0] = default(decimal);
                     for (int resultSums0PartitionIndex = 0; resultSums0PartitionIndex < resultSums0PartitionCount; ++resultSums0PartitionIndex)
                     {
                         var resultSums0CurrentIndex = resultSums0PartitionIndices[resultSums0PartitionStart + resultSums0PartitionIndex];
                         Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity ko3iko = resultWindowRows[resultSums0CurrentIndex];
                         var resultSums0Value = ((decimal?)ko3iko.Salary);
-                        if (resultSums0Value.HasValue)
-                        {
-                            resultSums0Sum += (decimal)resultSums0Value.Value;
-                        }
-
-                        resultSums0[resultSums0CurrentIndex] = resultSums0Sum;
+                        resultSums0PrefixSum[resultSums0PartitionIndex + 1] = resultSums0Value.HasValue ? resultSums0PrefixSum[resultSums0PartitionIndex] + (decimal)resultSums0Value.Value : resultSums0PrefixSum[resultSums0PartitionIndex];
                     }
+
+                    for (int resultSums0PartitionIndex = 0; resultSums0PartitionIndex < resultSums0PartitionCount; ++resultSums0PartitionIndex)
+                    {
+                        var resultSums0CurrentIndex = resultSums0PartitionIndices[resultSums0PartitionStart + resultSums0PartitionIndex];
+                        var resultSums0FrameStart = 0;
+                        var resultSums0FrameEnd = WindowFunctionHelpers.ResolveRangePeerFrameEnd(resultSums0OrderKeys, resultSums0PartitionIndices, resultSums0PartitionStart, resultSums0PartitionCount, resultSums0PartitionIndex);
+                        var resultSums0FramePrefixStart = Math.Max(0, resultSums0FrameStart);
+                        var resultSums0FramePrefixEnd = Math.Max(0, resultSums0FrameEnd + 1);
+                        resultSums0[resultSums0CurrentIndex] = resultSums0PrefixSum[resultSums0FramePrefixEnd] - resultSums0PrefixSum[resultSums0FramePrefixStart];
+                    }
+
+                    System.Buffers.ArrayPool<decimal>.Shared.Return(resultSums0PrefixSum, false);
                 }
 
                 var resultRanks1OrderKeys = new WindowResultRanks1OrderKeysKey[resultWindowRows.Count];
@@ -260,6 +277,7 @@ namespace GeneratedSample_Q109_RuntimeV2CompositeRegressionCanary
                 }
 
                 var result = new List<ResultShape0>(resultWindowRows.Count);
+                OnPhaseChanged("compiled", QueryPhase.Where);
                 for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
                 {
                     if ((windowIndex & 1023) == 0)
@@ -291,11 +309,19 @@ namespace GeneratedSample_Q109_RuntimeV2CompositeRegressionCanary
                     __musoqFinalShapeRows.Add(resultTopOffsetRowsRow);
                 }
 
+                OnPhaseChanged("compiled", QueryPhase.Select);
                 return __musoqFinalShapeRows;
             }
             finally
             {
-                OnPhaseChanged("compiled", QueryPhase.End);
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
             }
         }
 

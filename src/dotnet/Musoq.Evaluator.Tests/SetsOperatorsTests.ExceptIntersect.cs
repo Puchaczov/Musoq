@@ -25,23 +25,6 @@ public partial class SetsOperatorsTests
     }
 
     [TestMethod]
-    public void ExceptWithSkipDoubleSourceTest()
-    {
-        var query = @"select Name from #A.Entities() skip 1 except (Name) select Name from #B.Entities() skip 2";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("010")] },
-            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("002")] }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table, ["010"]);
-    }
-
-    [TestMethod]
     public void ExceptTripleSourcesTest()
     {
         var query =
@@ -58,27 +41,6 @@ public partial class SetsOperatorsTests
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table);
-    }
-
-    [TestMethod]
-    public void ExceptWithSkipTripleSourcesTest()
-    {
-        var query =
-            @"select Name from #A.Entities() skip 1 except (Name)
-select Name from #B.Entities() skip 2 except (Name)
-select Name from #C.Entities() skip 3";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
-            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
-            { "#C", [new BasicEntity("005")] }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table, ["002"]);
     }
 
     [TestMethod]
@@ -129,28 +91,6 @@ select Name from #D.Entities()";
     }
 
     [TestMethod]
-    public void IntersectWithSkipDoubleSourceTest()
-    {
-        var query = @"select Name from #A.Entities() skip 1 intersect (Name) select Name from #B.Entities() skip 2";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] },
-            {
-                "#B",
-                [
-                    new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001"), new BasicEntity("005")
-                ]
-            }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table, ["005"]);
-    }
-
-    [TestMethod]
     public void IntersectTripleSourcesTest()
     {
         var query =
@@ -167,34 +107,6 @@ select Name from #D.Entities()";
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["001"]);
-    }
-
-    [TestMethod]
-    public void IntersectWithSkipTripleSourcesTest()
-    {
-        var query =
-            @"
-select Name from #A.Entities() skip 1 intersect (Name)
-select Name from #B.Entities() skip 2 intersect (Name)
-select Name from #C.Entities()";
-
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] },
-            {
-                "#B",
-                [
-                    new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001"), new BasicEntity("005")
-                ]
-            },
-            { "#C", [new BasicEntity("002"), new BasicEntity("001"), new BasicEntity("005")] }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table, ["005"]);
     }
 
     [TestMethod]
