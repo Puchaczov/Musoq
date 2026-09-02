@@ -42,6 +42,9 @@ $manifestEntries = [System.Collections.Generic.List[string]]::new()
 
 foreach ($package in $release.Packages) {
     Write-Host "Packing $($package.PackageId)"
+    $version = Get-MsBuildProperty -ProjectPath $package.FullProjectPath -PropertyName 'Version'
+    $allowBreakingChanges = [bool]$release.AllowBreakingChanges -or
+        ($package.IsDatasourceAbi -and (Test-AlphaReleaseVersion -Version $version))
     $packArguments = @(
         'pack',
         $package.FullProjectPath,
@@ -56,11 +59,10 @@ foreach ($package in $release.Packages) {
     )
     $restoreArguments = @()
 
-    if ($package.IsDatasourceAbi -and $release.AllowBreakingChanges) {
-        Write-Host "Skipping datasource ABI compatibility validation for intentional alpha release $($release.Version)."
+    if ($package.IsDatasourceAbi -and $allowBreakingChanges) {
+        Write-Host "Skipping datasource ABI compatibility validation for intentional alpha release $version."
     }
     elseif ($package.IsDatasourceAbi) {
-        $version = Get-MsBuildProperty -ProjectPath $package.FullProjectPath -PropertyName 'Version'
         $baselineVersion = Get-DatasourceAbiBaselineVersion `
             -PackageId $package.PackageId `
             -Version $version
@@ -94,7 +96,6 @@ foreach ($package in $release.Packages) {
 
     Invoke-ReleaseCommand -FilePath 'dotnet' -Arguments $packArguments
 
-    $version = Get-MsBuildProperty -ProjectPath $package.FullProjectPath -PropertyName 'Version'
     $nupkgPath = Join-Path $resolvedOutputPath "$($package.PackageId).$version.nupkg"
     $snupkgPath = Join-Path $resolvedOutputPath "$($package.PackageId).$version.snupkg"
 

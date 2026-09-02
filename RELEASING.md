@@ -73,6 +73,10 @@ For CI-style pack validation of all release packages without a tag:
 pwsh scripts/release/Pack-Release.ps1 -AllPackages -OutputPath artifacts/ci-nupkgs
 ```
 
+The all-packages path evaluates each package's current `Version` property. It skips the datasource ABI
+baseline only for packages whose version is an alpha release, matching the intentional alpha policy;
+preview, beta, and stable package versions retain compatibility validation.
+
 ## Maintenance Branch Hotfixes
 
 When the current major is newer than the line you need to patch, branch from the old release tag:

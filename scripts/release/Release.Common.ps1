@@ -130,6 +130,15 @@ function ConvertTo-MusoqSemanticVersion {
     }
 }
 
+function Test-AlphaReleaseVersion {
+    param(
+        [Parameter(Mandatory)]
+        [string] $Version
+    )
+
+    return $Version -match '^[0-9]+\.[0-9]+\.[0-9]+-alpha(?:\.|$)'
+}
+
 function Get-PublishedPackageVersions {
     param(
         [Parameter(Mandatory)]
@@ -293,7 +302,7 @@ function Resolve-ReleaseTag {
         Patch = $patch
         Prerelease = $prerelease
         IsPrerelease = -not [string]::IsNullOrWhiteSpace($prerelease)
-        AllowBreakingChanges = $prerelease -match '^alpha(?:\.|$)'
+        AllowBreakingChanges = Test-AlphaReleaseVersion -Version $version
         Packages = @($selectedPackages)
     }
 }

@@ -24,6 +24,15 @@ function Assert-Equal {
 }
 
 $packages = @(Get-ReleasePackages)
+$alphaVersionAllowsBreakingChanges = Test-AlphaReleaseVersion -Version '17.0.9-alpha.1'
+Assert-Equal -Expected $true -Actual $alphaVersionAllowsBreakingChanges -Message 'All-packages alpha versions must allow intentional breaking changes.'
+
+$previewVersionAllowsBreakingChanges = Test-AlphaReleaseVersion -Version '17.0.9-preview.1'
+Assert-Equal -Expected $false -Actual $previewVersionAllowsBreakingChanges -Message 'All-packages preview versions must retain compatibility validation.'
+
+$stableVersionAllowsBreakingChanges = Test-AlphaReleaseVersion -Version '17.0.9'
+Assert-Equal -Expected $false -Actual $stableVersionAllowsBreakingChanges -Message 'All-packages stable versions must retain compatibility validation.'
+
 $alphaRelease = Resolve-ReleaseTag -Tag 'v17.0.9-alpha.1'
 Assert-Equal -Expected $true -Actual $alphaRelease.AllowBreakingChanges -Message 'Alpha releases must explicitly allow breaking changes.'
 
