@@ -262,7 +262,7 @@ internal static partial class SourcePlanningPlanner
             return inferredColumns;
 
         return scan.OutputSchema.Columns
-            .Select(static column => (ISchemaColumn)new SchemaColumn(column.Name, column.Index, column.Type))
+            .Select(static column => column.ToSchemaColumn())
             .ToArray();
     }
 

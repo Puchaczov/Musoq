@@ -113,6 +113,9 @@ public sealed class InterpretationSchemaDependencyGraphBuilder
 
             if (field.FieldType == TextFieldType.Repeat && !string.IsNullOrWhiteSpace(field.PrimaryValue))
                 yield return field.PrimaryValue;
+
+            if (field.FieldType == TextFieldType.SchemaReference && !string.IsNullOrWhiteSpace(field.PrimaryValue))
+                yield return field.PrimaryValue;
         }
     }
 

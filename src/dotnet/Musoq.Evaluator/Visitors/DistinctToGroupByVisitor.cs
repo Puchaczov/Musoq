@@ -35,7 +35,9 @@ public class DistinctToGroupByVisitor : CloneQueryVisitor
             select = new SelectNode(newSelectFields, true);
         }
 
-        Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify, default));
+        Nodes.Push(((QueryNode)new QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify,
+                node.Span))
+            .WithFullSpan(node.FullSpan));
     }
 
     private static FieldNode[] CreateGroupByFieldsFromSelect(SelectNode select)
@@ -45,7 +47,8 @@ public class DistinctToGroupByVisitor : CloneQueryVisitor
         for (var i = 0; i < select.Fields.Length; i++)
         {
             var originalField = select.Fields[i];
-            fields[i] = new FieldNode(originalField.Expression, i, string.Empty);
+            fields[i] = (FieldNode)new FieldNode(originalField.Expression, i, string.Empty, originalField.Span)
+                .WithFullSpan(originalField.FullSpan);
         }
 
         return fields;

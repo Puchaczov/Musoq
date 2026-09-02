@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class EscapeTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenBackslashEscaped_ShouldBePresent()
@@ -171,14 +170,14 @@ public class EscapeTests : BasicEntityTestBase
     [TestMethod]
     public void WhenUnknownEscapeSequence_ShouldRemoveBackslash()
     {
-        const string query = """select '\z\y\x' from #A.entities()""";
+        const string query = """select '\z\y\q' from #A.entities()""";
 
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("\\z\\y\\x", table[0].Values[0]);
+        Assert.AreEqual("\\z\\y\\q", table[0].Values[0]);
     }
 
     [TestMethod]

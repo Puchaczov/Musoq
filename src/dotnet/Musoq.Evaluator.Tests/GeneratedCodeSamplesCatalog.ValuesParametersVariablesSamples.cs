@@ -112,7 +112,8 @@ internal static partial class GeneratedCodeSamplesCatalog
               select a.Name, Coalesce(b.Name + $suffix, $fallback) as MatchedName
               from #A.entities() a
               left outer join #B.entities() b on a.City + $suffix = b.City + $suffix",
-                new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)),
+                new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+                    .WithStabilityAwareScalarReuse()),
             Basic(
                 "Q125_ScriptParameterCteHelperCapture",
                 "Parameters",
@@ -193,7 +194,8 @@ internal static partial class GeneratedCodeSamplesCatalog
                             select a.Name, Coalesce(b.Name + $suffix, $fallback) as MatchedName
                             from #A.entities() a
                             left outer join #B.entities() b on a.City + $suffix = b.City + $suffix",
-                new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)),
+                new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+                    .WithStabilityAwareScalarReuse()),
             Basic(
                 "Q135_ScriptVariableCteHelperCapture",
                 "Variables",

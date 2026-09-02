@@ -30,8 +30,8 @@ internal static class TargetHostAbiInventoryBuilder
             imports.Add(new TargetHostAbiImport(
                 TargetHostAbiImportKind.SourceAccess,
                 $"{source.Kind}:{source.SourceContextId}:{source.SchemaName}.{source.MethodName}",
-                "source-access-v1",
-                1,
+                "source-access-v2",
+                2,
                 new TargetSourceAccessAbiDetails(
                     source.Kind,
                     source.SourceContextId,
@@ -47,6 +47,8 @@ internal static class TargetHostAbiInventoryBuilder
                         field.Name,
                         field.Type,
                         field.PublicType,
+                        field.SourceReadType,
+                        field.EnumType,
                         field.Nullability,
                         field.ReadModifiers)),
                     source.AcceptedOperations,
@@ -63,8 +65,8 @@ internal static class TargetHostAbiInventoryBuilder
             imports.Add(new TargetHostAbiImport(
                 TargetHostAbiImportKind.QueryRowSourceAccess,
                 $"{source.SourceContextId}:{source.SchemaName}.{source.MethodName}",
-                "query-row-source-access-v1",
-                1,
+                "query-row-source-access-v2",
+                2,
                 new TargetQueryRowSourceAccessAbiDetails(
                     source.SourceContextId,
                     source.SchemaName,
@@ -77,6 +79,8 @@ internal static class TargetHostAbiInventoryBuilder
                         field.SourceColumnIndex,
                         field.Name,
                         field.Type,
+                        field.SourceReadType,
+                        field.EnumType,
                         field.IsNullable,
                         field.ReadModifiers)))));
         }

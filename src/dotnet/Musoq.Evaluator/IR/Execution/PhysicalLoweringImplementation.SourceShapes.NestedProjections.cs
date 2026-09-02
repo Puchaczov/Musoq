@@ -117,7 +117,13 @@ internal sealed partial class PhysicalLoweringImplementation
                 qualifiedName[(separatorIndex + 1)..],
                 field.Type.ResolveClrType(),
                 field.GeneratedTypeName)
-            : new ColumnRef(string.Empty, qualifiedName, field.Type.ResolveClrType(), field.GeneratedTypeName);
+            {
+                Stability = field.Stability
+            }
+            : new ColumnRef(string.Empty, qualifiedName, field.Type.ResolveClrType(), field.GeneratedTypeName)
+            {
+                Stability = field.Stability
+            };
     }
 
     private static string CreateNestedJoinSourceAlias(PhysicalNode join, int schemaFromIndex)

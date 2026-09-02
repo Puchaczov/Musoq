@@ -279,7 +279,9 @@ public sealed partial class RewriteQueryVisitor
     public void Visit(RowPresenceNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new RowPresenceNode(Nodes.Pop(), node.IsPresent));
+        Nodes.Push(new RowPresenceNode(Nodes.Pop(), node.IsPresent)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public void Visit(AccessRefreshAggregationScoreNode node)

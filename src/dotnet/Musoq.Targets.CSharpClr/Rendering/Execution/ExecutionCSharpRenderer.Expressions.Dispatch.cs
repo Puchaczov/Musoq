@@ -7,12 +7,12 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private ExpressionSyntax RenderExpression(ExecutionExpression expression)
+    internal ExpressionSyntax RenderExpression(ExecutionExpression expression)
     {
         return RenderExpression(expression, CreateIsolatedRenderContext());
     }
 
-    private ExpressionSyntax RenderExpression(ExecutionExpression expression, ExecutionRenderContext context)
+    internal ExpressionSyntax RenderExpression(ExecutionExpression expression, ExecutionRenderContext context)
     {
         return new ExpressionRenderer(this, context).Render(expression);
     }

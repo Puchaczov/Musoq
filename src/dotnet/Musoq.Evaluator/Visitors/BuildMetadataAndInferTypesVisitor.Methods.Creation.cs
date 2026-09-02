@@ -39,9 +39,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         var isAggregateMethod = method.GetCustomAttribute<AggregateFunctionAttribute>() != null;
 
         if (isAggregateMethod && _queryState.QueryPart == QueryPart.Where)
-            throw new CannotResolveMethodException(
-                $"Aggregate method {node.Name} cannot be used in WHERE. Use HAVING for aggregate predicates.",
-                node.SpanOrEmpty());
+                throw new CannotResolveMethodException($"Aggregate method {node.Name} cannot be used in WHERE. Use HAVING for aggregate predicates.", Musoq.Parser.Diagnostics.DiagnosticCode.MQ3011_AggregateNotAllowed, node.SpanOrEmpty());
 
         if (node is { HasFilter: true, IsPivotGenerated: true } && !isAggregateMethod)
             ThrowPivotUsingOnNonAggregate(node);

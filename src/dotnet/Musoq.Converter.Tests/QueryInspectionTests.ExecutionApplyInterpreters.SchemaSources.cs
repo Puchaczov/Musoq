@@ -164,7 +164,8 @@ public partial class QueryInspectionTests
         var result = Inspect("select i.Name, n.Value + 1 as NextValue from #apply.items() i outer apply i.Numbers n", CreateApplyCandidateSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        Assert.Contains("AppendShape [result <- ResultShape0(i.Name: i.Name, NextValue: NULL)]", result.ExecutionPlanText);
+        Assert.Contains("Let [iName: string = i.Name]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultShape0(i.Name: iName, NextValue: NULL)]", result.ExecutionPlanText);
         Assert.Contains("NextValue: int? <- field NextValue", result.ExecutionPlanText);
         Assert.Contains("(n.Value + 1)", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);

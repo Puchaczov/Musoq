@@ -11,7 +11,7 @@ public sealed partial class ExecutionCSharpRenderer
         {
             statements = node switch
             {
-                ExecutionCreateAggregateLibrary library when renderContext.Session != null => [ExecutionCSharpRenderer.RenderCreateAggregateLibrary(library)],
+                ExecutionCreateAggregateLibrary library when renderContext.Session != null => [RenderCreateAggregateLibrary(library)],
                 ExecutionCreateAggregateContext context => renderer.RenderCreateAggregateContext(context, renderContext),
                 ExecutionEnsureAggregateGroup ensureGroup => [renderer.RenderEnsureAggregateGroup(ensureGroup, renderContext)],
                 ExecutionCreateSingleKeyAggregateContext context => renderer.RenderCreateSingleKeyAggregateContext(context, renderContext),

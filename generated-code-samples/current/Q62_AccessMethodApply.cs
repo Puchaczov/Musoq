@@ -46,9 +46,10 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateObject [__resultLibrary0: Library]
     ChunkedForEach [i in iRows]
+      Let [iName: string = i.Name]
       EnumerableSource [JustReturnArrayOfString() -> sRows]
       ChunkedForEach [s in sRows]
-        AppendShape [result <- ResultShape0(Name: i.Name, Text: s.Value)]
+        AppendShape [result <- ResultShape0(Name: iName, Text: s.Value)]
     PhaseBoundary [End:cte0]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
@@ -141,6 +142,7 @@ namespace GeneratedSample_Q62_AccessMethodApply
                                     }
 
                                     var i = iChunkViewArray[iChunkViewOffset + iIndex];
+                                    string iName = i.Name;
                                     var sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__resultLibrary0.JustReturnArrayOfString());
                                     foreach (var sChunk in sRows)
                                     {
@@ -157,7 +159,7 @@ namespace GeneratedSample_Q62_AccessMethodApply
                                                     }
 
                                                     var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                                    __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                                    __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                                 }
 
                                                 continue;
@@ -174,7 +176,7 @@ namespace GeneratedSample_Q62_AccessMethodApply
                                                     }
 
                                                     var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                                    __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                                    __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                                 }
 
                                                 continue;
@@ -189,7 +191,7 @@ namespace GeneratedSample_Q62_AccessMethodApply
                                             }
 
                                             var s = sChunk[sIndex];
-                                            __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                            __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                         }
                                     }
                                 }
@@ -208,6 +210,7 @@ namespace GeneratedSample_Q62_AccessMethodApply
                                     }
 
                                     var i = iChunkViewList[iChunkViewOffset + iIndex];
+                                    string iName = i.Name;
                                     var sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__resultLibrary0.JustReturnArrayOfString());
                                     foreach (var sChunk in sRows)
                                     {
@@ -224,7 +227,7 @@ namespace GeneratedSample_Q62_AccessMethodApply
                                                     }
 
                                                     var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                                    __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                                    __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                                 }
 
                                                 continue;
@@ -241,7 +244,7 @@ namespace GeneratedSample_Q62_AccessMethodApply
                                                     }
 
                                                     var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                                    __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                                    __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                                 }
 
                                                 continue;
@@ -256,7 +259,7 @@ namespace GeneratedSample_Q62_AccessMethodApply
                                             }
 
                                             var s = sChunk[sIndex];
-                                            __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                            __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                         }
                                     }
                                 }
@@ -273,6 +276,7 @@ namespace GeneratedSample_Q62_AccessMethodApply
                             }
 
                             var i = iChunk[iIndex];
+                            string iName = i.Name;
                             var sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__resultLibrary0.JustReturnArrayOfString());
                             foreach (var sChunk in sRows)
                             {
@@ -289,7 +293,7 @@ namespace GeneratedSample_Q62_AccessMethodApply
                                             }
 
                                             var s = sChunkViewArray[sChunkViewOffset + sIndex];
-                                            __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                            __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                         }
 
                                         continue;
@@ -306,7 +310,7 @@ namespace GeneratedSample_Q62_AccessMethodApply
                                             }
 
                                             var s = sChunkViewList[sChunkViewOffset + sIndex];
-                                            __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                            __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                         }
 
                                         continue;
@@ -321,7 +325,7 @@ namespace GeneratedSample_Q62_AccessMethodApply
                                     }
 
                                     var s = sChunk[sIndex];
-                                    __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                    __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                 }
                             }
                         }

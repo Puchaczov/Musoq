@@ -11,8 +11,9 @@ public partial class SchemaParser
 {
     private TypeAnnotationNode ComposeBinarySwitchType()
     {
-        Consume(TokenType.Switch);
+        var switchToken = ConsumeAndGetToken(TokenType.Switch);
 
+        var selectorSpan = Current.Span;
         var selector = ComposeIdentifierOrWord();
 
         Consume(TokenType.LBracket);
@@ -27,83 +28,69 @@ public partial class SchemaParser
                 Consume(TokenType.Comma);
         }
 
-        Consume(TokenType.RBracket);
+        var closingToken = ConsumeAndGetToken(TokenType.RBracket);
+
+        if (cases.Count == 0)
+            throw new SyntaxException(
+                "A binary switch must declare at least one case.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ4013_InvalidSwitchCaseLabel,
+                closingToken.Span);
 
         ValidateBinarySwitchCases(cases);
 
-        return new BinarySwitchTypeNode(selector, cases.ToArray());
+        return (BinarySwitchTypeNode)new BinarySwitchTypeNode(selector, cases.ToArray(), selectorSpan)
+            .WithSpan(switchToken.Span.Through(closingToken.Span));
     }
 
     private BinarySwitchCaseNode ComposeBinarySwitchCase()
     {
+        var caseLabelStart = Current.Span;
         var caseValue = ComposeBinarySwitchCaseLabel();
+        var caseLabelSpan = caseValue?.Span is { IsEmpty: false } valueSpan
+            ? valueSpan
+            : caseLabelStart;
 
         Consume(TokenType.FatArrow);
 
+        var branchAliasStart = Current.Span;
         var branchAlias = ComposeIdentifierOrWord();
+        var branchAliasSpan = branchAliasStart;
         Consume(TokenType.Colon);
-        var branchType = ComposeTypeAnnotation();
 
-        return new BinarySwitchCaseNode(caseValue, branchAlias, branchType);
+        var branchTypeStart = Current.Span;
+        var branchType = ComposeTypeAnnotation();
+        var branchTypeSpan = branchType.HasSpan ? branchType.Span : branchTypeStart;
+
+        return new BinarySwitchCaseNode(
+            caseValue,
+            branchAlias,
+            branchType,
+            caseLabelSpan,
+            branchAliasSpan,
+            branchTypeSpan);
     }
 
     private Node? ComposeBinarySwitchCaseLabel()
     {
-        if (Current.TokenType is TokenType.Word or TokenType.Identifier && Current.Value == "_")
+        if (Current.TokenType == TokenType.Underscore ||
+            ((Current.TokenType is TokenType.Word or TokenType.Identifier) && Current.Value == "_"))
         {
             Consume(Current.TokenType);
             return null;
         }
 
+        if (Current.TokenType is not (TokenType.Integer or TokenType.HexadecimalInteger or
+            TokenType.BinaryInteger or TokenType.OctalInteger or TokenType.Decimal or
+            TokenType.StringLiteral or TokenType.True or TokenType.False or TokenType.Hyphen))
+            throw InvalidSwitchCaseLabel(Current.Span);
+
         var label = ComposePrimaryExpression();
 
-        if (label is not ConstantValueNode)
-            throw new SyntaxException(
-                "Switch case label must be a constant scalar literal.",
-                _lexer.AlreadyResolvedQueryPart,
-                DiagnosticCode.MQ4013_InvalidSwitchCaseLabel,
-                label.Span);
+        if (!IsSwitchCaseLabel(label))
+            throw InvalidSwitchCaseLabel(label.Span);
 
         return label;
     }
 
-    private void ValidateBinarySwitchCases(IReadOnlyList<BinarySwitchCaseNode> cases)
-    {
-        var seenAliases = new HashSet<string>();
-
-        foreach (var switchCase in cases)
-            if (!seenAliases.Add(switchCase.BranchAlias))
-                throw new SyntaxException(
-                    $"Duplicate switch branch alias '{switchCase.BranchAlias}'.",
-                    _lexer.AlreadyResolvedQueryPart,
-                    DiagnosticCode.MQ4012_DuplicateSwitchBranchAlias,
-                    switchCase.BranchType.Span);
-
-        for (var i = 0; i < cases.Count; i++)
-            if (cases[i].IsDefault && i != cases.Count - 1)
-                throw new SyntaxException(
-                    "Switch default case '_' must be the last case.",
-                    _lexer.AlreadyResolvedQueryPart,
-                    DiagnosticCode.MQ4013_InvalidSwitchCaseLabel,
-                    cases[i].BranchType.Span);
-    }
-
-    private void ValidateBinarySwitchSelectors(IReadOnlyList<SchemaFieldNode> fields, bool hasExtends)
-    {
-        var precedingNames = new HashSet<string>();
-
-        foreach (var field in fields)
-        {
-            if (field is FieldDefinitionNode { TypeAnnotation: BinarySwitchTypeNode switchType }
-                && !hasExtends
-                && !precedingNames.Contains(switchType.Selector))
-                throw new SyntaxException(
-                    $"Switch selector '{switchType.Selector}' must reference a field declared before the switch field.",
-                    _lexer.AlreadyResolvedQueryPart,
-                    DiagnosticCode.MQ4011_SwitchSelectorNotPreviousField,
-                    switchType.Span);
-
-            precedingNames.Add(field.Name);
-        }
-    }
 }

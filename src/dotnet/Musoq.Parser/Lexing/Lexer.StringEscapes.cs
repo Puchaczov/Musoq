@@ -6,7 +6,6 @@ public sealed partial class Lexer
     {
         return value is >= '0' and <= '9' or >= 'a' and <= 'f' or >= 'A' and <= 'F';
     }
-
     private static bool TryFindInvalidEscapeSequence(ReadOnlySpan<char> value, out string invalidEscape,
         out TextSpan span)
     {
@@ -29,15 +28,18 @@ public sealed partial class Lexer
                 continue;
             }
 
-            if (next == 'u')
-                return TryValidateFixedLengthEscape(value, i, 4, out invalidEscape, out span);
+            if (next is 'u' or 'x')
+            {
+                var digitsLength = next == 'u' ? 4 : 2;
+                if (TryValidateFixedLengthEscape(value, i, digitsLength, out invalidEscape, out span))
+                    return true;
 
-            if (next == 'x')
-                return TryValidateFixedLengthEscape(value, i, 2, out invalidEscape, out span);
+                i += 1 + digitsLength;
+                continue;
+            }
 
             i++;
         }
-
         invalidEscape = string.Empty;
         span = TextSpan.Empty;
         return false;
@@ -47,13 +49,6 @@ public sealed partial class Lexer
         out string invalidEscape, out TextSpan span)
     {
         var availableDigits = Math.Min(digitsLength, value.Length - (start + 2));
-        if (availableDigits == 0)
-        {
-            invalidEscape = string.Empty;
-            span = TextSpan.Empty;
-            return false;
-        }
-
         if (availableDigits < digitsLength)
         {
             var invalidLength = Math.Min(2 + availableDigits, value.Length - start);

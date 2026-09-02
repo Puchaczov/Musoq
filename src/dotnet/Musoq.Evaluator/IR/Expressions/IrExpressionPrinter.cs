@@ -105,7 +105,7 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
     {
         var sb = new StringBuilder();
         sb.Append(Visit(node.Expression));
-        sb.Append(" IN (");
+        sb.Append(node.IsNegated ? " NOT IN (" : " IN (");
         for (var i = 0; i < node.Values.Count; i++)
         {
             if (i > 0)

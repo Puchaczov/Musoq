@@ -438,7 +438,7 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
         Assert.IsFalse(sourceColumnRef.ReadModifiers.ContainsKey(ColumnReadModifiers.Trim));
     }
 
-    private Musoq.Evaluator.Tables.Table Run(
+    private Tables.Table Run(
         string query,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     {

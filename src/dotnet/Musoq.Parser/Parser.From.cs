@@ -30,7 +30,6 @@ public partial class Parser
         if (Current.TokenType == TokenType.Word)
         {
             var name = ComposeWord();
-
             FromNode fromNode;
             if (Current.TokenType == TokenType.Dot)
             {
@@ -41,18 +40,15 @@ public partial class Parser
                 EnsureAliasSyntax(aliasResult, AliasContext.Source);
                 alias = aliasResult.Alias;
                 aliasSpan = aliasResult.Span;
-
                 fromNode = new SchemaFromNode(name.Value, accessMethod.Name, accessMethod.Arguments, alias,
-                    _fromPosition);
+                    _fromPosition).WithSchemaSpan(name.Span).WithMethodSpan(accessMethod.FunctionToken.Span);
                 if (!aliasSpan.IsEmpty)
                     fromNode.WithSpan(aliasSpan);
-
                 if (!string.IsNullOrWhiteSpace(alias))
                     RegisterFromAlias(alias);
 
                 return ParsedSource.Create(fromNode, SourceKind.Schema, sourceStart, sourceEndSpan, aliasResult);
             }
-
             var referentialSourceEnd = name.Span;
             var referentialAlias = ComposeAlias(AliasContext.Source);
             EnsureAliasSyntax(referentialAlias, AliasContext.Source);
@@ -61,7 +57,6 @@ public partial class Parser
             fromNode = new ReferentialFromNode(name.Value, alias);
             if (!aliasSpan.IsEmpty)
                 fromNode.WithSpan(aliasSpan);
-
             RegisterFromAlias(string.IsNullOrWhiteSpace(alias) ? name.Value : alias);
 
             return ParsedSource.Create(fromNode, SourceKind.Referential, sourceStart, referentialSourceEnd,
@@ -76,7 +71,6 @@ public partial class Parser
             EnsureAliasSyntax(aliasResult, AliasContext.Source);
             alias = aliasResult.Alias;
             aliasSpan = aliasResult.Span;
-
             if (!string.IsNullOrWhiteSpace(alias))
                 RegisterFromAlias(alias);
 
@@ -110,7 +104,8 @@ public partial class Parser
                 if (!string.IsNullOrWhiteSpace(alias))
                     RegisterFromAlias(alias);
 
-                var fromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                var fromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition)
+                    .WithSchemaSpan(new TextSpan(sourceStart, sourceAlias.Length)).WithMethodSpan(accessMethod.FunctionToken.Span);
                 if (!aliasSpan.IsEmpty)
                     fromNode.WithSpan(aliasSpan);
                 return ParsedSource.Create(fromNode, SourceKind.Schema, sourceStart, sourceEndSpan, aliasResult);
@@ -121,7 +116,8 @@ public partial class Parser
                 if (!string.IsNullOrWhiteSpace(alias))
                     RegisterFromAlias(alias);
 
-                var fromNode = new SchemaFromNode(sourceAlias, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                var fromNode = new SchemaFromNode(sourceAlias, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition)
+                    .WithSchemaSpan(new TextSpan(sourceStart, sourceAlias.Length)).WithMethodSpan(accessMethod.FunctionToken.Span);
                 if (!aliasSpan.IsEmpty)
                     fromNode.WithSpan(aliasSpan);
                 return ParsedSource.Create(fromNode, SourceKind.Schema, sourceStart, sourceEndSpan, aliasResult);
@@ -166,7 +162,8 @@ public partial class Parser
                 if (!string.IsNullOrWhiteSpace(alias))
                     RegisterFromAlias(alias);
 
-                var fromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                var fromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition)
+                    .WithSchemaSpan(baseNode.Span).WithMethodSpan(accessMethod.FunctionToken.Span);
                 if (!aliasSpan.IsEmpty)
                     fromNode.WithSpan(aliasSpan);
                 return ParsedSource.Create(fromNode, SourceKind.Schema, sourceStart, sourceEndSpan, aliasResult);

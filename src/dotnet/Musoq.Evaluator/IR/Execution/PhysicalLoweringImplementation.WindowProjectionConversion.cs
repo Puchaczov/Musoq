@@ -54,7 +54,14 @@ internal sealed partial class PhysicalLoweringImplementation
                 if (!right.IsBuilt)
                     return LoweringAttempt<ExecutionExpression>.Unsupported(right.UnsupportedReason);
 
-                return LoweringAttempt<ExecutionExpression>.Built(new ExecutionBinary(binary.Kind, left.Value, right.Value, binary.ReturnType));
+                return LoweringAttempt<ExecutionExpression>.Built(new ExecutionBinary(
+                    binary.Kind,
+                    left.Value,
+                    right.Value,
+                    binary.ReturnType)
+                {
+                    UsesSqlNullSemantics = binary.UsesSqlNullSemantics
+                });
             case UnaryOp unary:
                 var operand = ConvertWindowExpression(unary.Operand, sourceLookup, aggregateSourceFields, windowResults, windowIndex);
                 if (!operand.IsBuilt)
@@ -134,7 +141,11 @@ internal sealed partial class PhysicalLoweringImplementation
 
         var values = ConvertWindowExpressions(inCheck.Values, sourceLookup, aggregateSourceFields, windowResults, windowIndex);
         return values.IsBuilt
-            ? LoweringAttempt<ExecutionExpression>.Built(new ExecutionInCheck(expression.Value, values.Value, inCheck.ReturnType))
+            ? LoweringAttempt<ExecutionExpression>.Built(new ExecutionInCheck(
+                expression.Value,
+                values.Value,
+                inCheck.ReturnType,
+                isNegated: inCheck.IsNegated))
             : LoweringAttempt<ExecutionExpression>.Unsupported(values.UnsupportedReason);
     }
 

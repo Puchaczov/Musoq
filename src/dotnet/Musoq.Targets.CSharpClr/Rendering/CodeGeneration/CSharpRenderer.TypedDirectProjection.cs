@@ -67,7 +67,7 @@ public sealed partial class CSharpRenderer
                 SyntaxFactory.GenericName(nameof(IEnumerable<object>))
                     .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
                         SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                            ExecutionSyntaxFactory.CreateTypeSyntax(binding.OutputType)))),
+                            CreateTypeSyntax(binding.OutputType)))),
                 SyntaxFactory.Identifier(rowsMethodName))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
             .WithParameterList(MethodDeclarationHelper.CreateTypedRunContextParameterList())
@@ -173,7 +173,7 @@ public sealed partial class CSharpRenderer
         return CreateFinalProjectionInvocation(new FinalProjectionInvocationSpec(
             FinalProjectionInvocationKind.TypedValuesParallel,
             CreateSourceTypeSyntax(projectionLoop.Source),
-            ExecutionSyntaxFactory.CreateTypeSyntax(binding.OutputType),
+            CreateTypeSyntax(binding.OutputType),
             parallelRowsName,
             CreatePredicateLambda(executionRenderer, projectionLoop, renderContext),
             CreateProjectionLambda(binding, executionRenderer, projectionLoop, renderContext),
@@ -190,7 +190,7 @@ public sealed partial class CSharpRenderer
         return CreateFinalProjectionInvocation(new FinalProjectionInvocationSpec(
             FinalProjectionInvocationKind.TypedChunkedValuesParallel,
             CreateSourceTypeSyntax(projectionLoop.Source),
-            ExecutionSyntaxFactory.CreateTypeSyntax(binding.OutputType),
+            CreateTypeSyntax(binding.OutputType),
             sourceRowsName,
             CreatePredicateLambda(executionRenderer, projectionLoop, renderContext),
             CreateProjectionLambda(binding, executionRenderer, projectionLoop, renderContext),
@@ -207,7 +207,7 @@ public sealed partial class CSharpRenderer
         return CreateFinalProjectionInvocation(new FinalProjectionInvocationSpec(
             FinalProjectionInvocationKind.TypedValuesSerial,
             CreateSourceTypeSyntax(projectionLoop.Source),
-            ExecutionSyntaxFactory.CreateTypeSyntax(binding.OutputType),
+            CreateTypeSyntax(binding.OutputType),
             sourceRowsName,
             CreatePredicateLambda(executionRenderer, projectionLoop, renderContext),
             CreateProjectionLambda(binding, executionRenderer, projectionLoop, renderContext)));
@@ -220,7 +220,7 @@ public sealed partial class CSharpRenderer
     {
         var body = projectionLoop.Predicate == null
             ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
-            : RenderFinalSinkExpression(executionRenderer, projectionLoop.Predicate, renderContext);
+            : executionRenderer.RenderPredicateExpression(projectionLoop.Predicate, renderContext);
 
         return CreateSourceLambda(projectionLoop.Source, body);
     }
@@ -250,7 +250,7 @@ public sealed partial class CSharpRenderer
     private static TypeSyntax CreateSourceTypeSyntax(ExecutionVariable source)
     {
         return string.IsNullOrWhiteSpace(source.GeneratedRowTypeName)
-            ? ExecutionSyntaxFactory.CreateTypeSyntax(source.Type)
+            ? CreateTypeSyntax(source.Type)
             : SyntaxFactory.ParseTypeName(source.GeneratedRowTypeName);
     }
 

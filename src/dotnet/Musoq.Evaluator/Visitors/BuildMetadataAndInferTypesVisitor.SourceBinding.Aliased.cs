@@ -9,6 +9,7 @@ using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
 using Musoq.Schema.Exceptions;
+using Musoq.Schema.Reflection;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
 using AliasedFromNode = Musoq.Parser.Nodes.From.AliasedFromNode;
 
@@ -72,7 +73,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                     isParse
                         ? $"{node.Identifier} requires a text interpretation schema."
                         : $"{node.Identifier} requires a binary interpretation schema.",
-                    node.SpanOrEmpty());
+                    args.SpanOrEmpty());
 
             var expectedArgumentCount = node.Identifier.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase)
                 ? 2
@@ -96,7 +97,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             Type? returnType = null;
             returnType = schemaRegistration.GeneratedType;
             if (returnType != null && isPartialInterpret)
-                returnType = typeof(Musoq.Schema.Interpreters.PartialInterpretResult<>).MakeGenericType(returnType);
+                returnType = typeof(Schema.Interpreters.PartialInterpretResult<>).MakeGenericType(returnType);
 
             var interpretTableSymbol = new TableSymbol(
                 _sourceBinding.QueryAlias,
@@ -163,13 +164,13 @@ public partial class BuildMetadataAndInferTypesVisitor
         }
 
         var schemaInfo = definition.SchemaMethodNode;
+        var sourceSpan = node.Args.SpanOrEmpty().Through(node.SpanOrEmpty());
         var table = definition.TableName != null
             ? _sourceBinding.ExplicitlyDefinedTables.TryGetValue(definition.TableName, out var definedTable)
                 ? definedTable
                 : throw new TableIsNotDefinedException(definition.TableName, node.SpanOrEmpty())
             : null;
         var hasExternallyProvidedTypes = table != null;
-
         var schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(schemaInfo.Schema));
 
         AddAssembly(schema.GetType().Assembly);
@@ -185,23 +186,42 @@ public partial class BuildMetadataAndInferTypesVisitor
             node.InSourcePosition,
             hasExternallyProvidedTypes
         );
+        aliasedSchemaFromNode.WithMethodSpan(sourceSpan);
+        if (!sourceSpan.IsEmpty)
+            aliasedSchemaFromNode.WithSpan(sourceSpan);
         var queryId = node.InSourcePosition.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        var bindingResult = SchemaSourceArgumentBinder.Bind(
-            aliasedSchemaFromNode.Parameters,
-            SchemaProviderBoundary.Invoke(() => schema.GetRawConstructors(
+        SchemaMethodInfo[] sourceMethods;
+        try
+        {
+            sourceMethods = SchemaProviderBoundary.Invoke(() => schema.GetRawConstructors(
                 schemaInfo.Method,
                 new SourceMetadataContext(
                     queryId,
                     CancellationToken.None,
                     GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
                     new Dictionary<string, string>(),
-                    _logger))));
+                    _logger)));
+            }
+            catch (SchemaProviderFailureException exception) when (exception.InnerException is NotSupportedException)
+            {
+                if (DiagnosticContext == null)
+                    throw;
+
+                throw new UnknownSourceException(
+                    schemaInfo.Schema,
+                    schemaInfo.Method,
+                    sourceSpan,
+                    exception.InnerException);
+            }
+
+        var bindingResult = SchemaSourceArgumentBinder.Bind(
+            aliasedSchemaFromNode.Parameters,
+            sourceMethods);
         if (bindingResult.Failure is { } bindingFailure)
             throw new CannotResolveMethodException(
                 bindingFailure.Message,
                 bindingFailure.Code,
-                bindingFailure.Span,
-                bindingFailure.Arguments);
+                bindingFailure.Span, bindingFailure.Arguments, bindingFailure.SuggestedFixes);
 
         var boundInvocation = bindingResult.Invocation;
         if (boundInvocation != null)

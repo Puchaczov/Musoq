@@ -6,6 +6,5 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class OrderByTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
 }

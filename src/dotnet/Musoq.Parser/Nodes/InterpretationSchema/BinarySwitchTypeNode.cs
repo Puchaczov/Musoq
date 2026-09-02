@@ -15,10 +15,12 @@ public class BinarySwitchTypeNode : TypeAnnotationNode
     /// </summary>
     /// <param name="selector">The name of the previously parsed field that selects the branch.</param>
     /// <param name="cases">The ordered switch cases, with an optional trailing default case.</param>
-    public BinarySwitchTypeNode(string selector, BinarySwitchCaseNode[] cases)
+    /// <param name="selectorSpan">The source span of the selector name.</param>
+    public BinarySwitchTypeNode(string selector, BinarySwitchCaseNode[] cases, TextSpan selectorSpan = default)
     {
         Selector = selector ?? throw new ArgumentNullException(nameof(selector));
         Cases = cases ?? throw new ArgumentNullException(nameof(cases));
+        SelectorSpan = selectorSpan;
         Id = $"{nameof(BinarySwitchTypeNode)}{selector}{string.Join(',', cases.Select(c => c.BranchAlias))}";
     }
 
@@ -26,6 +28,11 @@ public class BinarySwitchTypeNode : TypeAnnotationNode
     ///     Gets the name of the previously parsed field that selects the branch.
     /// </summary>
     public string Selector { get; }
+
+    /// <summary>
+    ///     Gets the source span of the selector name, when parsed from query text.
+    /// </summary>
+    public TextSpan SelectorSpan { get; }
 
     /// <summary>
     ///     Gets the ordered switch cases. A trailing case with <see cref="BinarySwitchCaseNode.IsDefault" />

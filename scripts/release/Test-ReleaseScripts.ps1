@@ -24,6 +24,15 @@ function Assert-Equal {
 }
 
 $packages = @(Get-ReleasePackages)
+$alphaRelease = Resolve-ReleaseTag -Tag 'v17.0.9-alpha.1'
+Assert-Equal -Expected $true -Actual $alphaRelease.AllowBreakingChanges -Message 'Alpha releases must explicitly allow breaking changes.'
+
+$previewRelease = Resolve-ReleaseTag -Tag 'v17.0.9-preview.1'
+Assert-Equal -Expected $false -Actual $previewRelease.AllowBreakingChanges -Message 'Preview releases must retain compatibility validation.'
+
+$stableRelease = Resolve-ReleaseTag -Tag 'v17.0.9'
+Assert-Equal -Expected $false -Actual $stableRelease.AllowBreakingChanges -Message 'Stable releases must retain compatibility validation.'
+
 $abiPackages = @($packages | Where-Object IsDatasourceAbi | Select-Object -ExpandProperty PackageId | Sort-Object)
 Assert-Equal -Expected 2 -Actual $abiPackages.Count -Message 'Unexpected datasource ABI package count.'
 Assert-Equal -Expected 'Musoq.Plugins' -Actual $abiPackages[0] -Message 'Musoq.Plugins must be a datasource ABI package.'

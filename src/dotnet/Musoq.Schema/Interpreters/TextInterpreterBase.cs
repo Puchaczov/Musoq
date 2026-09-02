@@ -77,11 +77,11 @@ public abstract partial class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
             return value;
 
         if (ltrim && rtrim)
-            value = value.Trim();
+            value = value.Trim(TextWhitespaceCharacters);
         else if (ltrim)
-            value = value.TrimStart();
+            value = value.TrimStart(TextWhitespaceCharacters);
         else if (rtrim)
-            value = value.TrimEnd();
+            value = value.TrimEnd(TextWhitespaceCharacters);
 
         if (lower)
             value = value.ToLowerInvariant();

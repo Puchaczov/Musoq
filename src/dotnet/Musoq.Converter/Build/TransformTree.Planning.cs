@@ -74,7 +74,7 @@ public partial class TransformTree
             };
 
             var planner = new QueryPlanner();
-            var physicalPhase = global::Musoq.Converter.EvaluatorPerformanceTelemetry.BeginPhase("semantic.physical-plan");
+            var physicalPhase = EvaluatorPerformanceTelemetry.BeginPhase("semantic.physical-plan");
             PlanningResult planningResult;
             try
             {
@@ -102,7 +102,7 @@ public partial class TransformTree
             string? planningText = null;
             if (context.EmitExecutionPlanText)
             {
-                var planningTextPhase = global::Musoq.Converter.EvaluatorPerformanceTelemetry.BeginPhase("semantic.planning-text");
+                var planningTextPhase = EvaluatorPerformanceTelemetry.BeginPhase("semantic.planning-text");
                 try
                 {
                     planningText = PlanningTextPrinter.Print(planningResult);
@@ -162,7 +162,7 @@ public partial class TransformTree
         Dictionary<string, ISchemaColumn[]> aliasKeyedColumns,
         TransformPipelineContext context)
     {
-        var phase = global::Musoq.Converter.EvaluatorPerformanceTelemetry.BeginPhase("semantic.logical-plan");
+        var phase = EvaluatorPerformanceTelemetry.BeginPhase("semantic.logical-plan");
         try
         {
             var logicalBuilder = new LogicalPlanBuilder(aliasKeyedColumns);

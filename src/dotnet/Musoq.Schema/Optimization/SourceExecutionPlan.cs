@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace Musoq.Schema.Optimization;
 
+/// <summary>Immutable source execution metadata carried to the generated query.</summary>
 public sealed record SourceExecutionPlan
 {
     public required SourceIdentity Identity { get; init; }
@@ -18,6 +19,16 @@ public sealed record SourceExecutionPlan
         get => _acceptedColumns;
         init => _acceptedColumns = FreezeList(value);
     }
+
+    private IReadOnlyList<SourceComputedProjection> _acceptedComputedProjections = [];
+
+    public IReadOnlyList<SourceComputedProjection> AcceptedComputedProjections
+    {
+        get => _acceptedComputedProjections;
+        init => _acceptedComputedProjections = FreezeList(value);
+    }
+
+    public RowStreamReplayability Replayability { get; init; } = RowStreamReplayability.Unknown;
 
     public SourcePredicateExpression? AcceptedPredicate { get; init; }
 

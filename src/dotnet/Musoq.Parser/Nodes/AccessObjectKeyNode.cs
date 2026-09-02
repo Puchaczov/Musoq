@@ -4,7 +4,7 @@ using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Nodes;
 
-public class AccessObjectKeyNode(KeyAccessToken token) : IdentifierNode(token.Name)
+public class AccessObjectKeyNode(KeyAccessToken token) : IdentifierNode(token.Name, null, token.Span)
 {
     public enum Destination
     {

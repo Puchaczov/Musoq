@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Planning;
+using Musoq.Schema;
 using Musoq.Targets.Abstractions;
 using Musoq.Targets.Execution;
 using Musoq.Targets.Execution.Analysis;
@@ -62,19 +63,75 @@ public sealed class ExecutionQueryRowSourceTransferTests
             ]));
         var report = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
         var contract = TargetRuntimeContractBuilder.Build(plan, report);
+        var shapeFingerprint = binding.QueryRowSourceTransfer!.ShapeFingerprint;
 
         Assert.HasCount(1, contract.QueryRowSourceAccess);
-        Assert.AreEqual(CreateFingerprint(), contract.QueryRowSourceAccess[0].ShapeFingerprint);
+        Assert.AreEqual(shapeFingerprint, contract.QueryRowSourceAccess[0].ShapeFingerprint);
         Assert.IsTrue(report.Requirements.Any(static requirement =>
             requirement.Kind == ExecutionTargetRequirementKind.QueryRowSourceAccess));
 
         var import = TargetHostAbiInventoryBuilder.Build(contract).Imports.Single(static item =>
             item.Kind == TargetHostAbiImportKind.QueryRowSourceAccess);
-        Assert.AreEqual("query-row-source-access-v1", import.Contract);
-        Assert.AreEqual(1, import.ContractVersion);
-        Assert.AreEqual(CreateFingerprint(), import.Attributes["shapeFingerprint"]);
+        Assert.AreEqual("query-row-source-access-v2", import.Contract);
+        Assert.AreEqual(2, import.ContractVersion);
+        Assert.AreEqual(shapeFingerprint, import.Attributes["shapeFingerprint"]);
         Assert.AreEqual("ReadonlyStruct", import.Attributes["carrier"]);
         Assert.AreEqual("ScanLocal", import.Attributes["lifetime"]);
+    }
+
+    [TestMethod]
+    public void TargetContract_WhenTransferContainsEnum_ShouldPreserveSourceTypeAndPortableDescriptor()
+    {
+        var descriptor = EnumTypeDescriptor.FromClrEnum(typeof(NativeStatus));
+        var fieldType = ExecutionClrBindingFactory.FromClr(typeof(int));
+        var sourceReadType = ExecutionClrBindingFactory.FromClr(typeof(NativeStatus));
+        var transfer = new ExecutionQueryRowSourceTransfer(
+            ExecutionQueryRowCarrier.ReadonlyStruct,
+            CreateFingerprint(),
+            [new ExecutionQueryRowField(0, 0, "Status", fieldType, sourceReadType, descriptor, false)]);
+        var field = new FieldBinding(
+            "Status",
+            "source.Status",
+            0,
+            fieldType,
+            FieldNullability.NotNullable,
+            new GeneratedFieldAccess(QueryRowSourceNaming.CreateFieldName(0)),
+            publicType: fieldType,
+            sourceReadType: sourceReadType,
+            enumType: descriptor);
+        var binding = new ExecutionSourceBinding(
+            "test",
+            "rows",
+            "source:enum",
+            0,
+            [],
+            [field],
+            SourceType: ExecutionClrBindingFactory.FromClr(typeof(object)),
+            QueryRowSourceTransfer: transfer);
+        var plan = CreatePlan(binding);
+
+        var contract = TargetRuntimeContractBuilder.Build(
+            plan,
+            ExecutionTargetCompatibilityAnalyzer.Analyze(plan));
+        var sourceField = contract.SourceAccess.Single().Fields.Single();
+        var queryRowField = contract.QueryRowSourceAccess.Single().Fields.Single();
+
+        Assert.AreEqual(sourceReadType.StableId, sourceField.SourceReadType.StableName);
+        Assert.AreEqual(sourceReadType.StableId, queryRowField.SourceReadType.StableName);
+        Assert.AreEqual(descriptor.Fingerprint, sourceField.EnumType!.Fingerprint);
+        Assert.AreEqual(descriptor.Fingerprint, queryRowField.EnumType!.Fingerprint);
+        Assert.AreEqual("Queued", sourceField.EnumType.Members[0].CanonicalName);
+        Assert.AreEqual("Queued", sourceField.EnumType.Members[1].CanonicalName);
+
+        var imports = TargetHostAbiInventoryBuilder.Build(contract).Imports;
+        var sourceDetails = Assert.IsInstanceOfType<TargetSourceAccessAbiDetails>(
+            imports.Single(static import => import.Kind == TargetHostAbiImportKind.SourceAccess).Details);
+        var queryRowDetails = Assert.IsInstanceOfType<TargetQueryRowSourceAccessAbiDetails>(
+            imports.Single(static import => import.Kind == TargetHostAbiImportKind.QueryRowSourceAccess).Details);
+        Assert.AreEqual(descriptor.Fingerprint, sourceDetails.Fields[0].EnumType!.Fingerprint);
+        Assert.AreEqual(descriptor.Fingerprint, queryRowDetails.Fields[0].EnumType!.Fingerprint);
+        StringAssert.Contains(sourceDetails.CanonicalDefinition, descriptor.Fingerprint);
+        StringAssert.Contains(queryRowDetails.CanonicalDefinition, descriptor.Fingerprint);
     }
 
     [TestMethod]
@@ -219,6 +276,22 @@ public sealed class ExecutionQueryRowSourceTransferTests
     }
 
     [TestMethod]
+    public void BindingInvariant_WhenShapeFingerprintDoesNotMatchFields_ShouldRejectPlan()
+    {
+        var valid = CreateTransfer();
+        var corrupted = new ExecutionQueryRowSourceTransfer(
+            valid.Carrier,
+            valid.Lifetime,
+            CreateFingerprint(),
+            valid.Fields);
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            ExecutionBindingInvariantValidator.Validate(CreatePlan(CreateBinding(corrupted))));
+
+        StringAssert.Contains(exception.Message, "shape fingerprint");
+    }
+
+    [TestMethod]
     public void TargetContract_WhenFingerprintIsMalformed_ShouldRejectIt()
     {
         Assert.Throws<ArgumentException>(() => new TargetQueryRowSourceAccessContract(
@@ -317,9 +390,13 @@ public sealed class ExecutionQueryRowSourceTransferTests
 
     private static ExecutionQueryRowSourceTransfer CreateTransfer()
     {
+        var shape = new QueryRowShape(
+        [
+            new QueryRowField(0, 0, "Id", typeof(int), false)
+        ]);
         return new ExecutionQueryRowSourceTransfer(
             ExecutionQueryRowCarrier.ReadonlyStruct,
-            CreateFingerprint(),
+            shape.Fingerprint,
             [
                 new ExecutionQueryRowField(
                     0,
@@ -379,4 +456,11 @@ public sealed class ExecutionQueryRowSourceTransferTests
     private static string CreateFingerprint() => new('A', 64);
 
     private sealed class HiddenQueryRowField;
+
+    public enum NativeStatus
+    {
+        Queued = 10,
+        Waiting = Queued,
+        Running = 20
+    }
 }

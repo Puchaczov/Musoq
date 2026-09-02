@@ -106,13 +106,17 @@ public partial class SubqueryToCteRewriteVisitor
         for (var i = 0; i < window.Definitions.Length; i++)
         {
             var definition = window.Definitions[i];
-            definitions[i] = new WindowDefinitionNode(
+            definitions[i] = (WindowDefinitionNode)new WindowDefinitionNode(
                 definition.Name,
                 RewriteExpressionContext(definition.Specification, rewriter)
-                ?? throw new InvalidOperationException("Window definition is missing a specification."));
+                ?? throw new InvalidOperationException("Window definition is missing a specification."))
+                .WithSpan(definition.Span)
+                .WithFullSpan(definition.FullSpan);
         }
 
-        return new WindowNode(definitions);
+        var rewrittenWindow = new WindowNode(definitions);
+        rewrittenWindow.WithSpan(window.Span).WithFullSpan(window.FullSpan);
+        return rewrittenWindow;
     }
 
     private static WindowSpecificationNode? RewriteExpressionContext<TJoin>(
@@ -147,7 +151,9 @@ public partial class SubqueryToCteRewriteVisitor
                 field.NullOrdering);
         }
 
-        return new WindowSpecificationNode(partitionFields, orderByFields, specification.Frame);
+        var rewrittenSpecification = new WindowSpecificationNode(partitionFields, orderByFields, specification.Frame);
+        rewrittenSpecification.WithSpan(specification.Span).WithFullSpan(specification.FullSpan);
+        return rewrittenSpecification;
     }
 
     private static FromNode RewriteExpressionContext<TJoin>(
@@ -180,7 +186,7 @@ public partial class SubqueryToCteRewriteVisitor
         foreach (var localJoin in localJoins)
             source = appendJoin(source, localJoin);
 
-        return new Parser.JoinFromNode(source, with, expression, join.JoinType);
+        return new Parser.JoinFromNode(source, with, expression, join.JoinType, join.TieBreak, join.WithOrdinality);
     }
 
     private static Node? RewriteExpressionContext<TJoin>(

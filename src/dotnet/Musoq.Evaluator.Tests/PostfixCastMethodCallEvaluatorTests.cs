@@ -17,7 +17,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class PostfixCastMethodCallEvaluatorTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; } = null!;
 
     [TestMethod]
     public void MethodCallPostfixCast_CSharpAliases_ShouldCoverPrimitiveTargets()

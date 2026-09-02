@@ -3,6 +3,7 @@ using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
+using Musoq.Schema;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Evaluator.IR.Planning;
@@ -14,9 +15,11 @@ internal static partial class SourcePredicatePlanner
         string? UnsupportedReason);
 
     public static SourcePredicatePlanningResult Plan(
-        IReadOnlyDictionary<SchemaFromNode, WhereNode> rawWhereNodes)
+        IReadOnlyDictionary<SchemaFromNode, WhereNode> rawWhereNodes,
+        IReadOnlyDictionary<string, ISchemaColumn[]> inferredColumns)
     {
         ArgumentNullException.ThrowIfNull(rawWhereNodes);
+        ArgumentNullException.ThrowIfNull(inferredColumns);
         if (rawWhereNodes.Count == 0)
         {
             return new SourcePredicatePlanningResult(
@@ -25,7 +28,7 @@ internal static partial class SourcePredicatePlanner
                 []);
         }
 
-        var converter = new ExpressionConverter();
+        var converter = CreateExpressionConverter(inferredColumns);
         var plans = new Dictionary<string, SourcePredicatePlan>(StringComparer.Ordinal);
         var pushedPredicates = new Dictionary<string, IrExpression[]>(StringComparer.Ordinal);
         var decisions = new List<PlanningDecision>();

@@ -204,7 +204,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "var paramMinPopulation = ScriptParameterBinder.GetOptional<int>(__musoqExecutionState.Parameters, \"minPopulation\", 100);",
             whereSelect);
         Assert.AreEqual(2, CountOccurrences(whereSelect, "ScriptParameterBinder.Get"));
-        Assert.Contains("if (((ko3iko.Country == paramCountry) && (population > paramMinPopulation)))", whereSelect);
+        Assert.Contains("if (((Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry", whereSelect);
         Assert.Contains("yield return new ResultShape0(ko3iko.Name, population, paramCountry);", whereSelect);
         Assert.Contains("yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.Population, __musoqShapeRow.RequestedCountry);", whereSelect);
 
@@ -233,7 +233,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState.Parameters, \"country\");", typedComparison);
         Assert.AreEqual(1, CountOccurrences(typedComparison, "ScriptParameterBinder.Get"));
-        Assert.Contains("if ((country == paramCountry))", typedComparison);
+        Assert.Contains("if ((Operators.SqlCompare<string, string>(country, paramCountry", typedComparison);
         Assert.DoesNotContain("TryConvertTo", typedComparison);
 
         Assert.Contains(
@@ -293,7 +293,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         AssertScriptParameterBinderCount(ScriptParameterCteHelperCaptureSampleFileName, cte, 1);
         Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, _cteIndexResults, paramCountry);", cte);
         Assert.Contains("CteRowResults _cteRowResults, CteIndexResults _cteIndexResults, string paramCountry)", cte);
-        Assert.Contains("if ((ko3iko.Country == paramCountry))", cte);
+        Assert.Contains("if ((Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry", cte);
         AssertTopLevelBindingBefore(
             ScriptParameterCteHelperCaptureSampleFileName,
             cte,

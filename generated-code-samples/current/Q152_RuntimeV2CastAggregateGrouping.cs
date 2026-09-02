@@ -153,7 +153,7 @@ namespace GeneratedSample_Q152_RuntimeV2CastAggregateGrouping
                                 }
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                if ((global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(ko3iko.Population) > 0))
+                                if ((Operators.SqlCompare<int?, int>(global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(ko3iko.Population), 0, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                 {
                                     UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, ko3iko);
                                 }
@@ -173,7 +173,7 @@ namespace GeneratedSample_Q152_RuntimeV2CastAggregateGrouping
                                 }
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                if ((global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(ko3iko.Population) > 0))
+                                if ((Operators.SqlCompare<int?, int>(global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(ko3iko.Population), 0, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                 {
                                     UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, ko3iko);
                                 }
@@ -191,7 +191,7 @@ namespace GeneratedSample_Q152_RuntimeV2CastAggregateGrouping
                         }
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                        if ((global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(ko3iko.Population) > 0))
+                        if ((Operators.SqlCompare<int?, int>(global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(ko3iko.Population), 0, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                         {
                             UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, ko3iko);
                         }
@@ -202,7 +202,7 @@ namespace GeneratedSample_Q152_RuntimeV2CastAggregateGrouping
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
-                    if (((finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null) > global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal("10.00")))
+                    if (((Operators.SqlCompare<decimal?, decimal?>(finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null, global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal("10.00"), (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight)))) == true)
                     {
                         __musoqFinalShapeRows.Add(new ResultShape0(finalGroup.__key0, finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null));
                     }

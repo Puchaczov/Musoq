@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using Musoq.Plugins.Attributes;
 using Musoq.Schema.Attributes;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Optimization;
@@ -177,7 +178,10 @@ public static class TypeHelper
 
             nameToIndexMap.Add(property.Name, columnIndex);
             indexToMethodAccess.Add(columnIndex, instance => del(instance));
-            columns.Add(new SchemaColumn(property.Name, columnIndex, property.PropertyType));
+            var stability = property.GetCustomAttribute<NonDeterministicAttribute>() == null
+                ? ColumnStability.Stable
+                : ColumnStability.Volatile;
+            columns.Add(new SchemaColumn(property.Name, columnIndex, property.PropertyType, stability));
 
             columnIndex += 1;
         }

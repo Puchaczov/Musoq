@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class AutomaticNumericTypeInferenceDebugDecimalTests : UnknownQueryTestsBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void Debug_StringToDecimal_SimpleCase()

@@ -51,7 +51,7 @@ public partial class ParallelismOutputRowsTests
 
     private static void AssertDistinctCounts(
         IReadOnlyDictionary<string, long> expected,
-        Musoq.Evaluator.Tables.Table table,
+        Tables.Table table,
         string nullKey)
     {
         var actual = table.ToDictionary(

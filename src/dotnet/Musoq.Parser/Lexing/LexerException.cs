@@ -8,6 +8,7 @@ namespace Musoq.Parser.Lexing;
 /// </summary>
 public class LexerException : Exception, IDiagnosticException
 {
+    private readonly TextSpan? _span;
 
     public LexerException(string message, Exception innerException)
         : base(message, innerException)
@@ -43,6 +44,18 @@ public class LexerException : Exception, IDiagnosticException
     {
         Position = position;
         Code = code;
+    }
+
+    /// <summary>
+    ///     Initializes a lexer exception with the complete source span that is
+    ///     invalid.  The span is retained so diagnostics can underline the
+    ///     malformed token rather than only its first character.
+    /// </summary>
+    public LexerException(string message, TextSpan span, DiagnosticCode code) : base(message)
+    {
+        Position = span.Start;
+        Code = code;
+        _span = span;
     }
 
     /// <summary>
@@ -85,7 +98,7 @@ public class LexerException : Exception, IDiagnosticException
     /// <summary>
     ///     Gets the span of the error.
     /// </summary>
-    public virtual TextSpan? Span => new TextSpan(Position, 1);
+    public virtual TextSpan? Span => _span ?? new TextSpan(Position, 1);
 
     /// <summary>
     ///     Converts this exception to a diagnostic.
@@ -99,15 +112,6 @@ public class LexerException : Exception, IDiagnosticException
         if (sourceText is null)
             return Diagnostic.Error(Code, Message, span);
 
-        var location = sourceText.GetLocation(Position);
-        var contextSnippet = sourceText.GetContextSnippet(span);
-
-        return new Diagnostic(
-            Code,
-            DiagnosticSeverity.Error,
-            Message,
-            location,
-            null,
-            contextSnippet);
+        return SyntaxDiagnosticEnhancer.EnhanceLexerDiagnostic(Code, Message, span, sourceText);
     }
 }

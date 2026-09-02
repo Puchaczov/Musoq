@@ -411,7 +411,6 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count);
     }
 
-    public TestContext TestContext { get; set; }
 
     #endregion
 }

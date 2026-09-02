@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Evaluator.IR.Analysis;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical;
@@ -299,10 +300,18 @@ internal static partial class RecursiveCteInvariantPlanner
             return false;
 
         foreach (var expression in EnumerateExpressionsRecursively(node))
-        foreach (var alias in AliasRefExtractor.Extract(expression))
         {
-            if (selfAliases.Contains(alias))
+            if (!RecursiveScalarInvariantFacts.CanHoist(expression, selfAliases))
                 return false;
+
+            // Keep the existing alias check as a separate guard.  It documents
+            // the recursive frontier boundary and protects future classifiers
+            // that may gain additional expression forms.
+            foreach (var alias in AliasRefExtractor.Extract(expression))
+            {
+                if (selfAliases.Contains(alias))
+                    return false;
+            }
         }
 
         return !ContainsCorrelatedSourceAlias(node, selfAliases);

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Musoq.Schema.Interpreters;
 
 /// <summary>
@@ -61,36 +59,6 @@ public abstract partial class BytesInterpreterBase<TOut> : IBytesInterpreter<TOu
     /// </summary>
     /// <param name="data">The binary data to interpret.</param>
     /// <returns>A PartialInterpretResult containing either the full result or error information with partial fields.</returns>
-    public virtual PartialInterpretResult<TOut> PartialInterpret(ReadOnlySpan<byte> data)
-    {
-        var parsedFields = new Dictionary<string, object?>();
-
-        try
-        {
-            var result = Interpret(data);
-
-
-            foreach (var property in typeof(TOut).GetProperties())
-                if (property.CanRead)
-                    parsedFields[property.Name] = property.GetValue(result);
-
-            return new PartialInterpretResult<TOut>(result, parsedFields, BytesConsumed);
-        }
-        catch (ParseException ex)
-        {
-            return new PartialInterpretResult<TOut>(parsedFields, BytesConsumed, ex.FieldName ?? "Unknown", ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return new PartialInterpretResult<TOut>(parsedFields, BytesConsumed, "Unknown", ex.Message);
-        }
-    }
-
-    /// <summary>
-    ///     Interprets binary data with partial result capture for debugging malformed data.
-    /// </summary>
-    /// <param name="data">The binary data to interpret.</param>
-    /// <returns>A PartialInterpretResult containing either the full result or error information with partial fields.</returns>
     public PartialInterpretResult<TOut> PartialInterpret(byte[] data)
     {
         return PartialInterpret(data.AsSpan());
@@ -121,8 +89,8 @@ public abstract partial class BytesInterpreterBase<TOut> : IBytesInterpreter<TOu
         throw new ParseException(
             ParseErrorCode.InsufficientData,
             SchemaName,
-            null,
+            _currentFieldName,
             ParsePosition,
-            $"Attempted to read {count} bytes at parse position {ParsePosition}, but only {dataLength - ParsePosition} bytes available");
+            $"Attempted to read {count} bytes at parse position {ParsePosition}, but only {Math.Max(0, dataLength - ParsePosition)} bytes available");
     }
 }

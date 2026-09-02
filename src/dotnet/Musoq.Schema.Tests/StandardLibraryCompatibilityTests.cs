@@ -69,6 +69,8 @@ public class StandardLibraryCompatibilityTests
 
         Assert.IsTrue(aggregator.TryResolveWindowFunction("percent_rank", out var percentRank));
         Assert.IsTrue(aggregator.TryResolveWindowFunction("CUME_DIST", out var cumeDist));
+        percentRank = TestNullabilityGuards.Require(percentRank, "percent_rank window function");
+        cumeDist = TestNullabilityGuards.Require(cumeDist, "CUME_DIST window function");
         Assert.AreEqual(nameof(LibraryBase.WindowPercentRank), percentRank.Name);
         Assert.AreEqual(nameof(LibraryBase.WindowCumeDist), cumeDist.Name);
         Assert.AreEqual(typeof(IWindowFunction<object, double>), percentRank.ReturnType);

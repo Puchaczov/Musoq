@@ -9,11 +9,15 @@ public sealed record ExecutionColumnMetadataField
         string name,
         int index,
         ExecutionTypeRef type,
-        IReadOnlyDictionary<string, string>? readModifiers = null)
+        IReadOnlyDictionary<string, string>? readModifiers = null,
+        ExecutionTypeRef? sourceReadType = null,
+        EnumTypeDescriptor? enumType = null)
     {
         Name = name;
         Index = index;
         Type = type;
+        SourceReadType = sourceReadType ?? type;
+        EnumType = enumType;
         ReadModifiers = ColumnReadModifiers.Create(readModifiers);
     }
 
@@ -21,8 +25,16 @@ public sealed record ExecutionColumnMetadataField
         string name,
         int index,
         Type type,
-        IReadOnlyDictionary<string, string>? readModifiers = null)
-        : this(name, index, ExecutionClrBindingFactory.FromClr(type), readModifiers)
+        IReadOnlyDictionary<string, string>? readModifiers = null,
+        Type? sourceReadType = null,
+        EnumTypeDescriptor? enumType = null)
+        : this(
+            name,
+            index,
+            ExecutionClrBindingFactory.FromClr(type),
+            readModifiers,
+            ExecutionClrBindingFactory.FromOptionalClr(sourceReadType),
+            enumType)
     {
     }
 
@@ -31,6 +43,10 @@ public sealed record ExecutionColumnMetadataField
     public int Index { get; init; }
 
     public ExecutionTypeRef Type { get; init; }
+
+    public ExecutionTypeRef SourceReadType { get; init; }
+
+    public EnumTypeDescriptor? EnumType { get; init; }
 
     public IReadOnlyDictionary<string, string> ReadModifiers { get; init; }
 }

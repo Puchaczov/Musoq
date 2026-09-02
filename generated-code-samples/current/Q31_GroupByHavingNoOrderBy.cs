@@ -48,8 +48,8 @@ ExecutionPlan [compiled]
     ParallelSingleKeyAggregateLoop [ko3iko in ko3ikoRows by ko3iko.City; threshold 4096, sample 8192/6144, maxDegree 24, group ResultAggregateGroup]
       ParallelAccumulate
         Let [population: decimal = ko3iko.Population]
-        Let [city: string = ko3iko.City]
         TypedAggregateSet [Set(group.__agg0, population)]
+        Let [city: string = ko3iko.City]
         TypedAggregateSet [Set(group.__agg1, city)]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     PhaseBoundary [Select]
@@ -204,7 +204,6 @@ namespace GeneratedSample_Q31_GroupByHavingNoOrderBy
                 }
 
                 decimal population = ko3iko.Population;
-                string city = ko3iko.City;
                 {
                     var __agg0Input = (decimal?)population;
                     if (__agg0Input.HasValue)
@@ -215,6 +214,7 @@ namespace GeneratedSample_Q31_GroupByHavingNoOrderBy
                     }
                 }
 
+                string city = ko3iko.City;
                 if ((string)city != null)
                 {
                     group.__agg1.Count = checked(group.__agg1.Count + 1L);

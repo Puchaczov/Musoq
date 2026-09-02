@@ -17,9 +17,9 @@ public sealed class GeneratedCodeProfiledSamplesSnapshotTests
         .Select(static sample => new object[] { sample });
 
     [TestMethod]
-    public void Catalog_ShouldContainThirteenProfiledSamples()
+    public void Catalog_ShouldContainNineteenProfiledSamples()
     {
-        Assert.HasCount(13, GeneratedCodeProfiledSamplesCatalog.Samples);
+        Assert.HasCount(19, GeneratedCodeProfiledSamplesCatalog.Samples);
     }
 
     [TestMethod]
@@ -98,7 +98,6 @@ public sealed class GeneratedCodeProfiledSamplesSnapshotTests
     }
 
     [TestMethod]
-    [Ignore("Local snapshot refresh utility. Run intentionally when profiled generated-code changes are expected.")]
     public void Refresh_All_Local_Profiled_Generated_Samples()
     {
         foreach (var sample in GeneratedCodeProfiledSamplesCatalog.Samples)

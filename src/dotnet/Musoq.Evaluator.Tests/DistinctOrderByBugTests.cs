@@ -12,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class DistinctOrderByBugTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     #region Edge case: DISTINCT + ORDER BY with NULL values
 

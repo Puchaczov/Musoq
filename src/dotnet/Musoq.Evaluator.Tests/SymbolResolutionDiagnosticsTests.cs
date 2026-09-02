@@ -1,6 +1,8 @@
+using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
+using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
@@ -46,6 +48,36 @@ public sealed class SymbolResolutionDiagnosticsTests : Schema.NegativeTests.Nega
             CompileQuery("select missing.Name from #test.people() people"));
 
         AssertSingleError(exception, DiagnosticCode.MQ3015_UnknownAlias, DiagnosticPhase.Bind, "missing");
+    }
+
+    [TestMethod]
+    public void UnknownQualifiedAlias_ReportsRepairableSuggestionAtAliasToken()
+    {
+        const string validQuery = "select people.Name from #test.people() people";
+        var query = validQuery.Replace("people.Name", "peple.Name", StringComparison.Ordinal);
+
+        var exception = Assert.Throws<MusoqQueryException>(() => CompileQuery(query));
+        var envelope = exception.PrimaryEnvelope;
+        var aliasStart = query.IndexOf("peple", StringComparison.Ordinal);
+        var aliasSpan = new TextSpan(aliasStart, "peple".Length);
+
+        AssertSingleError(exception, DiagnosticCode.MQ3015_UnknownAlias, DiagnosticPhase.Bind, "Did you mean 'people'?");
+        Assert.AreEqual(aliasStart, envelope.Offset);
+        Assert.AreEqual(aliasSpan.Length, envelope.Length);
+        Assert.AreEqual("peple", query.Substring(envelope.Offset!.Value, envelope.Length!.Value));
+        Assert.AreEqual("peple", envelope.Arguments["alias"]);
+        Assert.AreEqual("people", envelope.Arguments["suggestion"]);
+        Assert.AreEqual("people", envelope.Arguments["availableAliases"]);
+
+        Assert.HasCount(1, envelope.Actions);
+        var action = envelope.Actions[0];
+        Assert.IsNotNull(action.TextEdit);
+        Assert.AreEqual(aliasSpan, action.TextEdit!.Span);
+        Assert.AreEqual("people", action.TextEdit.NewText);
+
+        var repairedQuery = query.Remove(action.TextEdit.Span.Start, action.TextEdit.Span.Length)
+            .Insert(action.TextEdit.Span.Start, action.TextEdit.NewText);
+        CompileQuery(repairedQuery);
     }
 
     [TestMethod]

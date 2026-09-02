@@ -56,6 +56,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
         var sourceId = join.Source is ApplyFromNode ? MetaAttributes.ProcessedQueryId : join.Source.Id;
         var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[sourceId]);
         var secondTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[join.With.Id]);
+        secondTableSymbol = ApplyOrdinalityIfNeeded(join, Scope[join.With.Id], secondTableSymbol);
 
         EnsureSupportedJoinType(join.JoinType);
         if (MakesLeftSideNullable(join.JoinType))
@@ -87,6 +88,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
 
             var currentTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[join.With.Id]);
             var previousTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(id);
+            currentTableSymbol = ApplyOrdinalityIfNeeded(join, Scope[join.With.Id], currentTableSymbol);
 
             EnsureSupportedJoinType(join.JoinType);
             if (MakesLeftSideNullable(join.JoinType))
@@ -131,7 +133,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
         var sourceId = apply.Source is JoinFromNode ? MetaAttributes.ProcessedQueryId : apply.Source.Id;
         var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[sourceId]);
         var secondTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[apply.With.Id]);
-        secondTableSymbol = ApplyOrdinalityIfNeeded(apply, secondTableSymbol);
+        secondTableSymbol = ApplyOrdinalityIfNeeded(apply, Scope[apply.With.Id], secondTableSymbol);
 
         switch (apply.ApplyType)
         {
@@ -161,7 +163,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
 
             var currentTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[apply.With.Id]);
             var previousTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(id);
-            currentTableSymbol = ApplyOrdinalityIfNeeded(apply, currentTableSymbol);
+            currentTableSymbol = ApplyOrdinalityIfNeeded(apply, Scope[apply.With.Id], currentTableSymbol);
 
             switch (apply.ApplyType)
             {
@@ -186,12 +188,20 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
         }
     }
 
-    private TableSymbol ApplyOrdinalityIfNeeded(ApplyFromNode apply, TableSymbol rightTableSymbol)
+    private TableSymbol ApplyOrdinalityIfNeeded(
+        FromNode sourceNode,
+        string rightAlias,
+        TableSymbol rightTableSymbol)
     {
-        if (!apply.WithOrdinality)
+        var withOrdinality = sourceNode switch
+        {
+            ApplyFromNode apply => apply.WithOrdinality,
+            JoinFromNode join => join.WithOrdinality,
+            _ => false
+        };
+        if (!withOrdinality)
             return rightTableSymbol;
 
-        var rightAlias = Scope[apply.With.Id];
         const string ordinalityColumnName = "Ordinal";
         if (rightTableSymbol.AliasContainsColumn(rightAlias, ordinalityColumnName))
         {
@@ -200,7 +210,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
                 nameof(ApplyOrdinalityIfNeeded),
                 $"WITH ORDINALITY cannot be used because apply alias '{rightAlias}' already exposes an Ordinal column.",
                 DiagnosticCode.MQ2030_UnsupportedSyntax,
-                apply.SpanOrEmpty());
+                sourceNode.SpanOrEmpty());
         }
 
         var ordinalColumn = new SchemaColumn(
@@ -209,7 +219,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
             typeof(int));
         var updatedSymbol = rightTableSymbol.WithAdditionalColumn(rightAlias, ordinalColumn);
 
-        Scope.ScopeSymbolTable.UpdateSymbol(Scope[apply.With.Id], updatedSymbol);
+        Scope.ScopeSymbolTable.UpdateSymbol(rightAlias, updatedSymbol);
         if (Visitor is BuildMetadataAndInferTypesVisitor metadataVisitor)
             metadataVisitor.UpdateInferredColumnsByAlias(rightAlias, updatedSymbol.GetColumns(rightAlias));
 
@@ -219,29 +229,8 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
     public override void Visit(ValuesFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        ValidateValuesLiteralExpressions(node);
+        ValuesSourceLiteralValidator.Validate(node);
 
         VisitChildrenThenNode(node);
-    }
-
-    private static void ValidateValuesLiteralExpressions(ValuesFromNode node)
-    {
-        foreach (var row in node.Rows)
-        foreach (var field in row.Fields)
-            if (!ValuesStaticExpressionRules.IsStaticScalarExpression(field.Expression))
-                throw new ValuesSourceException(
-                    $"VALUES field '{field.Name}' must be a constant literal expression or scalar script parameter/let expression. Use literals, NULL, scalar script parameters, scalar let variables, or arithmetic over them.",
-                    GetValuesExpressionSpan(node, field));
-    }
-
-    private static TextSpan GetValuesExpressionSpan(ValuesFromNode node, ValuesFieldNode field)
-    {
-        if (field.Expression.HasSpan)
-            return field.Expression.Span;
-
-        if (!field.NameSpan.IsEmpty)
-            return field.NameSpan;
-
-        return node.SpanOrEmpty();
     }
 }

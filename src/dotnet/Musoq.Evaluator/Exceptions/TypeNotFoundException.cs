@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Musoq.Evaluator;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
@@ -57,7 +59,12 @@ public class TypeNotFoundException : Exception, IDiagnosticException
     /// </summary>
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        var span = Span ?? TextSpan.Empty;
-        return Diagnostic.Error(Code, Message, span);
+        var arguments = string.IsNullOrWhiteSpace(TypeName)
+            ? null
+            : new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["type"] = TypeName
+            };
+        return SemanticDiagnosticFactory.Create(Code, Message, Span, sourceText, arguments);
     }
 }

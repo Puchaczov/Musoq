@@ -17,7 +17,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class NullInSetOperatorsTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     #region UNION ALL with null columns (should work — no comparison)
 

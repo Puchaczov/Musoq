@@ -75,10 +75,7 @@ public partial class SubqueryToCteRewriteVisitor
                     cteInnerExpressions,
                     rightVisibleAliases,
                     false);
-                return new DerivedTableRewriteResult(
-                    new Parser.JoinFromNode(source.From, with.From, join.Expression, join.JoinType),
-                    false,
-                    null);
+                return new DerivedTableRewriteResult(new Parser.JoinFromNode(source.From, with.From, join.Expression, join.JoinType, join.TieBreak, join.WithOrdinality), false, null);
             }
 
             case Parser.ApplyFromNode apply:
@@ -101,14 +98,7 @@ public partial class SubqueryToCteRewriteVisitor
                         false,
                         null);
 
-                return new DerivedTableRewriteResult(
-                    new Parser.JoinFromNode(
-                        source.From,
-                        with.From,
-                        with.JoinPredicate ?? CreateAlwaysTruePredicate(),
-                        apply.ApplyType == ApplyType.Cross ? JoinType.Inner : JoinType.OuterLeft),
-                    false,
-                    null);
+                return new DerivedTableRewriteResult(new Parser.JoinFromNode(source.From, with.From, with.JoinPredicate ?? CreateAlwaysTruePredicate(), apply.ApplyType == ApplyType.Cross ? JoinType.Inner : JoinType.OuterLeft, withOrdinality: apply.WithOrdinality), false, null);
             }
 
             default:

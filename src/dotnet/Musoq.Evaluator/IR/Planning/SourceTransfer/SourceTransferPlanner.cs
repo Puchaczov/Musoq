@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Musoq.Evaluator.Exceptions;
+using Musoq.Parser;
 using Musoq.Schema;
 using Musoq.Schema.Optimization;
 
@@ -41,6 +43,21 @@ internal static class SourceTransferPlanner
     {
         if (!sourcePlanning.SourceDescriptorsBySourceId.TryGetValue(source.SourceContextId, out var descriptor))
             return SourceTransferStrategyPlan.Legacy(source.SourceContextId, "source descriptor was unavailable");
+
+        var logicalEnumColumn = FindLogicalScalarEnumColumn(sourcePlanning, source, descriptor);
+        if (logicalEnumColumn != null)
+        {
+            var required = SourceTransferCapabilities.QueryScopedRows |
+                           SourceTransferCapabilities.LogicalScalarReads;
+            if ((descriptor.TransferCapabilities & required) != required ||
+                (context.TargetSourceTransferCapabilities & required) != required)
+            {
+                throw new EnumSourceCapabilityException(
+                    $"{descriptor.Identity.SchemaName}.{descriptor.Identity.MethodName}",
+                    logicalEnumColumn.ColumnName,
+                    ResolveColumnSpan(sourcePlanning, source.SourceContextId, logicalEnumColumn.ColumnName));
+            }
+        }
 
         if (!descriptor.TransferCapabilities.HasFlag(SourceTransferCapabilities.QueryScopedRows))
         {
@@ -94,6 +111,14 @@ internal static class SourceTransferPlanner
         if (!TryResolveColumns(sourcePlanning, source, descriptor, out var columns, out reason))
         {
             shape = null!;
+            return false;
+        }
+
+        var volatileColumn = columns.FirstOrDefault(static column => column.Stability == ColumnStability.Volatile);
+        if (volatileColumn != null)
+        {
+            shape = null!;
+            reason = $"query-row transfer would freeze volatile column '{volatileColumn.ColumnName}'; retained declared-row fallback";
             return false;
         }
 
@@ -157,8 +182,11 @@ internal static class SourceTransferPlanner
                 column.ColumnIndex,
                 column.ColumnName,
                 column.ColumnType,
+                column.SourceReadType,
+                column.EnumType,
                 IsNullable(column.ColumnType),
-                column.ReadModifiers));
+                column.ReadModifiers,
+                column.Stability));
         }
 
         shape = new QueryRowShape(fields);
@@ -266,6 +294,49 @@ internal static class SourceTransferPlanner
     private static bool IsNullable(Type type)
     {
         return !type.IsValueType || Nullable.GetUnderlyingType(type) != null;
+    }
+
+    private static bool RequiresLogicalScalarRead(ISchemaColumn column)
+    {
+        if (column.EnumType == null)
+            return false;
+
+        var sourceType = Nullable.GetUnderlyingType(column.SourceReadType) ?? column.SourceReadType;
+        return !sourceType.IsEnum;
+    }
+
+    private static ISchemaColumn? FindLogicalScalarEnumColumn(
+        SourcePlanningFacts sourcePlanning,
+        SourcePlanProperties source,
+        SourceDescriptor descriptor)
+    {
+        if (TryResolveColumns(sourcePlanning, source, descriptor, out var resolvedColumns, out _))
+        {
+            var resolved = resolvedColumns.FirstOrDefault(RequiresLogicalScalarRead);
+            if (resolved != null)
+                return resolved;
+        }
+
+        IEnumerable<ISchemaColumn> candidates = source.QueryRowProjection.Columns
+            .Concat(source.ProjectedSchemaColumns)
+            .Concat(descriptor.Columns);
+        if (sourcePlanning.ProjectedSchemaColumnsBySourceId.TryGetValue(source.SourceContextId, out var projected))
+            candidates = candidates.Concat(projected);
+        if (sourcePlanning.SourceInteractionPlansBySourceId.TryGetValue(source.SourceContextId, out var interaction))
+            candidates = candidates.Concat(interaction.QuerySourceColumns);
+
+        return candidates.FirstOrDefault(RequiresLogicalScalarRead);
+    }
+
+    private static TextSpan ResolveColumnSpan(
+        SourcePlanningFacts sourcePlanning,
+        string sourceContextId,
+        string columnName)
+    {
+        return sourcePlanning.SourceContractDiagnosticLocationsBySourceId.TryGetValue(sourceContextId, out var locations) &&
+               locations.TryGetColumnSpan(columnName, out var span)
+            ? span
+            : TextSpan.Empty;
     }
 
     private static int EstimatePayload(QueryRowShape shape)

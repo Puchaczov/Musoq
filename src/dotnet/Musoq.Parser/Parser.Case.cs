@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
 
@@ -8,7 +10,14 @@ public partial class Parser
 {
     private ((Node When, Node Then)[] WhenThenNodes, Node ElseNode) ComposeCase()
     {
-        Consume(TokenType.Case);
+        var caseToken = ConsumeAndGetToken(TokenType.Case);
+
+        if (Current.TokenType == TokenType.Comma)
+            throw new SyntaxException(
+                "CASE is reserved and starts a CASE expression here, but no WHEN branch or subject expression follows. Use [case] when the word is intended as an identifier.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2027_MissingWhenClause,
+                caseToken.Span);
 
         Node? subjectExpression = null;
         if (Current.TokenType != TokenType.When)

@@ -14,7 +14,8 @@ public enum GeneratedQueryRowSampleShape
 {
     Narrow,
     Wide,
-    SpecialNames
+    SpecialNames,
+    Enum
 }
 
 public sealed class GeneratedQueryRowSampleSchemaProvider(
@@ -34,12 +35,14 @@ public sealed class GeneratedQueryRowSampleSchema : SchemaBase, IQueryScopedRowS
 {
     private readonly GeneratedQueryRowSampleDefinition _definition;
     private readonly bool _queryScopedRowsEnabled;
+    private readonly GeneratedQueryRowSampleShape _shape;
 
     public GeneratedQueryRowSampleSchema(
         GeneratedQueryRowSampleShape shape,
         bool queryScopedRowsEnabled)
         : base("queryrowsample", CreateMethods())
     {
+        _shape = shape;
         _definition = GeneratedQueryRowSampleDefinition.Create(shape);
         _queryScopedRowsEnabled = queryScopedRowsEnabled;
     }
@@ -50,7 +53,13 @@ public sealed class GeneratedQueryRowSampleSchema : SchemaBase, IQueryScopedRowS
         params object?[] parameters)
     {
         if (string.Equals(name, "rows", StringComparison.OrdinalIgnoreCase))
-            return new GeneratedQueryRowSampleTable(_definition.Columns);
+        {
+            var columns = _shape == GeneratedQueryRowSampleShape.Enum &&
+                          metadataContext.AllColumns.Count > 0
+                ? metadataContext.AllColumns.ToArray()
+                : _definition.Columns;
+            return new GeneratedQueryRowSampleTable(columns);
+        }
 
         return base.GetTableByName(name, metadataContext, parameters);
     }
@@ -69,10 +78,18 @@ public sealed class GeneratedQueryRowSampleSchema : SchemaBase, IQueryScopedRowS
         SourceDescribeContext context,
         params object?[] parameters)
     {
-        return base.DescribeSource(name, context, parameters) with
+        var descriptor = base.DescribeSource(name, context, parameters);
+        return descriptor with
         {
+            Columns = _shape == GeneratedQueryRowSampleShape.Enum &&
+                      context.MetadataContext.AllColumns.Count > 0
+                ? context.MetadataContext.AllColumns.ToArray()
+                : descriptor.Columns,
             TransferCapabilities = _queryScopedRowsEnabled
-                ? SourceTransferCapabilities.QueryScopedRows
+                ? SourceTransferCapabilities.QueryScopedRows |
+                  (_shape == GeneratedQueryRowSampleShape.Enum
+                      ? SourceTransferCapabilities.LogicalScalarReads
+                      : SourceTransferCapabilities.None)
                 : SourceTransferCapabilities.None
         };
     }
@@ -206,6 +223,15 @@ internal sealed record GeneratedQueryRowSampleDefinition(
                 ],
                 [
                     ["visible", 7, "Łódź", "keyword"]
+                ]),
+            GeneratedQueryRowSampleShape.Enum => new GeneratedQueryRowSampleDefinition(
+                [
+                    new SchemaColumn("Id", 0, typeof(int)),
+                    new SchemaColumn("Status", 1, typeof(short)),
+                    new SchemaColumn("Access", 2, typeof(uint))
+                ],
+                [
+                    [1, (short)20, 3u]
                 ]),
             _ => throw new ArgumentOutOfRangeException(nameof(shape), shape, null)
         };

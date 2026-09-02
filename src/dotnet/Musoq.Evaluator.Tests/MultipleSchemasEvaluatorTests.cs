@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenCompilerMustDecideWhichOneOfTheMethodsUse_ShouldChoseTheFirstOne()

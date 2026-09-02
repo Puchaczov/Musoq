@@ -80,7 +80,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return CreateParallelProjectionProjector(
             parallelProject,
-            appendRow => this.CreateFinalShapeCreation(shapeTypeName, appendRow),
+            appendRow => CreateFinalShapeCreation(shapeTypeName, appendRow),
             context);
     }
 }

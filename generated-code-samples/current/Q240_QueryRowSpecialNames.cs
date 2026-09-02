@@ -14,14 +14,14 @@ MultiStatement
 /*
 PhysicalMultiStatement
   PhysicalProject [r.display name as r.display name, r.na-me as r.na-me, r.MiastoŁódź as r.MiastoŁódź, r.select as r.select]
-    PhysicalSchemaScan [#queryrowsample.rows() as r] [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=7AFAF5473CF51BE2A3159512DC876CF0822D6E111856C890DC5E3681D05FC4B1]
+    PhysicalSchemaScan [#queryrowsample.rows() as r] [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=5114E4DFC94BD4C37BD01BF54405165C943EACCCB818459F71B705D773929B0B]
 */
 
 // === Execution Plan ===
 /*
 ExecutionPlan [compiled]
   Shapes
-    Generated [QueryRow_7AFAF5473CF5_S]
+    Generated [QueryRow_5114E4DFC94B_S]
       display name: string <- field Field0
       na-me: int <- field Field1
       MiastoŁódź: string <- field Field2
@@ -35,7 +35,7 @@ ExecutionPlan [compiled]
   Body
     PhaseBoundary [Begin]
     PhaseBoundary [From]
-    SourceScan [r: object] -> rRows [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=7AFAF5473CF51BE2A3159512DC876CF0822D6E111856C890DC5E3681D05FC4B1]
+    SourceScan [r: object] -> rRows [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=5114E4DFC94BD4C37BD01BF54405165C943EACCCB818459F71B705D773929B0B]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     PhaseBoundary [Select]
     ChunkedForEach [r in rRows]
@@ -71,7 +71,7 @@ namespace GeneratedSample_Q240_QueryRowSpecialNames
             new Column("r.MiastoŁódź", typeof(string), 2),
             new Column("r.select", typeof(string), 3)
         };
-        private static readonly QueryRowShape __queryRowShape_7AFAF5473CF5 = new QueryRowShape(new QueryRowField[] { new QueryRowField(0, 0, "display name", typeof(string), true), new QueryRowField(1, 1, "na-me", typeof(int), false), new QueryRowField(2, 2, "MiastoŁódź", typeof(string), true), new QueryRowField(3, 3, "select", typeof(string), true) });
+        private static readonly QueryRowShape __queryRowShape_5114E4DFC94B = new QueryRowShape(new QueryRowField[] { new QueryRowField(0, 0, "display name", typeof(string), true), new QueryRowField(1, 1, "na-me", typeof(int), false), new QueryRowField(2, 2, "MiastoŁódź", typeof(string), true), new QueryRowField(3, 3, "select", typeof(string), true) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_r_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("display name", typeof(string), 0), new Column("na-me", typeof(int), 1), new Column("MiastoŁódź", typeof(string), 2), new Column("select", typeof(string), 3) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
@@ -100,12 +100,12 @@ namespace GeneratedSample_Q240_QueryRowSpecialNames
             this.OnPhaseChanged("compiled", QueryPhase.Begin);
             this.OnPhaseChanged("compiled", QueryPhase.From);
             var __rSchema = provider.GetSchema("#queryrowsample");
-            var __rSchemaQueryRows = __rSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape 7AFAF5473CF51BE2A3159512DC876CF0822D6E111856C890DC5E3681D05FC4B1).");
-            var rRowsSource = __rSchemaQueryRows.GetQueryScopedRowSource<QueryRow_7AFAF5473CF5_S, QueryRowMaterializer_7AFAF5473CF5_S>("rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("r:1", sourceExecutionPlans["r:1"], token, __schemaColumns_compiled_r_0, sourceRuntimeSettingsBySourceContextId["r:1"], logger, OnDataSourceProgress), __queryRowShape_7AFAF5473CF5), Array.Empty<object>());
-            var rRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_7AFAF5473CF5_S>(rRowsSource.Chunks, __musoqProgressContext, "r:1") : rRowsSource.Chunks;
+            var __rSchemaQueryRows = __rSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape 5114E4DFC94BD4C37BD01BF54405165C943EACCCB818459F71B705D773929B0B).");
+            var rRowsSource = __rSchemaQueryRows.GetQueryScopedRowSource<QueryRow_5114E4DFC94B_S, QueryRowMaterializer_5114E4DFC94B_S>("rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("r:1", sourceExecutionPlans["r:1"], token, __schemaColumns_compiled_r_0, sourceRuntimeSettingsBySourceContextId["r:1"], logger, OnDataSourceProgress), __queryRowShape_5114E4DFC94B), Array.Empty<object>());
+            var rRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_5114E4DFC94B_S>(rRowsSource.Chunks, __musoqProgressContext, "r:1") : rRowsSource.Chunks;
             var __musoqTableSourceRows = rRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<QueryRow_7AFAF5473CF5_S, ResultRow0>(__musoqTableSourceRows, (r) => true, (r) => new ResultRow0(r.Field0, r.Field1, r.Field2, r.Field3), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<QueryRow_5114E4DFC94B_S, ResultRow0>(__musoqTableSourceRows, (r) => true, (r) => new ResultRow0(r.Field0, r.Field1, r.Field2, r.Field3), token), token, onCompleted: () =>
             {
                 try
                 {
@@ -150,15 +150,15 @@ namespace GeneratedSample_Q240_QueryRowSpecialNames
             PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
         }
 
-        private readonly struct QueryRowMaterializer_7AFAF5473CF5_S : IQueryRowMaterializer<QueryRow_7AFAF5473CF5_S>
+        private readonly struct QueryRowMaterializer_5114E4DFC94B_S : IQueryRowMaterializer<QueryRow_5114E4DFC94B_S>
         {
-            public static QueryRow_7AFAF5473CF5_S Materialize<TReader>(scoped ref TReader reader)
-                where TReader : IQuerySourceFieldReader, allows ref struct => new QueryRow_7AFAF5473CF5_S(reader.Read<string>(0), reader.Read<int>(1), reader.Read<string>(2), reader.Read<string>(3));
+            public static QueryRow_5114E4DFC94B_S Materialize<TReader>(scoped ref TReader reader)
+                where TReader : IQuerySourceFieldReader, allows ref struct => new QueryRow_5114E4DFC94B_S(reader.Read<string>(0), reader.Read<int>(1), reader.Read<string>(2), reader.Read<string>(3));
         }
 
-        private readonly struct QueryRow_7AFAF5473CF5_S
+        private readonly struct QueryRow_5114E4DFC94B_S
         {
-            public QueryRow_7AFAF5473CF5_S(string Field0, int Field1, string Field2, string Field3)
+            public QueryRow_5114E4DFC94B_S(string Field0, int Field1, string Field2, string Field3)
             {
                 this.Field0 = Field0;
                 this.Field1 = Field1;

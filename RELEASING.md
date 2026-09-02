@@ -47,8 +47,11 @@ package must remain binary compatible with previously published versions in that
 
 The release packer resolves the greatest published lower version in the same major and enables the
 .NET SDK package baseline validator for these two packages. A binary-breaking change fails packaging.
-Do not suppress package compatibility diagnostics for a same-major release; use a new major version
-when the datasource ABI must change. The first release in a new major has no prior baseline.
+Stable, preview, and beta releases must remain compatible with that baseline. Alpha releases are an
+explicit experimental exception: they may intentionally break the datasource ABI, and the release
+packer skips baseline validation for an alpha tag. The release notes must call out the intentional
+breaking contract so downstream providers rebuild against the alpha train. The first release in a
+new major has no prior baseline.
 
 ## Local Release Validation
 

@@ -258,33 +258,7 @@ public static partial class EvaluationHelper
         if (target is null)
             return null;
 
-        if (indexer is string keyIndexer)
-        {
-            if (target is IDictionary<string, object> stringDictionary)
-                return stringDictionary.TryGetValue(keyIndexer, out var value) ? value : null;
-
-            if (target is IDictionary nonGenericDictionary)
-                return nonGenericDictionary.Contains(keyIndexer) ? nonGenericDictionary[keyIndexer] : null;
-
-            var keyIndexerProperty = target.GetType()
-                .GetProperty("Item", BindingFlags.Public | BindingFlags.Instance, null, null, [typeof(string)], null);
-            return keyIndexerProperty?.GetValue(target, [keyIndexer]);
-        }
-
-        if (indexer is int numericIndexer)
-        {
-            if (target is Array array)
-                return numericIndexer >= 0 && numericIndexer < array.Length ? array.GetValue(numericIndexer) : null;
-
-            if (target is IList list)
-                return numericIndexer >= 0 && numericIndexer < list.Count ? list[numericIndexer] : null;
-
-            var numericIndexerProperty = target.GetType()
-                .GetProperty("Item", BindingFlags.Public | BindingFlags.Instance, null, null, [typeof(int)], null);
-            return numericIndexerProperty?.GetValue(target, [numericIndexer]);
-        }
-
-        return null;
+        return SafeArrayAccess.GetIndexedElement(target, indexer, null);
     }
 
     private static bool TryInvokeDynamicGetMember(System.Dynamic.DynamicObject dynamicObject, string memberName, out object? value)

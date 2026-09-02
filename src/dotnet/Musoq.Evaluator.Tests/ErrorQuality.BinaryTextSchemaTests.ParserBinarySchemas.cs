@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -20,10 +21,10 @@ select 1 from #A.Entities()";
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert — Duplicate field names are accepted by Musoq's parser.
-        // The schema definition allows duplicate field names without error.
-        // This is a known limitation — ideally MQ4008 should be reported.
-        AssertNoErrors(result);
+        // Assert — duplicate field names are a schema definition error.
+        AssertHasDiagnosticCode(result,
+            DiagnosticCode.MQ4008_DuplicateSchemaField,
+            "duplicate binary schema field");
     }
 
     #endregion

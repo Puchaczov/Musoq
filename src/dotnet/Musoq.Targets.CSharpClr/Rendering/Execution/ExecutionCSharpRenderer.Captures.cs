@@ -38,7 +38,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static TypeSyntax CreateCapturedLocalTypeSyntax(CapturedLocal capture)
     {
-        if (!string.IsNullOrWhiteSpace(capture.GeneratedRowTypeName) && capture.Type.RequireClrType() == typeof(IReadOnlyList<Musoq.Evaluator.Tables.Row>))
+        if (!string.IsNullOrWhiteSpace(capture.GeneratedRowTypeName) && capture.Type.RequireClrType() == typeof(IReadOnlyList<Evaluator.Tables.Row>))
             return CreateReadOnlyListTypeSyntax(SyntaxFactory.ParseTypeName(capture.GeneratedRowTypeName));
 
         return string.IsNullOrWhiteSpace(capture.GeneratedRowTypeName)

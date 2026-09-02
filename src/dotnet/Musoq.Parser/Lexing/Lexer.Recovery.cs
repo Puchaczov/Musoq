@@ -20,7 +20,7 @@ public sealed partial class Lexer
 
         if (RecoverOnError)
         {
-            Diagnostics.AddError(DiagnosticCode.MQ1001_UnknownToken, span, c.ToString());
+            Diagnostics.Add(new UnknownTokenException(start, c, Input[start..]).ToDiagnostic(SourceText));
             return AssignToken(new ErrorToken(c, span));
         }
 

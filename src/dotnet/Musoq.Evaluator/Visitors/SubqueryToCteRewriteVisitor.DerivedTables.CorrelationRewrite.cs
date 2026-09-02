@@ -20,13 +20,13 @@ public partial class SubqueryToCteRewriteVisitor
             case QueryNode query:
             {
                 var rewritten = RewriteCorrelatedDerivedTable(query, correlation, rightAlias, derived);
-                return new DerivedCorrelationRewrite(rewritten.Query, rewritten.JoinPredicate);
+                return new DerivedCorrelationRewrite(rewritten.Query, rewritten.JoinPredicate, rewritten.CorrelationKey);
             }
 
             case SingleSetNode singleSet:
             {
                 var rewritten = RewriteCorrelatedDerivedTable(singleSet.Query, correlation, rightAlias, derived);
-                return new DerivedCorrelationRewrite(new SingleSetNode(rewritten.Query), rewritten.JoinPredicate);
+                return new DerivedCorrelationRewrite(new SingleSetNode(rewritten.Query), rewritten.JoinPredicate, rewritten.CorrelationKey);
             }
 
             case SetOperatorNode setOperator:
@@ -46,30 +46,27 @@ public partial class SubqueryToCteRewriteVisitor
     {
         var left = RewriteCorrelatedDerivedBody(setOperator.Left, correlation, rightAlias, derived);
         var right = RewriteCorrelatedDerivedBody(setOperator.Right, correlation, rightAlias, derived);
-        var joinPredicate = RequireCompatibleDerivedSetJoinPredicate(left.JoinPredicate, right.JoinPredicate, derived);
+        var joinPredicate = RequireCompatibleDerivedSetJoinPredicate(left, right, derived);
 
-        return new DerivedCorrelationRewrite(
-            RecreateSetOperator(setOperator, left.Body, right.Body),
-            joinPredicate);
+        return new DerivedCorrelationRewrite(RecreateSetOperator(setOperator, left.Body, right.Body), joinPredicate, left.CorrelationKey);
     }
 
-    private static Node RequireCompatibleDerivedSetJoinPredicate(
-        Node? left,
-        Node? right,
-        DerivedTableFromNode derived)
+    private static Node RequireCompatibleDerivedSetJoinPredicate(DerivedCorrelationRewrite left, DerivedCorrelationRewrite right, DerivedTableFromNode derived)
     {
-        if (left == null || right == null)
+        if (left.JoinPredicate == null || right.JoinPredicate == null)
             ThrowUnsupportedDerivedCorrelation(derived,
                 "Every branch of a correlated APPLY set-operator derived table must expose the same projected correlation key.");
 
-        if (!string.Equals(left.ToString(), right.ToString(), StringComparison.Ordinal))
+        if (!AreSameDerivedCorrelationKey(left.CorrelationKey, right.CorrelationKey) || !string.Equals(left.JoinPredicate.ToString(), right.JoinPredicate.ToString(), StringComparison.Ordinal))
             ThrowUnsupportedDerivedCorrelation(derived,
                 "Every branch of a correlated APPLY set-operator derived table must use the same projected correlation key.");
 
-        return left;
+        return left.JoinPredicate;
     }
 
-    private static CorrelatedSubqueryRewrite RewriteCorrelatedDerivedTable(
+    private static bool AreSameDerivedCorrelationKey(string[] left, string[] right) => left.Length == right.Length && left.SequenceEqual(right, StringComparer.OrdinalIgnoreCase);
+
+    private static DerivedCorrelationQueryRewrite RewriteCorrelatedDerivedTable(
         QueryNode query,
         SubqueryCorrelationInfo correlation,
         string rightAlias,
@@ -111,7 +108,7 @@ public partial class SubqueryToCteRewriteVisitor
             correlation.LocalAliases,
             rightAlias);
 
-        return new CorrelatedSubqueryRewrite(rewrittenQuery, joinPredicate);
+        return new DerivedCorrelationQueryRewrite(rewrittenQuery, joinPredicate, projections.Select(static projection => projection.ColumnName).ToArray());
     }
 
     private static CorrelationProjection[] CollectVisibleDerivedCorrelationProjections(

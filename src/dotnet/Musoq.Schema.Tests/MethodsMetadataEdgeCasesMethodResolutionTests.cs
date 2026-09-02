@@ -80,6 +80,7 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
             _methodsMetadata.TryGetMethod("DynamicMethod", [typeof(int)], null, out method),
             "Should resolve specific int method"
         );
+        method = RequireResolved(method);
         Assert.AreEqual(typeof(int), method.GetParameters()[0].ParameterType);
     }
 
@@ -91,6 +92,7 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
             "Should resolve method for null value"
         );
 
+        method = RequireResolved(method);
         Assert.AreEqual(typeof(int?), method.GetParameters()[0].ParameterType);
     }
 
@@ -101,6 +103,7 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
             _methodsMetadata.TryGetMethod("ArrayMethod", [typeof(int[])], null, out var method),
             "Should resolve specific array type"
         );
+        method = RequireResolved(method);
         Assert.AreEqual(typeof(int[]), method.GetParameters()[0].ParameterType);
 
         Assert.IsTrue(
@@ -108,6 +111,7 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
             "Should resolve to Array parameter for different array type"
         );
 
+        method = RequireResolved(method);
         Assert.AreEqual(typeof(Array), method.GetParameters()[0].ParameterType);
     }
 
@@ -119,6 +123,7 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
             "Should resolve with multiple injected parameters"
         );
 
+        method = RequireResolved(method);
         var parameters = method.GetParameters();
         Assert.HasCount(3, parameters, "Should have all parameters");
         Assert.IsTrue(Attribute.IsDefined(parameters[0], typeof(InjectSpecificSourceAttribute)));
@@ -136,6 +141,7 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
             "Should resolve complex parameter combination"
         );
 
+        method = RequireResolved(method);
         var parameters = method.GetParameters();
         Assert.IsNotNull(parameters[^1].GetCustomAttribute<ParamArrayAttribute>(),
             "Last parameter should be params array");
@@ -165,6 +171,7 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
             "Should resolve to object[] params for mixed types"
         );
 
+        objectMethod = RequireResolved(objectMethod);
         Assert.AreEqual(typeof(object[]), objectMethod.GetParameters()[1].ParameterType);
     }
 

@@ -65,7 +65,7 @@ public sealed partial class PhysicalPlanBuilder
             SortNode sort => new PhysicalSortNode(sort.Keys, Lower(sort.Input, strategyPlan)),
             SkipNode skip => new PhysicalSkipNode(skip.Count, Lower(skip.Input, strategyPlan)),
             WindowNode window => LowerWindow(window, strategyPlan),
-            DescNode desc => new PhysicalDescNode(desc.SchemaName, desc.MethodName, desc.Type, desc.Column, desc.Arguments, desc.SourceContextId, desc.OutputSchema, desc.QueryOutputSchema),
+            DescNode desc => new PhysicalDescNode(desc.SchemaName, desc.MethodName, desc.Type, desc.Column, desc.Arguments, desc.SourceContextId, desc.OutputSchema, desc.QueryOutputSchema, desc.ColumnSpan),
             AggregateNode aggregate => LowerAggregate(aggregate, strategyPlan),
             JoinNode join => LowerJoin(join, strategyPlan),
             ApplyNode apply => LowerApply(apply, strategyPlan),

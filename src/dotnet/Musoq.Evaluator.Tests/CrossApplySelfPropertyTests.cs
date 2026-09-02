@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class CrossApplySelfPropertyTests : GenericEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void CrossApplyProperty_NoMatch_ShouldPass()

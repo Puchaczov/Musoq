@@ -15,17 +15,17 @@ public partial class BuildMetadataAndInferTypesVisitor
         (ISchema Schema, ISchemaTable Table, string TableName) SchemaTablePair,
         Type EntityType);
 
-    private readonly record struct AggregateResolutionSignature(Type SchemaType, MethodInfo Method, MethodInfo SetMethod)
+    private readonly record struct AggregateResolutionSignature(MethodInfo Method, MethodInfo SetMethod)
     {
         public bool Equals(AggregateResolutionSignature other)
         {
-            return SchemaType == other.SchemaType && AreSameMethod(Method, other.Method) &&
+            return AreSameMethod(Method, other.Method) &&
                    AreSameMethod(SetMethod, other.SetMethod);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(SchemaType, Method.Module, Method.MetadataToken, SetMethod.Module,
+            return HashCode.Combine(Method.Module, Method.MetadataToken, SetMethod.Module,
                 SetMethod.MetadataToken);
         }
 

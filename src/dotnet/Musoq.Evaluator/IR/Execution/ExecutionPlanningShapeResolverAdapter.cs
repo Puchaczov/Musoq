@@ -49,7 +49,12 @@ internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolv
                 column.Index,
                 column.Type,
                 FieldNullability.Unknown,
-                new PositionalAccess(column.Index))).ToArray());
+                new PositionalAccess(column.Index),
+                sourceReadType: column.SourceReadType,
+                enumType: column.EnumType) with
+            {
+                Stability = column.Stability
+            }).ToArray());
 
     private RowShape ResolveExecutionInterpretSourceShape(PhysicalInterpretSourceNode interpret) =>
         resolver.ResolveInterpretSourceShape(interpret);
@@ -83,7 +88,9 @@ internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolv
             field.Type.ResolveClrType(),
             ResolveNullability(field.Nullability),
             ResolveAccessKind(field.AccessStrategy),
-            field.PublicType?.ResolveClrType());
+            field.PublicType?.ResolveClrType(),
+            field.SourceReadType.ResolveClrType(),
+            field.EnumType);
     }
 
     private static PlanningFieldNullability ResolveNullability(FieldNullability nullability)

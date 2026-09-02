@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class CrossApplyMixedTests : GenericEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void CrossApply_SchemaAndProperty_WithNestedProperty()

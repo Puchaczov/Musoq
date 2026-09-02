@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests.IR;
 [TestClass]
 public sealed class RecursiveCteRecognitionTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     private const string CounterQuery =
         "with recursive counter (Value) as (" +

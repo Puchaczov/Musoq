@@ -12,6 +12,7 @@ public sealed partial class RewriteQueryVisitor
 {
     private void PushResultQuerySplit(QueryRewriteContext context)
     {
+        QueryRewriteUtilities.ThrowIfUnsupportedAggregateProjection(context.GroupBy, context.Select.Fields);
         if (context.GroupBy == null)
         {
             var split = FieldProcessingHelper.SplitBetweenAggregateAndNonAggregate(context.Select.Fields, [], true);

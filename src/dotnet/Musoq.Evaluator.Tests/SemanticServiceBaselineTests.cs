@@ -243,7 +243,7 @@ public sealed class SemanticServiceBaselineTests
         var error = diagnostics.Errors.Single();
         Assert.AreEqual(DiagnosticCode.MQ3027_InvalidExpressionType, error.Code);
         Assert.AreEqual(
-            "Expression 'Self' has invalid type 'Musoq.Evaluator.Tests.SemanticServiceBaselineTests+IndexerEntity' in SELECT. Only primitive types are allowed in query expressions.",
+            "Expression 'Self' has invalid type 'IndexerEntity' in SELECT. Only primitive types are allowed in query expressions.",
             error.Message);
     }
 
@@ -351,7 +351,7 @@ public sealed class SemanticServiceBaselineTests
             "Set operator must have the same quantity of columns in both queries. Left has 2 columns, right has 3 columns.",
             new SetOperatorMustHaveSameQuantityOfColumnsException(2, 3, TextSpan.Empty).Message);
         Assert.AreEqual(
-            "Set operator must have the same types of columns in both queries. Left column expression is Musoq.Parser.Nodes.FieldNode and right column expression is Musoq.Parser.Nodes.FieldNode",
+            "Set operator must have the same types of columns in both queries. Left column expression is 1 and right column expression is 'name'",
             new SetOperatorMustHaveSameTypesOfColumnsException(
                 new FieldNode(new IntegerNode(1), 0, "Id"),
                 new FieldNode(new StringNode("name"), 0, "Name")).Message);

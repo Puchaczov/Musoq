@@ -71,7 +71,9 @@ public sealed class TargetPipelineEndToEndTests
         Assert.AreEqual(
             artifactResult.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256],
             CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(loaded.BuildItems.RenderingArtifact));
-        var table = loaded.CompiledQuery.Run();
+        var loadedCompiledQuery = loaded.CompiledQuery ??
+            throw new AssertFailedException("Successful artifact load did not produce a compiled query.");
+        var table = loadedCompiledQuery.Run();
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("loaded", table[0][0]);
 
@@ -130,7 +132,9 @@ public sealed class TargetPipelineEndToEndTests
         Assert.IsTrue(second.Succeeded, FormatDiagnostics(second.Diagnostics));
         Assert.IsNotNull(second.BuildItems);
         Assert.IsTrue(second.BuildItems.StopAfterPlanning);
-        Assert.AreEqual("single", second.CompiledQuery.Run()[0][0]);
+        var secondCompiledQuery = second.CompiledQuery ??
+            throw new AssertFailedException("Successful cache activation did not produce a compiled query.");
+        Assert.AreEqual("single", secondCompiledQuery.Run()[0][0]);
     }
 
     [TestMethod]
@@ -357,7 +361,9 @@ public sealed class TargetPipelineEndToEndTests
         Assert.IsTrue(second.Succeeded, FormatDiagnostics(second.Diagnostics));
         Assert.IsNotNull(second.BuildItems);
         Assert.IsFalse(second.BuildItems.StopAfterPlanning);
-        Assert.AreEqual("second", second.CompiledQuery.Run()[0][0]);
+        var secondCompiledQuery = second.CompiledQuery ??
+            throw new AssertFailedException("Successful settings rebind did not produce a compiled query.");
+        Assert.AreEqual("second", secondCompiledQuery.Run()[0][0]);
     }
 
     private static string FormatDiagnostics(System.Collections.Generic.IEnumerable<Diagnostic> diagnostics)

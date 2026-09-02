@@ -56,11 +56,20 @@ internal static class CallableResolutionDiagnostics
 
         if (namedMethods.Length == 0)
         {
-            var suggestion = ErrorCatalog.GetDidYouMeanSuggestion(callableName, allMethods.Keys);
+            var closeCandidates = ErrorCatalog.GetDidYouMeanCandidates(callableName, allMethods.Keys);
+            var suggestion = closeCandidates.Count == 1 ? closeCandidates[0] : null;
             var message = string.IsNullOrWhiteSpace(suggestion)
-                ? $"Unknown callable '{callableName}'."
+                ? closeCandidates.Count > 1
+                    ? $"Unknown callable '{callableName}'. Possible matches: {FormatCandidates(closeCandidates)}."
+                    : $"Unknown callable '{callableName}'."
                 : $"Unknown callable '{callableName}'. Did you mean '{suggestion}'?";
-            var arguments = Facts(callableName, argumentTypes, [], null);
+            var arguments = Facts(
+                callableName,
+                argumentTypes,
+                [],
+                null,
+                closeCandidates,
+                allMethods.Keys);
             if (!string.IsNullOrWhiteSpace(suggestion))
                 arguments["suggestion"] = suggestion;
 
@@ -147,11 +156,14 @@ internal static class CallableResolutionDiagnostics
         string callableName,
         IReadOnlyList<Type> argumentTypes,
         IEnumerable<MethodInfo> methods,
-        string? expectedCounts = null)
+        string? expectedCounts = null,
+        IEnumerable<string>? candidateCallables = null,
+        IEnumerable<string>? availableCallables = null)
     {
         var candidates = methods
             .Select(FormatSignature)
             .Distinct(StringComparer.Ordinal)
+            .OrderBy(static signature => signature, StringComparer.Ordinal)
             .Take(CandidateLimit)
             .ToArray();
         var facts = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -162,8 +174,36 @@ internal static class CallableResolutionDiagnostics
         };
         if (expectedCounts != null)
             facts["expectedCounts"] = expectedCounts;
+        if (candidateCallables != null)
+            facts["candidateCallables"] = string.Join(", ", NormalizeNames(candidateCallables));
+        if (availableCallables != null)
+            facts["availableCallables"] = string.Join(", ", NormalizeNames(availableCallables));
 
         return facts;
+    }
+
+    private static string[] NormalizeNames(IEnumerable<string> names)
+    {
+        var canonicalNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var name in names)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                continue;
+
+            if (!canonicalNames.TryGetValue(name, out var existing) ||
+                string.CompareOrdinal(name, existing) < 0)
+                canonicalNames[name] = name;
+        }
+
+        return canonicalNames.Values
+            .OrderBy(static name => name, StringComparer.Ordinal)
+            .Take(CandidateLimit)
+            .ToArray();
+    }
+
+    private static string FormatCandidates(IEnumerable<string> candidates)
+    {
+        return string.Join(", ", candidates.Select(static candidate => $"'{candidate}'"));
     }
 
     private static string FormatExpectedCounts(IEnumerable<MethodInfo> methods)

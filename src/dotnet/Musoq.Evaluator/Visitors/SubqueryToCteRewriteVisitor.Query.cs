@@ -21,7 +21,9 @@ public partial class SubqueryToCteRewriteVisitor
         var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
         var from = SafeCast<FromNode>(Nodes.Pop(), nameof(Visit));
 
-        var sourceQuery = new QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify, default);
+        var sourceQuery = (QueryNode)new QueryNode(
+                select, from, where, groupBy, orderBy, skip, take, window, qualify, node.Span)
+            .WithFullSpan(node.FullSpan);
         RegisterReservedAliases(CollectFromAliases(from));
         var analysis = AnalyzeSubqueries(sourceQuery);
         ValidateSubqueryAnalysis(analysis);
@@ -96,14 +98,17 @@ public partial class SubqueryToCteRewriteVisitor
 
         if (cteInnerExpressions.Count == 0)
         {
-            Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify, default));
+            Nodes.Push((QueryNode)new QueryNode(
+                    select, from, where, groupBy, orderBy, skip, take, window, qualify, node.Span)
+                .WithFullSpan(node.FullSpan));
             return;
         }
 
         var wrappedFrom = WrapJoinedFrom(currentFrom);
         var newWhere = remainingExpr != null ? new WhereNode(remainingExpr) : null;
-        var newQuery = new QueryNode(select, wrappedFrom, newWhere, groupBy, orderBy, skip, take, window, qualify,
-            default);
+        var newQuery = (QueryNode)new QueryNode(
+                select, wrappedFrom, newWhere, groupBy, orderBy, skip, take, window, qualify, node.Span)
+            .WithFullSpan(node.FullSpan);
 
         Nodes.Push(new CteExpressionNode(cteInnerExpressions.ToArray(), newQuery));
     }

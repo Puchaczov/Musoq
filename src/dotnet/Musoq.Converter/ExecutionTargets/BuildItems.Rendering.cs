@@ -219,7 +219,7 @@ internal static class CSharpClrGeneratedCodeCompatibility
         var descriptor = builder.ToString();
         return new CSharpGeneratedSyntaxIdentity(
             descriptor,
-            global::Musoq.Converter.CompiledQueryArtifactSupport.ComputeHash(descriptor));
+            CompiledQueryArtifactSupport.ComputeHash(descriptor));
     }
 
     private static void AppendStructuredTrivia(StringBuilder builder, SyntaxTriviaList trivia)

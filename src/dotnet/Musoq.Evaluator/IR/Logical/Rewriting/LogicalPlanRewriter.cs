@@ -80,7 +80,7 @@ internal static partial class LogicalPlanRewriter
                 join.Left,
                 join.Right,
                 rewriteNode,
-                (left, right) => new JoinNode(join.Kind, join.OnPredicate, left, right, join.TieBreak),
+                (left, right) => new JoinNode(join.Kind, join.OnPredicate, left, right, join.TieBreak, join.WithOrdinality),
                 join),
             SetOperationNode setOperation => RewritePair(
                 setOperation.Left,

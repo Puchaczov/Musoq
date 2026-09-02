@@ -35,13 +35,13 @@ public sealed partial class ExecutionCSharpRenderer
         try
         {
             session.TypedStoredTableResults = CreateTypedStoredTableResults(plan);
-            session.IncludeCteIndexResults = ExecutionCSharpRenderer.PlanUsesCteIndexResults(plan);
+            session.IncludeCteIndexResults = PlanUsesCteIndexResults(plan);
             session.IncludeCteRowResults = session.TypedStoredTableResults.Count > 0;
-            session.IncludeTableResults = ExecutionCSharpRenderer.PlanUsesTableResults(plan, session.TypedStoredTableResults);
-            session.GeneratedRowVariableTypeNamesByName = ExecutionCSharpRenderer.CollectGeneratedRowVariableTypeNames(
+            session.IncludeTableResults = PlanUsesTableResults(plan, session.TypedStoredTableResults);
+            session.GeneratedRowVariableTypeNamesByName = CollectGeneratedRowVariableTypeNames(
                 plan.Body,
                 session.TypedStoredTableResults);
-            session.GeneratedRowConstructorUsagesByType = ExecutionCSharpRenderer.CollectGeneratedRowConstructorUsages(
+            session.GeneratedRowConstructorUsagesByType = CollectGeneratedRowConstructorUsages(
                 plan.Body,
                 session.TypedStoredTableResults);
             var usesGeneratedRowCarrier = CanUseGeneratedFinalRowSink(plan, finalTableName);
@@ -68,7 +68,7 @@ public sealed partial class ExecutionCSharpRenderer
                 usesGeneratedRowCarrier);
             session.SingleKeyAggregateUpdateHelpersByBlock = CollectSingleKeyAggregateUpdateHelpersByBlock(plan.Body);
             session.EnumerableTraversalHelpersByBlock = Enumerable
-                .Where<KeyValuePair<ExecutionBlock, ExecutionCSharpRenderer.EnumerableTraversalHelper>>(CollectEnumerableTraversalHelpersByBlock(plan.Body, context), pair => !CapturesCurrentFinalShapeTargetOrSourceBuffer(pair.Value, context))
+                .Where<KeyValuePair<ExecutionBlock, EnumerableTraversalHelper>>(CollectEnumerableTraversalHelpersByBlock(plan.Body, context), pair => !CapturesCurrentFinalShapeTargetOrSourceBuffer(pair.Value, context))
                 .ToDictionary(static pair => pair.Key, static pair => pair.Value);
 
             return SyntaxFactory.MethodDeclaration(
@@ -113,10 +113,10 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var session = context.Session;
         var block = plan.Body;
-        session.StoredRowsCacheNames = ExecutionCSharpRenderer.CreateStoredRowsCacheNames(block);
+        session.StoredRowsCacheNames = CreateStoredRowsCacheNames(block);
         session.DeclaredStoredRowsCaches = [];
-        session.TableRowShapesByVariableName = ExecutionCSharpRenderer.CreateTableRowShapeMap(block);
-        session.GeneratedRowVariableTypeNamesByName = ExecutionCSharpRenderer.CollectGeneratedRowVariableTypeNames(
+        session.TableRowShapesByVariableName = CreateTableRowShapeMap(block);
+        session.GeneratedRowVariableTypeNamesByName = CollectGeneratedRowVariableTypeNames(
             block,
             session.TypedStoredTableResults);
         session.StoredGeneratedRowsLoopNameCounts = [];
@@ -125,18 +125,18 @@ public sealed partial class ExecutionCSharpRenderer
         session.ProfileRecorderInScope = IsInstrumentationEnabled;
 
             var statements = new List<StatementSyntax>();
-            statements.AddRange(ExecutionCSharpRenderer.CreateQueryRunContextAliasStatements(
+            statements.AddRange(CreateQueryRunContextAliasStatements(
                 session.UseQueryRunContext,
                 queryIdentifier: queryIdentifier));
 
-            statements.AddRange(ExecutionCSharpRenderer.CreateOpeningPhaseStatements(block, queryIdentifier));
+            statements.AddRange(CreateOpeningPhaseStatements(block, queryIdentifier));
 
             var tryStatements = new List<StatementSyntax>();
             tryStatements.AddRange(CreateExecutionStateDeclarations(plan, context));
             tryStatements.AddRange(CreateScriptParameterBindingStatements());
             tryStatements.AddRange(CreateScriptVariableBindingStatements());
-            tryStatements.AddRange(ExecutionCSharpRenderer.CollectMethodCallCaches(block)
-                .Select(cache => ExecutionCSharpRenderer.RenderCreateObject(new ExecutionCreateObject(cache))));
+            tryStatements.AddRange(CollectMethodCallCaches(block)
+                .Select(cache => RenderCreateObject(new ExecutionCreateObject(cache))));
             if (finalShapeBufferName != null)
             {
                 tryStatements.Add(CreateLocalDeclaration(
@@ -158,7 +158,7 @@ public sealed partial class ExecutionCSharpRenderer
             tryStatements.AddRange(AddOperatorCounterFlushesBeforeTopLevelReturns(bodyStatements, operatorProfileUsage, context, appendAtEnd: true));
 
             statements.Add(SyntaxFactory.TryStatement(SyntaxFactory.Block(tryStatements), default, SyntaxFactory.FinallyClause(
-                SyntaxFactory.Block(ExecutionCSharpRenderer.CreateClosingPhaseStatements(block, queryIdentifier)))));
+                SyntaxFactory.Block(CreateClosingPhaseStatements(block, queryIdentifier)))));
 
             return CreateProfileExceptionBoundaryBlock(statements, context, includeExceptionBoundary: finalShapeBufferName != null);
     }
@@ -198,7 +198,7 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private bool CapturesCurrentFinalShapeTargetOrSourceBuffer(
-        ExecutionCSharpRenderer.EnumerableTraversalHelper helper,
+        EnumerableTraversalHelper helper,
         ExecutionRenderContext context)
     {
         return helper.Captures.Any(capture => IsCurrentFinalShapeTargetOrSourceBuffer(capture.Name, context));
@@ -210,7 +210,7 @@ public sealed partial class ExecutionCSharpRenderer
         string shapeTypeName,
         IReadOnlyList<FieldBinding> shapeFields)
     {
-        var rowShapesByTableName = ExecutionCSharpRenderer.CreateTableRowShapeMap(block);
+        var rowShapesByTableName = CreateTableRowShapeMap(block);
         Dictionary<string, FinalShapeSourceBuffer>? buffers = null;
 
         var requiredTargets = new HashSet<string>(StringComparer.Ordinal)
@@ -296,7 +296,7 @@ public sealed partial class ExecutionCSharpRenderer
             var sourceField = sourceShape.Fields[index];
             var shapeField = shapeFields[index];
             if (sourceField.Type != shapeField.Type ||
-                !string.Equals(ExecutionCSharpRenderer.GetGeneratedFieldName(sourceField), ExecutionCSharpRenderer.GetGeneratedFieldName(shapeField), StringComparison.Ordinal))
+                !string.Equals(GetGeneratedFieldName(sourceField), GetGeneratedFieldName(shapeField), StringComparison.Ordinal))
             {
                 return false;
             }

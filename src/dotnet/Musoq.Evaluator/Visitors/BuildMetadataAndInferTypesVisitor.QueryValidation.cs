@@ -28,6 +28,15 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private void ValidateOrderByExpression(FieldOrderedNode field)
     {
+        if (TryGetEnumExpressionType(field.Expression, out var enumType))
+        {
+            ReportEnumSemanticError(
+                DiagnosticCode.MQ3110_UnsupportedEnumOperator,
+                $"ORDER BY is not supported for enum type '{enumType.DisplayName}' in v1.",
+                field);
+            return;
+        }
+
         if (field.Expression is not IntegerNode integerNode)
             return;
 

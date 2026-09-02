@@ -48,7 +48,7 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Count = 9223372036854775807";
+                             "select Name from Items() where Count = 9223372036854775807l";
 
         dynamic item1 = new ExpandoObject();
         item1.Count = "9223372036854775807";
@@ -253,8 +253,6 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         Assert.AreEqual("MinValue", table2[0].Values[0]);
     }
 
-    public TestContext TestContext { get; set; }
 
     #endregion
 }
-

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Musoq.Evaluator.IR.Analysis;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 
@@ -51,7 +52,7 @@ internal sealed partial class PhysicalLoweringImplementation
         if (!condition.IsBuilt)
             return LoweringAttempt<ExecutionBlock>.Unsupported(condition.UnsupportedReason);
 
-        if (condition.Value.ReturnType.ResolveClrType() != typeof(bool))
+        if (!IrExpressionNullSemantics.IsBoolean(condition.Value.ReturnType.ResolveClrType()))
         {
             return LoweringAttempt<ExecutionBlock>.Unsupported(
                 $"Execution IR window QUALIFY lowering requires a boolean predicate. Found {condition.Value.ReturnType.ResolveClrType().Name}.");

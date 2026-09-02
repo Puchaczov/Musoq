@@ -215,7 +215,7 @@ public class TypedExecutionTests
             Compile<IncompatibleMemberDto>("select d.Dummy as Dummy from #system.dual() d"));
     }
 
-    private static global::Musoq.Evaluator.CompiledTypedQuery<TOut> Compile<TOut>(string query)
+    private static CompiledTypedQuery<TOut> Compile<TOut>(string query)
     {
         return InstanceCreator.CompileForTypedExecution<TOut>(
             query,

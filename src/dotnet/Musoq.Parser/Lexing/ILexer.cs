@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using System.Collections.Generic;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Tokens;
 
@@ -33,6 +34,11 @@ public interface ILexer
     ///     Gets the source text for the input.
     /// </summary>
     SourceText SourceText { get; }
+
+    /// <summary>
+    ///     Gets comments skipped while resolving the token stream.
+    /// </summary>
+    IReadOnlyList<CommentToken> Comments { get; }
 
     /// <summary>
     ///     Gets the diagnostic bag for collecting errors.

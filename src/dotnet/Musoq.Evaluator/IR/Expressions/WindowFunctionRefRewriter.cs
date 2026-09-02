@@ -46,7 +46,7 @@ public sealed partial class WindowFunctionRefRewriter(IReadOnlyDictionary<int, i
         if (ReferenceEquals(left, node.Left) && ReferenceEquals(right, node.Right))
             return node;
 
-        return new BinaryOp(node.Kind, left, right, node.ReturnType);
+        return new BinaryOp(node.Kind, left, right, node.ReturnType) { UsesSqlNullSemantics = node.UsesSqlNullSemantics };
     }
 
     protected override IrExpression VisitUnaryOp(UnaryOp node)
@@ -66,7 +66,7 @@ public sealed partial class WindowFunctionRefRewriter(IReadOnlyDictionary<int, i
         if (!changed)
             return node;
 
-        return new MethodCall(node.Method, arguments, node.Alias, node.ReturnType);
+        return node with { Arguments = arguments };
     }
 
     protected override IrExpression VisitIsNullCheck(IsNullCheck node)
@@ -87,7 +87,7 @@ public sealed partial class WindowFunctionRefRewriter(IReadOnlyDictionary<int, i
         if (ReferenceEquals(expression, node.Expression) && !valuesChanged)
             return node;
 
-        return new InCheck(expression, values, node.ReturnType);
+        return new InCheck(expression, values, node.ReturnType, node.IsNegated);
     }
 
     protected override IrExpression VisitPatternMatch(PatternMatch node)

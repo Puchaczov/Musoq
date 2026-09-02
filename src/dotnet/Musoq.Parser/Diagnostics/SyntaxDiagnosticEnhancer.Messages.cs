@@ -39,7 +39,8 @@ internal static partial class SyntaxDiagnosticEnhancer
         if (dialectHelp != null)
             return dialectHelp.Message;
 
-        if (!string.IsNullOrWhiteSpace(keywordSuggestion) && !string.IsNullOrWhiteSpace(keywordCandidate))
+        if (!string.IsNullOrWhiteSpace(keywordSuggestion) && !string.IsNullOrWhiteSpace(keywordCandidate) &&
+            !string.Equals(keywordCandidate, keywordSuggestion, StringComparison.OrdinalIgnoreCase))
             return $"'{keywordCandidate}' is not recognized here. The query likely contains a mistyped Musoq keyword.";
 
         return metadata?.Explanation;

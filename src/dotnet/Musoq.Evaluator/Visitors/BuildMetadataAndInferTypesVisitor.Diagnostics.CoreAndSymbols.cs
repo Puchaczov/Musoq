@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tables;
+using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
@@ -62,7 +63,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 throw new UnknownColumnOrAliasException(
                     columnName,
                     $"Did you mean to use [{string.Join(", ", candidates)}]?",
-                    span);
+                    span,
+                    candidates);
         }
 
         throw new UnknownColumnOrAliasException(columnName, string.Empty, span);
@@ -88,15 +90,13 @@ public partial class BuildMetadataAndInferTypesVisitor
                 DiagnosticContext.HasNearbyError(DiagnosticCode.MQ3028_UnknownProperty, node.Span))
                 return true;
 
-            var availableProperties = objectType?.GetProperties().Select(p => p.Name) ?? [];
-            var message = $"Unknown property '{propertyName}'" +
-                          (objectType == null ? "." : $" on '{objectType.Name}'.");
-            if (!string.IsNullOrWhiteSpace(accessContext))
-                message += $" Accessed through '{accessContext}'.";
-            var suggestion = ErrorCatalog.GetDidYouMeanSuggestion(propertyName, availableProperties);
-            if (!string.IsNullOrEmpty(suggestion))
-                message += $" Did you mean '{suggestion}'?";
-            DiagnosticContext.ReportError(DiagnosticCode.MQ3028_UnknownProperty, message, node);
+            var availableProperties = objectType?.GetProperties().Select(static property => property.Name) ?? [];
+            DiagnosticContext.ReportUnknownProperty(
+                propertyName,
+                availableProperties,
+                node,
+                objectType?.Name,
+                accessContext);
             return true;
         }
 
@@ -104,7 +104,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         throw new UnknownPropertyException(
             propertyName,
             objectType?.Name ?? "unknown",
-            span);
+            span,
+            objectType?.GetProperties().Select(static property => property.Name) ?? []);
     }
 
     /// <summary>
@@ -118,14 +119,22 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         if (DiagnosticContext != null)
         {
-            DiagnosticContext.ReportError(
-                DiagnosticCode.MQ3005_TypeMismatch,
-                $"Type '{typeName}' could not be found or resolved.",
-                node);
+            DiagnosticContext.ReportTypeNotFound(typeName, node);
             return true;
         }
 
         var span = node.SpanOrEmpty();
+        throw new TypeNotFoundException(typeName, string.Empty, span);
+    }
+
+    protected bool TryReportTypeNotFound(string typeName, TextSpan span)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportTypeNotFound(typeName, span);
+            return true;
+        }
+
         throw new TypeNotFoundException(typeName, string.Empty, span);
     }
 

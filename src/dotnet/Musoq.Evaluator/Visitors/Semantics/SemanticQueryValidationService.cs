@@ -101,11 +101,11 @@ internal sealed class SemanticQueryValidationService(
                 .Select(f => f.Expression.ToString())
                 .ToArray();
 
-            if (diagnosticReporter.TryReportNonAggregatedColumnInSelect(columnName, groupByNames, field.Expression))
+            if (diagnosticReporter.TryReportNonAggregatedColumnInSelect(columnName, groupByNames, field))
                 continue;
 
             throw new NonAggregatedColumnInSelectException(columnName, groupByNames,
-                field.Expression.HasSpan ? field.Expression.Span : TextSpan.Empty);
+                field.SpanOrEmpty());
         }
     }
 }

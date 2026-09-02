@@ -151,7 +151,7 @@ namespace GeneratedSample_Q151_RuntimeV2CastExpressions
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 string population = ko3iko.Population;
                                 int? populationInt32 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population);
-                                if ((populationInt32 > 1000))
+                                if ((Operators.SqlCompare<int?, int>(populationInt32, 1000, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                 {
                                     resultOrderRecords.Add(new ResultRow0WithSortKeys(global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt64((ko3iko.Quantity + 1)), global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToString(populationInt32), global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDateTimeOffset(ko3iko.CreatedAt), global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(ko3iko.Amount), resultOrderRecords.Count));
                                 }
@@ -173,7 +173,7 @@ namespace GeneratedSample_Q151_RuntimeV2CastExpressions
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 string population = ko3iko.Population;
                                 int? populationInt32 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population);
-                                if ((populationInt32 > 1000))
+                                if ((Operators.SqlCompare<int?, int>(populationInt32, 1000, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                 {
                                     resultOrderRecords.Add(new ResultRow0WithSortKeys(global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt64((ko3iko.Quantity + 1)), global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToString(populationInt32), global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDateTimeOffset(ko3iko.CreatedAt), global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(ko3iko.Amount), resultOrderRecords.Count));
                                 }
@@ -193,7 +193,7 @@ namespace GeneratedSample_Q151_RuntimeV2CastExpressions
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
                         string population = ko3iko.Population;
                         int? populationInt32 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population);
-                        if ((populationInt32 > 1000))
+                        if ((Operators.SqlCompare<int?, int>(populationInt32, 1000, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                         {
                             resultOrderRecords.Add(new ResultRow0WithSortKeys(global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt64((ko3iko.Quantity + 1)), global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToString(populationInt32), global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDateTimeOffset(ko3iko.CreatedAt), global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(ko3iko.Amount), resultOrderRecords.Count));
                         }

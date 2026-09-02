@@ -9,6 +9,14 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private ExpressionSyntax RenderBinary(ExecutionBinary binary, ExecutionRenderContext context)
     {
+        if (binary.RequiresSqlNullPropagation())
+            return this.RenderSqlNullComparison(binary, context);
+
+        if (binary.Kind is BinaryOpKind.And or BinaryOpKind.Or && binary.RequiresNullableBoolean())
+        {
+            return this.RenderNullableLogical(binary, context);
+        }
+
         if (RequiresStringComparison(binary))
             return RenderStringComparison(binary, context);
 
@@ -185,10 +193,15 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ExpressionSyntax RenderUnary(ExecutionUnary unary, ExecutionRenderContext context)
     {
-        var expression = SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.PrefixUnaryExpression(
-                GetUnaryExpressionKind(unary.Kind),
-                RenderExpression(unary.Operand, context)));
+        var expression = unary switch
+        {
+            { Kind: UnaryOpKind.Not, Operand: ExecutionCollectionInCheck collectionInCheck } =>
+                RenderCollectionNotInCheck(collectionInCheck, context),
+            _ => SyntaxFactory.ParenthesizedExpression(
+                SyntaxFactory.PrefixUnaryExpression(
+                    GetUnaryExpressionKind(unary.Kind),
+                    this.RenderNullableOperand(unary.Operand, context)))
+        };
 
         return RequiresUnaryResultCast(unary)
             ? CastIfNeeded(expression, unary.ReturnType)

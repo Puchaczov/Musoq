@@ -9,7 +9,13 @@ internal static class OutputSchemaFactory
         var columns = new ColumnSchema[fields.Count];
 
         for (var i = 0; i < fields.Count; i++)
-            columns[i] = new ColumnSchema(fields[i].OutputName, fields[i].Expression.ReturnType, i);
+            columns[i] = new ColumnSchema(
+                fields[i].OutputName,
+                fields[i].Expression.ReturnType,
+                i,
+                intendedTypeName: null,
+                sourceReadType: fields[i].Expression.ReturnType,
+                enumType: fields[i].Expression.EnumType);
 
         return new OutputSchema(columns);
     }

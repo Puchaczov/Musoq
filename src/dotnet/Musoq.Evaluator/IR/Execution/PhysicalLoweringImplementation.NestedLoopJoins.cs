@@ -37,9 +37,16 @@ internal sealed partial class PhysicalLoweringImplementation
             cteShapesByName,
             schemaFromIndex,
             CreateSourceRowsScope(resultTableName),
-            scope);
+            scope,
+            join.WithOrdinality);
         if (!sources.IsBuilt)
             return TableBuildResult.Unsupported(sources.UnsupportedReason);
+
+        if (join.WithOrdinality)
+            sources = sources with
+            {
+                Source = sources.Source with { Right = AddApplyOrdinalityAccess(sources.Source.Right) }
+            };
 
         return join.Kind switch
         {
@@ -95,9 +102,15 @@ internal sealed partial class PhysicalLoweringImplementation
         var outputAppend = CreateOutputAppend(appendRow, scope);
         var joinCondition = join.Kind == JoinKind.Cross ? null : join.OnPredicate;
         var joinBody = CreateJoinLoopBody(joinCondition, pipeline.Filter, outputAppend, sourceLookup);
+        var ordinalityIncrementCondition = join.WithOrdinality && joinCondition != null
+            ? ExecutionExpressionConverter.Convert(joinCondition, sourceLookup)
+            : null;
         var nodes = CreateJoinPrelude(joinSources, resultTable, resultShape, scope);
         var rightRows = CreateNestedLoopInnerRows(joinSources.Right, nodes);
-        var rightLoop = CreateSourceLoop(joinSources.Right.Shape, rightRows, joinSources.Right.Variable, joinBody);
+        var rightLoop = CreateApplySourceLoop(
+            joinSources.Right with { Rows = rightRows },
+            joinBody,
+            ordinalityIncrementCondition);
         var leftLoop = CreateSourceLoop(
             joinSources.Left.Shape,
             joinSources.Left.Rows,
@@ -182,30 +195,41 @@ internal sealed partial class PhysicalLoweringImplementation
                 hasMatch,
                 projection.MatchedAppendRow,
                 sourceLookup);
+        var ordinalityIncrementCondition = join.WithOrdinality && join.OnPredicate != null
+            ? ExecutionExpressionConverter.Convert(join.OnPredicate, sourceLookup)
+            : null;
         var sides = ResolveOuterNestedLoopSides(join.Kind, joinSources);
         var nodes = CreateJoinPrelude(joinSources, resultTable, projection.ResultShape);
         var innerRows = CreateNestedLoopInnerRows(sides.Inner, nodes);
-        var innerLoop = CreateSourceLoop(
-            sides.Inner.Shape,
-            innerRows,
-            sides.Inner.Variable,
-            matchedBody);
+        var innerLoop = join.WithOrdinality && ReferenceEquals(sides.Inner, joinSources.Right)
+            ? CreateApplySourceLoop(
+                sides.Inner with { Rows = innerRows },
+                matchedBody,
+                ordinalityIncrementCondition)
+            : CreateSourceLoop(
+                sides.Inner.Shape,
+                innerRows,
+                sides.Inner.Variable,
+                matchedBody);
         var unmatchedBody = new ExecutionIf(
             new ExecutionUnary(
                 UnaryOpKind.Not,
                 new ExecutionVariableRead(hasMatch),
                 typeof(bool)),
             appendBlocks.UnmatchedAppendBlock);
-        var outerLoop = CreateSourceLoop(
-            sides.Outer.Shape,
-            sides.Outer.Rows,
-            sides.Outer.Variable,
-            new ExecutionBlock(
-            [
-                new ExecutionLet(hasMatch, new ExecutionLiteral(false, typeof(bool))),
-                innerLoop,
-                unmatchedBody
-            ]));
+        var outerBody = new ExecutionBlock(
+        [
+            new ExecutionLet(hasMatch, new ExecutionLiteral(false, typeof(bool))),
+            innerLoop,
+            unmatchedBody
+        ]);
+        var outerLoop = join.WithOrdinality && ReferenceEquals(sides.Outer, joinSources.Right)
+            ? CreateApplySourceLoop(sides.Outer, outerBody, ordinalityIncrementCondition)
+            : CreateSourceLoop(
+                sides.Outer.Shape,
+                sides.Outer.Rows,
+                sides.Outer.Variable,
+                outerBody);
         nodes.Add(outerLoop);
 
         return CompleteTableBuild(

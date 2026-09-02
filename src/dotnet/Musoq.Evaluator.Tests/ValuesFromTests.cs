@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class ValuesFromTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void ValuesSource_ProjectAndFilter_ShouldWork()

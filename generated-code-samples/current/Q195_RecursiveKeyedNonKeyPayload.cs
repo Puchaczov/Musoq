@@ -77,7 +77,8 @@ ExecutionPlan [compiled]
           RecursiveAppend [cte0CurrentFrontier <- Cte0Row0(Id: seed.Id, Depth: 0, Path: '1'); identity cte0Seen (Id); guard cte0.Count + cte0CurrentFrontier.Count < 10000000]
       RecursiveMember
         ForEach [p in cte0CurrentFrontier]
-          RecursiveAppend [cte0NextFrontier <- Cte0Row0(Id: CASE WHEN (p.Id = 1) THEN 2 ELSE 1 END, Depth: (p.Depth + 1), Path: ((p.Path || '->') || CASE WHEN (p.Id = 1) THEN '2' ELSE '1' END)); identity cte0Seen (Id); guard cte0.Count + cte0NextFrontier.Count < 10000000]
+          Let [id: int = p.Id]
+          RecursiveAppend [cte0NextFrontier <- Cte0Row0(Id: CASE WHEN (id = 1) THEN 2 ELSE 1 END, Depth: (p.Depth + 1), Path: ((p.Path || '->') || CASE WHEN (id = 1) THEN '2' ELSE '1' END)); identity cte0Seen (Id); guard cte0.Count + cte0NextFrontier.Count < 10000000]
     PhaseBoundary [Select:cte0]
     StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]
     PhaseBoundary [End:cte0]
@@ -208,15 +209,16 @@ namespace GeneratedSample_Q195_RecursiveKeyedNonKeyPayload
                             }
 
                             Cte0Row0 p = (Cte0Row0)cte0CurrentFrontier[cte0CurrentFrontierIndex];
+                            int id = p.Id;
                             ++__cte0CancellationCounter;
                             if ((__cte0CancellationCounter & 1023) == 0)
                             {
                                 token.ThrowIfCancellationRequested();
                             }
 
-                            var __cte0NextFrontierCandidate0 = ((p.Id == 1) ? (int)2 : (int)1);
+                            var __cte0NextFrontierCandidate0 = ((id == 1) ? (int)2 : (int)1);
                             var __cte0NextFrontierCandidate1 = (p.Depth + 1);
-                            var __cte0NextFrontierCandidate2 = ((p.Path + "->") + ((p.Id == 1) ? (string)"2" : (string)"1"));
+                            var __cte0NextFrontierCandidate2 = ((p.Path + "->") + ((id == 1) ? (string)"2" : (string)"1"));
                             if (cte0Seen.Add(__cte0NextFrontierCandidate0))
                             {
                                 if (cte0.Count + cte0NextFrontier.Count >= 10000000)

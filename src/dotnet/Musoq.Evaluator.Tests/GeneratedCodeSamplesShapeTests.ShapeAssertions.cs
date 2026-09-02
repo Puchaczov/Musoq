@@ -118,7 +118,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         {
             Assert.Contains("foreach (var iChunk in windowSourceTable_iRows)", computeMethod, sample.FileName);
             Assert.Contains("TraverseWindowSourceTableNRows", sample.Content, sample.FileName);
-            Assert.Contains("UpdateGroupsAggregates", sample.Content, sample.FileName);
+            var hasAggregateUpdateHelper = sample.Content.Contains("UpdateGroupsAggregates", StringComparison.Ordinal);
+            if (!hasAggregateUpdateHelper)
+            {
+                // LICM can expose a scalar aggregate update directly in the traversal helper.
+                // This is equivalent to the extracted updater and keeps the hot path typed.
+                Assert.Contains("group.__agg0.Value", sample.Content, sample.FileName);
+            }
             Assert.Contains("token.ThrowIfCancellationRequested();", computeMethod, sample.FileName);
         }
 

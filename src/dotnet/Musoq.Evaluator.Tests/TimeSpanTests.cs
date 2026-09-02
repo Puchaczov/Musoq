@@ -9,7 +9,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class TimeSpanTests : UnknownQueryTestsBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void SumTimeSpanTest()

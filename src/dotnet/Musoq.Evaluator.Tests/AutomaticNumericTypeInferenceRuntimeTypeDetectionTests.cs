@@ -234,8 +234,6 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         Assert.AreEqual("Medium", table[0].Values[0]);
     }
 
-    public TestContext TestContext { get; set; }
 
     #endregion
 }
-

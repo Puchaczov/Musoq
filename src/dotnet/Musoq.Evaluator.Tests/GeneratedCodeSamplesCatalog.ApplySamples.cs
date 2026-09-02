@@ -52,18 +52,20 @@ internal static partial class GeneratedCodeSamplesCatalog
 
     private static GeneratedCodeSample AggregateOverHashJoin()
     {
-        return Basic(
+        return BasicWithOptions(
             "Q65_AggregateOverHashJoin",
             "Grouping",
-            "select a.City as City, Count(b.Name) as MatchCount from #A.entities() a inner join #B.entities() b on a.City = b.City group by a.City");
+            "select a.City as City, Count(b.Name) as MatchCount from #A.entities() a inner join #B.entities() b on a.City = b.City group by a.City",
+            new CompilationOptions().WithStabilityAwareScalarReuse(false));
     }
 
     private static GeneratedCodeSample CteBackedAggregateOverHashJoin()
     {
-        return Basic(
+        return BasicWithOptions(
             "Q66_CteBackedAggregateOverHashJoin",
             "Grouping",
-            "with leftCte as (select a.City as City from #A.entities() a), rightCte as (select b.City as City, b.Name as Name from #B.entities() b) select l.City as City, Count(r.Name) as MatchCount from leftCte l inner join rightCte r on l.City = r.City group by l.City");
+            "with leftCte as (select a.City as City from #A.entities() a), rightCte as (select b.City as City, b.Name as Name from #B.entities() b) select l.City as City, Count(r.Name) as MatchCount from leftCte l inner join rightCte r on l.City = r.City group by l.City",
+            new CompilationOptions().WithStabilityAwareScalarReuse(false));
     }
 
     private static GeneratedCodeSample DynamicCteBackedAsOfJoin()

@@ -12,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class HashJoinTests : MultiSchemaTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void InnerJoin_WithHashJoinEnabled_ShouldWork()

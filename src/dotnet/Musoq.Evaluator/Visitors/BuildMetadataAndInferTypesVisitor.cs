@@ -75,7 +75,7 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         _compilationOptions = compilationOptions ?? new CompilationOptions();
         SchemaRegistry = schemaRegistry;
         DiagnosticContext = diagnosticContext;
-        _diagnosticReporter = new SemanticDiagnosticReporter(DiagnosticContext);
+        _diagnosticReporter = new SemanticDiagnosticReporter(DiagnosticContext, _resultShape.GeneratedAliases);
         _columnPropertyBindingService = new SemanticColumnPropertyBindingService(_sourceBinding, _resultShape);
         _expressionBindingService = new SemanticExpressionBindingService(_diagnosticReporter);
         _sourceBindingService = new SemanticSourceBindingService(_sourceBinding);

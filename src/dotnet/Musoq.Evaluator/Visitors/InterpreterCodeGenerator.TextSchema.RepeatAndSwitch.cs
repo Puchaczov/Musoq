@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
@@ -17,17 +16,23 @@ public partial class InterpreterCodeGenerator
         var listVar = $"_list_{localVar}";
         var itemVar = $"_item_{localVar}";
         var interpreterVar = $"_interp_{schemaName}";
+        var iterationVar = $"_iteration_{localVar}";
+        var startPositionVar = $"_startPos_{localVar}";
+        var escapedFieldName = EscapeCSharpString(field.Name);
 
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {listVar} = new System.Collections.Generic.List<{schemaName}>();");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {interpreterVar} = new {schemaName}();");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {iterationVar} = 0;");
 
         if (untilDelimiter != null)
         {
             var escapedDelimiter = EscapeCSharpString(untilDelimiter);
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"while (!IsAtEnd(data) && !LookaheadMatches(data, \"{escapedDelimiter}\"))");
             builder.AppendLine("{");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var {itemVar} = {interpreterVar}.ParseAt(data, ParsePosition);");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    ParsePosition = {interpreterVar}.Position;");
+            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    EnsureRepeatIteration(\"{escapedFieldName}\", {iterationVar}++);");
+            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var {startPositionVar} = ParsePosition;");
+            AppendGeneratedLine(builder, $"    var {itemVar} = ParseNested({interpreterVar}, data, \"{escapedFieldName}\");");
+            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    EnsureRepeatMadeProgress(\"{escapedFieldName}\", {startPositionVar});");
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {listVar}.Add({itemVar});");
             builder.AppendLine("}");
 
@@ -40,8 +45,10 @@ public partial class InterpreterCodeGenerator
         {
             builder.AppendLine("while (!IsAtEnd(data))");
             builder.AppendLine("{");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var {itemVar} = {interpreterVar}.ParseAt(data, ParsePosition);");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    ParsePosition = {interpreterVar}.Position;");
+            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    EnsureRepeatIteration(\"{escapedFieldName}\", {iterationVar}++);");
+            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var {startPositionVar} = ParsePosition;");
+            AppendGeneratedLine(builder, $"    var {itemVar} = ParseNested({interpreterVar}, data, \"{escapedFieldName}\");");
+            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    EnsureRepeatMadeProgress(\"{escapedFieldName}\", {startPositionVar});");
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {listVar}.Add({itemVar});");
             builder.AppendLine("}");
         }
@@ -61,16 +68,30 @@ public partial class InterpreterCodeGenerator
         if (field.SwitchCases.Length == 0)
             throw new InvalidOperationException("Switch field must have at least one case");
 
+        TextSwitchCaseNode? defaultCase = null;
+        foreach (var switchCase in field.SwitchCases)
+        {
+            if (switchCase.IsDefault)
+            {
+                if (defaultCase != null)
+                    throw new InvalidOperationException($"Switch field '{field.Name}' must have only one default case");
+
+                defaultCase = switchCase;
+                continue;
+            }
+
+            if (defaultCase != null)
+                throw new InvalidOperationException($"Switch field '{field.Name}' must place the default case last");
+        }
+
         var allProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var switchCase in field.SwitchCases)
         {
             var schemaName = switchCase.TypeName;
-            var schema = _registry.Schemas.FirstOrDefault(s =>
-                string.Equals(s.Name, schemaName, StringComparison.OrdinalIgnoreCase));
-            if (schema?.Node is TextSchemaNode textNode)
-                foreach (var f in textNode.Fields)
-                    if (!f.IsDiscard)
-                        allProperties.Add(f.Name);
+            var textNode = RequireTextSwitchSchema(field, schemaName);
+            foreach (var f in GetAllTextSchemaFields(textNode))
+                if (!f.IsDiscard)
+                    allProperties.Add(f.Name);
         }
 
         var expandoVar = $"_{localVar}_expando";
@@ -80,8 +101,6 @@ public partial class InterpreterCodeGenerator
         foreach (var prop in allProperties) builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{dictVar}[\"{prop}\"] = null;");
 
         var isFirstCase = true;
-        TextSwitchCaseNode? defaultCase = null;
-
         foreach (var switchCase in field.SwitchCases)
         {
             if (switchCase.IsDefault)
@@ -92,29 +111,27 @@ public partial class InterpreterCodeGenerator
 
             var escapedPattern = EscapeCSharpRegexString(switchCase.Pattern!);
             var schemaName = switchCase.TypeName;
+            var escapedFieldName = EscapeCSharpString(field.Name);
 
             if (isFirstCase)
             {
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"if (LookaheadMatchesPattern(data, @\"{escapedPattern}\"))");
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"if (LookaheadMatchesPattern(data, @\"{escapedPattern}\", fieldName: \"{escapedFieldName}\"))");
                 isFirstCase = false;
             }
             else
             {
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"else if (LookaheadMatchesPattern(data, @\"{escapedPattern}\"))");
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"else if (LookaheadMatchesPattern(data, @\"{escapedPattern}\", fieldName: \"{escapedFieldName}\"))");
             }
 
             builder.AppendLine("{");
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var _interp_{schemaName} = new {schemaName}();");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var _result_{schemaName} = _interp_{schemaName}.ParseAt(data, ParsePosition);");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    ParsePosition = _interp_{schemaName}.Position;");
+            AppendGeneratedLine(builder, $"    var _result_{schemaName} = ParseNested(_interp_{schemaName}, data, \"{escapedFieldName}\");");
 
-            var matchedSchema = _registry.Schemas.FirstOrDefault(s =>
-                string.Equals(s.Name, schemaName, StringComparison.OrdinalIgnoreCase));
-            if (matchedSchema?.Node is TextSchemaNode matchedTextNode)
-                foreach (var f in matchedTextNode.Fields)
-                    if (!f.IsDiscard)
-                        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
-                            $"    {dictVar}[\"{f.Name}\"] = _result_{schemaName}.{EscapeCSharpIdentifier(f.Name)};");
+            var matchedTextNode = RequireTextSwitchSchema(field, schemaName);
+            foreach (var f in GetAllTextSchemaFields(matchedTextNode))
+                if (!f.IsDiscard)
+                    builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
+                        $"    {dictVar}[\"{f.Name}\"] = _result_{schemaName}.{EscapeCSharpIdentifier(f.Name)};");
 
             builder.AppendLine("}");
         }
@@ -125,15 +142,13 @@ public partial class InterpreterCodeGenerator
             if (!isFirstCase) builder.AppendLine("else");
             builder.AppendLine("{");
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var _interp_{schemaName} = new {schemaName}();");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var _result_{schemaName} = _interp_{schemaName}.ParseAt(data, ParsePosition);");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    ParsePosition = _interp_{schemaName}.Position;");
-            var matchedSchema = _registry.Schemas.FirstOrDefault(s =>
-                string.Equals(s.Name, schemaName, StringComparison.OrdinalIgnoreCase));
-            if (matchedSchema?.Node is TextSchemaNode matchedTextNode)
-                foreach (var f in matchedTextNode.Fields)
-                    if (!f.IsDiscard)
-                        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
-                            $"    {dictVar}[\"{f.Name}\"] = _result_{schemaName}.{EscapeCSharpIdentifier(f.Name)};");
+            var escapedFieldName = EscapeCSharpString(field.Name);
+            AppendGeneratedLine(builder, $"    var _result_{schemaName} = ParseNested(_interp_{schemaName}, data, \"{escapedFieldName}\");");
+            var matchedTextNode = RequireTextSwitchSchema(field, schemaName);
+            foreach (var f in GetAllTextSchemaFields(matchedTextNode))
+                if (!f.IsDiscard)
+                    builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
+                        $"    {dictVar}[\"{f.Name}\"] = _result_{schemaName}.{EscapeCSharpIdentifier(f.Name)};");
 
             builder.AppendLine("}");
         }
@@ -142,7 +157,8 @@ public partial class InterpreterCodeGenerator
             builder.AppendLine("else");
             builder.AppendLine("{");
             builder.AppendLine(
-                "    throw new System.InvalidOperationException(\"No switch case matched at position \" + ParsePosition);");
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"    throw new Musoq.Schema.Interpreters.ParseException(Musoq.Schema.Interpreters.ParseErrorCode.NoAlternativeMatched, SchemaName, \"{EscapeCSharpString(field.Name)}\", ParsePosition, \"No switch case matched at parse position \" + ParsePosition);");
             builder.AppendLine("}");
         }
 
@@ -151,4 +167,5 @@ public partial class InterpreterCodeGenerator
 
         return builder.ToString();
     }
+
 }

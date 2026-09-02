@@ -61,6 +61,9 @@ public class PluginsAttributesTests
     {
         [BindablePropertyAsTable] public string TableProperty { get; } = "table";
 
+        [NonDeterministic]
+        public int VolatileProperty => 1;
+
         [BindableMethod]
         [AggregationMethod]
         [NonDeterministic]
@@ -336,7 +339,7 @@ public class PluginsAttributesTests
     }
 
     [TestMethod]
-    public void NonDeterministicAttribute_TargetsMethod()
+    public void NonDeterministicAttribute_TargetsMethodAndProperty()
     {
         // Arrange
         var attrUsage = typeof(NonDeterministicAttribute)
@@ -345,7 +348,10 @@ public class PluginsAttributesTests
         // Assert
         Assert.HasCount(1, attrUsage);
         var usage = (AttributeUsageAttribute)attrUsage[0];
-        Assert.AreEqual(AttributeTargets.Method, usage.ValidOn);
+        Assert.AreEqual(AttributeTargets.Method | AttributeTargets.Property, usage.ValidOn);
+
+        var property = typeof(AttributeTargetsFixture).GetProperty(nameof(AttributeTargetsFixture.VolatileProperty));
+        Assert.IsTrue(Attribute.IsDefined(property!, typeof(NonDeterministicAttribute)));
     }
 
     #endregion

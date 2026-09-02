@@ -115,7 +115,7 @@ namespace GeneratedSample_Q108_RuntimeV2DecimalConversion
                 {
                     object amount = ko3iko.Amount;
                     decimal? tryConvertToDecimalComparison = (decimal?)__resultLibraryBase0.TryConvertToDecimalComparison(amount);
-                    if ((tryConvertToDecimalComparison > 100.50m))
+                    if ((Operators.SqlCompare<decimal?, decimal>(tryConvertToDecimalComparison, 100.50m, (decimal? __sqlLeft, decimal __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                     {
                         return new ResultRow0(ko3iko.Id, tryConvertToDecimalComparison);
                     }
@@ -159,7 +159,7 @@ namespace GeneratedSample_Q108_RuntimeV2DecimalConversion
             {
                 object amount = ko3iko.Amount;
                 decimal? tryConvertToDecimalComparison = (decimal?)__resultLibraryBase0.TryConvertToDecimalComparison(amount);
-                if ((tryConvertToDecimalComparison > 100.50m))
+                if ((Operators.SqlCompare<decimal?, decimal>(tryConvertToDecimalComparison, 100.50m, (decimal? __sqlLeft, decimal __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                 {
                     return new ResultRow0(ko3iko.Id, tryConvertToDecimalComparison);
                 }

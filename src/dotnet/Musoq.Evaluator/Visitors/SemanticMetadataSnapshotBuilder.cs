@@ -37,6 +37,7 @@ internal sealed class SemanticMetadataSnapshotBuilder
             HasDeclaredSourceRuntimeSettings = input.HasDeclaredSourceRuntimeSettings,
             HasSourceRuntimeSettingValues = input.HasSourceRuntimeSettingValues,
             Assemblies = SemanticMetadataSnapshotFreezer.FreezeList(input.Assemblies),
+            QueryLocalEnumTypes = SemanticMetadataSnapshotFreezer.FreezeDictionary(input.QueryLocalEnumTypes),
             SetOperatorFieldPositions = SemanticMetadataSnapshotFreezer.FreezeArrays(input.SetOperatorFieldPositions),
             SetOperatorFieldTypes = SemanticMetadataSnapshotFreezer.FreezeArrays(input.SetOperatorFieldTypes),
             ResultShape = SemanticMetadataSnapshotFreezer.BuildResultShape(input.ResultShape)
@@ -78,6 +79,8 @@ internal sealed record SemanticMetadataSnapshotInput
     public required bool HasSourceRuntimeSettingValues { get; init; }
 
     public required IReadOnlyList<Assembly> Assemblies { get; init; }
+
+    public required IReadOnlyDictionary<string, EnumTypeDescriptor> QueryLocalEnumTypes { get; init; }
 
     public required IEnumerable<KeyValuePair<string, int[]>> SetOperatorFieldPositions { get; init; }
 

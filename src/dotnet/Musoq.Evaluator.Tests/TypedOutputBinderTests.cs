@@ -84,6 +84,16 @@ public sealed class TypedOutputBinderTests
     }
 
     [TestMethod]
+    public void Create_WhenEnumValuedMemberTargetsIntegralCarrier_ShouldReject()
+    {
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            CreatePlan<EnumMemberOutput>(new TypedOutputColumn("Status", 0, typeof(short))));
+
+        StringAssert.Contains(exception.Message, typeof(TypedOutputStatus).FullName!);
+        StringAssert.Contains(exception.Message, typeof(short).FullName!);
+    }
+
+    [TestMethod]
     public void Create_WhenMemberNameIsAmbiguous_ShouldReject()
     {
         var exception = Assert.Throws<InvalidOperationException>(() =>
@@ -137,6 +147,7 @@ public sealed class TypedOutputBinderTests
     {
         public string Name = string.Empty;
 
+        // ReSharper disable once NotAccessedField.Compiler - TypedOutputBinder discovers public fields through reflection.
         public int? Age = 0;
     }
 
@@ -148,6 +159,16 @@ public sealed class TypedOutputBinderTests
     private sealed class IncompatibleMemberOutput
     {
         public int Name { get; set; }
+    }
+
+    private sealed class EnumMemberOutput
+    {
+        public TypedOutputStatus Status { get; set; }
+    }
+
+    private enum TypedOutputStatus : short
+    {
+        Queued = 10
     }
 
     private sealed class AmbiguousMemberOutput

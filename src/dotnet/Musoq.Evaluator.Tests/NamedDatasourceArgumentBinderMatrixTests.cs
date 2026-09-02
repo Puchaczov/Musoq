@@ -5,6 +5,7 @@ using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Musoq.Parser;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Diagnostics;
@@ -31,6 +32,29 @@ public sealed class NamedDatasourceArgumentBinderMatrixTests
     }
 
     [TestMethod]
+    public void DuplicateNamedArguments_ReportRepairableFactsAtDuplicateLabel()
+    {
+        const string validQuery = "select 1 from #matrix.source(value: 1)";
+        var query = validQuery.Replace("value: 1", "value: 1, VALUE: 2", StringComparison.Ordinal);
+        var exception = Assert.Throws<CannotResolveMethodException>(() => Analyze(
+            query,
+            new MatrixSchemaProvider(MatrixSignatures.Required, _ => { })));
+
+        var duplicateSpan = new TextSpan(query.IndexOf("VALUE", StringComparison.Ordinal), "VALUE".Length);
+        Assert.AreEqual(DiagnosticCode.MQ3080_DuplicateSourceArgument, exception.Code);
+        Assert.AreEqual(duplicateSpan, exception.Span);
+
+        var envelope = MusoqErrorEnvelope.FromException(exception, query);
+        Assert.AreEqual(duplicateSpan.Start, envelope.Offset);
+        Assert.AreEqual(duplicateSpan.Length, envelope.Length);
+        Assert.AreEqual("VALUE", envelope.Arguments["argument"]);
+        Assert.AreEqual("value", envelope.Arguments["parameter"]);
+        Assert.AreEqual("value", envelope.Arguments["candidateParameters"]);
+        StringAssert.Contains(envelope.Message, "more than once");
+        Assert.IsFalse(envelope.Actions.Any(action => action.TextEdit != null));
+    }
+
+    [TestMethod]
     public void PositionalAndNamedDuplicate_ReportStableDiagnostic()
     {
         var exception = Assert.Throws<CannotResolveMethodException>(() => Analyze(
@@ -51,6 +75,100 @@ public sealed class NamedDatasourceArgumentBinderMatrixTests
     }
 
     [TestMethod]
+    public void UnknownNamedArgumentTypo_ReportsRepairableSuggestionAndQuickFix()
+    {
+        const string validQuery = "select 1 from #matrix.source(value: 1)";
+        var query = validQuery.Replace("value", "vlaue", StringComparison.Ordinal);
+        var exception = Assert.Throws<CannotResolveMethodException>(() => Analyze(
+            query,
+            new MatrixSchemaProvider(MatrixSignatures.Required, _ => { })));
+
+        Assert.AreEqual(DiagnosticCode.MQ3079_UnknownSourceArgument, exception.Code);
+        Assert.IsNotNull(exception.Span);
+
+        var typoSpan = new TextSpan(query.IndexOf("vlaue", StringComparison.Ordinal), "vlaue".Length);
+        Assert.AreEqual(typoSpan, exception.Span!.Value);
+
+        var envelope = MusoqErrorEnvelope.FromException(exception, query);
+        Assert.AreEqual(DiagnosticPhase.Bind, envelope.Phase);
+        Assert.AreEqual(DiagnosticSourceKind.Query, envelope.SourceKind);
+        Assert.AreEqual(typoSpan.Start, envelope.Offset);
+        Assert.AreEqual(typoSpan.Length, envelope.Length);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Snippet));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Explanation));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.DocsReference));
+        Assert.IsTrue(envelope.Arguments.TryGetValue("argument", out var argument));
+        Assert.AreEqual("vlaue", argument);
+        Assert.IsTrue(envelope.Arguments.TryGetValue("suggestion", out var suggestion));
+        Assert.AreEqual("value", suggestion);
+        StringAssert.Contains(envelope.Message, "vlaue");
+        StringAssert.Contains(envelope.Message, "Did you mean 'value'?");
+
+        var action = envelope.Actions.Single(candidate => candidate.Kind == DiagnosticActionKind.QuickFix);
+        Assert.IsNotNull(action.TextEdit);
+        Assert.AreEqual(typoSpan, action.TextEdit!.Span);
+        Assert.AreEqual("value", action.TextEdit.NewText);
+
+        var repairedQuery = query.Remove(action.TextEdit.Span.Start, action.TextEdit.Span.Length)
+            .Insert(action.TextEdit.Span.Start, action.TextEdit.NewText);
+        Assert.AreEqual(validQuery, repairedQuery);
+        Analyze(repairedQuery, new MatrixSchemaProvider(MatrixSignatures.Required, _ => { }));
+    }
+
+    [TestMethod]
+    public void UnknownNamedArgumentInMultiParameterSignature_OffersSafeQuickFix()
+    {
+        const string validQuery = "select 1 from #matrix.source(value: 1, other: 2)";
+        var query = validQuery.Replace("other: 2", "othre: 2", StringComparison.Ordinal);
+        var exception = Assert.Throws<CannotResolveMethodException>(() => Analyze(
+            query,
+            new MatrixSchemaProvider(MatrixSignatures.RequiredTwo, _ => { })));
+
+        var typoSpan = new TextSpan(query.IndexOf("othre", StringComparison.Ordinal), "othre".Length);
+        var envelope = MusoqErrorEnvelope.FromException(exception, query);
+        Assert.AreEqual(DiagnosticCode.MQ3079_UnknownSourceArgument, envelope.Code);
+        Assert.AreEqual("othre", envelope.Arguments["argument"]);
+        Assert.AreEqual("other", envelope.Arguments["suggestion"]);
+        Assert.AreEqual(typoSpan.Start, envelope.Offset);
+        Assert.AreEqual(typoSpan.Length, envelope.Length);
+
+        var action = envelope.Actions.Single(candidate => candidate.Kind == DiagnosticActionKind.QuickFix);
+        Assert.IsNotNull(action.TextEdit);
+        Assert.AreEqual(typoSpan, action.TextEdit!.Span);
+        Assert.AreEqual("other", action.TextEdit.NewText);
+
+        var repairedQuery = query.Remove(action.TextEdit.Span.Start, action.TextEdit.Span.Length)
+            .Insert(action.TextEdit.Span.Start, action.TextEdit.NewText);
+        Assert.AreEqual(validQuery, repairedQuery);
+        Analyze(repairedQuery, new MatrixSchemaProvider(MatrixSignatures.RequiredTwo, _ => { }));
+    }
+
+    [TestMethod]
+    public void MissingRequiredArgument_ReportsInsertionSpanAndNamedFact()
+    {
+        const string validQuery = "select 1 from #matrix.source(value: 1, other: 2)";
+        var query = validQuery.Replace(", other: 2", string.Empty, StringComparison.Ordinal);
+        var exception = Assert.Throws<CannotResolveMethodException>(() => Analyze(
+            query,
+            new MatrixSchemaProvider(MatrixSignatures.RequiredTwo, _ => { })));
+
+        Assert.AreEqual(DiagnosticCode.MQ3081_MissingRequiredSourceArgument, exception.Code);
+        var insertionSpan = new TextSpan(query.IndexOf(')'), 0);
+        Assert.AreEqual(insertionSpan, exception.Span);
+
+        var envelope = MusoqErrorEnvelope.FromException(exception, query);
+        Assert.AreEqual(insertionSpan.Start, envelope.Offset);
+        Assert.AreEqual(0, envelope.Length);
+        Assert.IsTrue(envelope.Arguments.TryGetValue("missingArgument", out var missingArgument));
+        Assert.AreEqual("other", missingArgument);
+        Assert.IsTrue(envelope.Arguments.TryGetValue("candidateParameters", out var candidateParameters));
+        StringAssert.Contains(candidateParameters, "other");
+        StringAssert.Contains(envelope.Message, "other");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Explanation));
+        Assert.IsNotEmpty(envelope.SuggestedFixes);
+    }
+
+    [TestMethod]
     public void MetadataLessSource_RejectsNamedArguments()
     {
         var exception = Assert.Throws<CannotResolveMethodException>(() => Analyze(
@@ -58,6 +176,28 @@ public sealed class NamedDatasourceArgumentBinderMatrixTests
             new MatrixSchemaProvider(MatrixSignatures.MetadataLess, _ => { })));
 
         Assert.AreEqual(DiagnosticCode.MQ3083_NamedSourceArgumentsRequireMetadata, exception.Code);
+    }
+
+    [TestMethod]
+    public void MetadataLessSource_ReportsNamedLabelAndBindingRequirement()
+    {
+        const string validQuery = "select 1 from #matrix.source(1)";
+        var query = validQuery.Replace("1)", "value: 1)", StringComparison.Ordinal);
+        var exception = Assert.Throws<CannotResolveMethodException>(() => Analyze(
+            query,
+            new MatrixSchemaProvider(MatrixSignatures.MetadataLess, _ => { })));
+
+        var argumentSpan = new TextSpan(query.IndexOf("value", StringComparison.Ordinal), "value".Length);
+        Assert.AreEqual(DiagnosticCode.MQ3083_NamedSourceArgumentsRequireMetadata, exception.Code);
+        Assert.AreEqual(argumentSpan, exception.Span);
+
+        var envelope = MusoqErrorEnvelope.FromException(exception, query);
+        Assert.AreEqual(argumentSpan.Start, envelope.Offset);
+        Assert.AreEqual(argumentSpan.Length, envelope.Length);
+        Assert.AreEqual("value", envelope.Arguments["argument"]);
+        Assert.AreEqual("true", envelope.Arguments["requiresMetadata"]);
+        StringAssert.Contains(envelope.Message, "reflected constructor metadata");
+        Assert.IsFalse(envelope.Actions.Any(action => action.TextEdit != null));
     }
 
     [TestMethod]
@@ -114,6 +254,30 @@ public sealed class NamedDatasourceArgumentBinderMatrixTests
             new MatrixSchemaProvider(MatrixSignatures.Ambiguous, _ => { })));
 
         Assert.AreEqual(DiagnosticCode.MQ3089_AmbiguousCallableOverload, exception.Code);
+        StringAssert.Contains(exception.Message, "IComparable");
+        Assert.IsFalse(exception.Message.Contains("System.", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public void AssignableOverloadsWithEqualScore_ReportCandidatesWithoutUnsafeEdit()
+    {
+        const string query = "select 1 from #matrix.source(value: 'text')";
+        var exception = Assert.Throws<CannotResolveMethodException>(() => Analyze(
+            query,
+            new MatrixSchemaProvider(MatrixSignatures.Ambiguous, _ => { })));
+
+        var argumentsStart = query.IndexOf('(');
+        var argumentsSpan = new TextSpan(argumentsStart, query.IndexOf(')') - argumentsStart + 1);
+        var envelope = MusoqErrorEnvelope.FromException(exception, query);
+
+        Assert.AreEqual(DiagnosticCode.MQ3089_AmbiguousCallableOverload, envelope.Code);
+        Assert.AreEqual(argumentsSpan.Start, envelope.Offset);
+        Assert.AreEqual(argumentsSpan.Length, envelope.Length);
+        Assert.AreEqual("source", envelope.Arguments["callable"]);
+        Assert.AreEqual("String", envelope.Arguments["actualTypes"]);
+        StringAssert.Contains(envelope.Arguments["candidateSignatures"], "IComparable");
+        StringAssert.Contains(envelope.Arguments["candidateSignatures"], "IConvertible");
+        Assert.IsFalse(envelope.Actions.Any(action => action.TextEdit != null));
     }
 
     [TestMethod]

@@ -56,8 +56,8 @@ ExecutionPlan [compiled]
     ChunkedForEach [ko3iko in ko3ikoRows]
       Let [population: decimal = ko3iko.Population]
       If [(population > 500000)]
+        GetOrAddValueTupleAggregateGroup [group = groups[(ko3iko.City, ko3iko.Country, population)] by City, Country, Population; typed: ResultAggregateGroup]
         Let [city: string = ko3iko.City]
-        GetOrAddValueTupleAggregateGroup [group = groups[(city, ko3iko.Country, population)] by City, Country, Population; typed: ResultAggregateGroup]
         TypedAggregateSet [Set(group.__agg0, city)]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
@@ -160,8 +160,7 @@ namespace GeneratedSample_Q88_CompilationComplexGroupedSort
                                 decimal population = ko3iko.Population;
                                 if ((population > 500000))
                                 {
-                                    string city = ko3iko.City;
-                                    string groupKey0 = city;
+                                    string groupKey0 = ko3iko.City;
                                     string groupKey1 = ko3iko.Country;
                                     decimal groupKey2 = population;
                                     ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, (groupKey0, groupKey1, groupKey2), out var groupExists);
@@ -172,6 +171,7 @@ namespace GeneratedSample_Q88_CompilationComplexGroupedSort
                                     }
 
                                     ResultAggregateGroup group = groupRef;
+                                    string city = ko3iko.City;
                                     if ((string)city != null)
                                     {
                                         group.__agg0.Count = checked(group.__agg0.Count + 1L);
@@ -196,8 +196,7 @@ namespace GeneratedSample_Q88_CompilationComplexGroupedSort
                                 decimal population = ko3iko.Population;
                                 if ((population > 500000))
                                 {
-                                    string city = ko3iko.City;
-                                    string groupKey0 = city;
+                                    string groupKey0 = ko3iko.City;
                                     string groupKey1 = ko3iko.Country;
                                     decimal groupKey2 = population;
                                     ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, (groupKey0, groupKey1, groupKey2), out var groupExists);
@@ -208,6 +207,7 @@ namespace GeneratedSample_Q88_CompilationComplexGroupedSort
                                     }
 
                                     ResultAggregateGroup group = groupRef;
+                                    string city = ko3iko.City;
                                     if ((string)city != null)
                                     {
                                         group.__agg0.Count = checked(group.__agg0.Count + 1L);
@@ -230,8 +230,7 @@ namespace GeneratedSample_Q88_CompilationComplexGroupedSort
                         decimal population = ko3iko.Population;
                         if ((population > 500000))
                         {
-                            string city = ko3iko.City;
-                            string groupKey0 = city;
+                            string groupKey0 = ko3iko.City;
                             string groupKey1 = ko3iko.Country;
                             decimal groupKey2 = population;
                             ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, (groupKey0, groupKey1, groupKey2), out var groupExists);
@@ -242,6 +241,7 @@ namespace GeneratedSample_Q88_CompilationComplexGroupedSort
                             }
 
                             ResultAggregateGroup group = groupRef;
+                            string city = ko3iko.City;
                             if ((string)city != null)
                             {
                                 group.__agg0.Count = checked(group.__agg0.Count + 1L);

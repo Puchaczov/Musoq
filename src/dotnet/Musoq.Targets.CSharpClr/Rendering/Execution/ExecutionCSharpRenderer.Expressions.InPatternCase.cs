@@ -12,17 +12,23 @@ public sealed partial class ExecutionCSharpRenderer
     private ExpressionSyntax RenderInCheck(ExecutionInCheck inCheck, ExecutionRenderContext context)
     {
         if (inCheck.Values.Count == 0)
-            return SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression);
+        {
+            return SyntaxFactory.LiteralExpression(
+                inCheck.IsNegated ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression);
+        }
 
         if (inCheck.ConstantSet is { Kind: ExecutionConstantInSetKind.Switch } constantSet)
-            return RenderConstantSwitchInCheck(constantSet, inCheck.Expression, context);
+            return ApplyInNegation(
+                RenderConstantSwitchInCheck(constantSet, inCheck.Expression, context),
+                inCheck.IsNegated);
 
         if (inCheck.ConstantSet != null &&
             TryGetConstantInSetFieldName(inCheck.ConstantSet, context, out var fieldName))
         {
-            return inCheck.ConstantSet.Kind is ExecutionConstantInSetKind.HashSet or ExecutionConstantInSetKind.FrozenSet
+            var constantMatch = inCheck.ConstantSet.Kind is ExecutionConstantInSetKind.HashSet or ExecutionConstantInSetKind.FrozenSet
                 ? RenderConstantHashSetInCheck(fieldName, inCheck.Expression, context)
                 : RenderConstantArrayInCheck(fieldName, inCheck.Expression, context);
+            return ApplyInNegation(constantMatch, inCheck.IsNegated);
         }
 
         var indexOf = SyntaxFactory.InvocationExpression(
@@ -34,11 +40,21 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateArrayCreation(inCheck.Expression.ReturnType, inCheck.Values.Select(value => RenderExpression(value, context))),
                 RenderExpression(inCheck.Expression, context)));
 
-        return SyntaxFactory.ParenthesizedExpression(
+        var match = SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.GreaterThanOrEqualExpression,
                 indexOf,
             CreateIntLiteral(0)));
+        return ApplyInNegation(match, inCheck.IsNegated);
+    }
+
+    private static ExpressionSyntax ApplyInNegation(ExpressionSyntax expression, bool isNegated)
+    {
+        return isNegated
+            ? SyntaxFactory.PrefixUnaryExpression(
+                SyntaxKind.LogicalNotExpression,
+                SyntaxFactory.ParenthesizedExpression(expression))
+            : expression;
     }
 
     private ParenthesizedExpressionSyntax RenderConstantSwitchInCheck(
@@ -131,26 +147,6 @@ public sealed partial class ExecutionCSharpRenderer
                 RenderExpression(patternMatch.Pattern, context)));
     }
 
-    private ParenthesizedExpressionSyntax RenderBetween(ExecutionBetween between, ExecutionRenderContext context)
-    {
-        var greaterOrEqual = RenderBinary(new ExecutionBinary(
-            BinaryOpKind.GreaterOrEqual,
-            between.Expression,
-            between.Low,
-            typeof(bool)), context);
-        var lessOrEqual = RenderBinary(new ExecutionBinary(
-            BinaryOpKind.LessOrEqual,
-            between.Expression,
-            between.High,
-            typeof(bool)), context);
-
-        return SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.BinaryExpression(
-                SyntaxKind.LogicalAndExpression,
-                greaterOrEqual,
-                lessOrEqual));
-    }
-
     private ExpressionSyntax RenderCaseWhen(ExecutionCaseWhen caseWhen, ExecutionRenderContext context)
     {
         var fallback = caseWhen.ElseExpression == null
@@ -162,7 +158,7 @@ public sealed partial class ExecutionCSharpRenderer
             var branch = caseWhen.Branches[index];
             fallback = SyntaxFactory.ParenthesizedExpression(
                 SyntaxFactory.ConditionalExpression(
-                    RenderExpression(branch.Condition, context),
+                    this.RenderBooleanCondition(branch.Condition, context),
                     CastIfNeeded(RenderExpression(branch.Result, context), caseWhen.ReturnType),
                     fallback));
         }

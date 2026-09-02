@@ -329,10 +329,14 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override SimpleHeader InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("Id");
             var _id = ReadInt32Le(data);
+            RecordParsedField("Id", _id);
+            SetCurrentField("Value");
             var _value = ReadInt32Le(data);
+            RecordParsedField("Value", _value);
             return new SimpleHeader
             {
                 Id = _id,

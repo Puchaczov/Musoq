@@ -87,8 +87,9 @@ ExecutionPlan [compiled]
         SourceScan [vo04qt: BasicEntity] -> cte1_vo04qtRows
         CreateHash [cte1HashSidecar0Name: string -> Row]
         ChunkedForEach [vo04qt in cte1_vo04qtRows]
-          CreateHashPayload [cte1SidecarPayload0 <- Cte1HashPayload0(Name: vo04qt.Name)]
-          HashAdd [cte1HashSidecar0Name[vo04qt.Name] += cte1SidecarPayload0]
+          Let [name: string = vo04qt.Name]
+          CreateHashPayload [cte1SidecarPayload0 <- Cte1HashPayload0(Name: name)]
+          HashAdd [cte1HashSidecar0Name[name] += cte1SidecarPayload0]
         StoreCteIndex [cte1HashSidecar0Name -> _cteIndexResults.Slot0 Hash]
         PhaseBoundary [Select:cte1]
         PhaseBoundary [End:cte1]
@@ -345,8 +346,9 @@ namespace GeneratedSample_Q82_ParallelIndependentCtes
                                 }
 
                                 var vo04qt = vo04qtChunkViewArray[vo04qtChunkViewOffset + vo04qtIndex];
-                                Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(vo04qt.Name);
-                                string cte1HashSidecar0NameKey0 = vo04qt.Name;
+                                string name = vo04qt.Name;
+                                Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(name);
+                                string cte1HashSidecar0NameKey0 = name;
                                 if (cte1HashSidecar0NameKey0 != null)
                                 {
                                     {
@@ -377,8 +379,9 @@ namespace GeneratedSample_Q82_ParallelIndependentCtes
                                 }
 
                                 var vo04qt = vo04qtChunkViewList[vo04qtChunkViewOffset + vo04qtIndex];
-                                Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(vo04qt.Name);
-                                string cte1HashSidecar0NameKey0 = vo04qt.Name;
+                                string name = vo04qt.Name;
+                                Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(name);
+                                string cte1HashSidecar0NameKey0 = name;
                                 if (cte1HashSidecar0NameKey0 != null)
                                 {
                                     {
@@ -407,8 +410,9 @@ namespace GeneratedSample_Q82_ParallelIndependentCtes
                         }
 
                         var vo04qt = vo04qtChunk[vo04qtIndex];
-                        Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(vo04qt.Name);
-                        string cte1HashSidecar0NameKey0 = vo04qt.Name;
+                        string name = vo04qt.Name;
+                        Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(name);
+                        string cte1HashSidecar0NameKey0 = name;
                         if (cte1HashSidecar0NameKey0 != null)
                         {
                             {

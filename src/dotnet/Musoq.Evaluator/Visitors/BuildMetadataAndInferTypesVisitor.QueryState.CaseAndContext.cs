@@ -3,6 +3,7 @@ using System.Linq;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Schema;
 using Musoq.Schema.Helpers;
 
 namespace Musoq.Evaluator.Visitors;
@@ -23,6 +24,24 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var elseNode = PopSemanticNode();
 
+        EnumTypeDescriptor? enumType = null;
+        if (TryBindEnumCaseResults(
+                whenThenPairs,
+                elseNode,
+                out var boundWhenThenPairs,
+                out var boundElseNode,
+                out var boundEnumType))
+        {
+            whenThenPairs = boundWhenThenPairs;
+            elseNode = boundElseNode;
+            enumType = boundEnumType;
+            _diagnostics.NullSuspiciousTypes.Clear();
+            foreach (var pair in whenThenPairs)
+                _diagnostics.NullSuspiciousTypes.Add(pair.Then.ReturnType ?? typeof(object));
+            _diagnostics.NullSuspiciousTypes.Add(elseNode.ReturnType ?? typeof(object));
+        }
+
+        Node result;
         if (_diagnostics.NullSuspiciousTypes.All(type => type != NullNode.NullType.Instance))
         {
             var anyWasNullable = _diagnostics.NullSuspiciousTypes.Any(type => type.GetUnderlyingNullable() != null);
@@ -32,7 +51,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 : new CaseNode(whenThenPairs.ToArray(), elseNode,
                     BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(greatestCommonSubtype));
 
-            PushSemanticNode(caseNode);
+            result = caseNode;
         }
         else
         {
@@ -48,9 +67,12 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             caseNode.Accept(rewritePartsWithProperNullHandlingTraverser);
 
-            PushSemanticNode(rewritePartsWithProperNullHandling.RewrittenNode);
+            result = rewritePartsWithProperNullHandling.RewrittenNode;
         }
 
+        if (enumType != null)
+            MarkEnumExpression(result, enumType);
+        PushSemanticNode(result);
         _diagnostics.NullSuspiciousTypes.Clear();
     }
 

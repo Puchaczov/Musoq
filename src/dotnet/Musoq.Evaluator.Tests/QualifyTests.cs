@@ -6,7 +6,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class QualifyTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenQualifyFiltersRowNumber_ShouldReturnOnlyMatchingRows()

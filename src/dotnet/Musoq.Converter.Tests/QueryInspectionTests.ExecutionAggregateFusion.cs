@@ -16,7 +16,7 @@ public partial class QueryInspectionTests
             )
             select Country, Min(Population), Max(Money) from values group by Country
             """,
-            new CompilationOptions());
+            new CompilationOptions().WithStabilityAwareScalarReuse());
 
         AssertGeneratedCSharpContains("var __agg0Input = (int?)money;", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("var __agg1Input = (int?)population;", result.GeneratedCSharpCode);
@@ -34,10 +34,10 @@ public partial class QueryInspectionTests
             )
             select Country, Min(Population) filter (where Population > 0), Max(Population) filter (where Population > 10) from values group by Country
             """,
-            new CompilationOptions());
+            new CompilationOptions().WithStabilityAwareScalarReuse());
 
         AssertGeneratedCSharpContains("var __agg0Input = (int?)population;", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("var __agg1Input = (int?)population;", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains("var __agg1Input = (int?)population1;", result.GeneratedCSharpCode);
         Assert.AreEqual(2, CountOccurrences(result.GeneratedCSharpCode, "GetValueOrDefault();"));
     }
 
@@ -46,7 +46,7 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(
             "select d.Dummy, Min(1), CustomLengthTotal(Length(d.Dummy)), Max(1) from #system.dual() d group by d.Dummy",
-            new CompilationOptions());
+            new CompilationOptions().WithStabilityAwareScalarReuse());
 
         AssertGeneratedCSharpContains("CustomLengthTotalAggregate.Set(ref group.__agg1", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("var __agg0Input", result.GeneratedCSharpCode);

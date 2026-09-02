@@ -184,7 +184,7 @@ internal sealed partial class PhysicalLoweringImplementation
         }
 
         var keyColumns = invariant.HashKeys
-            .OfType<Musoq.Evaluator.IR.Expressions.ColumnRef>()
+            .OfType<Expressions.ColumnRef>()
             .Select(static key => key.ColumnName)
             .ToArray();
         if (keyColumns.Length != invariant.HashKeys.Length)

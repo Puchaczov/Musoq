@@ -1,7 +1,6 @@
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.IR.Execution.Facts;
@@ -71,7 +70,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         var session = context.Session;
-        var key = CreateStaticMetadataKey(metadata);
+        var key = StaticColumnMetadataIdentity.CreateKey(metadata);
         if (session.StaticMetadataFieldNames.ContainsKey(key))
             return;
 
@@ -91,7 +90,9 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context,
         out string fieldName)
     {
-        return context.Session.StaticMetadataFieldNames.TryGetValue(CreateStaticMetadataKey(metadata), out fieldName!);
+        return context.Session.StaticMetadataFieldNames.TryGetValue(
+            StaticColumnMetadataIdentity.CreateKey(metadata),
+            out fieldName!);
     }
 
     internal bool TryGetTableColumnMetadataFieldName(
@@ -125,38 +126,6 @@ public sealed partial class ExecutionCSharpRenderer
             out fieldName);
     }
 
-    private static string CreateStaticMetadataKey(ExecutionColumnMetadata metadata)
-    {
-        var builder = new StringBuilder();
-        builder
-            .Append(metadata.Kind)
-            .Append(':');
-        builder.Append(metadata.Fields.Count);
-
-        foreach (var field in metadata.Fields)
-        {
-            builder
-                .Append(':')
-                .Append(field.Index)
-                .Append(':');
-            AppendMetadataKeyPart(builder, field.Name);
-            builder.Append(':');
-            var fieldType = field.Type.RequireClrType();
-            AppendMetadataKeyPart(builder, fieldType.AssemblyQualifiedName ?? fieldType.FullName ?? fieldType.Name);
-            ReadModifierMetadata.AppendKey(builder, field.ReadModifiers);
-        }
-
-        return builder.ToString();
-    }
-
-    private static void AppendMetadataKeyPart(StringBuilder builder, string value)
-    {
-        builder
-            .Append(value.Length)
-            .Append(':')
-            .Append(value);
-    }
-
     private static IEnumerable<ExecutionColumnMetadata> CollectStaticMetadata(ExecutionBlock block)
     {
         foreach (var node in FlattenNodes(block))
@@ -186,7 +155,7 @@ public sealed partial class ExecutionCSharpRenderer
                     operation.ColumnMetadata != null:
                     yield return operation.ColumnMetadata;
                     break;
-                case ExecutionReturnDesc { Type: Musoq.Evaluator.IR.Logical.Nodes.DescType.Query, QueryColumnMetadata: not null } desc:
+                case ExecutionReturnDesc { Type: Evaluator.IR.Logical.Nodes.DescType.Query, QueryColumnMetadata: not null } desc:
                     yield return desc.QueryColumnMetadata;
                     break;
             }

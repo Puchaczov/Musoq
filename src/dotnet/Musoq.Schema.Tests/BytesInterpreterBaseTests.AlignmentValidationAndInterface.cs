@@ -46,31 +46,34 @@ public partial class BytesInterpreterBaseTests
     }
 
     [TestMethod]
-    public void AlignToBits_ZeroBits_ThrowsArgumentOutOfRangeException()
+    public void AlignToBits_ZeroBits_ThrowsInvalidSizeParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        var exception = Assert.Throws<ParseException>(() =>
             interpreter.TestAlignToBits(new byte[10], 0));
+        Assert.AreEqual(ParseErrorCode.InvalidSize, exception.ErrorCode);
     }
 
     [TestMethod]
-    public void AlignToBits_NegativeBits_ThrowsArgumentOutOfRangeException()
+    public void AlignToBits_NegativeBits_ThrowsInvalidSizeParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        var exception = Assert.Throws<ParseException>(() =>
             interpreter.TestAlignToBits(new byte[10], -1));
+        Assert.AreEqual(ParseErrorCode.InvalidSize, exception.ErrorCode);
     }
 
     [TestMethod]
-    public void AlignToBits_OverMaxBits_ThrowsArgumentOutOfRangeException()
+    public void AlignToBits_ArbitraryPositiveBoundary_AlignsAbsoluteBitPosition()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
-            interpreter.TestAlignToBits(new byte[10], 65));
+        interpreter.SetPosition(1);
+        interpreter.TestAlignToBits(new byte[10], 65);
+        Assert.AreEqual(8, interpreter.GetPosition());
+        Assert.AreEqual(1, interpreter.GetBitOffset());
     }
 
     #endregion
-
     #region Validate Tests
 
     [TestMethod]

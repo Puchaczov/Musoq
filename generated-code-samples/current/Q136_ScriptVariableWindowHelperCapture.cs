@@ -188,7 +188,7 @@ namespace GeneratedSample_Q136_ScriptVariableWindowHelperCapture
             for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
             {
                 Musoq.Evaluator.Tests.Schema.Basic.BasicEntity ko3iko = resultWindowRows[windowIndex];
-                resultRowNumbersPartitionKeys[windowIndex] = (string)((ko3iko.Country == letCountry) ? (string)letCountry : (string)ko3iko.Country);
+                resultRowNumbersPartitionKeys[windowIndex] = (string)(((Operators.SqlCompare<string, string>(ko3iko.Country, letCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true ? (string)letCountry : (string)ko3iko.Country));
                 resultRowNumbersOrderKeys[windowIndex] = new WindowResultRowNumbersOrderKeysKey((ko3iko.Name + letLabel));
             }
         }

@@ -11,6 +11,9 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ExpressionSyntax RenderMethodCall(ExecutionMethodCall methodCall, ExecutionRenderContext context)
     {
+        if (methodCall.EnumIntrinsic != null)
+            return EnumIntrinsicExpressionRenderer.Render(this, methodCall, context);
+
         if (methodCall.Cache != null)
             return RenderCachedMethodCall(methodCall, context);
 

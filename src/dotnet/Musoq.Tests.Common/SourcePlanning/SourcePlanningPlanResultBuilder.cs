@@ -86,6 +86,17 @@ public static class SourcePlanningPlanResultBuilder
         };
     }
 
+    public static SourcePredicateExpression? RemoveFirstConjunct(SourcePredicateExpression? predicate)
+    {
+        if (predicate is not SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.And } logical)
+            return null;
+
+        var left = RemoveFirstConjunct(logical.Left);
+        return left == null
+            ? logical.Right
+            : logical with { Left = left };
+    }
+
     private static Dictionary<string, object?> CreateProperties(
         string? strategyPropertyName,
         SourcePlanningExecutionStrategy? strategy,

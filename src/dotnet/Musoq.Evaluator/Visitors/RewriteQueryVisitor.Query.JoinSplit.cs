@@ -18,7 +18,7 @@ public sealed partial class RewriteQueryVisitor
     private void SplitJoinChainIfNeeded(QueryNode node, QueryRewriteContext context)
     {
         if (context.PreserveDirectApplyChain || context.From.Expression is not (JoinNode or ApplyNode) ||
-            _joinedTables.Any(static node => node is JoinFromNode { JoinType: JoinType.LeftSemi or JoinType.LeftAntiSemi }))
+            _joinedTables.Any(static node => node is JoinFromNode { JoinType: JoinType.LeftSemi or JoinType.LeftAntiSemi }) || _joinedTables.Any(static node => node is JoinFromNode { WithOrdinality: true }))
         {
             return;
         }

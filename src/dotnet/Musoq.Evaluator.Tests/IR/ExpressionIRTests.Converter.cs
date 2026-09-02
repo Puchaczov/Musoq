@@ -164,7 +164,7 @@ public partial class ExpressionIrTests
         Assert.IsInstanceOfType<BinaryOp>(result);
         var op = (BinaryOp)result;
         Assert.AreEqual(BinaryOpKind.Equal, op.Kind);
-        Assert.AreEqual(typeof(bool), op.ReturnType);
+        Assert.AreEqual(typeof(bool?), op.ReturnType);
     }
 
     [TestMethod]

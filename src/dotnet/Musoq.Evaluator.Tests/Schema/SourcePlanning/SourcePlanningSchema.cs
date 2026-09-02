@@ -107,7 +107,7 @@ public sealed class SourcePlanningSchema(
                 acceptedTake: null,
                 residualTake: request.Take,
                 acceptedPredicate: SourcePlanningPlanResultBuilder.GetFirstConjunct(request.Predicate),
-                residualPredicate: request.Predicate,
+                residualPredicate: SourcePlanningPlanResultBuilder.RemoveFirstConjunct(request.Predicate),
                 predicateAccepted: SourcePlanningPlanResultBuilder.GetFirstConjunct(request.Predicate) != null),
             SourcePlanningMode.AcceptPredicateOrderSkipTake => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,

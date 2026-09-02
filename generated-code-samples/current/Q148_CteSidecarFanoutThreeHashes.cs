@@ -127,8 +127,9 @@ ExecutionPlan [compiled]
         SourceScan [ko3iko: BasicEntity] -> cte0_ko3ikoRows
         CreateHash [cte0HashSidecar0Id: int -> Row]
         ChunkedForEach [ko3iko in cte0_ko3ikoRows]
-          CreateHashPayload [cte0SidecarPayload0 <- Cte0HashPayload0(Id: ko3iko.Id, Name: ko3iko.Name)]
-          HashAdd [cte0HashSidecar0Id[ko3iko.Id] += cte0SidecarPayload0]
+          Let [id: int = ko3iko.Id]
+          CreateHashPayload [cte0SidecarPayload0 <- Cte0HashPayload0(Id: id, Name: ko3iko.Name)]
+          HashAdd [cte0HashSidecar0Id[id] += cte0SidecarPayload0]
         StoreCteIndex [cte0HashSidecar0Id -> _cteIndexResults.Slot0 Hash]
         PhaseBoundary [Select:cte0]
         PhaseBoundary [End:cte0]
@@ -138,8 +139,9 @@ ExecutionPlan [compiled]
         SourceScan [vo04qt: BasicEntity] -> cte1_vo04qtRows
         CreateHash [cte1HashSidecar1Id: int -> Row]
         ChunkedForEach [vo04qt in cte1_vo04qtRows]
-          CreateHashPayload [cte1SidecarPayload0 <- Cte1HashPayload1(Id: vo04qt.Id, City: vo04qt.City)]
-          HashAdd [cte1HashSidecar1Id[vo04qt.Id] += cte1SidecarPayload0]
+          Let [id: int = vo04qt.Id]
+          CreateHashPayload [cte1SidecarPayload0 <- Cte1HashPayload1(Id: id, City: vo04qt.City)]
+          HashAdd [cte1HashSidecar1Id[id] += cte1SidecarPayload0]
         StoreCteIndex [cte1HashSidecar1Id -> _cteIndexResults.Slot1 Hash]
         PhaseBoundary [Select:cte1]
         PhaseBoundary [End:cte1]
@@ -149,8 +151,9 @@ ExecutionPlan [compiled]
         SourceScan [gougbq: BasicEntity] -> cte2_gougbqRows
         CreateHash [cte2HashSidecar2Id: int -> Row]
         ChunkedForEach [gougbq in cte2_gougbqRows]
-          CreateHashPayload [cte2SidecarPayload0 <- Cte2HashPayload2(Id: gougbq.Id, Country: gougbq.Country)]
-          HashAdd [cte2HashSidecar2Id[gougbq.Id] += cte2SidecarPayload0]
+          Let [id: int = gougbq.Id]
+          CreateHashPayload [cte2SidecarPayload0 <- Cte2HashPayload2(Id: id, Country: gougbq.Country)]
+          HashAdd [cte2HashSidecar2Id[id] += cte2SidecarPayload0]
         StoreCteIndex [cte2HashSidecar2Id -> _cteIndexResults.Slot2 Hash]
         PhaseBoundary [Select:cte2]
         PhaseBoundary [End:cte2]
@@ -436,8 +439,9 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
                                 }
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Id, ko3iko.Name);
-                                int cte0HashSidecar0IdKey0 = ko3iko.Id;
+                                int id = ko3iko.Id;
+                                Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(id, ko3iko.Name);
+                                int cte0HashSidecar0IdKey0 = id;
                                 {
                                     ref var cte0HashSidecar0IdBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0HashSidecar0Id, cte0HashSidecar0IdKey0, out var cte0HashSidecar0IdBucket0Exists);
                                     if (!cte0HashSidecar0IdBucket0Exists)
@@ -465,8 +469,9 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
                                 }
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Id, ko3iko.Name);
-                                int cte0HashSidecar0IdKey0 = ko3iko.Id;
+                                int id = ko3iko.Id;
+                                Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(id, ko3iko.Name);
+                                int cte0HashSidecar0IdKey0 = id;
                                 {
                                     ref var cte0HashSidecar0IdBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0HashSidecar0Id, cte0HashSidecar0IdKey0, out var cte0HashSidecar0IdBucket0Exists);
                                     if (!cte0HashSidecar0IdBucket0Exists)
@@ -492,8 +497,9 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
                         }
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                        Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Id, ko3iko.Name);
-                        int cte0HashSidecar0IdKey0 = ko3iko.Id;
+                        int id = ko3iko.Id;
+                        Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(id, ko3iko.Name);
+                        int cte0HashSidecar0IdKey0 = id;
                         {
                             ref var cte0HashSidecar0IdBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0HashSidecar0Id, cte0HashSidecar0IdKey0, out var cte0HashSidecar0IdBucket0Exists);
                             if (!cte0HashSidecar0IdBucket0Exists)
@@ -547,8 +553,9 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
                                 }
 
                                 var vo04qt = vo04qtChunkViewArray[vo04qtChunkViewOffset + vo04qtIndex];
-                                Cte1HashPayload1 cte1SidecarPayload0 = new Cte1HashPayload1(vo04qt.Id, vo04qt.City);
-                                int cte1HashSidecar1IdKey0 = vo04qt.Id;
+                                int id = vo04qt.Id;
+                                Cte1HashPayload1 cte1SidecarPayload0 = new Cte1HashPayload1(id, vo04qt.City);
+                                int cte1HashSidecar1IdKey0 = id;
                                 {
                                     ref var cte1HashSidecar1IdBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte1HashSidecar1Id, cte1HashSidecar1IdKey0, out var cte1HashSidecar1IdBucket0Exists);
                                     if (!cte1HashSidecar1IdBucket0Exists)
@@ -576,8 +583,9 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
                                 }
 
                                 var vo04qt = vo04qtChunkViewList[vo04qtChunkViewOffset + vo04qtIndex];
-                                Cte1HashPayload1 cte1SidecarPayload0 = new Cte1HashPayload1(vo04qt.Id, vo04qt.City);
-                                int cte1HashSidecar1IdKey0 = vo04qt.Id;
+                                int id = vo04qt.Id;
+                                Cte1HashPayload1 cte1SidecarPayload0 = new Cte1HashPayload1(id, vo04qt.City);
+                                int cte1HashSidecar1IdKey0 = id;
                                 {
                                     ref var cte1HashSidecar1IdBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte1HashSidecar1Id, cte1HashSidecar1IdKey0, out var cte1HashSidecar1IdBucket0Exists);
                                     if (!cte1HashSidecar1IdBucket0Exists)
@@ -603,8 +611,9 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
                         }
 
                         var vo04qt = vo04qtChunk[vo04qtIndex];
-                        Cte1HashPayload1 cte1SidecarPayload0 = new Cte1HashPayload1(vo04qt.Id, vo04qt.City);
-                        int cte1HashSidecar1IdKey0 = vo04qt.Id;
+                        int id = vo04qt.Id;
+                        Cte1HashPayload1 cte1SidecarPayload0 = new Cte1HashPayload1(id, vo04qt.City);
+                        int cte1HashSidecar1IdKey0 = id;
                         {
                             ref var cte1HashSidecar1IdBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte1HashSidecar1Id, cte1HashSidecar1IdKey0, out var cte1HashSidecar1IdBucket0Exists);
                             if (!cte1HashSidecar1IdBucket0Exists)
@@ -658,8 +667,9 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
                                 }
 
                                 var gougbq = gougbqChunkViewArray[gougbqChunkViewOffset + gougbqIndex];
-                                Cte2HashPayload2 cte2SidecarPayload0 = new Cte2HashPayload2(gougbq.Id, gougbq.Country);
-                                int cte2HashSidecar2IdKey0 = gougbq.Id;
+                                int id = gougbq.Id;
+                                Cte2HashPayload2 cte2SidecarPayload0 = new Cte2HashPayload2(id, gougbq.Country);
+                                int cte2HashSidecar2IdKey0 = id;
                                 {
                                     ref var cte2HashSidecar2IdBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte2HashSidecar2Id, cte2HashSidecar2IdKey0, out var cte2HashSidecar2IdBucket0Exists);
                                     if (!cte2HashSidecar2IdBucket0Exists)
@@ -687,8 +697,9 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
                                 }
 
                                 var gougbq = gougbqChunkViewList[gougbqChunkViewOffset + gougbqIndex];
-                                Cte2HashPayload2 cte2SidecarPayload0 = new Cte2HashPayload2(gougbq.Id, gougbq.Country);
-                                int cte2HashSidecar2IdKey0 = gougbq.Id;
+                                int id = gougbq.Id;
+                                Cte2HashPayload2 cte2SidecarPayload0 = new Cte2HashPayload2(id, gougbq.Country);
+                                int cte2HashSidecar2IdKey0 = id;
                                 {
                                     ref var cte2HashSidecar2IdBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte2HashSidecar2Id, cte2HashSidecar2IdKey0, out var cte2HashSidecar2IdBucket0Exists);
                                     if (!cte2HashSidecar2IdBucket0Exists)
@@ -714,8 +725,9 @@ namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes
                         }
 
                         var gougbq = gougbqChunk[gougbqIndex];
-                        Cte2HashPayload2 cte2SidecarPayload0 = new Cte2HashPayload2(gougbq.Id, gougbq.Country);
-                        int cte2HashSidecar2IdKey0 = gougbq.Id;
+                        int id = gougbq.Id;
+                        Cte2HashPayload2 cte2SidecarPayload0 = new Cte2HashPayload2(id, gougbq.Country);
+                        int cte2HashSidecar2IdKey0 = id;
                         {
                             ref var cte2HashSidecar2IdBucket0 = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte2HashSidecar2Id, cte2HashSidecar2IdKey0, out var cte2HashSidecar2IdBucket0Exists);
                             if (!cte2HashSidecar2IdBucket0Exists)

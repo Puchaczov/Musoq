@@ -184,7 +184,7 @@ internal static partial class ApplyPredicateMovementPlanner
                 return;
             }
 
-            if (predicate.ReturnType != typeof(bool))
+            if (!IrExpressionNullSemantics.IsBoolean(predicate.ReturnType))
             {
                 AddResidualDecision(
                     ordinal,

@@ -15,7 +15,9 @@ internal sealed partial class PhysicalLoweringImplementation
             column.Index,
             column.Type,
             FieldNullability.Unknown,
-            new GeneratedFieldAccess(CreateGeneratedFieldName(column.Name, column.Index, usedFieldNames)))).ToArray();
+            new GeneratedFieldAccess(CreateGeneratedFieldName(column.Name, column.Index, usedFieldNames)),
+            sourceReadType: column.SourceReadType,
+            enumType: column.EnumType)).ToArray();
 
         return new ValuesRowShape(
             values.Alias,

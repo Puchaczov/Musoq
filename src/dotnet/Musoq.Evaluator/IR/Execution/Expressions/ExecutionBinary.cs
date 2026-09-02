@@ -8,6 +8,13 @@ public sealed record ExecutionBinary(
     ExecutionExpression Right,
     ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
 {
+    /// <summary>
+    ///     Indicates that this comparison originated from SQL comparison syntax and therefore uses
+    ///     three-valued NULL semantics. Synthetic comparisons created by planning and lowering leave
+    ///     this disabled so their existing CLR semantics are preserved.
+    /// </summary>
+    public bool UsesSqlNullSemantics { get; init; }
+
     internal ExecutionBinary(
         BinaryOpKind kind,
         ExecutionExpression left,

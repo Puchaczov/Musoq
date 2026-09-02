@@ -134,8 +134,6 @@ public sealed partial class ExecutionCSharpRenderer
             members.AddRange(CreateCteRowResultMembers(session.TypedStoredTableResults));
             members.AddRange(session.ConstantInSetFields.Select(static field => CreateConstantInSetField(field)));
             members.AddRange(session.StaticMetadataFields.Select(static field => CreateStaticMetadataField(field)));
-            AddCollectionParameterMembers(plan, members);
-
             members.AddRange(session.SingleKeyAggregateUpdateHelpersByBlock.Values
                 .Select(helper => CreateSingleKeyAggregateUpdateFunction(helper, context)));
             members.AddRange(session.EnumerableTraversalHelpersByBlock.Values

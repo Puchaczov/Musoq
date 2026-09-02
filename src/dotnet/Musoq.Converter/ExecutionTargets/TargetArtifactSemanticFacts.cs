@@ -124,7 +124,12 @@ internal sealed record TargetArtifactSemanticFacts
             column.ColumnName,
             column.IntendedTypeName,
             FormatTypeName(column.ColumnType) ?? "<null>",
-            FreezeDictionary(column.ReadModifiers));
+            FormatTypeName(column.SourceReadType) ?? "<null>",
+            column.EnumType?.Fingerprint ?? "<null>",
+            FreezeDictionary(column.ReadModifiers))
+        {
+            Stability = column.Stability
+        };
     }
 
     private static TargetArtifactSourceColumnRefFact CreateSourceColumnRefFact(
@@ -156,7 +161,15 @@ internal sealed record TargetArtifactSemanticFacts
             Freeze(request.OrderBy.Select(CreateOrderByFact)),
             request.Skip?.ToString(CultureInfo.InvariantCulture) ?? "<null>",
             request.Take?.ToString(CultureInfo.InvariantCulture) ?? "<null>",
-            FormatTypeName(request.Predicate?.GetType()) ?? "<null>");
+            FormatTypeName(request.Predicate?.GetType()) ?? "<null>")
+        {
+            RequestedComputedProjectionFingerprints = request.RequestedComputedProjections
+                .OrderBy(static projection => projection.Name, StringComparer.Ordinal)
+                .Select(static projection =>
+                    $"{projection.Name}:{SourceScalarExpressionFingerprint.Compute(projection.Expression)}:{projection.Stability}")
+                .ToArray(),
+            Replayability = request.Replayability
+        };
     }
 
     private static string? FormatTypeName(Type? type)
@@ -220,7 +233,12 @@ internal sealed record TargetArtifactColumnFact(
     string ColumnName,
     string? IntendedTypeName,
     string ColumnTypeName,
-    IReadOnlyDictionary<string, string> ReadModifiers);
+    string SourceReadTypeName,
+    string EnumTypeFingerprint,
+    IReadOnlyDictionary<string, string> ReadModifiers)
+{
+    public ColumnStability Stability { get; init; } = ColumnStability.Stable;
+}
 
 internal sealed record TargetArtifactSourceColumnsFact(
     TargetArtifactSourceFact Source,
@@ -248,4 +266,9 @@ internal sealed record TargetArtifactSourcePlanFact(
     IReadOnlyList<TargetArtifactOrderByFact> OrderBy,
     string Skip,
     string Take,
-    string PredicateTypeName);
+    string PredicateTypeName)
+{
+    public IReadOnlyList<string> RequestedComputedProjectionFingerprints { get; init; } = [];
+
+    public RowStreamReplayability Replayability { get; init; } = RowStreamReplayability.Unknown;
+}

@@ -61,7 +61,9 @@ public partial class Parser
             return new AliasParseResult(string.Empty, default, AliasParseState.Absent, default);
 
         if (Current.TokenType == TokenType.Identifier && !IsBracketedIdentifier(Current) &&
-            IsLikelyMisspelledClauseKeyword(Current.Value))
+            (IsLikelyMisspelledClauseKeyword(Current.Value) ||
+             context == AliasContext.Projection &&
+             KeywordMisspellingFacts.IsLikelyMisspelledFromKeyword(Current, _lexer.Input)))
             return new AliasParseResult(string.Empty, default, AliasParseState.Absent, default);
 
         var token = ConsumeAndGetToken(Current.TokenType);
@@ -87,7 +89,7 @@ public partial class Parser
 
         throw new SyntaxException(message, _lexer.AlreadyResolvedQueryPart,
             isRequiredSourceAlias ? DiagnosticCode.MQ2035_MissingRequiredAlias : DiagnosticCode.MQ2022_InvalidAlias,
-            isRequiredSourceAlias ? new TextSpan(result.IntroducerSpan.End, 0) : result.Span);
+            isRequiredSourceAlias ? new TextSpan(result.IntroducerSpan.End, 0) : result.Span, ParserDiagnosticFacts.AliasSyntax(result, context, Current.Value));
     }
 }
 

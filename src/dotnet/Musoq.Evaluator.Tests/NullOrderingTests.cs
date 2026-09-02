@@ -6,7 +6,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class NullOrderingTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; } = null!;
 
     [TestMethod]
     public void OrderBy_AscendingNullsLast_ShouldPlaceNullAfterValues()
@@ -111,7 +110,7 @@ public sealed class NullOrderingTests : BasicEntityTestBase
             ["Null", 60m]);
     }
 
-    private Musoq.Evaluator.Tables.Table Run(string query, params BasicEntity[] rows)
+    private Tables.Table Run(string query, params BasicEntity[] rows)
     {
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource(rows));
         return TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));

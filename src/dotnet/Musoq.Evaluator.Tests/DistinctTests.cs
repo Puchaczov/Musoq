@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class DistinctTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void DistinctToGroupByVisitor_TransformsQueryCorrectly()

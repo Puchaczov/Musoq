@@ -52,12 +52,12 @@ public partial class InterpreterCodeGenerator
         return $"var {localVar} = ReadBytes(data, {sizeExpr});";
     }
 
-    private string GenerateStringReadCode(string localVar, StringTypeNode stringType)
+    private string GenerateStringReadCode(string localVar, StringTypeNode stringType, string fieldName)
     {
-        return GenerateStringDeclarationCode(localVar, stringType);
+        return GenerateStringDeclarationCode(localVar, stringType, fieldName);
     }
 
-    private string GenerateStringDeclarationCode(string targetVar, StringTypeNode stringType)
+    private string GenerateStringDeclarationCode(string targetVar, StringTypeNode stringType, string fieldName)
     {
         var builder = new StringBuilder();
         var rawStringVar = stringType.AsTextSchemaName != null ? $"{targetVar}_raw" : targetVar;
@@ -68,11 +68,12 @@ public partial class InterpreterCodeGenerator
             return builder.ToString();
 
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {targetVar}_textInterpreter = new {stringType.AsTextSchemaName}();");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {targetVar} = {targetVar}_textInterpreter.Parse({rawStringVar});");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
+            $"var {targetVar} = ParseNested({targetVar}_textInterpreter, {rawStringVar}, \"{EscapeString(fieldName)}\");");
         return builder.ToString();
     }
 
-    private string GenerateStringAssignmentCode(string targetVar, StringTypeNode stringType)
+    private string GenerateStringAssignmentCode(string targetVar, StringTypeNode stringType, string fieldName)
     {
         var builder = new StringBuilder();
         var rawStringVar = stringType.AsTextSchemaName != null ? $"{targetVar}_raw" : targetVar;
@@ -86,7 +87,8 @@ public partial class InterpreterCodeGenerator
             return builder.ToString();
 
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {targetVar}_textInterpreter = new {stringType.AsTextSchemaName}();");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{targetVar} = {targetVar}_textInterpreter.Parse({rawStringVar});");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
+            $"{targetVar} = ParseNested({targetVar}_textInterpreter, {rawStringVar}, \"{EscapeString(fieldName)}\");");
         return builder.ToString();
     }
 

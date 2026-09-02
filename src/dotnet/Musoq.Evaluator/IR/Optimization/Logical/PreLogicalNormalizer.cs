@@ -50,6 +50,8 @@ internal sealed class PreLogicalNormalizer
         try
         {
             RecursiveCtePrevalidator.Validate(initialRoot);
+            result = NormalizeValidated(initialRoot);
+            return true;
         }
         catch (Exception exception)
         {
@@ -57,9 +59,5 @@ internal sealed class PreLogicalNormalizer
             result = null;
             return false;
         }
-
-        result = NormalizeValidated(initialRoot);
-        return true;
     }
 }
-

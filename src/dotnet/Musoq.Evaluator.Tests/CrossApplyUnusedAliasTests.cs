@@ -12,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     /// <summary>
     ///     Test case where cross apply alias 't' is defined but only columns from 'a' are selected.

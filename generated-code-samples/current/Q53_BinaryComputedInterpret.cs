@@ -350,11 +350,17 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override Rectangle InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("Width");
             var _width = ReadInt32Le(data);
+            RecordParsedField("Width", _width);
+            SetCurrentField("Height");
             var _height = ReadInt32Le(data);
+            RecordParsedField("Height", _height);
+            SetCurrentField("Area");
             var _area = (int)((_width * _height));
+            RecordParsedField("Area", _area);
             return new Rectangle
             {
                 Width = _width,

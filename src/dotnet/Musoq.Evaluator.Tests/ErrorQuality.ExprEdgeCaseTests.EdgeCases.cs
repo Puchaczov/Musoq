@@ -124,10 +124,10 @@ public partial class ErrorQualityExprEdgeCaseTests
         var result2 = analyzer.Analyze(query2);
         var result3 = analyzer.Analyze(query3);
 
-        // Assert — SELECT/WHERE boolean literals are supported, unary NOT with boolean literal is rejected with typed parse diagnostics.
+        // Assert — SELECT/WHERE boolean literals and prefix NOT are supported.
         AssertNoErrors(result1);
         AssertNoErrors(result2);
-        AssertHasErrorCode(result3, DiagnosticCode.MQ2001_UnexpectedToken, "WHERE NOT false");
+        AssertNoErrors(result3);
     }
 
     [TestMethod]

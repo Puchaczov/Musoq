@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Musoq.Evaluator;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
@@ -68,13 +70,21 @@ public class UnknownInterpretationSchemaException : Exception, IDiagnosticExcept
     /// </summary>
     public TextSpan? Span { get; }
 
+    public IReadOnlyDictionary<string, string> Arguments { get; } =
+        new Dictionary<string, string>(StringComparer.Ordinal);
+
+    public IReadOnlyList<DiagnosticAction> SuggestedFixes { get; } = [];
+
     /// <summary>
     ///     Converts this exception to a Diagnostic instance.
     /// </summary>
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        var span = Span ?? TextSpan.Empty;
-        return Diagnostic.Error(Code, Message, span);
+        var arguments = new Dictionary<string, string>(Arguments, StringComparer.Ordinal)
+        {
+            ["schema"] = SchemaName
+        };
+        return SemanticDiagnosticFactory.Create(Code, Message, Span, sourceText, arguments, SuggestedFixes);
     }
 
     /// <summary>

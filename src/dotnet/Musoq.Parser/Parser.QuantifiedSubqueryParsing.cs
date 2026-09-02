@@ -9,9 +9,10 @@ public partial class Parser
 {
     private Node ComposeQuantifiedSubquery(Node left, TokenType operatorType)
     {
-        var quantifier = Current.TokenType;
+        var quantifierToken = Current;
+        var quantifier = quantifierToken.TokenType;
         Consume(quantifier);
-        Consume(TokenType.LeftParenthesis);
+        var openingParenthesis = ConsumeAndGetToken(TokenType.LeftParenthesis);
 
         if (Current.TokenType != TokenType.Select && Current.TokenType != TokenType.From)
             throw new SyntaxException(
@@ -21,10 +22,15 @@ public partial class Parser
                 Current.Span);
 
         var subquery = ComposeSetOperators(1);
-        Consume(TokenType.RightParenthesis);
+        var closingParenthesis = ConsumeAndGetToken(TokenType.RightParenthesis);
+        var quantifiedSpan = left.Span
+            .Through(quantifierToken.Span)
+            .Through(openingParenthesis.Span)
+            .Through(subquery.Span)
+            .Through(closingParenthesis.Span);
 
         if (quantifier is TokenType.Any or TokenType.Some && operatorType == TokenType.Equality)
-            return new InQueryNode(left, subquery);
+            return new InQueryNode(left, subquery).WithSpan(quantifiedSpan);
 
         if (subquery is not QueryNode query)
             throw new SyntaxException(
@@ -44,6 +50,7 @@ public partial class Parser
         Node predicate = quantifier is TokenType.Any or TokenType.Some
             ? CreateAnyQuantifiedPredicate(left, operatorType, value)
             : CreateAllQuantifiedPredicate(left, operatorType, value);
+        predicate.WithSpan(quantifiedSpan);
 
         var where = query.Where != null
             ? new WhereNode(new AndNode(query.Where.Expression, predicate))
@@ -60,7 +67,7 @@ public partial class Parser
             query.Qualify,
             default);
 
-        var exists = new ExistsQueryNode(existsQuery);
+        var exists = (ExistsQueryNode)new ExistsQueryNode(existsQuery).WithSpan(quantifiedSpan);
         return quantifier is TokenType.All ? new NotNode(exists) : exists;
     }
 

@@ -1,0 +1,286 @@
+﻿// === Parsed Query ===
+/*
+select a.VolatileValue, RowNumber() over (order by a.Value) as rn from #licm.outers() a
+*/
+
+// === Logical Plan ===
+/*
+MultiStatement
+  Project [a.VolatileValue as a.VolatileValue, WindowRef(0) as rn]
+    Window [RowNumber(idx:0; order: a.Value)]
+      SchemaScan [#licm.outers() as a]
+*/
+
+// === Physical Plan ===
+/*
+PhysicalMultiStatement
+  PhysicalProject [a.VolatileValue as a.VolatileValue, WindowRef(0) as rn]
+    PhysicalWindow [RowNumber(idx:0; order: a.Value)]
+      PhysicalMaterialize
+        PhysicalSchemaScan [#licm.outers() as a]
+*/
+
+// === Execution Plan ===
+/*
+ExecutionPlan [compiled]
+  Shapes
+    SourceEntity [a: LoopInvariantSampleOuter]
+      Value: int <- property Value
+      VolatileValue: int <- property VolatileValue
+    Generated [ResultRow0]
+      a.VolatileValue: int <- field a_VolatileValue
+      rn: long <- field rn
+
+  Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    SourceScan [a: LoopInvariantSampleOuter] -> aRows
+    MaterializeChunked [aRows -> resultWindowRows]
+    ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows order by a.Value ASC]
+    CreateShapeRows [result: ResultShape0 from ResultRow0]
+    PhaseBoundary [Select]
+    ForEachIndexed [windowIndex, a in resultWindowRows]
+      AppendShape [result <- ResultShape0(a.VolatileValue: a.VolatileValue, rn: resultRowNumbers[windowIndex])]
+    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
+*/
+
+// === Generated C# ===
+
+// === SyntaxTree:  ===
+namespace GeneratedSample_Q255_VolatileWindowInputs
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
+    using Musoq.Schema;
+    using Musoq.Schema.Optimization;
+    using Musoq.Evaluator;
+    using Musoq.Evaluator.Tables;
+    using Musoq.Evaluator.Helpers;
+    using Musoq.Evaluator.Runtime;
+    using Musoq.Schema.DataSources;
+    using System.Linq;
+
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable
+    {
+        private static readonly Column[] __columns_compiled_result_1 = new Column[]
+        {
+            new Column("a.VolatileValue", typeof(int), 0),
+            new Column("rn", typeof(long), 1)
+        };
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Value", typeof(int), 1), new Column("VolatileValue", typeof(int), 2) });
+        public ILogger Logger { get; set; }
+        public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
+        public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();
+        public IDictionary<string, System.Object> Parameters { get; } = new Dictionary<string, System.Object>(StringComparer.Ordinal);
+        public ISchemaProvider Provider { get; set; }
+        public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; }
+        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; }
+        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; }
+
+        public event DataSourceEventHandler DataSourceProgress;
+        public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
+        public Table Run(CancellationToken token)
+        {
+            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+        }
+
+        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        {
+            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
+            {
+                yield return new ResultRow0(__musoqShapeRow.a_VolatileValue, __musoqShapeRow.rn);
+            }
+        }
+
+        private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        {
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
+            try
+            {
+                var __musoqExecutionState = ExecutionState.Capture(Parameters);
+                ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
+                var __musoqFinalShapeRows = new List<ResultShape0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                var __aSchema = provider.GetSchema("#licm");
+                var aRowsSource = __aSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleOuter>("outers", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), Array.Empty<object>());
+                var aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleOuter>(aRowsSource.Chunks, __musoqProgressContext, "a:1") : aRowsSource.Chunks;
+                var resultWindowRows = EvaluationHelper.MaterializeChunkedRowsList(aRows);
+                var resultRowNumbersOrderKeys = new WindowResultRowNumbersOrderKeysKey[resultWindowRows.Count];
+                ExtractResultRowNumbersWindowKeys(resultWindowRows, resultRowNumbersOrderKeys);
+                var resultRowNumbersPartitions = WindowFunctionHelpers.ResolvePartitionSet(resultWindowRows.Count, null);
+                WindowFunctionHelpers.SortStructPartitionSetInPlace(resultRowNumbersPartitions, resultRowNumbersOrderKeys, false);
+                var resultRowNumbers = new long[resultWindowRows.Count];
+                for (int resultRowNumbersPartitionSetIndex = 0; resultRowNumbersPartitionSetIndex < resultRowNumbersPartitions.PartitionCount; ++resultRowNumbersPartitionSetIndex)
+                {
+                    var resultRowNumbersPartitionStart = resultRowNumbersPartitions.GetStart(resultRowNumbersPartitionSetIndex);
+                    var resultRowNumbersPartitionCount = resultRowNumbersPartitions.GetLength(resultRowNumbersPartitionSetIndex);
+                    var resultRowNumbersPartitionIndices = resultRowNumbersPartitions.Indices;
+                    var resultRowNumbersPartitionLimit = resultRowNumbersPartitionCount;
+                    for (int resultRowNumbersPartitionIndex = 0; resultRowNumbersPartitionIndex < resultRowNumbersPartitionLimit; ++resultRowNumbersPartitionIndex)
+                    {
+                        var resultRowNumbersCurrentIndex = resultRowNumbersPartitionIndices[resultRowNumbersPartitionStart + resultRowNumbersPartitionIndex];
+                        resultRowNumbers[resultRowNumbersCurrentIndex] = resultRowNumbersPartitionIndex + 1L;
+                    }
+                }
+
+                OnPhaseChanged("compiled", QueryPhase.Select);
+                for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
+                {
+                    if ((windowIndex & 1023) == 0)
+                    {
+                        token.ThrowIfCancellationRequested();
+                    }
+
+                    Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleOuter a = resultWindowRows[windowIndex];
+                    __musoqFinalShapeRows.Add(new ResultShape0(a.VolatileValue, (long)resultRowNumbers[windowIndex]));
+                }
+
+                return __musoqFinalShapeRows;
+            }
+            finally
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            }
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private void OnDataSourceProgress(object sender, DataSourceEventArgs e)
+        {
+            DataSourceProgress?.Invoke(this, e);
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private void OnPhaseChanged(string queryId, QueryPhase phase)
+        {
+            PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static void ExtractResultRowNumbersWindowKeys(IReadOnlyList<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleOuter> resultWindowRows, WindowResultRowNumbersOrderKeysKey[] resultRowNumbersOrderKeys)
+        {
+            for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
+            {
+                Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleOuter a = resultWindowRows[windowIndex];
+                resultRowNumbersOrderKeys[windowIndex] = new WindowResultRowNumbersOrderKeysKey(a.Value);
+            }
+        }
+
+        private sealed class ResultRow0 : Row
+        {
+            public ResultRow0(int __value0, long __value1)
+            {
+                a_VolatileValue = __value0;
+                rn = __value1;
+            }
+
+            public override int Count => 2;
+            public int a_VolatileValue { get; private set; }
+            public long rn { get; private set; }
+
+            public override void AssignValue(int columnNumber, object value)
+            {
+                switch (columnNumber)
+                {
+                    case 0:
+                        a_VolatileValue = (int)value;
+                        break;
+                    case 1:
+                        rn = (long)value;
+                        break;
+                    default:
+                        throw new IndexOutOfRangeException();
+                }
+            }
+
+            public override bool HasColumn(string name) => name switch
+            {
+                "a.VolatileValue" => true,
+                "a_VolatileValue" => true,
+                "VolatileValue" => true,
+                "rn" => true,
+                _ => false
+
+            };
+            public override object this[int columnNumber] => columnNumber switch
+            {
+                0 => (object)a_VolatileValue,
+                1 => (object)rn,
+                _ => throw new IndexOutOfRangeException()
+            };
+            public override object this[string name] => name switch
+            {
+                "a.VolatileValue" => (object)a_VolatileValue,
+                "a_VolatileValue" => (object)a_VolatileValue,
+                "VolatileValue" => (object)a_VolatileValue,
+                "rn" => (object)rn,
+                _ => throw new KeyNotFoundException(name)
+            };
+        }
+
+        private sealed class ResultShape0
+        {
+            public ResultShape0(int a_VolatileValue, long rn)
+            {
+                this.a_VolatileValue = a_VolatileValue;
+                this.rn = rn;
+            }
+
+            public int a_VolatileValue { get; }
+            public long rn { get; }
+        }
+
+        private readonly struct WindowResultRowNumbersOrderKeysKey : System.IEquatable<WindowResultRowNumbersOrderKeysKey>, System.IComparable<WindowResultRowNumbersOrderKeysKey>
+        {
+            private readonly int _value0;
+            public WindowResultRowNumbersOrderKeysKey(int value0)
+            {
+                _value0 = value0;
+            }
+
+            public int CompareTo(WindowResultRowNumbersOrderKeysKey other)
+            {
+                var comparison0 = CompareValue0(_value0, other._value0);
+                if (comparison0 != 0)
+                    return comparison0;
+                return 0;
+            }
+
+            public bool Equals(WindowResultRowNumbersOrderKeysKey other)
+            {
+                return System.Collections.Generic.EqualityComparer<int>.Default.Equals(_value0, other._value0);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is WindowResultRowNumbersOrderKeysKey other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                var hash = new System.HashCode();
+                hash.Add(_value0);
+                return hash.ToHashCode();
+            }
+
+            private static int CompareValue0(int left, int right)
+            {
+                var comparison = left.CompareTo(right);
+                return comparison;
+            }
+        }
+    }
+}

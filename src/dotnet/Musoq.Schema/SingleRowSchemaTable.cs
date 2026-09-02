@@ -28,5 +28,9 @@ public class SingleRowSchemaTable : ISchemaTable
         public int ColumnIndex => 0;
 
         public Type ColumnType => typeof(string);
+
+        public Type SourceReadType => ColumnType;
+
+        public EnumTypeDescriptor? EnumType => null;
     }
 }

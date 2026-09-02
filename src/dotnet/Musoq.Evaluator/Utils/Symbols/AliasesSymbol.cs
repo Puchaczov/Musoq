@@ -11,6 +11,8 @@ public class AliasesSymbol : Symbol
         _aliases.Add(alias);
     }
 
+    public IReadOnlyCollection<string> Aliases => _aliases;
+
     public bool ContainsAlias(string alias)
     {
         return _aliases.Contains(alias);

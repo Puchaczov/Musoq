@@ -334,8 +334,8 @@ public sealed class AdvisoryWarningPropagationTests
         CollectionAssert.AreEqual(
             new[]
             {
-                DiagnosticCode.MQ5010_TautologicalCondition,
                 DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape,
+                DiagnosticCode.MQ5010_TautologicalCondition,
                 DiagnosticCode.MQ5021_UnorderedSkip
             },
             ordered.Select(static warning => warning.Code).ToArray(),

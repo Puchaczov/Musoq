@@ -13,13 +13,22 @@ public static partial class ExecutionExpressionConverter
         IReadOnlyDictionary<string, int>? cteTableIndexes,
         IReadOnlyDictionary<Type, ExecutionVariable>? methodTargets)
     {
-        return CreateMethodCall(
+        var converted = CreateMethodCall(
             method.Method,
             method.Arguments.Select(argument => Convert(argument, sourceShapes, cteTableIndexes, methodTargets)).ToArray(),
             method.Alias,
             method.ReturnType,
             CreateInjectedSourceExpression(method.Method, method.Alias, sourceShapes),
             sourceShapes);
+
+        return converted is ExecutionMethodCall call && method.EnumIntrinsic != null
+            ? call with
+            {
+                EnumIntrinsic = method.EnumIntrinsic,
+                OperandEnumType = method.OperandEnumType,
+                EnumMask = method.EnumMask
+            }
+            : converted;
     }
 
     private static ExecutionExpression CreateMethodCall(

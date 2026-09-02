@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Musoq.Converter;
+using Musoq.Evaluator.Tests;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Schema.Unknown;
 
-public class UnknownQueryTestsBase
+public class UnknownQueryTestsBase : MSTestContextTestBase
 {
     protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
 

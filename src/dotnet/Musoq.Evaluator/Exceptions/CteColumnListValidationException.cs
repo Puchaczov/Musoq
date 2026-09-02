@@ -14,6 +14,18 @@ public sealed class CteColumnListValidationException(
 
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return Diagnostic.Error(Code, Message, Span ?? TextSpan.Empty);
+        var span = Span ?? TextSpan.Empty;
+        var (location, endLocation) = sourceText is null
+            ? (new SourceLocation(span.Start, 1, span.Start + 1),
+                new SourceLocation(span.End, 1, span.End + 1))
+            : sourceText.GetLocations(span);
+
+        return new Diagnostic(
+            Code,
+            DiagnosticSeverity.Error,
+            Message,
+            location,
+            endLocation,
+            sourceText?.GetContextSnippet(span));
     }
 }

@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class JoinInnerJoinTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void SimpleJoinShorthandTest()

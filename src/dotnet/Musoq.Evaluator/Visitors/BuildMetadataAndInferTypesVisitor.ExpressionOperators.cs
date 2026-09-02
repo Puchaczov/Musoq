@@ -22,6 +22,15 @@ public partial class BuildMetadataAndInferTypesVisitor
         var right = PopSemanticNode("VisitBinaryOperatorWithTypeConversion (right)");
         var left = PopSemanticNode("VisitBinaryOperatorWithTypeConversion (left)");
 
+        if (TryBindEnumBinaryOperation(left, right, operatorKind, errorContextNode,
+                out var enumLeft, out var enumRight))
+        {
+            var enumResult = nodeFactory(enumLeft, enumRight);
+            if (errorContextNode.HasSpan)
+                enumResult.WithSpan(errorContextNode.Span);
+            PushSemanticNode(enumResult);
+            return;
+        }
 
         if (operationContext == BinaryOperationContext.ArithmeticOperation)
         {

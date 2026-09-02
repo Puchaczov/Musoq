@@ -4,6 +4,7 @@ using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.InterpretationSchema;
 using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser;
@@ -25,7 +26,6 @@ public partial class Parser
     private readonly DiagnosticBag? _diagnostics;
     private readonly bool _enableRecovery;
     private readonly Stack<HashSet<string>> _fromAliasesStack = new();
-
     private readonly ILexer _lexer;
 
     private int _fromPosition;
@@ -85,6 +85,7 @@ public partial class Parser
             while (Current.TokenType != TokenType.EndOfFile)
                 try
                 {
+                    EnsureStatementSeparator(statements);
                     var statement = ComposeStatement();
                     if (statement != null)
                     {
@@ -92,6 +93,13 @@ public partial class Parser
                     }
                     else if (_enableRecovery)
                     {
+                        if (HasLexicalDiagnostic())
+                        {
+                            if (!TryRecoverToNextStatement())
+                                break;
+                            continue;
+                        }
+
                         RecordIncompleteStatementIfNeeded();
 
                         if (!TryRecoverToNextStatement())
@@ -108,12 +116,26 @@ public partial class Parser
                 }
                 catch (SyntaxException ex) when (_enableRecovery)
                 {
+                    if (HasLexicalDiagnostic())
+                    {
+                        if (!TryRecoverToNextStatement())
+                            break;
+                        continue;
+                    }
+
                     RecordSyntaxExceptionIfNeeded(ex);
                     if (!TryRecoverToNextStatement())
                         break;
                 }
                 catch (NotSupportedException ex) when (_enableRecovery)
                 {
+                    if (HasLexicalDiagnostic())
+                    {
+                        if (!TryRecoverToNextStatement())
+                            break;
+                        continue;
+                    }
+
                     // Parser-owned unsupported shapes are query syntax failures.  Convert them
                     // to the typed syntax diagnostic at this boundary so internal NotSupported
                     // exceptions can never leak into the public diagnostic classifier.
@@ -127,7 +149,15 @@ public partial class Parser
                         break;
                 }
 
-            if (statements.Count == 0 && !diagnostics.HasErrors)
+            if (statements.Count == 1 && statements[0].Node is ParameterBlockNode &&
+                !diagnostics.HasErrors && !HasLexicalDiagnostic())
+            {
+                RecordError(
+                    DiagnosticCode.MQ2016_IncompleteStatement,
+                    "A parameter block must be followed by a query or another script statement.",
+                    Current.Span);
+            }
+            else if (statements.Count == 0 && !diagnostics.HasErrors && !HasLexicalDiagnostic())
             {
                 RecordError(
                     DiagnosticCode.MQ2016_IncompleteStatement,
@@ -175,6 +205,7 @@ public partial class Parser
             var statements = new List<StatementNode>();
             while (Current.TokenType != TokenType.EndOfFile)
             {
+                EnsureStatementSeparator(statements);
                 var statement = ComposeStatement();
                 if (statement == null)
                     throw new SyntaxException("Failed to compose statement. The SQL query structure is invalid.",
@@ -183,6 +214,13 @@ public partial class Parser
                 statements.Add(statement);
             }
 
+            if (statements.Count == 1 && statements[0].Node is ParameterBlockNode)
+                throw new SyntaxException(
+                    "A parameter block must be followed by a query or another script statement.",
+                    _lexer.AlreadyResolvedQueryPart,
+                    DiagnosticCode.MQ2016_IncompleteStatement,
+                    Current.Span);
+
             return new RootNode(new StatementsArrayNode(statements.ToArray()));
         }
         catch (Exception ex) when (!(ex is SyntaxException))
@@ -190,6 +228,20 @@ public partial class Parser
             throw new SyntaxException($"An error occurred while parsing the SQL query: {ex.Message}",
                 _lexer.AlreadyResolvedQueryPart, ex);
         }
+    }
+
+    private void EnsureStatementSeparator(IReadOnlyList<StatementNode> statements)
+    {
+        if (statements.Count == 0 || Previous?.TokenType == TokenType.Semicolon ||
+            statements[^1].Node is ParameterBlockNode or ScriptVariableDeclarationNode or EnumDeclarationNode or CreateTableNode or
+            CoupleNode or BinarySchemaNode or TextSchemaNode || Current.TokenType != TokenType.Select)
+            return;
+
+        throw new SyntaxException(
+            "Multiple statements in a batch must be separated by a semicolon.",
+            _lexer.AlreadyResolvedQueryPart,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            Current.Span);
     }
 
     private void RecordError(DiagnosticCode code, string message, TextSpan span)
@@ -205,8 +257,10 @@ public partial class Parser
         if (_diagnostics == null) return;
 
         var span = ex.Span ?? Current.Span;
-        var diagnostic = SyntaxDiagnosticEnhancer.CreateDiagnostic(ex.Code, ex.Message, span, Current, _lexer.SourceText);
-        _diagnostics.Add(diagnostic);
+        var diagnostic = IsLexicalDiagnostic(ex.Code)
+            ? SyntaxDiagnosticEnhancer.EnhanceLexerDiagnostic(ex.Code, ex.Message, span, _lexer.SourceText)
+            : SyntaxDiagnosticEnhancer.CreateDiagnostic(ex.Code, ex.Message, span, Current, _lexer.SourceText);
+        _diagnostics.Add(ParserDiagnosticFacts.ApplyExceptionPayload(diagnostic, ex));
     }
 
     private bool TryRecoverToNextStatement()
@@ -218,6 +272,33 @@ public partial class Parser
             _lexer.Next();
 
         return Current.TokenType != TokenType.EndOfFile;
+    }
+
+    private bool HasLexicalDiagnostic()
+    {
+        foreach (var diagnostic in _lexer.Diagnostics)
+        {
+            if (IsLexicalDiagnostic(diagnostic.Code))
+                return true;
+        }
+
+        if (_diagnostics == null)
+            return false;
+
+        foreach (var diagnostic in _diagnostics)
+        {
+            if (IsLexicalDiagnostic(diagnostic.Code))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsLexicalDiagnostic(DiagnosticCode code)
+    {
+        var numericCode = (int)code;
+        return numericCode is >= 1001 and <= 1009 ||
+               code == DiagnosticCode.MQ2011_MissingClosingBracket;
     }
 
 }

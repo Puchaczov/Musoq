@@ -1,18 +1,34 @@
 using System.Collections.Generic;
+using System.Linq;
+using Musoq.Evaluator.IR.Analysis;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.IR.Expressions;
 public sealed partial class ExpressionConverter
 {
     private int _windowIndex;
     private readonly Func<WindowFunctionNode, WindowFunctionRef> _windowFunctionConverter;
+    private readonly Func<string, string, ColumnStability> _columnStabilityResolver;
+    private readonly Func<string, string, EnumTypeDescriptor?> _columnEnumTypeResolver;
 
-    public ExpressionConverter(Func<WindowFunctionNode, WindowFunctionRef>? windowFunctionConverter = null)
+    public ExpressionConverter(
+        Func<WindowFunctionNode, WindowFunctionRef>? windowFunctionConverter = null,
+        Func<string, string, ColumnStability>? columnStabilityResolver = null,
+        Func<string, string, EnumTypeDescriptor?>? columnEnumTypeResolver = null)
     {
         _windowFunctionConverter = windowFunctionConverter ?? ConvertWindowFunctionCore;
+        _columnStabilityResolver = columnStabilityResolver ?? ((_, _) => ColumnStability.Stable);
+        _columnEnumTypeResolver = columnEnumTypeResolver ?? ((_, _) => null);
     }
+
+    private ColumnStability ResolveColumnStability(string alias, string columnName) =>
+        _columnStabilityResolver(alias, columnName);
+
+    private EnumTypeDescriptor? ResolveColumnEnumType(string alias, string columnName) =>
+        _columnEnumTypeResolver(alias, columnName);
 
     public IrExpression Convert(Node node)
     {
@@ -46,7 +62,7 @@ public sealed partial class ExpressionConverter
             RightShiftNode n => ConvertBinaryOp(n, BinaryOpKind.RightShift),
             CoalesceNode n => ConvertCoalesce(n),
             CastNode n => ConvertCast(n),
-            NotNode n => new UnaryOp(UnaryOpKind.Not, Convert(n.Expression), RequireReturnType(n)),
+            NotNode n => ConvertNot(n),
 
             AccessMethodNode n => ConvertMethodCall(n),
             DotNode n => ConvertDotAccess(n),
@@ -58,7 +74,7 @@ public sealed partial class ExpressionConverter
 
             LikeNode n => new PatternMatch(Convert(n.Left), Convert(n.Right), PatternKind.Like, RequireReturnType(n)),
             RLikeNode n => new PatternMatch(Convert(n.Left), Convert(n.Right), PatternKind.RLike, RequireReturnType(n)),
-            BetweenNode n => new Between(Convert(n.Expression), Convert(n.Min), Convert(n.Max), RequireReturnType(n)),
+            BetweenNode n => ConvertBetween(n),
             CaseNode n => ConvertCaseNode(n),
             WindowFunctionNode n => ConvertWindowFunction(n),
             AllColumnsNode => new WildcardLiteral(typeof(void)),
@@ -82,7 +98,7 @@ public sealed partial class ExpressionConverter
         return WithSourceSpan(expression, node);
     }
 
-    private static IrExpression ConvertDotAccess(DotNode node)
+    private IrExpression ConvertDotAccess(DotNode node)
     {
         if (node.Expression is AccessObjectKeyNode keyAccess && keyAccess.PropertyInfo != null)
             return BuildIndexedAccess(node, keyAccess.PropertyInfo.PropertyType, new Literal(keyAccess.Token.Key, typeof(string)));
@@ -98,7 +114,11 @@ public sealed partial class ExpressionConverter
             if (string.IsNullOrWhiteSpace(indexerAlias))
                 (indexerAlias, indexerName) = SplitLeadingAlias(indexerName, indexerAlias);
 
-            return new ColumnRef(indexerAlias, indexerName, RequireReturnType(node));
+            return new ColumnRef(indexerAlias, indexerName, RequireReturnType(node))
+            {
+                Stability = ResolveColumnStability(indexerAlias, indexerName),
+                EnumType = ResolveNativeEnumType(node) ?? ResolveColumnEnumType(indexerAlias, indexerName)
+            };
         }
 
         var (alias, name) = ExtractPath(node);
@@ -106,148 +126,93 @@ public sealed partial class ExpressionConverter
         if (string.IsNullOrWhiteSpace(alias))
             (alias, name) = SplitLeadingAlias(name, alias);
 
-        return new ColumnRef(alias, name, RequireReturnType(node));
+        return new ColumnRef(alias, name, RequireReturnType(node))
+        {
+            Stability = ResolveColumnStability(alias, name),
+            EnumType = ResolveNativeEnumType(node) ?? ResolveColumnEnumType(alias, name)
+        };
     }
 
-    private static ArrayAccess BuildIndexedAccess(DotNode node, Type indexableType, Literal indexExpr)
+    private ArrayAccess BuildIndexedAccess(DotNode node, Type indexableType, Literal indexExpr)
     {
         var (alias, name) = ExtractPath(node);
         if (string.IsNullOrWhiteSpace(alias))
             (alias, name) = SplitLeadingAlias(name, alias);
 
-        var arrayExpr = new ColumnRef(alias, name, indexableType);
+        var arrayExpr = new ColumnRef(alias, name, indexableType)
+        {
+            Stability = ResolveColumnStability(alias, name)
+        };
         var returnType = RequireReturnType(node);
         return new ArrayAccess(arrayExpr, indexExpr, returnType, returnType);
     }
 
-    private static (string Alias, string Name) ExtractPath(Node node)
+    private BinaryOp ConvertBinaryOp(BinaryNode node, BinaryOpKind kind)
     {
-        return node switch
-        {
-            AccessColumnNode column => NormalizeAccessColumn(column),
-            PropertyValueNode property => (string.Empty, property.Name),
-            IdentifierNode identifier => (string.Empty, identifier.Name),
-            WordNode word => (string.Empty, word.Value),
-            DotNode dot => MergePath(ExtractPath(dot.Root), ComposePathSegment(ExtractPath(dot.Expression))),
-            _ => throw new UnsupportedIrShapeException($"Cannot extract dotted path from AST node of type '{node.GetType().Name}'.")
-        };
+        var left = Convert(node.Left);
+        var right = Convert(node.Right);
+        return new(kind, left, right, IrExpressionNullSemantics.NullableBooleanResult(kind, left, right) ?? RequireReturnType(node))
+        { UsesSqlNullSemantics = IrExpressionNullSemantics.IsSqlComparison(kind) };
     }
 
-    private static (string Alias, string Name) ExtractPathWithIndexers(Node node)
+    private IrExpression ConvertNot(NotNode node)
     {
-        return node switch
-        {
-            AccessColumnNode column => NormalizeAccessColumn(column),
-            PropertyValueNode property => (string.Empty, property.Name),
-            AccessObjectArrayNode arrayAccess => (string.Empty, $"{arrayAccess.Name}[{arrayAccess.Token.Index}]"),
-            AccessObjectKeyNode keyAccess => (string.Empty, $"{keyAccess.Name}['{keyAccess.Token.Key}']"),
-            IdentifierNode identifier => (string.Empty, identifier.Name),
-            WordNode word => (string.Empty, word.Value),
-            DotNode dot => MergePath(ExtractPathWithIndexers(dot.Root), ComposePathSegment(ExtractPathWithIndexers(dot.Expression))),
-            _ => throw new UnsupportedIrShapeException($"Cannot extract dotted path from AST node of type '{node.GetType().Name}'.")
-        };
+        var operand = Convert(node.Expression);
+        if (operand is InCheck inCheck)
+            return inCheck with { IsNegated = !inCheck.IsNegated };
+
+        return new UnaryOp(
+            UnaryOpKind.Not,
+            operand,
+            IrExpressionNullSemantics.IsNullableBoolean(operand) ? typeof(bool?) : RequireReturnType(node));
     }
 
-    private static bool ContainsIndexerNode(Node node)
+    private Between ConvertBetween(BetweenNode node)
     {
-        return node switch
-        {
-            AccessObjectArrayNode => true,
-            AccessObjectKeyNode => true,
-            DotNode dot => ContainsIndexerNode(dot.Root) || ContainsIndexerNode(dot.Expression),
-            _ => false
-        };
+        var expression = Convert(node.Expression);
+        var low = Convert(node.Min);
+        var high = Convert(node.Max);
+        return new(expression, low, high,
+            IrExpressionNullSemantics.CanBeNull(expression) || IrExpressionNullSemantics.CanBeNull(low) ||
+            IrExpressionNullSemantics.CanBeNull(high) ? typeof(bool?) : RequireReturnType(node));
     }
 
-    private static string ComposePathSegment((string Alias, string Name) path)
+    private IrExpression ConvertMethodCall(AccessMethodNode node)
     {
-        if (string.IsNullOrWhiteSpace(path.Alias))
-            return path.Name;
-
-        if (string.IsNullOrWhiteSpace(path.Name))
-            return path.Alias;
-
-        return $"{path.Alias}.{path.Name}";
-    }
-
-    private static (string Alias, string Name) NormalizeAccessColumn(AccessColumnNode column)
-    {
-        if (!string.IsNullOrWhiteSpace(column.Alias))
-            return (column.Alias, column.Name);
-
-        return SplitLeadingAlias(column.Name, column.Alias);
-    }
-
-    private static (string Alias, string Name) SplitLeadingAlias(string name, string alias)
-    {
-        var dotIndex = name.IndexOf('.', StringComparison.Ordinal);
-        if (dotIndex <= 0 || dotIndex >= name.Length - 1)
-            return (alias, name);
-
-        return (name[..dotIndex], name[(dotIndex + 1)..]);
-    }
-
-    private static (string Alias, string Name) MergePath((string Alias, string Name) left, string rightSegment)
-    {
-        if (string.IsNullOrWhiteSpace(rightSegment))
-            return left;
-
-        if (string.IsNullOrWhiteSpace(left.Name))
-            return (left.Alias, rightSegment);
-
-        return (left.Alias, $"{left.Name}.{rightSegment}");
-    }
-
-    private BinaryOp ConvertBinaryOp(BinaryNode node, BinaryOpKind kind) =>
-        new(kind, Convert(node.Left), Convert(node.Right), RequireReturnType(node));
-
-    private MethodCall ConvertMethodCall(AccessMethodNode node)
-    {
-        var args = new List<IrExpression>();
-        foreach (var arg in node.Arguments.Args)
-            args.Add(Convert(arg));
-
+        var args = node.Arguments.Args.Select(Convert).ToList();
         if (node.Method == null)
             throw new InvalidOperationException($"AccessMethodNode '{node}' is missing Method; cannot lower to IR.");
 
-        return new MethodCall(node.Method, args, node.Alias, RequireReturnType(node));
+        if (EnumIntrinsicMethodFacts.TryGetKind(node.Method, out var intrinsic))
+            return ConvertEnumIntrinsic(node, args, intrinsic);
+
+        return new MethodCall(node.Method, args, node.Alias, RequireReturnType(node))
+        {
+            EnumType = ResolveNativeEnumType(node)
+        };
     }
 
-    private InCheck ConvertInNode(InNode node)
-    {
-        var expression = Convert(node.Left);
-        var argsListNode = (ArgsListNode)node.Right;
-        var values = new List<IrExpression>();
-        foreach (var arg in argsListNode.Args)
-            values.Add(Convert(arg));
+    private InCheck ConvertInNode(InNode node) =>
+        new InCheck(Convert(node.Left), ((ArgsListNode)node.Right).Args.Select(Convert).ToList(), RequireReturnType(node));
 
-        return new InCheck(expression, values, RequireReturnType(node));
-    }
-
-    private InCheck ConvertContainsNode(ContainsNode node)
-    {
-        var expression = Convert(node.Left);
-        var values = new List<IrExpression>();
-        foreach (var arg in node.ToCompareExpression.Args)
-            values.Add(Convert(arg));
-
-        return new InCheck(expression, values, RequireReturnType(node));
-    }
+    private InCheck ConvertContainsNode(ContainsNode node) =>
+        new InCheck(Convert(node.Left), node.ToCompareExpression.Args.Select(Convert).ToList(), RequireReturnType(node));
 
     private CaseWhen ConvertCaseNode(CaseNode node)
     {
-        var branches = new CaseWhenBranch[node.WhenThenPairs.Length];
-        for (var i = 0; i < node.WhenThenPairs.Length; i++)
-        {
-            var (whenNode, thenNode) = node.WhenThenPairs[i];
-            branches[i] = new CaseWhenBranch(Convert(whenNode), Convert(thenNode));
-        }
+        var branches = node.WhenThenPairs
+            .Select(pair => new CaseWhenBranch(Convert(pair.When), Convert(pair.Then)))
+            .ToArray();
 
         var elseExpr = node.Else is not NullNode
             ? Convert(node.Else)
             : null;
 
-        return new CaseWhen(branches, elseExpr, RequireReturnType(node));
+        return new CaseWhen(branches, elseExpr, IrExpressionNullSemantics.CaseResultType(RequireReturnType(node), branches, elseExpr))
+        {
+            EnumType = ResolveCommonEnumType(
+                branches.Select(static branch => (IrExpression?)branch.Result).Append(elseExpr))
+        };
     }
 
     private WindowFunctionRef ConvertWindowFunction(WindowFunctionNode node) => _windowFunctionConverter(node);
@@ -264,7 +229,7 @@ public sealed partial class ExpressionConverter
         return new ArrayAccess(arrayExpr, indexExpr, returnType, returnType);
     }
 
-    private static ArrayAccess ConvertAccessObjectArray(AccessObjectArrayNode node)
+    private ArrayAccess ConvertAccessObjectArray(AccessObjectArrayNode node)
     {
         // AccessObjectArrayNode represents indexed access like Name[0] or str[1]
         var columnAccessNode = new AccessColumnNode(node.ObjectName, node.TableAlias ?? string.Empty, RequireReturnType(node, node.ColumnType), TextSpan.Empty, node.IntendedTypeName);

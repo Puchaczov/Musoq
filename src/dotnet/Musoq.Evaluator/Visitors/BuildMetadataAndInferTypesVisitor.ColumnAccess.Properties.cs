@@ -55,7 +55,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             if (propertyInfo == null)
             {
-                if (TryReportUnknownProperty(node.Name, parentNodeType, node, parentNode?.ToString()))
+                if (TryReportUnknownProperty(node.Name, parentNodeType, node))
                 {
                     // Keep the semantic stack balanced and poison the remainder of
                     // this property chain so later members do not become unrelated

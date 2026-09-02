@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class StarModifierTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenStarExcludeSingleColumn_ShouldRemoveColumn()

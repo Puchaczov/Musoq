@@ -151,10 +151,10 @@ public sealed class RecursiveCteJoinExecutionTests
             _loggerResolver,
             options);
 
-        var exception = Assert.ThrowsExactly<Musoq.Evaluator.Exceptions.RecursiveCteLimitExceededException>(
+        var exception = Assert.ThrowsExactly<RecursiveCteLimitExceededException>(
             () => TableMaterializationTestHelper.Materialize(compiled.Run()));
 
-        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ7009_RecursiveCteSnapshotLimitExceeded, exception.Code);
+        Assert.AreEqual(DiagnosticCode.MQ7009_RecursiveCteSnapshotLimitExceeded, exception.Code);
         Assert.AreEqual(1, exception.ConfiguredLimit);
         Assert.AreEqual("reachable", exception.CteName);
         Assert.AreEqual(1, provider.Recorder.Enumerated("edges"));

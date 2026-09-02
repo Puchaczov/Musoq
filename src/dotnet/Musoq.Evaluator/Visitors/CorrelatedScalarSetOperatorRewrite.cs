@@ -166,13 +166,25 @@ public partial class SubqueryToCteRewriteVisitor
         return node switch
         {
             UnionNode => new UnionNode(node.ResultTableName, keys, left, right, node.IsNested, node.IsTheLastOne,
-                node.ResultOrderBy, node.ResultSkip, node.ResultTake),
+                node.ResultOrderBy, node.ResultSkip, node.ResultTake)
+            {
+                KeySpans = node.KeySpans
+            },
             UnionAllNode => new UnionAllNode(node.ResultTableName, keys, left, right, node.IsNested, node.IsTheLastOne,
-                node.ResultOrderBy, node.ResultSkip, node.ResultTake),
+                node.ResultOrderBy, node.ResultSkip, node.ResultTake)
+            {
+                KeySpans = node.KeySpans
+            },
             ExceptNode => new ExceptNode(node.ResultTableName, keys, left, right, node.IsNested, node.IsTheLastOne,
-                node.ResultOrderBy, node.ResultSkip, node.ResultTake),
+                node.ResultOrderBy, node.ResultSkip, node.ResultTake)
+            {
+                KeySpans = node.KeySpans
+            },
             IntersectNode => new IntersectNode(node.ResultTableName, keys, left, right, node.IsNested, node.IsTheLastOne,
-                node.ResultOrderBy, node.ResultSkip, node.ResultTake),
+                node.ResultOrderBy, node.ResultSkip, node.ResultTake)
+            {
+                KeySpans = node.KeySpans
+            },
             _ => throw new InvalidOperationException($"Unsupported scalar set operator {node.GetType().Name}.")
         };
     }

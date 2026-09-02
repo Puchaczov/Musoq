@@ -32,7 +32,17 @@ internal static partial class GeneratedCodeSamplesCatalog
         samples.AddRange(CreatePerformanceSamples());
         samples.AddRange(CreateRuntimeDynamicSamples());
         samples.AddRange(CreateQueryScopedRowSamples());
+        samples.AddRange(CreateLoopInvariantSamples());
+        samples.AddRange(CreateScalarReuseSamples());
         samples.Add(NullableProviderMethodLeftJoin());
+        samples.AddRange(CreateSpecificationCoreExpressionSamples());
+        samples.AddRange(CreateSpecificationCoreSourceSamples());
+        samples.AddRange(CreateSpecificationCoreJoinSamples());
+        samples.AddRange(CreateSpecificationCoreAggregateSamples());
+        samples.AddRange(CreateSpecificationCoreDescriptionSamples());
+        samples.AddRange(CreateSpecificationBinaryInterpretationSamples());
+        samples.AddRange(CreateSpecificationTextInterpretationSamples());
+        samples.AddRange(CreateSpecificationTableCoupleSamples());
 
         return samples;
     }

@@ -110,13 +110,13 @@ public sealed partial class ExecutionCSharpRenderer
         if (offsetPartitions == null)
         {
             offsetPartitions = new ExecutionWindowPartitionSet(
-                new ExecutionVariable($"{offset.Results.Name}Partitions", typeof(Musoq.Evaluator.Helpers.WindowPartitionSet)),
+                new ExecutionVariable($"{offset.Results.Name}Partitions", typeof(Evaluator.Helpers.WindowPartitionSet)),
                 true);
             statements.Add(CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 offsetPartitions.Variable.Name,
                 CreateWindowHelperInvocation(
-                    nameof(Musoq.Evaluator.Helpers.WindowFunctionHelpers.ResolvePartitionSet),
+                    nameof(Evaluator.Helpers.WindowFunctionHelpers.ResolvePartitionSet),
                     CreateBufferCountExpression(offset.Buffer),
                     CreatePartitionKeysArgument(partitionKeys?.Variable))));
         }

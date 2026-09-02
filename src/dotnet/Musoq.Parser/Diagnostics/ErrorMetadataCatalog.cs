@@ -19,6 +19,8 @@ public static class ErrorMetadataCatalog
         return DiagnosticDescriptorRegistry.Get(code)?.Metadata;
     }
 
+    internal static IReadOnlyCollection<ErrorMetadata> All => Entries.Values;
+
     internal static ErrorMetadata? GetLegacy(DiagnosticCode code)
     {
         return Entries.GetValueOrDefault(code);
@@ -45,6 +47,7 @@ public static class ErrorMetadataCatalog
 
         AddRange(entries, LexerErrorMetadataCatalog.Build());
         AddRange(entries, ParserErrorMetadataCatalog.Build());
+        AddRange(entries, EnumErrorMetadataCatalog.Build());
         AddRange(entries, SemanticErrorMetadataCatalog.Build());
         AddRange(entries, SchemaErrorMetadataCatalog.Build());
         AddRange(entries, WarningMetadataCatalog.Build());

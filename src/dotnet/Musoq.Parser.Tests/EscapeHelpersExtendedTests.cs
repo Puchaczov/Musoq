@@ -12,10 +12,10 @@ public class EscapeHelpersExtendedTests
     #region Hex Escape Edge Cases
 
     [TestMethod]
-    public void Unescape_HexNullCharacter_ReturnsOriginal()
+    public void Unescape_HexNullCharacter_Converts()
     {
         var result = @"\x00".Unescape();
-        Assert.AreEqual(@"\x00", result);
+        Assert.AreEqual("\0", result);
     }
 
     [TestMethod]
@@ -58,7 +58,7 @@ public class EscapeHelpersExtendedTests
     {
         var result = @"\x41\x00\x42".Unescape();
 
-        Assert.AreEqual(@"A\x00B", result);
+        Assert.AreEqual("A\0B", result);
     }
 
     #endregion

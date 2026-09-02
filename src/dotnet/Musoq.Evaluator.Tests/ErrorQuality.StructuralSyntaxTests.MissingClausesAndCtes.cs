@@ -18,7 +18,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should say FROM is missing
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "SELECT without FROM");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2004_MissingFromClause, "SELECT without FROM");
     }
 
     [TestMethod]
@@ -46,7 +46,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate wrong clause order
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "WHERE before FROM is wrong order");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2004_MissingFromClause, "WHERE before FROM is wrong order");
     }
 
     [TestMethod]
@@ -172,7 +172,7 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate trailing comma
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "trailing comma in SELECT list");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2014_TrailingComma, "trailing comma in SELECT list");
     }
 
     [TestMethod]
@@ -292,10 +292,8 @@ CROSS APPLY #B.Entities()";
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert — In Musoq, multiple statements are supported.
-        // The parser treats consecutive SELECT statements as separate queries
-        // in a multi-statement batch. No separator (semicolon) is required.
-        AssertNoErrors(result);
+        // Assert — Multiple statements in a batch must be separated by a semicolon.
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "missing statement separator");
     }
 
     #endregion

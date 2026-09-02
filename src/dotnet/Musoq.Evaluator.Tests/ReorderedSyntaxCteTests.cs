@@ -12,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class ReorderedSyntaxCteTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
 
     [TestMethod]

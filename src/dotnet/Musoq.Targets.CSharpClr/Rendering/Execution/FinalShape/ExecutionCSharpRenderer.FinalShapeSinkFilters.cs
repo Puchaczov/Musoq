@@ -6,28 +6,28 @@ namespace Musoq.Targets.CSharpClr;
 public sealed partial class ExecutionCSharpRenderer
 {
     private bool CanUseHashJoinHelperSetInCurrentSink(
-        ExecutionCSharpRenderer.HashJoinHelperSet helperSet,
+        HashJoinHelperSet helperSet,
         ExecutionRenderContext context)
     {
         return !HasCurrentFinalShapeAppendTarget(helperSet.Probe.AppendTargets, context);
     }
 
     private bool CanUseKeySetHelperSetInCurrentSink(
-        ExecutionCSharpRenderer.KeySetHelperSet helperSet,
+        KeySetHelperSet helperSet,
         ExecutionRenderContext context)
     {
         return !HasCurrentFinalShapeAppendTarget(helperSet.Probe.AppendTargets, context);
     }
 
     private bool CanUseSortedCopyHelperInCurrentSink(
-        ExecutionCSharpRenderer.SortedCopyHelper helper,
+        SortedCopyHelper helper,
         ExecutionRenderContext context)
     {
         return !IsCurrentFinalShapeTargetOrSourceBuffer(helper.Sort.Target.Name, context);
     }
 
     private bool CanUseWindowAppendRowsHelperInCurrentSink(
-        ExecutionCSharpRenderer.WindowAppendRowsHelper helper,
+        WindowAppendRowsHelper helper,
         ExecutionRenderContext context)
     {
         return !HasCurrentFinalShapeAppendTarget(helper.AppendTargets, context);

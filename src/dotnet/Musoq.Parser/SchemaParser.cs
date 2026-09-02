@@ -1,7 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Collections.Frozen;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.InterpretationSchema;
 using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser;
@@ -76,6 +79,17 @@ public partial class SchemaParser
             : _savedTokenBeforePeek ??
               (_hasReplacedToken && _replacedToken != null ? _replacedToken : _lexer.Current());
 
+    private IReadOnlyList<SchemaComment> GetSchemaComments(TextSpan schemaSpan)
+    {
+        if (schemaSpan.IsEmpty || _lexer.Comments.Count == 0)
+            return [];
+
+        return _lexer.Comments
+            .Where(comment => schemaSpan.Contains(comment.Span))
+            .Select(comment => new SchemaComment(comment.Value, comment.Span))
+            .ToArray();
+    }
+
     /// <summary>
     ///     Parses a complete schema definition (binary or text).
     ///     Advances the lexer first before parsing.
@@ -124,14 +138,16 @@ public partial class SchemaParser
 
             if (isBinary)
             {
+                var schemaStartSpan = Current.Span;
                 Consume(Current.TokenType);
-                return ComposeBinarySchemaBody();
+                return ComposeBinarySchemaBody(schemaStartSpan);
             }
 
             if (isText)
             {
+                var schemaStartSpan = Current.Span;
                 Consume(Current.TokenType);
-                return ComposeTextSchemaBody();
+                return ComposeTextSchemaBody(schemaStartSpan);
             }
 
             throw new SyntaxException(

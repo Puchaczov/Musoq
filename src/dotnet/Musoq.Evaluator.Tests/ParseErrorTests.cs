@@ -36,7 +36,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name, FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "comma");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2014_TrailingComma, DiagnosticPhase.Parse, "comma");
         AssertHasGuidance(ex);
     }
 
@@ -46,7 +46,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name FROM #test.people() WHERE"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "EndOfFile");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2017_UnexpectedEndOfFile, DiagnosticPhase.Parse, "end of input");
         AssertHasGuidance(ex);
     }
 
@@ -144,7 +144,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT (Name FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "RightParenthesis");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2010_MissingClosingParenthesis, DiagnosticPhase.Parse, "grouped expression");
         AssertHasGuidance(ex);
     }
 
@@ -170,10 +170,12 @@ public class ParseErrorTests : NegativeTestsBase
     }
 
     [TestMethod]
-    public void PE035_EmptyInList_ShouldCompileWithoutError()
+    public void PE035_EmptyInList_ShouldThrowParseError()
     {
-        var vm = CompileQuery("SELECT * FROM #test.people() WHERE City IN ()");
-        Assert.IsNotNull(vm, "Empty IN () compiles successfully in Musoq.");
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CompileQuery("SELECT * FROM #test.people() WHERE City IN ()"));
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed, DiagnosticPhase.Parse,
+            "IN does not support an empty value list");
     }
 
     [TestMethod]
@@ -182,7 +184,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE Name LIKE"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "EndOfFile");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2020_MissingOperand, DiagnosticPhase.Parse, "missing its right operand");
         AssertHasGuidance(ex);
     }
 
@@ -192,7 +194,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE Name RLIKE"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "EndOfFile");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2020_MissingOperand, DiagnosticPhase.Parse, "missing its right operand");
         AssertHasGuidance(ex);
     }
 
@@ -232,7 +234,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name, Age, FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "comma");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2014_TrailingComma, DiagnosticPhase.Parse, "comma");
         AssertHasGuidance(ex);
     }
 

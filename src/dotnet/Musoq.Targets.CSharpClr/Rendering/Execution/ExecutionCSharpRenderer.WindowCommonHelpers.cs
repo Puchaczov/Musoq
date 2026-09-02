@@ -31,7 +31,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionVariable item,
         ExecutionVariable source)
     {
-        if (item.Type.RequireClrType() == typeof(Musoq.Evaluator.Tables.Row) &&
+        if (item.Type.RequireClrType() == typeof(Evaluator.Tables.Row) &&
             !string.IsNullOrWhiteSpace(source.GeneratedRowTypeName))
         {
             return SyntaxFactory.ParseTypeName(source.GeneratedRowTypeName);

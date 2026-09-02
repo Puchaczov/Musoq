@@ -85,6 +85,5 @@ public partial class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
 
 
 
-    public TestContext TestContext { get; set; }
 
 }

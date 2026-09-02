@@ -10,7 +10,7 @@ using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
-using ParserType = global::Musoq.Parser.Parser;
+using ParserType = Musoq.Parser.Parser;
 
 namespace Musoq.Converter.Tests;
 
@@ -186,7 +186,7 @@ public sealed class ParsedQueryTemplateCacheTests
         Assert.HasCount(32, templates.Select(static template => template.Root).Distinct(ReferenceEqualityComparer.Instance));
         Assert.IsTrue(templates.All(static template => template.Diagnostics.Length == 1));
         Assert.IsTrue(templates.All(static template =>
-            template.Diagnostics[0].Code == global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape));
+            template.Diagnostics[0].Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape));
         Assert.AreEqual(1, ParsedQueryTemplateCache.Snapshot.Count);
         Assert.AreEqual(31, ParsedQueryTemplateCache.Snapshot.Hits);
         Assert.AreEqual(1, ParsedQueryTemplateCache.Snapshot.Misses);

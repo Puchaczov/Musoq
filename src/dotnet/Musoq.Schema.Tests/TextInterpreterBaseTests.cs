@@ -28,15 +28,15 @@ public partial class TextInterpreterBaseTests
 
         // Expose protected methods for testing
         public string TestReadUntil(ReadOnlySpan<char> text, string delimiter, bool trim = false,
-            bool consumeDelimiter = true)
+            bool consumeDelimiter = true, string? fieldName = null)
         {
-            return ReadUntil(text, delimiter, trim, consumeDelimiter);
+            return ReadUntil(text, delimiter, trim, consumeDelimiter, fieldName);
         }
 
         public string TestReadBetween(ReadOnlySpan<char> text, string open, string close, bool nested = false,
-            bool trim = false, bool escaped = false)
+            bool trim = false, bool escaped = false, string? escapeCharacter = null, string? fieldName = null)
         {
-            return ReadBetween(text, open, close, nested, trim, escaped);
+            return ReadBetween(text, open, close, nested, trim, escaped, escapeCharacter, fieldName);
         }
 
         public string TestReadChars(ReadOnlySpan<char> text, int count, bool trim = false, bool ltrim = false,
@@ -55,9 +55,9 @@ public partial class TextInterpreterBaseTests
             return ReadRest(text, trim, ltrim, rtrim);
         }
 
-        public string TestReadPattern(ReadOnlySpan<char> text, string pattern, bool trim = false)
+        public string TestReadPattern(ReadOnlySpan<char> text, string pattern, bool trim = false, string? fieldName = null)
         {
-            return ReadPattern(text, pattern, trim);
+            return ReadPattern(text, pattern, trim, fieldName);
         }
 
         public void TestSkipWhitespace(ReadOnlySpan<char> text, bool required = false)
@@ -70,9 +70,9 @@ public partial class TextInterpreterBaseTests
             SkipOptionalWhitespace(text);
         }
 
-        public void TestExpectLiteral(ReadOnlySpan<char> text, string literal)
+        public void TestExpectLiteral(ReadOnlySpan<char> text, string literal, string? fieldName = null)
         {
-            ExpectLiteral(text, literal);
+            ExpectLiteral(text, literal, fieldName);
         }
 
         public void TestEnsureChars(ReadOnlySpan<char> text, int count)

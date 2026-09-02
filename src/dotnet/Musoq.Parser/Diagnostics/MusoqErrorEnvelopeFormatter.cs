@@ -284,12 +284,49 @@ public static class MusoqErrorEnvelopeFormatter
 
     private static string EscapeJson(string text)
     {
-        return text
-            .Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("\"", "\\\"", StringComparison.Ordinal)
-            .Replace("\n", "\\n", StringComparison.Ordinal)
-            .Replace("\r", "\\r", StringComparison.Ordinal)
-            .Replace("\t", "\\t", StringComparison.Ordinal);
+        var builder = new StringBuilder(text.Length);
+        foreach (var character in text)
+        {
+            switch (character)
+            {
+                case '\\':
+                    builder.Append("\\\\");
+                    break;
+                case '\"':
+                    builder.Append("\\\"");
+                    break;
+                case '\b':
+                    builder.Append("\\b");
+                    break;
+                case '\f':
+                    builder.Append("\\f");
+                    break;
+                case '\n':
+                    builder.Append("\\n");
+                    break;
+                case '\r':
+                    builder.Append("\\r");
+                    break;
+                case '\t':
+                    builder.Append("\\t");
+                    break;
+                default:
+                    if (character < ' ')
+                    {
+                        builder.Append("\\u");
+                        builder.Append(
+                            ((int)character).ToString("x4", System.Globalization.CultureInfo.InvariantCulture));
+                    }
+                    else
+                    {
+                        builder.Append(character);
+                    }
+
+                    break;
+            }
+        }
+
+        return builder.ToString();
     }
 
     private static string FormatSourceKind(DiagnosticSourceKind sourceKind)

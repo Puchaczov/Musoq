@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using Musoq.Evaluator.IR.Analysis;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Rewriting;
-using Musoq.Plugins.Attributes;
 using AliasRefExtractor = Musoq.Evaluator.IR.Expressions.AliasRefExtractor;
 using ColumnRefExtractor = Musoq.Evaluator.IR.Expressions.ColumnRefExtractor;
 using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
@@ -53,7 +52,8 @@ internal sealed class PredicateMovementPhysicalPass : IPhysicalOptimizationPass
                 right,
                 join.LeftMovedPredicates,
                 join.RightMovedPredicates,
-                join.TieBreak);
+                join.TieBreak,
+                join.WithOrdinality);
         }
 
         return PhysicalPlanRewriter.RewriteChildren(node, Rewrite);
@@ -204,46 +204,12 @@ internal sealed class PredicateMovementPhysicalPass : IPhysicalOptimizationPass
 
     private static bool IsMovablePredicate(IrExpression expression)
     {
-        return expression.ReturnType == typeof(bool) && IsDeterministicExpression(expression);
+        return IrExpressionNullSemantics.IsBoolean(expression.ReturnType) &&
+               IsDeterministicExpression(expression);
     }
 
     private static bool IsDeterministicExpression(IrExpression expression)
     {
-        return expression switch
-        {
-            Literal or WildcardLiteral or ColumnRef or RowPresence or ScriptParameterRef or ScriptVariableRef => true,
-            BinaryOp binary => IsDeterministicExpression(binary.Left) &&
-                               IsDeterministicExpression(binary.Right),
-            UnaryOp unary => IsDeterministicExpression(unary.Operand),
-            MethodCall methodCall => IsDeterministicMethod(methodCall.Method) &&
-                                     methodCall.Arguments.All(IsDeterministicExpression),
-            IsNullCheck isNull => IsDeterministicExpression(isNull.Expression),
-            InCheck inCheck => IsDeterministicExpression(inCheck.Expression) &&
-                               inCheck.Values.All(IsDeterministicExpression),
-            PatternMatch patternMatch => IsDeterministicExpression(patternMatch.Expression) &&
-                                         IsDeterministicExpression(patternMatch.Pattern),
-            Between between => IsDeterministicExpression(between.Expression) &&
-                               IsDeterministicExpression(between.Low) &&
-                               IsDeterministicExpression(between.High),
-            CaseWhen caseWhen => caseWhen.Branches.All(static branch =>
-                                     IsDeterministicExpression(branch.Condition) &&
-                                     IsDeterministicExpression(branch.Result)) &&
-                                 (caseWhen.ElseExpression == null ||
-                                  IsDeterministicExpression(caseWhen.ElseExpression)),
-            Coalesce coalesce => coalesce.Expressions.All(IsDeterministicExpression),
-            ArrayAccess arrayAccess => IsDeterministicExpression(arrayAccess.Array) &&
-                                       IsDeterministicExpression(arrayAccess.Index),
-            AggregateRef or WindowFunctionRef or CteTableRef => false,
-            _ => false
-        };
-    }
-
-    private static bool IsDeterministicMethod(MethodInfo method)
-    {
-        return method.GetCustomAttribute<NonDeterministicAttribute>() == null &&
-               method.GetParameters().All(static parameter =>
-                   parameter.GetCustomAttribute<InjectQueryStatsAttribute>() == null &&
-                   parameter.GetCustomAttribute<InjectTypeAttribute>() == null);
+        return ExpressionStabilityAnalyzer.IsStable(expression);
     }
 }
-

@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class StarTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenStarUnfoldToMultipleColumns_AndExplicitColumnIsUsedWithinWhere_ShouldPass()

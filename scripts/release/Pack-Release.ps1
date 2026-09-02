@@ -28,6 +28,7 @@ if ($PSCmdlet.ParameterSetName -eq 'AllPackages') {
         Tag = 'all-packages'
         Mode = 'AllPackages'
         Version = $null
+        AllowBreakingChanges = $false
         Packages = $packages
     }
 }
@@ -55,7 +56,10 @@ foreach ($package in $release.Packages) {
     )
     $restoreArguments = @()
 
-    if ($package.IsDatasourceAbi) {
+    if ($package.IsDatasourceAbi -and $release.AllowBreakingChanges) {
+        Write-Host "Skipping datasource ABI compatibility validation for intentional alpha release $($release.Version)."
+    }
+    elseif ($package.IsDatasourceAbi) {
         $version = Get-MsBuildProperty -ProjectPath $package.FullProjectPath -PropertyName 'Version'
         $baselineVersion = Get-DatasourceAbiBaselineVersion `
             -PackageId $package.PackageId `

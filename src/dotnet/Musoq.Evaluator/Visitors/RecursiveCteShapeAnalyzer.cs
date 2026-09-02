@@ -167,6 +167,9 @@ public sealed class RecursiveCteShapeAnalyzer
             ThrowUnsupported("WINDOW", member.Window, member);
         if (member.Qualify != null)
             ThrowUnsupported("QUALIFY", member.Qualify, member);
+        var windowFunction = FindFirstWindowFunction(member);
+        if (windowFunction != null)
+            ThrowUnsupported("window function", windowFunction, member);
         if (member.OrderBy != null)
             ThrowUnsupported("ORDER BY", member.OrderBy);
         if (member.Skip != null || member.Take != null)
@@ -281,6 +284,21 @@ public sealed class RecursiveCteShapeAnalyzer
             var reference = FindFirstReference(child, cteName);
             if (reference != null)
                 return reference;
+        }
+
+        return null;
+    }
+
+    private static WindowFunctionNode? FindFirstWindowFunction(Node node)
+    {
+        if (node is WindowFunctionNode windowFunction)
+            return windowFunction;
+
+        foreach (var child in ParserNodeChildTraversal.EnumerateChildren(node))
+        {
+            var found = FindFirstWindowFunction(child);
+            if (found != null)
+                return found;
         }
 
         return null;

@@ -87,8 +87,9 @@ ExecutionPlan [compiled]
         SourceScan [vo04qt: BasicEntity] -> cte1_vo04qtRows
         CreateHash [cte1HashSidecar0Name: string -> Row]
         ChunkedForEach [vo04qt in cte1_vo04qtRows]
-          CreateHashPayload [cte1SidecarPayload0 <- Cte1HashPayload0(Name: vo04qt.Name)]
-          HashAdd [cte1HashSidecar0Name[vo04qt.Name] += cte1SidecarPayload0]
+          Let [name: string = vo04qt.Name]
+          CreateHashPayload [cte1SidecarPayload0 <- Cte1HashPayload0(Name: name)]
+          HashAdd [cte1HashSidecar0Name[name] += cte1SidecarPayload0]
         StoreCteIndex [cte1HashSidecar0Name -> _cteIndexResults.Slot0 Hash]
         PhaseBoundary [Select:cte1]
         PhaseBoundary [End:cte1]
@@ -263,19 +264,19 @@ namespace GeneratedSample_P07_ParallelCte_Full
                     var __op21Handle = profileRecorder?.GetOperatorHandle("op21", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op22Handle = profileRecorder?.GetOperatorHandle("op22", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op23Handle = profileRecorder?.GetOperatorHandle("op23", "ParallelBlock") ?? OperatorProfileHandle.None;
-                    var __op46Handle = profileRecorder?.GetOperatorHandle("op46", "StoreTable") ?? OperatorProfileHandle.None;
-                    var __op47Handle = profileRecorder?.GetOperatorHandle("op47", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                    var __op47Handle = profileRecorder?.GetOperatorHandle("op47", "StoreTable") ?? OperatorProfileHandle.None;
                     var __op48Handle = profileRecorder?.GetOperatorHandle("op48", "PhaseBoundary") ?? OperatorProfileHandle.None;
-                    var __op50Handle = profileRecorder?.GetOperatorHandle("op50", "LoadCteIndex") ?? OperatorProfileHandle.None;
-                    var __op51Handle = profileRecorder?.GetOperatorHandle("op51", "ForEach") ?? OperatorProfileHandle.None;
-                    var __op52Handle = profileRecorder?.GetOperatorHandle("op52", "HashProbe") ?? OperatorProfileHandle.None;
-                    var __op53Handle = profileRecorder?.GetOperatorHandle("op53", "ForEach") ?? OperatorProfileHandle.None;
-                    var __op54Handle = profileRecorder?.GetOperatorHandle("op54", "AppendShape") ?? OperatorProfileHandle.None;
-                    var __op55Handle = profileRecorder?.GetOperatorHandle("op55", "PhaseBoundary") ?? OperatorProfileHandle.None;
-                    long __op52InputRows = 0L;
+                    var __op49Handle = profileRecorder?.GetOperatorHandle("op49", "PhaseBoundary") ?? OperatorProfileHandle.None;
+                    var __op51Handle = profileRecorder?.GetOperatorHandle("op51", "LoadCteIndex") ?? OperatorProfileHandle.None;
+                    var __op52Handle = profileRecorder?.GetOperatorHandle("op52", "ForEach") ?? OperatorProfileHandle.None;
+                    var __op53Handle = profileRecorder?.GetOperatorHandle("op53", "HashProbe") ?? OperatorProfileHandle.None;
+                    var __op54Handle = profileRecorder?.GetOperatorHandle("op54", "ForEach") ?? OperatorProfileHandle.None;
+                    var __op55Handle = profileRecorder?.GetOperatorHandle("op55", "AppendShape") ?? OperatorProfileHandle.None;
+                    var __op56Handle = profileRecorder?.GetOperatorHandle("op56", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     long __op53InputRows = 0L;
-                    long __op53OutputRows = 0L;
+                    long __op54InputRows = 0L;
                     long __op54OutputRows = 0L;
+                    long __op55OutputRows = 0L;
                     var __op21Scope = profileRecorder?.BeginOperatorValue(__op21Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Begin);
                     __op21Scope.Dispose();
@@ -292,15 +293,15 @@ namespace GeneratedSample_P07_ParallelCte_Full
                         token.ThrowIfCancellationRequested();
                         __parallelCteLevel0Task0Result = cteLevel0Runner_Profiled.Task0Result;
                         __parallelCteLevel0Task1Result = cteLevel0Runner_Profiled.Task1Result;
-                        var __op46Scope = profileRecorder?.BeginOperatorValue(__op46Handle) ?? OperatorProfileValueScope.None;
+                        var __op47Scope = profileRecorder?.BeginOperatorValue(__op47Handle) ?? OperatorProfileValueScope.None;
                         try
                         {
                             _cteRowResults.Slot0 = __parallelCteLevel0Task0Result;
-                            __op46Scope.AddOutputRows(__parallelCteLevel0Task0Result.Count);
+                            __op47Scope.AddOutputRows(__parallelCteLevel0Task0Result.Count);
                         }
                         finally
                         {
-                            __op46Scope.Dispose();
+                            __op47Scope.Dispose();
                         }
                     }
                     finally
@@ -308,20 +309,20 @@ namespace GeneratedSample_P07_ParallelCte_Full
                         __op23Scope.Dispose();
                     }
 
-                    var __op47Scope = profileRecorder?.BeginOperatorValue(__op47Handle) ?? OperatorProfileValueScope.None;
-                    OnPhaseChanged("compiled", QueryPhase.Select);
-                    __op47Scope.Dispose();
                     var __op48Scope = profileRecorder?.BeginOperatorValue(__op48Handle) ?? OperatorProfileValueScope.None;
-                    OnPhaseChanged("compiled:cte2", QueryPhase.Begin);
+                    OnPhaseChanged("compiled", QueryPhase.Select);
                     __op48Scope.Dispose();
+                    var __op49Scope = profileRecorder?.BeginOperatorValue(__op49Handle) ?? OperatorProfileValueScope.None;
+                    OnPhaseChanged("compiled:cte2", QueryPhase.Begin);
+                    __op49Scope.Dispose();
                     try
                     {
-                        var __op50Scope = profileRecorder?.BeginOperatorValue(__op50Handle) ?? OperatorProfileValueScope.None;
-                        var qHash = _cteIndexResults.Slot0;
-                        __op50Scope.Dispose();
-                        long __op51InputRows = 0L;
-                        long __op51OutputRows = 0L;
                         var __op51Scope = profileRecorder?.BeginOperatorValue(__op51Handle) ?? OperatorProfileValueScope.None;
+                        var qHash = _cteIndexResults.Slot0;
+                        __op51Scope.Dispose();
+                        long __op52InputRows = 0L;
+                        long __op52OutputRows = 0L;
+                        var __op52Scope = profileRecorder?.BeginOperatorValue(__op52Handle) ?? OperatorProfileValueScope.None;
                         try
                         {
                             var __storedTable0Rows = _cteRowResults.Slot0;
@@ -333,45 +334,45 @@ namespace GeneratedSample_P07_ParallelCte_Full
                                 }
 
                                 Cte0Row0 p = __storedTable0Rows[__storedTable0Index];
-                                __op51InputRows++;
-                                __op51OutputRows++;
-                                __op52InputRows += 1;
+                                __op52InputRows++;
+                                __op52OutputRows++;
+                                __op53InputRows += 1;
                                 string key = p.Name;
                                 if (key != null && qHash.TryGetValue(key, out var qHashMatches))
                                 {
                                     foreach (var q in qHashMatches)
                                     {
                                         token.ThrowIfCancellationRequested();
-                                        __op53InputRows++;
-                                        __op53OutputRows++;
+                                        __op54InputRows++;
+                                        __op54OutputRows++;
                                         __musoqFinalShapeRows.Add(new ResultShape0(p.Name, q.Name));
-                                        __op54OutputRows += 1;
+                                        __op55OutputRows += 1;
                                     }
                                 }
                             }
                         }
                         finally
                         {
-                            __op51Scope.AddInputRows(__op51InputRows);
-                            __op51Scope.AddOutputRows(__op51OutputRows);
-                            __op51Scope.Dispose();
+                            __op52Scope.AddInputRows(__op52InputRows);
+                            __op52Scope.AddOutputRows(__op52OutputRows);
+                            __op52Scope.Dispose();
                         }
                     }
                     finally
                     {
-                        var __op55Scope = profileRecorder?.BeginOperatorValue(__op55Handle) ?? OperatorProfileValueScope.None;
+                        var __op56Scope = profileRecorder?.BeginOperatorValue(__op56Handle) ?? OperatorProfileValueScope.None;
                         OnPhaseChanged("compiled:cte2", QueryPhase.End);
-                        __op55Scope.Dispose();
+                        __op56Scope.Dispose();
                     }
 
-                    if (__op52InputRows > 0L)
-                        profileRecorder?.AddOperatorInputRows(__op52Handle, __op52InputRows);
                     if (__op53InputRows > 0L)
                         profileRecorder?.AddOperatorInputRows(__op53Handle, __op53InputRows);
-                    if (__op53OutputRows > 0L)
-                        profileRecorder?.AddOperatorOutputRows(__op53Handle, __op53OutputRows);
+                    if (__op54InputRows > 0L)
+                        profileRecorder?.AddOperatorInputRows(__op54Handle, __op54InputRows);
                     if (__op54OutputRows > 0L)
                         profileRecorder?.AddOperatorOutputRows(__op54Handle, __op54OutputRows);
+                    if (__op55OutputRows > 0L)
+                        profileRecorder?.AddOperatorOutputRows(__op55Handle, __op55OutputRows);
                     return __musoqFinalShapeRows;
                 }
                 finally
@@ -586,8 +587,9 @@ namespace GeneratedSample_P07_ParallelCte_Full
                                 }
 
                                 var vo04qt = vo04qtChunkViewArray[vo04qtChunkViewOffset + vo04qtIndex];
-                                Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(vo04qt.Name);
-                                string cte1HashSidecar0NameKey0 = vo04qt.Name;
+                                string name = vo04qt.Name;
+                                Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(name);
+                                string cte1HashSidecar0NameKey0 = name;
                                 if (cte1HashSidecar0NameKey0 != null)
                                 {
                                     {
@@ -618,8 +620,9 @@ namespace GeneratedSample_P07_ParallelCte_Full
                                 }
 
                                 var vo04qt = vo04qtChunkViewList[vo04qtChunkViewOffset + vo04qtIndex];
-                                Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(vo04qt.Name);
-                                string cte1HashSidecar0NameKey0 = vo04qt.Name;
+                                string name = vo04qt.Name;
+                                Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(name);
+                                string cte1HashSidecar0NameKey0 = name;
                                 if (cte1HashSidecar0NameKey0 != null)
                                 {
                                     {
@@ -648,8 +651,9 @@ namespace GeneratedSample_P07_ParallelCte_Full
                         }
 
                         var vo04qt = vo04qtChunk[vo04qtIndex];
-                        Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(vo04qt.Name);
-                        string cte1HashSidecar0NameKey0 = vo04qt.Name;
+                        string name = vo04qt.Name;
+                        Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(name);
+                        string cte1HashSidecar0NameKey0 = name;
                         if (cte1HashSidecar0NameKey0 != null)
                         {
                             {
@@ -707,8 +711,9 @@ namespace GeneratedSample_P07_ParallelCte_Full
                                 }
 
                                 var vo04qt = vo04qtChunkViewArray[vo04qtChunkViewOffset + vo04qtIndex];
-                                Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(vo04qt.Name);
-                                string cte1HashSidecar0NameKey0 = vo04qt.Name;
+                                string name = vo04qt.Name;
+                                Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(name);
+                                string cte1HashSidecar0NameKey0 = name;
                                 if (cte1HashSidecar0NameKey0 != null)
                                 {
                                     {
@@ -739,8 +744,9 @@ namespace GeneratedSample_P07_ParallelCte_Full
                                 }
 
                                 var vo04qt = vo04qtChunkViewList[vo04qtChunkViewOffset + vo04qtIndex];
-                                Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(vo04qt.Name);
-                                string cte1HashSidecar0NameKey0 = vo04qt.Name;
+                                string name = vo04qt.Name;
+                                Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(name);
+                                string cte1HashSidecar0NameKey0 = name;
                                 if (cte1HashSidecar0NameKey0 != null)
                                 {
                                     {
@@ -769,8 +775,9 @@ namespace GeneratedSample_P07_ParallelCte_Full
                         }
 
                         var vo04qt = vo04qtChunk[vo04qtIndex];
-                        Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(vo04qt.Name);
-                        string cte1HashSidecar0NameKey0 = vo04qt.Name;
+                        string name = vo04qt.Name;
+                        Cte1HashPayload0 cte1SidecarPayload0 = new Cte1HashPayload0(name);
+                        string cte1HashSidecar0NameKey0 = name;
                         if (cte1HashSidecar0NameKey0 != null)
                         {
                             {

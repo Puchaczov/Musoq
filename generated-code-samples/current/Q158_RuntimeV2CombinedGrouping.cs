@@ -65,9 +65,9 @@ ExecutionPlan [compiled]
       Let [population: string = ko3iko.Population]
       Let [populationInt32: int? = population::Int32]
       If [(populationInt32 > 0)]
+        GetOrAddValueTupleAggregateGroup [group = groups[(ko3iko.City, populationInt32)] by ko3iko.City, ko3iko.Population::Int32; typed: ResultAggregateGroup]
         Let [amount: string = ko3iko.Amount]
         Let [amountDecimal: decimal? = amount::Decimal]
-        GetOrAddValueTupleAggregateGroup [group = groups[(ko3iko.City, populationInt32)] by ko3iko.City, ko3iko.Population::Int32; typed: ResultAggregateGroup]
         TypedAggregateSet [Set(group.__agg0, amountDecimal)]
         TypedAggregateSet [Set(group.__agg1)]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
@@ -170,10 +170,8 @@ namespace GeneratedSample_Q158_RuntimeV2CombinedGrouping
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 string population = ko3iko.Population;
                                 int? populationInt32 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population);
-                                if ((populationInt32 > 0))
+                                if ((Operators.SqlCompare<int?, int>(populationInt32, 0, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                 {
-                                    string amount = ko3iko.Amount;
-                                    decimal? amountDecimal = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(amount);
                                     string groupKey0 = ko3iko.City;
                                     int? groupKey1 = populationInt32;
                                     ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, (groupKey0, groupKey1), out var groupExists);
@@ -184,6 +182,8 @@ namespace GeneratedSample_Q158_RuntimeV2CombinedGrouping
                                     }
 
                                     ResultAggregateGroup group = groupRef;
+                                    string amount = ko3iko.Amount;
+                                    decimal? amountDecimal = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(amount);
                                     {
                                         var __agg0Input = (decimal?)amountDecimal;
                                         if (__agg0Input.HasValue)
@@ -214,10 +214,8 @@ namespace GeneratedSample_Q158_RuntimeV2CombinedGrouping
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 string population = ko3iko.Population;
                                 int? populationInt32 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population);
-                                if ((populationInt32 > 0))
+                                if ((Operators.SqlCompare<int?, int>(populationInt32, 0, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                 {
-                                    string amount = ko3iko.Amount;
-                                    decimal? amountDecimal = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(amount);
                                     string groupKey0 = ko3iko.City;
                                     int? groupKey1 = populationInt32;
                                     ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, (groupKey0, groupKey1), out var groupExists);
@@ -228,6 +226,8 @@ namespace GeneratedSample_Q158_RuntimeV2CombinedGrouping
                                     }
 
                                     ResultAggregateGroup group = groupRef;
+                                    string amount = ko3iko.Amount;
+                                    decimal? amountDecimal = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(amount);
                                     {
                                         var __agg0Input = (decimal?)amountDecimal;
                                         if (__agg0Input.HasValue)
@@ -256,10 +256,8 @@ namespace GeneratedSample_Q158_RuntimeV2CombinedGrouping
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
                         string population = ko3iko.Population;
                         int? populationInt32 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population);
-                        if ((populationInt32 > 0))
+                        if ((Operators.SqlCompare<int?, int>(populationInt32, 0, (int? __sqlLeft, int __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                         {
-                            string amount = ko3iko.Amount;
-                            decimal? amountDecimal = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(amount);
                             string groupKey0 = ko3iko.City;
                             int? groupKey1 = populationInt32;
                             ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, (groupKey0, groupKey1), out var groupExists);
@@ -270,6 +268,8 @@ namespace GeneratedSample_Q158_RuntimeV2CombinedGrouping
                             }
 
                             ResultAggregateGroup group = groupRef;
+                            string amount = ko3iko.Amount;
+                            decimal? amountDecimal = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(amount);
                             {
                                 var __agg0Input = (decimal?)amountDecimal;
                                 if (__agg0Input.HasValue)
@@ -289,7 +289,7 @@ namespace GeneratedSample_Q158_RuntimeV2CombinedGrouping
                 foreach (var finalGroup in groupsToFinalize)
                 {
                     token.ThrowIfCancellationRequested();
-                    if (((finalGroup.__agg1.Count > 1) && ((finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null) > global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal("10.00"))))
+                    if ((((finalGroup.__agg1.Count > 1) & (Operators.SqlCompare<decimal?, decimal?>(finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null, global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal("10.00"), (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight))))) == true)
                     {
                         result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__key1, finalGroup.__agg1.Count, finalGroup.__agg0.HasValue ? (decimal?)finalGroup.__agg0.Value : null));
                     }

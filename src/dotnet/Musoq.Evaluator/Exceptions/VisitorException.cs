@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
@@ -63,13 +64,24 @@ public class VisitorException : Exception, IDiagnosticException
     /// <param name="message">The error message.</param>
     /// <param name="code">The diagnostic code.</param>
     /// <param name="span">The source location span.</param>
-    public VisitorException(string visitorName, string operation, string message, DiagnosticCode code, TextSpan span)
+    public VisitorException(
+        string visitorName,
+        string operation,
+        string message,
+        DiagnosticCode code,
+        TextSpan span,
+        IReadOnlyDictionary<string, string>? arguments = null,
+        IReadOnlyList<DiagnosticAction>? suggestedFixes = null)
         : base($"Visitor '{visitorName}' failed during '{operation}': {message}")
     {
         VisitorName = visitorName ?? "Unknown";
         Operation = operation ?? "Unknown";
         Code = code;
         Span = span;
+        Arguments = arguments is null
+            ? new Dictionary<string, string>(StringComparer.Ordinal)
+            : new Dictionary<string, string>(arguments, StringComparer.Ordinal);
+        SuggestedFixes = suggestedFixes is null ? [] : [..suggestedFixes];
     }
 
     /// <summary>
@@ -93,6 +105,17 @@ public class VisitorException : Exception, IDiagnosticException
     public TextSpan? Span { get; }
 
     /// <summary>
+    ///     Gets stable string-valued facts associated with this visitor failure.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> Arguments { get; } =
+        new Dictionary<string, string>(StringComparer.Ordinal);
+
+    /// <summary>
+    ///     Gets safe structured actions associated with this visitor failure.
+    /// </summary>
+    public IReadOnlyList<DiagnosticAction> SuggestedFixes { get; } = [];
+
+    /// <summary>
     ///     Converts this exception to a Diagnostic instance.
     /// </summary>
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
@@ -101,7 +124,12 @@ public class VisitorException : Exception, IDiagnosticException
             return InternalDiagnosticException.ForCompiler(this, Span).ToDiagnostic(sourceText);
 
         var span = Span ?? TextSpan.Empty;
-        return Diagnostic.Error(Code, Message, span);
+        var diagnostic = Diagnostic.Error(Code, Message, span);
+        foreach (var argument in Arguments)
+            diagnostic = diagnostic.WithArgument(argument.Key, argument.Value);
+        foreach (var suggestedFix in SuggestedFixes)
+            diagnostic = diagnostic.WithSuggestedFix(suggestedFix);
+        return diagnostic;
     }
 
     /// <summary>

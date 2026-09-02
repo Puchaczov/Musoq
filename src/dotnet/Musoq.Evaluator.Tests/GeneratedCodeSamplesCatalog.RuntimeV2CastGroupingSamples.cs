@@ -26,7 +26,11 @@ internal static partial class GeneratedCodeSamplesCatalog
                   FROM #features.items()
                   WHERE Population::Int32 > 0
                   GROUP BY City
-                  HAVING Sum(Amount::Decimal) > '10.00'::Decimal"),
+                  HAVING Sum(Amount::Decimal) > '10.00'::Decimal") with
+                {
+                    CompilationOptions = new CompilationOptions()
+                        .WithStabilityAwareScalarReuse(false)
+                },
             RuntimeV2CastGroupingFeature(
                 "Q153_RuntimeV2GroupByOrdinal",
                 @"SELECT City, Department, Count(*) as Cnt
@@ -79,6 +83,7 @@ internal static partial class GeneratedCodeSamplesCatalog
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
             CreateSchemaProvider = CreateRuntimeV2CastGroupingFeatureSchemaProvider,
             CompilationOptions = new CompilationOptions(useCommonSubexpressionElimination: true)
+                .WithStabilityAwareScalarReuse()
         };
     }
 }

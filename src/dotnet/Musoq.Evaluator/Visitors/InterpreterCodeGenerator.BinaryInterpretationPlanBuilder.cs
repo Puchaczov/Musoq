@@ -22,6 +22,7 @@ public partial class InterpreterCodeGenerator
         _currentTypeParameters = schema.TypeParameters ?? Array.Empty<string>();
 
         var allFields = GetAllFieldsIncludingInherited(schema);
+        SetCurrentNullableFieldNames(allFields);
         var boundFields = new List<BoundBinaryField>(allFields.Count);
         foreach (var field in allFields)
             boundFields.Add(BindBinaryField(field, allFields));

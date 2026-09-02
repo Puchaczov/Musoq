@@ -12,14 +12,15 @@ public sealed record PhysicalJoinCandidateNode(
     PhysicalNode Right,
     IrExpression[] LeftMovedPredicates,
     IrExpression[] RightMovedPredicates,
-    OrderField? TieBreak = null) : PhysicalNode(JoinKindSemantics.SelectOutputSchema(Kind, Left.OutputSchema, Right.OutputSchema))
+    OrderField? TieBreak = null,
+    bool WithOrdinality = false) : PhysicalNode(JoinKindSemantics.SelectOutputSchema(Kind, Left.OutputSchema, Right.OutputSchema))
 {
     public PhysicalJoinCandidateNode(
         JoinKind kind,
         IrExpression onPredicate,
         PhysicalNode left,
         PhysicalNode right)
-        : this(kind, onPredicate, left, right, [], [], null)
+        : this(kind, onPredicate, left, right, [], [], null, false)
     {
     }
 

@@ -61,7 +61,7 @@ public class SchemaArgumentException : ArgumentException, IDiagnosticException
     /// <inheritdoc />
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return Diagnostic.Error(Code, Message, TextSpan.Empty)
+        return Diagnostic.ErrorUnknownLocation(Code, Message)
             .WithArgument("reason", Reason)
             .WithArgument("argumentName", ParamName ?? string.Empty);
     }

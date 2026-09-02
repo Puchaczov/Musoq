@@ -35,6 +35,16 @@ internal static class BinarySchemaGenericResolver
         SchemaReferenceTypeNode reference,
         IReadOnlyDictionary<string, SchemaReferenceTypeNode> outerBindings)
     {
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(reference);
+        ArgumentNullException.ThrowIfNull(outerBindings);
+
+        if (schema.TypeParameters.Length != reference.TypeArguments.Length)
+            throw new ArgumentException(
+                $"Schema '{schema.Name}' declares {schema.TypeParameters.Length} type parameters, " +
+                $"but reference '{reference.FullTypeName}' supplies {reference.TypeArguments.Length}.",
+                nameof(reference));
+
         var bindings = new Dictionary<string, SchemaReferenceTypeNode>(StringComparer.OrdinalIgnoreCase);
 
         for (var index = 0; index < schema.TypeParameters.Length; index++)

@@ -82,9 +82,10 @@ ExecutionPlan [compiled]
     PhaseBoundary [Begin:cte1]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [fp in _cteRowResults.Slot0]
+      Let [fppCount: byte = fp.p.Count]
       EnumerableSource [fp.p.Items -> itRows]
       ChunkedForEach [it in itRows]
-        AppendShape [result <- ResultShape0(p.Count: fp.p.Count, it.Tag: it.Tag, it.Value: it.Value)]
+        AppendShape [result <- ResultShape0(p.Count: fppCount, it.Tag: it.Tag, it.Value: it.Value)]
     PhaseBoundary [End:cte1]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
@@ -175,6 +176,7 @@ namespace GeneratedSample_Q55_BinaryInlineArrayInterpret
                         }
 
                         Statement0Row0 fp = __storedTable0Rows[__storedTable0Index];
+                        byte fppCount = fp.p_Count;
                         var itRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.Inline_Items>(fp.p_Items);
                         foreach (var itChunk in itRows)
                         {
@@ -186,7 +188,7 @@ namespace GeneratedSample_Q55_BinaryInlineArrayInterpret
                                 }
 
                                 var it = itChunk[itIndex];
-                                __musoqFinalShapeRows.Add(new ResultShape0(fp.p_Count, it.Tag, it.Value));
+                                __musoqFinalShapeRows.Add(new ResultShape0(fppCount, it.Tag, it.Value));
                             }
                         }
                     }
@@ -434,19 +436,22 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override InlineArrayPacket InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("Count");
             var _count = ReadByte(data);
+            RecordParsedField("Count", _count);
+            SetCurrentField("Items");
             var __items_list = new System.Collections.Generic.List<Inline_Items>();
             for (int __items_i = 0; __items_i < (int)_count; __items_i++)
             {
                 var ___items_list_elemInterpreter = new Inline_Items();
-                var ___items_list_elem = ___items_list_elemInterpreter.InterpretAt(data, ParsePosition);
-                ParsePosition = ___items_list_elemInterpreter.BytesConsumed;
+                var ___items_list_elem = InterpretNested(___items_list_elemInterpreter, data, "Items");
                 __items_list.Add(___items_list_elem);
             }
 
             var _items = __items_list.ToArray();
+            RecordParsedField("Items", _items);
             return new InlineArrayPacket
             {
                 Count = _count,
@@ -470,10 +475,14 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override Inline_Items InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("Tag");
             var _tag = ReadByte(data);
+            RecordParsedField("Tag", _tag);
+            SetCurrentField("Value");
             var _value = ReadInt16Le(data);
+            RecordParsedField("Value", _value);
             return new Inline_Items
             {
                 Tag = _tag,

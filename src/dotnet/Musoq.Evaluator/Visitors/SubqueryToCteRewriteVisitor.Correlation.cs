@@ -30,7 +30,7 @@ public partial class SubqueryToCteRewriteVisitor
         if (!analysis.HasIllegalOuterConsumingCteReferences)
             return;
 
-        throw SubqueryDiagnosticFactory.CteDefinitionConsumesOuterAlias();
+        throw SubqueryDiagnosticFactory.CteDefinitionConsumesOuterAlias(analysis);
     }
 
     private static CorrelatedSubqueryRewrite RewriteCorrelatedSubqueryIfNeeded(

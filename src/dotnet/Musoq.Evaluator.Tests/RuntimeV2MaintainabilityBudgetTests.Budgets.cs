@@ -10,7 +10,9 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     private static readonly IReadOnlyDictionary<string, int> ProductionHotspotFileBudgets =
         new Dictionary<string, int>(StringComparer.Ordinal)
         {
-            ["src/dotnet/Musoq.Evaluator/Visitors/CloneQueryVisitor.cs"] = 154,
+            // Source spans are retained while cloning the semantic tree so diagnostics
+            // continue to point at the authoring site after normalization.
+            ["src/dotnet/Musoq.Evaluator/Visitors/CloneQueryVisitor.cs"] = 157,
             ["src/dotnet/Musoq.Evaluator/Visitors/CloneQueryVisitor.LiteralsAndAccess.cs"] = 183,
             ["src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.AggregateHelpers.cs"] = 217,
             ["src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitorUtilities.cs"] = 192,
@@ -29,7 +31,9 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             ["src/dotnet/Musoq.Evaluator/Helpers/WindowFunctionHelpers.PluginWindows.cs"] = 286,
             ["src/dotnet/Musoq.Evaluator/IR/Logical/LogicalPlanBuilder.Aggregates.cs"] = 102,
             ["src/dotnet/Musoq.Plugins/Lib/LibraryBase.DistinctAggregates.cs"] = 11,
-            ["src/dotnet/Musoq.Parser/Parser.Expressions.cs"] = 83,
+            // T1 diagnostics add explicit operand classification and signed
+            // numeric handling to this parser partial.
+            ["src/dotnet/Musoq.Parser/Parser.Expressions.cs"] = 147,
             ["src/dotnet/Musoq.Evaluator/Visitors/RewriteQueryVisitor.Query.cs"] = 88,
             ["src/dotnet/Musoq.Evaluator/Visitors/RewriteQueryVisitor.Query.Context.cs"] = 61,
             ["src/dotnet/Musoq.Evaluator/Visitors/RewriteQueryVisitor.Query.GroupedSplit.cs"] = 142,
@@ -78,7 +82,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             ["src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesTraverseVisitor.QuerySetAndCte.cs"] = 111,
             ["src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesTraverseVisitor.Sources.cs"] = 244,
             ["src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesTraverseVisitor.Windows.cs"] = 36,
-            ["src/dotnet/Musoq.Parser/Parser.QueryClauses.cs"] = 179,
+            ["src/dotnet/Musoq.Parser/Parser.QueryClauses.cs"] = 189,
             ["src/dotnet/Musoq.Parser/Parser.QueryClauses.OrderingAndWhere.cs"] = 71,
             ["src/dotnet/Musoq.Parser/Parser.QueryClauses.SelectFields.cs"] = 134,
             ["src/dotnet/Musoq.Parser/Parser.QueryClauses.Windows.cs"] = 216,
@@ -138,7 +142,9 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             ["src/dotnet/Musoq.Evaluator/IR/Expressions/AggregateRefRewriter.cs"] = 92,
             ["src/dotnet/Musoq.Evaluator/IR/Physical/PhysicalPlanPrinter.cs"] = 240,
             ["src/dotnet/Musoq.Evaluator/Visitors/SubqueryToCteRewriteVisitor.cs"] = 81,
-            ["src/dotnet/Musoq.Parser/Diagnostics/SyntaxDiagnosticEnhancer.cs"] = 149,
+            // Keyword/dialect enrichment is now gated to generic syntax codes
+            // so specific diagnostics retain their authored metadata.
+            ["src/dotnet/Musoq.Parser/Diagnostics/SyntaxDiagnosticEnhancer.cs"] = 157,
             ["src/dotnet/Musoq.Plugins/Lib/LibraryBase.DataUtils.cs"] = 137,
             ["src/dotnet/Musoq.Parser/SchemaParser.EmbeddedExpressions.cs"] = 19,
             ["src/dotnet/Musoq.Parser/Lexing/KeywordLookup.cs"] = 248,
@@ -207,7 +213,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         new("src/dotnet/Musoq.Evaluator/IR/SourcePlanning", "*.cs", 111),
         new("src/dotnet/Musoq.Evaluator/Visitors", "BuildMetadataAndInferTypesVisitor*.cs", 309),
         new("src/dotnet/Musoq.Evaluator/Visitors", "SemanticVisitorState*.cs", 128),
-        new("src/dotnet/Musoq.Evaluator/Visitors", "CloneQueryVisitor*.cs", 245),
+        new("src/dotnet/Musoq.Evaluator/Visitors", "CloneQueryVisitor*.cs", 250),
         new("src/dotnet/Musoq.Evaluator/Visitors", "InterpreterCodeGenerator*.cs", 292),
         new("src/dotnet/Musoq.Evaluator/Visitors", "RawTraverseVisitor*.cs", 165),
         new("src/dotnet/Musoq.Evaluator/Visitors", "ScriptVariableInitializerEvaluator*.cs", 110),
@@ -218,17 +224,18 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         new("src/dotnet/Musoq.Converter/Build", "*.cs", 301),
         new("src/dotnet/Musoq.Plugins/Lib", "LibraryBase*.cs", 298),
         new("src/dotnet/Musoq.Plugins", "AggregateKernels*.cs", 130),
-        new("src/dotnet/Musoq.Parser", "Parser*.cs", 314),
+        new("src/dotnet/Musoq.Parser", "Parser*.cs", 316),
         new("src/dotnet/Musoq.Parser", "SchemaParser*.cs", 183),
         new("src/dotnet/Musoq.Parser/Traversal", "*.cs", 136),
-        new("src/dotnet/Musoq.Parser/Lexing", "*.cs", 278),
+        new("src/dotnet/Musoq.Parser/Lexing", "*.cs", 306),
         new("src/dotnet/Musoq.Evaluator/Helpers", "WindowFunctionHelpers*.cs", 286),
         new("src/dotnet/Musoq.Evaluator/Helpers", "WindowIntOrderBuilder*.cs", 321),
         new("src/dotnet/Musoq.Evaluator/Helpers", "EvaluationHelper*.cs", 559),
         new("src/dotnet/Musoq.Evaluator/Helpers", "AsOfJoinIndex*.cs", 380),
         new("src/dotnet/Musoq.Evaluator/Tables", "*.cs", 213),
         new("src/dotnet/Musoq.Evaluator/IR/Physical", "*.cs", 240),
-        new("src/dotnet/Musoq.Evaluator/IR/Expressions", "*.cs", 297),
+        // Stability metadata is carried by the expression converter and column references.
+        new("src/dotnet/Musoq.Evaluator/IR/Expressions", "*.cs", 310),
         new("src/dotnet/Musoq.Schema/Interpreters", "*InterpreterBase.cs", 134),
         new("src/dotnet/Musoq.Parser/Diagnostics", "ErrorMetadataCatalog*.cs", 360)
     ];
@@ -252,7 +259,9 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/Rendering", "*.cs", 220),
         new("src/dotnet/Musoq.Plugins", "AggregateKernels*.cs", 747),
         new("src/dotnet/Musoq.Plugins/Lib", "LibraryBase*.cs", 14876),
-        new("src/dotnet/Musoq.Evaluator/Visitors", "BuildMetadataAndInferTypesVisitor*.cs", 9593),
+        // Semantic validation now carries actionable TABLE/COUPLE, window, VALUES,
+        // and source-binding diagnostics with their original spans.
+        new("src/dotnet/Musoq.Evaluator/Visitors", "BuildMetadataAndInferTypesVisitor*.cs", 9888),
         new("src/dotnet/Musoq.Evaluator/Visitors", "SemanticVisitorState*.cs", 128),
         new("src/dotnet/Musoq.Evaluator/Visitors", "Semantic*.cs", 502),
         new("src/dotnet/Musoq.Evaluator/Visitors", "CloneQueryVisitor*.cs", 1085),
@@ -265,8 +274,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         new("src/dotnet/Musoq.Evaluator/IR/Planning/SourcePlanning", "*.cs", 453),
         new("src/dotnet/Musoq.Evaluator/IR/Physical/SourcePlanning", "*.cs", 427),
         new("src/dotnet/Musoq.Evaluator/IR/SourcePlanning", "*.cs", 355),
-        new("src/dotnet/Musoq.Parser", "Parser*.cs", 5255),
-        new("src/dotnet/Musoq.Parser/Lexing", "*.cs", 2828),
+        new("src/dotnet/Musoq.Parser", "Parser*.cs", 5465),
+        new("src/dotnet/Musoq.Parser/Lexing", "*.cs", 2871),
         new("src/dotnet/Musoq.Evaluator/Helpers", "WindowFunctionHelpers*.cs", 2485),
         new("src/dotnet/Musoq.Evaluator/Helpers", "WindowIntOrderBuilder*.cs", 532),
         new("src/dotnet/Musoq.Evaluator/Helpers", "EvaluationHelper*.cs", 3104),
@@ -274,10 +283,11 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         new("src/dotnet/Musoq.Evaluator/Tables", "*.cs", 1221),
         new("src/dotnet/Musoq.Evaluator/Visitors", "InterpreterCodeGenerator*.cs", 2658),
         new("src/dotnet/Musoq.Evaluator/Visitors", "RewriteQueryVisitor*.cs", 2275),
-        new("src/dotnet/Musoq.Evaluator/Visitors", "SubqueryToCteRewriteVisitor*.cs", 2465),
+        new("src/dotnet/Musoq.Evaluator/Visitors", "SubqueryToCteRewriteVisitor*.cs", 2480),
         new("src/dotnet/Musoq.Evaluator/IR/Logical", "LogicalPlanBuilder*.cs", 1878),
         new("src/dotnet/Musoq.Parser", "SchemaParser*.cs", 2068),
-        new("src/dotnet/Musoq.Evaluator/IR/Expressions", "*.cs", 1697),
+        // Stability metadata and resolver plumbing intentionally expand this family.
+        new("src/dotnet/Musoq.Evaluator/IR/Expressions", "*.cs", 1730),
         new("src/dotnet/Musoq.Parser/Diagnostics", "ErrorMetadataCatalog*.cs", 1764),
         new("src/dotnet/Musoq.Converter/Build", "*.cs", 1728),
         new("src/dotnet/Musoq.Evaluator/IR/Physical", "*.cs", 895),
@@ -312,6 +322,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             ["src/dotnet/Musoq.Parser/Nodes/HexIntegerNode.cs"] = 3,
             ["src/dotnet/Musoq.Parser/Nodes/OctalIntegerNode.cs"] = 3,
             ["src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.ColumnAccess.DotAndCalls.cs"] = 2,
+            ["src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.SourceBinding.Schema.cs"] = 2,
             ["src/dotnet/Musoq.Evaluator/Tables/Row.cs"] = 2,
             ["src/dotnet/Musoq.Converter/ExecutionTargets/ExecutionTargetCatalog.cs"] = 3,
             ["src/dotnet/Musoq.Targets.CSharpClr/CSharpClrExecutionBackend.cs"] = 2,
@@ -336,6 +347,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             ["src/dotnet/Musoq.Parser/Nodes/HexIntegerNode.cs"] = "Literal conversion rejects unsupported hexadecimal integer target types.",
             ["src/dotnet/Musoq.Parser/Nodes/OctalIntegerNode.cs"] = "Literal conversion rejects unsupported octal integer target types.",
             ["src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.ColumnAccess.DotAndCalls.cs"] = "Semantic column access rejects unsupported dot/call combinations.",
+            ["src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.SourceBinding.Schema.cs"] = "Source binding translates provider NotSupported lookups to actionable unknown-source diagnostics when collecting compiler errors.",
             ["src/dotnet/Musoq.Evaluator/Tables/Row.cs"] = "Row APIs reject unsupported comparison and mutation paths.",
             ["src/dotnet/Musoq.Converter/ExecutionTargets/ExecutionTargetCatalog.cs"] = "Internal target catalog rejects unregistered phases and render requests that violate target capabilities.",
             ["src/dotnet/Musoq.Targets.CSharpClr/CSharpClrExecutionBackend.cs"] = "C# CLR backend rejects unsupported target dispatch and unsupported execution IR render outcomes.",

@@ -20,7 +20,6 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
     private static readonly CompiledQueryBatchRepository<string> RecursiveSampleQueries =
         new(CreateRecursiveSampleQueries);
 
-    public TestContext TestContext { get; set; }
 
     public static IEnumerable<object[]> RecursiveSampleData => RecursiveCteSupportedCaseCatalog.Cases
         .Where(static item => item.GeneratedSampleName != null)

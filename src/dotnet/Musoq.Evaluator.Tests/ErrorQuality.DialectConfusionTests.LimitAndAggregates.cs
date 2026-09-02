@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Diagnostics;
 
@@ -73,11 +75,9 @@ public partial class ErrorQualityDialectConfusionTests
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert — In Musoq, TOP is not a keyword. The parser treats it as an identifier,
-        // so 'SELECT TOP 5 Name' parses as 'SELECT (TOP + 5) AS Name'. This is valid syntax
-        // even though it's semantically different from SQL Server's TOP N.
-        // Users should use TAKE instead: SELECT Name FROM #A.Entities() TAKE 5
-        AssertNoErrors(result);
+        // Assert — reject the SQL Server prefix form and direct users to Musoq's TAKE clause.
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2030_UnsupportedSyntax, "TOP should suggest TAKE");
+        Assert.Contains("TAKE", result.Errors.Single().Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [TestMethod]
@@ -90,11 +90,9 @@ public partial class ErrorQualityDialectConfusionTests
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert — In Musoq, FIRST is not a keyword. The parser treats it as an identifier,
-        // so 'SELECT FIRST 5 Name' parses as 'SELECT (FIRST + 5) AS Name'. This is valid syntax
-        // even though it's semantically different from Firebird's FIRST N.
-        // Users should use TAKE instead: SELECT Name FROM #A.Entities() TAKE 5
-        AssertNoErrors(result);
+        // Assert — reject the Firebird prefix form and direct users to Musoq's TAKE clause.
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2030_UnsupportedSyntax, "FIRST should suggest TAKE");
+        Assert.Contains("TAKE", result.Errors.Single().Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [TestMethod]

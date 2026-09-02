@@ -54,11 +54,15 @@ ExecutionPlan [compiled]
     CreateSingleKeyAggregateContext [groups: string -> ResultAggregateGroup]
     ParallelSingleKeyAggregateLoop [ko3iko in ko3ikoRows by ko3iko.City; threshold 4096, sample 8192/6144, maxDegree 24, group ResultAggregateGroup]
       ParallelAccumulate
+        Let [month: string = ko3iko.Month]
+        Let [__expr: bool? = (month = 'Feb')]
+        Let [__expr1: bool? = (month = 'Jan')]
+        TypedAggregateSet [Set(group.__agg0) filter __expr]
         Let [money: decimal = ko3iko.Money]
-        TypedAggregateSet [Set(group.__agg0) filter (ko3iko.Month = 'Feb')]
-        TypedAggregateSet [Set(group.__agg1, money) filter (ko3iko.Month = 'Feb')]
-        TypedAggregateSet [Set(group.__agg2) filter (ko3iko.Month = 'Jan')]
-        TypedAggregateSet [Set(group.__agg3, money) filter (ko3iko.Month = 'Jan')]
+        TypedAggregateSet [Set(group.__agg1, money) filter __expr]
+        TypedAggregateSet [Set(group.__agg2) filter __expr1]
+        Let [money1: decimal = ko3iko.Money]
+        TypedAggregateSet [Set(group.__agg3, money1) filter __expr1]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     PhaseBoundary [Select]
     ForEach [finalGroup in groupsToFinalize]
@@ -224,13 +228,16 @@ namespace GeneratedSample_Q163_PivotMultipleMeasures
                     group = nullGroup;
                 }
 
-                decimal money = ko3iko.Money;
-                if ((ko3iko.Month == "Feb"))
+                string month = ko3iko.Month;
+                bool? __expr = Operators.SqlCompare<string, string>(month, "Feb", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight));
+                bool? __expr1 = Operators.SqlCompare<string, string>(month, "Jan", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight));
+                if (__expr == true)
                 {
                     group.__agg0.Count = checked(group.__agg0.Count + 1L);
                 }
 
-                if ((ko3iko.Month == "Feb"))
+                decimal money = ko3iko.Money;
+                if (__expr == true)
                 {
                     {
                         var __agg1Input = (decimal?)money;
@@ -243,15 +250,16 @@ namespace GeneratedSample_Q163_PivotMultipleMeasures
                     }
                 }
 
-                if ((ko3iko.Month == "Jan"))
+                if (__expr1 == true)
                 {
                     group.__agg2.Count = checked(group.__agg2.Count + 1L);
                 }
 
-                if ((ko3iko.Month == "Jan"))
+                decimal money1 = ko3iko.Money;
+                if (__expr1 == true)
                 {
                     {
-                        var __agg3Input = (decimal?)money;
+                        var __agg3Input = (decimal?)money1;
                         if (__agg3Input.HasValue)
                         {
                             var __agg3Current = __agg3Input.GetValueOrDefault();

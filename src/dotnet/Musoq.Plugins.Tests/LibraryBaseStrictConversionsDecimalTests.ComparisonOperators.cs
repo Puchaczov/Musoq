@@ -140,13 +140,11 @@ public partial class LibraryBaseStrictConversionsDecimalTests
     }
 
     [TestMethod]
-    public void InternalEqualOperator_WithNulls_ReturnsNotEqual()
+    public void InternalEqualOperator_WithNulls_ReturnsUnknown()
     {
         var result = Library.InternalEqualOperator(null, null);
 
-
-        Assert.IsNotNull(result);
-        Assert.IsFalse(result.Value);
+        Assert.IsNull(result);
     }
 
     [TestMethod]
@@ -168,13 +166,11 @@ public partial class LibraryBaseStrictConversionsDecimalTests
     }
 
     [TestMethod]
-    public void InternalNotEqualOperator_WithNulls_ReturnsNotEqual()
+    public void InternalNotEqualOperator_WithNulls_ReturnsUnknown()
     {
         var result = Library.InternalNotEqualOperator(null, null);
 
-
-        Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value);
+        Assert.IsNull(result);
     }
 
     #endregion

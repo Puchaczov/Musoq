@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -29,12 +30,15 @@ public class BinarySchemaNode : Node
     /// <param name="extends">Optional base schema name for inheritance.</param>
     /// <param name="typeParameters">Optional generic type parameters (e.g., T, U).</param>
     public BinarySchemaNode(string name, SchemaFieldNode[] fields, string? extends = null,
-        string[]? typeParameters = null)
+        string[]? typeParameters = null, TextSpan extendsSpan = default,
+        IReadOnlyList<SchemaComment>? comments = null)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         Fields = fields ?? throw new ArgumentNullException(nameof(fields));
         Extends = extends;
         TypeParameters = typeParameters ?? [];
+        ExtendsSpan = extendsSpan;
+        Comments = comments != null ? [..comments] : [];
 
         var fieldsId = fields.Length == 0
             ? string.Empty
@@ -62,6 +66,11 @@ public class BinarySchemaNode : Node
     public string? Extends { get; }
 
     /// <summary>
+    ///     Gets the source span of the inherited schema name, when parsed from query text.
+    /// </summary>
+    public TextSpan ExtendsSpan { get; }
+
+    /// <summary>
     ///     Gets the generic type parameters (e.g., ["T", "U"] for binary Schema&lt;T, U&gt;).
     ///     Empty array if the schema is not generic.
     /// </summary>
@@ -71,6 +80,11 @@ public class BinarySchemaNode : Node
     ///     Gets whether this schema is a generic schema (has type parameters).
     /// </summary>
     public bool IsGeneric => TypeParameters.Length > 0;
+
+    /// <summary>
+    ///     Gets comments retained from the schema declaration for introspection and documentation generation.
+    /// </summary>
+    public IReadOnlyList<SchemaComment> Comments { get; }
 
     /// <inheritdoc />
     /// <remarks>

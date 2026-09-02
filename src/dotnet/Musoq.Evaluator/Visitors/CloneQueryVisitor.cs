@@ -70,61 +70,73 @@ public partial class CloneQueryVisitor : DefensiveVisitorBase
     }
 
     public override void Visit(EqualityNode node) =>
-        CloneBinaryNode((l, r) => new EqualityNode(l, r));
+        CloneBinaryNode(node, (l, r) => new EqualityNode(l, r));
     public override void Visit(IsDistinctFromNode node) =>
-        CloneBinaryNode((l, r) => new IsDistinctFromNode(l, r, node.IsNegated));
+        CloneBinaryNode(node, (l, r) => new IsDistinctFromNode(l, r, node.IsNegated));
 
     public override void Visit(GreaterOrEqualNode node) =>
-        CloneBinaryNode((l, r) => new GreaterOrEqualNode(l, r));
+        CloneBinaryNode(node, (l, r) => new GreaterOrEqualNode(l, r));
 
     public override void Visit(LessOrEqualNode node) =>
-        CloneBinaryNode((l, r) => new LessOrEqualNode(l, r));
+        CloneBinaryNode(node, (l, r) => new LessOrEqualNode(l, r));
 
     public override void Visit(GreaterNode node) =>
-        CloneBinaryNode((l, r) => new GreaterNode(l, r));
+        CloneBinaryNode(node, (l, r) => new GreaterNode(l, r));
 
     public override void Visit(LessNode node) =>
-        CloneBinaryNode((l, r) => new LessNode(l, r));
+        CloneBinaryNode(node, (l, r) => new LessNode(l, r));
 
     public override void Visit(DiffNode node) =>
-        CloneBinaryNode((l, r) => new DiffNode(l, r));
+        CloneBinaryNode(node, (l, r) => new DiffNode(l, r));
 
     public override void Visit(NotNode node)
     {
-        Nodes.Push(new NotNode(Nodes.Pop()));
+        ArgumentNullException.ThrowIfNull(node);
+        Nodes.Push(new NotNode(Nodes.Pop())
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(LikeNode node) =>
-        CloneBinaryNode((l, r) => new LikeNode(l, r));
+        CloneBinaryNode(node, (l, r) => new LikeNode(l, r));
 
     public override void Visit(RLikeNode node) =>
-        CloneBinaryNode((l, r) => new RLikeNode(l, r));
+        CloneBinaryNode(node, (l, r) => new RLikeNode(l, r));
 
     public override void Visit(InNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var right = Nodes.Pop();
         var left = Nodes.Pop();
-        Nodes.Push(new InNode(left, (ArgsListNode)right));
+        Nodes.Push(new InNode(left, (ArgsListNode)right)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(BetweenNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var max = Nodes.Pop();
         var min = Nodes.Pop();
         var expression = Nodes.Pop();
-        Nodes.Push(new BetweenNode(expression, min, max));
+        Nodes.Push(new BetweenNode(expression, min, max)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(FieldNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, node.FieldName, node.HasExplicitFieldName));
+        Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, node.FieldName, node.HasExplicitFieldName, node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(FieldOrderedNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder, node.FieldName, node.HasExplicitFieldName, node.Order, node.NullOrdering));
+        Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder, node.FieldName, node.HasExplicitFieldName, node.Order, node.NullOrdering)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(SelectNode node)
@@ -135,7 +147,8 @@ public partial class CloneQueryVisitor : DefensiveVisitorBase
         for (var i = node.Fields.Length - 1; i >= 0; --i)
             fields[i] = (FieldNode)Nodes.Pop();
 
-        Nodes.Push(new SelectNode(fields.ToArray(), node.IsDistinct));
+        Nodes.Push(new SelectNode(fields.ToArray(), node.IsDistinct, node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(GroupSelectNode node)
@@ -146,6 +159,8 @@ public partial class CloneQueryVisitor : DefensiveVisitorBase
         for (var i = node.Fields.Length - 1; i >= 0; --i)
             fields[i] = (FieldNode)Nodes.Pop();
 
-        Nodes.Push(new GroupSelectNode(fields));
+        Nodes.Push(new GroupSelectNode(fields)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 }

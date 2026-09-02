@@ -151,7 +151,7 @@ public sealed partial class Lexer
             PhraseBoundary.WhitespaceOrEnd => end == Input.Length ||
                                               FastCharacterClassifier.IsWhitespace(Input[end]),
             PhraseBoundary.WordBoundary => end == Input.Length ||
-                                           !FastCharacterClassifier.IsIdentifierContinue(Input[end]),
+                                           !FastCharacterClassifier.IsIdentifierContinue(Input.AsSpan(), end),
             PhraseBoundary.WhitespaceRightParenOrEnd => end == Input.Length ||
                                                          Input[end] == ')' ||
                                                          FastCharacterClassifier.IsWhitespace(Input[end]),
@@ -160,8 +160,9 @@ public sealed partial class Lexer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsHashSourceCharacter(char value)
+    private static bool IsHashSourceCharacter(ReadOnlySpan<char> input, int index)
     {
-        return char.IsLetterOrDigit(value) || value is '_' or '*' or '?';
+        return index < input.Length &&
+            (input[index] is '*' or '?' || FastCharacterClassifier.IsIdentifierContinue(input, index));
     }
 }

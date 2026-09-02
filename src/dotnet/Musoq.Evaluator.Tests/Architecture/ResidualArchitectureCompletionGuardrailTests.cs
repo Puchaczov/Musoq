@@ -84,7 +84,7 @@ public sealed class ResidualArchitectureCompletionGuardrailTests
             "Musoq.Evaluator.Visitors.SemanticPhaseArtifacts")!;
         var rewriteInput = typeof(QueryAnalyzer).Assembly.GetType(
             "Musoq.Evaluator.Visitors.RewriteQueryPhaseInput")!;
-        var semanticBuildArtifacts = typeof(Musoq.Converter.InstanceCreator).Assembly.GetType(
+        var semanticBuildArtifacts = typeof(Converter.InstanceCreator).Assembly.GetType(
             "Musoq.Converter.Build.SemanticBuildArtifacts")!;
 
         foreach (var type in new[] { semanticPhaseArtifacts, rewriteInput, semanticBuildArtifacts })
@@ -124,7 +124,7 @@ public sealed class ResidualArchitectureCompletionGuardrailTests
 
         var asyncRun = typeof(IAsyncTableRunnable).GetMethod(nameof(IAsyncTableRunnable.RunAsync));
         Assert.IsNotNull(asyncRun);
-        Assert.AreEqual(typeof(System.Threading.Tasks.ValueTask<Musoq.Evaluator.Tables.Table>), asyncRun!.ReturnType);
+        Assert.AreEqual(typeof(System.Threading.Tasks.ValueTask<Tables.Table>), asyncRun!.ReturnType);
         Assert.IsTrue(typeof(IDisposable).IsAssignableFrom(typeof(EvaluatorRuntimeEnvironment)));
 
         var targetFiles = RepositorySourceScan.ProductionSourceFiles(
@@ -156,7 +156,7 @@ public sealed class ResidualArchitectureCompletionGuardrailTests
 
         var cacheTypes = new[]
         {
-            typeof(Musoq.Evaluator.Helpers.EvaluationHelper),
+            typeof(Helpers.EvaluationHelper),
             typeof(BuildMetadataAndInferTypesVisitorUtilities)
         };
         var cacheFields = cacheTypes

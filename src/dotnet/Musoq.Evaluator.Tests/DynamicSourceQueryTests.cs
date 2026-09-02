@@ -24,7 +24,6 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         "Substream", "Between", "End", "Case", "Select", "From", "Take"
     ];
 
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WithDynamicSource_DescDynamicObjectWithSimpleColumns_ShouldPass()

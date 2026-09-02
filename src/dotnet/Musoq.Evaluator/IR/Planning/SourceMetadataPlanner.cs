@@ -1,10 +1,8 @@
 using System.Threading;
 using Microsoft.Extensions.Logging.Abstractions;
-using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.IR.Planning.OptimizationDiagnostics;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.Visitors;
-using Musoq.Parser;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -43,8 +41,16 @@ internal static partial class SourcePlanningPlanner
                 scan.MethodName,
                 new SourceDescribeContext(request.Identity, metadataContext),
                 parameters));
+            EnumSourceDescriptorContractValidator.Validate(
+                metadataContext.AllColumns,
+                descriptor,
+                columnName => ResolveColumnSpan(context, sourceNode, columnName));
             var result = SchemaProviderBoundary.Invoke(() => schema.TryPlanSource(scan.MethodName, request, parameters))
                          ?? SourcePlanResult.RejectAll(request);
+            SourcePredicatePlanContractValidator.Validate(
+                request,
+                result,
+                ResolveSourceSpan(sourceNode));
             result = OptimizationDiagnosticOriginMarker.Mark(result, "TryPlanSource");
             result = SourceContractDiagnosticOriginMarker.Mark(result, "TryPlanSource");
             result = OptimizationDiagnosticOriginMarker.Prepend(result, descriptor.Diagnostics, "DescribeSource");
@@ -63,15 +69,4 @@ internal static partial class SourcePlanningPlanner
         }
     }
 
-    private static SourceMetadataRequiresDefaultException CreateMetadataDefaultException(
-        SchemaScanNode scan,
-        Musoq.Evaluator.Parser.SchemaFromNode sourceNode,
-        Exception innerException)
-    {
-        return new SourceMetadataRequiresDefaultException(
-            scan.SchemaName,
-            scan.MethodName,
-            sourceNode.HasSpan ? sourceNode.Span : TextSpan.Empty,
-            innerException);
-    }
 }

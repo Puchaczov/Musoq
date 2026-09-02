@@ -13,7 +13,7 @@ public abstract partial class BytesInterpreterBase<TOut>
     protected byte[] ReadBytes(ReadOnlySpan<byte> data, int length)
     {
         if (length < 0)
-            throw new ParseException(ParseErrorCode.InvalidSize, SchemaName, null, ParsePosition,
+            throw new ParseException(ParseErrorCode.InvalidSize, SchemaName, _currentFieldName, ParsePosition,
                 $"Negative byte array size: {length}");
 
         EnsureBytes(data, length);
@@ -31,7 +31,7 @@ public abstract partial class BytesInterpreterBase<TOut>
     protected ReadOnlySpan<byte> ReadSubstreamSlice(ReadOnlySpan<byte> data, int length)
     {
         if (length < 0)
-            throw new ParseException(ParseErrorCode.InvalidSize, SchemaName, null, ParsePosition,
+            throw new ParseException(ParseErrorCode.InvalidSize, SchemaName, _currentFieldName, ParsePosition,
                 $"Negative substream size: {length}");
 
         EnsureBytes(data, length);
@@ -58,14 +58,15 @@ public abstract partial class BytesInterpreterBase<TOut>
     {
         ArgumentNullException.ThrowIfNull(encoding);
         if (byteLength < 0)
-            throw new ParseException(ParseErrorCode.InvalidSize, SchemaName, null, ParsePosition,
+            throw new ParseException(ParseErrorCode.InvalidSize, SchemaName, _currentFieldName, ParsePosition,
                 $"Negative string size: {byteLength}");
 
         EnsureBytes(data, byteLength);
+        var startPosition = ParsePosition;
         var bytes = data.Slice(ParsePosition, byteLength);
+        var result = DecodeString(bytes, encoding, startPosition);
         ParsePosition += byteLength;
-
-        return encoding.GetString(bytes);
+        return result;
     }
 
     /// <summary>
@@ -76,10 +77,11 @@ public abstract partial class BytesInterpreterBase<TOut>
     {
         ArgumentNullException.ThrowIfNull(encoding);
         if (maxBytes < 0)
-            throw new ParseException(ParseErrorCode.InvalidSize, SchemaName, null, ParsePosition,
+            throw new ParseException(ParseErrorCode.InvalidSize, SchemaName, _currentFieldName, ParsePosition,
                 $"Negative max string size: {maxBytes}");
 
         EnsureBytes(data, maxBytes);
+        var startPosition = ParsePosition;
         var bytes = data.Slice(ParsePosition, maxBytes);
 
         int actualLength;
@@ -101,9 +103,30 @@ public abstract partial class BytesInterpreterBase<TOut>
             actualLength = nullIndex >= 0 ? nullIndex : maxBytes;
         }
 
+        var result = DecodeString(bytes.Slice(0, actualLength), encoding, startPosition);
         ParsePosition += maxBytes;
+        return result;
+    }
 
-        return encoding.GetString(bytes.Slice(0, actualLength));
+    private string DecodeString(ReadOnlySpan<byte> bytes, Encoding encoding, int startPosition)
+    {
+        try
+        {
+            var strictEncoding = (Encoding)encoding.Clone();
+            strictEncoding.DecoderFallback = DecoderFallback.ExceptionFallback;
+            return strictEncoding.GetString(bytes);
+        }
+        catch (DecoderFallbackException exception)
+        {
+            var invalidByteOffset = exception.Index < 0 ? 0 : exception.Index;
+            throw new ParseException(
+                ParseErrorCode.EncodingError,
+                SchemaName,
+                _currentFieldName,
+                startPosition + invalidByteOffset,
+                $"String data is not valid for encoding '{encoding.WebName}'.",
+                exception);
+        }
     }
 
     /// <summary>
@@ -112,7 +135,7 @@ public abstract partial class BytesInterpreterBase<TOut>
     protected ulong ReadBits(ReadOnlySpan<byte> data, int bitCount)
     {
         if (bitCount < 1 || bitCount > 64)
-            throw new ParseException(ParseErrorCode.InvalidSize, SchemaName, null, ParsePosition,
+            throw new ParseException(ParseErrorCode.InvalidSize, SchemaName, _currentFieldName, ParsePosition,
                 $"Bit count must be between 1 and 64, got {bitCount}");
 
         ulong result = 0;
@@ -146,25 +169,29 @@ public abstract partial class BytesInterpreterBase<TOut>
     /// </summary>
     protected void AlignToBits(ReadOnlySpan<byte> data, int bits)
     {
-        if (bits <= 0 || bits > 64)
-            throw new ArgumentOutOfRangeException(nameof(bits), "Alignment must be between 1 and 64 bits");
+        if (bits <= 0)
+            throw new ParseException(
+                ParseErrorCode.InvalidSize,
+                SchemaName,
+                _currentFieldName,
+                ParsePosition,
+                $"Alignment boundary must be at least 1 bit, got {bits}");
 
-        if (BitOffset > 0)
-        {
-            BitOffset = 0;
-            ParsePosition++;
-        }
+        var currentBit = (long)ParsePosition * 8 + BitOffset;
+        var remainder = currentBit % bits;
+        var targetBit = remainder == 0 ? currentBit : currentBit + bits - remainder;
+        var maximumBit = (long)int.MaxValue * 8 + 7;
 
+        if (targetBit > maximumBit)
+            throw new ParseException(
+                ParseErrorCode.InvalidPosition,
+                SchemaName,
+                _currentFieldName,
+                ParsePosition,
+                $"Alignment boundary {bits} advances beyond the supported parse position");
 
-        if (bits == 8) return;
-
-
-        var byteAlignment = bits / 8;
-        if (byteAlignment > 0)
-        {
-            var remainder = ParsePosition % byteAlignment;
-            if (remainder > 0) ParsePosition += byteAlignment - remainder;
-        }
+        ParsePosition = (int)(targetBit / 8);
+        BitOffset = (int)(targetBit % 8);
     }
 
     /// <summary>
@@ -174,7 +201,9 @@ public abstract partial class BytesInterpreterBase<TOut>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected void EnsureBytes(ReadOnlySpan<byte> data, int count)
     {
-        if (ParsePosition + count > data.Length)
+        // Use subtraction instead of ParsePosition + count so an intentionally large
+        // length cannot wrap around and bypass the bounds check before Slice is called.
+        if (ParsePosition < 0 || count < 0 || ParsePosition > data.Length - count)
             ThrowInsufficientData(count, data.Length);
     }
 
@@ -187,6 +216,26 @@ public abstract partial class BytesInterpreterBase<TOut>
     protected bool IsAtEnd(ReadOnlySpan<byte> data)
     {
         return ParsePosition >= data.Length;
+    }
+
+    /// <summary>
+    ///     Guards a repeat iteration count. A condition-based repeat must still be bounded when
+    ///     its stop condition never becomes true, and the same bound protects EOF repeats whose
+    ///     element size is unexpectedly very small.
+    /// </summary>
+    /// <exception cref="ParseException">Thrown when the implementation-defined repeat limit is reached.</exception>
+    protected void EnsureRepeatIteration(string fieldName, int iteration)
+    {
+        const int maxIterations = 10_000;
+        if (iteration < maxIterations)
+            return;
+
+        throw new ParseException(
+            ParseErrorCode.MaxIterationsExceeded,
+            SchemaName,
+            fieldName,
+            ParsePosition,
+            $"Repeat field '{fieldName}' exceeded the maximum of {maxIterations} iterations.");
     }
 
     /// <summary>

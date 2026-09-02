@@ -21,6 +21,11 @@ internal static class PhysicalPlanRewriter
                 rewriteNode,
                 input => new PhysicalProjectNode(project.Fields, input) { IsDistinct = project.IsDistinct },
                 project),
+            PhysicalComputeNode compute => RewriteInput(
+                compute.Input,
+                rewriteNode,
+                input => new PhysicalComputeNode(input, compute.ComputedFields),
+                compute),
             PhysicalSortNode sort => RewriteInput(
                 sort.Input,
                 rewriteNode,
@@ -124,7 +129,8 @@ internal static class PhysicalPlanRewriter
                     right,
                     join.LeftMovedPredicates,
                     join.RightMovedPredicates,
-                    join.TieBreak),
+                    join.TieBreak,
+                    join.WithOrdinality),
                 join),
             PhysicalHashJoinNode join => RewritePair(
                 join.Left,
@@ -136,7 +142,7 @@ internal static class PhysicalPlanRewriter
                 join.Left,
                 join.Right,
                 rewriteNode,
-                (left, right) => new PhysicalNestedLoopJoinNode(join.Kind, join.OnPredicate, left, right, join.TieBreak),
+                (left, right) => new PhysicalNestedLoopJoinNode(join.Kind, join.OnPredicate, left, right, join.TieBreak, join.WithOrdinality),
                 join),
             PhysicalSortMergeJoinNode join => RewritePair(
                 join.Left,

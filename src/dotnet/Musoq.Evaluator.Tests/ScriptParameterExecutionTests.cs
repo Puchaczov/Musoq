@@ -14,9 +14,8 @@ using Musoq.Schema.Managers;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class ScriptParameterExecutionTests : EnvironmentVariablesTestBase
+public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenScriptHasNoParameterBlock_ShouldExposeEmptyParameterMetadata()

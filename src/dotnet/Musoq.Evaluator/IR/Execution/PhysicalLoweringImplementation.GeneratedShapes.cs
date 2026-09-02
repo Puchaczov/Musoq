@@ -19,7 +19,9 @@ internal sealed partial class PhysicalLoweringImplementation
                 field.OutputIndex,
                 field.Expression.ReturnType,
                 FieldNullability.Unknown,
-                new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)))).ToArray());
+                new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)),
+                sourceReadType: field.Expression.ReturnType,
+                enumType: field.Expression.EnumType)).ToArray());
     }
 
     private static GeneratedRowShape CreateGeneratedShape(
@@ -57,7 +59,9 @@ internal sealed partial class PhysicalLoweringImplementation
             storageType,
             FieldNullability.Unknown,
             new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)),
-            storageType == columnType ? null : columnType);
+            storageType == columnType ? null : columnType,
+            sourceReadType: columnType,
+            enumType: field.Expression.EnumType);
 
         var generatedTypeName = TryResolveGeneratedTypeName(expression, sourceLookup);
         return generatedTypeName is { } resolvedGeneratedTypeName

@@ -14,7 +14,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenScriptVariableIsUsedInWhere_ShouldUseCompileTimeValue()

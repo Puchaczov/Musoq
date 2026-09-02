@@ -457,7 +457,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         [
             new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "declares:ExecutionCSharpRenderer", 28365),
             new("src/dotnet/Musoq.Evaluator/IR/Execution", "PhysicalLoweringImplementation*.cs", 19778),
-            new("src/dotnet/Musoq.Evaluator/Visitors", "BuildMetadataAndInferTypesVisitor*.cs", 9593),
+            new("src/dotnet/Musoq.Evaluator/Visitors", "BuildMetadataAndInferTypesVisitor*.cs", 9888),
             new("src/dotnet/Musoq.Evaluator/IR/Execution/Lowering", "*.cs", 601),
             new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/Rendering", "*.cs", 220),
             new("src/dotnet/Musoq.Evaluator/Visitors", "Semantic*.cs", 502),

@@ -127,6 +127,18 @@ If your optimization targets a code path not covered by existing benchmarks:
 
 For source-planning work, toggle the optimization through datasource behavior (`RejectAll` vs the specific accepted plan). For engine work, toggle it through `CompilationOptions`. Avoid using only broad "all optimizations on/off" benchmarks as evidence.
 
+### Stability-aware scalar-reuse qualification
+
+Scalar-reuse benchmarks must compare equivalent queries with
+`UseStabilityAwareScalarReuse` enabled and disabled while keeping LICM and CSE
+independent. Cover the ten families documented in
+`docs/evaluator-performance.md`, fan-outs 1/8/64, cheap stable, no-inlining
+expensive stable, volatile, and no-candidate cases, exact result/counter
+oracles, and allocation diagnostics. Run three isolated JSON cohorts. Generated
+code is the branch-free acceptance gate; hardware branch counters and
+disassembly are supporting evidence, not correctness criteria. Keep raw
+BenchmarkDotNet output ignored and commit only the reproducible report.
+
 ## Dependencies
 
 ```

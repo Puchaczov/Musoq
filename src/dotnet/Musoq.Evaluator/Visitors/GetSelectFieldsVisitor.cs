@@ -8,10 +8,16 @@ namespace Musoq.Evaluator.Visitors;
 
 public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpressionVisitor
 {
+    private readonly Func<Node, EnumTypeDescriptor?>? _enumTypeResolver;
     private readonly List<ISchemaColumn> _collectedFieldNames = [];
     private ISchemaColumn[] _cachedFieldNames = [];
     private bool _fieldNamesCacheValid;
     private QueryPart _queryPart;
+
+    public GetSelectFieldsVisitor(Func<Node, EnumTypeDescriptor?>? enumTypeResolver = null)
+    {
+        _enumTypeResolver = enumTypeResolver;
+    }
 
     public ISchemaColumn[] CollectedFieldNames
     {
@@ -53,10 +59,17 @@ public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpr
         if (HasCollectedFieldAtPosition(node.FieldOrder))
             return;
 
-        _collectedFieldNames.Add(new SchemaColumn(
-            GetCteOutputColumnName(node),
-            node.FieldOrder,
-            node.ReturnType ?? throw new InvalidOperationException($"Select field '{node.FieldName}' has no inferred return type.")));
+        var returnType = node.ReturnType ??
+                         throw new InvalidOperationException($"Select field '{node.FieldName}' has no inferred return type.");
+        var enumType = _enumTypeResolver?.Invoke(node.Expression);
+        _collectedFieldNames.Add(enumType == null
+            ? new SchemaColumn(GetCteOutputColumnName(node), node.FieldOrder, returnType)
+            : new SchemaColumn(
+                GetCteOutputColumnName(node),
+                node.FieldOrder,
+                returnType,
+                returnType,
+                enumType));
         _fieldNamesCacheValid = false;
     }
 

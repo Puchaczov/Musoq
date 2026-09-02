@@ -89,9 +89,14 @@ public partial class BuildMetadataAndInferTypesVisitor
         var branch = switchType.Cases.FirstOrDefault(c =>
             string.Equals(c.BranchAlias, propertyName, StringComparison.OrdinalIgnoreCase));
 
-        return branch is null
-            ? null
-            : ResolveTypeAnnotationClrTypeWithIntendedName(branch.BranchType);
+        if (branch is null)
+            return null;
+
+        var resolved = ResolveTypeAnnotationClrTypeWithIntendedName(branch.BranchType);
+        if (branch.BranchType is PrimitiveTypeNode && resolved.ClrType.IsValueType)
+            return (typeof(Nullable<>).MakeGenericType(resolved.ClrType), resolved.IntendedTypeName);
+
+        return resolved;
     }
 
     private static Dictionary<string, string> CreateTypeParameterMap(

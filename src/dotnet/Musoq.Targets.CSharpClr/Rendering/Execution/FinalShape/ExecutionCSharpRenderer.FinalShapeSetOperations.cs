@@ -89,8 +89,18 @@ public sealed partial class ExecutionCSharpRenderer
                         SyntaxFactory.IdentifierName("var"),
                         leftShapeName,
                         CreateFinalShapeCreationFromSetRow(leftRowName, setOperation.Left, context)),
-                    CreateListAddStatement(seenRowsName, SyntaxFactory.IdentifierName(leftShapeName)),
-                    CreateFinalShapeOutputStatement(SyntaxFactory.IdentifierName(leftShapeName), context))),
+                    SyntaxFactory.IfStatement(
+                        SyntaxFactory.PrefixUnaryExpression(
+                            SyntaxKind.LogicalNotExpression,
+                            CreateFinalShapeRowsAnyMatch(
+                                seenRowsName,
+                                seenRowName,
+                                leftShapeName,
+                                setOperation,
+                                context)),
+                        StatementEmitter.CreateBlock(
+                            CreateListAddStatement(seenRowsName, SyntaxFactory.IdentifierName(leftShapeName)),
+                            CreateFinalShapeOutputStatement(SyntaxFactory.IdentifierName(leftShapeName), context))))),
             StatementEmitter.CreateForeach(
                 rightRowName,
                 CreateRowsRead(setOperation.Right, context),
@@ -180,16 +190,20 @@ public sealed partial class ExecutionCSharpRenderer
 
         return
         [
-            ExecutionCSharpRenderer.CreateSetKeyHashSetDeclaration(
+            CreateSetKeyHashSetDeclaration(
                 keysName,
                 setOperation.FieldTypes.RequireClrTypes(),
                 CreateCombinedRowsCountRead(setOperation.Left, setOperation.Right, context)),
             StatementEmitter.CreateForeach(
                 leftRowName,
                 CreateRowsRead(setOperation.Left, context),
-                StatementEmitter.CreateBlock(
-                    CreateHashSetAddStatement(keysName, leftRowName, setOperation, setOperation.Left, context),
-                    CreateFinalShapeOutputStatement(CreateFinalShapeCreationFromSetRow(leftRowName, setOperation.Left, context), context))),
+                StatementEmitter.CreateBlock(CreateConditionalSetRowOutput(
+                    keysName,
+                    leftRowName,
+                    setOperation,
+                    setOperation.Left,
+                    SetKeyCondition.Added,
+                    context))),
             StatementEmitter.CreateForeach(
                 rightRowName,
                 CreateRowsRead(setOperation.Right, context),
@@ -198,7 +212,7 @@ public sealed partial class ExecutionCSharpRenderer
                     rightRowName,
                     setOperation,
                     setOperation.Right,
-                    ExecutionCSharpRenderer.SetKeyCondition.Added,
+                    SetKeyCondition.Added,
                     context)))
         ];
     }
@@ -213,7 +227,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         return
         [
-            ExecutionCSharpRenderer.CreateSetKeyHashSetDeclaration(
+            CreateSetKeyHashSetDeclaration(
                 rightKeysName,
                 setOperation.FieldTypes.RequireClrTypes(),
                 CreateRowsCountRead(setOperation.Right, context)),
@@ -229,7 +243,7 @@ public sealed partial class ExecutionCSharpRenderer
                     leftRowName,
                     setOperation,
                     setOperation.Left,
-                    ExecutionCSharpRenderer.SetKeyCondition.NotContained,
+                    SetKeyCondition.NotContained,
                     context)))
         ];
     }
@@ -244,7 +258,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         return
         [
-            ExecutionCSharpRenderer.CreateSetKeyHashSetDeclaration(
+            CreateSetKeyHashSetDeclaration(
                 rightKeysName,
                 setOperation.FieldTypes.RequireClrTypes(),
                 CreateRowsCountRead(setOperation.Right, context)),
@@ -260,7 +274,7 @@ public sealed partial class ExecutionCSharpRenderer
                     leftRowName,
                     setOperation,
                     setOperation.Left,
-                    ExecutionCSharpRenderer.SetKeyCondition.Contained,
+                    SetKeyCondition.Contained,
                     context)))
         ];
     }
@@ -270,14 +284,14 @@ public sealed partial class ExecutionCSharpRenderer
         string rowName,
         ExecutionSetOperation setOperation,
         ExecutionVariable source,
-        ExecutionCSharpRenderer.SetKeyCondition condition,
+        SetKeyCondition condition,
         ExecutionRenderContext context)
     {
         ExpressionSyntax conditionExpression = condition switch
         {
-            ExecutionCSharpRenderer.SetKeyCondition.Added => CreateHashSetInvocation(keysName, nameof(HashSet<object>.Add), rowName, setOperation, source, context),
-            ExecutionCSharpRenderer.SetKeyCondition.Contained => CreateHashSetInvocation(keysName, nameof(HashSet<object>.Contains), rowName, setOperation, source, context),
-            ExecutionCSharpRenderer.SetKeyCondition.NotContained => SyntaxFactory.PrefixUnaryExpression(
+            SetKeyCondition.Added => CreateHashSetInvocation(keysName, nameof(HashSet<object>.Add), rowName, setOperation, source, context),
+            SetKeyCondition.Contained => CreateHashSetInvocation(keysName, nameof(HashSet<object>.Contains), rowName, setOperation, source, context),
+            SetKeyCondition.NotContained => SyntaxFactory.PrefixUnaryExpression(
                 SyntaxKind.LogicalNotExpression,
                 CreateHashSetInvocation(keysName, nameof(HashSet<object>.Contains), rowName, setOperation, source, context)),
             _ => throw UnsupportedShape.Of($"Set key condition {condition}")

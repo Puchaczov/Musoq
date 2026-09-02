@@ -9,7 +9,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class IsDistinctFromTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void IsDistinctFrom_WithNullsAndValues_ShouldUseNullSafeTruthTable()

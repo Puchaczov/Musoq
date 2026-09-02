@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.Helpers;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 
@@ -106,6 +109,86 @@ public static class QueryRewriteUtilities
             throw new ArgumentException("Split array elements cannot be null", nameof(split));
 
         return split[0].Length > 0 && split[0].Length != split[1].Length;
+    }
+
+    /// <summary>
+    ///     Checks whether a projection expression combines an aggregate call
+    ///     with a source column outside that aggregate call.  An implicit
+    ///     single-group query can bind this shape, but the execution lowering
+    ///     has no grouping boundary for the outer column.
+    /// </summary>
+    public static bool HasMixedAggregateProjection(FieldNode[] fields)
+    {
+        ArgumentNullException.ThrowIfNull(fields);
+        return fields.Any(field => field != null &&
+                                   ContainsAggregateAndNonAggregateColumn(field.Expression));
+    }
+
+    public static void ThrowIfUnsupportedAggregateProjection(
+        GroupByNode? groupBy,
+        FieldNode[] fields,
+        bool implicitOnly = false)
+    {
+        if (groupBy is not { Fields.Length: 1 } ||
+            groupBy.Fields[0].Expression is not IntegerNode ||
+            (implicitOnly && groupBy.HasSpan) ||
+            !HasMixedAggregateProjection(fields))
+            return;
+
+        var field = fields.First(item => HasMixedAggregateProjection([item]));
+        throw new ConstructionNotYetSupported(
+            "The selected aggregate and non-aggregate expressions cannot be lowered without a grouping boundary.",
+            DiagnosticCode.MQ3097_UnsupportedAggregateProjection,
+            field.SpanOrEmpty());
+    }
+
+    private static bool ContainsAggregateAndNonAggregateColumn(Node expression)
+    {
+        if (!BuildMetadataAndInferTypesVisitorUtilities.ContainsAggregateFunction(expression))
+            return false;
+
+        var stack = new Stack<Node>();
+        stack.Push(expression);
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+            if (current is AccessMethodNode aggregate && aggregate.IsAggregateMethod())
+                continue;
+            if (current is AccessColumnNode)
+                return true;
+
+            switch (current)
+            {
+                case AccessMethodNode method:
+                    foreach (var argument in method.Arguments.Args)
+                        stack.Push(argument);
+                    if (method.ExtraAggregateArguments != null)
+                        foreach (var argument in method.ExtraAggregateArguments.Args)
+                            stack.Push(argument);
+                    break;
+                case BinaryNode binary:
+                    stack.Push(binary.Left);
+                    stack.Push(binary.Right);
+                    break;
+                case UnaryNode unary when unary.Expression != null:
+                    stack.Push(unary.Expression);
+                    break;
+                case CastNode cast:
+                    stack.Push(cast.Expression);
+                    break;
+                case CaseNode caseNode:
+                    foreach (var pair in caseNode.WhenThenPairs)
+                    {
+                        stack.Push(pair.When);
+                        stack.Push(pair.Then);
+                    }
+                    if (caseNode.Else != null)
+                        stack.Push(caseNode.Else);
+                    break;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
@@ -13,9 +15,20 @@ public sealed class FeatureCoverageBoundaryTests
     [FeatureEvidence("system-range-source", FeatureEvidenceKind.RuntimeNegativeDiagnostic)]
     public void SystemRange_WithoutHostRegistration_ShouldReportUnknownSchema()
     {
-        var result = Analyze("select Value from system.range(1, 5)");
+        const string query = "select Value from system.range(1, 5)";
+        var result = Analyze(query);
 
         AssertPrimaryDiagnostic(result, DiagnosticCode.MQ3010_UnknownSchema);
+        var diagnostic = result.Errors.First();
+        Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
+        Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
+        var schemaStart = query.IndexOf("system", StringComparison.Ordinal);
+        Assert.AreEqual(new TextSpan(schemaStart, "system".Length), diagnostic.Span);
+        Assert.AreEqual("#system", diagnostic.Arguments["schema"]);
+        var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic, query);
+        Assert.IsFalse(envelope.Actions.Any(action => action.TextEdit != null));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Explanation));
+        Assert.IsNotEmpty(envelope.SuggestedFixes);
     }
 
     [TestMethod]

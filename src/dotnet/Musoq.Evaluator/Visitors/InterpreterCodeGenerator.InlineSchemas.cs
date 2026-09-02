@@ -55,8 +55,8 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine("    /// <inheritdoc />");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public override {className} InterpretAt(ReadOnlySpan<byte> data, int offset)");
         builder.AppendLine("    {");
-        builder.AppendLine("        ParsePosition = offset;");
-        builder.AppendLine("        BitOffset = 0;");
+        builder.AppendLine("        InitializeParsePosition(data, offset);");
+        builder.AppendLine("        SetCurrentField(null);");
         builder.AppendLine();
 
         foreach (var outerRef in outerRefs)
@@ -73,12 +73,17 @@ public partial class InterpreterCodeGenerator
         {
             if (field is not FieldDefinitionNode parsedField) continue;
 
+            AppendGeneratedLine(builder, $"        SetCurrentField(\"{EscapeString(parsedField.Name)}\");");
+
             var readCode = GenerateFieldReadCodeWithModifiers(parsedField);
             builder.Append(Indent(readCode, 2));
 
             if (parsedField.Name != "_" && parsedField.TypeAnnotation is not AlignmentNode)
+            {
+                AppendGeneratedLine(builder, $"        RecordParsedField(\"{EscapeString(parsedField.Name)}\", {GetLocalVarName(parsedField.Name)});");
                 fieldInitializers.Add(
                     $"{EscapeCSharpIdentifier(parsedField.Name)} = {GetLocalVarName(parsedField.Name)}");
+            }
         }
 
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        return new {className}");
@@ -125,8 +130,7 @@ public partial class InterpreterCodeGenerator
         var builder = new StringBuilder();
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {tempInterpreter} = new {inlineClassName}();");
         builder.Append(GenerateOuterRefAssignments(tempInterpreter, inlineSchema));
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {localVar} = {tempInterpreter}.InterpretAt(data, ParsePosition);");
-        builder.Append(System.Globalization.CultureInfo.InvariantCulture, $"ParsePosition = {tempInterpreter}.BytesConsumed;");
+        AppendGeneratedLine(builder, $"var {localVar} = InterpretNested({tempInterpreter}, data, \"{EscapeString(fieldName)}\");");
         return builder.ToString();
     }
 

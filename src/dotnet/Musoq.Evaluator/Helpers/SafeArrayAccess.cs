@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -92,6 +93,8 @@ public static class SafeArrayAccess
     /// <returns>Element if valid, default value if out-of-bounds or error</returns>
     public static object? GetIndexedElement(object? indexable, object? index, Type? elementType)
     {
+        elementType ??= indexable is null ? null : ResolveElementType(indexable, index);
+
         if (indexable == null || index == null)
             return GetDefaultValue(elementType);
 
@@ -99,10 +102,21 @@ public static class SafeArrayAccess
         {
             return ResolveIndexedElement(indexable, index, elementType);
         }
-        catch (Exception ex) when (ex is ArgumentOutOfRangeException or IndexOutOfRangeException or KeyNotFoundException)
+        catch (Exception ex) when (ex is ArgumentException or IndexOutOfRangeException or
+                                        KeyNotFoundException or InvalidCastException)
         {
             return GetDefaultValue(elementType);
         }
+    }
+
+    /// <summary>
+    ///     Safely resolve a nested property path that may contain array, list, string, or dictionary
+    ///     indexers, returning the default value for the requested result type when a path segment is
+    ///     missing or out of bounds.
+    /// </summary>
+    public static object? GetNestedValue(object? value, string propertyPath, Type? resultType)
+    {
+        return EvaluationHelper.GetNestedValue(value, propertyPath) ?? GetDefaultValue(resultType);
     }
 
     private static object? ResolveIndexedElement(object indexable, object index, Type? elementType)
@@ -112,6 +126,9 @@ public static class SafeArrayAccess
 
         if (indexable is Array array && index is int arrayIndex)
             return GetArrayValue(array, arrayIndex, elementType);
+
+        if (index is int listIndex && TryGetListValue(indexable, listIndex, elementType, out var listValue))
+            return listValue;
 
         if (index is string dictKey)
         {
@@ -137,14 +154,74 @@ public static class SafeArrayAccess
         return array.GetValue(index);
     }
 
+    private static bool TryGetListValue(object indexable, int index, Type? elementType, out object? value)
+    {
+        if (indexable is IList list)
+        {
+            value = GetListValue(list, index, elementType);
+            return true;
+        }
+
+        if (!ImplementsGenericList(indexable.GetType(), typeof(IReadOnlyList<>)))
+        {
+            value = null;
+            return false;
+        }
+
+        var countProperty = indexable.GetType().GetProperty("Count", BindingFlags.Public | BindingFlags.Instance);
+        var indexerProperty = FindIndexer(indexable.GetType(), typeof(int));
+        if (countProperty == null || indexerProperty == null || countProperty.GetValue(indexable) is not int count)
+        {
+            value = null;
+            return false;
+        }
+
+        if (count == 0 || index >= count)
+        {
+            value = GetDefaultValue(elementType);
+            return true;
+        }
+
+        var effectiveIndex = index < 0 ? NormalizeIndex(index, count) : index;
+        try
+        {
+            value = indexerProperty.GetValue(indexable, [effectiveIndex]);
+        }
+        catch (TargetInvocationException ex) when (ex.InnerException is ArgumentOutOfRangeException or
+                                                       IndexOutOfRangeException)
+        {
+            value = GetDefaultValue(elementType);
+        }
+
+        return true;
+    }
+
+    private static object? GetListValue(IList list, int index, Type? elementType)
+    {
+        if (list.Count == 0 || index >= list.Count)
+            return GetDefaultValue(elementType);
+
+        return list[NormalizeIndex(index, list.Count)];
+    }
+
     private static (bool Matched, object? Value) TryGetDictionaryValue(object indexable, string key, Type? elementType)
     {
         var dictType = indexable.GetType();
 
-        if (!dictType.IsGenericType)
+        if (indexable is IDictionary<string, object> objectDictionary)
+            return (true, objectDictionary.TryGetValue(key, out var objectValue)
+                ? objectValue
+                : GetDefaultValue(elementType));
+
+        if (indexable is IDictionary nonGenericDictionary)
+            return (true, nonGenericDictionary.Contains(key)
+                ? nonGenericDictionary[key]
+                : GetDefaultValue(elementType));
+
+        if (!dictType.IsGenericType && !dictType.GetInterfaces().Any(static i => i.IsGenericType))
             return (false, null);
 
-        var genericDef = dictType.GetGenericTypeDefinition();
+        var genericDef = dictType.IsGenericType ? dictType.GetGenericTypeDefinition() : null;
         var isDictionary = genericDef == typeof(Dictionary<,>) ||
                            genericDef == typeof(IDictionary<,>) ||
                            dictType.GetInterfaces().Any(i => i.IsGenericType &&
@@ -163,7 +240,7 @@ public static class SafeArrayAccess
 
     private static object? GetViaIndexer(object indexable, object index, Type? elementType)
     {
-        var indexerProperty = indexable.GetType().GetProperty("Item");
+        var indexerProperty = FindIndexer(indexable.GetType(), index.GetType());
         if (indexerProperty == null)
             return GetDefaultValue(elementType);
 
@@ -172,10 +249,81 @@ public static class SafeArrayAccess
             return indexerProperty.GetValue(indexable, [index]);
         }
         catch (TargetInvocationException ex) when (ex.InnerException is ArgumentOutOfRangeException
-                                                       or IndexOutOfRangeException or KeyNotFoundException)
+                                                       or IndexOutOfRangeException or KeyNotFoundException or
+                                                       ArgumentException)
         {
             return GetDefaultValue(elementType);
         }
+    }
+
+    private static Type? ResolveElementType(object indexable, object? index)
+    {
+        if (indexable is string && (index is null or int))
+            return typeof(char);
+
+        if (indexable is Array array && (index is null or int))
+            return array.GetType().GetElementType();
+
+        if (index is null or int)
+        {
+            var listElementType = FindGenericElementType(indexable.GetType(), typeof(IList<>)) ??
+                                   FindGenericElementType(indexable.GetType(), typeof(IReadOnlyList<>));
+            if (listElementType != null)
+                return listElementType;
+        }
+
+        if (index is null or string)
+        {
+            var dictionaryValueType = FindGenericDictionaryValueType(indexable.GetType());
+            if (dictionaryValueType != null)
+                return dictionaryValueType;
+        }
+
+        var indexer = index is null
+            ? indexable.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .FirstOrDefault(static property => property.GetIndexParameters().Length == 1)
+            : FindIndexer(indexable.GetType(), index.GetType());
+        return indexer?.PropertyType;
+    }
+
+    private static Type? FindGenericElementType(Type type, Type genericDefinition)
+    {
+        var candidate = type.IsGenericType && type.GetGenericTypeDefinition() == genericDefinition
+            ? type
+            : type.GetInterfaces().FirstOrDefault(interfaceType =>
+                interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == genericDefinition);
+        return candidate?.GetGenericArguments()[0];
+    }
+
+    private static Type? FindGenericDictionaryValueType(Type type)
+    {
+        var candidate = type.IsGenericType &&
+                        (type.GetGenericTypeDefinition() == typeof(Dictionary<,>) ||
+                         type.GetGenericTypeDefinition() == typeof(IDictionary<,>) ||
+                         type.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>))
+            ? type
+            : type.GetInterfaces().FirstOrDefault(interfaceType =>
+                interfaceType.IsGenericType &&
+                (interfaceType.GetGenericTypeDefinition() == typeof(IDictionary<,>) ||
+                 interfaceType.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>)));
+        return candidate?.GetGenericArguments()[1];
+    }
+
+    private static bool ImplementsGenericList(Type type, Type genericDefinition)
+    {
+        return type.IsGenericType && type.GetGenericTypeDefinition() == genericDefinition ||
+               type.GetInterfaces().Any(interfaceType =>
+                   interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == genericDefinition);
+    }
+
+    private static PropertyInfo? FindIndexer(Type type, Type indexType)
+    {
+        return type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .FirstOrDefault(property =>
+            {
+                var parameters = property.GetIndexParameters();
+                return parameters.Length == 1 && parameters[0].ParameterType == indexType;
+            });
     }
 
     private static int NormalizeIndex(int index, int length)

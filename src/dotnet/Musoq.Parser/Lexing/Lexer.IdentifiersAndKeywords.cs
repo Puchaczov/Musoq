@@ -20,9 +20,10 @@ public sealed partial class Lexer
         if (multiWordToken != null)
             return AssignToken(multiWordToken);
 
-        var identifierEnd = start + 1;
-        while (identifierEnd < Input.Length && FastCharacterClassifier.IsIdentifierContinue(Input[identifierEnd]))
-            identifierEnd++;
+        var input = Input.AsSpan();
+        var identifierEnd = start + FastCharacterClassifier.GetIdentifierCodePointLength(input, start);
+        while (identifierEnd < Input.Length && FastCharacterClassifier.IsIdentifierContinue(input, identifierEnd))
+            identifierEnd += FastCharacterClassifier.GetIdentifierCodePointLength(input, identifierEnd);
 
         if (TryScanGenericFunction(start, identifierEnd, out var genericFuncToken))
             return AssignToken(genericFuncToken);

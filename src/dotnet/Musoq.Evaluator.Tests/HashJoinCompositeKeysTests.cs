@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class HashJoinCompositeKeysTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void InnerJoin_WithWideCompositeKeys_ShouldUseNestedTypedTuples()

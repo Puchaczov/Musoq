@@ -47,16 +47,20 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
             right,
             state.CompilationOptions,
             state.Facts.CardinalityFacts);
-        var strategyKind = strategy.Kind;
-        var reason = strategy.Reason;
-        if (strategyKind == JoinStrategyKind.HashJoin &&
+        var strategyKind = join.WithOrdinality ? JoinStrategyKind.NestedLoop : strategy.Kind;
+        var reason = join.WithOrdinality
+            ? "Physical planning selected nested-loop because APPLY WITH ORDINALITY requires right-source enumeration order."
+            : strategy.Reason;
+        if (!join.WithOrdinality &&
+            strategyKind == JoinStrategyKind.HashJoin &&
             RequiresNestedLoopForDynamicHashJoin(left, right, state))
         {
             strategyKind = JoinStrategyKind.NestedLoop;
             reason =
                 "Physical planning selected nested-loop because generated hash join lowering cannot stream dynamic or expando join inputs.";
         }
-        else if (strategyKind == JoinStrategyKind.SortMergeJoin &&
+        else if (!join.WithOrdinality &&
+                 strategyKind == JoinStrategyKind.SortMergeJoin &&
                  RequiresNestedLoopForSortMergeProbe(right, state))
         {
             strategyKind = JoinStrategyKind.NestedLoop;
@@ -102,7 +106,8 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
                 join.OnPredicate,
                 left,
                 right,
-                join.TieBreak),
+                join.TieBreak,
+                join.WithOrdinality),
             _ => throw UnsupportedShape.Of($"Join strategy '{strategy.Kind}'")
         };
     }
@@ -151,4 +156,3 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
                !DynamicEntityBoundary.IsDynamicMetaObjectProvider(sourceShape.RuntimeType);
     }
 }
-

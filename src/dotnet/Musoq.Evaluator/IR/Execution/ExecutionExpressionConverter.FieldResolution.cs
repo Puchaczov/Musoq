@@ -44,14 +44,18 @@ public static partial class ExecutionExpressionConverter
                 field.AccessStrategy,
                 field.GeneratedTypeName ??
                 column.GeneratedTypeName ??
-                (field.AccessStrategy as GeneratedRowNestedAccess)?.ValueTypeName);
+                (field.AccessStrategy as GeneratedRowNestedAccess)?.ValueTypeName)
+            { Stability = field.Stability, SourceReadType = field.SourceReadType, EnumType = field.EnumType };
         }
 
         return new ExecutionFieldRead(
             column.Alias,
             column.ColumnName,
             ExecutionClrBindingFactory.FromClr(column.ReturnType),
-            GeneratedTypeName: column.GeneratedTypeName);
+            GeneratedTypeName: column.GeneratedTypeName)
+        {
+            Stability = column.Stability
+        };
     }
 
     private static ResolvedExecutionField? ResolveField(
@@ -114,19 +118,31 @@ public static partial class ExecutionExpressionConverter
         var originalQualifiedName = string.IsNullOrWhiteSpace(column.Alias)
             ? columnName
             : $"{column.Alias}.{columnName}";
-        var field = sourceShape.Fields.FirstOrDefault(candidate =>
-            !(sourceRelativeColumnName.Contains('.', StringComparison.Ordinal) &&
-              candidate.Name.Contains('.', StringComparison.Ordinal) &&
-              candidate.AccessStrategy is RuntimeDynamicMemberAccess) &&
-            (string.Equals(candidate.Name, columnName, StringComparison.OrdinalIgnoreCase) ||
-             string.Equals(candidate.Name, column.ColumnName, StringComparison.OrdinalIgnoreCase) ||
-             string.Equals(candidate.Name, sourceRelativeColumnName, StringComparison.OrdinalIgnoreCase) ||
-             string.Equals(candidate.Name, originalQualifiedName, StringComparison.OrdinalIgnoreCase) ||
-             sourceRelativeColumnName.Contains('.', StringComparison.Ordinal) &&
-             HasQualifiedSuffix(candidate.Name, sourceRelativeColumnName) ||
-             string.Equals(candidate.QualifiedName, originalQualifiedName, StringComparison.OrdinalIgnoreCase) ||
-             string.Equals(candidate.QualifiedName, qualifiedName, StringComparison.OrdinalIgnoreCase) ||
-             string.Equals(candidate.QualifiedName, $"{alias}.{originalQualifiedName}", StringComparison.OrdinalIgnoreCase)));
+        var matchingFields = sourceShape.Fields
+            .Where(candidate =>
+                !(sourceRelativeColumnName.Contains('.', StringComparison.Ordinal) &&
+                  candidate.Name.Contains('.', StringComparison.Ordinal) &&
+                  candidate.AccessStrategy is RuntimeDynamicMemberAccess) &&
+                (string.Equals(candidate.Name, columnName, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(candidate.Name, column.ColumnName, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(candidate.Name, sourceRelativeColumnName, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(candidate.Name, originalQualifiedName, StringComparison.OrdinalIgnoreCase) ||
+                 sourceRelativeColumnName.Contains('.', StringComparison.Ordinal) &&
+                 HasQualifiedSuffix(candidate.Name, sourceRelativeColumnName) ||
+                 string.Equals(candidate.QualifiedName, originalQualifiedName, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(candidate.QualifiedName, qualifiedName, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(candidate.QualifiedName, $"{alias}.{originalQualifiedName}", StringComparison.OrdinalIgnoreCase)))
+            .ToArray();
+
+        var field = matchingFields.FirstOrDefault(candidate =>
+            string.Equals(candidate.Name, columnName, StringComparison.Ordinal) ||
+            string.Equals(candidate.Name, column.ColumnName, StringComparison.Ordinal) ||
+            string.Equals(candidate.Name, sourceRelativeColumnName, StringComparison.Ordinal) ||
+            string.Equals(candidate.Name, originalQualifiedName, StringComparison.Ordinal) ||
+            string.Equals(candidate.QualifiedName, originalQualifiedName, StringComparison.Ordinal) ||
+            string.Equals(candidate.QualifiedName, qualifiedName, StringComparison.Ordinal) ||
+            string.Equals(candidate.QualifiedName, $"{alias}.{originalQualifiedName}", StringComparison.Ordinal)) ??
+            matchingFields.FirstOrDefault();
 
         if (field != null)
             return new ResolvedExecutionField(alias, field);

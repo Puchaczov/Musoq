@@ -207,9 +207,9 @@ public class PublicInMemoryApiTests
                                      method.IsGenericMethodDefinition);
         Assert.AreEqual(typeof(CompiledTypedQueryArtifact), compileArtifact.ReturnType);
 
-        var publicLoad = typeof(global::Musoq.Converter.Musoq)
+        var publicLoad = typeof(Musoq)
             .GetMethods()
-            .Single(static method => method.Name == nameof(global::Musoq.Converter.Musoq.Load) &&
+            .Single(static method => method.Name == nameof(Musoq.Load) &&
                                      method.IsGenericMethodDefinition);
         Assert.AreEqual(typeof(CompiledTypedQueryArtifact), publicLoad.GetParameters()[0].ParameterType);
 
@@ -632,9 +632,9 @@ public class PublicInMemoryApiTests
         StringAssert.Contains(exception.InnerException!.Message, "Second chunk");
     }
 
-    private sealed class EmptyInMemorySchemaProvider : global::Musoq.Schema.ISchemaProvider
+    private sealed class EmptyInMemorySchemaProvider : ISchemaProvider
     {
-        public global::Musoq.Schema.ISchema GetSchema(string schema)
+        public ISchema GetSchema(string schema)
         {
             throw new InvalidOperationException("Schema should not be used when artifact loading fails before runnable creation.");
         }

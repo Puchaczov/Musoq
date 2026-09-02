@@ -112,8 +112,8 @@ public sealed class OptimizationPassPipelineGuardrailTests
             .Select(Path.GetFileName)
             .Where(static name => name is not null)
             .Where(static name =>
-                name!.StartsWith("Logical", System.StringComparison.Ordinal) ||
-                name.StartsWith("PreLogical", System.StringComparison.Ordinal) ||
+                name!.StartsWith("Logical", StringComparison.Ordinal) ||
+                name.StartsWith("PreLogical", StringComparison.Ordinal) ||
                 name is "DeadCteEliminationLogicalPass.cs" ||
                 name is "DistinctToGroupByNormalizationPass.cs" ||
                 name is "SubqueryToCteNormalizationPass.cs")
@@ -141,16 +141,16 @@ public sealed class OptimizationPassPipelineGuardrailTests
             .Select(Path.GetFileName)
             .Where(static name => name is not null)
             .Where(static name =>
-                name!.StartsWith("Physical", System.StringComparison.Ordinal) ||
-                name.StartsWith("ProjectionPruning", System.StringComparison.Ordinal) ||
-                name.StartsWith("AggregateStrategy", System.StringComparison.Ordinal) ||
-                name.StartsWith("PredicateMovementPhysical", System.StringComparison.Ordinal) ||
-                name.StartsWith("JoinStrategy", System.StringComparison.Ordinal) ||
-                name.StartsWith("OrderingStrategy", System.StringComparison.Ordinal) ||
-                name.StartsWith("WindowMaterialization", System.StringComparison.Ordinal) ||
-                name.StartsWith("SourcePredicate", System.StringComparison.Ordinal) ||
-                name.StartsWith("SourceProjection", System.StringComparison.Ordinal) ||
-                name.StartsWith("SourcePlanPhysical", System.StringComparison.Ordinal))
+                name!.StartsWith("Physical", StringComparison.Ordinal) ||
+                name.StartsWith("ProjectionPruning", StringComparison.Ordinal) ||
+                name.StartsWith("AggregateStrategy", StringComparison.Ordinal) ||
+                name.StartsWith("PredicateMovementPhysical", StringComparison.Ordinal) ||
+                name.StartsWith("JoinStrategy", StringComparison.Ordinal) ||
+                name.StartsWith("OrderingStrategy", StringComparison.Ordinal) ||
+                name.StartsWith("WindowMaterialization", StringComparison.Ordinal) ||
+                name.StartsWith("SourcePredicate", StringComparison.Ordinal) ||
+                name.StartsWith("SourceProjection", StringComparison.Ordinal) ||
+                name.StartsWith("SourcePlanPhysical", StringComparison.Ordinal))
             .ToArray();
 
         Assert.IsEmpty(
@@ -164,13 +164,13 @@ public sealed class OptimizationPassPipelineGuardrailTests
     {
         var offenders = FindRootOptimizationFiles(
             static name =>
-                name.StartsWith("Execution", System.StringComparison.Ordinal) ||
-                name.StartsWith("Expression", System.StringComparison.Ordinal) ||
-                name.StartsWith("MethodTarget", System.StringComparison.Ordinal) ||
-                name.StartsWith("Cte", System.StringComparison.Ordinal) ||
-                name.StartsWith("CapacityHint", System.StringComparison.Ordinal) ||
-                name.StartsWith("FieldExpression", System.StringComparison.Ordinal) ||
-                name.StartsWith("SingleUsePipeline", System.StringComparison.Ordinal));
+                name.StartsWith("Execution", StringComparison.Ordinal) ||
+                name.StartsWith("Expression", StringComparison.Ordinal) ||
+                name.StartsWith("MethodTarget", StringComparison.Ordinal) ||
+                name.StartsWith("Cte", StringComparison.Ordinal) ||
+                name.StartsWith("CapacityHint", StringComparison.Ordinal) ||
+                name.StartsWith("FieldExpression", StringComparison.Ordinal) ||
+                name.StartsWith("SingleUsePipeline", StringComparison.Ordinal));
 
         Assert.IsEmpty(
             offenders,
@@ -227,13 +227,13 @@ public sealed class OptimizationPassPipelineGuardrailTests
 
         var misplaced = FindRootOptimizationFiles(
             static name =>
-                name.StartsWith("Codegen", System.StringComparison.Ordinal) ||
-                name.StartsWith("DeterministicMember", System.StringComparison.Ordinal) ||
-                name.StartsWith("LocalDeclaration", System.StringComparison.Ordinal) ||
-                name.StartsWith("DeadTemporary", System.StringComparison.Ordinal) ||
-                name.StartsWith("ControlFlow", System.StringComparison.Ordinal) ||
-                name.StartsWith("HelperExtraction", System.StringComparison.Ordinal) ||
-                name.StartsWith("ReadabilityDecision", System.StringComparison.Ordinal));
+                name.StartsWith("Codegen", StringComparison.Ordinal) ||
+                name.StartsWith("DeterministicMember", StringComparison.Ordinal) ||
+                name.StartsWith("LocalDeclaration", StringComparison.Ordinal) ||
+                name.StartsWith("DeadTemporary", StringComparison.Ordinal) ||
+                name.StartsWith("ControlFlow", StringComparison.Ordinal) ||
+                name.StartsWith("HelperExtraction", StringComparison.Ordinal) ||
+                name.StartsWith("ReadabilityDecision", StringComparison.Ordinal));
 
         Assert.IsEmpty(
             misplaced,
@@ -277,7 +277,7 @@ public sealed class OptimizationPassPipelineGuardrailTests
 
     private static void AssertPassContracts<TPlan>(
         IReadOnlyList<IPlanOptimizationPass<TPlan>> passes,
-        System.Type expectedContract)
+        Type expectedContract)
     {
         var offenders = passes
             .Where(pass => !expectedContract.IsInstanceOfType(pass))

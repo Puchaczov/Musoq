@@ -54,10 +54,11 @@ ExecutionPlan [compiled]
     CreateTable [statement0: Statement0Row0]
     PhaseBoundary [Where]
     ChunkedForEach [i in statement0_iRows]
-      ContinueIf [NOT (i.Name = 'left')]
+      Let [iName: string = i.Name]
+      ContinueIf [NOT ((i.Name = 'left') = TRUE)]
       EnumerableSource [i.Numbers -> statement0_nRows]
       ChunkedForEach [n in statement0_nRows]
-        AppendRow [statement0 <- Statement0Row0(i.Name: i.Name, i.Numbers: i.Numbers, n.Value: n.Value)]
+        AppendRow [statement0 <- Statement0Row0(i.Name: iName, i.Numbers: i.Numbers, n.Value: n.Value)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     PhaseBoundary [Select]
@@ -200,7 +201,8 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
                             }
 
                             var i = iChunkViewArray[iChunkViewOffset + iIndex];
-                            if ((!(i.Name == "left")))
+                            string iName = i.Name;
+                            if ((!(Operators.SqlCompare<string, string>(i.Name, "left", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) == true)))
                             {
                                 continue;
                             }
@@ -221,7 +223,7 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
                                             }
 
                                             var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                                            statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                            statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                         }
 
                                         continue;
@@ -238,7 +240,7 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
                                             }
 
                                             var n = nChunkViewList[nChunkViewOffset + nIndex];
-                                            statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                            statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                         }
 
                                         continue;
@@ -253,7 +255,7 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
                                     }
 
                                     var n = nChunk[nIndex];
-                                    statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                    statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                 }
                             }
                         }
@@ -272,7 +274,8 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
                             }
 
                             var i = iChunkViewList[iChunkViewOffset + iIndex];
-                            if ((!(i.Name == "left")))
+                            string iName = i.Name;
+                            if ((!(Operators.SqlCompare<string, string>(i.Name, "left", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) == true)))
                             {
                                 continue;
                             }
@@ -293,7 +296,7 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
                                             }
 
                                             var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                                            statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                            statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                         }
 
                                         continue;
@@ -310,7 +313,7 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
                                             }
 
                                             var n = nChunkViewList[nChunkViewOffset + nIndex];
-                                            statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                            statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                         }
 
                                         continue;
@@ -325,7 +328,7 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
                                     }
 
                                     var n = nChunk[nIndex];
-                                    statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                    statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                 }
                             }
                         }
@@ -342,7 +345,8 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
                     }
 
                     var i = iChunk[iIndex];
-                    if ((!(i.Name == "left")))
+                    string iName = i.Name;
+                    if ((!(Operators.SqlCompare<string, string>(i.Name, "left", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) == true)))
                     {
                         continue;
                     }
@@ -363,7 +367,7 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
                                     }
 
                                     var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                                    statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                    statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                 }
 
                                 continue;
@@ -380,7 +384,7 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
                                     }
 
                                     var n = nChunkViewList[nChunkViewOffset + nIndex];
-                                    statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                    statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                 }
 
                                 continue;
@@ -395,7 +399,7 @@ namespace GeneratedSample_Q243_CrossApplyWhereLeftGuard
                             }
 
                             var n = nChunk[nIndex];
-                            statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                            statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                         }
                     }
                 }

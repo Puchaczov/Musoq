@@ -46,13 +46,14 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateObject [__resultLibrary0: Library]
     ChunkedForEach [i in iRows]
+      Let [iName: string = i.Name]
       EnumerableSource [JustReturnArrayOfString() -> sRows]
       Let [sHasMatch: bool = FALSE]
       ChunkedForEach [s in sRows]
         Assign [sHasMatch = TRUE]
-        AppendShape [result <- ResultShape0(Name: i.Name, Text: s.Value)]
+        AppendShape [result <- ResultShape0(Name: iName, Text: s.Value)]
       If [NOT sHasMatch]
-        AppendShape [result <- ResultShape0(Name: i.Name, Text: NULL)]
+        AppendShape [result <- ResultShape0(Name: iName, Text: NULL)]
     PhaseBoundary [End:cte0]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
@@ -145,6 +146,7 @@ namespace GeneratedSample_Q63_OuterAccessMethodApply
                                     }
 
                                     var i = iChunkViewArray[iChunkViewOffset + iIndex];
+                                    string iName = i.Name;
                                     var sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__resultLibrary0.JustReturnArrayOfString());
                                     bool sHasMatch = false;
                                     foreach (var sChunk in sRows)
@@ -163,7 +165,7 @@ namespace GeneratedSample_Q63_OuterAccessMethodApply
 
                                                     var s = sChunkViewArray[sChunkViewOffset + sIndex];
                                                     sHasMatch = true;
-                                                    __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                                    __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                                 }
 
                                                 continue;
@@ -181,7 +183,7 @@ namespace GeneratedSample_Q63_OuterAccessMethodApply
 
                                                     var s = sChunkViewList[sChunkViewOffset + sIndex];
                                                     sHasMatch = true;
-                                                    __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                                    __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                                 }
 
                                                 continue;
@@ -197,13 +199,13 @@ namespace GeneratedSample_Q63_OuterAccessMethodApply
 
                                             var s = sChunk[sIndex];
                                             sHasMatch = true;
-                                            __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                            __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                         }
                                     }
 
                                     if ((!sHasMatch))
                                     {
-                                        __musoqFinalShapeRows.Add(new ResultShape0(i.Name, null));
+                                        __musoqFinalShapeRows.Add(new ResultShape0(iName, null));
                                     }
                                 }
 
@@ -221,6 +223,7 @@ namespace GeneratedSample_Q63_OuterAccessMethodApply
                                     }
 
                                     var i = iChunkViewList[iChunkViewOffset + iIndex];
+                                    string iName = i.Name;
                                     var sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__resultLibrary0.JustReturnArrayOfString());
                                     bool sHasMatch = false;
                                     foreach (var sChunk in sRows)
@@ -239,7 +242,7 @@ namespace GeneratedSample_Q63_OuterAccessMethodApply
 
                                                     var s = sChunkViewArray[sChunkViewOffset + sIndex];
                                                     sHasMatch = true;
-                                                    __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                                    __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                                 }
 
                                                 continue;
@@ -257,7 +260,7 @@ namespace GeneratedSample_Q63_OuterAccessMethodApply
 
                                                     var s = sChunkViewList[sChunkViewOffset + sIndex];
                                                     sHasMatch = true;
-                                                    __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                                    __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                                 }
 
                                                 continue;
@@ -273,13 +276,13 @@ namespace GeneratedSample_Q63_OuterAccessMethodApply
 
                                             var s = sChunk[sIndex];
                                             sHasMatch = true;
-                                            __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                            __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                         }
                                     }
 
                                     if ((!sHasMatch))
                                     {
-                                        __musoqFinalShapeRows.Add(new ResultShape0(i.Name, null));
+                                        __musoqFinalShapeRows.Add(new ResultShape0(iName, null));
                                     }
                                 }
 
@@ -295,6 +298,7 @@ namespace GeneratedSample_Q63_OuterAccessMethodApply
                             }
 
                             var i = iChunk[iIndex];
+                            string iName = i.Name;
                             var sRows = EvaluationHelper.ConvertEnumerableOutputToChunks<string>((string[])__resultLibrary0.JustReturnArrayOfString());
                             bool sHasMatch = false;
                             foreach (var sChunk in sRows)
@@ -313,7 +317,7 @@ namespace GeneratedSample_Q63_OuterAccessMethodApply
 
                                             var s = sChunkViewArray[sChunkViewOffset + sIndex];
                                             sHasMatch = true;
-                                            __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                            __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                         }
 
                                         continue;
@@ -331,7 +335,7 @@ namespace GeneratedSample_Q63_OuterAccessMethodApply
 
                                             var s = sChunkViewList[sChunkViewOffset + sIndex];
                                             sHasMatch = true;
-                                            __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                            __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                         }
 
                                         continue;
@@ -347,13 +351,13 @@ namespace GeneratedSample_Q63_OuterAccessMethodApply
 
                                     var s = sChunk[sIndex];
                                     sHasMatch = true;
-                                    __musoqFinalShapeRows.Add(new ResultShape0(i.Name, s));
+                                    __musoqFinalShapeRows.Add(new ResultShape0(iName, s));
                                 }
                             }
 
                             if ((!sHasMatch))
                             {
-                                __musoqFinalShapeRows.Add(new ResultShape0(i.Name, null));
+                                __musoqFinalShapeRows.Add(new ResultShape0(iName, null));
                             }
                         }
                     }

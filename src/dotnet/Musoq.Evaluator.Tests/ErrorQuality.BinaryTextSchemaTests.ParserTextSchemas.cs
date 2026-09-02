@@ -1,4 +1,6 @@
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -107,10 +109,12 @@ select 1 from #A.Entities()";
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert — Duplicate text field names are accepted by Musoq.
-        // The parser does not enforce unique field names in text schemas.
-        // This is a known limitation — ideally MQ4008 should be reported.
-        AssertNoErrors(result);
+        var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            DiagnosticCode.MQ4008_DuplicateSchemaField,
+            "duplicate text field name");
+        Assert.AreEqual(new Musoq.Parser.TextSpan(query.LastIndexOf("Data", StringComparison.Ordinal), 4),
+            diagnostic.Span);
     }
 
     #endregion
@@ -174,9 +178,14 @@ select 1 from #A.Entities()";
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert — regex validation may be deferred to runtime.
-        // At parse time, the pattern string is accepted without regex validation.
-        AssertNoErrors(result);
+        var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            DiagnosticCode.MQ4002_InvalidTextSchemaField,
+            "invalid text schema regex");
+        const string patternLiteral = "'[unclosed'";
+        Assert.AreEqual(
+            new Musoq.Parser.TextSpan(query.IndexOf(patternLiteral, StringComparison.Ordinal), patternLiteral.Length),
+            diagnostic.Span);
     }
 
     #endregion

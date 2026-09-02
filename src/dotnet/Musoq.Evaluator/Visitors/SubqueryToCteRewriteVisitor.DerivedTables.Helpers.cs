@@ -78,26 +78,25 @@ public partial class SubqueryToCteRewriteVisitor
         return new EqualityNode(new IntegerNode(1), new IntegerNode(1));
     }
 
-    private static void ThrowImplicitLateralDerivedTable(
-        DerivedTableFromNode derived,
-        SubqueryCorrelationInfo correlation)
-    {
-        ThrowUnsupportedDerivedCorrelation(derived,
-            $"Plain derived tables are not lateral. Use CROSS APPLY or OUTER APPLY for references to outer alias '{correlation.CorrelatedAliases.First()}'.");
-    }
-
     [DoesNotReturn]
-    private static void ThrowUnsupportedDerivedCorrelation(DerivedTableFromNode derived, string message)
+    private static void ThrowUnsupportedDerivedCorrelation(
+        DerivedTableFromNode derived,
+        string message,
+        IReadOnlyDictionary<string, string>? arguments = null)
     {
-        throw CreateUnsupportedDerivedCorrelation(derived, message);
+        throw CreateUnsupportedDerivedCorrelation(derived, message, arguments);
     }
 
-    private static Exceptions.VisitorException CreateUnsupportedDerivedCorrelation(DerivedTableFromNode derived, string message)
+    private static Exceptions.VisitorException CreateUnsupportedDerivedCorrelation(
+        DerivedTableFromNode derived,
+        string message,
+        IReadOnlyDictionary<string, string>? arguments = null)
     {
         return SubqueryDiagnosticFactory.InvalidSubquery(
             "derived table rewrite",
             message,
-            derived);
+            derived,
+            arguments);
     }
 
     private sealed record DerivedTableRewriteResult(
@@ -105,7 +104,7 @@ public partial class SubqueryToCteRewriteVisitor
         bool WasDerivedTable,
         Node? JoinPredicate);
 
-    private sealed record DerivedCorrelationRewrite(
-        Node Body,
-        Node? JoinPredicate);
+    private sealed record DerivedCorrelationRewrite(Node Body, Node? JoinPredicate, string[] CorrelationKey);
+
+    private sealed record DerivedCorrelationQueryRewrite(QueryNode Query, Node? JoinPredicate, string[] CorrelationKey);
 }

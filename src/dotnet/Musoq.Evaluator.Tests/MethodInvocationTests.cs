@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class MethodInvocationTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void MethodInvocationOnAliasFinishedWithNumber_ShouldPass()

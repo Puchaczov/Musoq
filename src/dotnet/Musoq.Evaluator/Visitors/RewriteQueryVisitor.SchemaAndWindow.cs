@@ -125,6 +125,8 @@ public sealed partial class RewriteQueryVisitor
         for (var i = node.Definitions.Length - 1; i >= 0; i--)
             definitions[i] = (WindowDefinitionNode)Nodes.Pop();
 
-        Nodes.Push(new WindowNode(definitions));
+        Nodes.Push(((WindowNode)new WindowNode(definitions))
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 }

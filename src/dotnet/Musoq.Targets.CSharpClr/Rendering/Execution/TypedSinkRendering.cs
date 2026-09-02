@@ -100,6 +100,11 @@ public sealed partial class ExecutionCSharpRenderer
         return RenderExpression(expression, context);
     }
 
+    internal ExpressionSyntax RenderPredicateExpression(
+        ExecutionExpression expression,
+        ExecutionRenderContext? context = null) =>
+        this.RenderBooleanCondition(expression, context ?? CreateIsolatedRenderContext());
+
     internal IReadOnlyList<StatementSyntax> RenderSourceScanForTypedSink(ExecutionSourceScan sourceScan)
     {
         return RenderSourceScanForTypedSink(sourceScan, CreateIsolatedRenderContext());

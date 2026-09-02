@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class ProviderMethodTransitionTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; } = null!;
 
     [TestMethod]
     public void NullableOuterJoinSide_ShouldRetainProviderMethodBinding()

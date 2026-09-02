@@ -423,17 +423,21 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override StringRepeatPacket InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("Names");
             var __names_list = new System.Collections.Generic.List<string>();
             string __names_lastElem;
+            var __names_iteration = 0;
             do
             {
+                EnsureRepeatIteration("Names", __names_iteration++);
                 __names_lastElem = ReadString(data, 3, System.Text.Encoding.ASCII);
                 __names_list.Add(__names_lastElem);
             }
             while (!((__names_lastElem == "END")));
             var _names = __names_list.ToArray();
+            RecordParsedField("Names", _names);
             return new StringRepeatPacket
             {
                 Names = _names

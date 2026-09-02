@@ -9,7 +9,8 @@ public sealed record JoinNode(
     IrExpression OnPredicate,
     LogicalNode Left,
     LogicalNode Right,
-    OrderField? TieBreak = null) : LogicalNode(JoinKindSemantics.SelectOutputSchema(Kind, Left.OutputSchema, Right.OutputSchema))
+    OrderField? TieBreak = null,
+    bool WithOrdinality = false) : LogicalNode(JoinKindSemantics.SelectOutputSchema(Kind, Left.OutputSchema, Right.OutputSchema))
 {
     public override IReadOnlyList<LogicalNode> Children { get; } = [Left, Right];
 }

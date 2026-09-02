@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class DynamicSourceWithDynamicAndDefaultTypeHinting : DynamicQueryTestsBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WithDynamicSource_AccessComplexObjectProperties_ShouldPass()

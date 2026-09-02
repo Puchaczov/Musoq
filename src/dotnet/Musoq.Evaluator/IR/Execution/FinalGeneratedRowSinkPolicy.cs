@@ -16,7 +16,7 @@ internal static class FinalGeneratedRowSinkPolicy
             .OfType<ExecutionSetOperation>()
             .Where(operation => string.Equals(operation.Target.Name, finalTableName, StringComparison.Ordinal))
             .ToArray();
-        if (finalSetOperations.Length != 1 || finalSetOperations[0].Kind != Musoq.Evaluator.IR.Logical.Nodes.SetOpKind.Union)
+        if (finalSetOperations.Length != 1 || finalSetOperations[0].Kind != Logical.Nodes.SetOpKind.Union)
             return false;
 
         if (ExecutionIrAnalysis.CollectNodes<ExecutionComputeRankingWindow>(plan.Body).Count() != 2 ||

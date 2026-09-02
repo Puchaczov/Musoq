@@ -37,20 +37,24 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public override {className} ParseAt(ReadOnlySpan<char> data, int offset)");
         builder.AppendLine("    {");
         builder.AppendLine("        ParsePosition = offset;");
+        builder.AppendLine("        SetCurrentField(null);");
         builder.AppendLine();
 
         _discardCounter = 0;
 
         var fieldInitializers = new List<string>();
-        for (var i = 0; i < plan.Fields.Count; i++)
+        foreach (var field in plan.Fields)
         {
-            var field = plan.Fields[i];
-            var nextField = i < plan.Fields.Count - 1 ? plan.Fields[i + 1].Source : null;
-            var readCode = GenerateTextFieldReadCode(field.Source, nextField);
+            AppendGeneratedLine(builder, $"        SetCurrentField(\"{EscapeCSharpString(field.Name)}\");");
+
+            var readCode = GenerateTextFieldReadCode(field.Source);
             builder.Append(Indent(readCode, 2));
 
             if (field.EmitsProperty)
+            {
+                AppendGeneratedLine(builder, $"        RecordParsedField(\"{EscapeCSharpString(field.Name)}\", {field.LocalVariableName});");
                 fieldInitializers.Add($"{field.PropertyName} = {field.LocalVariableName}");
+            }
         }
 
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        return new {className}");
@@ -72,7 +76,7 @@ public partial class InterpreterCodeGenerator
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public sealed class CaptureResult_{field.Name}");
             builder.AppendLine("    {");
             foreach (var group in field.CaptureGroups)
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        public string? {group} {{ get; init; }}");
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        public string? {EscapeCSharpIdentifier(group)} {{ get; init; }}");
             builder.AppendLine("    }");
         }
 

@@ -113,8 +113,9 @@ public sealed partial class Lexer
     {
         var start = Position;
         var end = start + 1;
-        while (end < Input.Length && IsHashSourceCharacter(Input[end]))
-            end++;
+        var input = Input.AsSpan();
+        while (end < Input.Length && IsHashSourceCharacter(input, end))
+            end += Math.Max(1, FastCharacterClassifier.GetIdentifierCodePointLength(input, end));
 
         if (end > start + 1)
         {
@@ -130,7 +131,6 @@ public sealed partial class Lexer
     {
         var start = Position;
 
-
         if (Position + 1 < Input.Length && Input[Position + 1] == '-')
         {
             Position += 2;
@@ -141,7 +141,11 @@ public sealed partial class Lexer
         }
 
 
-        if (Position + 1 < Input.Length && FastCharacterClassifier.IsDigit(Input[Position + 1]))
+        if (Position + 1 < Input.Length &&
+            FastCharacterClassifier.IsDigit(Input[Position + 1]) &&
+            !PreviousTokenCanEndExpression() &&
+            !(Input[Position + 1] == '0' && Position + 2 < Input.Length &&
+              Input[Position + 2] is ('x' or 'X' or 'b' or 'B' or 'o' or 'O')))
         {
             Position++;
             var numToken = ScanNumber();
@@ -161,10 +165,20 @@ public sealed partial class Lexer
         return AssignToken(new HyphenToken(new TextSpan(start, 1)));
     }
 
+    private bool PreviousTokenCanEndExpression()
+    {
+        var previous = _currentToken.TokenType == TokenType.WhiteSpace ? _lastToken : _currentToken;
+        return previous.TokenType is TokenType.Word or TokenType.Identifier or TokenType.Function or
+            TokenType.Integer or TokenType.Decimal or TokenType.HexadecimalInteger or
+            TokenType.BinaryInteger or TokenType.OctalInteger or TokenType.StringLiteral or
+            TokenType.RightParenthesis or TokenType.RightSquareBracket or TokenType.KeyAccess or
+            TokenType.NumericAccess or TokenType.Property or TokenType.AliasedStar or
+            TokenType.True or TokenType.False or TokenType.Null;
+    }
+
     private Token ScanSlash()
     {
         var start = Position;
-
 
         if (Position + 1 < Input.Length && Input[Position + 1] == '*')
         {
@@ -179,19 +193,18 @@ public sealed partial class Lexer
             }
 
             var span = new TextSpan(start, Input.Length - start);
+            const string message = "Unterminated block comment. Expected closing '*/' but reached end of input.";
 
             if (RecoverOnError)
             {
-                Diagnostics.AddError(DiagnosticCode.MQ1005_UnterminatedBlockComment, span, Input[start..]);
+                Diagnostics.Add(new LexerException(message, span, DiagnosticCode.MQ1005_UnterminatedBlockComment)
+                    .ToDiagnostic(SourceText));
                 Position = Input.Length;
                 return AssignToken(new ErrorToken(Input[start], span));
             }
 
             Position = Input.Length;
-            throw new LexerException(
-                "Unterminated block comment. Expected closing '*/' but reached end of input.",
-                start,
-                DiagnosticCode.MQ1005_UnterminatedBlockComment);
+            throw new LexerException(message, span, DiagnosticCode.MQ1005_UnterminatedBlockComment);
         }
 
 
@@ -203,17 +216,17 @@ public sealed partial class Lexer
     {
         var start = Position;
 
-
         if (Position + 1 < Input.Length && FastCharacterClassifier.IsDigit(Input[Position + 1]))
         {
             Position++;
             while (Position < Input.Length && FastCharacterClassifier.IsDigit(Input[Position]))
                 Position++;
 
+            var decimalEnd = Position;
             if (Position < Input.Length && (Input[Position] == 'd' || Input[Position] == 'D'))
                 Position++;
 
-            var text = Input[start..Position];
+            var text = Input[start..decimalEnd];
             return AssignToken(new DecimalToken(text, new TextSpan(start, Position - start)));
         }
 
@@ -225,10 +238,13 @@ public sealed partial class Lexer
     {
         var start = Position;
         var end = start + 1;
-        while (end < Input.Length && Input[end] != ']')
+        while (end < Input.Length && Input[end] is not ']' and not '[')
             end++;
 
-        if (end < Input.Length && end > start + 1)
+        if (end >= Input.Length || Input[end] == '[')
+            return RejectUnterminatedBracketedIdentifier(start, end);
+
+        if (end > start + 1)
         {
             Position = end + 1;
             var text = Input[start..Position];
@@ -250,9 +266,24 @@ public sealed partial class Lexer
             return AssignToken(new ColumnToken(columnName, new TextSpan(start, text.Length)));
         }
 
-
         Position++;
         return AssignToken(new LeftSquareBracketToken(new TextSpan(start, 1)));
+    }
+
+    private Token RejectUnterminatedBracketedIdentifier(int start, int end)
+    {
+        var span = new TextSpan(start, end - start);
+        const string message = "Unterminated bracketed identifier: missing closing ']'";
+        Position = end;
+
+        if (RecoverOnError)
+        {
+            Diagnostics.Add(new LexerException(message, span, DiagnosticCode.MQ2011_MissingClosingBracket)
+                .ToDiagnostic(SourceText));
+            return AssignToken(new ErrorToken(Input[start..end], span));
+        }
+
+        throw new LexerException(message, span, DiagnosticCode.MQ2011_MissingClosingBracket);
     }
 
     private Token ScanColon()

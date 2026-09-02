@@ -36,7 +36,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.AreEqual(0, CountOccurrences(whereSelect, "ScriptParameterBinder.Get"));
         Assert.Contains("const string letCountry = \"Poland\";", whereSelect);
         Assert.Contains("const int letMinPopulation = 100;", whereSelect);
-        Assert.Contains("if (((ko3iko.Country == letCountry) && (population > letMinPopulation)))", whereSelect);
+        Assert.Contains("if (((Operators.SqlCompare<string, string>(ko3iko.Country, letCountry", whereSelect);
         Assert.Contains("yield return new ResultShape0(ko3iko.Name, population, letCountry);", whereSelect);
         Assert.Contains("yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.Population, __musoqShapeRow.RequestedCountry);", whereSelect);
 
@@ -105,7 +105,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         AssertScriptVariableBindingCount(ScriptVariableCteHelperCaptureSampleFileName, cte, 1);
         Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, _cteIndexResults, letCountry);", cte);
         Assert.Contains("CteRowResults _cteRowResults, CteIndexResults _cteIndexResults, string letCountry)", cte);
-        Assert.Contains("if ((ko3iko.Country == letCountry))", cte);
+        Assert.Contains("if ((Operators.SqlCompare<string, string>(ko3iko.Country, letCountry", cte);
         AssertTopLevelBindingBefore(
             ScriptVariableCteHelperCaptureSampleFileName,
             cte,

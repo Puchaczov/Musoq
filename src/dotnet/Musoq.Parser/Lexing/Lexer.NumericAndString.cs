@@ -11,11 +11,9 @@ namespace Musoq.Parser.Lexing;
 /// </summary>
 public sealed partial class Lexer
 {
-
     private Token ScanNumber()
     {
         var start = Position;
-
 
         if (Input[Position] == '0' && Position + 1 < Input.Length)
         {
@@ -25,53 +23,79 @@ public sealed partial class Lexer
                 var end = Position + 2;
                 while (end < Input.Length && IsHexDigit(Input[end]))
                     end++;
-
                 if (end > Position + 2)
                 {
+                    if (HasInvalidBaseNumberContinuation(end))
+                        return HandleInvalidBaseNumber(start, DiagnosticCode.MQ1006_InvalidHexNumber, "hexadecimal", "0x");
+
                     Position = end;
                     return AssignToken(new HexIntegerToken(Input[start..end], new TextSpan(start, end - start)));
                 }
-
                 return HandleInvalidBaseNumber(start, DiagnosticCode.MQ1006_InvalidHexNumber, "hexadecimal", "0x");
             }
-
             if (next == 'b')
             {
                 var end = Position + 2;
                 while (end < Input.Length && (Input[end] == '0' || Input[end] == '1'))
                     end++;
-
                 if (end > Position + 2)
                 {
+                    if (HasInvalidBaseNumberContinuation(end))
+                        return HandleInvalidBaseNumber(start, DiagnosticCode.MQ1007_InvalidBinaryNumber, "binary", "0b");
+
                     Position = end;
                     return AssignToken(new BinaryIntegerToken(Input[start..end], new TextSpan(start, end - start)));
                 }
-
                 return HandleInvalidBaseNumber(start, DiagnosticCode.MQ1007_InvalidBinaryNumber, "binary", "0b");
             }
-
             if (next == 'o')
             {
                 var end = Position + 2;
                 while (end < Input.Length && Input[end] is >= '0' and <= '7')
                     end++;
-
                 if (end > Position + 2)
                 {
+                    if (HasInvalidBaseNumberContinuation(end))
+                        return HandleInvalidBaseNumber(start, DiagnosticCode.MQ1008_InvalidOctalNumber, "octal", "0o");
+
                     Position = end;
                     return AssignToken(new OctalIntegerToken(Input[start..end], new TextSpan(start, end - start)));
                 }
-
                 return HandleInvalidBaseNumber(start, DiagnosticCode.MQ1008_InvalidOctalNumber, "octal", "0o");
             }
         }
 
-
         while (Position < Input.Length && FastCharacterClassifier.IsDigit(Input[Position]))
             Position++;
 
-
         if (Position < Input.Length && Input[Position] == '.')
+        {
+            if (Position + 1 < Input.Length && Input[Position + 1] == '.')
+            {
+                var malformedEnd = Position + 1;
+                while (malformedEnd < Input.Length &&
+                       (FastCharacterClassifier.IsDigit(Input[malformedEnd]) || Input[malformedEnd] == '.'))
+                    malformedEnd++;
+
+                var malformedSpan = new TextSpan(start, malformedEnd - start);
+                var malformedLiteral = Input[start..malformedEnd];
+                if (RecoverOnError)
+                {
+                    Diagnostics.Add(new LexerException(
+                        $"Invalid numeric literal '{malformedLiteral}'.",
+                        malformedSpan,
+                        DiagnosticCode.MQ1003_InvalidNumericLiteral).ToDiagnostic(SourceText));
+                    Position = malformedEnd;
+                    return AssignToken(new ErrorToken(Input[start], malformedSpan));
+                }
+
+                Position = malformedEnd;
+                throw new LexerException(
+                    $"Invalid numeric literal '{malformedLiteral}'.",
+                    malformedSpan,
+                    DiagnosticCode.MQ1003_InvalidNumericLiteral);
+            }
+
             if (Position + 1 < Input.Length && FastCharacterClassifier.IsDigit(Input[Position + 1]))
             {
                 Position++;
@@ -80,14 +104,13 @@ public sealed partial class Lexer
 
                 var decimalTextEnd = Position;
 
-
                 if (Position < Input.Length && (Input[Position] == 'd' || Input[Position] == 'D'))
                     Position++;
 
                 var text = Input[start..decimalTextEnd];
                 return AssignToken(new DecimalToken(text, new TextSpan(start, Position - start)));
             }
-
+        }
 
         var numericEnd = Position;
         var suffix = string.Empty;
@@ -124,18 +147,23 @@ public sealed partial class Lexer
         return AssignToken(new IntegerToken(numText, new TextSpan(start, Position - start), suffix));
     }
 
+    private bool HasInvalidBaseNumberContinuation(int end)
+    {
+        return end < Input.Length && FastCharacterClassifier.IsIdentifierContinue(Input.AsSpan(), end);
+    }
+
     private Token HandleInvalidBaseNumber(int start, DiagnosticCode code, string baseName, string prefix)
     {
         var scanEnd = Position + 2;
-        while (scanEnd < Input.Length && FastCharacterClassifier.IsIdentifierContinue(Input[scanEnd]))
-            scanEnd++;
+        while (scanEnd < Input.Length && FastCharacterClassifier.IsIdentifierContinue(Input.AsSpan(), scanEnd))
+            scanEnd += FastCharacterClassifier.GetIdentifierCodePointLength(Input.AsSpan(), scanEnd);
 
         var invalidLiteral = Input[start..scanEnd];
         var span = new TextSpan(start, scanEnd - start);
 
         if (RecoverOnError)
         {
-            Diagnostics.AddError(code, span, invalidLiteral);
+            Diagnostics.Add(new LexerException(ErrorCatalog.GetMessage(code, invalidLiteral), span, code).ToDiagnostic(SourceText));
             Position = scanEnd;
             return AssignToken(new ErrorToken(Input[start], span));
         }
@@ -143,7 +171,7 @@ public sealed partial class Lexer
         Position = scanEnd;
         throw new LexerException(
             $"Invalid {baseName} number literal '{invalidLiteral}'. Expected valid {baseName} digits after '{prefix}' prefix.",
-            start,
+            span,
             code);
     }
 
@@ -171,9 +199,9 @@ public sealed partial class Lexer
                     var message = $"Invalid escape sequence '{invalidEscape}'.";
 
                     if (RecoverOnError)
-                        Diagnostics.AddError(DiagnosticCode.MQ1004_InvalidEscapeSequence, message, absoluteSpan);
+                        Diagnostics.Add(new LexerException(message, absoluteSpan, DiagnosticCode.MQ1004_InvalidEscapeSequence).ToDiagnostic(SourceText));
                     else
-                        throw new LexerException(message, absoluteSpan.Start, DiagnosticCode.MQ1004_InvalidEscapeSequence);
+                        throw new LexerException(message, absoluteSpan, DiagnosticCode.MQ1004_InvalidEscapeSequence);
                 }
                 else if (OrdinaryStringEscapeRiskDetector.Find(innerText, start + 1) is
                          { IsRootedPath: true, HasNonEscapeContent: true } risk)
@@ -206,14 +234,17 @@ public sealed partial class Lexer
                 recoveryEnd++;
 
             var span = new TextSpan(start, recoveryEnd - start);
-            Diagnostics.AddError(DiagnosticCode.MQ1002_UnterminatedString,
-                "Unterminated string literal: missing closing '", span);
+            Diagnostics.Add(new LexerException("Unterminated string literal: missing closing '", span,
+                DiagnosticCode.MQ1002_UnterminatedString).ToDiagnostic(SourceText));
 
             Position = recoveryEnd;
             return AssignToken(new ErrorToken(Input[start..recoveryEnd], span));
         }
 
-        throw new LexerException("Unterminated string literal: missing closing '", start, DiagnosticCode.MQ1002_UnterminatedString);
+        throw new LexerException(
+            "Unterminated string literal: missing closing '",
+            new TextSpan(start, Input.Length - start),
+            DiagnosticCode.MQ1002_UnterminatedString);
     }
 
     private Token ScanRawStringLiteral()
@@ -261,12 +292,15 @@ public sealed partial class Lexer
                 recoveryEnd++;
 
             var span = new TextSpan(start, recoveryEnd - start);
-            Diagnostics.AddError(DiagnosticCode.MQ1002_UnterminatedString, message, span);
+            Diagnostics.Add(new LexerException(message, span, DiagnosticCode.MQ1002_UnterminatedString).ToDiagnostic(SourceText));
             Position = recoveryEnd;
             return AssignToken(new ErrorToken(Input[start..recoveryEnd], span));
         }
 
-        throw new LexerException(message, start, DiagnosticCode.MQ1002_UnterminatedString);
+        throw new LexerException(
+            message,
+            new TextSpan(start, Input.Length - start),
+            DiagnosticCode.MQ1002_UnterminatedString);
     }
 
 }

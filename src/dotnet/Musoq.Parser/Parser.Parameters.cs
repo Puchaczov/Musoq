@@ -23,13 +23,15 @@ public partial class Parser
         var parameters = new List<ParameterDeclarationNode>();
 
         if (Current.TokenType != TokenType.RightParenthesis)
-            do
-            {
-                if (Current.TokenType == TokenType.Comma)
-                    Consume(TokenType.Comma);
+        {
+            parameters.Add(ComposeParameterDeclaration());
 
+            while (Current.TokenType == TokenType.Comma)
+            {
+                Consume(TokenType.Comma);
                 parameters.Add(ComposeParameterDeclaration());
-            } while (Current.TokenType == TokenType.Comma);
+            }
+        }
 
         var end = ConsumeAndGetToken(TokenType.RightParenthesis);
 

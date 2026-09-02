@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -41,6 +42,44 @@ public sealed class PrecisionDiagnosticTests : BasicEntityTestBase
 
         Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
         StringAssert.Contains(diagnostic.Message, "regex");
+    }
+
+    [TestMethod]
+    public void InvalidConstantRegex_Envelope_ShouldPreserveExactPublicContract()
+    {
+        const string query = "select Name from #A.Entities() where Name rlike '['";
+        var diagnostic = AnalyzeSingleError(query, DiagnosticCode.MQ3094_InvalidConstantRegex);
+        var expectedStart = query.IndexOf("'['", StringComparison.Ordinal);
+
+        Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
+        Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
+        Assert.AreEqual(expectedStart, diagnostic.Span.Start);
+        Assert.AreEqual(3, diagnostic.Span.Length);
+        Assert.HasCount(0, diagnostic.Arguments);
+
+        var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic, query);
+
+        Assert.AreEqual(DiagnosticCode.MQ3094_InvalidConstantRegex, envelope.Code);
+        Assert.AreEqual(DiagnosticSeverity.Error, envelope.Severity);
+        Assert.AreEqual(DiagnosticPhase.Bind, envelope.Phase);
+        Assert.AreEqual(DiagnosticSourceKind.Query, envelope.SourceKind);
+        Assert.AreEqual(expectedStart, envelope.Offset);
+        Assert.AreEqual(expectedStart + 3, envelope.EndOffset);
+        Assert.AreEqual(3, envelope.Length);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Explanation));
+        Assert.AreEqual("Core Spec - Pattern Predicates", envelope.DocsReference);
+        CollectionAssert.AreEqual(
+            new[]
+            {
+                "Fix the regex syntax or escape the intended metacharacters.",
+                "Use a raw literal when backslashes should be preserved."
+            },
+            envelope.SuggestedFixes.ToArray());
+        Assert.HasCount(2, envelope.Actions);
+        Assert.IsTrue(envelope.Actions.All(static action =>
+            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        Assert.HasCount(0, envelope.Arguments);
     }
 
     [TestMethod]

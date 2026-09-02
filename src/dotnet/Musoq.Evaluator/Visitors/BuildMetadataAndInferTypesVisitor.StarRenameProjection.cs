@@ -85,11 +85,18 @@ public partial class BuildMetadataAndInferTypesVisitor
         TextSpan span)
     {
         var finalNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var isSingleTableExpansion = projectedColumns
+            .Select(static column => column.TableIdentifier)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Count() == 1;
+
         for (var i = 0; i < projectedColumns.Count; i++)
         {
             var finalName = renamedIndexes.TryGetValue(i, out var renamed)
                 ? renamed
-                : projectedColumns[i].OutputName;
+                : isSingleTableExpansion
+                    ? projectedColumns[i].Column.ColumnName
+                    : projectedColumns[i].OutputName;
 
             if (!finalNames.Add(finalName))
                 throw new StarModifierValidationException(

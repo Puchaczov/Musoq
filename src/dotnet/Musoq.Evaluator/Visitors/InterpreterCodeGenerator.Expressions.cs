@@ -8,87 +8,15 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class InterpreterCodeGenerator
 {
-    private string GenerateRepeatUntilCondition(Node condition, string fieldName, string lastElemVar, string listVar)
-    {
-        return GenerateRepeatUntilConditionInner(condition, fieldName, lastElemVar, listVar);
-    }
-
-    private string GenerateRepeatUntilConditionInner(Node condition, string fieldName, string lastElemVar,
-        string listVar)
-    {
-        return condition switch
-        {
-            EqualityNode eq =>
-                $"({GenerateRepeatUntilConditionInner(eq.Left, fieldName, lastElemVar, listVar)} == {GenerateRepeatUntilConditionInner(eq.Right, fieldName, lastElemVar, listVar)})",
-            DiffNode diff =>
-                $"({GenerateRepeatUntilConditionInner(diff.Left, fieldName, lastElemVar, listVar)} != {GenerateRepeatUntilConditionInner(diff.Right, fieldName, lastElemVar, listVar)})",
-            GreaterNode gt =>
-                $"({GenerateRepeatUntilConditionInner(gt.Left, fieldName, lastElemVar, listVar)} > {GenerateRepeatUntilConditionInner(gt.Right, fieldName, lastElemVar, listVar)})",
-            GreaterOrEqualNode gte =>
-                $"({GenerateRepeatUntilConditionInner(gte.Left, fieldName, lastElemVar, listVar)} >= {GenerateRepeatUntilConditionInner(gte.Right, fieldName, lastElemVar, listVar)})",
-            LessNode lt =>
-                $"({GenerateRepeatUntilConditionInner(lt.Left, fieldName, lastElemVar, listVar)} < {GenerateRepeatUntilConditionInner(lt.Right, fieldName, lastElemVar, listVar)})",
-            LessOrEqualNode lte =>
-                $"({GenerateRepeatUntilConditionInner(lte.Left, fieldName, lastElemVar, listVar)} <= {GenerateRepeatUntilConditionInner(lte.Right, fieldName, lastElemVar, listVar)})",
-            AndNode andNode =>
-                $"({GenerateRepeatUntilConditionInner(andNode.Left, fieldName, lastElemVar, listVar)} && {GenerateRepeatUntilConditionInner(andNode.Right, fieldName, lastElemVar, listVar)})",
-            OrNode orNode =>
-                $"({GenerateRepeatUntilConditionInner(orNode.Left, fieldName, lastElemVar, listVar)} || {GenerateRepeatUntilConditionInner(orNode.Right, fieldName, lastElemVar, listVar)})",
-            IntegerNode intNode => intNode.ObjValue?.ToString() ?? "0",
-            HexIntegerNode hexNode => FormatHexLiteral(hexNode),
-            DecimalNode decNode => decNode.ObjValue?.ToString() ?? "0",
-            WordNode wordNode => $"\"{EscapeString(wordNode.Value)}\"",
-
-            AccessColumnNode acNode when string.Equals(acNode.Name, fieldName, StringComparison.OrdinalIgnoreCase) =>
-                lastElemVar,
-            AccessColumnNode acNode => GetLocalVarName(acNode.Name),
-            IdentifierNode idNode when string.Equals(idNode.Name, fieldName, StringComparison.OrdinalIgnoreCase) =>
-                lastElemVar,
-            IdentifierNode idNode => GetLocalVarName(idNode.Name),
-
-            DotNode { Root: AccessColumnNode rootCol } dotNode when string.Equals(rootCol.Name, fieldName, StringComparison.OrdinalIgnoreCase) =>
-                $"{lastElemVar}.{GetPropertyNameFromExpression(dotNode.Expression)}",
-            DotNode { Root: IdentifierNode rootId } dotNode when string.Equals(rootId.Name, fieldName, StringComparison.OrdinalIgnoreCase) =>
-                $"{lastElemVar}.{GetPropertyNameFromExpression(dotNode.Expression)}",
-
-            DotNode dotNode =>
-                $"{GenerateRepeatUntilConditionInner(dotNode.Root, fieldName, lastElemVar, listVar)}.{GetPropertyNameFromExpression(dotNode.Expression)}",
-
-            ArrayIndexNode { Array: IdentifierNode arrId } arrayIndex when string.Equals(arrId.Name, fieldName, StringComparison.OrdinalIgnoreCase) =>
-                GenerateArrayIndexExpression(listVar, arrayIndex.Index),
-
-            ArrayIndexNode arrayIndex =>
-                $"{GenerateRepeatUntilConditionInner(arrayIndex.Array, fieldName, lastElemVar, listVar)}[{GenerateRepeatUntilConditionInner(arrayIndex.Index, fieldName, lastElemVar, listVar)}]",
-
-            AddNode add =>
-                $"({GenerateRepeatUntilConditionInner(add.Left, fieldName, lastElemVar, listVar)} + {GenerateRepeatUntilConditionInner(add.Right, fieldName, lastElemVar, listVar)})",
-            HyphenNode hyp =>
-                $"({GenerateRepeatUntilConditionInner(hyp.Left, fieldName, lastElemVar, listVar)} - {GenerateRepeatUntilConditionInner(hyp.Right, fieldName, lastElemVar, listVar)})",
-            StarNode star =>
-                $"({GenerateRepeatUntilConditionInner(star.Left, fieldName, lastElemVar, listVar)} * {GenerateRepeatUntilConditionInner(star.Right, fieldName, lastElemVar, listVar)})",
-            FSlashNode slash =>
-                $"({GenerateRepeatUntilConditionInner(slash.Left, fieldName, lastElemVar, listVar)} / {GenerateRepeatUntilConditionInner(slash.Right, fieldName, lastElemVar, listVar)})",
-            ModuloNode mod =>
-                $"({GenerateRepeatUntilConditionInner(mod.Left, fieldName, lastElemVar, listVar)} % {GenerateRepeatUntilConditionInner(mod.Right, fieldName, lastElemVar, listVar)})",
-            _ => condition.ToString() ?? "false"
-        };
-    }
-
     private string GenerateSizeExpression(Node sizeExpression)
     {
         if (sizeExpression is IntegerNode intNode) return intNode.ObjValue.ToString() ?? "0";
 
         if (sizeExpression is AccessColumnNode accessNode)
-        {
-            var localVar = GetLocalVarName(accessNode.Name);
-            return $"(int){localVar}";
-        }
+            return GenerateSizeFieldReference(accessNode.Name);
 
         if (sizeExpression is IdentifierNode identifierNode)
-        {
-            var localVar = GetLocalVarName(identifierNode.Name);
-            return $"(int){localVar}";
-        }
+            return GenerateSizeFieldReference(identifierNode.Name);
 
         if (sizeExpression is AddNode addNode)
         {
@@ -172,9 +100,13 @@ public partial class InterpreterCodeGenerator
                 $"({GenerateConditionExpression(andNode.Left)} && {GenerateConditionExpression(andNode.Right)})",
             OrNode orNode =>
                 $"({GenerateConditionExpression(orNode.Left)} || {GenerateConditionExpression(orNode.Right)})",
-            IntegerNode intNode => intNode.ObjValue?.ToString() ?? "0",
-            DecimalNode decNode => decNode.ObjValue?.ToString() ?? "0",
+            IntegerNode intNode => Convert.ToString(intNode.ObjValue, System.Globalization.CultureInfo.InvariantCulture) ?? "0",
+            BinaryIntegerNode binaryNode => Convert.ToString(binaryNode.ObjValue, System.Globalization.CultureInfo.InvariantCulture) ?? "0",
+            OctalIntegerNode octalNode => Convert.ToString(octalNode.ObjValue, System.Globalization.CultureInfo.InvariantCulture) ?? "0",
+            DecimalNode decNode => decNode.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + "m",
+            BooleanNode booleanNode => booleanNode.Value ? "true" : "false",
             WordNode wordNode => $"\"{EscapeString(wordNode.Value)}\"",
+            StringNode stringNode => $"\"{EscapeString(stringNode.Value)}\"",
             DotNode dotNode => GenerateDotExpression(dotNode),
             ArrayIndexNode arrayIndex =>
                 $"{GenerateConditionExpression(arrayIndex.Array)}[{GenerateConditionExpression(arrayIndex.Index)}]",

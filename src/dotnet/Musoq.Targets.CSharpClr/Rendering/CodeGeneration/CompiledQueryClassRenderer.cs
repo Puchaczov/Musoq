@@ -269,7 +269,7 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
                 SyntaxFactory.GenericName(nameof(IEnumerable<object>))
                     .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
                         SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                            ExecutionSyntaxFactory.CreateTypeSyntax(outputType)))),
+                            CreateTypeSyntax(outputType)))),
                 SyntaxFactory.Identifier(computeMethodName))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
             .WithParameterList(MethodDeclarationHelper.CreateTypedRunContextParameterList())

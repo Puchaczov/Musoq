@@ -6,11 +6,19 @@ namespace Musoq.Evaluator.TemporarySchemas;
 
 public class DynamicTable : ISchemaTable
 {
-    public DynamicTable(ISchemaColumn[] columns, Type? metadata = null)
+    public DynamicTable(ISchemaColumn[] columns, Type? metadata = null, bool caseSensitive = false)
     {
-        // Group by ColumnName, ColumnIndex, ColumnType to deduplicate
-        // Take the first IntendedTypeName from each group (they should all be the same for a given column)
-        var distinctColumnsGroups = columns.GroupBy(f => new { f.ColumnName, f.ColumnIndex, f.ColumnType });
+        IsCaseSensitive = caseSensitive;
+        // Logical scalar identity is part of the column contract. Columns with
+        // equal carriers but different enum identities must never collapse.
+        var distinctColumnsGroups = columns.GroupBy(f => new
+        {
+            f.ColumnName,
+            f.ColumnIndex,
+            f.ColumnType,
+            f.SourceReadType,
+            EnumFingerprint = f.EnumType?.Fingerprint
+        });
 
         Columns = distinctColumnsGroups.Select(group =>
         {
@@ -19,24 +27,33 @@ public class DynamicTable : ISchemaTable
                 group.Key.ColumnName,
                 group.Key.ColumnIndex,
                 group.Key.ColumnType,
+                group.Key.SourceReadType,
+                firstColumn.EnumType,
                 firstColumn.IntendedTypeName,
-                firstColumn.ReadModifiers);
+                firstColumn.ReadModifiers,
+                group.Any(static column => column.Stability == ColumnStability.Volatile)
+                    ? ColumnStability.Volatile
+                    : ColumnStability.Stable);
         }).Cast<ISchemaColumn>().ToArray();
         Metadata = new SchemaTableMetadata(metadata ?? typeof(object));
     }
 
     public ISchemaColumn[] Columns { get; }
 
+    public bool IsCaseSensitive { get; }
+
     public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(column =>
-            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+            string.Equals(column.ColumnName, name,
+                IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase));
     }
 
     public ISchemaColumn[] GetColumnsByName(string name)
     {
         return Columns.Where(column =>
-            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
+            string.Equals(column.ColumnName, name,
+                IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase)).ToArray();
     }
 
     public SchemaTableMetadata Metadata { get; }

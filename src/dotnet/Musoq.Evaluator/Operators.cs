@@ -12,6 +12,20 @@ public partial class Operators
         new(RuntimeCacheOptions.PatternCacheSize, StringComparer.Ordinal);
     private static readonly Regex EscapePattern = CreateEscapeRegex();
 
+    /// <summary>
+    ///     Applies a typed comparison only when both operands are non-null, preserving SQL UNKNOWN otherwise.
+    /// </summary>
+    public static bool? SqlCompare<TLeft, TRight>(
+        TLeft left,
+        TRight right,
+        Func<TLeft, TRight, bool?> comparison)
+    {
+        if (left is null || right is null)
+            return null;
+
+        return comparison(left, right);
+    }
+
     public bool Like(string? content, string? searchFor)
     {
         if (content is null || searchFor is null)

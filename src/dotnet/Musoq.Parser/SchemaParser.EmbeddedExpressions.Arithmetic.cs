@@ -62,19 +62,31 @@ public partial class SchemaParser
         {
             case TokenType.Integer:
                 var intToken = ConsumeAndGetToken(TokenType.Integer);
-                return new IntegerNode(intToken.Value, "i");
+                return new IntegerNode(intToken.Value, "i", intToken.Span);
 
             case TokenType.HexadecimalInteger:
                 var hexToken = ConsumeAndGetToken(TokenType.HexadecimalInteger);
-                return new HexIntegerNode(hexToken.Value);
+                return new HexIntegerNode(hexToken.Value, hexToken.Span);
 
             case TokenType.BinaryInteger:
                 var binToken = ConsumeAndGetToken(TokenType.BinaryInteger);
-                return new BinaryIntegerNode(binToken.Value);
+                return new BinaryIntegerNode(binToken.Value, binToken.Span);
 
             case TokenType.OctalInteger:
                 var octToken = ConsumeAndGetToken(TokenType.OctalInteger);
-                return new OctalIntegerNode(octToken.Value);
+                return new OctalIntegerNode(octToken.Value, octToken.Span);
+
+            case TokenType.Decimal:
+                var decimalToken = ConsumeAndGetToken(TokenType.Decimal);
+                return new DecimalNode(decimalToken.Value, decimalToken.Span);
+
+            case TokenType.True:
+                var trueToken = ConsumeAndGetToken(TokenType.True);
+                return new BooleanNode(true, trueToken.Span);
+
+            case TokenType.False:
+                var falseToken = ConsumeAndGetToken(TokenType.False);
+                return new BooleanNode(false, falseToken.Span);
 
             case TokenType.Identifier:
             case TokenType.Word:
@@ -84,7 +96,7 @@ public partial class SchemaParser
             case TokenType.StringLiteral:
 
                 var stringToken = ConsumeAndGetToken(TokenType.StringLiteral);
-                return new WordNode(stringToken.Value);
+                return new WordNode(stringToken.Value, stringToken.Span);
 
             case TokenType.LeftParenthesis:
                 Consume(TokenType.LeftParenthesis);
@@ -93,9 +105,9 @@ public partial class SchemaParser
                 return expr;
 
             case TokenType.Hyphen:
-                Consume(TokenType.Hyphen);
+                var minusToken = ConsumeAndGetToken(TokenType.Hyphen);
                 var operand = ComposePrimaryExpression();
-                return new HyphenNode(new IntegerNode("0", "i"), operand);
+                return new HyphenNode(new IntegerNode("0", "i"), operand).WithSpan(minusToken.Span.Through(operand.Span));
 
             default:
                 if (AllowedKeywordTokenTypes.Contains(Current.TokenType))

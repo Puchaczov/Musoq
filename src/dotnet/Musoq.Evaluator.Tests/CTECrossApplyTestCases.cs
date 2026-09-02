@@ -11,7 +11,6 @@ public sealed class EmptySourceEntity
 [TestClass]
 public class CteCrossApplyTestCases : GenericEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void CTE_WithCrossApply_ShouldNotThrowKeyNotFoundException()

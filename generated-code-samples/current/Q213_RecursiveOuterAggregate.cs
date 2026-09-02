@@ -90,10 +90,10 @@ ExecutionPlan [compiled]
     CreateAggregateContext [rootGroup, group, groupsToFinalize; typed: ResultAggregateGroup]
     PhaseBoundary [From]
     ForEach [walk in _cteRowResults.Slot0]
-      Let [depth: int = walk.Depth]
-      Let [id: int = walk.Id]
       EnsureAggregateGroup [group; typed: ResultAggregateGroup]
+      Let [depth: int = walk.Depth]
       TypedAggregateSet [Set(group.__agg0, depth)]
+      Let [id: int = walk.Id]
       TypedAggregateSet [Set(group.__agg1, id)]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     PhaseBoundary [Select]
@@ -257,14 +257,13 @@ namespace GeneratedSample_Q213_RecursiveOuterAggregate
                     }
 
                     Cte0Row0 walk = __storedTable0Rows[__storedTable0Index];
-                    int depth = walk.Depth;
-                    int id = walk.Id;
                     if (group == null)
                     {
                         group = new ResultAggregateGroup();
                         groupsToFinalize.Add(group);
                     }
 
+                    int depth = walk.Depth;
                     {
                         var __agg0Input = (int?)depth;
                         if (__agg0Input.HasValue)
@@ -279,6 +278,7 @@ namespace GeneratedSample_Q213_RecursiveOuterAggregate
                         }
                     }
 
+                    int id = walk.Id;
                     if (((int?)id).HasValue)
                     {
                         group.__agg1.Count = checked(group.__agg1.Count + 1L);

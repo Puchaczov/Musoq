@@ -46,7 +46,8 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(
             "select d.Dummy, d.Dummy from #system.dual() d where d.Dummy = d.Dummy",
-            new CompilationOptions(useCommonSubexpressionElimination: false));
+            new CompilationOptions(useCommonSubexpressionElimination: false)
+                .WithStabilityAwareScalarReuse(false));
 
         Assert.IsFalse(result.ExecutionPlanText.Contains("Let [dummy:", StringComparison.Ordinal));
         Assert.Contains("If [(d.Dummy = d.Dummy)]", result.ExecutionPlanText);

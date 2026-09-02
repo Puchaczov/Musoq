@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Execution;
+using Musoq.Evaluator.IR.Execution.Facts;
 
 namespace Musoq.Evaluator.IR.Optimization.Execution;
 
@@ -13,7 +14,7 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentNullException.ThrowIfNull(context);
 
-        if (!IsExpressionCseEnabled(context))
+        if (!IsExpressionCseEnabled(context) && !context.Options.StabilityAwareScalarReuseEnabled)
         {
             return OptimizationResult<ExecutionPlan>.NoChange(
                 plan,
@@ -21,7 +22,10 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
         }
 
         var skipDiagnostics = ExpressionCseSkipDiagnostics.Analyze(plan);
-        var rewriter = new ExpressionCseRewriter(IsCrossNodeExpressionCseEnabled(context));
+        var rewriter = new ExpressionCseRewriter(
+            IsCrossNodeExpressionCseEnabled(context) || context.Options.StabilityAwareScalarReuseEnabled,
+            context.Options.ExpressionCseEnabled,
+            context.Options.StabilityAwareScalarReuseEnabled);
         var optimized = rewriter.RewritePlan(plan);
         if (ReferenceEquals(optimized, plan))
         {
@@ -61,7 +65,10 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
             : string.Empty;
     }
 
-    private sealed partial class ExpressionCseRewriter(bool enableCrossNodeCse) : ExecutionIrRewriter
+    private sealed partial class ExpressionCseRewriter(
+        bool enableCrossNodeCse,
+        bool enableExpressionCse,
+        bool enableStabilityAwareRegionReuse) : ExecutionIrRewriter
     {
         private readonly Stack<HashSet<string>> _visibleNameScopes = new();
         private int _helperBodyDepth;
@@ -123,7 +130,7 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
                 if (!enableCrossNodeCse)
                     return rewrittenBlock;
 
-                var hoistedBlock = TryHoistBlockExpressions(rewrittenBlock, usedNames);
+                var hoistedBlock = TryHoistBlockExpressions(rewrittenBlock, usedNames, enableStabilityAwareRegionReuse);
                 if (hoistedBlock.Lets.Count > 0)
                 {
                     InsertedLets += hoistedBlock.Lets.Count;
@@ -214,6 +221,9 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
 
         private HoistedNode TryHoistExpressions(ExecutionNode node, HashSet<string> usedNames)
         {
+            if (!enableExpressionCse)
+                return new HoistedNode([], node);
+
             var expressions = GetSupportedNodeExpressions(node);
             if (expressions.Count == 0)
                 return new HoistedNode([], node);
@@ -242,16 +252,25 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
                     : [..first, ..second];
         }
 
-        private static HoistedBlock TryHoistBlockExpressions(ExecutionBlock block, HashSet<string> usedNames)
+        private static HoistedBlock TryHoistBlockExpressions(
+            ExecutionBlock block,
+            HashSet<string> usedNames,
+            bool enableStabilityAwareRegionReuse)
         {
-            if (!IsAggregateAccumulationBlock(block))
+            var isAggregateBlock = IsAggregateAccumulationBlock(block);
+            if (!isAggregateBlock && (!enableStabilityAwareRegionReuse || !IsStableScalarReuseRegion(block)))
                 return new HoistedBlock([], block);
 
-            var insertionIndex = FindAggregateHoistInsertionIndex(block);
+            var insertionIndex = isAggregateBlock
+                ? FindAggregateHoistInsertionIndex(block)
+                : FindStableScalarReuseInsertionIndex(block);
             var prefix = block.Nodes.Take(insertionIndex).ToArray();
             var hoistRegion = new ExecutionBlock(block.Nodes.Skip(insertionIndex).ToArray());
+            var occurrences = enableStabilityAwareRegionReuse
+                ? ExecutionExpressionCseFacts.CollectStableScalarReuseOccurrences(hoistRegion)
+                : ExecutionExpressionCseFacts.CollectHoistableOccurrences(hoistRegion);
             var plan = ExpressionHoistPlanner.Create(
-                ExecutionExpressionCseFacts.CollectHoistableOccurrences(hoistRegion),
+                occurrences,
                 usedNames);
             if (plan.Lets.Count == 0)
                 return new HoistedBlock([], block);
@@ -259,9 +278,15 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
             foreach (var let in plan.Lets)
                 usedNames.Add(let.Variable.Name);
 
-            var rewritten = ExpressionCseSubstitution.ReplaceAggregateBlockExpressions(
-                hoistRegion,
-                plan.VariablesBySignature);
+            var rewritten = isAggregateBlock
+                ? ExpressionCseSubstitution.ReplaceAggregateBlockExpressions(
+                    hoistRegion,
+                    plan.VariablesBySignature)
+                : new ExecutionBlock(hoistRegion.Nodes
+                    .Select(node => ExpressionCseSubstitution.ReplaceSupportedNodeExpressions(
+                        node,
+                        plan.VariablesBySignature))
+                    .ToArray());
             return new HoistedBlock(
                 plan.Lets,
                 block with { Nodes = [..prefix, ..plan.Lets, ..rewritten.Nodes] });
@@ -344,6 +369,54 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
             return block.Nodes.Any(IsAggregateAccumulationNode);
         }
 
+        private static bool IsStableScalarReuseRegion(ExecutionBlock block)
+        {
+            var regionNodes = block.Nodes
+                .SkipWhile(IsPrologueNode)
+                .ToArray();
+            return regionNodes.Length > 1 &&
+                   regionNodes.All(static node => node is
+                       ExecutionAppendRow or
+                       ExecutionAppendRecord or
+                       ExecutionCreateGeneratedRow or
+                       ExecutionCreateHashPayload or
+                       ExecutionHashAdd or
+                       ExecutionHashProbe or
+                       ExecutionKeySetAdd or
+                       ExecutionKeySetProbe or
+                       ExecutionGetOrAddSingleKeyAggregateGroup or
+                       ExecutionGetOrAddValueTupleAggregateGroup or
+                       ExecutionAggregateSet or
+                       ExecutionAggregateCapturedValueSet or
+                       ExecutionComputeRankingWindow or
+                       ExecutionComputeOffsetWindow or
+                       ExecutionComputePluginWindow or
+                       ExecutionWindowAggregateKernel or
+                       ExecutionCreateRangeIndex or
+                       ExecutionRangeProbe or
+                       ExecutionRecursiveCteAppend);
+        }
+
+        private static int FindStableScalarReuseInsertionIndex(ExecutionBlock block)
+        {
+            for (var index = 0; index < block.Nodes.Count; index++)
+            {
+                if (!IsPrologueNode(block.Nodes[index]))
+                    return index;
+            }
+
+            return block.Nodes.Count;
+        }
+
+        private static bool IsPrologueNode(ExecutionNode node)
+        {
+            return node is ExecutionLet or
+                ExecutionAdaptExpando or
+                ExecutionMethodTargetDeclarationCandidate or
+                ExecutionCreateGeneratedRow or
+                ExecutionCreateAsOfIndex;
+        }
+
         private static int FindAggregateHoistInsertionIndex(ExecutionBlock block)
         {
             for (var index = 0; index < block.Nodes.Count; index++)
@@ -364,7 +437,7 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
                 ExecutionAggregateCapturedValueSet;
         }
 
-        private static IReadOnlyList<ExecutionExpression> GetSupportedNodeExpressions(ExecutionNode node)
+        private IReadOnlyList<ExecutionExpression> GetSupportedNodeExpressions(ExecutionNode node)
         {
             return node switch
             {
@@ -378,6 +451,27 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
                     ExecutionComputeOffsetWindow or
                     ExecutionComputePluginWindow or
                     ExecutionWindowAggregateKernel => ExecutionExpressionCseFacts.GetWindowHelperIndependentExpressions(node),
+                _ when !enableStabilityAwareRegionReuse => [],
+                ExecutionCreateGeneratedRow createRow => createRow.Values
+                    .Select(static value => value.Value)
+                    .Concat(createRow.Contexts)
+                    .Concat(ExecutionNodeFacts.GetContextLayoutExpressions(createRow.ContextLayout))
+                    .ToArray(),
+                ExecutionCreateHashPayload payload => payload.Values.Select(static value => value.Value).ToArray(),
+                ExecutionGetOrAddSingleKeyAggregateGroup getOrAdd => [getOrAdd.Key],
+                ExecutionGetOrAddValueTupleAggregateGroup getOrAdd => getOrAdd.Keys,
+                ExecutionAggregateSet aggregateSet => aggregateSet.Arguments
+                    .Concat(aggregateSet.FilterPredicate == null ? [] : [aggregateSet.FilterPredicate])
+                    .Concat(aggregateSet.AccumulatorInput == null ? [] : [aggregateSet.AccumulatorInput])
+                    .ToArray(),
+                ExecutionAggregateCapturedValueSet capturedValueSet => [capturedValueSet.Value],
+                ExecutionCreateRangeIndex or
+                    ExecutionRangeProbe => ExecutionNodeFacts.GetLocalExpressions(node).ToArray(),
+                ExecutionRecursiveCteAppend append => append.AppendRow.Values
+                    .Select(static value => value.Value)
+                    .Concat(append.AppendRow.Contexts)
+                    .Concat(ExecutionNodeFacts.GetContextLayoutExpressions(append.AppendRow.ContextLayout))
+                    .ToArray(),
                 _ => []
             };
         }
@@ -392,4 +486,3 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
         IReadOnlyList<ExecutionLet> Lets,
         ExecutionBlock Block);
 }
-

@@ -73,9 +73,10 @@ public sealed partial class ExecutionCSharpRenderer
     {
         helper = null!;
 
-        if (block.Nodes.Count != 2 ||
-            block.Nodes[0] is not ExecutionEnumerableSource source ||
-            block.Nodes[1] is not ExecutionForEach loop ||
+        if (block.Nodes.Count < 2 ||
+            block.Nodes[^1] is not ExecutionForEach loop ||
+            block.Nodes[^2] is not ExecutionEnumerableSource source ||
+            block.Nodes.Take(block.Nodes.Count - 2).Any(static node => node is not ExecutionLet and not ExecutionAdaptExpando and not ExecutionMethodTargetDeclarationCandidate) ||
             !IsLoopOverRows(loop.Source, source.Rows.Name) ||
             !ShouldExtractEnumerableTraversal(loop.Body))
         {
@@ -178,7 +179,7 @@ public sealed partial class ExecutionCSharpRenderer
         {
             var type = TryGetTypedRowBufferShape(appendRow.Table.Name, context, out var rowShape)
                 ? CreateListTypeSyntax(rowShape.TypeName)
-                : CreateTypeSyntax(typeof(Musoq.Evaluator.Tables.Table));
+                : CreateTypeSyntax(typeof(Evaluator.Tables.Table));
             result.TryAdd(appendRow.Table.Name, type);
         }
 

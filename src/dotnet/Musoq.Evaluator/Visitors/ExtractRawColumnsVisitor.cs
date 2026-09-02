@@ -64,7 +64,9 @@ public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExp
         _queryAlias = alias + _schemaFromKey;
 
         if (_columns.ContainsKey(_queryAlias))
-            throw new AliasAlreadyUsedException(node, _queryAlias);
+            throw new AliasAlreadyUsedException(
+                node,
+                string.IsNullOrWhiteSpace(node.Alias) ? _queryAlias : node.Alias);
 
         _generatedAliases.Add(_queryAlias);
         _columns.Add(_queryAlias, []);

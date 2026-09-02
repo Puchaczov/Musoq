@@ -9,7 +9,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class CrossApplyMethodCallTests : GenericEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void CrossApplyProperty_NoMatch_ShouldPass()

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Musoq.Evaluator;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
@@ -76,7 +78,15 @@ public class AmbiguousColumnException : Exception, IDiagnosticException
     /// </summary>
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        var span = Span ?? TextSpan.Empty;
-        return Diagnostic.Error(Code, Message, span);
+        return SemanticDiagnosticFactory.Create(
+            Code,
+            Message,
+            Span,
+            sourceText,
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["column"] = ColumnName,
+                ["aliases"] = $"{Alias1}, {Alias2}"
+            });
     }
 }

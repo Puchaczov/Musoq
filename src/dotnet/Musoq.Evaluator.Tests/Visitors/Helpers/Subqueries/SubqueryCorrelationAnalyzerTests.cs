@@ -1,6 +1,8 @@
+using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Visitors.Helpers.Subqueries;
+using Musoq.Parser;
 using Musoq.Parser.Lexing;
 
 namespace Musoq.Evaluator.Tests.Visitors.Helpers.Subqueries;
@@ -106,16 +108,21 @@ public sealed class SubqueryCorrelationAnalyzerTests
     [TestMethod]
     public void Analyze_CteDefinitionReferencingConsumerAlias_ShouldReportIllegalOuterConsumingReference()
     {
-        var analysis = Analyze(@"
+        const string query = @"
             with p as (
                 select b.City from #B.entities() b
                 where b.Country = a.Country
             )
             select a.City from #A.entities() a
-            where a.City in (select City from p)");
+            where a.City in (select City from p)";
+        var analysis = Analyze(query);
 
         Assert.IsTrue(analysis.HasIllegalOuterConsumingCteReferences);
+        CollectionAssert.AreEquivalent(new[] { "a" }, analysis.IllegalOuterConsumingCteAliases.ToArray());
         Assert.Contains("a", analysis.IllegalOuterConsumingCteAliases);
+        var referenceStart = query.Trim().IndexOf("a.Country", StringComparison.Ordinal);
+        Assert.AreEqual(new TextSpan(referenceStart, "a.Country".Length),
+            analysis.IllegalOuterConsumingCteReferenceSpan);
     }
 
     [TestMethod]
@@ -163,8 +170,6 @@ public sealed class SubqueryCorrelationAnalyzerTests
     {
         var lexer = new Lexer(query, true);
         var parser = new Musoq.Parser.Parser(lexer);
-        var root = parser.ComposeAll();
-
-        return SubqueryCorrelationAnalyzer.Analyze(root);
+        return SubqueryCorrelationAnalyzer.Analyze(parser.ComposeAll());
     }
 }

@@ -16,7 +16,8 @@ public sealed partial class Lexer
         var start = Position;
         Position++;
 
-        if (Position >= Input.Length || !FastCharacterClassifier.IsIdentifierStart(Input[Position]))
+        var input = Input.AsSpan();
+        if (Position >= Input.Length || !FastCharacterClassifier.IsIdentifierStart(input, Position))
         {
             var span = new TextSpan(start, 1);
 
@@ -30,10 +31,10 @@ public sealed partial class Lexer
         }
 
         var nameStart = Position;
-        Position++;
+        Position += FastCharacterClassifier.GetIdentifierCodePointLength(input, Position);
 
-        while (Position < Input.Length && FastCharacterClassifier.IsIdentifierContinue(Input[Position]))
-            Position++;
+        while (Position < Input.Length && FastCharacterClassifier.IsIdentifierContinue(input, Position))
+            Position += FastCharacterClassifier.GetIdentifierCodePointLength(input, Position);
 
         return AssignToken(new ParameterReferenceToken(
             Input[nameStart..Position],
@@ -46,7 +47,7 @@ public sealed partial class Lexer
             return numericAccessToken;
 
         var typeName = numericToken.Name;
-        var sizeValue = numericToken.Index.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var sizeValue = numericToken.Value;
         var basePosition = numericAccessToken.Span.Start;
 
         var typeToken = ResolveSchemaTypeToken(typeName, basePosition);
@@ -85,75 +86,6 @@ public sealed partial class Lexer
         _pendingSchemaTokens.Enqueue(new RightSquareBracketToken(new TextSpan(rightBracketPos, 1)));
 
         return AssignToken(typeToken);
-    }
-
-    private static List<Token> LexInnerExpression(string content, int basePosition)
-    {
-        var tokens = new List<Token>();
-        var pos = 0;
-
-        while (pos < content.Length)
-        {
-            while (pos < content.Length && char.IsWhiteSpace(content[pos])) pos++;
-            if (pos >= content.Length) break;
-
-            var ch = content[pos];
-            var spanStart = basePosition + pos;
-
-            switch (ch)
-            {
-                case '+':
-                    tokens.Add(new PlusToken(new TextSpan(spanStart, 1)));
-                    pos++;
-                    break;
-                case '-':
-                    tokens.Add(new HyphenToken(new TextSpan(spanStart, 1)));
-                    pos++;
-                    break;
-                case '*':
-                    tokens.Add(new StarToken(new TextSpan(spanStart, 1)));
-                    pos++;
-                    break;
-                case '/':
-                    tokens.Add(new FSlashToken(new TextSpan(spanStart, 1)));
-                    pos++;
-                    break;
-                case '%':
-                    tokens.Add(new ModuloToken(new TextSpan(spanStart, 1)));
-                    pos++;
-                    break;
-                case '(':
-                    tokens.Add(new LeftParenthesisToken(new TextSpan(spanStart, 1)));
-                    pos++;
-                    break;
-                case ')':
-                    tokens.Add(new RightParenthesisToken(new TextSpan(spanStart, 1)));
-                    pos++;
-                    break;
-                default:
-                    if (char.IsDigit(ch))
-                    {
-                        var start = pos;
-                        while (pos < content.Length && char.IsDigit(content[pos])) pos++;
-                        tokens.Add(new IntegerToken(content[start..pos], new TextSpan(spanStart, pos - start), "i"));
-                    }
-                    else if (char.IsLetter(ch) || ch == '_')
-                    {
-                        var start = pos;
-                        while (pos < content.Length &&
-                               (char.IsLetterOrDigit(content[pos]) || content[pos] == '_')) pos++;
-                        tokens.Add(new WordToken(content[start..pos], new TextSpan(spanStart, pos - start)));
-                    }
-                    else
-                    {
-                        pos++;
-                    }
-
-                    break;
-            }
-        }
-
-        return tokens;
     }
 
     private static SchemaToken ResolveSchemaTypeToken(string typeName, int position)

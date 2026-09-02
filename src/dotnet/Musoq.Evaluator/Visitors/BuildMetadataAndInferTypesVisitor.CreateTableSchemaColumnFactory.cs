@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Musoq.Parser.Nodes;
+using Musoq.Schema;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Visitors;
@@ -16,5 +17,31 @@ public partial class BuildMetadataAndInferTypesVisitor
             modifiers.Add(modifier.Key, modifier.Value);
 
         return new SchemaColumn(column.ColumnName, index, type, modifiers);
+    }
+
+    private static SchemaColumn CreateLogicalEnumSchemaColumn(
+        CreateTableColumnDefinition column,
+        int index,
+        Type carrierType,
+        EnumTypeDescriptor descriptor)
+    {
+        IReadOnlyDictionary<string, string>? modifiers = null;
+        if (column.ReadModifiers.Count > 0)
+        {
+            var modifierCopy = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var modifier in column.ReadModifiers)
+                modifierCopy.Add(modifier.Key, modifier.Value);
+            modifiers = modifierCopy;
+        }
+
+        return new SchemaColumn(
+            column.ColumnName,
+            index,
+            carrierType,
+            carrierType,
+            descriptor,
+            intendedTypeName: null,
+            readModifiers: modifiers,
+            stability: ColumnStability.Stable);
     }
 }

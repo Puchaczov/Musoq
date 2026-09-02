@@ -1,5 +1,6 @@
 ﻿using Musoq.Parser.Tokens;
 
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Musoq.Parser.Nodes;
@@ -43,6 +44,12 @@ public abstract class SetOperatorNode : BinaryNode
     }
 
     public string[] Keys { get; }
+
+    /// <summary>
+    ///     Gets the source spans of explicit set-operator keys in the same order as <see cref="Keys" />.
+    ///     The collection is empty when the key list was omitted or explicitly empty.
+    /// </summary>
+    public IReadOnlyList<TextSpan> KeySpans { get; init; } = [];
 
     public override Type ReturnType => typeof(void);
 

@@ -90,7 +90,7 @@ public partial class CteTests
         var inspection = InstanceCreator.CompileForInspection(
             testCase.Query,
             Guid.NewGuid().ToString(),
-            new Schema.Basic.BasicSchemaProvider<BasicEntity>(CreateSingleSource()),
+            new BasicSchemaProvider<BasicEntity>(CreateSingleSource()),
             LoggerResolver,
             testCase.CompilationOptions);
 

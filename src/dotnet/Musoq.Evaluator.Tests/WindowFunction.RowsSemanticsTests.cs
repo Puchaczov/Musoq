@@ -6,7 +6,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     // ========================================================================
     // ROWS Semantics Tests — Tied ORDER BY Values

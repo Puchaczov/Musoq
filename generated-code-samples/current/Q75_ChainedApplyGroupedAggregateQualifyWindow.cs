@@ -79,13 +79,13 @@ ExecutionPlan [compiled]
     ChunkedForEach [i in statement0_iRows]
       EnumerableSource [i.Numbers -> statement0_nRows]
       ChunkedForEach [n in statement0_nRows]
+        Let [nValue: int = n.Value]
         EnumerableSource [i.Numbers -> statement0_mRows]
         ChunkedForEach [m in statement0_mRows]
-          Let [value: int = n.Value]
           GetOrAddSingleKeyAggregateGroup [statement0Group = statement0Groups[i.Name] by i.Name; typed: Statement0AggregateGroup]
-          TypedAggregateSet [Set(statement0Group.__agg0, value)]
-          TypedAggregateSet [Set(statement0Group.__agg1, value)]
-          TypedAggregateSet [Set(statement0Group.__agg2, value)]
+          TypedAggregateSet [Set(statement0Group.__agg0, nValue)]
+          TypedAggregateSet [Set(statement0Group.__agg1, nValue)]
+          TypedAggregateSet [Set(statement0Group.__agg2, nValue)]
     EnsureCapacity [statement0 <- statement0GroupsToFinalize.Count]
     ForEach [statement0FinalGroup in statement0GroupsToFinalize]
       If [(inm.Max(n.Value) >= 2)]
@@ -316,7 +316,7 @@ namespace GeneratedSample_Q75_ChainedApplyGroupedAggregateQualifyWindow
             foreach (var statement0FinalGroup in statement0GroupsToFinalize)
             {
                 token.ThrowIfCancellationRequested();
-                if (((statement0FinalGroup.__agg0.HasValue ? (int?)statement0FinalGroup.__agg0.Value : null) >= 2))
+                if (((Operators.SqlCompare<int?, int>(statement0FinalGroup.__agg0.HasValue ? (int?)statement0FinalGroup.__agg0.Value : null, 2, (int? __sqlLeft, int __sqlRight) => (__sqlLeft >= __sqlRight)))) == true)
                 {
                     statement0.Add(new Statement0Row0(statement0FinalGroup.__key0, statement0FinalGroup.__agg0.HasValue ? (int?)statement0FinalGroup.__agg0.Value : null, statement0FinalGroup.__agg1.HasValue ? (int?)statement0FinalGroup.__agg1.Value : null, statement0FinalGroup.__agg2.HasValue ? (int?)statement0FinalGroup.__agg2.Sum / int.CreateChecked(statement0FinalGroup.__agg2.Count) : null));
                 }
@@ -336,9 +336,10 @@ namespace GeneratedSample_Q75_ChainedApplyGroupedAggregateQualifyWindow
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static void TraverseStatement0MRows(CancellationToken token, Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity i, int n, List<Statement0AggregateGroup> statement0GroupsToFinalize, Dictionary<string, Statement0AggregateGroup> statement0Groups, ref Statement0AggregateGroup statement0NullGroup)
+        private static void TraverseStatement0MRows(CancellationToken token, int n, Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity i, List<Statement0AggregateGroup> statement0GroupsToFinalize, Dictionary<string, Statement0AggregateGroup> statement0Groups, ref Statement0AggregateGroup statement0NullGroup)
         {
             token.ThrowIfCancellationRequested();
+            int nValue = n;
             var statement0_mRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
             foreach (var mChunk in statement0_mRows)
             {
@@ -355,7 +356,7 @@ namespace GeneratedSample_Q75_ChainedApplyGroupedAggregateQualifyWindow
                             }
 
                             var m = mChunkViewArray[mChunkViewOffset + mIndex];
-                            UpdateStatement0GroupsAggregates(statement0GroupsToFinalize, statement0Groups, ref statement0NullGroup, n, i);
+                            UpdateStatement0GroupsAggregates(statement0GroupsToFinalize, statement0Groups, ref statement0NullGroup, nValue, i);
                         }
 
                         continue;
@@ -372,7 +373,7 @@ namespace GeneratedSample_Q75_ChainedApplyGroupedAggregateQualifyWindow
                             }
 
                             var m = mChunkViewList[mChunkViewOffset + mIndex];
-                            UpdateStatement0GroupsAggregates(statement0GroupsToFinalize, statement0Groups, ref statement0NullGroup, n, i);
+                            UpdateStatement0GroupsAggregates(statement0GroupsToFinalize, statement0Groups, ref statement0NullGroup, nValue, i);
                         }
 
                         continue;
@@ -387,7 +388,7 @@ namespace GeneratedSample_Q75_ChainedApplyGroupedAggregateQualifyWindow
                     }
 
                     var m = mChunk[mIndex];
-                    UpdateStatement0GroupsAggregates(statement0GroupsToFinalize, statement0Groups, ref statement0NullGroup, n, i);
+                    UpdateStatement0GroupsAggregates(statement0GroupsToFinalize, statement0Groups, ref statement0NullGroup, nValue, i);
                 }
             }
         }
@@ -412,7 +413,7 @@ namespace GeneratedSample_Q75_ChainedApplyGroupedAggregateQualifyWindow
                             }
 
                             var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                            TraverseStatement0MRows(token, i, n, statement0GroupsToFinalize, statement0Groups, ref statement0NullGroup);
+                            TraverseStatement0MRows(token, n, i, statement0GroupsToFinalize, statement0Groups, ref statement0NullGroup);
                         }
 
                         continue;
@@ -429,7 +430,7 @@ namespace GeneratedSample_Q75_ChainedApplyGroupedAggregateQualifyWindow
                             }
 
                             var n = nChunkViewList[nChunkViewOffset + nIndex];
-                            TraverseStatement0MRows(token, i, n, statement0GroupsToFinalize, statement0Groups, ref statement0NullGroup);
+                            TraverseStatement0MRows(token, n, i, statement0GroupsToFinalize, statement0Groups, ref statement0NullGroup);
                         }
 
                         continue;
@@ -444,15 +445,14 @@ namespace GeneratedSample_Q75_ChainedApplyGroupedAggregateQualifyWindow
                     }
 
                     var n = nChunk[nIndex];
-                    TraverseStatement0MRows(token, i, n, statement0GroupsToFinalize, statement0Groups, ref statement0NullGroup);
+                    TraverseStatement0MRows(token, n, i, statement0GroupsToFinalize, statement0Groups, ref statement0NullGroup);
                 }
             }
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static void UpdateStatement0GroupsAggregates(List<Statement0AggregateGroup> statement0GroupsToFinalize, Dictionary<string, Statement0AggregateGroup> statement0Groups, ref Statement0AggregateGroup statement0NullGroup, int n, Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity i)
+        private static void UpdateStatement0GroupsAggregates(List<Statement0AggregateGroup> statement0GroupsToFinalize, Dictionary<string, Statement0AggregateGroup> statement0Groups, ref Statement0AggregateGroup statement0NullGroup, int nValue, Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity i)
         {
-            int value = n;
             string groupKey = i.Name;
             Statement0AggregateGroup statement0Group = null;
             if (groupKey != null)
@@ -478,7 +478,7 @@ namespace GeneratedSample_Q75_ChainedApplyGroupedAggregateQualifyWindow
             }
 
             {
-                var __agg0Input = (int?)value;
+                var __agg0Input = (int?)nValue;
                 if (__agg0Input.HasValue)
                 {
                     var __agg0Current = __agg0Input.GetValueOrDefault();

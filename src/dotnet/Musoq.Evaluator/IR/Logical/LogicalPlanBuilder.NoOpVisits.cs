@@ -91,6 +91,8 @@ public sealed partial class LogicalPlanBuilder
     public void Visit(TranslatedSetOperatorNode node) { }
 
     public void Visit(CreateTableNode node) { }
+    public void Visit(EnumDeclarationNode node) { }
+    public void Visit(EnumMemberNode node) { }
     public void Visit(CoupleNode node) { }
     public void Visit(StatementsArrayNode node) { }
     public void Visit(StatementNode node) { }

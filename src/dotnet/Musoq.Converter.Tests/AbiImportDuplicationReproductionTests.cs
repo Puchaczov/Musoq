@@ -64,7 +64,9 @@ public sealed class AbiImportDuplicationReproductionTests
                 direct.Succeeded,
                 FormatFailure($"Direct compilation {queryIndex}", direct));
 
-            using (var table = direct.CompiledQuery.Run())
+            var directCompiledQuery = direct.CompiledQuery ??
+                throw new AssertFailedException("Direct compilation did not produce a compiled query.");
+            using (var table = directCompiledQuery.Run())
             {
                 Assert.HasCount(1, table);
                 Assert.AreEqual("path", table[0][0]);
@@ -92,7 +94,9 @@ public sealed class AbiImportDuplicationReproductionTests
                 Assert.IsTrue(
                     loaded.Succeeded,
                     FormatFailure($"Artifact loading {queryIndex}/{attempt}", loaded));
-                using (var table = loaded.CompiledQuery.Run())
+                var loadedCompiledQuery = loaded.CompiledQuery ??
+                    throw new AssertFailedException("Artifact loading did not produce a compiled query.");
+                using (var table = loadedCompiledQuery.Run())
                 {
                     Assert.HasCount(1, table);
                     Assert.AreEqual("path", table[0][0]);
@@ -120,28 +124,28 @@ public sealed class AbiImportDuplicationReproductionTests
 
     private static string FormatFailure(string attempt, ArtifactBuildResult result)
     {
-        return $"{attempt}{System.Environment.NewLine}" +
-               $"{result.CaughtException}{System.Environment.NewLine}" +
+        return $"{attempt}{Environment.NewLine}" +
+               $"{result.CaughtException}{Environment.NewLine}" +
                string.Join(
-                   System.Environment.NewLine,
+                   Environment.NewLine,
                    result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()));
     }
 
     private static string FormatFailure(string attempt, BuildResult result)
     {
-        return $"{attempt}{System.Environment.NewLine}" +
-               $"{result.CaughtException}{System.Environment.NewLine}" +
+        return $"{attempt}{Environment.NewLine}" +
+               $"{result.CaughtException}{Environment.NewLine}" +
                string.Join(
-                   System.Environment.NewLine,
+                   Environment.NewLine,
                    result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()));
     }
 
     private static string FormatFailure(string attempt, TargetPackageBuildResult result)
     {
-        return $"{attempt}{System.Environment.NewLine}" +
-               $"{result.CaughtException}{System.Environment.NewLine}" +
+        return $"{attempt}{Environment.NewLine}" +
+               $"{result.CaughtException}{Environment.NewLine}" +
                string.Join(
-                   System.Environment.NewLine,
+                   Environment.NewLine,
                    result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()));
     }
 }

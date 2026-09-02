@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes.InterpretationSchema;
 using Musoq.Parser.Tokens;
 
@@ -28,6 +30,8 @@ public partial class SchemaParser
 
         Consume(TokenType.RBracket);
 
+        ValidateBinaryFieldNames(fields);
+
         return new InlineSchemaTypeNode(fields.ToArray());
     }
 
@@ -43,19 +47,25 @@ public partial class SchemaParser
 
     private TypeAnnotationNode ComposeSchemaReferenceOrArray()
     {
+        var schemaSpan = Current.Span;
         var schemaName = ComposeIdentifierOrWord();
 
         string[]? typeArguments = null;
-        if (Current.TokenType == TokenType.Less) typeArguments = ComposeTypeArguments();
+        if (Current.TokenType == TokenType.Less)
+        {
+            typeArguments = ComposeTypeArguments(out var closingSpan);
+            schemaSpan = schemaSpan.Through(closingSpan);
+        }
 
-        var schemaRef = new SchemaReferenceTypeNode(schemaName, typeArguments);
+        var schemaRef = (SchemaReferenceTypeNode)new SchemaReferenceTypeNode(schemaName, typeArguments)
+            .WithSpan(schemaSpan);
 
         if (Current.TokenType == TokenType.LeftSquareBracket) return ComposeArrayOfType(schemaRef);
 
         return schemaRef;
     }
 
-    private string[] ComposeTypeArguments()
+    private string[] ComposeTypeArguments(out TextSpan closingSpan)
     {
         Consume(TokenType.Less);
 
@@ -67,6 +77,7 @@ public partial class SchemaParser
             typeArgs.Add(ComposeTypeArgument());
         }
 
+        closingSpan = Current.Span;
         ConsumeGenericGreater();
 
         return typeArgs.ToArray();
@@ -79,7 +90,7 @@ public partial class SchemaParser
         if (Current.TokenType != TokenType.Less)
             return typeName;
 
-        var typeArguments = ComposeTypeArguments();
+        var typeArguments = ComposeTypeArguments(out _);
         return $"{typeName}<{string.Join(", ", typeArguments)}>";
     }
 
@@ -88,6 +99,9 @@ public partial class SchemaParser
         Consume(TokenType.LeftSquareBracket);
         var sizeExpr = ComposeSizeExpression();
         Consume(TokenType.RightSquareBracket);
+
+        if (IsNegativeConstantSizeExpression(sizeExpr, out var negativeValue))
+            throw InvalidBinarySchemaField($"Array size must be non-negative, but got {negativeValue}.", sizeExpr.Span);
 
         return new ArrayTypeNode(elementType, sizeExpr);
     }

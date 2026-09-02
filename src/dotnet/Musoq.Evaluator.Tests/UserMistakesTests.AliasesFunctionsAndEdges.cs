@@ -192,8 +192,8 @@ public partial class UserMistakesTests
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - MQ2001: Expected RightParenthesis
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "unclosed function argument list");
+        // Assert - the parser identifies the unclosed function call.
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2021_UnclosedFunctionCall, "unclosed function argument list");
     }
 
 

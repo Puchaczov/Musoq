@@ -6,7 +6,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class CteTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
 
 

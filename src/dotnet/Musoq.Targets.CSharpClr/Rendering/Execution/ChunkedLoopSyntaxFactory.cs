@@ -48,7 +48,7 @@ internal static class ChunkedLoopSyntaxFactory
     {
         if (item.Type.RequireClrType() != typeof(object) || !string.IsNullOrWhiteSpace(item.GeneratedRowTypeName))
         {
-            itemType = ExecutionSyntaxFactory.CreateVariableTypeSyntax(item);
+            itemType = CreateVariableTypeSyntax(item);
             return true;
         }
 
@@ -126,12 +126,12 @@ internal static class ChunkedLoopSyntaxFactory
         Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements)
     {
         var offsetVariableName = CreateIdentifierCandidate($"{rowChunkVariableName}Offset", 0);
-        var offsetDeclaration = ExecutionSyntaxFactory.CreateLocalDeclaration(
-            ExecutionSyntaxFactory.CreateTypeSyntax(typeof(int)),
+        var offsetDeclaration = CreateLocalDeclaration(
+            CreateTypeSyntax(typeof(int)),
             offsetVariableName,
             CreateMemberAccess(rowChunkVariableName, "Offset"));
 
-        var itemAccess = ExecutionSyntaxFactory.CreateElementAccess(
+        var itemAccess = CreateElementAccess(
             SyntaxFactory.IdentifierName(sourceVariableName),
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.AddExpression,
@@ -156,7 +156,7 @@ internal static class ChunkedLoopSyntaxFactory
             indexVariableName,
             CreateMemberAccess(chunkVariableName, "Count"),
             StatementEmitter.CreateBlock(createBodyStatements(
-                ExecutionSyntaxFactory.CreateElementAccess(
+                CreateElementAccess(
                     SyntaxFactory.IdentifierName(chunkVariableName),
                     SyntaxFactory.IdentifierName(indexVariableName)),
                 indexVariableName)));

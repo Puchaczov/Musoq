@@ -68,9 +68,12 @@ internal static class OuterApplyNullSubstitutionService
         string rightAlias)
     {
         var expression = SubstituteRightAlias(strictCast.Expression, rightAlias);
-        return expression.IsBuilt
-            ? OuterApplyNullSubstitutionResult.Known(strictCast with { Expression = expression.Expression })
-            : expression;
+        if (!expression.IsBuilt)
+            return expression;
+
+        return expression.IsUnknown
+            ? OuterApplyNullSubstitutionResult.Unknown()
+            : OuterApplyNullSubstitutionResult.Known(strictCast with { Expression = expression.Expression });
     }
 
     private static OuterApplyNullSubstitutionResult SubstituteBinary(

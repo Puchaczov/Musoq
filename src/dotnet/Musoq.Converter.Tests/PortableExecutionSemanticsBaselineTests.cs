@@ -75,7 +75,7 @@ public sealed class PortableExecutionSemanticsBaselineTests
         Assert.AreEqual(false, nan[0]);
     }
 
-    private static global::Musoq.Evaluator.Tables.Row ExecuteSingleRow(string query)
+    private static Evaluator.Tables.Row ExecuteSingleRow(string query)
     {
         var compiled = InstanceCreator.CompileForExecution(
             query,
@@ -86,7 +86,7 @@ public sealed class PortableExecutionSemanticsBaselineTests
         return compiled.Run().Rows.Single();
     }
 
-    private static global::Musoq.Evaluator.Tables.Row ExecuteSingleRow(
+    private static Evaluator.Tables.Row ExecuteSingleRow(
         string query,
         Action<CompiledQuery> configure)
     {

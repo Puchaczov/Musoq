@@ -21,15 +21,16 @@ public sealed class ExecutionIrOptimizerTests
 
         Assert.AreSame(initial, result.InitialPlan);
         Assert.AreSame(initial, result.OptimizedPlan);
-        Assert.HasCount(8, result.Trace.Entries);
+        Assert.HasCount(9, result.Trace.Entries);
         Assert.AreEqual("SingleUsePipelineFusion", result.Trace.Entries[0].PassName);
         Assert.AreEqual("CteReadOnceFusion", result.Trace.Entries[1].PassName);
         Assert.AreEqual("CteSidecarIndexLowering", result.Trace.Entries[2].PassName);
         Assert.AreEqual("MethodTargetReuse", result.Trace.Entries[3].PassName);
-        Assert.AreEqual("FieldExpressionHoisting", result.Trace.Entries[4].PassName);
-        Assert.AreEqual("ExpressionCseHoisting", result.Trace.Entries[5].PassName);
-        Assert.AreEqual("CapacityHints", result.Trace.Entries[6].PassName);
-        Assert.AreEqual("MethodTargetReuse", result.Trace.Entries[7].PassName);
+        Assert.AreEqual("LoopInvariantCodeMotion", result.Trace.Entries[4].PassName);
+        Assert.AreEqual("FieldExpressionHoisting", result.Trace.Entries[5].PassName);
+        Assert.AreEqual("ExpressionCseHoisting", result.Trace.Entries[6].PassName);
+        Assert.AreEqual("CapacityHints", result.Trace.Entries[7].PassName);
+        Assert.AreEqual("MethodTargetReuse", result.Trace.Entries[8].PassName);
         Assert.IsFalse(result.Trace.Entries.Any(entry => entry.IsChanged));
         AssertTraceEntriesAreMeaningful(result.Trace.Entries);
     }

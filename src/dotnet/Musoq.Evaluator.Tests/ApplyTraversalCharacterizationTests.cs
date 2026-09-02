@@ -15,11 +15,9 @@ using Musoq.Tests.Common;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class ApplyTraversalCharacterizationTests
+public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
 {
     private static readonly CompilationOptions CompilationOptions = new(usePrimitiveTypeValidation: false);
-
-    public TestContext TestContext { get; set; } = null!;
 
     [TestMethod]
     public void CrossApply_LeftPredicate_PrunesRejectedParentBeforeChildEnumeration()
@@ -195,7 +193,7 @@ public sealed class ApplyTraversalCharacterizationTests
             new TestsLoggerResolver());
 
         var planText = inspection.ExecutionPlanText;
-        var guardIndex = planText.IndexOf("ContinueIf [NOT (a.Name = 'keep')]", StringComparison.Ordinal);
+        var guardIndex = planText.IndexOf("ContinueIf [NOT ((a.Name = 'keep') = TRUE)]", StringComparison.Ordinal);
         var sourceIndex = planText.IndexOf("EnumerableSource [a.Children", StringComparison.Ordinal);
 
         Assert.IsTrue(guardIndex >= 0 && guardIndex < sourceIndex, planText);
@@ -245,7 +243,7 @@ public sealed class ApplyTraversalCharacterizationTests
 
         var planText = inspection.ExecutionPlanText;
         var childLoopIndex = planText.IndexOf("ChunkedForEach [b in", StringComparison.Ordinal);
-        var predicateIndex = planText.IndexOf("ContinueIf [NOT (a.Name = 'keep')]", StringComparison.Ordinal);
+        var predicateIndex = planText.IndexOf("ContinueIf [NOT ((a.Name = 'keep') = TRUE)]", StringComparison.Ordinal);
 
         Assert.IsTrue(childLoopIndex >= 0, planText);
         Assert.IsTrue(predicateIndex >= 0 && predicateIndex < childLoopIndex, planText);
@@ -266,7 +264,7 @@ public sealed class ApplyTraversalCharacterizationTests
             new TestsLoggerResolver());
 
         var planText = inspection.ExecutionPlanText;
-        var parentGuard = planText.IndexOf("ContinueIf [NOT (a.Name = 'keep')]", StringComparison.Ordinal);
+        var parentGuard = planText.IndexOf("ContinueIf [NOT ((a.Name = 'keep') = TRUE)]", StringComparison.Ordinal);
         var childSource = planText.IndexOf("EnumerableSource [a.Children", StringComparison.Ordinal);
         var childGuard = planText.IndexOf("ContinueIf [NOT (ab.b.X = 1)]", StringComparison.Ordinal);
         var grandchildSource = planText.IndexOf("EnumerableSource [ab.b.Other", StringComparison.Ordinal);
@@ -293,7 +291,7 @@ public sealed class ApplyTraversalCharacterizationTests
             CompilationOptions);
 
         Assert.Contains("ApplyPredicateMovementPlan", inspection.PlanningText);
-        Assert.Contains("ContinueIf [NOT (a.Name = 'keep')]", inspection.ExecutionPlanText);
+        Assert.Contains("ContinueIf [NOT ((a.Name = 'keep') = TRUE)]", inspection.ExecutionPlanText);
         Assert.Contains("ContinueIf [NOT (ab.b.X = 1)]", inspection.ExecutionPlanText);
         Assert.IsFalse(inspection.ExecutionPlanText.Contains("a_Name = 'keep'", StringComparison.Ordinal));
         Assert.IsFalse(inspection.ExecutionPlanText.Contains("abc.b.X = 1", StringComparison.Ordinal));
@@ -313,7 +311,7 @@ public sealed class ApplyTraversalCharacterizationTests
             new TestsLoggerResolver());
 
         var planText = inspection.ExecutionPlanText;
-        var guardIndex = planText.IndexOf("ContinueIf [NOT (a.Name = 'keep')]", StringComparison.Ordinal);
+        var guardIndex = planText.IndexOf("ContinueIf [NOT ((a.Name = 'keep') = TRUE)]", StringComparison.Ordinal);
         var sourceIndex = planText.IndexOf("EnumerableSource [JustReturnArrayOfString()", StringComparison.Ordinal);
 
         Assert.IsTrue(guardIndex >= 0 && guardIndex < sourceIndex, planText);

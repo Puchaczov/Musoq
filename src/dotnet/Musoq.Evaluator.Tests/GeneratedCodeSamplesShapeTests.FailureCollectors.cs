@@ -64,7 +64,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             if (!generatedCode.Contains("bHasMatch = true;", StringComparison.Ordinal))
                 failures.Add($"{fileName}: missing outer-apply matched-row marker");
 
-            if (!generatedCode.Contains("new ResultShape0(a.Name, null)", StringComparison.Ordinal))
+            if (!Regex.IsMatch(generatedCode, @"new ResultShape0\([A-Za-z_][A-Za-z0-9_]*,\s*null\)", RegexOptions.CultureInvariant))
                 failures.Add($"{fileName}: missing outer-apply null extension");
         }
 
@@ -181,7 +181,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (!content.Contains("if ((!sHasMatch))", StringComparison.Ordinal))
             failures.Add("missing unmatched-row branch");
 
-        if (!content.Contains("new ResultShape0(i.Name, null)", StringComparison.Ordinal))
+        if (!Regex.IsMatch(content, @"new ResultShape0\([^,\r\n]+,\s*null\)", RegexOptions.CultureInvariant))
             failures.Add("missing null-extended right-side projection");
 
         if (content.Contains("Statement0Row0", StringComparison.Ordinal))

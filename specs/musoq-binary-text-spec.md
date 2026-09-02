@@ -2217,6 +2217,11 @@ CROSS APPLY InterpretAt<StorageRecord>(f.GetBytes(), h.DataOffset) r
 
 ### 12.1 Potential Extensions
 
+- **Enum fields** — Direct enum field annotations are not part of the
+  first-class enum v1 profile. A future extension must define the stored
+  carrier, endianness, textual representation, unknown-value behavior, and
+  generated zero-reflection decoder explicitly; core TABLE enum support does
+  not imply interpretation-schema enum support.
 - **Inline property access on Interpret / Parse** — Allow `Interpret<Header>(data).Magic` syntax directly in SELECT, WHERE, and CASE expressions without requiring CROSS APPLY. This would let users access a single field from a parsed result inline. When accessing multiple fields, CROSS APPLY would remain preferred to avoid redundant parsing. Currently, all interpretation functions must appear inside CROSS APPLY or OUTER APPLY (see §3.3).
 - **Binary switch variant extensions** (reserved; see §4.12) — range case labels (`1..3 => ...`), expression case labels, direct arrays of switch types, branch-level `check` constraints, and mixed text/binary switch branches.
 - Compression/encryption integration

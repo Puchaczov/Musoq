@@ -138,7 +138,7 @@ namespace GeneratedSample_Q128_ScriptParameterTypedComparison
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 string country = ko3iko.Country;
-                                if ((country == paramCountry))
+                                if ((Operators.SqlCompare<string, string>(country, paramCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                                 {
                                     yield return new ResultShape0(ko3iko.Name, country);
                                 }
@@ -159,7 +159,7 @@ namespace GeneratedSample_Q128_ScriptParameterTypedComparison
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 string country = ko3iko.Country;
-                                if ((country == paramCountry))
+                                if ((Operators.SqlCompare<string, string>(country, paramCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                                 {
                                     yield return new ResultShape0(ko3iko.Name, country);
                                 }
@@ -178,7 +178,7 @@ namespace GeneratedSample_Q128_ScriptParameterTypedComparison
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
                         string country = ko3iko.Country;
-                        if ((country == paramCountry))
+                        if ((Operators.SqlCompare<string, string>(country, paramCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                         {
                             yield return new ResultShape0(ko3iko.Name, country);
                         }

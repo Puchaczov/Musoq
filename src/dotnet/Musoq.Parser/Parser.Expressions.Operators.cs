@@ -17,22 +17,13 @@ public partial class Parser
         };
     }
 
-
-
     private static bool IsEqualityOperator(Token currentToken)
     {
         return currentToken.TokenType is TokenType.Greater or TokenType.GreaterEqual or TokenType.Less
-            or TokenType.LessEqual or TokenType.Equality or TokenType.Not or TokenType.Diff or TokenType.Like
+            or TokenType.LessEqual or TokenType.Equality or TokenType.Diff or TokenType.Like
             or TokenType.NotLike or TokenType.Contains or TokenType.Is or TokenType.In or TokenType.NotIn
             or TokenType.RLike or TokenType.NotRLike or TokenType.Between;
     }
-
-
-    private static bool IsQueryOperator(Token currentToken)
-    {
-        return currentToken.TokenType is TokenType.And or TokenType.Or;
-    }
-
 
     private static bool IsNumericToken(Token current)
     {
@@ -40,4 +31,5 @@ public partial class Parser
             or TokenType.BinaryInteger or TokenType.OctalInteger;
     }
 
+    private void ThrowIfMissingRightOperand(string operatorText) => ParserDiagnosticFacts.ThrowIfMissingRightOperand(Current, operatorText, _lexer.AlreadyResolvedQueryPart);
 }

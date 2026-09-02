@@ -167,7 +167,7 @@ public static partial class ExecutionPlanPrinter
                 break;
             case ExecutionRecursiveCteSnapshotRowGuard guard:
                 builder.AppendLine(
-                    System.Globalization.CultureInfo.InvariantCulture,
+                    CultureInfo.InvariantCulture,
                     $"{prefix}RecursiveSnapshotGuard [{guard.Counter.Name} < {guard.MaxRows}; {guard.Name}]");
                 break;
             case ExecutionCreateHashPayload createPayload:

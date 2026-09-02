@@ -15,7 +15,7 @@ public static class DiagnosticPhaseMapping
         return value switch
         {
             (int)DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape => DiagnosticPhase.Parse,
-            (int)DiagnosticCode.MQ4016_UnsupportedSchemaConstruction => DiagnosticPhase.Schema,
+            >= 4001 and <= 4016 => DiagnosticPhase.Schema,
             (int)DiagnosticCode.MQ8001_CodeGenerationFailed => DiagnosticPhase.CodeGeneration,
             (int)DiagnosticCode.MQ7010_DataSourceOpenFailed or
             (int)DiagnosticCode.MQ7011_DataSourceReadFailed or

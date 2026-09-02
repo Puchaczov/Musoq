@@ -52,7 +52,9 @@ public partial class SpecExplorationCoreLanguageTests
                     : DiagnosticPhase.Bind,
                 warning.Phase,
                 code.ToString());
-            build.CompiledQuery.Dispose();
+            var compiledQuery = build.CompiledQuery ??
+                throw new AssertFailedException("Successful advisory compilation produced no compiled query.");
+            compiledQuery.Dispose();
         }
     }
 
@@ -79,7 +81,9 @@ public partial class SpecExplorationCoreLanguageTests
 
             Assert.IsTrue(build.Succeeded, Format(build.Diagnostics));
             Assert.AreEqual(hasWarning, build.Warnings.Count > 0, query);
-            using var table = build.CompiledQuery.Run(TokenSource.Token);
+            var compiledQuery = build.CompiledQuery ??
+                throw new AssertFailedException("Successful advisory compilation produced no compiled query.");
+            using var table = compiledQuery.Run(TokenSource.Token);
             Assert.AreEqual(expected, table[0][0], query);
         }
     }

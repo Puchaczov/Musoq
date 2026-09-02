@@ -160,8 +160,17 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         if (aggregateUpdateHelper != null)
         {
-            Assert.Contains($"private static void {aggregateUpdateHelper}(", sample);
-            Assert.Contains($"{aggregateUpdateHelper}(", sample);
+            if (sample.Contains(aggregateUpdateHelper, StringComparison.Ordinal))
+            {
+                Assert.Contains($"private static void {aggregateUpdateHelper}(", sample);
+                Assert.Contains($"{aggregateUpdateHelper}(", sample);
+            }
+            else
+            {
+                // A scalar aggregate may be emitted directly in the traversal helper after
+                // LICM exposes its stable input; it remains typed and branch-free.
+                Assert.Contains("group.__agg0.Value", sample);
+            }
         }
     }
 
@@ -202,7 +211,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("CreateRowBuffer [left: List<LeftRow0>]", union);
         Assert.Contains("CreateRowBuffer [right: List<RightRow0>]", union);
         Assert.Contains("var resultKeys = new HashSet<string>(left.Count + right.Count);", union);
-        Assert.Contains("resultKeys.Add((string)resultLeftRow.Name);", union);
+        Assert.Contains("if (resultKeys.Add((string)resultLeftRow.Name))", union);
         Assert.Contains("if (resultKeys.Add((string)resultRightRow.Name))", union);
         Assert.Contains("__musoqFinalShapeRows.Add(new LeftShape0((string)resultLeftRow.Name));", union);
         Assert.Contains("__musoqFinalShapeRows.Add(new LeftShape0((string)resultRightRow.Name));", union);

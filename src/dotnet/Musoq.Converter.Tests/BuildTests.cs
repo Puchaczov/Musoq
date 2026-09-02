@@ -314,7 +314,7 @@ public class BuildTests
             sourceArtifact.ParameterDefinitions);
     }
 
-    private static global::Musoq.Evaluator.CompiledTypedQuery<DualDto> LoadDualArtifact(
+    private static Evaluator.CompiledTypedQuery<DualDto> LoadDualArtifact(
         ICompiledTypedQueryArtifact artifact)
     {
         return InstanceCreator.LoadTypedArtifact<DualDto>(
@@ -361,7 +361,7 @@ public class BuildTests
 
         public string RunnableTypeName => inner.RunnableTypeName;
 
-        public global::Musoq.Evaluator.IR.CodeGeneration.QueryResultMode ResultMode => inner.ResultMode;
+        public Evaluator.IR.CodeGeneration.QueryResultMode ResultMode => inner.ResultMode;
 
         public Type OutputType => inner.OutputType;
 
@@ -375,9 +375,9 @@ public class BuildTests
 
         public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans => inner.SourceExecutionPlans;
 
-        public IReadOnlyList<global::Musoq.Evaluator.ScriptParameterDefinition> ParameterDefinitions => inner.ParameterDefinitions;
+        public IReadOnlyList<Evaluator.ScriptParameterDefinition> ParameterDefinitions => inner.ParameterDefinitions;
 
-        public IReadOnlyList<global::Musoq.Evaluator.ScriptParameterContract> ParameterContracts => inner.ParameterContracts;
+        public IReadOnlyList<Evaluator.ScriptParameterContract> ParameterContracts => inner.ParameterContracts;
 
         public IReadOnlyList<TypedArtifactSourceSlotIdentity> SourceSlotIdentities => inner.SourceSlotIdentities;
     }

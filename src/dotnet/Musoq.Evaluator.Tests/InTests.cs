@@ -272,7 +272,6 @@ public class InTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count);
     }
 
-    public TestContext TestContext { get; set; }
 
     #endregion
 }

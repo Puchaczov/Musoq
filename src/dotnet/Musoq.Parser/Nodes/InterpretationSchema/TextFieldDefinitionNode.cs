@@ -44,15 +44,17 @@ public class TextFieldDefinitionNode : Node
     /// </summary>
     /// <param name="name">The field name (use "_" for discard fields).</param>
     /// <param name="switchCases">The switch cases for pattern-based type selection.</param>
+    /// <param name="modifiers">Optional processing modifiers.</param>
     public TextFieldDefinitionNode(
         string name,
-        TextSwitchCaseNode[] switchCases)
+        TextSwitchCaseNode[] switchCases,
+        TextFieldModifier modifiers = TextFieldModifier.None)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         FieldType = TextFieldType.Switch;
         PrimaryValue = null;
         SecondaryValue = null;
-        Modifiers = TextFieldModifier.None;
+        Modifiers = modifiers;
         EscapeCharacter = null;
         CaptureGroups = Array.Empty<string>();
         SwitchCases = switchCases ?? throw new ArgumentNullException(nameof(switchCases));
@@ -77,6 +79,7 @@ public class TextFieldDefinitionNode : Node
     ///     - Until: the delimiter
     ///     - Between: the opening delimiter
     ///     - Chars: the character count (as string)
+    ///     - SchemaReference: the referenced text schema name
     /// </summary>
     public string? PrimaryValue { get; }
 
@@ -113,7 +116,12 @@ public class TextFieldDefinitionNode : Node
     public bool IsDiscard => Name == "_";
 
     /// <inheritdoc />
-    public override Type ReturnType => typeof(string);
+    public override Type ReturnType => FieldType switch
+    {
+        TextFieldType.Repeat => typeof(object[]),
+        TextFieldType.Switch or TextFieldType.SchemaReference => typeof(object),
+        _ => typeof(string)
+    };
 
     /// <inheritdoc />
     public override string Id { get; }
@@ -164,8 +172,14 @@ public class TextFieldDefinitionNode : Node
                 builder.Append("rest");
                 break;
 
+            case TextFieldType.SchemaReference:
+                builder.Append(PrimaryValue);
+                break;
+
             case TextFieldType.Whitespace:
                 builder.Append("whitespace");
+                if (PrimaryValue is "*" or "?")
+                    builder.Append(PrimaryValue);
                 break;
 
             case TextFieldType.Repeat:

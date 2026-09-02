@@ -15,8 +15,7 @@ public sealed partial class Lexer
         if (Position >= Input.Length)
             return AssignToken(new EndOfFileToken(new TextSpan(Input.Length, 0)));
 
-        var c = Input[Position];
-        var category = FastCharacterClassifier.GetCategory(c);
+        var category = FastCharacterClassifier.GetCategory(Input.AsSpan(), Position);
 
         return category switch
         {

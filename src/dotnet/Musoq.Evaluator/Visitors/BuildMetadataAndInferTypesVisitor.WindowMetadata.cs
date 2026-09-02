@@ -10,9 +10,20 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
+    private readonly NamedWindowDefinitionValidator _namedWindowValidator = new();
+
+    internal void PrecollectCurrentQueryWindowDefinitions(WindowNode? window) =>
+        _namedWindowValidator.Precollect(window, ReportWindowException);
+
+    internal void EndCurrentQueryWindowDefinitionScope() => _namedWindowValidator.EndScope();
+
+    private void ValidateNamedWindowReference(WindowFunctionNode node) =>
+        _namedWindowValidator.Validate(node, ReportWindowException);
+
     public override void Visit(WindowFunctionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        ValidateNamedWindowReference(node);
         var spec = node.WindowSpecification != null
             ? PopSemanticNode("Visit(WindowFunctionNode).WindowSpec") as WindowSpecificationNode
             : null;
@@ -25,8 +36,46 @@ public partial class BuildMetadataAndInferTypesVisitor
         for (var i = funcArgCount - 1; i >= 0; i--)
             funcArgs[i] = PopSemanticNode("Visit(WindowFunctionNode).FuncArg");
 
+        WindowFunctionArgumentValidation.Validate(node.FunctionCall, funcArgs, ReportWindowArgumentError);
         var (returnType, resolvedFactory) = InferWindowFunctionReturnType(node.FunctionCall.Name, funcArgs);
         var argsListNode = new ArgsListNode(funcArgs);
+
+        var normalizedName = node.FunctionCall.Name.Replace("_", string.Empty, StringComparison.Ordinal)
+            .ToUpperInvariant();
+        ValidateWindowEnumArguments(normalizedName, funcArgs, node);
+        var requiresOrderBy = normalizedName is
+            "ROWNUMBER" or "RANK" or "DENSERANK" or "PERCENTRANK" or "CUMEDIST" or "NTILE" or "LAG" or "LEAD";
+
+        if (requiresOrderBy && spec != null && spec.OrderByFields.Length == 0)
+        {
+            ReportWindowException(
+                DiagnosticCode.MQ3099_WindowOrderByRequired,
+                $"Window function '{node.FunctionCall.Name}' requires ORDER BY inside its OVER specification.",
+                spec.SpanOrEmpty());
+        }
+
+        var nestedWindowDetector = new QualifyWindowFunctionDetector();
+        var nestedWindowTraverser = new QualifyWindowFunctionTraverser(nestedWindowDetector);
+        foreach (var argument in funcArgs)
+            argument.Accept(nestedWindowTraverser);
+        filterExpression?.Accept(nestedWindowTraverser);
+
+        if (nestedWindowDetector.Found)
+        {
+            ReportWindowException(
+                DiagnosticCode.MQ3100_NestedWindowFunction,
+                "Window functions cannot be nested inside another window function. Move the inner expression into a CTE or derived query.",
+                node.SpanOrEmpty());
+        }
+
+        if (_queryState.QueryPart is QueryPart.Where or QueryPart.Having)
+        {
+            var clause = _queryState.QueryPart == QueryPart.Where ? "WHERE" : "HAVING";
+            ReportWindowException(
+                DiagnosticCode.MQ3101_WindowFunctionInFilter,
+                $"Window functions are not allowed in {clause}; use QUALIFY to filter window results.",
+                node.SpanOrEmpty());
+        }
 
         var functionCall = new AccessMethodNode(
             node.FunctionCall.FunctionToken,
@@ -35,7 +84,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             false,
             resolvedFactory,
             node.FunctionCall.Alias,
-            default,
+            node.FunctionCall.Span,
             node.FunctionCall.IsDistinct)
         {
             HasFilter = node.FunctionCall.HasFilter,
@@ -56,6 +105,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 spec ?? throw new InvalidOperationException("Window function requires a window specification."));
 
         result.SetReturnType(returnType);
+        result.WithSpan(node.Span);
+        result.WithFullSpan(node.FullSpan);
         PushSemanticNode(result);
     }
 
@@ -66,6 +117,17 @@ public partial class BuildMetadataAndInferTypesVisitor
         for (var i = node.OrderByFields.Length - 1; i >= 0; i--)
             orderByFields[i] = (FieldOrderedNode)PopSemanticNode("Visit(WindowSpecificationNode).OrderBy");
 
+        foreach (var orderByField in orderByFields)
+        {
+            if (!TryGetEnumExpressionType(orderByField.Expression, out var enumType))
+                continue;
+
+            ReportEnumSemanticError(
+                DiagnosticCode.MQ3110_UnsupportedEnumOperator,
+                $"Window ORDER BY is not supported for enum type '{enumType.DisplayName}' in v1.",
+                orderByField);
+        }
+
         var partitionFields = new FieldNode[node.PartitionFields.Length];
         for (var i = node.PartitionFields.Length - 1; i >= 0; i--)
             partitionFields[i] = (FieldNode)PopSemanticNode("Visit(WindowSpecificationNode).Partition");
@@ -73,16 +135,21 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (node.Frame is { FrameType: WindowFrameType.Range } && orderByFields.Length == 0)
             ThrowRangeFrameRequiresOrderBy(node);
 
-        WindowFrameSemanticValidator.Validate(node, orderByFields, TryReportException);
+        WindowFrameSemanticValidator.Validate(node, orderByFields, ReportWindowException);
 
-        PushSemanticNode(new WindowSpecificationNode(partitionFields, orderByFields, node.Frame));
+        var result = (WindowSpecificationNode)new WindowSpecificationNode(partitionFields, orderByFields, node.Frame)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan);
+        PushSemanticNode(result);
     }
 
     public override void Visit(WindowDefinitionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var spec = (WindowSpecificationNode)PopSemanticNode("Visit(WindowDefinitionNode).Spec");
-        PushSemanticNode(new WindowDefinitionNode(node.Name, spec));
+        PushSemanticNode(((WindowDefinitionNode)new WindowDefinitionNode(node.Name, spec))
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(WindowNode node)
@@ -92,7 +159,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         for (var i = node.Definitions.Length - 1; i >= 0; i--)
             definitions[i] = (WindowDefinitionNode)PopSemanticNode("Visit(WindowNode).Definition");
 
-        PushSemanticNode(new WindowNode(definitions));
+        PushSemanticNode(((WindowNode)new WindowNode(definitions))
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     private (Type ReturnType, MethodInfo? ResolvedFactory) InferWindowFunctionReturnType(string functionName, Node[] args)
@@ -195,17 +264,10 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var span = qualify.Expression.HasSpan ? qualify.Expression.Span : TextSpan.Empty;
 
-        var exception = new VisitorException(
-            nameof(BuildMetadataAndInferTypesVisitor),
-            "ValidateQualifyReferencesWindowFunction",
-            "QUALIFY clause requires at least one window function in its expression.",
+        ReportWindowException(
             DiagnosticCode.MQ3050_QualifyRequiresWindowFunction,
+            "QUALIFY clause requires at least one window function in its expression.",
             span);
-
-        if (TryReportException(exception, qualify))
-            return;
-
-        throw exception;
     }
 
     private void ThrowRangeFrameRequiresOrderBy(WindowSpecificationNode node)
@@ -213,17 +275,30 @@ public partial class BuildMetadataAndInferTypesVisitor
         var span = node.HasSpan ? node.Span : TextSpan.Empty;
         const string message = "A RANGE window frame requires an ORDER BY clause in the window specification.";
 
-        var exception = new VisitorException(
-            nameof(BuildMetadataAndInferTypesVisitor),
-            "Visit(WindowSpecificationNode)",
-            message,
-            DiagnosticCode.MQ3052_RangeFrameRequiresOrderBy,
-            span);
+        ReportWindowException(DiagnosticCode.MQ3052_RangeFrameRequiresOrderBy, message, span);
+    }
 
-        if (TryReportException(exception, node))
+    private void ReportWindowException(DiagnosticCode code, string message, TextSpan span)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(code, message, span);
             return;
+        }
 
-        throw exception;
+        throw new CannotResolveMethodException(message, code, span);
+    }
+
+    private void ReportWindowArgumentError(DiagnosticCode code, string message, Node context)
+    {
+        var span = context.SpanOrEmpty();
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(code, message, span);
+            return;
+        }
+
+        throw new CannotResolveMethodException(message, code, span);
     }
 
     private sealed class QualifyWindowFunctionTraverser(IExpressionVisitor visitor)

@@ -49,6 +49,7 @@ internal static class ExecutionPortableSymbolDefinitionComparer
             left.GenericArity != right.GenericArity ||
             left.InvocationMode != right.InvocationMode ||
             left.IntrinsicKind != right.IntrinsicKind ||
+            left.IsStable != right.IsStable ||
             !AreEquivalent(left.DeclaringType, right.DeclaringType) ||
             !AreEquivalent(left.ReturnType, right.ReturnType) ||
             !AreEquivalent(left.ParameterTypes, right.ParameterTypes))

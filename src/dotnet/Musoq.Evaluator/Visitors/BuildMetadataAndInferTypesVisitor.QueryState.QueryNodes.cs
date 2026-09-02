@@ -43,7 +43,17 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         TraversalFrame.PushMethod(from.Alias);
 
-        var queryNode = new QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify, default);
+        var queryNode = (QueryNode)(new QueryNode(
+                select,
+                from,
+                where,
+                groupBy,
+                orderBy,
+                skip,
+                take,
+                window,
+                qualify,
+                node.Span)).WithFullSpan(node.FullSpan);
 
         ValidateSelectFieldsArePrimitive(queryNode.Select.Fields, "SELECT");
 

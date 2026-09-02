@@ -17,14 +17,12 @@ namespace Musoq.Evaluator.Tests;
 ///     different schema data sources, especially in CTE contexts.
 /// </summary>
 [TestClass]
-public class CrossApplyMultiSchemaTests
+public class CrossApplyMultiSchemaTests : MSTestContextTestBase
 {
     static CrossApplyMultiSchemaTests()
     {
         Culture.ApplyWithDefaultCulture();
     }
-
-    public TestContext TestContext { get; set; }
 
     private ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 

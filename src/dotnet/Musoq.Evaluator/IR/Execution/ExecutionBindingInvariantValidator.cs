@@ -71,6 +71,7 @@ internal static class ExecutionBindingInvariantValidator
         ExecutionQueryRowSourceTransfer transfer)
     {
         var sourceId = sourceScan.Binding.RuntimeContextId;
+        var shapeFields = new List<QueryRowField>(transfer.Fields.Count);
         if (sourceScan.Binding.Fields.Count != transfer.Fields.Count)
         {
             throw new InvalidOperationException(
@@ -88,9 +89,11 @@ internal static class ExecutionBindingInvariantValidator
             }
 
             Type fieldType;
+            Type sourceReadType;
             try
             {
                 fieldType = transferField.FieldType.ResolveClrType();
+                sourceReadType = transferField.SourceReadType.ResolveClrType();
             }
             catch (NotSupportedException exception)
             {
@@ -110,6 +113,8 @@ internal static class ExecutionBindingInvariantValidator
             if (binding.OutputIndex != slot ||
                 !string.Equals(binding.Name, transferField.Name, StringComparison.Ordinal) ||
                 !string.Equals(binding.Type.StableId, transferField.FieldType.StableId, StringComparison.Ordinal) ||
+                !string.Equals(binding.SourceReadType.StableId, transferField.SourceReadType.StableId, StringComparison.Ordinal) ||
+                !EnumTypesMatch(binding.EnumType, transferField.EnumType) ||
                 binding.AccessStrategy is not GeneratedFieldAccess generatedAccess ||
                 !string.Equals(generatedAccess.FieldName, expectedAccess, StringComparison.Ordinal) ||
                 !ReadModifiersMatch(binding.ReadModifiers, transferField.ReadModifiers))
@@ -117,7 +122,32 @@ internal static class ExecutionBindingInvariantValidator
                 throw new InvalidOperationException(
                     $"Execution query-row transfer field '{sourceId}.{transferField.Name}' is incompatible with its generated source binding at slot {slot}.");
             }
+
+            shapeFields.Add(new QueryRowField(
+                transferField.Slot,
+                transferField.SourceColumnIndex,
+                transferField.Name,
+                fieldType,
+                sourceReadType,
+                transferField.EnumType,
+                transferField.IsNullable,
+                transferField.ReadModifiers,
+                ColumnStability.Stable));
         }
+
+        var expectedFingerprint = new QueryRowShape(shapeFields).Fingerprint;
+        if (!string.Equals(expectedFingerprint, transfer.ShapeFingerprint, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                $"Execution query-row transfer for source '{sourceId}' has a shape fingerprint that does not match its fields.");
+        }
+    }
+
+    private static bool EnumTypesMatch(EnumTypeDescriptor? left, EnumTypeDescriptor? right)
+    {
+        return left == null
+            ? right == null
+            : right != null && string.Equals(left.Fingerprint, right.Fingerprint, StringComparison.Ordinal);
     }
 
     private static bool ReadModifiersMatch(

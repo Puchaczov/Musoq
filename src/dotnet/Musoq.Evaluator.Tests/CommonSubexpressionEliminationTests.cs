@@ -666,7 +666,6 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         Assert.IsTrue(table.Any(row => (decimal)row.Values[0] == 201m && (decimal)row.Values[1] == 211m));
     }
 
-    public TestContext TestContext { get; set; }
 
     #endregion
 }

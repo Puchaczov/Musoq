@@ -100,6 +100,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (field.FieldType == TextFieldType.Switch)
             return (typeof(ExpandoObject), null);
 
+        if (field.FieldType == TextFieldType.SchemaReference)
+        {
+            var referencedSchemaName = field.PrimaryValue ?? "object";
+            return (typeof(object), $"Musoq.Generated.Interpreters.{referencedSchemaName}");
+        }
+
         return (typeof(string), null);
     }
 

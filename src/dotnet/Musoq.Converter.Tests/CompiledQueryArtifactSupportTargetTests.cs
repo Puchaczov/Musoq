@@ -264,6 +264,9 @@ public sealed class CompiledQueryArtifactSupportTargetTests
         Assert.AreEqual("r", facts.PortableUsedColumns[0].Source.Alias);
         Assert.AreEqual("7", facts.PortableUsedColumns[0].Source.QueryId);
         Assert.AreEqual("Name", facts.PortableUsedColumns[0].Columns[0].ColumnName);
+        Assert.AreEqual(facts.PortableUsedColumns[0].Columns[0].ColumnTypeName,
+            facts.PortableUsedColumns[0].Columns[0].SourceReadTypeName);
+        Assert.AreEqual("<null>", facts.PortableUsedColumns[0].Columns[0].EnumTypeFingerprint);
         Assert.AreEqual("utf8", facts.PortableUsedColumns[0].Columns[0].ReadModifiers["encoding"]);
         Assert.IsNotNull(facts.PortablePipelineInferredColumns);
         Assert.AreEqual("r", facts.PortablePipelineInferredColumns[0].Alias);
@@ -273,6 +276,62 @@ public sealed class CompiledQueryArtifactSupportTargetTests
         Assert.AreEqual("2", facts.PortableSourcePlanSignatures[0].Take);
         Assert.AreEqual("Name", facts.PortableSourcePlanSignatures[0].RequiredColumns[0].Name);
         Assert.AreEqual("1", facts.PortableSourcePlanSignatures[0].RequiredColumns[0].ReadModifiers["source.index"]);
+    }
+
+    [TestMethod]
+    public void SemanticShapeHash_ShouldIncludeEnumIdentityAndExactSourceReadType()
+    {
+        var source = new SchemaFromNode(
+            "test",
+            "rows",
+            new ArgsListNode([]),
+            "r",
+            typeof(object),
+            7);
+        var firstDescriptor = new EnumTypeDescriptor(
+            "FirstStatus",
+            EnumTypeOrigin.QueryLocal,
+            EnumUnderlyingKind.Int32,
+            false,
+            [new EnumMemberDescriptor("Ready", EnumScalarValue.FromInt32(1))]);
+        var secondDescriptor = new EnumTypeDescriptor(
+            "SecondStatus",
+            EnumTypeOrigin.QueryLocal,
+            EnumUnderlyingKind.Int32,
+            false,
+            [new EnumMemberDescriptor("Ready", EnumScalarValue.FromInt32(1))]);
+        var nativeDescriptor = EnumTypeDescriptor.FromClrEnum(typeof(NativeStatus));
+
+        var firstHash = CreateColumnSemanticHash(source,
+            new SchemaColumn("Status", 0, typeof(int), typeof(int), firstDescriptor));
+        var secondHash = CreateColumnSemanticHash(source,
+            new SchemaColumn("Status", 0, typeof(int), typeof(int), secondDescriptor));
+        var nativeReadHash = CreateColumnSemanticHash(source,
+            new SchemaColumn("Status", 0, typeof(int), typeof(NativeStatus), nativeDescriptor));
+        var carrierReadHash = CreateColumnSemanticHash(source,
+            new SchemaColumn("Status", 0, typeof(int), typeof(int), nativeDescriptor));
+
+        Assert.AreNotEqual(firstHash, secondHash);
+        Assert.AreNotEqual(nativeReadHash, carrierReadHash);
+    }
+
+    private static string CreateColumnSemanticHash(SchemaFromNode source, ISchemaColumn column)
+    {
+        var facts = new TargetArtifactSemanticFacts(
+            QueryResultMode.Table,
+            null,
+            [],
+            [],
+            new Dictionary<SchemaFromNode, ISchemaColumn[]> { [source] = [column] },
+            null,
+            new Dictionary<SchemaFromNode, SourcePlanRequest>());
+
+        return CompiledQueryArtifactSupport.ComputeSemanticShapeHash(facts, "Runnable");
+    }
+
+    public enum NativeStatus
+    {
+        Ready = 1
     }
 
     private sealed record NonCSharpRenderedArtifact()

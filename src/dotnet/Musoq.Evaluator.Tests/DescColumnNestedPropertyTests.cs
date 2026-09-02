@@ -15,7 +15,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     #region Dictionary/IEnumerable Nested Property Tests
 

@@ -95,6 +95,23 @@ public class SourceTransferPlannerTests
     }
 
     [TestMethod]
+    public void Plan_WhenShapeContainsVolatileColumn_FallsBackWithoutFreezingValue()
+    {
+        var source = CreateSource(
+            "source:0",
+            [new SchemaColumn("Value", 0, typeof(int), ColumnStability.Volatile)],
+            SourceTransferCapabilities.QueryScopedRows);
+
+        var plan = SourceTransferPlanner.Plan(
+            CreateContext(),
+            CreateFacts(source, SourceTransferCapabilities.QueryScopedRows)).PlansBySourceId[source.SourceContextId];
+
+        Assert.AreEqual(SourceTransferMode.DeclaredRows, plan.Mode);
+        Assert.IsNull(plan.Shape);
+        StringAssert.Contains(plan.Reason, "volatile column 'Value'");
+    }
+
+    [TestMethod]
     [DynamicData(nameof(UnsupportedQueryRowFieldTypes))]
     public void Plan_WhenShapeContainsUnsupportedClrType_FallsBackWithDiagnosticReason(Type fieldType)
     {

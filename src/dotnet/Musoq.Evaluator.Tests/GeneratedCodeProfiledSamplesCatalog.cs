@@ -39,7 +39,13 @@ internal static class GeneratedCodeProfiledSamplesCatalog
         ProfiledFromExisting("P12_RecursiveInvariantIndexedEdges_Full", "Q203_RecursiveInvariantHashLookup.cs"),
         ProfiledFromExisting(
             "P13_RecursiveTypedInvariantDirectIndex_Full",
-            "Q224_RecursiveCompositeInvariantSubplan.cs")
+            "Q224_RecursiveCompositeInvariantSubplan.cs"),
+        ProfiledFromExisting("P14_StableFilterProjectionReuse_Full", "Q252_StableFilterProjectionReuse.cs"),
+        ProfiledFromExisting("P15_VolatileFilterProjectionReuse_Full", "Q253_VolatileFilterProjectionReuse.cs"),
+        ProfiledFromExisting("P16_SharedStableWindowInputs_Full", "Q254_SharedStableWindowInputs.cs"),
+        ProfiledFromExisting("P17_ParallelAggregateSharedArguments_Full", "Q256_ParallelAggregateSharedArguments.cs"),
+        ProfiledFromExisting("P18_PivotPredicateDispatch_Full", "Q257_PivotPredicateDispatch.cs"),
+        ProfiledFromExisting("P19_RecursiveStableScalarInvariant_Full", "Q267_RecursiveStableScalarInvariant.cs")
     ];
 
     public static GeneratedCodeSample GetByFileName(string fileName)

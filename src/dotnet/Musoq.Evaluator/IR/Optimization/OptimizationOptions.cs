@@ -13,5 +13,9 @@ internal sealed record OptimizationOptions
 
     public bool CrossNodeExpressionCseEnabled { get; init; }
 
+    public bool LoopInvariantCodeMotionEnabled { get; init; }
+
+    public bool StabilityAwareScalarReuseEnabled { get; init; }
+
     public static OptimizationOptions Default { get; } = new();
 }

@@ -212,7 +212,7 @@ public partial class ExploratoryQueriesAndJoinsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)), ("t.Value", typeof(string)), ("IsAdmin", typeof(bool)));
+            ("p.Name", typeof(string)), ("t.Value", typeof(string)), ("IsAdmin", typeof(bool?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "admin", true], ["John", "user", false]);
     }
 

@@ -9,7 +9,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class OuterApplyMixedTests : GenericEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void OuterApply_SchemaAndProperty_WithNestedProperty_ShouldPass()

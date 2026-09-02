@@ -33,7 +33,7 @@ public partial class SchemaParser
             return ComposePostfixAccess(new AccessMethodNode(funcToken, new ArgsListNode([..args]), null, false));
         }
 
-        Node result = new IdentifierNode(name);
+        Node result = new IdentifierNode(name, null, token.Span);
         return ComposePostfixAccess(result);
     }
 
@@ -58,7 +58,7 @@ public partial class SchemaParser
                         _lexer.AlreadyResolvedQueryPart);
 
                 var memberToken = ConsumeAndGetToken(Current.TokenType);
-                var memberNode = new IdentifierNode(memberToken.Value);
+                var memberNode = new IdentifierNode(memberToken.Value, null, memberToken.Span);
                 node = new DotNode(node, memberNode, memberToken.Value);
             }
             else if (Current.TokenType == TokenType.LeftSquareBracket)

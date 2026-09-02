@@ -1,4 +1,3 @@
-using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
@@ -77,14 +76,15 @@ public partial class SchemaParser
             {
                 TokenType.LittleEndian => Endianness.LittleEndian,
                 TokenType.BigEndian => Endianness.BigEndian,
-                _ => throw new SyntaxException(
-                    $"Multi-byte type '{typeName}' requires endianness specifier (le or be)",
-                    _lexer.AlreadyResolvedQueryPart)
+                _ => throw InvalidBinarySchemaEndianness($"Multi-byte type '{typeName}' requires endianness specifier (le or be)", Current.Span)
             };
             Consume(Current.TokenType);
         }
         else
         {
+            if (Current.TokenType is TokenType.LittleEndian or TokenType.BigEndian)
+                throw InvalidBinarySchemaEndianness($"Single-byte type '{typeName}' does not accept an endianness specifier", Current.Span);
+
             endianness = Endianness.NotApplicable;
         }
 
@@ -101,11 +101,7 @@ public partial class SchemaParser
             return primitiveType;
 
         if (IsNegativeConstantSizeExpression(arraySizeExpr, out var negativeArrayValue))
-            throw new SyntaxException(
-                $"{typeName}[] size must be non-negative, but got {negativeArrayValue}.",
-                _lexer.AlreadyResolvedQueryPart,
-                DiagnosticCode.MQ4001_InvalidBinarySchemaField,
-                arraySizeExpr.Span);
+            throw InvalidBinarySchemaField($"{typeName}[] size must be non-negative, but got {negativeArrayValue}.", arraySizeExpr.Span);
 
         return new ArrayTypeNode(primitiveType, arraySizeExpr);
     }

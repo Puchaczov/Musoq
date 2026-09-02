@@ -20,14 +20,14 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
     ];
 
     [TestMethod]
-    public void CurrentCorpus_Contains250SnapshotsAndNoGeneratedReflection()
+    public void CurrentCorpus_Contains327SnapshotsAndNoGeneratedReflection()
     {
         var files = Directory
             .EnumerateFiles(GeneratedCodeSampleArtifacts.SamplesDirectory, "*.cs")
             .ToArray();
 
-        Assert.AreEqual(250, files.Length);
-        Assert.AreEqual(250, GeneratedCodeSamplesCatalog.Samples.Count);
+        Assert.AreEqual(327, files.Length);
+        Assert.AreEqual(327, GeneratedCodeSamplesCatalog.Samples.Count);
 
         var expectedFiles = new[]
         {
@@ -47,6 +47,27 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
             "Q239_QueryRowZeroField.cs",
             "Q240_QueryRowSpecialNames.cs",
             "Q241_QueryRowLifetimeBoundary.cs",
+            "Q248_LoopInvariantStableApplyProjection.cs",
+            "Q249_LoopInvariantVolatileApplyProjection.cs",
+            "Q250_LoopInvariantStableAndVolatileFunctions.cs",
+            "Q251_LoopInvariantEmptyApply.cs",
+            "Q252_StableFilterProjectionReuse.cs",
+            "Q253_VolatileFilterProjectionReuse.cs",
+            "Q254_SharedStableWindowInputs.cs",
+            "Q255_VolatileWindowInputs.cs",
+            "Q256_ParallelAggregateSharedArguments.cs",
+            "Q257_PivotPredicateDispatch.cs",
+            "Q258_GuardedStableApplyPredicate.cs",
+            "Q259_GuardedVolatileOuterApplyPredicate.cs",
+            "Q260_StableAsOfProbeKeys.cs",
+            "Q261_StableRangeJoinKeys.cs",
+            "Q262_CorrelatedCteProbeReuse.cs",
+            "Q263_StableUnpivotExpansion.cs",
+            "Q264_BoundaryRowShapeNarrowing.cs",
+            "Q265_SourceComputedProjectionAccepted.cs",
+            "Q266_SourceComputedProjectionResidual.cs",
+            "Q267_RecursiveStableScalarInvariant.cs",
+            "Q324_EnumQueryScopedRows.cs",
             "Q58_BinaryGenericInterpret.cs",
             "Q59_BinaryNestedGenericInterpret.cs"
         };

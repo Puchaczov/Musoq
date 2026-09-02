@@ -77,7 +77,7 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("ReadChars(data, 10, trim: true)", code);
+        Assert.Contains("ReadChars(data, 10, trim: true, fieldName: \"Fixed\")", code);
     }
 
     [TestMethod]
@@ -120,7 +120,7 @@ public partial class InterpreterCodeGenTests
 
         // Assert
         Assert.Contains("ReadToken(data", code);
-        Assert.Contains("SkipWhitespace(data, true)", code);
+        Assert.Contains("SkipWhitespace(data, true, fieldName: \"_\")", code);
     }
 
     [TestMethod]
@@ -309,7 +309,7 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("SkipWhitespace(data, true)", code);
+        Assert.Contains("SkipWhitespace(data, true, fieldName: \"_\")", code);
     }
 
     [TestMethod]
@@ -331,7 +331,7 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("SkipWhitespace(data, false)", code);
+        Assert.Contains("SkipWhitespace(data, false, fieldName: \"_\")", code);
     }
 
     [TestMethod]
@@ -353,7 +353,7 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("SkipOptionalWhitespace(data)", code);
+        Assert.Contains("SkipOptionalWhitespace(data, fieldName: \"_\")", code);
     }
 
     [TestMethod]

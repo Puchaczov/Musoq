@@ -177,7 +177,6 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (TryResolveAggregateDeclarationMethod(methodName, argTypes, args, context, out var distinctDeclaration))
             {
                 signature = new AggregateResolutionSignature(
-                    context.SchemaTablePair.Schema.GetType(),
                     distinctDeclaration,
                     distinctDeclaration);
                 return true;
@@ -189,7 +188,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (TryResolveAggregateDeclarationMethod(methodName, argTypes, args, context, out var declaration))
         {
             signature = new AggregateResolutionSignature(
-                context.SchemaTablePair.Schema.GetType(),
                 declaration,
                 declaration);
             return true;

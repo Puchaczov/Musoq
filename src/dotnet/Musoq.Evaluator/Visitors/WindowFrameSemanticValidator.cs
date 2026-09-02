@@ -1,4 +1,3 @@
-using Musoq.Evaluator.Exceptions;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
@@ -10,7 +9,7 @@ internal static class WindowFrameSemanticValidator
     internal static void Validate(
         WindowSpecificationNode node,
         FieldOrderedNode[] orderByFields,
-        Func<Exception, Node?, bool> reportException)
+        Action<DiagnosticCode, string, TextSpan> report)
     {
         var frame = node.Frame;
         if (frame == null)
@@ -18,7 +17,10 @@ internal static class WindowFrameSemanticValidator
 
         if (GetBoundRank(frame.Start.BoundType) > GetBoundRank(frame.End.BoundType))
         {
-            reportException(CreateInvalidBoundsException(node, frame), node);
+            report(
+                DiagnosticCode.MQ3053_InvalidWindowFrameBounds,
+                $"Invalid window frame: start bound '{DescribeBound(frame.Start)}' is logically after end bound '{DescribeBound(frame.End)}'.",
+                GetSpan(node));
             return;
         }
 
@@ -30,7 +32,10 @@ internal static class WindowFrameSemanticValidator
         if (orderByFields.Length == 1 && IsNumeric(orderByFields[0]))
             return;
 
-        reportException(CreateInvalidRangeOrderKeyException(node), node);
+        report(
+            DiagnosticCode.MQ3098_InvalidRangeFrameOrderKey,
+            "A RANGE frame with a PRECEDING or FOLLOWING offset requires exactly one numeric ORDER BY key.",
+            GetSpan(node));
     }
 
     private static bool IsNumeric(FieldOrderedNode field)
@@ -58,26 +63,17 @@ internal static class WindowFrameSemanticValidator
         };
     }
 
-    private static VisitorException CreateInvalidBoundsException(
-        WindowSpecificationNode node,
-        WindowFrameNode frame)
+    private static string DescribeBound(WindowFrameBoundNode bound)
     {
-        return new VisitorException(
-            nameof(BuildMetadataAndInferTypesVisitor),
-            "Visit(WindowSpecificationNode)",
-            $"Invalid window frame: start bound '{frame.Start}' is logically after end bound '{frame.End}'.",
-            DiagnosticCode.MQ3053_InvalidWindowFrameBounds,
-            GetSpan(node));
-    }
-
-    private static VisitorException CreateInvalidRangeOrderKeyException(WindowSpecificationNode node)
-    {
-        return new VisitorException(
-            nameof(BuildMetadataAndInferTypesVisitor),
-            "Visit(WindowSpecificationNode)",
-            "A RANGE frame with a PRECEDING or FOLLOWING offset requires exactly one numeric ORDER BY key.",
-            DiagnosticCode.MQ3098_InvalidRangeFrameOrderKey,
-            GetSpan(node));
+        return bound.BoundType switch
+        {
+            WindowFrameBoundType.UnboundedPreceding => "UNBOUNDED PRECEDING",
+            WindowFrameBoundType.OffsetPreceding => $"{bound.Offset} PRECEDING",
+            WindowFrameBoundType.CurrentRow => "CURRENT ROW",
+            WindowFrameBoundType.OffsetFollowing => $"{bound.Offset} FOLLOWING",
+            WindowFrameBoundType.UnboundedFollowing => "UNBOUNDED FOLLOWING",
+            _ => bound.BoundType.ToString().ToUpperInvariant()
+        };
     }
 
     private static TextSpan GetSpan(WindowSpecificationNode node)

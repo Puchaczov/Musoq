@@ -116,6 +116,31 @@ internal abstract record TargetHostAbiImportDetails
         }
     }
 
+    protected static void AppendEnumType(
+        StringBuilder builder,
+        string name,
+        TargetEnumTypeAbiContract? descriptor)
+    {
+        AppendScalar(builder, name + ".present", descriptor is not null);
+        if (descriptor is null)
+            return;
+
+        AppendScalar(builder, name + ".displayName", descriptor.DisplayName);
+        AppendScalar(builder, name + ".origin", descriptor.Origin);
+        AppendScalar(builder, name + ".underlyingKind", descriptor.UnderlyingKind);
+        AppendScalar(builder, name + ".flags", descriptor.IsFlags);
+        AppendScalar(builder, name + ".fingerprint", descriptor.Fingerprint);
+        AppendScalar(builder, name + ".members.count", descriptor.Members.Count);
+        for (var index = 0; index < descriptor.Members.Count; index++)
+        {
+            var member = descriptor.Members[index];
+            var memberName = name + ".members." + index.ToString(CultureInfo.InvariantCulture);
+            AppendScalar(builder, memberName + ".name", member.Name);
+            AppendScalar(builder, memberName + ".rawValue", member.RawValue);
+            AppendScalar(builder, memberName + ".canonicalName", member.CanonicalName);
+        }
+    }
+
     protected static void AppendScalar(StringBuilder builder, string name, object? value)
     {
         var formatted = FormatCanonicalValue(value);
@@ -183,6 +208,85 @@ internal sealed record TargetSourceArgumentAbiContract(
     int Position,
     ExecutionPortableTypeDescriptor TypeSymbol);
 
+internal sealed record TargetEnumMemberAbiContract
+{
+    public TargetEnumMemberAbiContract(string name, ulong rawValue, string canonicalName)
+    {
+        Name = string.IsNullOrWhiteSpace(name)
+            ? throw new ArgumentException("Enum member name cannot be null or whitespace.", nameof(name))
+            : name;
+        RawValue = rawValue;
+        CanonicalName = string.IsNullOrWhiteSpace(canonicalName)
+            ? throw new ArgumentException("Canonical enum member name cannot be null or whitespace.", nameof(canonicalName))
+            : canonicalName;
+    }
+
+    public string Name { get; }
+
+    public ulong RawValue { get; }
+
+    public string CanonicalName { get; }
+}
+
+internal sealed record TargetEnumTypeAbiContract
+{
+    public TargetEnumTypeAbiContract(
+        string displayName,
+        string origin,
+        string underlyingKind,
+        bool isFlags,
+        string fingerprint,
+        IEnumerable<TargetEnumMemberAbiContract>? members)
+    {
+        DisplayName = RequireText(displayName, nameof(displayName));
+        Origin = RequireText(origin, nameof(origin));
+        UnderlyingKind = RequireText(underlyingKind, nameof(underlyingKind));
+        IsFlags = isFlags;
+        if (string.IsNullOrWhiteSpace(fingerprint) || fingerprint.Length != 64 ||
+            fingerprint.Any(static character => !Uri.IsHexDigit(character)))
+        {
+            throw new ArgumentException(
+                "An enum fingerprint must be a 64-character hexadecimal digest.",
+                nameof(fingerprint));
+        }
+
+        Fingerprint = fingerprint.ToUpperInvariant();
+        var values = Freeze(members).ToArray();
+        if (values.Select(static member => member.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count() != values.Length)
+            throw new ArgumentException("Enum member names must be unique ignoring case.", nameof(members));
+        if (values.Any(member => !values.Any(candidate =>
+                string.Equals(candidate.Name, member.CanonicalName, StringComparison.Ordinal) &&
+                candidate.RawValue == member.RawValue)))
+        {
+            throw new ArgumentException(
+                "Every enum member must reference a declared canonical member with the same value.",
+                nameof(members));
+        }
+
+        Members = Array.AsReadOnly(values);
+    }
+
+    public string DisplayName { get; }
+
+    public string Origin { get; }
+
+    public string UnderlyingKind { get; }
+
+    public bool IsFlags { get; }
+
+    public string Fingerprint { get; }
+
+    public IReadOnlyList<TargetEnumMemberAbiContract> Members { get; }
+
+    private static string RequireText(string value, string parameterName) =>
+        string.IsNullOrWhiteSpace(value)
+            ? throw new ArgumentException("Value cannot be null or whitespace.", parameterName)
+            : value;
+
+    private static IReadOnlyList<T> Freeze<T>(IEnumerable<T>? values) =>
+        Array.AsReadOnly(values?.ToArray() ?? []);
+}
+
 internal sealed record TargetSourceFieldAbiContract
 {
     public TargetSourceFieldAbiContract(
@@ -192,11 +296,26 @@ internal sealed record TargetSourceFieldAbiContract
         ExecutionPortableTypeDescriptor publicType,
         string nullability,
         IReadOnlyDictionary<string, string>? readModifiers)
+        : this(index, name, type, publicType, publicType, null, nullability, readModifiers)
+    {
+    }
+
+    public TargetSourceFieldAbiContract(
+        int index,
+        string name,
+        ExecutionPortableTypeDescriptor type,
+        ExecutionPortableTypeDescriptor publicType,
+        ExecutionPortableTypeDescriptor sourceReadType,
+        TargetEnumTypeAbiContract? enumType,
+        string nullability,
+        IReadOnlyDictionary<string, string>? readModifiers)
     {
         Index = RequireNonNegative(index, nameof(index));
         Name = RequireText(name, nameof(name));
         TypeSymbol = type ?? throw new ArgumentNullException(nameof(type));
         PublicTypeSymbol = publicType ?? throw new ArgumentNullException(nameof(publicType));
+        SourceReadTypeSymbol = sourceReadType ?? throw new ArgumentNullException(nameof(sourceReadType));
+        EnumType = enumType;
         Nullability = RequireText(nullability, nameof(nullability));
         ReadModifiers = new ReadOnlyDictionary<string, string>(
             readModifiers is null
@@ -211,6 +330,10 @@ internal sealed record TargetSourceFieldAbiContract
     public ExecutionPortableTypeDescriptor TypeSymbol { get; }
 
     public ExecutionPortableTypeDescriptor PublicTypeSymbol { get; }
+
+    public ExecutionPortableTypeDescriptor SourceReadTypeSymbol { get; }
+
+    public TargetEnumTypeAbiContract? EnumType { get; }
 
     public string Nullability { get; }
 
@@ -342,6 +465,8 @@ internal sealed record TargetSourceAccessAbiDetails : TargetHostAbiImportDetails
                 AppendScalar(builder, "fields.name", sourceField.Name);
                 AppendType(builder, "fields.type", sourceField.TypeSymbol);
                 AppendType(builder, "fields.publicType", sourceField.PublicTypeSymbol);
+                AppendType(builder, "fields.sourceReadType", sourceField.SourceReadTypeSymbol);
+                AppendEnumType(builder, "fields.enumType", sourceField.EnumType);
                 AppendScalar(builder, "fields.nullability", sourceField.Nullability);
                 AppendDictionary(builder, "fields.readModifiers", sourceField.ReadModifiers);
             }
@@ -477,6 +602,8 @@ internal sealed record TargetQueryRowSourceAccessAbiDetails : TargetHostAbiImpor
                 AppendField(builder, "fields.sourceColumnIndex", rowField.SourceColumnIndex);
                 AppendField(builder, "fields.name", rowField.Name);
                 AppendType(builder, "fields.type", rowField.TypeSymbol);
+                AppendType(builder, "fields.sourceReadType", rowField.SourceReadTypeSymbol);
+                AppendEnumType(builder, "fields.enumType", rowField.EnumType);
                 AppendField(builder, "fields.nullable", rowField.IsNullable);
                 AppendDictionary(builder, "fields.readModifiers", rowField.ReadModifiers);
             }
@@ -492,6 +619,19 @@ internal sealed record TargetQueryRowFieldAbiContract
         ExecutionPortableTypeDescriptor typeSymbol,
         bool isNullable,
         IReadOnlyDictionary<string, string>? readModifiers)
+        : this(slot, sourceColumnIndex, name, typeSymbol, typeSymbol, null, isNullable, readModifiers)
+    {
+    }
+
+    public TargetQueryRowFieldAbiContract(
+        int slot,
+        int sourceColumnIndex,
+        string name,
+        ExecutionPortableTypeDescriptor typeSymbol,
+        ExecutionPortableTypeDescriptor sourceReadTypeSymbol,
+        TargetEnumTypeAbiContract? enumType,
+        bool isNullable,
+        IReadOnlyDictionary<string, string>? readModifiers)
     {
         Slot = slot < 0
             ? throw new ArgumentOutOfRangeException(nameof(slot))
@@ -503,6 +643,8 @@ internal sealed record TargetQueryRowFieldAbiContract
             ? throw new ArgumentException("Value cannot be null or whitespace.", nameof(name))
             : name;
         TypeSymbol = typeSymbol ?? throw new ArgumentNullException(nameof(typeSymbol));
+        SourceReadTypeSymbol = sourceReadTypeSymbol ?? throw new ArgumentNullException(nameof(sourceReadTypeSymbol));
+        EnumType = enumType;
         IsNullable = isNullable;
         ReadModifiers = new ReadOnlyDictionary<string, string>(
             readModifiers is null
@@ -517,6 +659,10 @@ internal sealed record TargetQueryRowFieldAbiContract
     public string Name { get; }
 
     public ExecutionPortableTypeDescriptor TypeSymbol { get; }
+
+    public ExecutionPortableTypeDescriptor SourceReadTypeSymbol { get; }
+
+    public TargetEnumTypeAbiContract? EnumType { get; }
 
     public bool IsNullable { get; }
 

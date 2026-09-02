@@ -14,7 +14,7 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
     {
         ArgumentNullException.ThrowIfNull(items);
 
-        var phase = global::Musoq.Converter.EvaluatorPerformanceTelemetry.BeginPhase("interpretation-schema");
+        var phase = EvaluatorPerformanceTelemetry.BeginPhase("interpretation-schema");
         try
         {
             var queryTree = items.RawQueryTree;

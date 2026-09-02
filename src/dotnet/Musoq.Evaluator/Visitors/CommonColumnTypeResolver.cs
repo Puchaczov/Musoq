@@ -27,6 +27,8 @@ internal static class CommonColumnTypeResolver
         if (nonNullTypes.Length == 0)
             return typeof(object);
 
+        var typeErrorSpan = FindTypeErrorSpan(expressions, nonNullTypes, errorSpan);
+
         Type columnType;
         if (nonNullTypes.Length == 1)
         {
@@ -34,13 +36,17 @@ internal static class CommonColumnTypeResolver
         }
         else if (nonNullTypes.All(BinaryOperatorTypeRules.IsNumericType))
         {
-            columnType = ResolveNumericColumnType(columnName, nonNullTypes, errorSpan, diagnosticKind);
+            columnType = ResolveNumericColumnType(columnName, nonNullTypes, typeErrorSpan, diagnosticKind);
         }
         else
         {
-            throw new ValuesSourceException(
+            throw CreateTypeFailure(
                 CreateIncompatibleTypesMessage(columnName, nonNullTypes, diagnosticKind),
-                errorSpan);
+                columnName,
+                nonNullTypes,
+                typeErrorSpan,
+                diagnosticKind,
+                "incompatible-types");
         }
 
         return hasNull && columnType.IsValueType
@@ -63,9 +69,13 @@ internal static class CommonColumnTypeResolver
         if (types.Contains(typeof(decimal)))
         {
             if (types.Any(type => type == typeof(float) || type == typeof(double)))
-                throw new ValuesSourceException(
+                throw CreateTypeFailure(
                     CreateDecimalFloatingPointMessage(columnName, diagnosticKind),
-                    errorSpan);
+                    columnName,
+                    types,
+                    errorSpan,
+                    diagnosticKind,
+                    "decimal-floating-point-mix");
 
             return typeof(decimal);
         }
@@ -79,9 +89,13 @@ internal static class CommonColumnTypeResolver
         if (types.Contains(typeof(ulong)))
         {
             if (types.Any(type => type == typeof(sbyte) || type == typeof(short) || type == typeof(int) || type == typeof(long)))
-                throw new ValuesSourceException(
+                throw CreateTypeFailure(
                     CreateUlongSignedMessage(columnName, diagnosticKind),
-                    errorSpan);
+                    columnName,
+                    types,
+                    errorSpan,
+                    diagnosticKind,
+                    "ulong-signed-mix");
 
             return typeof(ulong);
         }
@@ -98,6 +112,46 @@ internal static class CommonColumnTypeResolver
     private static bool IsNullableValueType(Type? type)
     {
         return type != null && Nullable.GetUnderlyingType(type) != null;
+    }
+
+    private static ValuesSourceException CreateTypeFailure(
+        string message,
+        string columnName,
+        IReadOnlyList<Type> types,
+        TextSpan span,
+        CommonColumnTypeDiagnosticKind diagnosticKind,
+        string constraint)
+    {
+        return diagnosticKind == CommonColumnTypeDiagnosticKind.Values
+            ? ValuesSourceDiagnostics.Error(
+                message,
+                span,
+                ("constraint", constraint),
+                ("field", columnName),
+                ("actualTypes", string.Join(", ", types.Select(static type => type.Name))))
+            : new ValuesSourceException(message, span);
+    }
+
+    private static TextSpan FindTypeErrorSpan(
+        IReadOnlyList<Node> expressions,
+        IReadOnlyList<Type> nonNullTypes,
+        TextSpan fallback)
+    {
+        if (nonNullTypes.Count < 2)
+            return fallback;
+
+        var firstType = nonNullTypes[0];
+        foreach (var expression in expressions)
+        {
+            var type = expression.ReturnType;
+            if (type == null || IsExplicitNullType(type) || StripNullable(type) == firstType)
+                continue;
+
+            if (expression.HasSpan)
+                return expression.Span;
+        }
+
+        return fallback;
     }
 
     private static string CreateIncompatibleTypesMessage(

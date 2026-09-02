@@ -29,7 +29,7 @@ public sealed partial class AggregateRefRewriter
             returnType == node.ReturnType)
             return node;
 
-        return new BinaryOp(node.Kind, left, right, returnType);
+        return new BinaryOp(node.Kind, left, right, returnType) { UsesSqlNullSemantics = node.UsesSqlNullSemantics };
     }
 
     private static Type GetBinaryReturnType(BinaryOp node, IrExpression left, IrExpression right)
@@ -92,7 +92,7 @@ public sealed partial class AggregateRefRewriter
         if (!changed)
             return node;
 
-        return new MethodCall(node.Method, arguments, node.Alias, node.ReturnType);
+        return node with { Arguments = arguments };
     }
 
     protected override IrExpression VisitIsNullCheck(IsNullCheck node)
@@ -113,7 +113,7 @@ public sealed partial class AggregateRefRewriter
         if (ReferenceEquals(expression, node.Expression) && !valuesChanged)
             return node;
 
-        return new InCheck(expression, values, node.ReturnType);
+        return new InCheck(expression, values, node.ReturnType, node.IsNegated);
     }
 
     protected override IrExpression VisitPatternMatch(PatternMatch node)
@@ -168,7 +168,7 @@ public sealed partial class AggregateRefRewriter
 
     protected override IrExpression VisitCteTableRef(CteTableRef node) => node;
 
-    private static AggregateRef CreateAggregateRef(Musoq.Evaluator.IR.Bindings.AggregateBinding binding)
+    private static AggregateRef CreateAggregateRef(Bindings.AggregateBinding binding)
     {
         return new AggregateRef(binding.Identifier, binding.ReturnType, binding.DisplayName);
     }

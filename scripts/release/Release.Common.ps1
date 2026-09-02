@@ -293,6 +293,7 @@ function Resolve-ReleaseTag {
         Patch = $patch
         Prerelease = $prerelease
         IsPrerelease = -not [string]::IsNullOrWhiteSpace($prerelease)
+        AllowBreakingChanges = $prerelease -match '^alpha(?:\.|$)'
         Packages = @($selectedPackages)
     }
 }

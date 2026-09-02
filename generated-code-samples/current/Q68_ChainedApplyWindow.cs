@@ -64,11 +64,13 @@ ExecutionPlan [compiled]
     CreateRowBuffer [apply_0_i_n_mTable: List<apply_0_i_n_mRow0>]
     PhaseBoundary [Select]
     ChunkedForEach [i in apply_0_i_n_mTable_iRows]
+      Let [iName: string = i.Name]
       EnumerableSource [i.Numbers -> apply_0_i_n_mTable_nRows]
       ChunkedForEach [n in apply_0_i_n_mTable_nRows]
+        Let [nValue: int = n.Value]
         EnumerableSource [i.Numbers -> apply_0_i_n_mTable_mRows]
         ChunkedForEach [m in apply_0_i_n_mTable_mRows]
-          AppendRowBuffer [apply_0_i_n_mTable <- apply_0_i_n_mRow0(i.Name: i.Name, i.Numbers: i.Numbers, n.Value: n.Value, m.Value: m.Value)]
+          AppendRowBuffer [apply_0_i_n_mTable <- apply_0_i_n_mRow0(i.Name: iName, i.Numbers: i.Numbers, n.Value: nValue, m.Value: m.Value)]
     Materialize [apply_0_i_n_mTable -> resultWindowRows]
     ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows partition by apply_0_i_n_m.i.Name order by apply_0_i_n_m.n.Value ASC, apply_0_i_n_m.m.Value ASC]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
@@ -296,6 +298,7 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
         private static void TraverseApply0INMTableNRows(CancellationToken token, Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity i, List<apply_0_i_n_mRow0> apply_0_i_n_mTable)
         {
             token.ThrowIfCancellationRequested();
+            string iName = i.Name;
             var apply_0_i_n_mTable_nRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
             foreach (var nChunk in apply_0_i_n_mTable_nRows)
             {
@@ -312,6 +315,7 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
                             }
 
                             var n = nChunkViewArray[nChunkViewOffset + nIndex];
+                            int nValue = n;
                             var apply_0_i_n_mTable_mRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
                             foreach (var mChunk in apply_0_i_n_mTable_mRows)
                             {
@@ -328,7 +332,7 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
                                             }
 
                                             var m = mChunkViewArray[mChunkViewOffset + mIndex];
-                                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(i.Name, i.Numbers, n, m));
+                                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
                                         }
 
                                         continue;
@@ -345,7 +349,7 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
                                             }
 
                                             var m = mChunkViewList[mChunkViewOffset + mIndex];
-                                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(i.Name, i.Numbers, n, m));
+                                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
                                         }
 
                                         continue;
@@ -360,7 +364,7 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
                                     }
 
                                     var m = mChunk[mIndex];
-                                    apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(i.Name, i.Numbers, n, m));
+                                    apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
                                 }
                             }
                         }
@@ -379,6 +383,7 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
                             }
 
                             var n = nChunkViewList[nChunkViewOffset + nIndex];
+                            int nValue = n;
                             var apply_0_i_n_mTable_mRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
                             foreach (var mChunk in apply_0_i_n_mTable_mRows)
                             {
@@ -395,7 +400,7 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
                                             }
 
                                             var m = mChunkViewArray[mChunkViewOffset + mIndex];
-                                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(i.Name, i.Numbers, n, m));
+                                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
                                         }
 
                                         continue;
@@ -412,7 +417,7 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
                                             }
 
                                             var m = mChunkViewList[mChunkViewOffset + mIndex];
-                                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(i.Name, i.Numbers, n, m));
+                                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
                                         }
 
                                         continue;
@@ -427,7 +432,7 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
                                     }
 
                                     var m = mChunk[mIndex];
-                                    apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(i.Name, i.Numbers, n, m));
+                                    apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
                                 }
                             }
                         }
@@ -444,6 +449,7 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
                     }
 
                     var n = nChunk[nIndex];
+                    int nValue = n;
                     var apply_0_i_n_mTable_mRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
                     foreach (var mChunk in apply_0_i_n_mTable_mRows)
                     {
@@ -460,7 +466,7 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
                                     }
 
                                     var m = mChunkViewArray[mChunkViewOffset + mIndex];
-                                    apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(i.Name, i.Numbers, n, m));
+                                    apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
                                 }
 
                                 continue;
@@ -477,7 +483,7 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
                                     }
 
                                     var m = mChunkViewList[mChunkViewOffset + mIndex];
-                                    apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(i.Name, i.Numbers, n, m));
+                                    apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
                                 }
 
                                 continue;
@@ -492,7 +498,7 @@ namespace GeneratedSample_Q68_ChainedApplyWindow
                             }
 
                             var m = mChunk[mIndex];
-                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(i.Name, i.Numbers, n, m));
+                            apply_0_i_n_mTable.Add(new apply_0_i_n_mRow0(iName, i.Numbers, nValue, m));
                         }
                     }
                 }

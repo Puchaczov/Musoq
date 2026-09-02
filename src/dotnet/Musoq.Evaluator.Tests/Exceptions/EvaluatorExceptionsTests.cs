@@ -525,7 +525,7 @@ public class EvaluatorExceptionsTests
 
         // Assert
         Assert.Contains(description, exception.Message);
-        Assert.Contains("System.Object", exception.Message);
+        Assert.Contains("Object", exception.Message);
         Assert.Contains(context, exception.Message);
     }
 

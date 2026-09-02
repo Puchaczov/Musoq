@@ -108,6 +108,8 @@ internal static class ParserNodeTraversalRegistry
         Leaf<TextFieldDefinitionNode>(),
         Leaf<TextSchemaNode>(),
         Leaf<PutTrueNode>(),
+        Children<EnumDeclarationNode>(static node => node.Members),
+        Leaf<EnumMemberNode>(),
         Leaf<CreateTableNode>(),
         Leaf<CoupleNode>(),
         Leaf<FromNode>(),

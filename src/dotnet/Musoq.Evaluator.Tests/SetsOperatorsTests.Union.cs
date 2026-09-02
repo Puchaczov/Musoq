@@ -58,8 +58,8 @@ public partial class SetsOperatorsTests
             ("b.Value", typeof(char)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
-            ["001", '0'], ["001", '0'], ["001", '1'],
-            ["002", '0'], ["002", '0'], ["002", '2']);
+            ["001", '0'],
+            ["002", '0']);
     }
 
     [TestMethod]

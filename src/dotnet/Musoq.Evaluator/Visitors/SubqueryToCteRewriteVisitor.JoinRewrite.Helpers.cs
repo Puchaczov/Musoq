@@ -122,25 +122,6 @@ public partial class SubqueryToCteRewriteVisitor
             default);
     }
 
-    private static SetOperatorNode RecreateSetOperator(SetOperatorNode node, Node left, Node right)
-    {
-        return node switch
-        {
-            UnionNode => new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-                node.ResultOrderBy, node.ResultSkip, node.ResultTake),
-            UnionAllNode => new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-                node.ResultOrderBy, node.ResultSkip, node.ResultTake),
-            ExceptNode => new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-                node.ResultOrderBy, node.ResultSkip, node.ResultTake),
-            IntersectNode => new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-                node.ResultOrderBy, node.ResultSkip, node.ResultTake),
-            _ => throw SubqueryDiagnosticFactory.InvalidSubquery(
-                "EXISTS subquery projection",
-                $"Unsupported set operator {node.GetType().Name} in EXISTS subquery.",
-                node)
-        };
-    }
-
     private static bool IsCardinalitySafeApplyCorrelation(SubqueryInfo info, Node expression)
     {
         return info.Correlation?.Facts != null &&

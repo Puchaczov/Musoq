@@ -35,6 +35,7 @@ internal sealed class ExecutionRenderSession
     internal IReadOnlySet<string> GeneratedRowTypesRequiringRowBase { get; set; } = new HashSet<string>(StringComparer.Ordinal);
     internal Dictionary<int, int> StoredGeneratedRowsLoopNameCounts { get; set; } = [];
     internal int ChunkedLoopBreakTargetCount { get; set; }
+    internal int EnumIntrinsicPatternCount { get; set; }
     internal bool IncludeCteIndexResults { get; set; }
     internal bool IncludeCteRowResults { get; set; }
     internal bool IncludeTableResults { get; set; } = true;

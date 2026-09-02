@@ -13,11 +13,23 @@ public class BinarySwitchCaseNode
     /// <param name="caseValue">The constant selector value this case matches, or null for the default case.</param>
     /// <param name="branchAlias">The alias exposed for this branch.</param>
     /// <param name="branchType">The binary type annotation parsed when this case is selected.</param>
-    public BinarySwitchCaseNode(Node? caseValue, string branchAlias, TypeAnnotationNode branchType)
+    /// <param name="caseLabelSpan">The source span of the case label, including the default underscore.</param>
+    /// <param name="branchAliasSpan">The source span of the branch alias.</param>
+    /// <param name="branchTypeSpan">The source span of the branch type.</param>
+    public BinarySwitchCaseNode(
+        Node? caseValue,
+        string branchAlias,
+        TypeAnnotationNode branchType,
+        TextSpan caseLabelSpan = default,
+        TextSpan branchAliasSpan = default,
+        TextSpan branchTypeSpan = default)
     {
         CaseValue = caseValue;
         BranchAlias = branchAlias ?? throw new ArgumentNullException(nameof(branchAlias));
         BranchType = branchType ?? throw new ArgumentNullException(nameof(branchType));
+        CaseLabelSpan = caseLabelSpan;
+        BranchAliasSpan = branchAliasSpan;
+        BranchTypeSpan = branchTypeSpan;
     }
 
     /// <summary>
@@ -27,14 +39,29 @@ public class BinarySwitchCaseNode
     public Node? CaseValue { get; }
 
     /// <summary>
+    ///     Gets the source span of the case label, when parsed from query text.
+    /// </summary>
+    public TextSpan CaseLabelSpan { get; }
+
+    /// <summary>
     ///     Gets the alias exposed for this branch.
     /// </summary>
     public string BranchAlias { get; }
 
     /// <summary>
+    ///     Gets the source span of the branch alias, when parsed from query text.
+    /// </summary>
+    public TextSpan BranchAliasSpan { get; }
+
+    /// <summary>
     ///     Gets the binary type annotation parsed when this case is selected.
     /// </summary>
     public TypeAnnotationNode BranchType { get; }
+
+    /// <summary>
+    ///     Gets the source span of the branch type, when parsed from query text.
+    /// </summary>
+    public TextSpan BranchTypeSpan { get; }
 
     /// <summary>
     ///     Gets whether this is the default case.

@@ -46,7 +46,8 @@ internal static partial class GeneratedCodeSamplesCatalog
                      CASE WHEN ExpensiveCompute(Value) > 300 THEN 'High' ELSE 'Low' END as Bucket
               FROM #test.entities()
               WHERE ExpensiveCompute(Value) > 50",
-                new CompilationOptions(useCommonSubexpressionElimination: false)),
+                new CompilationOptions(useCommonSubexpressionElimination: false)
+                    .WithStabilityAwareScalarReuse(false)),
             RuntimeV2Regression(
                 "Q106_RuntimeV2ParallelFilterProject",
                 @"SELECT Id, Name, Value, Category, HeavyComputation(Value) as Heavy
@@ -112,7 +113,8 @@ internal static partial class GeneratedCodeSamplesCatalog
               WHERE TryConvertToDecimalComparison(Amount) > 100.50d",
                 new CompilationOptions(
                     useCommonSubexpressionElimination: true,
-                    usePrimitiveTypeValidation: false)),
+                    usePrimitiveTypeValidation: false)
+                    .WithStabilityAwareScalarReuse()),
             RuntimeV2Regression(
                 "Q109_RuntimeV2CompositeRegressionCanary",
                 @"SELECT Name,
@@ -200,7 +202,8 @@ internal static partial class GeneratedCodeSamplesCatalog
             WHERE Value > 50
               AND ExpensiveCompute(Value) > 0
               AND Value < 900",
-                new CompilationOptions(ParallelizationMode.Full)),
+                new CompilationOptions(ParallelizationMode.Full)
+                    .WithStabilityAwareScalarReuse()),
             RuntimeV2BenchmarkMaterializedWithOptions(
                 "Q180_BenchmarkOptimizedMixedColumnMethodMaterialized",
                 @"SELECT
@@ -215,7 +218,8 @@ internal static partial class GeneratedCodeSamplesCatalog
             WHERE Value > 100
               AND ExpensiveCompute(Value) > 50
               AND Name IS NOT NULL",
-                new CompilationOptions(ParallelizationMode.Full)),
+                new CompilationOptions(ParallelizationMode.Full)
+                    .WithStabilityAwareScalarReuse()),
             RuntimeV2BenchmarkMaterialized(
                 "Q181_BenchmarkCompilationSimpleMaterialized",
                 @"SELECT City, Country, Population

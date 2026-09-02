@@ -149,7 +149,7 @@ namespace GeneratedSample_Q172_CollectionParameterInMembership
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 int id = ko3iko.Id;
-                                if (CollectionParameterContains<int>(id, paramIds))
+                                if (EvaluationHelper.CollectionParameterContains<int>(id, paramIds))
                                 {
                                     resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Name, id, resultOrderRecords.Count));
                                 }
@@ -170,7 +170,7 @@ namespace GeneratedSample_Q172_CollectionParameterInMembership
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 int id = ko3iko.Id;
-                                if (CollectionParameterContains<int>(id, paramIds))
+                                if (EvaluationHelper.CollectionParameterContains<int>(id, paramIds))
                                 {
                                     resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Name, id, resultOrderRecords.Count));
                                 }
@@ -189,7 +189,7 @@ namespace GeneratedSample_Q172_CollectionParameterInMembership
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
                         int id = ko3iko.Id;
-                        if (CollectionParameterContains<int>(id, paramIds))
+                        if (EvaluationHelper.CollectionParameterContains<int>(id, paramIds))
                         {
                             resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Name, id, resultOrderRecords.Count));
                         }
@@ -227,18 +227,6 @@ namespace GeneratedSample_Q172_CollectionParameterInMembership
         private void OnPhaseChanged(string queryId, QueryPhase phase)
         {
             PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
-        }
-
-        private static bool CollectionParameterContains<T>(T value, IReadOnlyList<T> values)
-        {
-            var comparer = EqualityComparer<T>.Default;
-            for (var index = 0; index < values.Count; index++)
-            {
-                if (comparer.Equals(value, values[index]))
-                    return true;
-            }
-
-            return false;
         }
 
         private sealed class ResultRow0 : Row

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Tokens;
 
@@ -10,35 +9,6 @@ namespace Musoq.Parser;
 /// </summary>
 public partial class SchemaParser
 {
-
-    private string[]? ComposeOptionalTypeParameters()
-    {
-        if (Current.TokenType != TokenType.Less)
-            return null;
-
-        Consume(TokenType.Less);
-
-        var typeParams = new List<string> { ComposeIdentifierOrWord() };
-
-        while (Current.TokenType == TokenType.Comma)
-        {
-            Consume(TokenType.Comma);
-            typeParams.Add(ComposeIdentifierOrWord());
-        }
-
-        Consume(TokenType.Greater);
-
-        return typeParams.ToArray();
-    }
-
-    private string? ComposeOptionalExtends()
-    {
-        if (Current.TokenType != TokenType.Extends)
-            return null;
-
-        Consume(TokenType.Extends);
-        return ComposeIdentifierOrWord();
-    }
 
     private string ComposeIdentifierOrWord()
     {

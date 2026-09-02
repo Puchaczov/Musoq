@@ -18,8 +18,8 @@ internal static class EvaluatorExceptionTaxonomy
             return false;
 
         return exception is IDiagnosticException ||
-               exception is Musoq.Parser.ParseException ||
-               exception is Musoq.Schema.Interpreters.ParseException ||
+               exception is ParseException ||
+               exception is Schema.Interpreters.ParseException ||
                exception is SchemaArgumentException ||
                exception is TableNotFoundException ||
                exception is SourceNotFoundException;

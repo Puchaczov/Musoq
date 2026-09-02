@@ -8,7 +8,8 @@ internal static partial class GeneratedCodeSamplesCatalog
         return RuntimeV2RegressionWithOptions(
             name,
             query,
-            new CompilationOptions(useCommonSubexpressionElimination: true));
+            new CompilationOptions(useCommonSubexpressionElimination: true)
+                .WithStabilityAwareScalarReuse());
     }
 
     private static GeneratedCodeSample RuntimeV2RegressionWithOptions(
@@ -30,7 +31,10 @@ internal static partial class GeneratedCodeSamplesCatalog
 
     private static GeneratedCodeSample RuntimeV2BenchmarkMaterialized(string name, string query)
     {
-        return RuntimeV2BenchmarkMaterializedWithOptions(name, query, new CompilationOptions());
+        return RuntimeV2BenchmarkMaterializedWithOptions(
+            name,
+            query,
+            new CompilationOptions().WithStabilityAwareScalarReuse());
     }
 
     private static GeneratedCodeSample RuntimeV2BenchmarkMaterializedWithOptions(
@@ -65,6 +69,7 @@ internal static partial class GeneratedCodeSamplesCatalog
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
             CreateSchemaProvider = CreateWeatherMeasurementSchemaProvider,
             CompilationOptions = new CompilationOptions(useCommonSubexpressionElimination: true)
+                .WithStabilityAwareScalarReuse(false)
         };
     }
 
@@ -73,7 +78,8 @@ internal static partial class GeneratedCodeSamplesCatalog
         return RuntimeV2RegressionWithOptions(
             name,
             query,
-            new CompilationOptions(useCommonSubexpressionElimination: true)) with
+            new CompilationOptions(useCommonSubexpressionElimination: true)
+                .WithStabilityAwareScalarReuse()) with
         {
             Category = "Parameters"
         };
@@ -84,7 +90,8 @@ internal static partial class GeneratedCodeSamplesCatalog
         return RuntimeV2RegressionWithOptions(
             name,
             query,
-            new CompilationOptions(useCommonSubexpressionElimination: true)) with
+            new CompilationOptions(useCommonSubexpressionElimination: true)
+                .WithStabilityAwareScalarReuse()) with
         {
             Category = "Variables"
         };

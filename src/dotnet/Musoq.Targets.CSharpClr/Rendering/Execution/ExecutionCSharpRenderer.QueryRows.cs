@@ -3,7 +3,6 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.Helpers;
 using Musoq.Schema;
 
 namespace Musoq.Targets.CSharpClr;
@@ -53,8 +52,7 @@ public sealed partial class ExecutionCSharpRenderer
         var materializerTypeName = QueryRowSourceNaming.CreateMaterializerTypeName(transfer.ShapeFingerprint, transfer.Carrier);
         var arguments = transfer.Fields
             .OrderBy(static field => field.Slot)
-            .Select(field =>
-                $"reader.Read<{EvaluationHelper.GetCastableType(field.FieldType.RequireClrType())}>({field.Slot})")
+            .Select(QueryRowMaterializerSyntax.CreateReadExpression)
             .ToArray();
         var construction = arguments.Length == 0
             ? $"new {carrierTypeName}()"
@@ -104,11 +102,28 @@ public sealed partial class ExecutionCSharpRenderer
             CreateIntLiteral(field.SourceColumnIndex),
             CreateStringLiteral(field.Name),
             SyntaxFactory.TypeOfExpression(CreateTypeSyntax(field.FieldType)),
-            CreateBooleanLiteral(field.IsNullable)
         };
 
-        if (field.ReadModifiers.Count > 0)
+        if (field.EnumType != null || field.SourceReadType.StableId != field.FieldType.StableId)
+        {
+            arguments.Add(SyntaxFactory.TypeOfExpression(CreateTypeSyntax(field.SourceReadType)));
+            arguments.Add(EnumDescriptorSyntax.Create(field.EnumType));
+        }
+
+        arguments.Add(CreateBooleanLiteral(field.IsNullable));
+
+        if (field.EnumType != null || field.SourceReadType.StableId != field.FieldType.StableId)
+        {
+            arguments.Add(field.ReadModifiers.Count > 0
+                ? CSharpReadModifierMetadata.CreateDictionaryCreation(field.ReadModifiers)
+                : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+            arguments.Add(SyntaxFactory.ParseExpression(
+                $"global::Musoq.Schema.{nameof(ColumnStability)}.{nameof(ColumnStability.Stable)}"));
+        }
+        else if (field.ReadModifiers.Count > 0)
+        {
             arguments.Add(CSharpReadModifierMetadata.CreateDictionaryCreation(field.ReadModifiers));
+        }
 
         return CreateObjectCreation(nameof(QueryRowField), arguments.ToArray());
     }

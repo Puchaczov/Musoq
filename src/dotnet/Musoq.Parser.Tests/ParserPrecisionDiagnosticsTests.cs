@@ -1,14 +1,118 @@
 using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
+using Musoq.Parser.Nodes;
 
 namespace Musoq.Parser.Tests;
 
 [TestClass]
 public sealed class ParserPrecisionDiagnosticsTests
 {
+    [TestMethod]
+    public void BareIntegerInclusiveBoundaries_ShouldHaveIntType()
+    {
+        const string query = "select 2147483647, -2147483648 from system.dual()";
+
+        var result = ParseWithDiagnostics(query);
+
+        Assert.IsTrue(result.Success, result.FormatDiagnostics());
+        Assert.IsEmpty(result.Diagnostics, result.FormatDiagnostics());
+
+        var statements = (StatementsArrayNode)result.Root!.Expression;
+        var queryNode = ((SingleSetNode)statements.Statements.Single().Node).Query;
+        var returnTypes = queryNode.Select.Fields.Select(field => field.Expression.ReturnType).ToArray();
+        CollectionAssert.AreEqual(new[] { typeof(int), typeof(int) }, returnTypes, result.FormatDiagnostics());
+    }
+
+    [TestMethod]
+    public void BareIntegerOneAboveInt32Maximum_ShouldReportWholeLiteralOutOfRange()
+    {
+        const string validSeed = "select 2147483647 from system.dual()";
+        var seedResult = ParseWithDiagnostics(validSeed);
+
+        Assert.IsTrue(seedResult.Success, seedResult.FormatDiagnostics());
+
+        const string mutatedLiteral = "2147483648";
+        var mutatedQuery = $"select {mutatedLiteral} from system.dual()";
+        var result = ParseWithDiagnostics(mutatedQuery);
+
+        Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
+        var diagnostic = result.Diagnostics[0];
+        Assert.AreEqual(DiagnosticCode.MQ1009_NumericLiteralOutOfRange, diagnostic.Code);
+        Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
+        Assert.AreEqual(mutatedQuery.IndexOf(mutatedLiteral, StringComparison.Ordinal), diagnostic.Span.Start);
+        Assert.AreEqual(mutatedLiteral.Length, diagnostic.Span.Length);
+    }
+
+    [TestMethod]
+    public void AlternativeBaseLiteralSeed_ShouldParseWithoutDiagnostics()
+    {
+        const string query =
+            "select 0xFF, 0XFF, 0b1010, 0B1010, 0o77, 0O77, 0x0 from system.dual()";
+
+        var result = ParseWithDiagnostics(query);
+
+        Assert.IsTrue(result.Success, result.FormatDiagnostics());
+        Assert.IsEmpty(result.Diagnostics, result.FormatDiagnostics());
+    }
+
+    [TestMethod]
+    public void HexLiteralWithNonHexDigit_ShouldReportWholeLiteralAsInvalid()
+    {
+        const string validSeed = "select 0xFF from system.dual()";
+        var seedResult = ParseWithDiagnostics(validSeed);
+
+        Assert.IsTrue(seedResult.Success, seedResult.FormatDiagnostics());
+        Assert.IsEmpty(seedResult.Diagnostics, seedResult.FormatDiagnostics());
+
+        const string mutatedLiteral = "0xFG";
+        var mutatedQuery = $"select {mutatedLiteral} from system.dual()";
+        var result = ParseWithDiagnostics(mutatedQuery);
+
+        Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
+        var diagnostic = result.Diagnostics[0];
+        Assert.AreEqual(DiagnosticCode.MQ1006_InvalidHexNumber, diagnostic.Code);
+        Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
+        Assert.AreEqual(mutatedQuery.IndexOf(mutatedLiteral, StringComparison.Ordinal), diagnostic.Span.Start);
+        Assert.AreEqual(mutatedLiteral.Length, diagnostic.Span.Length);
+    }
+
+    [TestMethod]
+    public void BinaryLiteralWithTrailingInvalidDigit_ShouldReportWholeInvalidLiteral()
+    {
+        const string invalidLiteral = "0b1012";
+        const string query =
+            "select 0xFF, 0XFF, 0b1012, 0B1010, 0o77, 0O77, 0x0 from system.dual()";
+
+        var result = ParseWithDiagnostics(query);
+
+        Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
+        var diagnostic = result.Diagnostics[0];
+        Assert.AreEqual(DiagnosticCode.MQ1007_InvalidBinaryNumber, diagnostic.Code, result.FormatDiagnostics());
+        Assert.AreEqual(
+            new TextSpan(query.IndexOf(invalidLiteral, StringComparison.Ordinal), invalidLiteral.Length),
+            diagnostic.Span);
+    }
+
+    [TestMethod]
+    public void ReservedCaseWithoutBrackets_ShouldReportMissingWhenAtCaseKeyword()
+    {
+        const string query = "select case, [order], [Column With Spaces] from schema.method()";
+        var result = ParseWithDiagnostics(query);
+
+        Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
+        var diagnostic = result.Diagnostics[0];
+        Assert.AreEqual(DiagnosticCode.MQ2027_MissingWhenClause, diagnostic.Code, result.FormatDiagnostics());
+        Assert.AreEqual(query.IndexOf("case", StringComparison.Ordinal), diagnostic.Span.Start);
+        Assert.AreEqual("case".Length, diagnostic.Span.Length);
+        StringAssert.Contains(diagnostic.Message, "[case]");
+    }
+
     [TestMethod]
     [DataRow("999999999999999999999999999999999999999")]
     [DataRow("0xFFFFFFFFFFFFFFFF1")]
@@ -74,12 +178,13 @@ public sealed class ParserPrecisionDiagnosticsTests
     }
 
     [TestMethod]
-    public void InEmptyList_ShouldRemainAValidEmptyPredicate()
+    public void InEmptyList_ShouldUseTheEmptyPredicateDiagnostic()
     {
         var result = ParseWithDiagnostics("select 1 from #test.rows() where Name in ()");
 
-        Assert.IsTrue(result.Success, result.FormatDiagnostics());
-        Assert.IsEmpty(result.Diagnostics, result.FormatDiagnostics());
+        Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
+        var diagnostic = result.Diagnostics[0];
+        Assert.AreEqual(DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed, diagnostic.Code);
     }
 
     [TestMethod]

@@ -31,7 +31,9 @@ internal static partial class GeneratedCodeSamplesCatalog
                 "Q230_PerformanceTableProjection",
                 EvaluatorPerformanceQueries.Q230,
                 CreateBasicSchemaProvider,
-                new CompilationOptions().WithTableResultMaterialization())
+                new CompilationOptions()
+                    .WithTableResultMaterialization()
+                    .WithStabilityAwareScalarReuse())
         ];
     }
 
@@ -49,7 +51,7 @@ internal static partial class GeneratedCodeSamplesCatalog
             Category = "Performance",
             Format = GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode,
             CreateSchemaProvider = createSchemaProvider,
-            CompilationOptions = compilationOptions ?? new CompilationOptions()
+            CompilationOptions = compilationOptions ?? new CompilationOptions().WithStabilityAwareScalarReuse()
         };
     }
 

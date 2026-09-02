@@ -46,6 +46,8 @@ internal sealed record SemanticMetadataSnapshot
 
     public required IReadOnlyList<Assembly> Assemblies { get; init; }
 
+    public required IReadOnlyDictionary<string, EnumTypeDescriptor> QueryLocalEnumTypes { get; init; }
+
     public required IReadOnlyDictionary<string, IReadOnlyList<int>> SetOperatorFieldPositions { get; init; }
 
     public required IReadOnlyDictionary<string, IReadOnlyList<Type>> SetOperatorFieldTypes { get; init; }

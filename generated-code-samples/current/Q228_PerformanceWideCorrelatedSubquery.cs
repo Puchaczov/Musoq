@@ -376,8 +376,8 @@ ExecutionPlan [compiled]
     PhaseBoundary [GroupBy:cte2]
     CreateValueTupleAggregateContext [cte2Groups: (string, string, string, decimal, string, decimal, int, int?) -> Cte2AggregateGroup]
     ChunkedForEach [b in cte2_bRows]
+      GetOrAddValueTupleAggregateGroup [cte2Group = cte2Groups[(b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue)] by b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue; typed: Cte2AggregateGroup]
       Let [city: string = b.City]
-      GetOrAddValueTupleAggregateGroup [cte2Group = cte2Groups[(b.Name, city, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue)] by b.Name, b.City, b.Country, b.Population, b.Month, b.Money, b.Id, b.NullableValue; typed: Cte2AggregateGroup]
       TypedAggregateSet [Set(cte2Group.__agg0, city)]
     EnsureCapacity [cte2 <- cte2GroupsToFinalize.Count]
     PhaseBoundary [Select:cte2]
@@ -701,9 +701,8 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                                 }
 
                                 var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                string city = b.City;
                                 string groupKey0 = b.Name;
-                                string groupKey1 = city;
+                                string groupKey1 = b.City;
                                 string groupKey2 = b.Country;
                                 decimal groupKey3 = b.Population;
                                 string groupKey4 = b.Month;
@@ -718,6 +717,7 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                                 }
 
                                 Cte2AggregateGroup cte2Group = cte2GroupRef;
+                                string city = b.City;
                                 Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte2Group.__agg0, (string)city);
                             }
 
@@ -735,9 +735,8 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                                 }
 
                                 var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                string city = b.City;
                                 string groupKey0 = b.Name;
-                                string groupKey1 = city;
+                                string groupKey1 = b.City;
                                 string groupKey2 = b.Country;
                                 decimal groupKey3 = b.Population;
                                 string groupKey4 = b.Month;
@@ -752,6 +751,7 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                                 }
 
                                 Cte2AggregateGroup cte2Group = cte2GroupRef;
+                                string city = b.City;
                                 Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte2Group.__agg0, (string)city);
                             }
 
@@ -767,9 +767,8 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                         }
 
                         var b = bChunk[bIndex];
-                        string city = b.City;
                         string groupKey0 = b.Name;
-                        string groupKey1 = city;
+                        string groupKey1 = b.City;
                         string groupKey2 = b.Country;
                         decimal groupKey3 = b.Population;
                         string groupKey4 = b.Month;
@@ -784,6 +783,7 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
                         }
 
                         Cte2AggregateGroup cte2Group = cte2GroupRef;
+                        string city = b.City;
                         Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte2Group.__agg0, (string)city);
                     }
                 }

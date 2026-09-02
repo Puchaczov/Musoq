@@ -44,7 +44,22 @@ public sealed partial class ExecutionCSharpRenderer
             StatementEmitter.CreateForeach(
                 leftRowName,
                 CreateSetRowsRead(setOperation.Left, context),
-                StatementEmitter.CreateBlock(CreateSetOperationTargetAddStatement(setOperation, leftRowName, setOperation.Left, context))),
+                StatementEmitter.CreateBlock(SyntaxFactory.IfStatement(
+                    SyntaxFactory.PrefixUnaryExpression(
+                        SyntaxKind.LogicalNotExpression,
+                        CreateSetRowsAnyMatch(
+                            CreateSetRowsRead(setOperation.Target, context),
+                            resultRowName,
+                            leftRowName,
+                            setOperation.Target,
+                            setOperation.Left,
+                            setOperation,
+                            context)),
+                    StatementEmitter.CreateBlock(CreateSetOperationTargetAddStatement(
+                        setOperation,
+                        leftRowName,
+                        setOperation.Left,
+                        context))))),
             StatementEmitter.CreateForeach(
                 rightRowName,
                 CreateSetRowsRead(setOperation.Right, context),

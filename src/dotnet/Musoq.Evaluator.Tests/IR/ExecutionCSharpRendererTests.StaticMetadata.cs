@@ -179,6 +179,27 @@ public sealed partial class ExecutionCSharpRendererTests
     }
 
     [TestMethod]
+    public void RenderClassMembers_WhenMetadataDiffersOnlyByEnumIdentity_ShouldEmitPortableDistinctFields()
+    {
+        var renderer = new ExecutionCSharpRenderer();
+        var members = renderer.RenderClassMembers(CreateSameReferenceDifferentEnumMetadataPlan());
+        var code = string.Join(Environment.NewLine, members.Select(member => member.NormalizeWhitespace().ToFullString()));
+
+        Assert.AreEqual(2, code.Split("private static readonly Column[]").Length - 1);
+        Assert.Contains("__columns_Q_EnumMetadataCollision_shared_0", code);
+        Assert.Contains("__columns_Q_EnumMetadataCollision_shared_1", code);
+        Assert.Contains("new global::Musoq.Schema.EnumTypeDescriptor(\"JobStatus\"", code);
+        Assert.Contains("new global::Musoq.Schema.EnumTypeDescriptor(\"Priority\"", code);
+        Assert.Contains("global::Musoq.Schema.EnumTypeOrigin.QueryLocal", code);
+        Assert.Contains("global::Musoq.Schema.EnumUnderlyingKind.Int16", code);
+        Assert.Contains("new global::Musoq.Schema.EnumMemberDescriptor(\"Queued\"", code);
+        Assert.Contains("global::Musoq.Schema.EnumScalarValue.FromRaw", code);
+        Assert.IsFalse(code.Contains("System.Enum", StringComparison.Ordinal));
+        Assert.IsFalse(code.Contains("Enum.Parse", StringComparison.Ordinal));
+        Assert.IsFalse(code.Contains("Enum.ToObject", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
     public void RenderClassMembers_WhenSourceMetadataDiffersOnlyByModifiers_ShouldEmitDistinctFields()
     {
         var renderer = new ExecutionCSharpRenderer();

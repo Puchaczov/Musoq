@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests;
 /// </summary>
 public abstract class ExploratoryEvaluatorTestsBase : GenericEntityTestBase
 {
-    public TestContext TestContext { get; set; } = null!;
 
     #region Test Data Classes
 

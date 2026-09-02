@@ -135,7 +135,10 @@ public partial class BuildMetadataAndInferTypesVisitor
                 if (property == null)
                 {
                     if (TryReportUnknownPropertyWithSuggestions(propertyName, root.ReturnType.GetProperties(), node))
+                    {
+                        PushSemanticNode(CreateUnknownPropertyRecoveryNode(root, propertyName, node));
                         return;
+                    }
                     var span = node.SpanOrEmpty();
                     PrepareAndThrowUnknownPropertyExceptionMessage(propertyName,
                         root.ReturnType.GetProperties(), span);
@@ -151,7 +154,10 @@ public partial class BuildMetadataAndInferTypesVisitor
                 {
                     if (TryReportUnknownPropertyWithSuggestions(identifierNode.Name, root.ReturnType.GetProperties(),
                             node))
+                    {
+                        PushSemanticNode(CreateUnknownPropertyRecoveryNode(root, identifierNode.Name, node));
                         return;
+                    }
                     var span = node.SpanOrEmpty();
                     PrepareAndThrowUnknownPropertyExceptionMessage(identifierNode.Name,
                         root.ReturnType.GetProperties(), span);
@@ -169,6 +175,10 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         PushSemanticNode(newNode);
     }
+
+    private static DotNode CreateUnknownPropertyRecoveryNode(Node root, string propertyName, DotNode node) =>
+        new(root, new IdentifierNode(propertyName, typeof(object), node.SpanOrEmpty()), node.IsTheMostInner,
+            string.Empty, typeof(object));
 
     public override void Visit(AccessCallChainNode node)
     {
@@ -188,6 +198,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         for (var i = node.Args.Length - 1; i >= 0; --i)
             args[i] = PopSemanticNode(VisitorOperationNames.VisitArgsListNode);
 
-        PushSemanticNode(new ArgsListNode(args, node.ArgumentNames, default));
+        PushSemanticNode(new ArgsListNode(args, node.ArgumentNames, node.Span));
     }
 }

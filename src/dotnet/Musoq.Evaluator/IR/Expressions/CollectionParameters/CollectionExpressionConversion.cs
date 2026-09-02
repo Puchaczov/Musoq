@@ -14,6 +14,6 @@ public sealed partial class ExpressionConverter
                           throw new InvalidOperationException(
                               $"Collection IN parameter '${collection.Name}' is missing an element type.");
 
-        return new CollectionInCheck(expression, collection, elementType, Expressions.ExpressionConverter.RequireReturnType(node));
+        return new CollectionInCheck(expression, collection, elementType, RequireReturnType(node));
     }
 }

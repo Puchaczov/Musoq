@@ -99,7 +99,15 @@ public sealed partial class LogicalPlanBuilder
             _ => IrNodes.DescType.Table
         };
 
-        _nodeStack.Push(new IrNodes.DescNode(schemaName, methodName, descType, column, arguments, sourceContextId, OutputSchema.Empty));
+        _nodeStack.Push(new IrNodes.DescNode(
+            schemaName,
+            methodName,
+            descType,
+            column,
+            arguments,
+            sourceContextId,
+            OutputSchema.Empty,
+            ColumnSpan: node.Column?.Span));
     }
 
     public void Visit(InternalQueryNode node)

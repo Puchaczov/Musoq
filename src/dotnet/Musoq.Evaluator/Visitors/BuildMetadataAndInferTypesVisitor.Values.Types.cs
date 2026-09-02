@@ -13,7 +13,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         return CommonColumnTypeResolver.Resolve(
             columnName,
             expressions,
-            GetColumnExpressionSpan(expressions, node),
+            ValuesSourceSpanHelpers.GetColumnExpressionSpan(expressions, node),
             CommonColumnTypeDiagnosticKind.Values);
     }
 

@@ -12,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class DistinctComprehensiveTests : BasicEntityTestBase
 {
-    public required TestContext TestContext { get; set; }
 
     #region DISTINCT with WHERE clause in CTE
 

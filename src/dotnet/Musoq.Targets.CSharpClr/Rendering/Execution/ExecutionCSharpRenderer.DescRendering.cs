@@ -166,7 +166,8 @@ public sealed partial class ExecutionCSharpRenderer
             DescType.Column => CreateEvaluationHelperInvocation(
                 nameof(EvaluationHelper.GetSpecificColumnDescription),
                 SyntaxFactory.IdentifierName(DescSchemaTableVariableName),
-                CreateStringLiteral(desc.Column!)),
+                CreateStringLiteral(desc.Column!),
+                DescColumnSpanSyntax.Create(desc.ColumnSpan)),
             DescType.Settings => CreateEvaluationHelperInvocation(
                 nameof(EvaluationHelper.GetSourceRuntimeSettingsDescription),
                 CreateDescSourceRuntimeSettingDescriptionsExpression(desc.RuntimeContextId),

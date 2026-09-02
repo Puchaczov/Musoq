@@ -34,7 +34,17 @@ public class SchemaFromNode : FromNode
 
     public int QueryId { get; }
 
+    /// <summary>Source span of the schema identifier, when parsed from query text.</summary>
+    public TextSpan? SchemaSpan { get; private set; }
+
+    /// <summary>Source span of the source/method identifier, when available.</summary>
+    public TextSpan? MethodSpan { get; private set; }
+
     public override string Id { get; }
+
+    public SchemaFromNode WithSchemaSpan(TextSpan span) { SchemaSpan = span; return this; }
+
+    public SchemaFromNode WithMethodSpan(TextSpan span) { MethodSpan = span; return this; }
 
     public override void Accept(IExpressionVisitor visitor)
     {

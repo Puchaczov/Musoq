@@ -1,3 +1,5 @@
+using System;
+
 namespace Musoq.Evaluator.Tests;
 
 internal static partial class GeneratedCodeSamplesCatalog
@@ -60,9 +62,13 @@ internal static partial class GeneratedCodeSamplesCatalog
     private static GeneratedCodeSample Recursive(string name)
     {
         var testCase = RecursiveCteSupportedCaseCatalog.GetBySampleName(name);
+        var options = string.Equals(name, "Q217_RecursiveCaseAndScalarExpressions", StringComparison.Ordinal)
+            ? testCase.CompilationOptions
+            : testCase.CompilationOptions.WithStabilityAwareScalarReuse();
+
         return Basic(name, "RecursiveCte", testCase.Query) with
         {
-            CompilationOptions = testCase.CompilationOptions,
+            CompilationOptions = options,
             CreateSchemaProvider = testCase.CreateSchemaProvider ?? CreateBasicSchemaProvider
         };
     }

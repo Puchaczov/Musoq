@@ -76,7 +76,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private bool CanCurrentClauseUseSelectAlias()
     {
-        return _queryState.QueryPart is QueryPart.Where or QueryPart.GroupBy or QueryPart.Having;
+        return _queryState.QueryPart is QueryPart.Where or QueryPart.GroupBy or QueryPart.Having or QueryPart.Qualify;
     }
 
     private bool IsCurrentSourceColumnForSelectAlias(string name)

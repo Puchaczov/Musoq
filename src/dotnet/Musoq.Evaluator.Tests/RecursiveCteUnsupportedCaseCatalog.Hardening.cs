@@ -105,11 +105,11 @@ internal static partial class RecursiveCteUnsupportedCaseCatalog
             Unsupported("UnknownRecursiveUnionKey",
                 "with recursive counter (Value) as (" + Anchor + " union (Missing) " + Member +
                 ") select Value from counter",
-                DiagnosticCode.MQ3001_UnknownColumn, "union", "Unknown column 'Missing'"),
+                DiagnosticCode.MQ3001_UnknownColumn, "Missing", "Unknown column 'Missing'"),
             Unsupported("RecursiveKeyMatchesOnlyUnderlyingExpression",
                 "with recursive counter (Id) as (" + Anchor + " union (Value) " +
                 "select c.Id + 1 from counter c where c.Id < 3) select Id from counter",
-                DiagnosticCode.MQ3001_UnknownColumn, "union", "Unknown column 'Value'"),
+                DiagnosticCode.MQ3001_UnknownColumn, "Value", "Unknown column 'Value'"),
             Unsupported("ForwardReferenceInsideRecursiveMember",
                 "with recursive counter (Value) as (" + Anchor + " union all " +
                 "select n.Value from counter c inner join next n on n.Value = c.Value), " +

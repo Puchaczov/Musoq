@@ -17,7 +17,7 @@ internal sealed class MethodTargetRegistry(string namePrefix, MethodTargetRegist
     public void AddExisting(ExecutionVariable variable)
     {
         _usedNames.Add(variable.Name);
-        if (typeof(Musoq.Plugins.LibraryBase).IsAssignableFrom(variable.Type.ResolveClrType()))
+        if (typeof(Plugins.LibraryBase).IsAssignableFrom(variable.Type.ResolveClrType()))
             _variables.TryAdd(variable.Type.ResolveClrType(), variable);
     }
 
@@ -36,7 +36,7 @@ internal sealed class MethodTargetRegistry(string namePrefix, MethodTargetRegist
     }
     public ExecutionVariable? GetOrAdd(Type declaringType, string? namePrefixOverride = null)
     {
-        if (declaringType.IsAbstract || !typeof(Musoq.Plugins.LibraryBase).IsAssignableFrom(declaringType) || declaringType.GetConstructor(Type.EmptyTypes) == null)
+        if (declaringType.IsAbstract || !typeof(Plugins.LibraryBase).IsAssignableFrom(declaringType) || declaringType.GetConstructor(Type.EmptyTypes) == null)
             return null;
         if (_variables.TryGetValue(declaringType, out var variable))
             return variable;

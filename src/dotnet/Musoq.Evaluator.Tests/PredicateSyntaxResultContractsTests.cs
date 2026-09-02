@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class PredicateSyntaxResultContractsTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void Contains_ShouldReturnMatchingValuesWithDuplicateListEntriesIgnored()

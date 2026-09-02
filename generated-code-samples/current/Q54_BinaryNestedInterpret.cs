@@ -344,10 +344,14 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override Point InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("X");
             var _x = ReadInt16Le(data);
+            RecordParsedField("X", _x);
+            SetCurrentField("Y");
             var _y = ReadInt16Le(data);
+            RecordParsedField("Y", _y);
             return new Point
             {
                 X = _x,
@@ -371,12 +375,15 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override Vertex InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("Id");
             var _id = ReadByte(data);
+            RecordParsedField("Id", _id);
+            SetCurrentField("Position");
             var __position_interpreter = new Point();
-            var _position = __position_interpreter.InterpretAt(data, ParsePosition);
-            ParsePosition = __position_interpreter.BytesConsumed;
+            var _position = InterpretNested(__position_interpreter, data, "Position");
+            RecordParsedField("Position", _position);
             return new Vertex
             {
                 Id = _id,

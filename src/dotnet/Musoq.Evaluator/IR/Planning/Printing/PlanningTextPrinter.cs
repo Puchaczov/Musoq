@@ -284,7 +284,7 @@ internal static partial class PlanningTextPrinter
         if (predicates.Length == 0)
             return "none";
 
-        return string.Join(", ", predicates.Select(Expressions.IrExpressionPrinter.Print));
+        return string.Join(", ", predicates.Select(IrExpressionPrinter.Print));
     }
 
     private static string FormatNames(string[] names)

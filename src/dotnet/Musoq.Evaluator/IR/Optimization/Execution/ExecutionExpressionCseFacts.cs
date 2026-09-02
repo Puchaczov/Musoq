@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Musoq.Evaluator.IR.Analysis;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Execution.Facts;
 using Musoq.Evaluator.IR.Expressions;
@@ -29,6 +30,59 @@ internal static partial class ExecutionExpressionCseFacts
         return expressions.All(IsWindowHelperIndependentExpression)
             ? expressions
             : [];
+    }
+
+    /// <summary>
+    /// Returns stable per-row window inputs that may be shared by compatible
+    /// registrations. The caller still owns registration and frame semantics;
+    /// this method only describes scalar inputs, never sort/comparer state.
+    /// </summary>
+    public static IReadOnlyList<ExecutionExpression> GetWindowSharedExpressions(ExecutionNode node)
+    {
+        if (!ExecutionNodeFacts.TryGetWindowComputation(node, out _))
+            return [];
+
+        return ExecutionNodeFacts.GetLocalExpressions(node)
+            .Where(static expression =>
+                ExpressionStabilityAnalyzer.IsStable(expression) &&
+                IsCseResultTypeStable(expression.ReturnType.ResolveClrType()))
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Returns stable per-input aggregate keys, arguments, filters, and
+    /// accumulator inputs. Aggregate state and distinctness remain owned by
+    /// the aggregate kernel; only scalar inputs are candidates for sharing.
+    /// </summary>
+    public static IReadOnlyList<ExecutionExpression> GetAggregateSharedExpressions(ExecutionNode node)
+    {
+        return node switch
+        {
+            ExecutionGetOrAddSingleKeyAggregateGroup group => StableScalarExpressions([group.Key]),
+            ExecutionGetOrAddValueTupleAggregateGroup group => StableScalarExpressions(group.Keys),
+            ExecutionAggregateSet aggregate => StableScalarExpressions(
+                AggregateKernelArgumentSelector.SelectValueArgumentsAfterGroup(aggregate.Arguments)
+                    .Concat(OptionalExpression(aggregate.FilterPredicate))
+                    .Concat(OptionalExpression(aggregate.AccumulatorInput))),
+            ExecutionAggregateCapturedValueSet captured => StableScalarExpressions([captured.Value]),
+            _ => []
+        };
+    }
+
+    private static IReadOnlyList<ExecutionExpression> StableScalarExpressions(
+        IEnumerable<ExecutionExpression> expressions)
+    {
+        return expressions
+            .Where(static expression =>
+                ExpressionStabilityAnalyzer.IsStable(expression) &&
+                IsCseResultTypeStable(expression.ReturnType.ResolveClrType()))
+            .ToArray();
+    }
+
+    private static IEnumerable<ExecutionExpression> OptionalExpression(ExecutionExpression? expression)
+    {
+        if (expression != null)
+            yield return expression;
     }
 
     public static bool IsWindowHelperIndependentExpression(ExecutionExpression expression)
@@ -93,6 +147,58 @@ internal static partial class ExecutionExpressionCseFacts
             default:
                 return [];
         }
+    }
+
+    public static IEnumerable<HoistOccurrence> CollectStableScalarReuseOccurrences(
+        ExecutionBlock block,
+        bool inPassThroughUnsafeContext = false)
+    {
+        foreach (var node in block.Nodes)
+        {
+            foreach (var expression in GetStableScalarReuseExpressions(node))
+            {
+                foreach (var occurrence in CollectHoistableOccurrences(expression, inPassThroughUnsafeContext))
+                    yield return occurrence;
+            }
+        }
+    }
+
+    internal static IEnumerable<ExecutionExpression> GetStableScalarReuseExpressions(ExecutionNode node)
+    {
+        return node switch
+        {
+            ExecutionAppendRow appendRow => appendRow.Values
+                .Select(static value => value.Value)
+                .Concat(appendRow.Contexts)
+                .Concat(ExecutionNodeFacts.GetContextLayoutExpressions(appendRow.ContextLayout)),
+            ExecutionAppendRecord appendRecord => appendRecord.Values.Select(static value => value.Value),
+            ExecutionCreateGeneratedRow createRow => createRow.Values
+                .Select(static value => value.Value)
+                .Concat(createRow.Contexts)
+                .Concat(ExecutionNodeFacts.GetContextLayoutExpressions(createRow.ContextLayout)),
+            ExecutionCreateHashPayload payload => payload.Values.Select(static value => value.Value),
+            ExecutionHashAdd hashAdd => [hashAdd.Key],
+            ExecutionHashProbe hashProbe => [hashProbe.Key],
+            ExecutionKeySetAdd keySetAdd => [keySetAdd.Key],
+            ExecutionKeySetProbe keySetProbe => [keySetProbe.Key],
+            ExecutionGetOrAddSingleKeyAggregateGroup getOrAdd => [getOrAdd.Key],
+            ExecutionGetOrAddValueTupleAggregateGroup getOrAdd => getOrAdd.Keys,
+            ExecutionAggregateSet aggregateSet => aggregateSet.Arguments
+                .Concat(aggregateSet.FilterPredicate == null ? [] : [aggregateSet.FilterPredicate])
+                .Concat(aggregateSet.AccumulatorInput == null ? [] : [aggregateSet.AccumulatorInput]),
+            ExecutionAggregateCapturedValueSet capturedValueSet => [capturedValueSet.Value],
+            ExecutionComputeRankingWindow or
+                ExecutionComputeOffsetWindow or
+            ExecutionComputePluginWindow or
+                ExecutionWindowAggregateKernel => ExecutionNodeFacts.GetLocalExpressions(node),
+            ExecutionCreateRangeIndex or
+                ExecutionRangeProbe => ExecutionNodeFacts.GetLocalExpressions(node),
+            ExecutionRecursiveCteAppend append => append.AppendRow.Values
+                .Select(static value => value.Value)
+                .Concat(append.AppendRow.Contexts)
+                .Concat(ExecutionNodeFacts.GetContextLayoutExpressions(append.AppendRow.ContextLayout)),
+            _ => []
+        };
     }
 
     public static IEnumerable<HoistOccurrence> CollectHoistableOccurrences(
@@ -216,49 +322,14 @@ internal static partial class ExecutionExpressionCseFacts
 
     public static bool IsDeterministicExpression(ExecutionExpression expression)
     {
-        return expression switch
-        {
-            ExecutionMethodTargetReuseCandidate candidate => IsDeterministicExpression(candidate.MethodCall),
-            ExecutionStrictCast strictCast => IsDeterministicExpression(strictCast.Expression),
-            ExecutionMethodCall methodCall => IsDeterministicMethod(methodCall.Method) &&
-                                              methodCall.Arguments.All(IsDeterministicExpression) &&
-                                              (methodCall.InjectedSource == null ||
-                                               IsDeterministicExpression(methodCall.InjectedSource)),
-            ExecutionMemberRead memberRead => IsDeterministicExpression(memberRead.Receiver),
-            ExecutionBinary binary => IsDeterministicExpression(binary.Left) &&
-                                      IsDeterministicExpression(binary.Right),
-            ExecutionUnary unary => IsDeterministicExpression(unary.Operand),
-            ExecutionArrayAccess arrayAccess => IsDeterministicExpression(arrayAccess.Array) &&
-                                                IsDeterministicExpression(arrayAccess.Index),
-            ExecutionIsNullCheck isNull => IsDeterministicExpression(isNull.Expression),
-            ExecutionInCheck inCheck => IsDeterministicExpression(inCheck.Expression) &&
-                                        inCheck.Values.All(IsDeterministicExpression),
-            ExecutionCollectionInCheck collectionInCheck => IsDeterministicExpression(collectionInCheck.Expression),
-            ExecutionPatternMatch patternMatch => IsDeterministicExpression(patternMatch.Expression) &&
-                                                  IsDeterministicExpression(patternMatch.Pattern),
-            ExecutionBetween between => IsDeterministicExpression(between.Expression) &&
-                                        IsDeterministicExpression(between.Low) &&
-                                        IsDeterministicExpression(between.High),
-            ExecutionCaseWhen caseWhen => caseWhen.Branches.All(branch =>
-                                            IsDeterministicExpression(branch.Condition) &&
-                                            IsDeterministicExpression(branch.Result)) &&
-                                        (caseWhen.ElseExpression == null ||
-                                         IsDeterministicExpression(caseWhen.ElseExpression)),
-            ExecutionCoalesce coalesce => coalesce.Expressions.All(IsDeterministicExpression),
-            ExecutionCompositeKey compositeKey => compositeKey.Parts.All(IsDeterministicExpression),
-            ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts.All(IsDeterministicExpression),
-            ExecutionAggregateCall aggregateCall => IsDeterministicMethod(aggregateCall.Method) &&
-                                                   aggregateCall.Arguments.All(IsDeterministicExpression),
-            _ => true
-        };
+        return ExpressionStabilityAnalyzer.IsStable(expression);
     }
 
     public static bool IsDeterministicMethod(MethodInfo method) =>
-        method.GetCustomAttribute<NonDeterministicAttribute>() == null &&
-        !method.GetParameters().Any(static parameter => parameter.GetCustomAttribute<InjectQueryStatsAttribute>() != null);
+        ExpressionStabilityAnalyzer.IsStableMethod(method);
 
     public static bool IsDeterministicMethod(ExecutionCallableRef method) =>
-        IsDeterministicMethod(method.ResolveClrMethod());
+        ExpressionStabilityAnalyzer.IsStableMethod(method);
 
     public static int GetExpressionDepth(ExecutionExpression expression)
     {
@@ -309,4 +380,3 @@ internal static partial class ExecutionExpressionCseFacts
         };
     }
 }
-

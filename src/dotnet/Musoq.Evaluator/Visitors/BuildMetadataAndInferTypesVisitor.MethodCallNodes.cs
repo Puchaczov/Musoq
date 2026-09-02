@@ -1,4 +1,5 @@
 using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 
@@ -9,17 +10,27 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(AccessMethodNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        if (TryBindEnumIntrinsic(node) || TryRejectUnsupportedEnumMethod(node))
+            return;
+
         VisitAccessMethod(node,
             (token, modifiedNode, exArgs, arg3, alias, canSkipInjectSource) =>
-                new AccessMethodNode(token, modifiedNode, exArgs, canSkipInjectSource, arg3, alias,
-                    default, node.IsDistinct)
-                {
-                    HasFilter = node.HasFilter,
-                    FilterExpression = node.FilterExpression,
-                    FilterExpressionText = node.FilterExpressionText,
-                    IsPivotGenerated = node.IsPivotGenerated,
-                    IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper
-                });
+                (AccessMethodNode)(new AccessMethodNode(
+                        token,
+                        modifiedNode,
+                        exArgs,
+                        canSkipInjectSource,
+                        arg3,
+                        alias,
+                        node.Span,
+                        node.IsDistinct)
+                    {
+                        HasFilter = node.HasFilter,
+                        FilterExpression = node.FilterExpression,
+                        FilterExpressionText = node.FilterExpressionText,
+                        IsPivotGenerated = node.IsPivotGenerated,
+                        IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper
+                    }).WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(InterpretCallNode node)
@@ -95,36 +106,26 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private void ThrowFilterOnNonAggregate(AccessMethodNode node)
     {
-        var span = node.SpanOrEmpty();
-        var message = $"FILTER clause can only be applied to aggregate functions, but '{node.Name}' is not an aggregate function.";
+        var exception = new FilterOnNonAggregateException(node.Name, node.SpanOrEmpty());
 
-        var exception = new VisitorException(
-            nameof(BuildMetadataAndInferTypesVisitor),
-            "CreateAccessMethod",
-            message,
-            DiagnosticCode.MQ3051_FilterOnNonAggregate,
-            span);
-
-        if (TryReportException(exception, node))
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(exception.Code, exception.Message, node);
             return;
+        }
 
         throw exception;
     }
 
     private void ThrowPivotUsingOnNonAggregate(AccessMethodNode node)
     {
-        var span = node.SpanOrEmpty();
-        var message = $"PIVOT USING accepts aggregate function calls only, but '{node.Name}' is not an aggregate function.";
+        var exception = new PivotUsingNonAggregateException(node.Name, node.SpanOrEmpty());
 
-        var exception = new VisitorException(
-            nameof(BuildMetadataAndInferTypesVisitor),
-            "CreateAccessMethod",
-            message,
-            DiagnosticCode.MQ3051_FilterOnNonAggregate,
-            span);
-
-        if (TryReportException(exception, node))
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(exception.Code, exception.Message, node);
             return;
+        }
 
         throw exception;
     }

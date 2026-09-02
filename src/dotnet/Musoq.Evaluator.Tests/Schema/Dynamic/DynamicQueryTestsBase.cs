@@ -4,12 +4,13 @@ using System.Dynamic;
 using System.Linq;
 using Moq;
 using Musoq.Converter;
+using Musoq.Evaluator.Tests;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Schema.Dynamic;
 
-public class DynamicQueryTestsBase
+public class DynamicQueryTestsBase : MSTestContextTestBase
 {
     protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
 

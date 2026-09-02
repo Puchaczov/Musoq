@@ -53,7 +53,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             {
                 var columnIndex = 0;
 
-                foreach (var field in textSchemaNode.Fields)
+                foreach (var field in GetAllTextSchemaFields(textSchemaNode))
                 {
                     if (field.Name.StartsWith('_'))
                         continue;
@@ -76,6 +76,17 @@ public partial class BuildMetadataAndInferTypesVisitor
                     if (field.FieldType == TextFieldType.Switch)
                     {
                         columns.Add(new SchemaColumn(field.Name, columnIndex++, typeof(ExpandoObject)));
+                        continue;
+                    }
+
+                    if (field.FieldType == TextFieldType.SchemaReference)
+                    {
+                        var referencedSchemaName = field.PrimaryValue ?? "object";
+                        columns.Add(new SchemaColumn(
+                            field.Name,
+                            columnIndex++,
+                            typeof(object),
+                            $"Musoq.Generated.Interpreters.{referencedSchemaName}"));
                         continue;
                     }
 
@@ -224,9 +235,13 @@ public partial class BuildMetadataAndInferTypesVisitor
         var overriddenParentNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var childField in textNode.Fields)
         {
+            if (childField.IsDiscard)
+                continue;
+
             for (var i = 0; i < allFields.Count; i++)
             {
-                if (!string.Equals(allFields[i].Name, childField.Name, StringComparison.OrdinalIgnoreCase))
+                if (allFields[i].IsDiscard ||
+                    !string.Equals(allFields[i].Name, childField.Name, StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 allFields[i] = childField;
@@ -237,7 +252,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         foreach (var childField in textNode.Fields)
         {
-            if (!overriddenParentNames.Contains(childField.Name))
+            if (childField.IsDiscard || !overriddenParentNames.Contains(childField.Name))
                 allFields.Add(childField);
         }
 

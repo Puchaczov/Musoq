@@ -1,4 +1,3 @@
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Parser.Tokens;
@@ -17,76 +16,8 @@ internal static partial class SyntaxDiagnosticEnhancer
     [
         "SELECT", "FROM", "WHERE", "GROUP", "BY", "HAVING", "ORDER", "ASC", "DESC", "TAKE", "SKIP", "WITH",
         "AS", "JOIN", "INNER", "OUTER", "CROSS", "APPLY", "ON", "CASE", "WHEN", "THEN", "ELSE", "END", "IN",
-        "NOT", "NULL", "UNION", "EXCEPT", "INTERSECT", "DISTINCT", "PARAM", "LET", "TABLE", "COUPLE", "LIKE"
+        "NOT", "NULL", "UNION", "ALL", "EXCEPT", "INTERSECT", "DISTINCT", "PARAM", "LET", "TABLE", "COUPLE", "LIKE"
     ];
-
-    private static readonly FrozenDictionary<string, DialectKeywordHelp> DialectKeywordHelpMap =
-        new Dictionary<string, DialectKeywordHelp>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["LIMIT"] = new(
-                "Musoq uses TAKE instead of LIMIT.",
-                [
-                    "Replace LIMIT n with TAKE n.",
-                    "Example: SELECT Name FROM #schema.method() alias TAKE 5"
-                ],
-                "Core Spec §TAKE / SKIP"),
-            ["OFFSET"] = new(
-                "Musoq uses SKIP instead of OFFSET.",
-                [
-                    "Replace OFFSET n with SKIP n.",
-                    "If you need paging, use ORDER BY ... TAKE ... SKIP ..."
-                ],
-                "Core Spec §TAKE / SKIP"),
-            ["TOP"] = new(
-                "Musoq does not use TOP in the SELECT list. Use TAKE after the FROM clause instead.",
-                [
-                    "Rewrite SELECT TOP 5 ... as SELECT ... FROM ... TAKE 5.",
-                    "Keep TAKE near the end of the query after FROM / ORDER BY."
-                ],
-                "Core Spec §TAKE / SKIP"),
-            ["FIRST"] = new(
-                "Musoq does not use FIRST in the SELECT list. Use TAKE after the FROM clause instead.",
-                [
-                    "Rewrite SELECT FIRST 5 ... as SELECT ... FROM ... TAKE 5.",
-                    "Keep TAKE near the end of the query after FROM / ORDER BY."
-                ],
-                "Core Spec §TAKE / SKIP"),
-            ["FETCH"] = new(
-                "Musoq does not support SQL Server OFFSET/FETCH paging syntax. Use TAKE and SKIP instead.",
-                [
-                    "Replace OFFSET ... FETCH ... with TAKE ... SKIP ...",
-                    "Example: SELECT ... ORDER BY Name TAKE 5 SKIP 3"
-                ],
-                "Core Spec §TAKE / SKIP"),
-            ["ROWS"] = new(
-                "Musoq does not support SQL Server OFFSET/FETCH ROWS syntax. Use TAKE and SKIP instead.",
-                [
-                    "Remove ROWS/ONLY keywords and rewrite with TAKE / SKIP.",
-                    "Example: SELECT ... ORDER BY Name TAKE 5 SKIP 3"
-                ],
-                "Core Spec §TAKE / SKIP"),
-            ["NEXT"] = new(
-                "Musoq does not support SQL Server FETCH NEXT syntax. Use TAKE and SKIP instead.",
-                [
-                    "Rewrite FETCH NEXT n ROWS ONLY as TAKE n.",
-                    "Combine with SKIP if you need offset paging."
-                ],
-                "Core Spec §TAKE / SKIP"),
-            ["ONLY"] = new(
-                "Musoq does not support SQL Server FETCH ... ONLY syntax. Use TAKE and SKIP instead.",
-                [
-                    "Remove ONLY and rewrite the paging clause with TAKE / SKIP.",
-                    "Example: SELECT ... ORDER BY Name TAKE 5 SKIP 3"
-                ],
-                "Core Spec §TAKE / SKIP"),
-            ["ILIKE"] = new(
-                "Musoq uses LIKE for pattern matching. ILIKE (case-insensitive LIKE) is a PostgreSQL extension not supported in Musoq.",
-                [
-                    "Replace ILIKE with LIKE.",
-                    "For case-insensitive matching, use: WHERE ToLower(Name) LIKE '%value%'"
-                ],
-                "Core Spec §LIKE Operator")
-        }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
     public static Diagnostic CreateDiagnostic(
         DiagnosticCode code,
@@ -96,9 +27,19 @@ internal static partial class SyntaxDiagnosticEnhancer
         SourceText? sourceText)
     {
         var metadata = ErrorMetadataCatalog.Get(code);
-        var keywordCandidate = GetKeywordCandidate(currentToken, sourceText, span);
-        var keywordSuggestion = GetKeywordSuggestion(currentToken, sourceText, span);
-        var dialectHelp = GetDialectKeywordHelp(currentToken, sourceText);
+        var allowKeywordEnhancement = code is DiagnosticCode.MQ2001_UnexpectedToken or
+            DiagnosticCode.MQ2004_MissingFromClause or DiagnosticCode.MQ2030_UnsupportedSyntax;
+        var allowDialectEnhancement = allowKeywordEnhancement || code is DiagnosticCode.MQ2009_InvalidOrderByExpression or
+            DiagnosticCode.MQ2021_UnclosedFunctionCall;
+        var keywordCandidate = allowKeywordEnhancement
+            ? GetKeywordCandidate(currentToken, sourceText, span)
+            : null;
+        var keywordSuggestion = allowKeywordEnhancement
+            ? GetKeywordSuggestion(currentToken, sourceText, span)
+            : null;
+        var dialectHelp = allowDialectEnhancement
+            ? GetDialectKeywordHelp(currentToken, sourceText, span)
+            : null;
         var enhancedMessage = code == DiagnosticCode.MQ2035_MissingRequiredAlias
             ? message
             : BuildMessage(message, span, keywordCandidate, keywordSuggestion, dialectHelp);

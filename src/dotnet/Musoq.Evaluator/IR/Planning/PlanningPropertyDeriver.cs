@@ -16,7 +16,9 @@ internal static partial class PlanningPropertyDeriver
         var requiredColumnUsageResult = RequiredColumnUsagePlanner.Plan(context.LogicalPlan);
         decisions.AddRange(requiredColumnUsageResult.Decisions);
         var requiredColumnsByAlias = requiredColumnUsageResult.RequiredColumnsByAlias;
-        var sourcePredicatePlanningResult = SourcePredicatePlanner.Plan(context.UsedWhereNodes);
+        var sourcePredicatePlanningResult = SourcePredicatePlanner.Plan(
+            context.UsedWhereNodes,
+            context.InferredColumns);
         var pushedPredicates = sourcePredicatePlanningResult.PushedPredicatesBySourceId;
         var preliminaryDecisions = new List<PlanningDecision>();
         var sources = CreateSourceProperties(context, scans, requiredColumnsByAlias, pushedPredicates, preliminaryDecisions);

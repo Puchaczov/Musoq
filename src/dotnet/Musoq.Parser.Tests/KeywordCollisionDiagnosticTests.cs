@@ -26,8 +26,11 @@ public sealed class KeywordCollisionDiagnosticTests
                 continue;
             }
 
-            if (result.Diagnostics[0].Code != DiagnosticCode.MQ2001_UnexpectedToken)
-                failures.Add($"{keyword}: expected MQ2001, got {result.Diagnostics[0].Code}");
+            var expectedCode = IsMissingOperandBoundary(keyword)
+                ? DiagnosticCode.MQ2020_MissingOperand
+                : DiagnosticCode.MQ2001_UnexpectedToken;
+            if (result.Diagnostics[0].Code != expectedCode)
+                failures.Add($"{keyword}: expected {expectedCode}, got {result.Diagnostics[0].Code}");
         }
 
         Assert.IsEmpty(failures, string.Join(Environment.NewLine, failures));
@@ -43,7 +46,10 @@ public sealed class KeywordCollisionDiagnosticTests
             var result = ParseWithDiagnostics(
                 $"select Name + {keyword} from #some.files(); select Name from #some.files()");
 
-            if (result.Diagnostics.Count != 1 || result.Diagnostics[0].Code != DiagnosticCode.MQ2001_UnexpectedToken)
+            var expectedCode = IsMissingOperandBoundary(keyword)
+                ? DiagnosticCode.MQ2020_MissingOperand
+                : DiagnosticCode.MQ2001_UnexpectedToken;
+            if (result.Diagnostics.Count != 1 || result.Diagnostics[0].Code != expectedCode)
             {
                 failures.Add($"{keyword}: unexpected diagnostics ({result.FormatDiagnostics()})");
                 continue;
@@ -54,6 +60,13 @@ public sealed class KeywordCollisionDiagnosticTests
         }
 
         Assert.IsEmpty(failures, string.Join(Environment.NewLine, failures));
+    }
+
+    private static bool IsMissingOperandBoundary(string keyword)
+    {
+        return keyword is "from" or "where" or "group" or "having" or "order" or "take" or "skip"
+            or "and" or "or" or "as" or "union" or "except" or "intersect" or "on" or "when"
+            or "then" or "else" or "end" or "window";
     }
 
     private static ParseResult ParseWithDiagnostics(string query)

@@ -26,7 +26,10 @@ internal sealed partial class LogicalConstantExpressionFolder(DiagnosticContext?
         var rewritten = ReferenceEquals(left, node.Left) && ReferenceEquals(right, node.Right)
             ? node
             : IrExpressionSourceSpans.CopyFrom(
-                new BinaryOp(node.Kind, left, right, node.ReturnType),
+                new BinaryOp(node.Kind, left, right, node.ReturnType)
+                {
+                    UsesSqlNullSemantics = node.UsesSqlNullSemantics
+                },
                 node);
 
         if (TryFoldBinary(rewritten, out var folded))
@@ -224,4 +227,3 @@ internal sealed partial class LogicalConstantExpressionFolder(DiagnosticContext?
         return IrExpressionSourceSpans.Get(expression);
     }
 }
-

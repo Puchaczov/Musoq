@@ -19,8 +19,8 @@ MultiStatement
 PhysicalMultiStatement
   PhysicalProject [l.Id as l.Id, r.Id as r.Id]
     PhysicalHashJoin [Inner] [build: r.Id] [probe: l.Id]
-      PhysicalSchemaScan [#queryrowsample.rows() as l] [query-row:SealedClass;lifetime=EscapesScan;shape=4D941F6DC39F3C2653416E1578297526ECBFC21554FF5DF542D95CB50BE5B018]
-      PhysicalSchemaScan [#queryrowsample.rows() as r] [query-row:SealedClass;lifetime=EscapesScan;shape=4D941F6DC39F3C2653416E1578297526ECBFC21554FF5DF542D95CB50BE5B018]
+      PhysicalSchemaScan [#queryrowsample.rows() as l] [query-row:SealedClass;lifetime=EscapesScan;shape=3D4EDDB8B07DA3CD9EFD8F267D363EC943ADE8917A3F2B49DF8EE4CBED47227B]
+      PhysicalSchemaScan [#queryrowsample.rows() as r] [query-row:SealedClass;lifetime=EscapesScan;shape=3D4EDDB8B07DA3CD9EFD8F267D363EC943ADE8917A3F2B49DF8EE4CBED47227B]
   PhysicalProject [l.Id as LeftId, r.Id as RightId]
     PhysicalCteRef [lr as lr]
 */
@@ -29,9 +29,9 @@ PhysicalMultiStatement
 /*
 ExecutionPlan [compiled]
   Shapes
-    Generated [QueryRow_4D941F6DC39F_C]
+    Generated [QueryRow_3D4EDDB8B07D_C]
       Id: int <- field Field0
-    Generated [QueryRow_4D941F6DC39F_C]
+    Generated [QueryRow_3D4EDDB8B07D_C]
       Id: int <- field Field0
     Generated [ResultRow0]
       LeftId: int <- field LeftId
@@ -42,8 +42,8 @@ ExecutionPlan [compiled]
     PhaseBoundary [From]
     PhaseBoundary [Begin:cte0]
     PhaseBoundary [Select]
-    SourceScan [l: object] -> lRows [query-row:SealedClass;lifetime=EscapesScan;shape=4D941F6DC39F3C2653416E1578297526ECBFC21554FF5DF542D95CB50BE5B018]
-    SourceScan [r: object] -> rRows [query-row:SealedClass;lifetime=EscapesScan;shape=4D941F6DC39F3C2653416E1578297526ECBFC21554FF5DF542D95CB50BE5B018]
+    SourceScan [l: object] -> lRows [query-row:SealedClass;lifetime=EscapesScan;shape=3D4EDDB8B07DA3CD9EFD8F267D363EC943ADE8917A3F2B49DF8EE4CBED47227B]
+    SourceScan [r: object] -> rRows [query-row:SealedClass;lifetime=EscapesScan;shape=3D4EDDB8B07DA3CD9EFD8F267D363EC943ADE8917A3F2B49DF8EE4CBED47227B]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateHash [rHash: int -> object]
     ChunkedForEach [r in rRows]
@@ -82,7 +82,7 @@ namespace GeneratedSample_Q241_QueryRowLifetimeBoundary
             new Column("LeftId", typeof(int), 0),
             new Column("RightId", typeof(int), 1)
         };
-        private static readonly QueryRowShape __queryRowShape_4D941F6DC39F = new QueryRowShape(new QueryRowField[] { new QueryRowField(0, 0, "Id", typeof(int), false) });
+        private static readonly QueryRowShape __queryRowShape_3D4EDDB8B07D = new QueryRowShape(new QueryRowField[] { new QueryRowField(0, 0, "Id", typeof(int), false) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_l_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Id", typeof(int), 0) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
@@ -126,19 +126,19 @@ namespace GeneratedSample_Q241_QueryRowLifetimeBoundary
                 {
                     OnPhaseChanged("compiled", QueryPhase.Select);
                     var __lSchema = provider.GetSchema("#queryrowsample");
-                    var __lSchemaQueryRows = __lSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape 4D941F6DC39F3C2653416E1578297526ECBFC21554FF5DF542D95CB50BE5B018).");
-                    var lRowsSource = __lSchemaQueryRows.GetQueryScopedRowSource<QueryRow_4D941F6DC39F_C, QueryRowMaterializer_4D941F6DC39F_C>("rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("l:1", sourceExecutionPlans["l:1"], token, __schemaColumns_compiled_l_0, sourceRuntimeSettingsBySourceContextId["l:1"], logger, OnDataSourceProgress), __queryRowShape_4D941F6DC39F), Array.Empty<object>());
-                    var lRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_4D941F6DC39F_C>(lRowsSource.Chunks, __musoqProgressContext, "l:1") : lRowsSource.Chunks;
+                    var __lSchemaQueryRows = __lSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape 3D4EDDB8B07DA3CD9EFD8F267D363EC943ADE8917A3F2B49DF8EE4CBED47227B).");
+                    var lRowsSource = __lSchemaQueryRows.GetQueryScopedRowSource<QueryRow_3D4EDDB8B07D_C, QueryRowMaterializer_3D4EDDB8B07D_C>("rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("l:1", sourceExecutionPlans["l:1"], token, __schemaColumns_compiled_l_0, sourceRuntimeSettingsBySourceContextId["l:1"], logger, OnDataSourceProgress), __queryRowShape_3D4EDDB8B07D), Array.Empty<object>());
+                    var lRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_3D4EDDB8B07D_C>(lRowsSource.Chunks, __musoqProgressContext, "l:1") : lRowsSource.Chunks;
                     var __rSchema = provider.GetSchema("#queryrowsample");
-                    var __rSchemaQueryRows = __rSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape 4D941F6DC39F3C2653416E1578297526ECBFC21554FF5DF542D95CB50BE5B018).");
-                    var rRowsSource = __rSchemaQueryRows.GetQueryScopedRowSource<QueryRow_4D941F6DC39F_C, QueryRowMaterializer_4D941F6DC39F_C>("rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("r:1", sourceExecutionPlans["r:1"], token, __schemaColumns_compiled_l_0, sourceRuntimeSettingsBySourceContextId["r:1"], logger, OnDataSourceProgress), __queryRowShape_4D941F6DC39F), Array.Empty<object>());
-                    var rRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_4D941F6DC39F_C>(rRowsSource.Chunks, __musoqProgressContext, "r:1") : rRowsSource.Chunks;
-                    var rHash = new Dictionary<int, HashJoinBucket<QueryRow_4D941F6DC39F_C>>();
+                    var __rSchemaQueryRows = __rSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape 3D4EDDB8B07DA3CD9EFD8F267D363EC943ADE8917A3F2B49DF8EE4CBED47227B).");
+                    var rRowsSource = __rSchemaQueryRows.GetQueryScopedRowSource<QueryRow_3D4EDDB8B07D_C, QueryRowMaterializer_3D4EDDB8B07D_C>("rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("r:1", sourceExecutionPlans["r:1"], token, __schemaColumns_compiled_l_0, sourceRuntimeSettingsBySourceContextId["r:1"], logger, OnDataSourceProgress), __queryRowShape_3D4EDDB8B07D), Array.Empty<object>());
+                    var rRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_3D4EDDB8B07D_C>(rRowsSource.Chunks, __musoqProgressContext, "r:1") : rRowsSource.Chunks;
+                    var rHash = new Dictionary<int, HashJoinBucket<QueryRow_3D4EDDB8B07D_C>>();
                     foreach (var rChunk in rRows)
                     {
-                        if (rChunk is global::Musoq.Schema.DataSources.RowChunk<QueryRow_4D941F6DC39F_C> rChunkView)
+                        if (rChunk is global::Musoq.Schema.DataSources.RowChunk<QueryRow_3D4EDDB8B07D_C> rChunkView)
                         {
-                            if (rChunkView.Source is QueryRow_4D941F6DC39F_C[] rChunkViewArray)
+                            if (rChunkView.Source is QueryRow_3D4EDDB8B07D_C[] rChunkViewArray)
                             {
                                 int rChunkViewOffset = rChunkView.Offset;
                                 for (int rIndex = 0, rIndexCount = rChunkView.Count; rIndex < rIndexCount; ++rIndex)
@@ -154,7 +154,7 @@ namespace GeneratedSample_Q241_QueryRowLifetimeBoundary
                                         ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(rHash, key, out var matchesExists);
                                         if (!matchesExists)
                                         {
-                                            matches = new HashJoinBucket<QueryRow_4D941F6DC39F_C>(r);
+                                            matches = new HashJoinBucket<QueryRow_3D4EDDB8B07D_C>(r);
                                         }
                                         else
                                         {
@@ -166,7 +166,7 @@ namespace GeneratedSample_Q241_QueryRowLifetimeBoundary
                                 continue;
                             }
 
-                            if (rChunkView.Source is List<QueryRow_4D941F6DC39F_C> rChunkViewList)
+                            if (rChunkView.Source is List<QueryRow_3D4EDDB8B07D_C> rChunkViewList)
                             {
                                 int rChunkViewOffset = rChunkView.Offset;
                                 for (int rIndex = 0, rIndexCount = rChunkView.Count; rIndex < rIndexCount; ++rIndex)
@@ -182,7 +182,7 @@ namespace GeneratedSample_Q241_QueryRowLifetimeBoundary
                                         ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(rHash, key, out var matchesExists);
                                         if (!matchesExists)
                                         {
-                                            matches = new HashJoinBucket<QueryRow_4D941F6DC39F_C>(r);
+                                            matches = new HashJoinBucket<QueryRow_3D4EDDB8B07D_C>(r);
                                         }
                                         else
                                         {
@@ -208,7 +208,7 @@ namespace GeneratedSample_Q241_QueryRowLifetimeBoundary
                                 ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(rHash, key, out var matchesExists);
                                 if (!matchesExists)
                                 {
-                                    matches = new HashJoinBucket<QueryRow_4D941F6DC39F_C>(r);
+                                    matches = new HashJoinBucket<QueryRow_3D4EDDB8B07D_C>(r);
                                 }
                                 else
                                 {
@@ -220,9 +220,9 @@ namespace GeneratedSample_Q241_QueryRowLifetimeBoundary
 
                     foreach (var lChunk in lRows)
                     {
-                        if (lChunk is global::Musoq.Schema.DataSources.RowChunk<QueryRow_4D941F6DC39F_C> lChunkView)
+                        if (lChunk is global::Musoq.Schema.DataSources.RowChunk<QueryRow_3D4EDDB8B07D_C> lChunkView)
                         {
-                            if (lChunkView.Source is QueryRow_4D941F6DC39F_C[] lChunkViewArray)
+                            if (lChunkView.Source is QueryRow_3D4EDDB8B07D_C[] lChunkViewArray)
                             {
                                 int lChunkViewOffset = lChunkView.Offset;
                                 for (int lIndex = 0, lIndexCount = lChunkView.Count; lIndex < lIndexCount; ++lIndex)
@@ -247,7 +247,7 @@ namespace GeneratedSample_Q241_QueryRowLifetimeBoundary
                                 continue;
                             }
 
-                            if (lChunkView.Source is List<QueryRow_4D941F6DC39F_C> lChunkViewList)
+                            if (lChunkView.Source is List<QueryRow_3D4EDDB8B07D_C> lChunkViewList)
                             {
                                 int lChunkViewOffset = lChunkView.Offset;
                                 for (int lIndex = 0, lIndexCount = lChunkView.Count; lIndex < lIndexCount; ++lIndex)
@@ -325,15 +325,15 @@ namespace GeneratedSample_Q241_QueryRowLifetimeBoundary
             PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
         }
 
-        private readonly struct QueryRowMaterializer_4D941F6DC39F_C : IQueryRowMaterializer<QueryRow_4D941F6DC39F_C>
+        private readonly struct QueryRowMaterializer_3D4EDDB8B07D_C : IQueryRowMaterializer<QueryRow_3D4EDDB8B07D_C>
         {
-            public static QueryRow_4D941F6DC39F_C Materialize<TReader>(scoped ref TReader reader)
-                where TReader : IQuerySourceFieldReader, allows ref struct => new QueryRow_4D941F6DC39F_C(reader.Read<int>(0));
+            public static QueryRow_3D4EDDB8B07D_C Materialize<TReader>(scoped ref TReader reader)
+                where TReader : IQuerySourceFieldReader, allows ref struct => new QueryRow_3D4EDDB8B07D_C(reader.Read<int>(0));
         }
 
-        private sealed class QueryRow_4D941F6DC39F_C
+        private sealed class QueryRow_3D4EDDB8B07D_C
         {
-            public QueryRow_4D941F6DC39F_C(int __value0)
+            public QueryRow_3D4EDDB8B07D_C(int __value0)
             {
                 Field0 = __value0;
             }

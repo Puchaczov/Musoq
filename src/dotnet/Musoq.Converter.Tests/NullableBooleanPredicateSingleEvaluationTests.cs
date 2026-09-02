@@ -46,7 +46,9 @@ public sealed class NullableBooleanPredicateSingleEvaluationTests
                 new CompilationOptions(useCommonSubexpressionElimination: useCse));
 
             Assert.IsTrue(result.Succeeded, FormatFailure(name, result));
-            using (var table = result.CompiledQuery.Run())
+            var compiledQuery = result.CompiledQuery ??
+                throw new AssertFailedException("Successful nullable predicate compilation produced no compiled query.");
+            using (var table = compiledQuery.Run())
             {
                 var expectedValue = shouldInvoke
                     ? probeValue == "true"

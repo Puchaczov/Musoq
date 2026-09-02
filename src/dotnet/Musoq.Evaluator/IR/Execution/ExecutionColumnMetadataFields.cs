@@ -8,7 +8,9 @@ internal static class ExecutionColumnMetadataFields
             field.Name,
             field.OutputIndex,
             field.ColumnType,
-            field.ReadModifiers);
+            field.ReadModifiers,
+            field.SourceReadType,
+            field.EnumType);
     }
 
     public static Type RequireClrTypeForLegacyCodeGeneration(ExecutionColumnMetadataField field)

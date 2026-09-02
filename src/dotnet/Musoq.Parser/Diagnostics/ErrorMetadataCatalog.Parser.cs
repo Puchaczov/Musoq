@@ -108,12 +108,12 @@ internal static class ParserErrorMetadataCatalog
 
         yield return Entry(
             DiagnosticCode.MQ2012_InvalidSchemaDefinition,
-            "A DEFINE SCHEMA block does not match the expected schema grammar.",
+            "A TABLE declaration or read modifier does not match the expected TABLE contract.",
             [
-                "Check the schema name, field list, and field type syntax.",
-                "Verify nested schema references use defined schema names."
+                "Check the TABLE name, column list, types, and optional read modifiers.",
+                "Verify columns and modifiers are unique and follow the TABLE grammar."
             ],
-            "Binary/Text Spec - Schema Definitions");
+            "TABLE/COUPLE Spec - TABLE Statement");
 
         yield return Entry(
             DiagnosticCode.MQ2013_InvalidCTE,
@@ -144,10 +144,10 @@ internal static class ParserErrorMetadataCatalog
 
         yield return Entry(
             DiagnosticCode.MQ2016_IncompleteStatement,
-            "The query ended before Musoq could form a complete statement.",
+            "The input does not contain a complete executable statement.",
             [
                 "Complete the statement with the missing clause or expression.",
-                "Start with a full query shape such as: SELECT ... FROM #schema.method() alias."
+                "Add a result-producing statement after declarations, such as: SELECT ... FROM #schema.method() alias."
             ],
             "Core Spec - Statement Structure");
 

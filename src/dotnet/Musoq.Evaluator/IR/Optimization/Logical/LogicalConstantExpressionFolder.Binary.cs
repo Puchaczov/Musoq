@@ -78,6 +78,10 @@ internal sealed partial class LogicalConstantExpressionFolder
 
         return node.Kind switch
         {
+            BinaryOpKind.Equal or BinaryOpKind.NotEqual or
+                BinaryOpKind.GreaterThan or BinaryOpKind.LessThan or
+                BinaryOpKind.GreaterOrEqual or BinaryOpKind.LessOrEqual
+                when node.UsesSqlNullSemantics => Succeed(CreateFoldedLiteral(null, node), out folded),
             BinaryOpKind.Equal or BinaryOpKind.IsNotDistinctFrom => Succeed(CreateFoldedLiteral(left is null && right is null, node), out folded),
             BinaryOpKind.NotEqual or BinaryOpKind.IsDistinctFrom => Succeed(CreateFoldedLiteral(left is not null || right is not null, node), out folded),
             BinaryOpKind.Add or
@@ -165,4 +169,3 @@ internal sealed partial class LogicalConstantExpressionFolder
         return ConstantOperatorEvaluator.CompareValues(left, right);
     }
 }
-

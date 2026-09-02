@@ -182,7 +182,14 @@ public partial class Parser
 
     private CoupleNode ComposeCouple()
     {
-        Consume(TokenType.Couple);
+        var coupleToken = ConsumeAndGetToken(TokenType.Couple);
+
+        if (Current.TokenType == TokenType.MethodAccess)
+            throw new SyntaxException(
+                "COUPLE schema methods are declarations and must not include parentheses; pass arguments when invoking the coupled alias.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2030_UnsupportedSyntax,
+                Current.Span);
 
         var from = ComposeSchemaMethod();
 
@@ -194,7 +201,8 @@ public partial class Parser
 
         var identifierNode = (IdentifierNode)ComposeBaseTypes();
 
-        return new CoupleNode(from, tableName, profileName, identifierNode.Name);
+        return (CoupleNode)new CoupleNode(from, tableName, profileName, identifierNode.Name)
+            .WithSpan(coupleToken.Span.Through(identifierNode.Span));
     }
 
 }

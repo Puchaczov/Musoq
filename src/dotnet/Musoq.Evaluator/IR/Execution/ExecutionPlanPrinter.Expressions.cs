@@ -126,7 +126,8 @@ public static partial class ExecutionPlanPrinter
 
     private static string FormatInCheck(ExecutionInCheck inCheck)
     {
-        return $"{FormatExpression(inCheck.Expression)} IN ({FormatExpressionList(inCheck.Values)})";
+        var keyword = inCheck.IsNegated ? "NOT IN" : "IN";
+        return $"{FormatExpression(inCheck.Expression)} {keyword} ({FormatExpressionList(inCheck.Values)})";
     }
 
     private static string FormatPatternMatch(ExecutionPatternMatch patternMatch)

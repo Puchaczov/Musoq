@@ -26,6 +26,8 @@ public partial class SafeDataAccessTests
         public string ColumnName { get; } = name;
         public int ColumnIndex { get; } = index;
         public Type ColumnType { get; } = type;
+        public Type SourceReadType { get; } = type;
+        public EnumTypeDescriptor? EnumType => null;
     }
 
     #endregion

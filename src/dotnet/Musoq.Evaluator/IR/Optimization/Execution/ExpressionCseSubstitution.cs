@@ -24,6 +24,22 @@ internal static partial class ExpressionCseSubstitution
                     .Select(value => value with { Value = Replace(value.Value, variablesBySignature) })
                     .ToArray()
             },
+            ExecutionCreateGeneratedRow createRow => createRow with
+            {
+                Values = createRow.Values
+                    .Select(value => value with { Value = Replace(value.Value, variablesBySignature) })
+                    .ToArray(),
+                Contexts = createRow.Contexts
+                    .Select(context => Replace(context, variablesBySignature))
+                    .ToArray(),
+                ContextLayout = Replace(createRow.ContextLayout, variablesBySignature)
+            },
+            ExecutionCreateHashPayload payload => payload with
+            {
+                Values = payload.Values
+                    .Select(value => value with { Value = Replace(value.Value, variablesBySignature) })
+                    .ToArray()
+            },
             ExecutionHashAdd hashAdd => hashAdd with
             {
                 Key = Replace(hashAdd.Key, variablesBySignature)
@@ -39,6 +55,73 @@ internal static partial class ExpressionCseSubstitution
             ExecutionKeySetProbe keySetProbe => keySetProbe with
             {
                 Key = Replace(keySetProbe.Key, variablesBySignature)
+            },
+            ExecutionGetOrAddSingleKeyAggregateGroup getOrAdd => getOrAdd with
+            {
+                Key = Replace(getOrAdd.Key, variablesBySignature)
+            },
+            ExecutionGetOrAddValueTupleAggregateGroup getOrAdd => getOrAdd with
+            {
+                Keys = getOrAdd.Keys.Select(key => Replace(key, variablesBySignature)).ToArray()
+            },
+            ExecutionAggregateSet aggregateSet => aggregateSet with
+            {
+                Arguments = aggregateSet.Arguments
+                    .Select(argument => Replace(argument, variablesBySignature)).ToArray(),
+                FilterPredicate = aggregateSet.FilterPredicate == null
+                    ? null
+                    : Replace(aggregateSet.FilterPredicate, variablesBySignature),
+                AccumulatorInput = aggregateSet.AccumulatorInput == null
+                    ? null
+                    : Replace(aggregateSet.AccumulatorInput, variablesBySignature)
+            },
+            ExecutionAggregateCapturedValueSet capturedValueSet => capturedValueSet with
+            {
+                Value = Replace(capturedValueSet.Value, variablesBySignature)
+            },
+            ExecutionCreateAsOfIndex asOfIndex => asOfIndex with
+            {
+                Candidates = Replace(asOfIndex.Candidates, variablesBySignature),
+                EqualityKeys = asOfIndex.EqualityKeys
+                    .Select(key => key with
+                    {
+                        Left = Replace(key.Left, variablesBySignature),
+                        Right = Replace(key.Right, variablesBySignature)
+                    })
+                    .ToArray(),
+                CandidateKey = Replace(asOfIndex.CandidateKey, variablesBySignature),
+                TieBreak = Replace(asOfIndex.TieBreak, variablesBySignature)
+            },
+            ExecutionAsOfProbe asOfProbe => asOfProbe with
+            {
+                Candidates = Replace(asOfProbe.Candidates, variablesBySignature),
+                EqualityKeys = asOfProbe.EqualityKeys
+                    .Select(key => key with
+                    {
+                        Left = Replace(key.Left, variablesBySignature),
+                        Right = Replace(key.Right, variablesBySignature)
+                    })
+                    .ToArray(),
+                ProbeKey = Replace(asOfProbe.ProbeKey, variablesBySignature),
+                CandidateKey = Replace(asOfProbe.CandidateKey, variablesBySignature),
+                TieBreak = Replace(asOfProbe.TieBreak, variablesBySignature)
+            },
+            ExecutionCreateRangeIndex rangeIndex => rangeIndex with
+            {
+                Candidates = Replace(rangeIndex.Candidates, variablesBySignature),
+                CandidateKey = Replace(rangeIndex.CandidateKey, variablesBySignature),
+                PartitionKeys = Replace(rangeIndex.PartitionKeys, variablesBySignature)
+            },
+            ExecutionRangeProbe rangeProbe => rangeProbe with
+            {
+                ProbeKey = Replace(rangeProbe.ProbeKey, variablesBySignature),
+                PartitionKeys = Replace(rangeProbe.PartitionKeys, variablesBySignature)
+            },
+            ExecutionRecursiveCteAppend recursiveAppend => recursiveAppend with
+            {
+                AppendRow = (ExecutionAppendRow)ReplaceSupportedNodeExpressions(
+                    recursiveAppend.AppendRow,
+                    variablesBySignature)
             },
             ExecutionComputeRankingWindow ranking => ranking with
             {
@@ -205,6 +288,26 @@ internal static partial class ExpressionCseSubstitution
             .ToArray();
     }
 
+    private static ExecutionAsOfTieBreak? Replace(
+        ExecutionAsOfTieBreak? tieBreak,
+        IReadOnlyDictionary<string, ExecutionVariable> variablesBySignature)
+    {
+        return tieBreak == null
+            ? null
+            : tieBreak with { Key = Replace(tieBreak.Key, variablesBySignature) };
+    }
+
+    private static IReadOnlyList<ExecutionAsOfEqualityKey>? Replace(
+        IReadOnlyList<ExecutionAsOfEqualityKey>? keys,
+        IReadOnlyDictionary<string, ExecutionVariable> variablesBySignature)
+    {
+        return keys?.Select(key => key with
+        {
+            Left = Replace(key.Left, variablesBySignature),
+            Right = Replace(key.Right, variablesBySignature)
+        }).ToArray();
+    }
+
     private static ExecutionNode ReplaceAggregateNodeExpressions(
         ExecutionNode node,
         IReadOnlyDictionary<string, ExecutionVariable> variablesBySignature)
@@ -226,6 +329,9 @@ internal static partial class ExpressionCseSubstitution
                 Arguments = aggregateSet.Arguments
                     .Select(argument => Replace(argument, variablesBySignature))
                     .ToArray(),
+                FilterPredicate = aggregateSet.FilterPredicate == null
+                    ? null
+                    : Replace(aggregateSet.FilterPredicate, variablesBySignature),
                 AccumulatorInput = aggregateSet.AccumulatorInput == null
                     ? null
                     : Replace(aggregateSet.AccumulatorInput, variablesBySignature)
@@ -252,6 +358,16 @@ internal static partial class ExpressionCseSubstitution
                     .Select(context => Replace(context, variablesBySignature))
                     .ToArray(),
                 ContextLayout = Replace(appendRow.ContextLayout, variablesBySignature)
+            },
+            ExecutionCreateGeneratedRow createRow => createRow with
+            {
+                Values = createRow.Values
+                    .Select(value => value with { Value = Replace(value.Value, variablesBySignature) })
+                    .ToArray(),
+                Contexts = createRow.Contexts
+                    .Select(context => Replace(context, variablesBySignature))
+                    .ToArray(),
+                ContextLayout = Replace(createRow.ContextLayout, variablesBySignature)
             },
             ExecutionAppendRecord appendRecord => appendRecord with
             {
@@ -281,4 +397,3 @@ internal static partial class ExpressionCseSubstitution
         };
     }
 }
-

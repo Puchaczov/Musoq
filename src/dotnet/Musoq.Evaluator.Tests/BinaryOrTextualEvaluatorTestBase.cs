@@ -258,6 +258,8 @@ public abstract class BinaryOrTextualEvaluatorTestBase
         public string ColumnName { get; } = columnName;
         public int ColumnIndex { get; } = columnIndex;
         public Type ColumnType { get; } = columnType;
+        public Type SourceReadType { get; } = columnType;
+        public EnumTypeDescriptor? EnumType => null;
     }
 
     #endregion

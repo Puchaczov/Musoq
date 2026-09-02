@@ -183,7 +183,7 @@
     <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.QueryState.QueryNodes.cs">
       <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
     </Compile>
-    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.QueryState.SetAndCte.cs">
+    <Compile Update="Visitors\QueryState\BuildMetadataAndInferTypesVisitor.SetAndCte.cs">
       <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
     </Compile>
     <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.QueryState.TableStatements.cs">
@@ -889,7 +889,7 @@
     <Compile Update="Visitors\InterpreterCodeGenerator.BinaryInterpretationPlanBuilder.cs">
       <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
     </Compile>
-    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.CastBindingVisitor.cs">
+    <Compile Update="Visitors\Semantics\StrictCastBinding.cs">
       <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
     </Compile>
     <Compile Update="Visitors\CloneQueryVisitor.CastCloneQueryVisitor.cs">

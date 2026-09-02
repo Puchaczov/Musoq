@@ -54,10 +54,14 @@ public partial class CloneQueryVisitor
         Nodes.Push(factory(nodes[0], nodes[1]).WithSpan(node.Span));
     }
 
-    private void CloneBinaryNode(Func<Node, Node, Node> factory)
+    private void CloneBinaryNode<T>(T node, Func<Node, Node, Node> factory)
+        where T : BinaryNode
     {
+        ArgumentNullException.ThrowIfNull(node);
         var right = Nodes.Pop();
         var left = Nodes.Pop();
-        Nodes.Push(factory(left, right));
+        Nodes.Push(factory(left, right)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 }

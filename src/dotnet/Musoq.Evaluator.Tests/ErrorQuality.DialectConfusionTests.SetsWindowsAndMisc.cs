@@ -217,7 +217,7 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should error and suggest = instead of ==
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "== should suggest =");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2019_InvalidOperator, "== should suggest =");
     }
 
     [TestMethod]
@@ -231,7 +231,7 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should suggest Concat() function
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "|| should suggest Concat()");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2019_InvalidOperator, "|| should suggest Concat()");
     }
 
     [TestMethod]
@@ -273,7 +273,7 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should suggest ToInt32()/ToString()/etc.
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "CAST should suggest Musoq conversion functions");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2021_UnclosedFunctionCall, "CAST should suggest Musoq conversion functions");
     }
 
     [TestMethod]

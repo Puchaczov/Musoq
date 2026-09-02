@@ -93,15 +93,7 @@ public partial class Parser
                 return ComposeParenthesizedExpressionOrScalarSubquery();
             case TokenType.Not:
                 Consume(TokenType.Not);
-                if (Current.TokenType == TokenType.Exists || IsExistsFunction(Current))
-                    return new NotNode(ComposeExistsPredicateOrIdentifier());
-
-                var previous = Previous ?? Current;
-                throw new SyntaxException(
-                    $"Token {previous.Value}({previous.TokenType}) at position {previous.Span.Start} cannot be used here.",
-                    _lexer.AlreadyResolvedQueryPart,
-                    DiagnosticCode.MQ2001_UnexpectedToken,
-                    previous.Span);
+                return new NotNode(ComposeEqualityOperators());
             case TokenType.Hyphen:
                 Consume(TokenType.Hyphen);
                 return new StarNode(new IntegerNode("-1", "s"),
@@ -118,6 +110,12 @@ public partial class Parser
             default:
 
                 if (IsSchemaKeywordToken(Current.TokenType)) return ComposeSchemaTokenAsWord();
+                if (GetArithmeticPrecedence(Current.TokenType) >= 0)
+                    throw new SyntaxException(
+                        "A binary operator is missing its left operand.",
+                        _lexer.AlreadyResolvedQueryPart,
+                        DiagnosticCode.MQ2020_MissingOperand,
+                        Current.Span);
                 break;
         }
 
@@ -127,7 +125,6 @@ public partial class Parser
             DiagnosticCode.MQ2001_UnexpectedToken,
             Current.Span);
     }
-
 
     private IntegerNode ComposeInteger()
     {
@@ -142,7 +139,6 @@ public partial class Parser
         }
     }
 
-
     private HexIntegerNode ComposeHexInteger()
     {
         var token = (HexIntegerToken)ConsumeAndGetToken(TokenType.HexadecimalInteger);
@@ -155,7 +151,6 @@ public partial class Parser
             throw NumericLiteralOutOfRange(token, ex);
         }
     }
-
 
     private BinaryIntegerNode ComposeBinaryInteger()
     {
@@ -170,7 +165,6 @@ public partial class Parser
         }
     }
 
-
     private OctalIntegerNode ComposeOctalInteger()
     {
         var token = (OctalIntegerToken)ConsumeAndGetToken(TokenType.OctalInteger);
@@ -183,7 +177,6 @@ public partial class Parser
             throw NumericLiteralOutOfRange(token, ex);
         }
     }
-
 
     private WordNode ComposeWord()
     {
@@ -204,8 +197,9 @@ public partial class Parser
 
     private SyntaxException NumericLiteralOutOfRange(Token token, Exception innerException)
     {
+        var literal = token.Span.Start >= 0 && token.Span.End <= _lexer.Input.Length ? _lexer.Input[token.Span.Start..token.Span.End] : token.Value;
         return new SyntaxException(
-            $"Numeric literal '{token.Value}' is outside the supported range.",
+            $"Numeric literal '{literal}' is outside the supported range.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ1009_NumericLiteralOutOfRange,
             token.Span,
@@ -216,7 +210,6 @@ public partial class Parser
     {
         return exception is OverflowException or FormatException or ArgumentException or NotSupportedException;
     }
-
 
     private WordNode ComposeSchemaTokenAsWord()
     {
@@ -240,7 +233,6 @@ public partial class Parser
         return token is FunctionToken function &&
                function.Value.Equals(ExistsToken.TokenText, StringComparison.OrdinalIgnoreCase);
     }
-
 
     private static bool IsSchemaKeywordToken(TokenType tokenType)
     {

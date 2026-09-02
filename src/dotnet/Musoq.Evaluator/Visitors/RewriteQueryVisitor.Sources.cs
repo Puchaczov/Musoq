@@ -28,6 +28,8 @@ public sealed partial class RewriteQueryVisitor
                 node.QueryId, schemaFromNode.HasExternallyProvidedTypes)
             : new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias,
                 node.QueryId, false);
+        if (node.SchemaSpan is { } schemaSpan) rewritten.WithSchemaSpan(schemaSpan);
+        if (node.MethodSpan is { } methodSpan) rewritten.WithMethodSpan(methodSpan);
         if (node is Parser.SchemaFromNode boundSource &&
             boundSource.BoundInvocation is { } boundInvocation)
             rewritten.SetBoundInvocation(boundInvocation);
@@ -59,7 +61,7 @@ public sealed partial class RewriteQueryVisitor
         var exp = Nodes.Pop();
         var right = (FromNode)Nodes.Pop();
         var left = (FromNode)Nodes.Pop();
-        Nodes.Push(new Parser.JoinFromNode(left, right, exp, node.JoinType, tieBreak));
+        Nodes.Push(new Parser.JoinFromNode(left, right, exp, node.JoinType, tieBreak, node.WithOrdinality));
         _joinedTables.Add(node);
     }
 

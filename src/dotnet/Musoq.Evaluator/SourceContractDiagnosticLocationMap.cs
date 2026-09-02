@@ -9,7 +9,7 @@ internal sealed record SourceContractDiagnosticLocationMap(
     IReadOnlyDictionary<string, SourceContractDiagnosticColumnLocation> Columns)
 {
     public static SourceContractDiagnosticLocationMap Empty { get; } = new(
-        new Dictionary<string, SourceContractDiagnosticColumnLocation>(StringComparer.OrdinalIgnoreCase));
+        new Dictionary<string, SourceContractDiagnosticColumnLocation>(StringComparer.Ordinal));
 
     public static SourceContractDiagnosticLocationMap FromTable(CreateTableNode table)
     {
@@ -25,7 +25,7 @@ internal sealed record SourceContractDiagnosticLocationMap(
 
         var result = new Dictionary<string, SourceContractDiagnosticColumnLocation>(
             columns.Count,
-            StringComparer.OrdinalIgnoreCase);
+            StringComparer.Ordinal);
 
         foreach (var column in columns)
         {

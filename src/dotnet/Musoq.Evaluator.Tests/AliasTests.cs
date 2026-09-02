@@ -12,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class AliasTests : MultiSchemaTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenUniqueColumnAcrossJoinedDataSetOccurred_ShouldNotNeedToUseAlias()

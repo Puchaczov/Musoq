@@ -10,8 +10,10 @@ using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 using Musoq.Evaluator.Visitors;
+using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
+using Musoq.Parser.Nodes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
@@ -19,7 +21,7 @@ using Musoq.Schema.Managers;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class BuildMetadataAndInferTypesVisitorTests
+public partial class BuildMetadataAndInferTypesVisitorTests
 {
     [TestMethod]
     public void Constructor_ShouldAcceptSchemaRegistry_AndExposeItViaProperty()

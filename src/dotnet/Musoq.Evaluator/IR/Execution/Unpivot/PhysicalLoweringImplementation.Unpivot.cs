@@ -25,7 +25,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 $"Execution IR unpivot lowering cannot resolve generated row shape for alias '{unpivot.Alias}'.");
         }
 
-        var sourceRowsScope = PhysicalLoweringImplementation.CreateSourceRowsScope(resultTableName);
+        var sourceRowsScope = CreateSourceRowsScope(resultTableName);
         var inputSource = BuildUnpivotInputSource(
             unpivot.Source,
             cteIndexes,
@@ -55,14 +55,14 @@ internal sealed partial class PhysicalLoweringImplementation
         var expandedRowBody = CreateLoopBody(pipeline.Filter, appendRow, unpivotShape);
         var inputLookup = RowShapeLookup.CreateSourceShapeLookup(inputSource.Source.Shape);
         var loopBody = CreateUnpivotExpansionBlock(unpivot, unpivotShape, inputLookup, expandedRowBody);
-        var loop = PhysicalLoweringImplementation.CreateSourceLoop(inputSource.Source.Shape, inputSource.Source.Rows, inputSource.Source.Variable, loopBody);
+        var loop = CreateSourceLoop(inputSource.Source.Shape, inputSource.Source.Rows, inputSource.Source.Variable, loopBody);
         var nodes = new List<ExecutionNode>(inputSource.Source.Setup.Count + unpivot.Entries.Count + 2);
 
         nodes.AddRange(inputSource.Source.Setup);
-        nodes.Add(PhysicalLoweringImplementation.CreateTable(resultTable, resultShape));
+        nodes.Add(CreateTable(resultTable, resultShape));
         nodes.Add(loop);
 
-        return PhysicalLoweringImplementation.CompleteTableBuild(
+        return CompleteTableBuild(
             [..inputSource.Source.Shapes, unpivotShape, ..postOperationProjection.Shapes],
             nodes,
             resultTable,
@@ -90,10 +90,10 @@ internal sealed partial class PhysicalLoweringImplementation
                 $"Execution IR unpivot lowering cannot resolve source shape for {source.GetType().Name}.");
         }
 
-        var input = PhysicalLoweringImplementation.CreateSourceVariable(source, inputShape, cteShapesByName);
+        var input = CreateSourceVariable(source, inputShape, cteShapesByName);
         var setup = CreateSourceSetup(source, inputShape, input, schemaFromIndex, cteIndexes, sourceRowsScope, cteShapesByName);
-        var rows = PhysicalLoweringImplementation.CreateSourceRowsExpression(source, inputShape, cteIndexes, cteShapesByName, sourceRowsScope, scope);
-        var schemaSourceCount = source is PhysicalSchemaScanNode ? 1 : PhysicalLoweringImplementation.CountSchemaScans(source);
+        var rows = CreateSourceRowsExpression(source, inputShape, cteIndexes, cteShapesByName, sourceRowsScope, scope);
+        var schemaSourceCount = source is PhysicalSchemaScanNode ? 1 : CountSchemaScans(source);
 
         return SourceBuildResult.Success(new JoinSource(
             source,
@@ -114,7 +114,9 @@ internal sealed partial class PhysicalLoweringImplementation
             column.Index,
             column.Type,
             FieldNullability.Unknown,
-            new GeneratedFieldAccess(PhysicalLoweringImplementation.CreateGeneratedFieldName(column.Name, column.Index, usedFieldNames)))).ToArray();
+            new GeneratedFieldAccess(CreateGeneratedFieldName(column.Name, column.Index, usedFieldNames)),
+            sourceReadType: column.SourceReadType,
+            enumType: column.EnumType)).ToArray();
 
         return new ValuesRowShape(
             unpivot.Alias,
@@ -153,7 +155,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var values = new List<ExecutionRowValue>(unpivot.KeepFields.Count + 2);
 
         foreach (var keepField in unpivot.KeepFields)
-            values.Add(new ExecutionRowValue(keepField.OutputName, PhysicalLoweringImplementation.ConvertProjectedExpression(keepField, sourceLookup)));
+            values.Add(new ExecutionRowValue(keepField.OutputName, ConvertProjectedExpression(keepField, sourceLookup)));
 
         values.Add(new ExecutionRowValue(unpivot.NameColumn, new ExecutionLiteral(entry.NameValue, typeof(string))));
         values.Add(new ExecutionRowValue(unpivot.ValueColumn, ExecutionExpressionConverter.Convert(entry.Value, sourceLookup)));
@@ -164,8 +166,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static string CreateUnpivotRowTypeName(PhysicalUnpivotNode unpivot)
     {
         var hash = ComputeUnpivotShapeHash(unpivot).ToString("X8", CultureInfo.InvariantCulture);
-        return PhysicalLoweringImplementation.TrimGeneratedIdentifier(
-            PhysicalLoweringImplementation.CreateIdentifierCandidate($"{unpivot.Alias}Unpivot{hash}Row0", 0),
+        return TrimGeneratedIdentifier(
+            CreateIdentifierCandidate($"{unpivot.Alias}Unpivot{hash}Row0", 0),
             0);
     }
 

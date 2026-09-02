@@ -7,5 +7,10 @@ namespace Musoq.Schema;
 public enum SourceTransferCapabilities
 {
     None = 0,
-    QueryScopedRows = 1
+    QueryScopedRows = 1,
+
+    /// <summary>
+    ///     The source can read portable logical scalar contracts directly into primitive query carriers.
+    /// </summary>
+    LogicalScalarReads = 2
 }

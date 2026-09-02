@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 
@@ -80,6 +81,30 @@ public class SyntaxException : Exception, IDiagnosticException
     }
 
     /// <summary>
+    ///     Initializes a new instance of SyntaxException with full diagnostic information,
+    ///     structured facts, and optional explicit actions.
+    /// </summary>
+    public SyntaxException(
+        string message,
+        string queryPart,
+        DiagnosticCode code,
+        TextSpan span,
+        IEnumerable<KeyValuePair<string, string>>? arguments,
+        IEnumerable<DiagnosticAction>? suggestedFixes = null)
+        : base(message)
+    {
+        QueryPart = queryPart;
+        Code = code;
+        Span = span;
+        Arguments = arguments != null
+            ? new Dictionary<string, string>(arguments, StringComparer.Ordinal)
+            : new Dictionary<string, string>(StringComparer.Ordinal);
+        SuggestedFixes = suggestedFixes != null
+            ? [..suggestedFixes]
+            : [];
+    }
+
+    /// <summary>
     ///     Gets the portion of the query that caused the syntax error.
     /// </summary>
     public string QueryPart { get; }
@@ -95,6 +120,17 @@ public class SyntaxException : Exception, IDiagnosticException
     public TextSpan? Span { get; }
 
     /// <summary>
+    ///     Gets stable string-valued facts associated with this syntax error.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> Arguments { get; } =
+        new Dictionary<string, string>(StringComparer.Ordinal);
+
+    /// <summary>
+    ///     Gets explicit actions associated with this syntax error.
+    /// </summary>
+    public IReadOnlyList<DiagnosticAction> SuggestedFixes { get; } = [];
+
+    /// <summary>
     ///     Converts this exception to a Diagnostic instance.
     /// </summary>
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
@@ -104,7 +140,18 @@ public class SyntaxException : Exception, IDiagnosticException
         if (effectiveSourceText == null && !string.IsNullOrWhiteSpace(QueryPart))
             effectiveSourceText = new SourceText(QueryPart);
 
-        return SyntaxDiagnosticEnhancer.CreateDiagnostic(Code, Message, span, currentToken: null, effectiveSourceText);
+        var numericCode = (int)Code;
+        var diagnostic = numericCode is >= 1001 and <= 1009 || Code == DiagnosticCode.MQ2011_MissingClosingBracket
+            ? SyntaxDiagnosticEnhancer.EnhanceLexerDiagnostic(Code, Message, span, effectiveSourceText)
+            : SyntaxDiagnosticEnhancer.CreateDiagnostic(Code, Message, span, currentToken: null, effectiveSourceText);
+
+        foreach (var argument in Arguments)
+            diagnostic = diagnostic.WithArgument(argument.Key, argument.Value);
+
+        foreach (var suggestedFix in SuggestedFixes)
+            diagnostic = diagnostic.WithSuggestedFix(suggestedFix);
+
+        return diagnostic;
     }
 
     /// <summary>

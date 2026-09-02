@@ -10,6 +10,8 @@ public partial class Parser
 {
     private StatementNode ComposeStatement()
     {
+        if (TryComposeEnumDeclarationStatement(out var enumStatement)) return enumStatement;
+
         if (IsParameterBlockStart())
             return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeParameterBlock()), TokenType.Semicolon);
 
@@ -71,6 +73,16 @@ public partial class Parser
                     TokenType.Semicolon);
 
             default:
+                if (_fromPosition == 0 &&
+                    Current.TokenType is TokenType.Integer or TokenType.Decimal or TokenType.HexadecimalInteger or
+                    TokenType.BinaryInteger or TokenType.OctalInteger or TokenType.StringLiteral or
+                    TokenType.LeftParenthesis)
+                    throw new SyntaxException(
+                        "A SELECT keyword is required before a projection expression.",
+                        _lexer.AlreadyResolvedQueryPart,
+                        DiagnosticCode.MQ2025_MissingSelectKeyword,
+                        Current.Span);
+
                 throw new SyntaxException(
                     $"Cannot compose statement, {Current.TokenType} is not expected here",
                     _lexer.AlreadyResolvedQueryPart,
@@ -80,13 +92,7 @@ public partial class Parser
     }
 
 
-    private Node ComposeInterpretationSchema()
-    {
-        var schemaParser = new SchemaParser(_lexer);
-
-
-        return schemaParser.ParseSchemaFromCurrentPosition();
-    }
+    private Node ComposeInterpretationSchema() => new SchemaParser(_lexer).ParseSchemaFromCurrentPosition();
 
 
     private CteExpressionNode ComposeCteExpression()

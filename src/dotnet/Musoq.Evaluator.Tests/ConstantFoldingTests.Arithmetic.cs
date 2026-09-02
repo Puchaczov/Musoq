@@ -346,13 +346,13 @@ public partial class ConstantFoldingTests
         Assert.AreEqual(4294967295u, table[0][0]);
     }
 
-    // --- long (l suffix / default for large literals): range -9223372036854775808 to 9223372036854775807 ---
+    // --- long (l suffix): range -9223372036854775808 to 9223372036854775807 ---
 
     [TestMethod]
     public void WhenLongAdditionOverflows_ShouldThrowArithmeticOverflow()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 9223372036854775807 + 1 from #schema.first()", SingleEntitySource));
+            CreateAndRunVirtualMachine("select 9223372036854775807l + 1l from #schema.first()", SingleEntitySource));
 
         AssertSingleError(ex, DiagnosticCode.MQ3032_ArithmeticOverflow, DiagnosticPhase.Bind);
     }
@@ -361,7 +361,7 @@ public partial class ConstantFoldingTests
     public void WhenLongMultiplicationOverflows_ShouldThrowArithmeticOverflow()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 9223372036854775807 * 2 from #schema.first()", SingleEntitySource));
+            CreateAndRunVirtualMachine("select 9223372036854775807l * 2l from #schema.first()", SingleEntitySource));
 
         AssertSingleError(ex, DiagnosticCode.MQ3032_ArithmeticOverflow, DiagnosticPhase.Bind);
     }
@@ -371,7 +371,7 @@ public partial class ConstantFoldingTests
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(
-                "select 9223372036854775807 + 9223372036854775807 from #schema.first()", SingleEntitySource));
+                "select 9223372036854775807l + 9223372036854775807l from #schema.first()", SingleEntitySource));
 
         AssertSingleError(ex, DiagnosticCode.MQ3032_ArithmeticOverflow, DiagnosticPhase.Bind);
     }
@@ -379,7 +379,7 @@ public partial class ConstantFoldingTests
     [TestMethod]
     public void WhenLongAdditionAtBoundary_ShouldFoldSuccessfully()
     {
-        var vm = CreateAndRunVirtualMachine("select 9223372036854775806 + 1 from #schema.first()", SingleEntitySource);
+        var vm = CreateAndRunVirtualMachine("select 9223372036854775806l + 1l from #schema.first()", SingleEntitySource);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -414,7 +414,7 @@ public partial class ConstantFoldingTests
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(
-                "select Name from #schema.first() where 9223372036854775807 + 1 > 0", SingleEntitySource));
+                "select Name from #schema.first() where 9223372036854775807l + 1l > 0", SingleEntitySource));
 
         AssertSingleError(ex, DiagnosticCode.MQ3032_ArithmeticOverflow, DiagnosticPhase.Bind);
     }

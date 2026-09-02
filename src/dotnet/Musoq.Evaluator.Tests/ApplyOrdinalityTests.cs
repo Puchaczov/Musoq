@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class ApplyOrdinalityTests : GenericEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void CrossApplyWithOrdinality_PrimitiveArray_ShouldExposeZeroBasedOrdinal()

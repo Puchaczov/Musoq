@@ -27,6 +27,6 @@ public class TableNotFoundException : Exception, IDiagnosticException
     /// <inheritdoc />
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return Diagnostic.Error(Code, Message, TextSpan.Empty);
+        return Diagnostic.ErrorUnknownLocation(Code, Message);
     }
 }

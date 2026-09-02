@@ -733,8 +733,8 @@ public sealed class NonClrTargetPipelinePressureTests
             Assert.IsTrue(package.HostAbiInventory.Requires(TargetHostAbiImportKind.SourceAccess));
             var sourceImport = package.HostAbiInventory.Imports.Single(import =>
                 import.Kind == TargetHostAbiImportKind.SourceAccess);
-            Assert.AreEqual(1, sourceImport.ContractVersion);
-            Assert.AreEqual("source-access-v1", sourceImport.Contract);
+            Assert.AreEqual(2, sourceImport.ContractVersion);
+            Assert.AreEqual("source-access-v2", sourceImport.Contract);
             var sourceDetails = Assert.IsInstanceOfType<TargetSourceAccessAbiDetails>(sourceImport.Details);
             Assert.IsFalse(string.IsNullOrWhiteSpace(sourceDetails.SourceContextId));
             Assert.IsFalse(string.IsNullOrWhiteSpace(sourceDetails.SchemaName));

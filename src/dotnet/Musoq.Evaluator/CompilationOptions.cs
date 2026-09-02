@@ -130,6 +130,23 @@ public class CompilationOptions(
     /// </summary>
     public bool ForceTableResultMaterialization { get; } = forceTableResultMaterialization;
 
+    /// <summary>
+    ///     Gets a value indicating whether stable loop-invariant scalar expressions should be
+    ///     hoisted into eager locals in serial execution loops. This independent switch is
+    ///     enabled by default after qualification; callers can opt out explicitly with
+    ///     <see cref="WithLoopInvariantCodeMotion"/>.
+    /// </summary>
+    public bool UseLoopInvariantCodeMotion { get; private init; } = true;
+
+    /// <summary>
+    ///     Gets a value indicating whether the stability-aware scalar reuse pipeline is enabled.
+    ///     This umbrella switch is intentionally independent from common-subexpression elimination
+    ///     and loop-invariant code motion so callers can qualify the broader pipeline separately.
+    ///     It is enabled by default after qualification; callers can disable it explicitly
+    ///     with <see cref="WithStabilityAwareScalarReuse"/>.
+    /// </summary>
+    public bool UseStabilityAwareScalarReuse { get; private init; } = true;
+
     public RecursiveCteExecutionLimits RecursiveCteLimits { get; private init; } = new();
 
     public bool UsesDefaultSourceRuntimeSettingsResolver =>
@@ -141,6 +158,24 @@ public class CompilationOptions(
     public CompilationOptions WithTableResultMaterialization(bool force = true) =>
         Clone(forceTableResultMaterialization: force);
 
+    /// <summary>
+    ///     Enables or disables stability-aware loop-invariant code motion without changing
+    ///     common-subexpression elimination or any other compilation option.
+    /// </summary>
+    /// <param name="enabled">Whether eligible stable scalar expressions should be hoisted.</param>
+    /// <returns>A copy of these options with the requested setting.</returns>
+    public CompilationOptions WithLoopInvariantCodeMotion(bool enabled = true) =>
+        Clone(loopInvariantCodeMotion: enabled);
+
+    /// <summary>
+    ///     Enables or disables the stability-aware scalar reuse pipeline. The setting does not
+    ///     change common-subexpression elimination or loop-invariant code motion settings.
+    /// </summary>
+    /// <param name="enabled">Whether stability-aware scalar reuse should be enabled.</param>
+    /// <returns>A copy of these options with the requested setting.</returns>
+    public CompilationOptions WithStabilityAwareScalarReuse(bool enabled = true) =>
+        Clone(stabilityAwareScalarReuse: enabled);
+
     public CompilationOptions WithRecursiveCteLimits(RecursiveCteExecutionLimits limits)
     {
         ArgumentNullException.ThrowIfNull(limits);
@@ -151,6 +186,8 @@ public class CompilationOptions(
     private CompilationOptions Clone(
         QueryInstrumentationMode? instrumentationMode = null,
         bool? forceTableResultMaterialization = null,
+        bool? loopInvariantCodeMotion = null,
+        bool? stabilityAwareScalarReuse = null,
         RecursiveCteExecutionLimits? recursiveCteLimits = null)
     {
         return new CompilationOptions(
@@ -167,6 +204,8 @@ public class CompilationOptions(
             MaxDegreeOfParallelismOverride,
             forceTableResultMaterialization ?? ForceTableResultMaterialization)
         {
+            UseLoopInvariantCodeMotion = loopInvariantCodeMotion ?? UseLoopInvariantCodeMotion,
+            UseStabilityAwareScalarReuse = stabilityAwareScalarReuse ?? UseStabilityAwareScalarReuse,
             RecursiveCteLimits = recursiveCteLimits ?? RecursiveCteLimits
         };
     }

@@ -187,6 +187,8 @@ All keywords are **case-insensitive**. `SELECT`, `select`, and `SeLeCt` are all 
 | `KEEP` | UNPIVOT keep field list (context-sensitive) |
 | `TABLE` | Define a table structure |
 | `COUPLE` | Bind a schema method to a table and/or source runtime settings profile |
+| `ENUM` | Contextual enum declaration keyword when used at statement start |
+| `FLAGS` | Contextual modifier only in `FLAGS ENUM` at statement start |
 | `CASE` | Begin conditional expression |
 | `WHEN` | Conditional branch |
 | `THEN` | Branch result |
@@ -213,6 +215,10 @@ All keywords are **case-insensitive**. `SELECT`, `select`, and `SeLeCt` are all 
 `USING` is a contextual keyword inside `PIVOT` and `UNPIVOT` statements. `KEEP` is a contextual keyword inside an `UNPIVOT` statement. Outside those clause positions they remain ordinary identifiers.
 
 `SETTINGS` is a contextual keyword inside `COUPLE ... WITH SETTINGS ...` and `DESC SETTINGS`. `QUERY` is a contextual keyword inside `DESC QUERY`. `COLUMN` is a contextual keyword inside `DESC ... COLUMN ...`. Outside those clause positions they remain ordinary identifiers.
+
+`ENUM` and `FLAGS` are contextual only at statement boundaries. `ENUM name :
+type { ... }` and `FLAGS ENUM name : type { ... }` begin enum declarations;
+outside those forms both words remain ordinary identifiers.
 
 #### Multi-Word Keywords
 
@@ -758,6 +764,51 @@ Strict cast behavior:
 
 The public `ToXxx(...)` helper functions remain available as library functions and keep their established behavior. They are not equivalent to strict postfix casts when a helper has softer conversion semantics, such as returning `null` for invalid text.
 
+### 3.8 Enum Types
+
+Enums are nominal compile-time types backed by primitive integral execution
+carriers. Query-local declarations use statement syntax:
+
+```sql
+enum JobStatus : int {
+    Queued = 10,
+    Running = 20,
+    Finished = 30
+};
+
+flags enum FileAccess : uint {
+    None = 0ui,
+    Read = 1ui,
+    Write = 2ui,
+    ReadWrite = 3ui
+};
+```
+
+The backing type MUST be `byte`, `sbyte`, `short`, `ushort`, `int`, `uint`,
+`long`, or `ulong`. Every member MUST have an explicit, representable integral
+literal. Empty declarations, auto-numbering, and forward references are not
+supported; a trailing comma is accepted. Duplicate values are aliases and the
+first declared name is canonical. Member names use exact case-sensitive
+matching and case-only duplicates are invalid. Query-local enum type names are
+case-insensitive.
+
+Native CLR enums are discovered only through source columns, reachable public
+properties or method results, and exact fully qualified TABLE type references.
+Query-local declarations never create CLR enum types. All enum values are
+normalized to their integral carrier immediately after source reads.
+
+Quoted literals bind contextually to members:
+
+```sql
+where Status = 'Running'
+where Status in ('Queued', 'Running')
+```
+
+Bare names, `Type.Member`, implicit numeric or string conversion, enum casts,
+and cross-enum operations are invalid. Unknown representable numeric values
+are preserved. The complete operator, output, source-planning, and performance
+contract is in `docs/enums.md`.
+
 ---
 
 ## 4. Statement Structure
@@ -780,6 +831,7 @@ select Name from Source();
 | **Reordered query** | `FROM` | Query with FROM-first syntax |
 | **CTE expression** | `WITH` | Define named temporary result sets |
 | **Script variable** | `LET` | Define an immutable compile-time script value |
+| **Enum declaration** | `ENUM` / `FLAGS ENUM` | Define a query-local nominal integral enum |
 | **Table definition** | `TABLE` | Define a typed table structure |
 | **Couple** | `COUPLE` | Bind a schema method to a table definition and/or source runtime settings profile |
 | **Describe** | `DESC` | Introspect schema or query metadata |
@@ -4370,6 +4422,12 @@ Supported type keywords:
 | `guid` | `Guid?` |
 | `object` | `object` |
 
+A TABLE column may also name a previously declared query-local enum
+case-insensitively, or a reachable native CLR enum by its exact fully qualified
+name. TABLE enum fields are permitted only when the datasource advertises
+logical scalar reads. Enum value types follow TABLE nullability rules while
+retaining their logical enum identity.
+
 **Example:**
 
 ```sql
@@ -4672,6 +4730,15 @@ Built-in functions are organized into the following categories:
 
 Use `desc functions` to see the full list with signatures and descriptions for any given schema context.
 
+### 18.4 Enum Intrinsics
+
+`EnumValue(value)`, `EnumName(value)`, `IsDefined(value)`,
+`HasAnyFlags(value, members...)`, and `HasAllFlags(value, members...)` are
+compiler intrinsics rather than datasource library methods. Member arguments
+must be quoted literals and are resolved before execution. Flag helpers require
+a flags enum. `EnumName` returns only an exact declared name and never builds a
+comma-separated composite.
+
 ---
 
 ## 19. NULL Semantics
@@ -4802,6 +4869,13 @@ select ToUpper(null) from system.dual()      -- null
 select Abs(null) from system.dual()          -- null
 select Concat(null, 'text') from system.dual()  -- null
 ```
+
+### 19.10 NULL in Enum Intrinsics
+
+For a null enum value, `EnumValue` and `EnumName` return `NULL`.
+`IsDefined`, `HasAnyFlags`, and `HasAllFlags` return `false`. For a non-null
+flags value and an empty or zero mask, `HasAllFlags` returns `true` and
+`HasAnyFlags` returns `false`.
 
 ---
 
@@ -5009,6 +5083,14 @@ In arithmetic and bitwise operations involving different numeric types, values a
 
 When an `object`-typed column is compared to a numeric literal, runtime conversion is attempted. Same graceful failure as string coercion — no exception on failure.
 
+### 22.5 Enum Non-Coercion
+
+Enum operands never participate in generic string, object, or numeric
+coercion. A quoted literal is accepted only as a compile-time member in a
+context that already identifies one enum. Use `EnumValue` for explicit numeric
+inspection and `EnumName` for explicit textual output. Dynamic objects are not
+inspected row by row to infer enum identities.
+
 ---
 
 ## 23. Diagnostic Contract and Catalog
@@ -5068,8 +5150,8 @@ explanation, and correction for each entry.
 
 | Phase | Active code families | Default source domain |
 |-------|----------------------|------------------------|
-| Parse | MQ1001–MQ1009, MQ2001–MQ2041 | Query |
-| Bind | MQ3001, MQ3002, MQ3005, MQ3007, MQ3008, MQ3010–MQ3035, MQ3036–MQ3098; MQ5003, MQ5008, MQ5010–MQ5025 | Query |
+| Parse | MQ1001–MQ1009, MQ2001–MQ2048 | Query |
+| Bind | MQ3001, MQ3002, MQ3005, MQ3007, MQ3008, MQ3010–MQ3035, MQ3036–MQ3105; MQ5003, MQ5008, MQ5010–MQ5025 | Query |
 | Schema | MQ4016 and schema-definition MQ4001–MQ4015 | Schema |
 | DataSource | Source construction and provider diagnostics | DataSource or Schema |
 | Runtime | MQ7003–MQ7012 | Runtime or DataSource |
@@ -5129,6 +5211,13 @@ The boundary token is not consumed while recovering.
 | MQ2039_TieBreakRequiresAsOfJoin | TIE BREAK BY appears outside ASOF JOIN. | Move it into an ASOF JOIN or remove it. |
 | MQ2040_InvalidDiagnosticCommand | A diagnostic command or modifier is not valid in its position. | Use the documented diagnostic command form. |
 | MQ2041_InvalidStarModifierOrder | Star modifiers are duplicated or appear in an unsupported order. | Use the documented EXCLUDE, REPLACE, LIKE, and RENAME order. |
+| MQ2042_InvalidEnumDeclaration | A query-local enum declaration is structurally incomplete or uses duplicate type names. | Use the documented declaration, delimiters, and comma-separated members. |
+| MQ2043_InvalidEnumBackingType | The declaration names a non-integral or unsupported backing type. | Use byte, sbyte, short, ushort, int, uint, long, or ulong. |
+| MQ2044_MissingEnumMemberValue | A member has no explicit integral literal. | Add `= <integral literal>` after every member name. |
+| MQ2045_DuplicateEnumMember | Member names repeat exactly or differ only by case. | Rename or remove the duplicate member. |
+| MQ2046_EnumMemberValueOutOfRange | A value cannot be represented by the declared backing type. | Change the value or choose a wider backing type. |
+| MQ2047_EmptyEnumDeclaration | The declaration contains no members. | Add at least one explicitly-valued member. |
+| MQ2048_UnsupportedEnumSyntax | A borrowed C#, PostgreSQL, or MySQL enum form is used. | Use Musoq's statement-level `enum Name : int { Member = 1 };` form. |
 | MQ2035_MissingRequiredAlias | A multi-source JOIN/APPLY source has no stable addressable alias. | Add a source alias; use brackets for a reserved word. |
 | MQ2022_InvalidAlias | An alias position contains an invalid token or malformed optional alias. | Use an identifier or bracketed identifier. |
 
@@ -5263,6 +5352,7 @@ binary_constant_op ::= '+' | '-' | '*' | '/' | '%' | '&' | '|' | '^' | '<<' | '>
 
 statement      ::= select_query
                  | cte_expression
+                 | enum_declaration
                  | table_definition
                  | couple_statement
                  | desc_statement
@@ -5581,6 +5671,16 @@ type_suffix    ::= 'b' | 'ub' | 's' | 'us' | 'i' | 'ui' | 'l' | 'ul' | 'd' | 'D'
 ### 24.8 Utility Statement Grammar
 
 ```ebnf
+enum_declaration ::= [FLAGS] ENUM identifier ':' enum_backing_type
+                     '{' enum_member_list '}'
+
+enum_backing_type ::= BYTE | SBYTE | SHORT | USHORT
+                    | INT | UINT | LONG | ULONG
+
+enum_member_list ::= enum_member {',' enum_member} [',']
+
+enum_member ::= identifier '=' integral_literal
+
 table_definition ::= TABLE identifier '{' column_def_list '}'
 
 column_def_list ::= column_def { ',' column_def } [',']
@@ -5672,7 +5772,7 @@ Window functions are recognized at the expression level — when a function call
 ```
 ALL, AND, ANY, AS, ASC, ASOF, ASOF JOIN, ASOF LEFT JOIN, ASOF LEFT OUTER JOIN,
 BREAK, CASE, COLUMN, CONTAINS, COUPLE, CROSS APPLY, DESC, DESC QUERY, DISTINCT,
-ELSE, END, EXCEPT, EXISTS, FALSE, FILTER, FIRST, FROM, FUNCTIONS, GROUP BY, HAVING, IN,
+ELSE, END, ENUM, EXCEPT, EXISTS, FALSE, FILTER, FIRST, FLAGS, FROM, FUNCTIONS, GROUP BY, HAVING, IN,
 FULL JOIN, FULL OUTER JOIN, INNER JOIN, INTERSECT, IS, IS DISTINCT FROM,
 IS NOT DISTINCT FROM, JOIN, KEEP, LAST, LEFT JOIN, LEFT OUTER JOIN, LIKE, MISSING,
 NOT, NOT IN, NOT LIKE, NOT RLIKE, NULL, NULLS FIRST, NULLS LAST, ON, OR,

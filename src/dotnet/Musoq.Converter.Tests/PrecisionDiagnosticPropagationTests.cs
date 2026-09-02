@@ -34,6 +34,6 @@ public sealed class PrecisionDiagnosticPropagationTests
         Assert.IsNull(result.CompiledQuery);
     }
 
-    private static string Describe(System.Collections.Generic.IReadOnlyList<Diagnostic> diagnostics) =>
+    private static string Describe(IReadOnlyList<Diagnostic> diagnostics) =>
         string.Join("\n", diagnostics.Select(diagnostic => $"[{diagnostic.Code}] {diagnostic.Message}"));
 }

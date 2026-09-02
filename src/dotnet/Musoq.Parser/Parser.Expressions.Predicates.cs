@@ -40,10 +40,6 @@ public partial class Parser
                     Consume(TokenType.Diff);
                     node = ComposeComparisonRight(node, TokenType.Diff);
                     break;
-                case TokenType.Not:
-                    Consume(TokenType.Not);
-                    node = new NotNode(node);
-                    break;
                 case TokenType.Like:
                 case TokenType.NotLike:
                 case TokenType.RLike:
@@ -83,8 +79,8 @@ public partial class Parser
     private Node ComposePatternPredicate(Node left, TokenType operatorType)
     {
         Consume(operatorType);
+        ThrowIfMissingRightOperand(Previous!.Value);
         var right = ComposeBaseTypes();
-
         if (left is AccessMethodNode quantifier
             && string.IsNullOrEmpty(quantifier.Alias)
             && IsPredicateQuantifierName(quantifier.Name))
@@ -94,10 +90,16 @@ public partial class Parser
     }
 
     private Node ComposeComparisonRight(Node left, TokenType operatorType)
-        => IsQuantifiedSubqueryToken(Current.TokenType)
+    {
+        var operatorText = Previous!.Value;
+        ThrowIfMissingRightOperand(operatorText);
+        if (IsEqualityOperator(Current))
+            throw new SyntaxException($"Operator '{operatorText}' cannot be followed by operator '{Current.Value}'.",
+                _lexer.AlreadyResolvedQueryPart, DiagnosticCode.MQ2019_InvalidOperator, Current.Span);
+        return IsQuantifiedSubqueryToken(Current.TokenType)
             ? ComposeQuantifiedSubquery(left, operatorType)
             : CreateComparisonPredicate(left, operatorType, ComposeEqualityOperators());
-
+    }
 
     private Node ComposePredicateQuantifier(AccessMethodNode quantifier, TokenType operatorType, Node right)
     {
@@ -107,10 +109,8 @@ public partial class Parser
         var predicates = quantifier.Arguments.Args
             .Select(argument => CreatePatternPredicate(argument, operatorType, right))
             .ToArray();
-
         return FoldPredicateQuantifier(quantifier, predicates);
     }
-
 
     private void ThrowIfPredicateQuantifierHasNoArguments(AccessMethodNode quantifier, TokenType operatorType)
     {
@@ -124,7 +124,6 @@ public partial class Parser
             quantifier.Span);
     }
 
-
     private void ThrowIfPredicateQuantifierHasStarArgument(AccessMethodNode quantifier)
     {
         var starArgument = quantifier.Arguments.Args.FirstOrDefault(argument => argument is AllColumnsNode);
@@ -137,7 +136,6 @@ public partial class Parser
             DiagnosticCode.MQ2003_InvalidExpression,
             starArgument.Span);
     }
-
 
     private static Node FoldPredicateQuantifier(AccessMethodNode quantifier, Node[] predicates)
     {
@@ -157,7 +155,6 @@ public partial class Parser
         return predicate;
     }
 
-
     private Node CreatePatternPredicate(Node left, TokenType operatorType, Node right)
     {
         return operatorType switch
@@ -174,25 +171,21 @@ public partial class Parser
         };
     }
 
-
     private static bool IsPredicateQuantifierName(string name)
     {
         return string.Equals(name, "any", StringComparison.OrdinalIgnoreCase)
                || string.Equals(name, "all", StringComparison.OrdinalIgnoreCase);
     }
 
-
     private static bool IsAnyPredicateQuantifier(AccessMethodNode quantifier)
     {
         return string.Equals(quantifier.Name, "any", StringComparison.OrdinalIgnoreCase);
     }
 
-
     private static string GetPredicateQuantifierDiagnosticName(AccessMethodNode quantifier)
     {
         return quantifier.Name.ToUpperInvariant();
     }
-
 
     private static string GetPatternOperatorText(TokenType operatorType)
     {
@@ -206,16 +199,20 @@ public partial class Parser
         };
     }
 
-
     private BetweenNode ComposeBetween(Node expression)
     {
         Consume(TokenType.Between);
+        ThrowIfMissingRightOperand("BETWEEN");
         var min = ComposeArithmeticExpression(0);
+        if (Current.TokenType != TokenType.And)
+            throw ParserDiagnosticFacts.MissingToken("BETWEEN requires AND between its lower and upper bounds.",
+                _lexer.AlreadyResolvedQueryPart, new TextSpan(Current.Span.Start, 0));
+
         Consume(TokenType.And);
+        ThrowIfMissingRightOperand("BETWEEN");
         var max = ComposeArithmeticExpression(0);
         return new BetweenNode(expression, min, max);
     }
-
 
     private Node ComposeInExpression(Node left, bool notIn = false)
     {
@@ -225,21 +222,24 @@ public partial class Parser
             return new CollectionInNode(left, new ParameterReferenceNode(parameter.Value, null, parameter.Span));
         }
 
-        Consume(TokenType.LeftParenthesis);
+        if (Current.TokenType != TokenType.LeftParenthesis)
+            throw ParserDiagnosticFacts.MissingToken("IN requires a parenthesized value list, collection parameter, or subquery.",
+                _lexer.AlreadyResolvedQueryPart, new TextSpan(Current.Span.Start, 0));
 
-        if (notIn && Current.TokenType == TokenType.RightParenthesis)
-            throw new SyntaxException(
-                "NOT IN does not support an empty value list.",
-                _lexer.AlreadyResolvedQueryPart,
-                DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed,
-                Current.Span);
+        var openingParenthesis = ConsumeAndGetToken(TokenType.LeftParenthesis);
+
+        if (Current.TokenType == TokenType.RightParenthesis)
+            throw ParserDiagnosticFacts.EmptyPredicateList(
+                notIn ? "NOT IN does not support an empty value list." : "IN does not support an empty value list.",
+                _lexer.AlreadyResolvedQueryPart, Current.Span);
 
         if (Current.TokenType == TokenType.Select || Current.TokenType == TokenType.From || Current.TokenType == TokenType.Pivot || Current.TokenType == TokenType.Unpivot)
         {
             Node subquery = ComposeSetOperators(1);
 
-            Consume(TokenType.RightParenthesis);
-            return new InQueryNode(left, subquery);
+            var closingParenthesis = ConsumeAndGetToken(TokenType.RightParenthesis);
+            return new InQueryNode(left, subquery)
+                .WithSpan(left.Span.Through(openingParenthesis.Span).Through(subquery.Span).Through(closingParenthesis.Span));
         }
 
         var args = new List<Node>();
@@ -271,7 +271,7 @@ public partial class Parser
             throw new SyntaxException(
                 "EXISTS requires a SELECT, FROM, PIVOT, or UNPIVOT subquery.",
                 _lexer.AlreadyResolvedQueryPart,
-                DiagnosticCode.MQ2001_UnexpectedToken,
+                DiagnosticCode.MQ2024_InvalidSubquery,
                 Current.Span);
 
         var subquery = ComposeSetOperators(1);
@@ -292,8 +292,22 @@ public partial class Parser
         }
 
         var expression = ComposeOperations();
-        Consume(TokenType.RightParenthesis);
+        ConsumeClosingParenthesis(
+            DiagnosticCode.MQ2010_MissingClosingParenthesis,
+            "A grouped expression is missing its closing parenthesis.");
         return expression;
+    }
+
+    private Token ConsumeClosingParenthesis(DiagnosticCode code, string message)
+    {
+        if (Current.TokenType != TokenType.RightParenthesis)
+            throw new SyntaxException(
+                message,
+                _lexer.AlreadyResolvedQueryPart,
+                code,
+                new TextSpan(Current.Span.Start, 0));
+
+        return ConsumeAndGetToken(TokenType.RightParenthesis);
     }
 
 }

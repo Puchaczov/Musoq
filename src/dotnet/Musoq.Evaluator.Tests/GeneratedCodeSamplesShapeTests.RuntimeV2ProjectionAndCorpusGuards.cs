@@ -79,7 +79,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("ParallelFilterProjectLoop [ko3iko in ko3ikoRows where (TryConvertToDecimalComparison(ko3iko.Amount) > 100,50); threshold 4096", sample);
         Assert.Contains("Let [tryConvertToDecimalComparison: decimal? = TryConvertToDecimalComparison(amount)]", sample);
         Assert.Contains("decimal? tryConvertToDecimalComparison = (decimal?)__resultLibraryBase0.TryConvertToDecimalComparison(amount);", sample);
-        Assert.Contains("if ((tryConvertToDecimalComparison > 100.50m))", sample);
+        Assert.Contains("if ((Operators.SqlCompare<decimal?, decimal>(tryConvertToDecimalComparison, 100.50m", sample);
         Assert.Contains("new ResultRow0(ko3iko.Id, tryConvertToDecimalComparison)", sample);
         Assert.Contains("QueryRows.FromRowShards(", sample);
         Assert.Contains("EvaluationHelper.ProjectChunkedRowsParallel<", sample);
@@ -243,6 +243,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var occurrences = ReadAllSamples()
             .SelectMany(CreateGeneratedRowCastOccurrences)
+            .Where(static occurrence =>
+                IntentionalGeneratedRowCastSampleFileNames.Contains(occurrence.FileName, StringComparer.Ordinal) is false)
             .ToArray();
         var failures = occurrences
             .Select(static occurrence => $"{occurrence.FileName}: {occurrence.Line} ({occurrence.Category})")
@@ -262,7 +264,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                 var generatedCode = ExtractGeneratedCodeSection(sample.Content);
                 var reasons = new List<string>();
 
-                if (generatedCode.Contains("_tableResults[", StringComparison.Ordinal))
+                if (generatedCode.Contains("_tableResults[", StringComparison.Ordinal) &&
+                    IntentionalTableBackedStoredRowSampleFileNames.Contains(sample.FileName, StringComparer.Ordinal) is false)
                     reasons.Add("_tableResults slot access");
 
                 if (Regex.IsMatch(

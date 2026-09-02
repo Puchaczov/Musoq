@@ -30,8 +30,8 @@ public partial class UserMistakesTests
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - MQ2030 or MQ2001 for invalid syntax
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "double operator ++");
+        // Assert - the parser identifies the operator's missing left operand.
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2020_MissingOperand, "double operator ++");
     }
 
     [TestMethod]
@@ -44,8 +44,8 @@ public partial class UserMistakesTests
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - MQ2030_UnsupportedSyntax: trailing AND
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "trailing AND without operand");
+        // Assert - trailing AND is a missing right operand.
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2020_MissingOperand, "trailing AND without operand");
     }
 
     [TestMethod]
@@ -86,8 +86,8 @@ public partial class UserMistakesTests
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - MQ2001: missing AND in BETWEEN
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "BETWEEN missing AND");
+        // Assert - adjacent bounds are reported as a missing operator.
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2018_MissingOperator, "BETWEEN missing AND");
     }
 
 

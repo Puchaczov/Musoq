@@ -11,7 +11,7 @@ internal static partial class ExpressionCseSubstitution
     {
         return collectionInCheck with
         {
-            Expression = ExpressionCseSubstitution.Replace(collectionInCheck.Expression, variablesBySignature)
+            Expression = Replace(collectionInCheck.Expression, variablesBySignature)
         };
     }
 }

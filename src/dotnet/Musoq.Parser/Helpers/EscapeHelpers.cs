@@ -224,8 +224,10 @@ public static class EscapeHelpers
             return false;
 
         var hexSpan = value.Slice(startIndex + 2, HexEscapeLength);
-        return int.TryParse(hexSpan, NumberStyles.HexNumber, null, out var hexChar)
-               && hexChar <= char.MaxValue
-               && (result = (char)hexChar) != '\0';
+        if (!int.TryParse(hexSpan, NumberStyles.HexNumber, null, out var hexChar) || hexChar > char.MaxValue)
+            return false;
+
+        result = (char)hexChar;
+        return true;
     }
 }

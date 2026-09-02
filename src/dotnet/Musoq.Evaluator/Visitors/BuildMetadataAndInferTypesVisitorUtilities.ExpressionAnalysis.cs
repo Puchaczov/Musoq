@@ -86,7 +86,7 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
             switch (current)
             {
                 case AccessColumnNode columnNode:
-                    columnNames.Add(columnNode.Name);
+                    columnNames.Add(columnNode.ToString());
                     break;
                 case BinaryNode binary:
                     stack.Push(binary.Left);
@@ -131,7 +131,7 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
             switch (current)
             {
                 case AccessColumnNode columnNode:
-                    if (!groupByColumnNames.Contains(columnNode.Name))
+                    if (!groupByColumnNames.Contains(columnNode.ToString()))
                         nonGroupedColumns.Add(columnNode.Name);
                     break;
                 case AccessMethodNode method:

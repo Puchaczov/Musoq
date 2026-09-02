@@ -13,7 +13,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class LargeDataJoinTests : MultiSchemaTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void InnerJoin_LargeDataset_ShouldWorkCorrectly()

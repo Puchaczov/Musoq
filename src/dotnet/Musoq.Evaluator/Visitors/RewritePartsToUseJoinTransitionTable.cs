@@ -110,6 +110,7 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
             definitions[i] = (WindowDefinitionNode)Nodes.Pop();
 
         ChangedWindow = new WindowNode(definitions);
+        ChangedWindow.WithSpan(node.Span).WithFullSpan(node.FullSpan);
     }
 
     private FieldNode[] RewriteFieldNodes(FieldNode[] fields)

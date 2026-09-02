@@ -114,6 +114,25 @@ public sealed class MyRowSource(SourceExecutionContext executionContext) : RowSo
 
 Runtime v2 calls `GetRowSource<T>()` with the entity type from table metadata, then iterates ordered `source.Chunks` directly. Dynamic/object-like schemas should choose a concrete row type such as `IReadOnlyDictionary<string, object>`, `ExpandoObject`, or a plugin-defined dynamic row type.
 
+### Stability and replayability contracts
+
+Columns are stable by default for compatibility, but providers must mark any
+getter whose value, side effects, access count, exception timing, or timing is
+observable as `ColumnStability.Volatile` (or use `[NonDeterministic]` on the
+entity property). Unmarked bindable functions are stable only when they are
+pure for the bound row and independent of injected query statistics, runtime
+type context, and mutable settings. `RowStreamReplayability` is independent:
+stable columns do not make a row stream replayable, and `Unknown` must block
+reuse across a second enumeration.
+
+Portable `SourceComputedProjection` requests are accepted only when the
+provider advertises the required intrinsic capability and returns an exact
+accepted/residual partition. Accepted values are materialized once per source
+row. Missing accepted fields, malformed partitions, and shape mismatches are
+deterministic source-contract failures, never silent recomputation. See
+`docs/loop-invariant-code-motion.md` for the complete provider contract and
+unsupported behavior list.
+
 ## Method Resolution Pipeline
 
 When a SQL function is called, the method resolution pipeline finds the corresponding C# method:

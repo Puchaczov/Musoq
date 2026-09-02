@@ -33,7 +33,7 @@ internal static partial class ExecutionExpressionFingerprint
     {
         return expression switch
         {
-            ExecutionFieldRead fieldRead => $"field:{NormalizeAlias(fieldRead.Alias, parallelAggregate)}:{NormalizeFieldName(fieldRead.FieldName, fieldRead.Alias, parallelAggregate)}:{ForAggregateType(fieldRead.ReturnType)}:{AggregateFieldAccessStrategy(fieldRead.AccessStrategy, fieldRead.Alias, parallelAggregate)}",
+            ExecutionFieldRead fieldRead => $"field:{NormalizeAlias(fieldRead.Alias, parallelAggregate)}:{NormalizeFieldName(fieldRead.FieldName, fieldRead.Alias, parallelAggregate)}:{ForAggregateType(fieldRead.ReturnType)}:{AggregateFieldAccessStrategy(fieldRead.AccessStrategy, fieldRead.Alias, parallelAggregate)}{(fieldRead.EnumType == null ? string.Empty : $":source={fieldRead.SourceReadType?.StableId ?? "-"}:enum={fieldRead.EnumType.Fingerprint}")}",
             ExecutionMemberRead memberRead => $"member:{memberRead.IsDynamic}:{memberRead.MemberName}:{ForParallelAggregate(memberRead.Receiver, parallelAggregate)}:{ForAggregateType(memberRead.ReturnType)}",
             ExecutionLiteral literal => $"literal:{NormalizeLiteralValue(literal.Value, parallelAggregate)}:{ForAggregateType(literal.ReturnType)}",
             ExecutionBinary binary => $"binary:{binary.Kind}:{ForParallelAggregate(binary.Left, parallelAggregate)}:{ForParallelAggregate(binary.Right, parallelAggregate)}:{ForAggregateType(binary.ReturnType)}",
@@ -44,7 +44,11 @@ internal static partial class ExecutionExpressionFingerprint
             ExecutionArrayAccess arrayAccess => $"array:{ForParallelAggregate(arrayAccess.Array, parallelAggregate)}:{ForParallelAggregate(arrayAccess.Index, parallelAggregate)}:{ForAggregateType(arrayAccess.ReturnType)}",
             ExecutionIsNullCheck isNull => $"is-null:{isNull.IsNegated}:{ForParallelAggregate(isNull.Expression, parallelAggregate)}",
             ExecutionRowPresence rowPresence => $"presence:{rowPresence.Alias}:{rowPresence.IsPresent}:{ForParallelAggregate(rowPresence.PresenceSource, parallelAggregate)}",
-            ExecutionInCheck inCheck => AggregateSequence("in", inCheck.Values.Prepend(inCheck.Expression), inCheck.ReturnType, parallelAggregate),
+            ExecutionInCheck inCheck => AggregateSequence(
+                inCheck.IsNegated ? "not-in" : "in",
+                inCheck.Values.Prepend(inCheck.Expression),
+                inCheck.ReturnType,
+                parallelAggregate),
             ExecutionPatternMatch patternMatch => $"pattern:{patternMatch.Kind}:{ForParallelAggregate(patternMatch.Expression, parallelAggregate)}:{ForParallelAggregate(patternMatch.Pattern, parallelAggregate)}:{ForAggregateType(patternMatch.ReturnType)}",
             ExecutionBetween between => AggregateSequence(
                 "between",
@@ -106,6 +110,9 @@ internal static partial class ExecutionExpressionFingerprint
         builder
             .Append("call:")
             .Append(ForAggregateMethod(methodCall.Method))
+            .Append(':');
+        AppendEnumIntrinsicFingerprint(builder, methodCall);
+        builder
             .Append(":target:")
             .Append(methodCall.Target is null ? "<null>" : ForAggregateType(methodCall.Target.Type))
             .Append(":source:")

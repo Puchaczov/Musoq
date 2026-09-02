@@ -12,11 +12,11 @@ public sealed class StringEscapeRiskDetectorTests
     {
         var result = StringEscapeRiskDetector.Find("prefix\\n\\tvalue".AsSpan(), 20);
 
-        Assert.IsTrue(result.HasValue);
-        Assert.AreEqual("\\n", result.Value.EscapeText);
-        Assert.AreEqual(new TextSpan(26, 2), result.Value.Span);
-        Assert.IsFalse(result.Value.IsRootedPath);
-        Assert.IsTrue(result.Value.HasNonEscapeContent);
+        var risk = result ?? throw new AssertFailedException("Expected an escape risk.");
+        Assert.AreEqual("\\n", risk.EscapeText);
+        Assert.AreEqual(new TextSpan(26, 2), risk.Span);
+        Assert.IsFalse(risk.IsRootedPath);
+        Assert.IsTrue(risk.HasNonEscapeContent);
     }
 
     [TestMethod]
@@ -25,11 +25,11 @@ public sealed class StringEscapeRiskDetectorTests
         var rooted = StringEscapeRiskDetector.Find("C:\\new\\file".AsSpan(), 3);
         var relative = StringEscapeRiskDetector.Find("folder\\new".AsSpan(), 7);
 
-        Assert.IsTrue(rooted.HasValue);
-        Assert.IsTrue(rooted.Value.IsRootedPath);
-        Assert.IsTrue(relative.HasValue);
-        Assert.IsFalse(relative.Value.IsRootedPath);
-        Assert.IsTrue(relative.Value.HasNonEscapeContent);
+        var rootedRisk = rooted ?? throw new AssertFailedException("Expected a rooted-path escape risk.");
+        var relativeRisk = relative ?? throw new AssertFailedException("Expected a relative-path escape risk.");
+        Assert.IsTrue(rootedRisk.IsRootedPath);
+        Assert.IsFalse(relativeRisk.IsRootedPath);
+        Assert.IsTrue(relativeRisk.HasNonEscapeContent);
     }
 
     [TestMethod]

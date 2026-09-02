@@ -1,7 +1,5 @@
-using System.Linq;
-using System.Reflection;
+using Musoq.Evaluator.IR.Analysis;
 using Musoq.Evaluator.IR.Execution;
-using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.IR.Optimization.Execution;
 
@@ -13,8 +11,7 @@ internal static class MethodTargetCachePolicy
     {
         if (method.InjectedSource != null ||
             method.Arguments.Count != 1 ||
-            method.Method.ResolveClrMethod().GetCustomAttribute<NonDeterministicAttribute>() != null ||
-            method.Method.ResolveClrMethod().GetParameters().Any(static parameter => parameter.GetCustomAttribute<InjectQueryStatsAttribute>() != null))
+            !ExpressionStabilityAnalyzer.IsStableMethod(method.Method.ResolveClrMethod()))
         {
             return false;
         }

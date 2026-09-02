@@ -31,7 +31,11 @@ public sealed class DiagnosticFormatter
         var sb = new StringBuilder();
 
 
-        if (!string.IsNullOrEmpty(diagnostic.Location.FilePath))
+        if (!diagnostic.Location.IsValid)
+        {
+            sb.Append("(unknown): ");
+        }
+        else if (!string.IsNullOrEmpty(diagnostic.Location.FilePath))
         {
             sb.Append(diagnostic.Location.FilePath);
             sb.Append('(');
@@ -171,14 +175,19 @@ public sealed class DiagnosticFormatter
         ArgumentNullException.ThrowIfNull(diagnostic);
         var sb = new StringBuilder();
         sb.Append('{');
-        sb.Append(System.Globalization.CultureInfo.InvariantCulture,
-            $"\"range\":{{\"start\":{{\"line\":{diagnostic.Location.Line0},\"character\":{diagnostic.Location.Column0}}}");
+        if (diagnostic.Location.IsValid && diagnostic.EndLocation.IsValid)
+        {
+            sb.Append(System.Globalization.CultureInfo.InvariantCulture,
+                $"\"range\":{{\"start\":{{\"line\":{diagnostic.Location.Line0},\"character\":{diagnostic.Location.Column0}}}");
+            sb.Append(System.Globalization.CultureInfo.InvariantCulture,
+                $",\"end\":{{\"line\":{diagnostic.EndLocation.Line0},\"character\":{diagnostic.EndLocation.Column0}}}");
+            sb.Append("},");
+        }
+        else
+        {
+            sb.Append("\"range\":null,");
+        }
 
-
-        sb.Append(System.Globalization.CultureInfo.InvariantCulture,
-            $",\"end\":{{\"line\":{diagnostic.EndLocation.Line0},\"character\":{diagnostic.EndLocation.Column0}}}");
-
-        sb.Append("},");
         sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"severity\":{(int)diagnostic.Severity},");
         sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"code\":\"{diagnostic.Code}\",");
         sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"message\":\"{EscapeJson(diagnostic.Message)}\"");
@@ -189,11 +198,47 @@ public sealed class DiagnosticFormatter
 
     private static string EscapeJson(string text)
     {
-        return text
-            .Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("\"", "\\\"", StringComparison.Ordinal)
-            .Replace("\n", "\\n", StringComparison.Ordinal)
-            .Replace("\r", "\\r", StringComparison.Ordinal)
-            .Replace("\t", "\\t", StringComparison.Ordinal);
+        var builder = new StringBuilder(text.Length);
+        foreach (var character in text)
+        {
+            switch (character)
+            {
+                case '\\':
+                    builder.Append("\\\\");
+                    break;
+                case '\"':
+                    builder.Append("\\\"");
+                    break;
+                case '\b':
+                    builder.Append("\\b");
+                    break;
+                case '\f':
+                    builder.Append("\\f");
+                    break;
+                case '\n':
+                    builder.Append("\\n");
+                    break;
+                case '\r':
+                    builder.Append("\\r");
+                    break;
+                case '\t':
+                    builder.Append("\\t");
+                    break;
+                default:
+                    if (character < ' ')
+                    {
+                        builder.Append("\\u");
+                        builder.Append(((int)character).ToString("x4", System.Globalization.CultureInfo.InvariantCulture));
+                    }
+                    else
+                    {
+                        builder.Append(character);
+                    }
+
+                    break;
+            }
+        }
+
+        return builder.ToString();
     }
 }

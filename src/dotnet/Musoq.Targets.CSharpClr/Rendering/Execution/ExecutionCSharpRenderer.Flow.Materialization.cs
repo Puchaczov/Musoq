@@ -103,7 +103,7 @@ public sealed partial class ExecutionCSharpRenderer
         var loopStatements = new List<StatementSyntax>
         {
             StatementEmitter.CreateIf(
-                RenderExpression(materialize.Predicate, context),
+                this.RenderBooleanCondition(materialize.Predicate, context),
                 StatementEmitter.CreateBlock(CreateListAddStatement(materialize.Buffer.Name, loopVariableName)))
         };
 
@@ -139,7 +139,7 @@ public sealed partial class ExecutionCSharpRenderer
         var loopStatements = new List<StatementSyntax>
         {
             StatementEmitter.CreateIf(
-                RenderExpression(materialize.Predicate, context),
+                this.RenderBooleanCondition(materialize.Predicate, context),
                 StatementEmitter.CreateBlock(CreateListAddStatement(materialize.Buffer.Name, loopVariableName)))
         };
 
@@ -179,7 +179,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var predicate = SyntaxFactory.SimpleLambdaExpression(
             SyntaxFactory.Parameter(SyntaxFactory.Identifier(materialize.Item.Name)),
-            RenderExpression(materialize.Predicate, context));
+            this.RenderBooleanCondition(materialize.Predicate, context));
 
         return SyntaxFactory.InvocationExpression(CreateGenericEvaluationHelperMemberAccess(
                 nameof(EvaluationHelper.MaterializeFilteredGeneratedRows),
@@ -193,7 +193,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var predicate = SyntaxFactory.SimpleLambdaExpression(
             SyntaxFactory.Parameter(SyntaxFactory.Identifier(materialize.Item.Name)),
-            RenderExpression(materialize.Predicate, context));
+            this.RenderBooleanCondition(materialize.Predicate, context));
 
         return SyntaxFactory.InvocationExpression(CreateGenericEvaluationHelperMemberAccess(
                 nameof(EvaluationHelper.MaterializeFilteredGeneratedChunkedRows),
@@ -239,7 +239,7 @@ public sealed partial class ExecutionCSharpRenderer
         else
         {
             loopStatements.Add(StatementEmitter.CreateIf(
-                RenderExpression(materialize.Predicate, context),
+                this.RenderBooleanCondition(materialize.Predicate, context),
                 StatementEmitter.CreateBlock(addStatement)));
         }
 
@@ -275,7 +275,7 @@ public sealed partial class ExecutionCSharpRenderer
         else
         {
             loopStatements.Add(StatementEmitter.CreateIf(
-                RenderExpression(materialize.Predicate, context),
+                this.RenderBooleanCondition(materialize.Predicate, context),
                 StatementEmitter.CreateBlock(addStatement)));
         }
 

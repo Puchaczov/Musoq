@@ -237,6 +237,35 @@ Read modifiers are not CSV-specific. Different datasources may interpret them di
 4. Value types are automatically promoted to nullable to handle dynamic data
 5. Column read modifiers are stored with the corresponding column metadata
 
+### 3.7 Enum Columns
+
+A column type may name a query-local enum declared earlier in the batch, using
+case-insensitive type-name matching, or a native CLR enum using its exact fully
+qualified name:
+
+```sql
+enum JobStatus : int {
+    Queued = 10,
+    Running = 20
+};
+
+table JobRows {
+    Id: long,
+    Status: JobStatus?
+};
+```
+
+The TABLE descriptor freezes the enum identity, backing kind, flags marker,
+members, aliases, and fingerprint at compilation. Dynamic values are never
+examined row by row to infer that metadata. The datasource MUST advertise
+logical scalar reads and read the primitive backing type; otherwise planning
+fails with a source contract diagnostic. There is no object-valued fallback.
+
+Read modifiers do not encode enum member maps. A datasource may define
+representation-specific modifiers in a later profile, but the enum descriptor
+always remains separate logical metadata. The initial SeparatedValues profile
+accepts no non-empty modifiers for enum columns.
+
 ---
 
 ## 4. COUPLE Statement
@@ -549,6 +578,19 @@ table Example {
 
 **Note**: The type must be loadable at runtime. If the type cannot be resolved, a `TypeNotFoundException` is raised.
 
+### 6.5 Enum Type References
+
+Query-local enum names are resolved before primitive or CLR type lookup and are
+case-insensitive. Native enum references MUST be exact fully qualified CLR
+names. Both forms use a primitive integral `ColumnType`, an exact
+source-facing `SourceReadType`, and portable `EnumType` metadata. Ordinary
+columns use the same `ColumnType` and `SourceReadType` and have no enum
+metadata.
+
+TABLE's automatic value-type nullability applies to enum carriers. The logical
+identity survives nullable lifting, CTEs, derived tables, joins, grouping,
+sets, and projection.
+
 ---
 
 ## 7. Error Handling
@@ -654,6 +696,10 @@ type_name ::= identifier
 
 qualified_type_name ::= identifier { '.' identifier }
 ```
+
+An unqualified `type_name` may resolve to a visible query-local enum. A
+`qualified_type_name` may resolve to a reachable native CLR enum. Resolution
+does not make other CLR enum types globally visible.
 
 ### 8.2 Couple Statement Grammar
 

@@ -179,7 +179,7 @@ public sealed class QueryAnalyzer
                 _compilationOptions,
                 schemaRegistry);
 
-            var metadataPhase = new SemanticMetadataPhaseCoordinator().Analyze(rootNode, metadataVisitor);
+            var metadataPhase = new SemanticMetadataPhaseCoordinator().Analyze(rootNode, metadataVisitor, parsedQueryTree);
             rootNode = metadataPhase.Query;
 
             if (metadataVisitor.Root is { } typedRoot)
@@ -207,6 +207,12 @@ public sealed class QueryAnalyzer
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
+            if (ex is UnknownSourceException { ProviderFailure: { } originalProviderFailure })
+            {
+                ExceptionDispatchInfo.Capture(originalProviderFailure).Throw();
+                throw new InvalidOperationException("Provider failure rethrow did not propagate.");
+            }
+
             if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
                 RethrowProviderFailure(providerFailure);
 

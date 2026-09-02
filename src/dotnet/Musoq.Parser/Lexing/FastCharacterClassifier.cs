@@ -1,6 +1,9 @@
+using System.Buffers;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Lexing;
@@ -163,9 +166,19 @@ public static class FastCharacterClassifier
     ///     Gets the category of a character for fast dispatch.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static CharCategory GetCategory(char c)
+    public static CharCategory GetCategory(char c) =>
+        c < AsciiCharacterCount ? AsciiCategories[c] : IsIdentifierStart(c) ? CharCategory.Identifier : CharCategory.Unknown;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static CharCategory GetCategory(ReadOnlySpan<char> input, int index)
     {
-        return c < 128 ? AsciiCategories[c] : CharCategory.Identifier;
+        if ((uint)index >= (uint)input.Length)
+            return CharCategory.Unknown;
+
+        var character = input[index];
+        return character < AsciiCharacterCount
+            ? AsciiCategories[character]
+            : IsIdentifierStart(input, index) ? CharCategory.Identifier : CharCategory.Unknown;
     }
 
     /// <summary>
@@ -190,19 +203,27 @@ public static class FastCharacterClassifier
     ///     Checks if a character can continue an identifier.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsIdentifierContinue(char c)
-    {
-        return c is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '_';
-    }
+    public static bool IsIdentifierContinue(char c) =>
+        IsIdentifierStart(c) || char.IsDigit(c) || IsIdentifierContinuationMark(c);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsIdentifierContinue(ReadOnlySpan<char> input, int index) =>
+        TryDecodeRune(input, index, out var rune, out _) && IsIdentifierContinue(rune);
 
     /// <summary>
     ///     Checks if a character can start an identifier.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsIdentifierStart(char c)
-    {
-        return c is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or '_';
-    }
+    public static bool IsIdentifierStart(char c) =>
+        (c is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or '_') || char.IsLetter(c);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsIdentifierStart(ReadOnlySpan<char> input, int index) =>
+        TryDecodeRune(input, index, out var rune, out _) && IsIdentifierStart(rune);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int GetIdentifierCodePointLength(ReadOnlySpan<char> input, int index) =>
+        TryDecodeRune(input, index, out _, out var charsConsumed) ? charsConsumed : 0;
 
     /// <summary>
     ///     Checks if a character is a digit.
@@ -230,5 +251,26 @@ public static class FastCharacterClassifier
     public static string CharToString(char c)
     {
         return c < 128 ? CharToStringCache[c] : c.ToString();
+    }
+
+    private static bool IsIdentifierContinuationMark(char c) => char.GetUnicodeCategory(c) is
+        UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark or UnicodeCategory.ConnectorPunctuation or UnicodeCategory.Format;
+
+    private static bool IsIdentifierStart(Rune rune) => rune.Value == '_' || Rune.IsLetter(rune);
+
+    private static bool IsIdentifierContinue(Rune rune) =>
+        IsIdentifierStart(rune) || Rune.IsDigit(rune) || IsIdentifierContinuationMark(rune);
+
+    private static bool IsIdentifierContinuationMark(Rune rune) => Rune.GetUnicodeCategory(rune) is
+        UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark or UnicodeCategory.ConnectorPunctuation or UnicodeCategory.Format;
+
+    private static bool TryDecodeRune(ReadOnlySpan<char> input, int index, out Rune rune, out int charsConsumed)
+    {
+        if ((uint)index < (uint)input.Length)
+            return Rune.DecodeFromUtf16(input[index..], out rune, out charsConsumed) == OperationStatus.Done;
+
+        rune = default;
+        charsConsumed = 0;
+        return false;
     }
 }

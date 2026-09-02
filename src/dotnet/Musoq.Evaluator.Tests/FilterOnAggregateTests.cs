@@ -9,7 +9,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class FilterOnAggregateTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreateCitySources()
     {

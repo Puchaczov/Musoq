@@ -57,12 +57,12 @@ ExecutionPlan [compiled]
     ChunkedForEach [i in iRows]
       EnumerableSource [i.Numbers -> nRows]
       ChunkedForEach [n in nRows]
+        Let [nValue: int = n.Value]
         EnumerableSource [i.Numbers -> mRows]
         ChunkedForEach [m in mRows]
-          Let [value: int = n.Value]
           GetOrAddSingleKeyAggregateGroup [group = groups[i.Name] by i.Name; typed: ResultAggregateGroup]
-          TypedAggregateSet [Set(group.__agg0, value)]
-          TypedAggregateSet [Set(group.__agg1, value)]
+          TypedAggregateSet [Set(group.__agg0, nValue)]
+          TypedAggregateSet [Set(group.__agg1, nValue)]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
       AppendShape [result <- ResultShape0(Name: finalGroup.i.Name, RepeatedSum: inm.Sum(n.Value), DistinctSum: inm.Sum(distinct n.Value))]
@@ -250,9 +250,10 @@ namespace GeneratedSample_Q69_ChainedApplyMixedDistinctAggregateSort
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static void TraverseMRows(CancellationToken token, Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity i, int n, List<ResultAggregateGroup> groupsToFinalize, Dictionary<string, ResultAggregateGroup> groups, ref ResultAggregateGroup nullGroup)
+        private static void TraverseMRows(CancellationToken token, int n, Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity i, List<ResultAggregateGroup> groupsToFinalize, Dictionary<string, ResultAggregateGroup> groups, ref ResultAggregateGroup nullGroup)
         {
             token.ThrowIfCancellationRequested();
+            int nValue = n;
             var mRows = EvaluationHelper.ConvertEnumerableOutputToChunks<int>(i.Numbers);
             foreach (var mChunk in mRows)
             {
@@ -269,7 +270,7 @@ namespace GeneratedSample_Q69_ChainedApplyMixedDistinctAggregateSort
                             }
 
                             var m = mChunkViewArray[mChunkViewOffset + mIndex];
-                            UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, n, i);
+                            UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, nValue, i);
                         }
 
                         continue;
@@ -286,7 +287,7 @@ namespace GeneratedSample_Q69_ChainedApplyMixedDistinctAggregateSort
                             }
 
                             var m = mChunkViewList[mChunkViewOffset + mIndex];
-                            UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, n, i);
+                            UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, nValue, i);
                         }
 
                         continue;
@@ -301,7 +302,7 @@ namespace GeneratedSample_Q69_ChainedApplyMixedDistinctAggregateSort
                     }
 
                     var m = mChunk[mIndex];
-                    UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, n, i);
+                    UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, nValue, i);
                 }
             }
         }
@@ -326,7 +327,7 @@ namespace GeneratedSample_Q69_ChainedApplyMixedDistinctAggregateSort
                             }
 
                             var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                            TraverseMRows(token, i, n, groupsToFinalize, groups, ref nullGroup);
+                            TraverseMRows(token, n, i, groupsToFinalize, groups, ref nullGroup);
                         }
 
                         continue;
@@ -343,7 +344,7 @@ namespace GeneratedSample_Q69_ChainedApplyMixedDistinctAggregateSort
                             }
 
                             var n = nChunkViewList[nChunkViewOffset + nIndex];
-                            TraverseMRows(token, i, n, groupsToFinalize, groups, ref nullGroup);
+                            TraverseMRows(token, n, i, groupsToFinalize, groups, ref nullGroup);
                         }
 
                         continue;
@@ -358,15 +359,14 @@ namespace GeneratedSample_Q69_ChainedApplyMixedDistinctAggregateSort
                     }
 
                     var n = nChunk[nIndex];
-                    TraverseMRows(token, i, n, groupsToFinalize, groups, ref nullGroup);
+                    TraverseMRows(token, n, i, groupsToFinalize, groups, ref nullGroup);
                 }
             }
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static void UpdateGroupsAggregates(List<ResultAggregateGroup> groupsToFinalize, Dictionary<string, ResultAggregateGroup> groups, ref ResultAggregateGroup nullGroup, int n, Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity i)
+        private static void UpdateGroupsAggregates(List<ResultAggregateGroup> groupsToFinalize, Dictionary<string, ResultAggregateGroup> groups, ref ResultAggregateGroup nullGroup, int nValue, Musoq.Evaluator.Tests.Schema.Generated.GeneratedApplySampleEntity i)
         {
-            int value = n;
             string groupKey = i.Name;
             ResultAggregateGroup group = null;
             if (groupKey != null)
@@ -392,7 +392,7 @@ namespace GeneratedSample_Q69_ChainedApplyMixedDistinctAggregateSort
             }
 
             {
-                var __agg0Input = (int?)value;
+                var __agg0Input = (int?)nValue;
                 if (__agg0Input.HasValue)
                 {
                     var __agg0Current = __agg0Input.GetValueOrDefault();
@@ -401,7 +401,7 @@ namespace GeneratedSample_Q69_ChainedApplyMixedDistinctAggregateSort
                 }
             }
 
-            Musoq.Plugins.SumDistinctAggregateKernel<int>.Set(ref group.__agg1, (int?)value);
+            Musoq.Plugins.SumDistinctAggregateKernel<int>.Set(ref group.__agg1, (int?)nValue);
         }
 
         private sealed class ResultAggregateGroup

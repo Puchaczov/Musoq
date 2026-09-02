@@ -18,7 +18,7 @@ public static class DiagnosticExceptionExtensions
     {
         if (TryGetDiagnosticException(exception, out var diagnosticException))
         {
-            diagnostic = diagnosticException.ToDiagnostic(sourceText);
+            diagnostic = ConvertDiagnostic(diagnosticException, sourceText);
             return true;
         }
 
@@ -35,9 +35,9 @@ public static class DiagnosticExceptionExtensions
     public static Diagnostic ToDiagnosticOrGeneric(this Exception exception, SourceText? sourceText = null)
     {
         if (TryGetDiagnosticException(exception, out var diagnosticException))
-            return diagnosticException.ToDiagnostic(sourceText);
+            return ConvertDiagnostic(diagnosticException, sourceText);
 
-        return InternalDiagnosticException.ForCompiler(exception).ToDiagnostic(sourceText);
+        return ConvertDiagnostic(InternalDiagnosticException.ForCompiler(exception), sourceText);
     }
 
     /// <summary>
@@ -51,6 +51,31 @@ public static class DiagnosticExceptionExtensions
     {
         var diagnostic = exception.ToDiagnosticOrGeneric(sourceText);
         return bag.Add(diagnostic);
+    }
+
+    private static Diagnostic ConvertDiagnostic(
+        IDiagnosticException diagnosticException,
+        SourceText? sourceText)
+    {
+        var diagnostic = diagnosticException.ToDiagnostic(sourceText);
+
+        // Some legacy exception converters used TextSpan.Empty as a stand-in
+        // for a missing span. The exception contract distinguishes null from
+        // a real zero-length span, so do not expose a fabricated location at
+        // offset zero when the exception has no source location.
+        if (!diagnosticException.Span.HasValue)
+        {
+            return diagnostic.Location.IsValid || diagnostic.EndLocation.IsValid
+                ? diagnostic.WithLocations(SourceLocation.None, SourceLocation.None)
+                : diagnostic;
+        }
+
+        // Resolve locations centrally as the last step. This keeps exception
+        // converters that still use the historical line-1 fallback correct
+        // for multiline queries and preserves zero-length insertion spans.
+        return sourceText != null
+            ? diagnostic.WithSourceContext(sourceText, diagnosticException.Span.Value)
+            : diagnostic;
     }
 
     private static bool TryGetDiagnosticException(Exception exception, out IDiagnosticException diagnosticException)

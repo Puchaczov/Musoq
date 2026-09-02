@@ -329,15 +329,19 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override OptionalPacket InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("HasValue");
             var _hasValue = ReadByte(data);
+            RecordParsedField("HasValue", _hasValue);
+            SetCurrentField("Value");
             int? _value = null;
             if ((_hasValue == 1))
             {
                 _value = ReadInt32Le(data);
             }
 
+            RecordParsedField("Value", _value);
             return new OptionalPacket
             {
                 HasValue = _hasValue,

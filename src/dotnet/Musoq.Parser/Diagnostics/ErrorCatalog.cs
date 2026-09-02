@@ -54,12 +54,23 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ2027_MissingWhenClause] = "Missing WHEN clause in CASE expression",
         [DiagnosticCode.MQ2028_MissingThenClause] = "Missing THEN clause in CASE expression",
         [DiagnosticCode.MQ2029_MissingEndKeyword] = "Missing END keyword in CASE expression",
+        [DiagnosticCode.MQ2030_UnsupportedSyntax] = "Unsupported syntax",
+        [DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration] = "Invalid script parameter declaration",
+        [DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax] = "Unsupported script parameter syntax",
+        [DiagnosticCode.MQ2033_InvalidScriptVariableDeclaration] = "Invalid script variable declaration",
         [DiagnosticCode.MQ2036_MultipleExecutableStatements] = "Multiple executable statements are not supported by this compilation entry point",
         [DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed] = "The {0} predicate list cannot be empty",
         [DiagnosticCode.MQ2038_InvalidSliceCount] = "{0} count must be a non-negative integer",
         [DiagnosticCode.MQ2039_TieBreakRequiresAsOfJoin] = "TIE BREAK BY requires an ASOF JOIN",
         [DiagnosticCode.MQ2040_InvalidDiagnosticCommand] = "Invalid diagnostic command",
         [DiagnosticCode.MQ2041_InvalidStarModifierOrder] = "Star modifiers are out of order or duplicated",
+        [DiagnosticCode.MQ2042_InvalidEnumDeclaration] = "Invalid enum declaration: {0}",
+        [DiagnosticCode.MQ2043_InvalidEnumBackingType] = "Invalid enum backing type '{0}'",
+        [DiagnosticCode.MQ2044_MissingEnumMemberValue] = "Enum member '{0}' requires an explicit integral value",
+        [DiagnosticCode.MQ2045_DuplicateEnumMember] = "Duplicate enum member '{0}'",
+        [DiagnosticCode.MQ2046_EnumMemberValueOutOfRange] = "Enum member value '{0}' is outside backing type '{1}'",
+        [DiagnosticCode.MQ2047_EmptyEnumDeclaration] = "Enum '{0}' must declare at least one member",
+        [DiagnosticCode.MQ2048_UnsupportedEnumSyntax] = "Unsupported enum declaration syntax",
 
         // Semantic Errors (MQ3xxx)
         [DiagnosticCode.MQ3001_UnknownColumn] = "Unknown column '{0}'",
@@ -74,8 +85,21 @@ public static class ErrorCatalog
             "Column '{0}' must appear in GROUP BY clause or be used in an aggregate function",
         [DiagnosticCode.MQ3015_UnknownAlias] = "Unknown alias '{0}'",
         [DiagnosticCode.MQ3016_CircularReference] = "Circular reference detected in '{0}'",
+        [DiagnosticCode.MQ3017_ObjectNotArray] = "Object of type '{0}' is not an array",
+        [DiagnosticCode.MQ3018_NoIndexer] = "Object of type '{0}' does not implement an indexer",
+        [DiagnosticCode.MQ3019_SetOperatorColumnCount] = "Set operator requires the same number of columns in both queries",
+        [DiagnosticCode.MQ3020_SetOperatorColumnTypes] = "Set operator requires matching column types in both queries",
+        [DiagnosticCode.MQ3021_DuplicateAlias] = "Alias '{0}' is already used in query",
         [DiagnosticCode.MQ3022_MissingAlias] =
             "Method call '{0}' must be qualified with a source alias when more than one schema is used",
+        [DiagnosticCode.MQ3023_TableNotDefined] = "Table '{0}' is not defined in query",
+        [DiagnosticCode.MQ3024_GroupByIndexOutOfRange] = "GROUP BY position {0} is out of range; SELECT projection contains {1} field(s)",
+        [DiagnosticCode.MQ3025_ColumnMustBeArray] = "Column '{0}' must be an array or implement IEnumerable<T>",
+        [DiagnosticCode.MQ3026_ColumnNotBindable] = "Column '{0}' must be marked as BindablePropertyAsTable",
+        [DiagnosticCode.MQ3027_InvalidExpressionType] = "Expression '{0}' has invalid type '{1}' in {2}",
+        [DiagnosticCode.MQ3028_UnknownProperty] = "Property '{0}' not found on type '{1}'",
+        [DiagnosticCode.MQ3032_ArithmeticOverflow] = "Arithmetic overflow in constant expression",
+        [DiagnosticCode.MQ3033_InterpretFunctionOutsideApply] = "Interpret and Parse functions are only allowed inside CROSS APPLY or OUTER APPLY",
         [DiagnosticCode.MQ3034_AmbiguousAggregateOwner] =
             "Aggregate call '{0}' is ambiguous because multiple source aliases expose different implementations: {1}",
         [DiagnosticCode.MQ3035_AmbiguousMethodOwner] =
@@ -90,7 +114,33 @@ public static class ErrorCatalog
             "ASOF JOIN inequality must reference columns from both sides.",
         [DiagnosticCode.MQ3040_AsOfJoinInequalityColumnNotOrderable] =
             "ASOF JOIN inequality column type '{0}' is not orderable.",
+        [DiagnosticCode.MQ3041_StarExcludeColumnNotFound] = "EXCLUDE references non-existent column '{0}'",
+        [DiagnosticCode.MQ3042_StarReplaceColumnNotFound] = "REPLACE references non-existent column '{0}'",
+        [DiagnosticCode.MQ3043_StarExcludeRemovesAllColumns] = "EXCLUDE would remove all columns from the star expansion",
+        [DiagnosticCode.MQ3044_StarColumnInBothExcludeAndReplace] = "Column '{0}' appears in both EXCLUDE and REPLACE",
+        [DiagnosticCode.MQ3045_StarLikeMatchedNoColumns] = "Star modifier '{0}' matched no columns",
+        [DiagnosticCode.MQ3046_StarExcludeDuplicateColumn] = "Duplicate column '{0}' in EXCLUDE list",
+        [DiagnosticCode.MQ3047_StarReplaceDuplicateColumn] = "Duplicate column '{0}' in REPLACE list",
+        [DiagnosticCode.MQ3048_StarReplaceTargetsRemovedColumn] = "REPLACE targets column '{0}' removed by LIKE or EXCLUDE",
+        [DiagnosticCode.MQ3049_InSubqueryMultipleColumns] = "IN subquery must return exactly one column",
+        [DiagnosticCode.MQ3050_QualifyRequiresWindowFunction] = "QUALIFY clause requires at least one window function in its expression.",
+        [DiagnosticCode.MQ3051_FilterOnNonAggregate] = "FILTER can only be applied to aggregate functions; '{0}' is not an aggregate",
+        [DiagnosticCode.MQ3052_RangeFrameRequiresOrderBy] = "A RANGE window frame requires an ORDER BY clause in the window specification.",
+        [DiagnosticCode.MQ3053_InvalidWindowFrameBounds] = "Invalid window frame: start bound '{0}' is logically after end bound '{1}'.",
+        [DiagnosticCode.MQ3054_StarModifierInInSubquery] = "Star modifiers cannot be used inside an IN subquery",
         [DiagnosticCode.MQ3055_InvalidValuesSource] = "Invalid VALUES source: {0}",
+        [DiagnosticCode.MQ3056_DuplicateScriptParameterBlock] = "Only one script parameter block is allowed",
+        [DiagnosticCode.MQ3057_ScriptParameterBlockAfterStatement] = "Script parameter block must appear before executable statements",
+        [DiagnosticCode.MQ3058_DuplicateScriptParameterName] = "Duplicate script parameter name '{0}'",
+        [DiagnosticCode.MQ3059_UndeclaredScriptParameter] = "Script parameter '{0}' is not declared",
+        [DiagnosticCode.MQ3060_UnsupportedScriptParameterType] = "Script parameter type '{0}' is not supported",
+        [DiagnosticCode.MQ3061_InvalidScriptParameterDefault] = "Invalid default for script parameter '{0}'",
+        [DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument] = "Script parameter source argument '{0}' is invalid",
+        [DiagnosticCode.MQ3063_DuplicateScriptSymbolName] = "Duplicate script symbol name '{0}'",
+        [DiagnosticCode.MQ3064_UnsupportedScriptVariableType] = "Script variable type '{0}' is not supported",
+        [DiagnosticCode.MQ3065_InvalidScriptVariableInitializer] = "Invalid initializer for script variable '{0}'",
+        [DiagnosticCode.MQ3066_ScriptVariableUsedBeforeDeclaration] = "Script variable '{0}' is used before declaration",
+        [DiagnosticCode.MQ3067_MissingSourceRuntimeSetting] = "Required source runtime setting '{0}' was not provided",
         [DiagnosticCode.MQ3068_StarRenameDuplicateSource] = "Duplicate source column '{0}' in RENAME list.",
         [DiagnosticCode.MQ3069_StarRenameDuplicateTarget] = "Duplicate target column '{0}' in RENAME list.",
         [DiagnosticCode.MQ3070_StarRenameColumnNotFound] = "RENAME references non-existent output column '{0}'.",
@@ -122,6 +172,23 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ3096_UnsupportedVariableKeyAccess] = "Variable key access is not supported",
         [DiagnosticCode.MQ3097_UnsupportedAggregateProjection] = "This aggregate projection shape is not supported without GROUP BY",
         [DiagnosticCode.MQ3098_InvalidRangeFrameOrderKey] = "Bounded RANGE frames require exactly one numeric ORDER BY key",
+        [DiagnosticCode.MQ3099_WindowOrderByRequired] = "Window function '{0}' requires ORDER BY in its OVER specification",
+        [DiagnosticCode.MQ3100_NestedWindowFunction] = "Window functions cannot be nested",
+        [DiagnosticCode.MQ3101_WindowFunctionInFilter] = "Window functions are not allowed in {0}",
+        [DiagnosticCode.MQ3102_InvalidStatementOrder] = "Statement '{0}' is out of order",
+        [DiagnosticCode.MQ3103_InvalidWindowFunctionArgument] = "Window function '{0}' has an invalid argument: {1}",
+        [DiagnosticCode.MQ3104_UnknownNamedWindow] = "Named window '{0}' is not defined in the current query.",
+        [DiagnosticCode.MQ3105_DuplicateNamedWindow] = "Window definition '{0}' is declared more than once in this query.",
+        [DiagnosticCode.MQ3106_DuplicateEnumType] = "Enum type '{0}' is declared more than once in this query.",
+        [DiagnosticCode.MQ3107_UnknownEnumType] = "Enum type '{0}' is not declared or reachable in this query.",
+        [DiagnosticCode.MQ3108_UnknownEnumMember] = "Enum member '{0}' is not defined by enum type '{1}'.",
+        [DiagnosticCode.MQ3109_EnumIdentityMismatch] = "Enum types '{0}' and '{1}' cannot be combined.",
+        [DiagnosticCode.MQ3110_UnsupportedEnumOperator] = "Operator '{0}' is not supported for enum type '{1}'.",
+        [DiagnosticCode.MQ3111_InvalidEnumHelper] = "Enum helper '{0}' cannot be applied to the supplied arguments.",
+        [DiagnosticCode.MQ3112_UnsupportedEnumScriptParameter] = "Enum script parameters are not supported.",
+        [DiagnosticCode.MQ3113_UnsupportedEnumOutputTarget] = "Enum values cannot be mapped directly into enum-valued typed output members.",
+        [DiagnosticCode.MQ3114_EnumSourceCapabilityRequired] = "Source '{0}' does not support logical scalar reads required by enum column '{1}'.",
+        [DiagnosticCode.MQ3115_EnumDescriptorMismatch] = "Enum descriptor for column '{0}' does not match the compiled source contract.",
 
         // Schema Definition Errors (MQ4xxx)
         [DiagnosticCode.MQ4001_InvalidBinarySchemaField] = "Invalid binary schema field '{0}'",
@@ -149,11 +216,17 @@ public static class ErrorCatalog
         // Warnings (MQ5xxx)
         [DiagnosticCode.MQ5003_ImplicitTypeConversion] = "Ambiguous date text is implicitly converted from '{0}' to '{1}'",
         [DiagnosticCode.MQ5008_UnreachableCode] = "Unreachable code detected",
+        [DiagnosticCode.MQ5010_TautologicalCondition] = "Condition is always true",
+        [DiagnosticCode.MQ5011_ContradictoryCondition] = "Condition is always false",
         [DiagnosticCode.MQ5013_SourceContractWarning] = "Source contract warning: {0}",
         [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape] =
             "Ordinary string escape '{0}' changes path-like text; use a raw literal or double the backslash if the text should be preserved.",
 
         // Runtime Errors (MQ7xxx)
+        [DiagnosticCode.MQ7003_RequiredScriptParameterMissing] = "Required script parameter '{0}' was not provided",
+        [DiagnosticCode.MQ7004_ScriptParameterTypeMismatch] = "Script parameter '{0}' has an incompatible type: expected '{1}', received '{2}'",
+        [DiagnosticCode.MQ7005_ScriptParameterNullNotAllowed] = "Script parameter '{0}' cannot be null",
+        [DiagnosticCode.MQ7006_UnknownScriptParameter] = "Script parameter '{0}' was provided but is not declared",
         [DiagnosticCode.MQ7007_RecursiveCteIterationLimitExceeded] =
             "Recursive CTE iteration limit of {0} was exceeded.",
         [DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded] =
@@ -169,6 +242,8 @@ public static class ErrorCatalog
         // Code Generation Errors (MQ8xxx)
         [DiagnosticCode.MQ8001_CodeGenerationFailed] =
             "Generated C# code failed to compile: {0}",
+        [DiagnosticCode.MQ8002_CompiledArtifactIncompatible] =
+            "Compiled query artifact is incompatible with the current host contract: {0}",
 
         // Warnings (MQ5xxx)
         [DiagnosticCode.MQ5015_SuspiciousRegexEscape] = "An ordinary string escape changes a regex token '{0}'",
@@ -282,9 +357,9 @@ public static class ErrorCatalog
     {
         ArgumentNullException.ThrowIfNull(input);
         ArgumentNullException.ThrowIfNull(candidates);
+
         string? bestMatch = null;
         var bestDistance = int.MaxValue;
-
         foreach (var candidate in candidates)
         {
             var distance = ComputeLevenshteinDistance(input.ToUpperInvariant(), candidate.ToUpperInvariant());
@@ -296,6 +371,62 @@ public static class ErrorCatalog
         }
 
         return bestMatch;
+    }
+
+    /// <summary>
+    ///     Gets the closest spelling candidates at the same minimum edit distance.
+    ///     Candidate casing is normalized deterministically and ambiguous ties are
+    ///     retained so callers can avoid presenting an arbitrary automatic fix.
+    /// </summary>
+    public static IReadOnlyList<string> GetDidYouMeanCandidates(
+        string input,
+        IEnumerable<string> candidates,
+        int maxDistance = 3,
+        int maxCandidates = 5)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        ArgumentNullException.ThrowIfNull(candidates);
+
+        if (maxDistance < 0 || maxCandidates <= 0)
+            return [];
+
+        var canonicalCandidates = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var candidate in candidates)
+        {
+            if (string.IsNullOrWhiteSpace(candidate))
+                continue;
+
+            if (!canonicalCandidates.TryGetValue(candidate, out var existing) ||
+                string.CompareOrdinal(candidate, existing) < 0)
+                canonicalCandidates[candidate] = candidate;
+        }
+
+        var orderedCandidates = new List<string>(canonicalCandidates.Values);
+        orderedCandidates.Sort(StringComparer.Ordinal);
+
+        var normalizedInput = input.ToUpperInvariant();
+        var bestDistance = int.MaxValue;
+        var bestCandidates = new List<string>();
+        foreach (var candidate in orderedCandidates)
+        {
+            var distance = ComputeLevenshteinDistance(normalizedInput, candidate.ToUpperInvariant());
+            if (distance > maxDistance)
+                continue;
+
+            if (distance < bestDistance)
+            {
+                bestDistance = distance;
+                bestCandidates.Clear();
+            }
+
+            if (distance == bestDistance)
+                bestCandidates.Add(candidate);
+        }
+
+        if (bestCandidates.Count > maxCandidates)
+            bestCandidates.RemoveRange(maxCandidates, bestCandidates.Count - maxCandidates);
+
+        return bestCandidates;
     }
 
     private static int ComputeLevenshteinDistance(string source, string candidate)

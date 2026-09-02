@@ -31,7 +31,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Parser returns MQ2001_UnexpectedToken: "Expected token is From but received Identifier"
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "SELECT without FROM clause");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2004_MissingFromClause, "SELECT without FROM clause");
     }
 
     [TestMethod]
@@ -44,8 +44,8 @@ public partial class CompilationPipelineErrorTests
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Should be MQ2015_LeadingComma or MQ2001_UnexpectedToken
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "leading comma in select list");
+        // Assert - the parser identifies the leading separator specifically.
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2015_LeadingComma, "leading comma in select list");
     }
 
     [TestMethod]
@@ -72,8 +72,8 @@ public partial class CompilationPipelineErrorTests
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Parser returns MQ2001: "Expected token is RightParenthesis but received From"
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "unbalanced parentheses - missing close");
+        // Assert - the parser identifies the missing grouping delimiter.
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2010_MissingClosingParenthesis, "unbalanced parentheses - missing close");
     }
 
     [TestMethod]
@@ -162,9 +162,9 @@ public partial class CompilationPipelineErrorTests
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Parser returns one typed MQ2001 diagnostic.
+        // Assert - Parser returns one typed missing-operand diagnostic.
         AssertHasExactlyOneErrorCode(result, "trailing = operator without operand",
-            DiagnosticCode.MQ2001_UnexpectedToken);
+            DiagnosticCode.MQ2020_MissingOperand);
     }
 
     [TestMethod]
@@ -177,9 +177,9 @@ public partial class CompilationPipelineErrorTests
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Parser returns one typed MQ2001 diagnostic.
+        // Assert - Parser returns one typed missing-operand diagnostic.
         AssertHasExactlyOneErrorCode(result, "trailing AND without right operand",
-            DiagnosticCode.MQ2001_UnexpectedToken);
+            DiagnosticCode.MQ2020_MissingOperand);
     }
 
     [TestMethod]

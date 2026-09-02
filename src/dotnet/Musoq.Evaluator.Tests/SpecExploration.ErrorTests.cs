@@ -13,7 +13,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class SpecExplorationErrorTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     #region Malformed Queries - Parser/Compile Errors
 

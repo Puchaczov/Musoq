@@ -38,6 +38,10 @@ public partial class RawTraverseVisitor<TExpressionVisitor> where TExpressionVis
 
     public virtual void Visit(CreateTableNode node) { ArgumentNullException.ThrowIfNull(node); node.Accept(Visitor); }
 
+    public virtual void Visit(EnumDeclarationNode node) => VisitChildrenThenNode(node);
+
+    public virtual void Visit(EnumMemberNode node) { ArgumentNullException.ThrowIfNull(node); node.Accept(Visitor); }
+
     public virtual void Visit(CoupleNode node) { ArgumentNullException.ThrowIfNull(node); node.Accept(Visitor); }
 
     public virtual void Visit(StatementsArrayNode node) => VisitChildrenThenNode(node);

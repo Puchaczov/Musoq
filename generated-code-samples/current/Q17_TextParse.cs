@@ -351,9 +351,16 @@ namespace Musoq.Generated.Interpreters
         public override LogLine ParseAt(ReadOnlySpan<char> data, int offset)
         {
             ParsePosition = offset;
-            var _timestamp = ReadUntil(data, " ");
-            var _level = ReadUntil(data, " ");
-            var _message = ReadRest(data);
+            SetCurrentField(null);
+            SetCurrentField("Timestamp");
+            var _timestamp = ReadUntil(data, " ", fieldName: "Timestamp");
+            RecordParsedField("Timestamp", _timestamp);
+            SetCurrentField("Level");
+            var _level = ReadUntil(data, " ", fieldName: "Level");
+            RecordParsedField("Level", _level);
+            SetCurrentField("Message");
+            var _message = ReadRest(data, fieldName: "Message");
+            RecordParsedField("Message", _message);
             return new LogLine
             {
                 Timestamp = _timestamp,

@@ -9,6 +9,9 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool CanRenderMethodCall(ExecutionMethodCall methodCall)
     {
+        if (methodCall.EnumIntrinsic != null)
+            return EnumIntrinsicExpressionRenderer.CanRender(methodCall);
+
         var method = methodCall.Method.RequireClrMethod();
         var declaringType = method.DeclaringType;
         if (declaringType == null || !method.IsPublic || !CanReferenceType(declaringType) || !CanReferenceType(methodCall.ReturnType))

@@ -247,8 +247,10 @@ namespace GeneratedSample_Q09_Union
                 var resultKeys = new HashSet<string>(left.Count + right.Count);
                 foreach (var resultLeftRow in left)
                 {
-                    resultKeys.Add((string)resultLeftRow.Name);
-                    __musoqFinalShapeRows.Add(new LeftShape0((string)resultLeftRow.Name));
+                    if (resultKeys.Add((string)resultLeftRow.Name))
+                    {
+                        __musoqFinalShapeRows.Add(new LeftShape0((string)resultLeftRow.Name));
+                    }
                 }
 
                 foreach (var resultRightRow in right)

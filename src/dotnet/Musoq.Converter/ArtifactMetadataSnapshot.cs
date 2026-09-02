@@ -56,6 +56,9 @@ internal static class ArtifactMetadataSnapshot
             null => null,
             SourcePredicateColumn column => new SourcePredicateColumn(CopyColumn(column.Column)),
             SourcePredicateLiteral literal => new SourcePredicateLiteral(CopyKnownMetadataValue(literal.Value)),
+            SourcePredicateEnumLiteral literal => new SourcePredicateEnumLiteral(
+                literal.Value,
+                literal.EnumFingerprint),
             SourcePredicateComparison comparison => new SourcePredicateComparison(
                 comparison.Operator,
                 CopyPredicate(comparison.Left)!,
@@ -71,6 +74,10 @@ internal static class ArtifactMetadataSnapshot
             SourcePredicateNullCheck nullCheck => new SourcePredicateNullCheck(
                 CopyPredicate(nullCheck.Expression)!,
                 nullCheck.IsNegated),
+            SourcePredicateFlags flags => new SourcePredicateFlags(
+                CopyPredicate(flags.Expression)!,
+                new SourcePredicateEnumLiteral(flags.Mask.Value, flags.Mask.EnumFingerprint),
+                flags.MatchMode),
             _ => throw new InvalidOperationException($"Unsupported source predicate metadata type {predicate.GetType().FullName}.")
         };
     }

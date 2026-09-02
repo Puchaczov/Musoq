@@ -15,7 +15,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class AliasCteBugProbeTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void CteQualifiedProjection_ShouldExposeUnqualifiedOutputColumnName()

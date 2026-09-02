@@ -40,7 +40,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             throw new SetOperatorMustHaveSameQuantityOfColumnsException();
         }
 
-        ReconcileFieldTypesForSetOperation(leftFields, rightFields, rightFields[0].Expression);
+        ReconcileFieldTypesForSetOperation(leftFields, rightFields);
 
         _queryState.CachedSetFields.TryAdd(cachedSetOperatorKey, ResolveFieldsForCache(leftFields, rightFields));
     }
@@ -60,18 +60,63 @@ public partial class BuildMetadataAndInferTypesVisitor
             throw new SetOperatorMustHaveSameQuantityOfColumnsException();
         }
 
-        ReconcileFieldTypesForSetOperation(leftFields, rightFields, leftFields[0].Expression);
+        ReconcileFieldTypesForSetOperation(leftFields, rightFields);
 
         _queryState.CachedSetFields.TryAdd(currentSetOperatorKey, ResolveFieldsForCache(leftFields, rightFields));
     }
 
-    private void ReconcileFieldTypesForSetOperation(FieldNode[] leftFields, FieldNode[] rightFields,
-        Node errorContextNode)
+    private void ReconcileFieldTypesForSetOperation(FieldNode[] leftFields, FieldNode[] rightFields)
     {
         for (var i = 0; i < leftFields.Length; i++)
         {
             var leftType = leftFields[i].Expression.ReturnType ?? typeof(object);
             var rightType = rightFields[i].Expression.ReturnType ?? typeof(object);
+            var leftHasEnum = TryGetEnumExpressionType(leftFields[i].Expression, out var leftEnum);
+            var rightHasEnum = TryGetEnumExpressionType(rightFields[i].Expression, out var rightEnum);
+
+            if (leftHasEnum || rightHasEnum)
+            {
+                if (leftHasEnum && rightHasEnum)
+                {
+                    if (!leftEnum.Equals(rightEnum))
+                        ReportEnumIdentityMismatch(leftEnum, rightEnum, rightFields[i]);
+                }
+                else
+                {
+                    var enumType = leftHasEnum ? leftEnum : rightEnum;
+                    var ordinaryField = leftHasEnum ? rightFields[i] : leftFields[i];
+                    if (ordinaryField.Expression is NullNode)
+                    {
+                        var enumField = leftHasEnum ? leftFields[i] : rightFields[i];
+                        var contextualNull = new NullNode(
+                            enumField.Expression.ReturnType ??
+                            EnumScalarTypeFacts.GetCarrierType(enumType.UnderlyingKind),
+                            ordinaryField.Expression.Span);
+                        MarkEnumExpression(contextualNull, enumType);
+                        var replacement = new FieldNode(
+                            contextualNull,
+                            ordinaryField.FieldOrder,
+                            ordinaryField.FieldName,
+                            ordinaryField.Span);
+                        if (leftHasEnum)
+                            rightFields[i] = replacement;
+                        else
+                            leftFields[i] = replacement;
+                    }
+                    else
+                    {
+                        ReportEnumSemanticError(
+                            DiagnosticCode.MQ3110_UnsupportedEnumOperator,
+                            $"SET operands cannot combine enum type '{enumType.DisplayName}' with an ordinary '{ordinaryField.Expression.ReturnType?.Name ?? "unknown"}' value.",
+                            ordinaryField);
+                    }
+                }
+
+                if (leftType == rightType ||
+                    leftFields[i].Expression is NullNode ||
+                    rightFields[i].Expression is NullNode)
+                    continue;
+            }
 
             if (leftType == rightType)
                 continue;
@@ -102,7 +147,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 continue;
             }
 
-            if (TryReportSetOperatorColumnTypes(leftFields[i], rightFields[i], errorContextNode))
+            if (TryReportSetOperatorColumnTypes(leftFields[i], rightFields[i], rightFields[i]))
                 continue;
             throw new SetOperatorMustHaveSameTypesOfColumnsException(leftFields[i], rightFields[i]);
         }
@@ -153,7 +198,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             return true;
         }
 
-        throw new UnknownAliasException(alias, node.SpanOrEmpty());
+        throw new UnknownAliasException(alias, node.SpanOrEmpty(), GetVisibleAliases());
     }
 
     private void VisitSetOperationNode(SetOperatorNode node, string setOperatorName)
@@ -210,68 +255,6 @@ public partial class BuildMetadataAndInferTypesVisitor
             _sourceBinding.CurrentScope.Child[0].ScopeSymbolTable.GetSymbol(leftQuery.From.Alias));
 
         PushSemanticNode(CreateSetOperatorNode(setOperatorName, node, keys, left, right));
-    }
-
-    private bool TryCanonicalizeRecursiveSetOperatorKeys(
-        QueryNode anchor,
-        IReadOnlyList<string> keys,
-        Node node,
-        out string[] canonicalKeys)
-    {
-        var exportedNames = anchor.Select.Fields
-            .Select(static field => field.FieldName)
-            .Where(static fieldName => !string.IsNullOrWhiteSpace(fieldName))
-            .ToArray();
-        canonicalKeys = new string[keys.Count];
-
-        for (var keyIndex = 0; keyIndex < keys.Count; keyIndex++)
-        {
-            var key = keys[keyIndex];
-            var canonicalName = exportedNames.FirstOrDefault(exportedName =>
-                string.Equals(exportedName, key, StringComparison.OrdinalIgnoreCase));
-            if (canonicalName != null)
-            {
-                canonicalKeys[keyIndex] = canonicalName;
-                continue;
-            }
-
-            if (DiagnosticContext != null)
-            {
-                DiagnosticContext.ReportUnknownColumn(key, exportedNames, node);
-                return false;
-            }
-
-            var columns = anchor.Select.Fields
-                .Select((field, index) => (ISchemaColumn)new SchemaColumn(
-                    field.FieldName,
-                    index,
-                    field.Expression.ReturnType ?? typeof(object)))
-                .ToArray();
-            PrepareAndThrowUnknownColumnExceptionMessage(key, columns, node.SpanOrEmpty());
-        }
-
-        return true;
-    }
-
-    private bool ValidateSetOperatorKeys(QueryNode query, IReadOnlyCollection<string> keys, Node node)
-    {
-        var availableFieldNames = query.Select.Fields
-            .SelectMany(field => new[] { field.FieldName, field.Expression.ToString() })
-            .Where(fieldName => !string.IsNullOrWhiteSpace(fieldName))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var missingKey = keys.FirstOrDefault(key =>
-            !TryGetSetOperatorFieldPosition(query, key, out _));
-        if (missingKey == null)
-            return true;
-
-        if (DiagnosticContext != null)
-        {
-            DiagnosticContext.ReportUnknownColumn(missingKey, availableFieldNames, node);
-            return false;
-        }
-
-        throw new InvalidOperationException($"Unknown column '{missingKey}'.");
     }
 
 }

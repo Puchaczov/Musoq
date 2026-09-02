@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
+using Musoq.Parser;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -14,7 +15,10 @@ internal sealed class SemanticColumnPropertyBindingService(
     SourceBindingState sourceBinding,
     ResultShapeState resultShape)
 {
-    public SemanticIdentifierBinding ResolveIdentifier(TableSymbol tableSymbol, string identifierName)
+    public SemanticIdentifierBinding ResolveIdentifier(
+        TableSymbol tableSymbol,
+        string identifierName,
+        TextSpan? span = null)
     {
         if (!string.IsNullOrEmpty(sourceBinding.Identifier) &&
             !tableSymbol.ContainsAlias(sourceBinding.Identifier))
@@ -23,7 +27,7 @@ internal sealed class SemanticColumnPropertyBindingService(
         ISchemaColumn? column;
         try
         {
-            column = tableSymbol.GetColumnByAliasAndName(sourceBinding.Identifier, identifierName);
+            column = tableSymbol.GetColumnByAliasAndName(sourceBinding.Identifier, identifierName, span);
         }
         catch (KeyNotFoundException)
         {
@@ -35,7 +39,7 @@ internal sealed class SemanticColumnPropertyBindingService(
 
         if (tableSymbol.IsCompoundTable)
         {
-            var (_, table, sourceAlias) = tableSymbol.GetTableByColumnName(identifierName);
+            var (_, table, sourceAlias) = tableSymbol.GetTableByColumnName(identifierName, span);
             if (table != null && sourceAlias != null)
             {
                 var singleColumn = table.GetColumnsByName(identifierName)[0];

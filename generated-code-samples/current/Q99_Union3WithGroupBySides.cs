@@ -249,8 +249,10 @@ namespace GeneratedSample_Q99_Union3WithGroupBySides
                 var leftKeys = new HashSet<string>(leftLeft.Count + leftRight.Count);
                 foreach (var leftLeftRow in leftLeft)
                 {
-                    leftKeys.Add((string)leftLeftRow.City);
-                    left.Add(leftLeftRow);
+                    if (leftKeys.Add((string)leftLeftRow.City))
+                    {
+                        left.Add(leftLeftRow);
+                    }
                 }
 
                 foreach (var leftRightRow in leftRight)
@@ -284,8 +286,10 @@ namespace GeneratedSample_Q99_Union3WithGroupBySides
                 var resultKeys = new HashSet<string>(left.Count + right.Count);
                 foreach (var resultLeftRow in left)
                 {
-                    resultKeys.Add((string)resultLeftRow.City);
-                    __musoqFinalShapeRows.Add(new LeftLeftShape0((string)resultLeftRow.City, (decimal?)resultLeftRow.Sum_Population_));
+                    if (resultKeys.Add((string)resultLeftRow.City))
+                    {
+                        __musoqFinalShapeRows.Add(new LeftLeftShape0((string)resultLeftRow.City, (decimal?)resultLeftRow.Sum_Population_));
+                    }
                 }
 
                 foreach (var resultRightRow in right)

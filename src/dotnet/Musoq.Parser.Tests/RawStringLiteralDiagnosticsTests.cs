@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Diagnostics;
@@ -9,6 +10,36 @@ namespace Musoq.Parser.Tests;
 [TestClass]
 public sealed class RawStringLiteralDiagnosticsTests
 {
+    [TestMethod]
+    public void FixedLengthEscapeCandidateSeed_ShouldDecodeExactValuesWithoutDiagnostics()
+    {
+        const string query = @"select '\u0041', '\x41' from system.dual()";
+        var lexer = new Lexer(query, true, true);
+        var values = ReadStringLiteralValues(lexer);
+
+        CollectionAssert.AreEqual(new[] { "A", "A" }, values);
+        Assert.IsFalse(lexer.Diagnostics.Any());
+    }
+
+    [TestMethod]
+    public void OrdinaryUnicodeEscapeWithoutDigits_ShouldPreserveTextWithMQ1004()
+    {
+        const string query = @"select '\u', '\x41' from system.dual()";
+        const string invalidEscape = @"\u";
+        var lexer = new Lexer(query, true, true);
+        var values = ReadStringLiteralValues(lexer);
+
+        CollectionAssert.AreEqual(new[] { invalidEscape, "A" }, values);
+        var diagnostic = lexer.Diagnostics.ToSortedList().Single();
+        Assert.AreEqual(DiagnosticCode.MQ1004_InvalidEscapeSequence, diagnostic.Code);
+        Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
+        Assert.AreEqual(
+            new TextSpan(query.IndexOf(invalidEscape, System.StringComparison.Ordinal), invalidEscape.Length),
+            diagnostic.Span);
+        Assert.AreEqual($"Invalid escape sequence '{invalidEscape}'.", diagnostic.Message);
+    }
+
     [TestMethod]
     [DataRow(@"'C:\u123'", 3, 5, @"\u123")]
     [DataRow(@"'C:\x1'", 3, 3, @"\x1")]
@@ -91,5 +122,19 @@ public sealed class RawStringLiteralDiagnosticsTests
 
         Assert.AreEqual(TokenType.StringLiteral, token.TokenType);
         Assert.AreEqual(expected, token.Value);
+    }
+
+    private static string[] ReadStringLiteralValues(Lexer lexer)
+    {
+        var values = new List<string>();
+        Token token;
+        do
+        {
+            token = lexer.Next();
+            if (token.TokenType == TokenType.StringLiteral)
+                values.Add(token.Value);
+        } while (token.TokenType != TokenType.EndOfFile);
+
+        return [.. values];
     }
 }

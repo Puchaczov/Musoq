@@ -50,10 +50,10 @@ ExecutionPlan [compiled]
     CreateValueTupleAggregateContext [groups: (string, string) -> ResultAggregateGroup]
     PhaseBoundary [Select]
     ChunkedForEach [ko3iko in ko3ikoRows]
-      Let [city: string = ko3iko.City]
+      GetOrAddValueTupleAggregateGroup [group = groups[(ko3iko.City, ko3iko.Country)] by City, Country; typed: ResultAggregateGroup]
       Let [population: decimal = ko3iko.Population]
-      GetOrAddValueTupleAggregateGroup [group = groups[(city, ko3iko.Country)] by City, Country; typed: ResultAggregateGroup]
       TypedAggregateSet [Set(group.__agg0, population)]
+      Let [city: string = ko3iko.City]
       TypedAggregateSet [Set(group.__agg1, city)]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
@@ -151,9 +151,7 @@ namespace GeneratedSample_Q07_GroupByHavingOrderBy
                                 }
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                string city = ko3iko.City;
-                                decimal population = ko3iko.Population;
-                                string groupKey0 = city;
+                                string groupKey0 = ko3iko.City;
                                 string groupKey1 = ko3iko.Country;
                                 ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, (groupKey0, groupKey1), out var groupExists);
                                 if (!groupExists)
@@ -163,6 +161,7 @@ namespace GeneratedSample_Q07_GroupByHavingOrderBy
                                 }
 
                                 ResultAggregateGroup group = groupRef;
+                                decimal population = ko3iko.Population;
                                 {
                                     var __agg0Input = (decimal?)population;
                                     if (__agg0Input.HasValue)
@@ -173,6 +172,7 @@ namespace GeneratedSample_Q07_GroupByHavingOrderBy
                                     }
                                 }
 
+                                string city = ko3iko.City;
                                 if ((string)city != null)
                                 {
                                     group.__agg1.Count = checked(group.__agg1.Count + 1L);
@@ -193,9 +193,7 @@ namespace GeneratedSample_Q07_GroupByHavingOrderBy
                                 }
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                string city = ko3iko.City;
-                                decimal population = ko3iko.Population;
-                                string groupKey0 = city;
+                                string groupKey0 = ko3iko.City;
                                 string groupKey1 = ko3iko.Country;
                                 ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, (groupKey0, groupKey1), out var groupExists);
                                 if (!groupExists)
@@ -205,6 +203,7 @@ namespace GeneratedSample_Q07_GroupByHavingOrderBy
                                 }
 
                                 ResultAggregateGroup group = groupRef;
+                                decimal population = ko3iko.Population;
                                 {
                                     var __agg0Input = (decimal?)population;
                                     if (__agg0Input.HasValue)
@@ -215,6 +214,7 @@ namespace GeneratedSample_Q07_GroupByHavingOrderBy
                                     }
                                 }
 
+                                string city = ko3iko.City;
                                 if ((string)city != null)
                                 {
                                     group.__agg1.Count = checked(group.__agg1.Count + 1L);
@@ -233,9 +233,7 @@ namespace GeneratedSample_Q07_GroupByHavingOrderBy
                         }
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                        string city = ko3iko.City;
-                        decimal population = ko3iko.Population;
-                        string groupKey0 = city;
+                        string groupKey0 = ko3iko.City;
                         string groupKey1 = ko3iko.Country;
                         ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, (groupKey0, groupKey1), out var groupExists);
                         if (!groupExists)
@@ -245,6 +243,7 @@ namespace GeneratedSample_Q07_GroupByHavingOrderBy
                         }
 
                         ResultAggregateGroup group = groupRef;
+                        decimal population = ko3iko.Population;
                         {
                             var __agg0Input = (decimal?)population;
                             if (__agg0Input.HasValue)
@@ -255,6 +254,7 @@ namespace GeneratedSample_Q07_GroupByHavingOrderBy
                             }
                         }
 
+                        string city = ko3iko.City;
                         if ((string)city != null)
                         {
                             group.__agg1.Count = checked(group.__agg1.Count + 1L);

@@ -423,17 +423,21 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override BitsRepeatPacket InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("Flags");
             var __flags_list = new System.Collections.Generic.List<byte>();
             byte __flags_lastElem;
+            var __flags_iteration = 0;
             do
             {
+                EnsureRepeatIteration("Flags", __flags_iteration++);
                 __flags_lastElem = (byte)ReadBits(data, 1);
                 __flags_list.Add(__flags_lastElem);
             }
             while (!((__flags_lastElem == 0)));
             var _flags = __flags_list.ToArray();
+            RecordParsedField("Flags", _flags);
             return new BitsRepeatPacket
             {
                 Flags = _flags

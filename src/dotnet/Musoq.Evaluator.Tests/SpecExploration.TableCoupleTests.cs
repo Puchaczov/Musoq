@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
 {
-    public TestContext TestContext { get; set; }
 
     #region §3 TABLE Statement - Basic
 

@@ -208,8 +208,6 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         CollectionAssert.Contains(results, "Small");
     }
 
-    public TestContext TestContext { get; set; }
 
     #endregion
 }
-

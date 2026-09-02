@@ -136,8 +136,11 @@ internal sealed partial class PhysicalLoweringImplementation
         ISet<string> validatedSchemas,
         IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
     {
-        if (repeatUntilType.ElementType is PrimitiveTypeNode or StringTypeNode or BitsTypeNode)
+        if (repeatUntilType.ElementType is PrimitiveTypeNode or ByteArrayTypeNode or StringTypeNode or BitsTypeNode)
             return InterpretSourceValidationResult.Success();
+
+        if (repeatUntilType.ElementType is ArrayTypeNode arrayType)
+            return ValidateArrayType(arrayType, fieldName, validatedSchemas, genericBindings);
 
         if (repeatUntilType.ElementType is SchemaReferenceTypeNode reference)
             return ValidateSchemaReferenceType(reference, fieldName, validatedSchemas, genericBindings);
@@ -146,7 +149,7 @@ internal sealed partial class PhysicalLoweringImplementation
             return ValidateInlineSchemaType(inlineSchema, fieldName, validatedSchemas, genericBindings);
 
         return InterpretSourceValidationResult.Unsupported(
-            $"Execution IR binary interpret-source lowering currently supports primitive repeat-until fields, bits repeat-until fields, string repeat-until fields, inline-schema repeat-until fields, and non-generic or closed-generic schema-reference repeat-until fields. Found {repeatUntilType.ElementType.GetType().Name} on field '{fieldName}'.");
+            $"Execution IR binary interpret-source lowering currently supports primitive, byte-array, primitive-array, string, bits, inline-schema, and non-generic or closed-generic schema-reference repeat-until fields. Found {repeatUntilType.ElementType.GetType().Name} on field '{fieldName}'.");
     }
 
     private InterpretSourceValidationResult ValidateSchemaReferenceType(

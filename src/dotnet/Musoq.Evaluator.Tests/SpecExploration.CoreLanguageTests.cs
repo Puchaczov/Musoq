@@ -14,7 +14,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class SpecExplorationCoreLanguageTests
 {
-    public TestContext TestContext { get; set; }
 
     #region §6 FROM Clause
 

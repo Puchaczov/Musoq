@@ -17,7 +17,9 @@ internal static class QueryRowSourceShapeFactory
                 field.FieldType,
                 field.IsNullable ? FieldNullability.Nullable : FieldNullability.NotNullable,
                 new GeneratedFieldAccess(QueryRowSourceNaming.CreateFieldName(field.Slot)),
-                readModifiers: field.ReadModifiers))
+                readModifiers: field.ReadModifiers,
+                sourceReadType: field.SourceReadType,
+                enumType: field.EnumType))
             .ToArray();
 
         return new GeneratedRowShape(

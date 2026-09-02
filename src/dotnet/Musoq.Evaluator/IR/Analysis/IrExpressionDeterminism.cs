@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Expressions.CollectionParameters;
-using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.IR.Analysis;
 
@@ -11,36 +10,7 @@ internal static class IrExpressionDeterminism
 {
     public static bool IsDeterministic(IrExpression expression)
     {
-        return expression switch
-        {
-            Literal or WildcardLiteral or ColumnRef or RowPresence or ScriptParameterRef or ScriptVariableRef => true,
-            StrictCast strictCast => IsDeterministic(strictCast.Expression),
-            BinaryOp binary => IsDeterministic(binary.Left) && IsDeterministic(binary.Right),
-            UnaryOp unary => IsDeterministic(unary.Operand),
-            MethodCall methodCall => methodCall.ReturnType != typeof(void) &&
-                                     IsDeterministicMethod(methodCall.Method) &&
-                                     methodCall.Arguments.All(IsDeterministic),
-            IsNullCheck isNull => IsDeterministic(isNull.Expression),
-            InCheck inCheck => IsDeterministic(inCheck.Expression) &&
-                               inCheck.Values.All(IsDeterministic),
-            CollectionInCheck collectionInCheck => IsDeterministic(collectionInCheck.Expression) &&
-                                                   IsDeterministic(collectionInCheck.Collection),
-            PatternMatch patternMatch => IsDeterministic(patternMatch.Expression) &&
-                                         IsDeterministic(patternMatch.Pattern),
-            Between between => IsDeterministic(between.Expression) &&
-                               IsDeterministic(between.Low) &&
-                               IsDeterministic(between.High),
-            CaseWhen caseWhen => caseWhen.Branches.All(static branch =>
-                                     IsDeterministic(branch.Condition) &&
-                                     IsDeterministic(branch.Result)) &&
-                                 (caseWhen.ElseExpression == null ||
-                                  IsDeterministic(caseWhen.ElseExpression)),
-            Coalesce coalesce => coalesce.Expressions.All(IsDeterministic),
-            ArrayAccess arrayAccess => IsDeterministic(arrayAccess.Array) &&
-                                       IsDeterministic(arrayAccess.Index),
-            AggregateRef or WindowFunctionRef or CteTableRef => false,
-            _ => false
-        };
+        return ExpressionStabilityAnalyzer.IsStable(expression);
     }
 
     public static bool AreDeterministic(IEnumerable<IrExpression> expressions)
@@ -66,7 +36,12 @@ internal static class IrExpressionDeterminism
     {
         switch (expression)
         {
-            case Literal or WildcardLiteral or ColumnRef or RowPresence or ScriptParameterRef or ScriptVariableRef:
+            case Literal or WildcardLiteral or RowPresence or ScriptParameterRef or ScriptVariableRef:
+                return;
+            case ColumnRef column when column.Stability == Schema.ColumnStability.Stable:
+                return;
+            case ColumnRef:
+                reasons.Add($"{subject} reads a volatile column.");
                 return;
             case StrictCast strictCast:
                 AddBlockedReasons(strictCast.Expression, reasons, subject);
@@ -142,32 +117,8 @@ internal static class IrExpressionDeterminism
         }
     }
 
-    private static bool IsDeterministicMethod(MethodInfo method)
-    {
-        return !TryGetMethodBlockedReason(method, out _, "Expression");
-    }
-
     private static bool TryGetMethodBlockedReason(MethodInfo method, out string reason, string subject)
     {
-        if (method.GetCustomAttribute<NonDeterministicAttribute>() != null)
-        {
-            reason = $"{subject} calls non-deterministic method {method.Name}.";
-            return true;
-        }
-
-        if (method.GetParameters().Any(static parameter => parameter.GetCustomAttribute<InjectQueryStatsAttribute>() != null))
-        {
-            reason = $"{subject} calls {method.Name}, which injects query statistics.";
-            return true;
-        }
-
-        if (method.GetParameters().Any(static parameter => parameter.GetCustomAttribute<InjectTypeAttribute>() != null))
-        {
-            reason = $"{subject} calls {method.Name}, which injects runtime context.";
-            return true;
-        }
-
-        reason = string.Empty;
-        return false;
+        return ExpressionStabilityAnalyzer.TryGetMethodInstabilityReason(method, subject, out reason);
     }
 }

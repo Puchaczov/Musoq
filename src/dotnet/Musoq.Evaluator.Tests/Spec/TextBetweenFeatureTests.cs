@@ -330,7 +330,8 @@ public class TextBetweenFeatureTests
             select d.Prefix, d.Content from #test.lines() l
             cross apply Parse<Data>(l.Line) d";
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "prefix[content]" } };
+        // until consumes its delimiter; the second '[' is the opening delimiter for between.
+        var entities = new[] { new TextEntity { Name = "test.txt", Text = "prefix[[content]" } };
         var schemaProvider = new TextSchemaProvider(
             new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
 

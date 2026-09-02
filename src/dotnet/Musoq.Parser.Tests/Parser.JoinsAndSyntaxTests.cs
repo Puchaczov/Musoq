@@ -1,4 +1,6 @@
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
 
@@ -376,7 +378,9 @@ full outer join #some.b() s2 on s1.col = s2.col";
 
         var exc = Assert.Throws<SyntaxException>(parser.ComposeAll);
 
-        Assert.AreEqual("select 1 form #some.", exc.QueryPart);
+        Assert.AreEqual("select 1 form", exc.QueryPart);
+        Assert.AreEqual(DiagnosticCode.MQ2004_MissingFromClause, exc.Code);
+        Assert.AreEqual(new TextSpan(query.IndexOf("form", StringComparison.Ordinal), "form".Length), exc.Span);
     }
 
     [TestMethod]

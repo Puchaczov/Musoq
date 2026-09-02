@@ -8,6 +8,8 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private DiagnosticState _diagnostics => _semanticState.Diagnostics;
 
+    private EnumBindingState _enumBinding => _semanticState.Enums;
+
     private MethodResolutionState _methodResolution => _semanticState.MethodResolution;
 
     private SemanticQueryState _queryState => _semanticState.Query;

@@ -59,9 +59,10 @@ ExecutionPlan [compiled]
     CreateTable [statement0: Statement0Row0]
     PhaseBoundary [Select]
     ChunkedForEach [i in statement0_iRows]
+      Let [iName: string = i.Name]
       EnumerableSource [i.Numbers -> statement0_nRows]
       ChunkedForEachWithOrdinality [nOrdinal, n in statement0_nRows]
-        AppendRow [statement0 <- Statement0Row0(i.Name: i.Name, i.Numbers: i.Numbers, n.Value: n.Value, n.Ordinal: n.Ordinal)]
+        AppendRow [statement0 <- Statement0Row0(i.Name: iName, i.Numbers: i.Numbers, n.Value: n.Value, n.Ordinal: n.Ordinal)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEach [in in _cteRowResults.Slot0]
@@ -222,6 +223,7 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
                             }
 
                             var i = iChunkViewArray[iChunkViewOffset + iIndex];
+                            string iName = i.Name;
                             var statement0_nRows = EvaluationHelper.ConvertScalarEnumerableToTypedChunks<int>(i.Numbers);
                             {
                                 int nOrdinal = 0;
@@ -240,7 +242,7 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
                                                 }
 
                                                 var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                                                statement0.Add(new Statement0Row0(i.Name, i.Numbers, n.Value, nOrdinal));
+                                                statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
                                                 ++nOrdinal;
                                             }
 
@@ -258,7 +260,7 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
                                                 }
 
                                                 var n = nChunkViewList[nChunkViewOffset + nIndex];
-                                                statement0.Add(new Statement0Row0(i.Name, i.Numbers, n.Value, nOrdinal));
+                                                statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
                                                 ++nOrdinal;
                                             }
 
@@ -274,7 +276,7 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
                                         }
 
                                         var n = nChunk[nIndex];
-                                        statement0.Add(new Statement0Row0(i.Name, i.Numbers, n.Value, nOrdinal));
+                                        statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
                                         ++nOrdinal;
                                     }
                                 }
@@ -295,6 +297,7 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
                             }
 
                             var i = iChunkViewList[iChunkViewOffset + iIndex];
+                            string iName = i.Name;
                             var statement0_nRows = EvaluationHelper.ConvertScalarEnumerableToTypedChunks<int>(i.Numbers);
                             {
                                 int nOrdinal = 0;
@@ -313,7 +316,7 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
                                                 }
 
                                                 var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                                                statement0.Add(new Statement0Row0(i.Name, i.Numbers, n.Value, nOrdinal));
+                                                statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
                                                 ++nOrdinal;
                                             }
 
@@ -331,7 +334,7 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
                                                 }
 
                                                 var n = nChunkViewList[nChunkViewOffset + nIndex];
-                                                statement0.Add(new Statement0Row0(i.Name, i.Numbers, n.Value, nOrdinal));
+                                                statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
                                                 ++nOrdinal;
                                             }
 
@@ -347,7 +350,7 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
                                         }
 
                                         var n = nChunk[nIndex];
-                                        statement0.Add(new Statement0Row0(i.Name, i.Numbers, n.Value, nOrdinal));
+                                        statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
                                         ++nOrdinal;
                                     }
                                 }
@@ -366,6 +369,7 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
                     }
 
                     var i = iChunk[iIndex];
+                    string iName = i.Name;
                     var statement0_nRows = EvaluationHelper.ConvertScalarEnumerableToTypedChunks<int>(i.Numbers);
                     {
                         int nOrdinal = 0;
@@ -384,7 +388,7 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
                                         }
 
                                         var n = nChunkViewArray[nChunkViewOffset + nIndex];
-                                        statement0.Add(new Statement0Row0(i.Name, i.Numbers, n.Value, nOrdinal));
+                                        statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
                                         ++nOrdinal;
                                     }
 
@@ -402,7 +406,7 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
                                         }
 
                                         var n = nChunkViewList[nChunkViewOffset + nIndex];
-                                        statement0.Add(new Statement0Row0(i.Name, i.Numbers, n.Value, nOrdinal));
+                                        statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
                                         ++nOrdinal;
                                     }
 
@@ -418,7 +422,7 @@ namespace GeneratedSample_Q173_ApplyWithOrdinality
                                 }
 
                                 var n = nChunk[nIndex];
-                                statement0.Add(new Statement0Row0(i.Name, i.Numbers, n.Value, nOrdinal));
+                                statement0.Add(new Statement0Row0(iName, i.Numbers, n.Value, nOrdinal));
                                 ++nOrdinal;
                             }
                         }

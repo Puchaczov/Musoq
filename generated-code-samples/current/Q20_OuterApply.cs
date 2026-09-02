@@ -45,13 +45,14 @@ ExecutionPlan [compiled]
     SourceScan [a: BasicEntity] -> aRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ChunkedForEach [a in aRows]
+      Let [aName: string = a.Name]
       SourceScan [b: BasicEntity] -> bRows
       Let [bHasMatch: bool = FALSE]
       ChunkedForEach [b in bRows]
         Assign [bHasMatch = TRUE]
-        AppendShape [result <- ResultShape0(a.Name: a.Name, OtherName: b.Name)]
+        AppendShape [result <- ResultShape0(a.Name: aName, OtherName: b.Name)]
       If [NOT bHasMatch]
-        AppendShape [result <- ResultShape0(a.Name: a.Name, OtherName: NULL)]
+        AppendShape [result <- ResultShape0(a.Name: aName, OtherName: NULL)]
     PhaseBoundary [End:cte0]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
@@ -142,6 +143,7 @@ namespace GeneratedSample_Q20_OuterApply
                                     }
 
                                     var a = aChunkViewArray[aChunkViewOffset + aIndex];
+                                    string aName = a.Name;
                                     var __bSchema = provider.GetSchema("#B");
                                     var bRowsSource = __bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), Array.Empty<object>());
                                     var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:1") : bRowsSource.Chunks;
@@ -162,7 +164,7 @@ namespace GeneratedSample_Q20_OuterApply
 
                                                     var b = bChunkViewArray[bChunkViewOffset + bIndex];
                                                     bHasMatch = true;
-                                                    __musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Name));
+                                                    __musoqFinalShapeRows.Add(new ResultShape0(aName, b.Name));
                                                 }
 
                                                 continue;
@@ -180,7 +182,7 @@ namespace GeneratedSample_Q20_OuterApply
 
                                                     var b = bChunkViewList[bChunkViewOffset + bIndex];
                                                     bHasMatch = true;
-                                                    __musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Name));
+                                                    __musoqFinalShapeRows.Add(new ResultShape0(aName, b.Name));
                                                 }
 
                                                 continue;
@@ -196,13 +198,13 @@ namespace GeneratedSample_Q20_OuterApply
 
                                             var b = bChunk[bIndex];
                                             bHasMatch = true;
-                                            __musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Name));
+                                            __musoqFinalShapeRows.Add(new ResultShape0(aName, b.Name));
                                         }
                                     }
 
                                     if ((!bHasMatch))
                                     {
-                                        __musoqFinalShapeRows.Add(new ResultShape0(a.Name, null));
+                                        __musoqFinalShapeRows.Add(new ResultShape0(aName, null));
                                     }
                                 }
 
@@ -220,6 +222,7 @@ namespace GeneratedSample_Q20_OuterApply
                                     }
 
                                     var a = aChunkViewList[aChunkViewOffset + aIndex];
+                                    string aName = a.Name;
                                     var __bSchema = provider.GetSchema("#B");
                                     var bRowsSource = __bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), Array.Empty<object>());
                                     var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:1") : bRowsSource.Chunks;
@@ -240,7 +243,7 @@ namespace GeneratedSample_Q20_OuterApply
 
                                                     var b = bChunkViewArray[bChunkViewOffset + bIndex];
                                                     bHasMatch = true;
-                                                    __musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Name));
+                                                    __musoqFinalShapeRows.Add(new ResultShape0(aName, b.Name));
                                                 }
 
                                                 continue;
@@ -258,7 +261,7 @@ namespace GeneratedSample_Q20_OuterApply
 
                                                     var b = bChunkViewList[bChunkViewOffset + bIndex];
                                                     bHasMatch = true;
-                                                    __musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Name));
+                                                    __musoqFinalShapeRows.Add(new ResultShape0(aName, b.Name));
                                                 }
 
                                                 continue;
@@ -274,13 +277,13 @@ namespace GeneratedSample_Q20_OuterApply
 
                                             var b = bChunk[bIndex];
                                             bHasMatch = true;
-                                            __musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Name));
+                                            __musoqFinalShapeRows.Add(new ResultShape0(aName, b.Name));
                                         }
                                     }
 
                                     if ((!bHasMatch))
                                     {
-                                        __musoqFinalShapeRows.Add(new ResultShape0(a.Name, null));
+                                        __musoqFinalShapeRows.Add(new ResultShape0(aName, null));
                                     }
                                 }
 
@@ -296,6 +299,7 @@ namespace GeneratedSample_Q20_OuterApply
                             }
 
                             var a = aChunk[aIndex];
+                            string aName = a.Name;
                             var __bSchema = provider.GetSchema("#B");
                             var bRowsSource = __bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), Array.Empty<object>());
                             var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:1") : bRowsSource.Chunks;
@@ -316,7 +320,7 @@ namespace GeneratedSample_Q20_OuterApply
 
                                             var b = bChunkViewArray[bChunkViewOffset + bIndex];
                                             bHasMatch = true;
-                                            __musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Name));
+                                            __musoqFinalShapeRows.Add(new ResultShape0(aName, b.Name));
                                         }
 
                                         continue;
@@ -334,7 +338,7 @@ namespace GeneratedSample_Q20_OuterApply
 
                                             var b = bChunkViewList[bChunkViewOffset + bIndex];
                                             bHasMatch = true;
-                                            __musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Name));
+                                            __musoqFinalShapeRows.Add(new ResultShape0(aName, b.Name));
                                         }
 
                                         continue;
@@ -350,13 +354,13 @@ namespace GeneratedSample_Q20_OuterApply
 
                                     var b = bChunk[bIndex];
                                     bHasMatch = true;
-                                    __musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Name));
+                                    __musoqFinalShapeRows.Add(new ResultShape0(aName, b.Name));
                                 }
                             }
 
                             if ((!bHasMatch))
                             {
-                                __musoqFinalShapeRows.Add(new ResultShape0(a.Name, null));
+                                __musoqFinalShapeRows.Add(new ResultShape0(aName, null));
                             }
                         }
                     }

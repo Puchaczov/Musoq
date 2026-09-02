@@ -172,6 +172,7 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             sink.AddClrType(field.Type);
             if (field.PublicType != null)
                 sink.AddClrType(field.PublicType);
+            sink.AddClrType(field.SourceReadType);
         }
     }
 

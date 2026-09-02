@@ -288,11 +288,11 @@
       "severity": "Error",
       "category": "Syntax",
       "messageTemplate": "Invalid schema definition",
-      "explanation": "A DEFINE SCHEMA block does not match the expected schema grammar.",
-      "docsReference": "Binary/Text Spec - Schema Definitions",
+      "explanation": "A TABLE declaration or read modifier does not match the expected TABLE contract.",
+      "docsReference": "TABLE/COUPLE Spec - TABLE Statement",
       "suggestedFixes": [
-        "Check the schema name, field list, and field type syntax.",
-        "Verify nested schema references use defined schema names."
+        "Check the TABLE name, column list, types, and optional read modifiers.",
+        "Verify columns and modifiers are unique and follow the TABLE grammar."
       ]
     },
     {
@@ -344,11 +344,11 @@
       "severity": "Error",
       "category": "Syntax",
       "messageTemplate": "Incomplete statement",
-      "explanation": "The query ended before Musoq could form a complete statement.",
+      "explanation": "The input does not contain a complete executable statement.",
       "docsReference": "Core Spec - Statement Structure",
       "suggestedFixes": [
         "Complete the statement with the missing clause or expression.",
-        "Start with a full query shape such as: SELECT ... FROM #schema.method() alias."
+        "Add a result-producing statement after declarations, such as: SELECT ... FROM #schema.method() alias."
       ]
     },
     {
@@ -538,7 +538,7 @@
       "phase": "Parse",
       "severity": "Error",
       "category": "Syntax",
-      "messageTemplate": "Error MQ2030_UnsupportedSyntax",
+      "messageTemplate": "Unsupported syntax",
       "explanation": "The query uses syntax that Musoq does not support or that is not valid in this position.",
       "docsReference": "Core Spec - Statement Structure",
       "suggestedFixes": [
@@ -552,7 +552,7 @@
       "phase": "Parse",
       "severity": "Error",
       "category": "Syntax",
-      "messageTemplate": "Error MQ2031_InvalidScriptParameterDeclaration",
+      "messageTemplate": "Invalid script parameter declaration",
       "explanation": "The script parameter declaration does not match Musoq's param(name: type) syntax.",
       "docsReference": "Core Spec - Script Parameters",
       "suggestedFixes": [
@@ -566,7 +566,7 @@
       "phase": "Parse",
       "severity": "Error",
       "category": "Syntax",
-      "messageTemplate": "Error MQ2032_UnsupportedScriptParameterSyntax",
+      "messageTemplate": "Unsupported script parameter syntax",
       "explanation": "The query uses a parameter declaration style from another language that Musoq does not support.",
       "docsReference": "Core Spec - Script Parameters",
       "suggestedFixes": [
@@ -580,7 +580,7 @@
       "phase": "Parse",
       "severity": "Error",
       "category": "Syntax",
-      "messageTemplate": "Error MQ2033_InvalidScriptVariableDeclaration",
+      "messageTemplate": "Invalid script variable declaration",
       "explanation": "The script variable declaration does not match Musoq's let name: type = value syntax.",
       "docsReference": "Core Spec - Script Variables",
       "suggestedFixes": [
@@ -693,6 +693,99 @@
       "docsReference": "Core Spec - Star Modifiers",
       "suggestedFixes": [
         "Reorder the modifiers and remove duplicates."
+      ]
+    },
+    {
+      "code": "MQ2042_InvalidEnumDeclaration",
+      "number": 2042,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Invalid enum declaration: {0}",
+      "explanation": "A query-local enum declaration is missing a required name, backing type, delimiter, or member separator.",
+      "docsReference": "Core Spec - Enum Declarations",
+      "suggestedFixes": [
+        "Use: enum Name : int { Member = 1 };.",
+        "Separate members with commas and close the declaration with a right brace."
+      ]
+    },
+    {
+      "code": "MQ2043_InvalidEnumBackingType",
+      "number": 2043,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Invalid enum backing type '{0}'",
+      "explanation": "Query-local enums require one of the eight CLR integral backing types supported by Musoq.",
+      "docsReference": "Core Spec - Enum Declarations",
+      "suggestedFixes": [
+        "Use byte, sbyte, short, ushort, int, uint, long, or ulong."
+      ]
+    },
+    {
+      "code": "MQ2044_MissingEnumMemberValue",
+      "number": 2044,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Enum member '{0}' requires an explicit integral value",
+      "explanation": "Every enum member must have an explicit integral literal value; implicit numbering is intentionally unsupported.",
+      "docsReference": "Core Spec - Enum Declarations",
+      "suggestedFixes": [
+        "Add '= <integral literal>' after the member name."
+      ]
+    },
+    {
+      "code": "MQ2045_DuplicateEnumMember",
+      "number": 2045,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Duplicate enum member '{0}'",
+      "explanation": "Enum member names must be unique, including names that differ only by casing.",
+      "docsReference": "Core Spec - Enum Declarations",
+      "suggestedFixes": [
+        "Rename or remove the duplicate member."
+      ]
+    },
+    {
+      "code": "MQ2046_EnumMemberValueOutOfRange",
+      "number": 2046,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Enum member value '{0}' is outside backing type '{1}'",
+      "explanation": "The explicit member value cannot be represented by the enum's declared integral backing type.",
+      "docsReference": "Core Spec - Enum Declarations",
+      "suggestedFixes": [
+        "Choose a value within the declared backing type's range.",
+        "Use a wider backing type when the value is intentional."
+      ]
+    },
+    {
+      "code": "MQ2047_EmptyEnumDeclaration",
+      "number": 2047,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Enum '{0}' must declare at least one member",
+      "explanation": "An enum declaration must contain at least one explicitly-valued member.",
+      "docsReference": "Core Spec - Enum Declarations",
+      "suggestedFixes": [
+        "Add a member such as None = 0."
+      ]
+    },
+    {
+      "code": "MQ2048_UnsupportedEnumSyntax",
+      "number": 2048,
+      "phase": "Parse",
+      "severity": "Error",
+      "category": "Syntax",
+      "messageTemplate": "Unsupported enum declaration syntax",
+      "explanation": "The declaration uses a C#, PostgreSQL, or MySQL enum form that is not part of Musoq SQL.",
+      "docsReference": "Core Spec - Enum Declarations",
+      "suggestedFixes": [
+        "Use: enum Name : int { Member = 1 }; or flags enum Name : uint { None = 0ui };."
       ]
     },
     {
@@ -839,7 +932,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3017_ObjectNotArray",
+      "messageTemplate": "Object of type '{0}' is not an array",
       "explanation": "Array access was attempted on an object that is not an array.",
       "docsReference": "Core Spec - Array Access",
       "suggestedFixes": [
@@ -852,7 +945,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3018_NoIndexer",
+      "messageTemplate": "Object of type '{0}' does not implement an indexer",
       "explanation": "The object does not implement an indexer for bracket access.",
       "docsReference": "Core Spec - Indexer Access",
       "suggestedFixes": [
@@ -865,7 +958,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3019_SetOperatorColumnCount",
+      "messageTemplate": "Set operator requires the same number of columns in both queries",
       "explanation": "Set operators require both queries to have the same number of columns.",
       "docsReference": "Core Spec - Set Operators",
       "suggestedFixes": [
@@ -878,7 +971,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3020_SetOperatorColumnTypes",
+      "messageTemplate": "Set operator requires matching column types in both queries",
       "explanation": "Set operators require matching column types between the two queries.",
       "docsReference": "Core Spec - Set Operators",
       "suggestedFixes": [
@@ -891,7 +984,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3021_DuplicateAlias",
+      "messageTemplate": "Alias '{0}' is already used in query",
       "explanation": "An alias with this name was already defined earlier in the query.",
       "docsReference": "Core Spec - Aliasing",
       "suggestedFixes": [
@@ -919,7 +1012,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3023_TableNotDefined",
+      "messageTemplate": "Table '{0}' is not defined in query",
       "explanation": "The referenced table or data source is not defined in this query.",
       "docsReference": "Core Spec - FROM Clause",
       "suggestedFixes": [
@@ -933,7 +1026,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3024_GroupByIndexOutOfRange",
+      "messageTemplate": "GROUP BY position {0} is out of range; SELECT projection contains {1} field(s)",
       "explanation": "A positional GROUP BY reference points outside the SELECT projection list.",
       "docsReference": "Core Spec - GROUP BY Clause",
       "suggestedFixes": [
@@ -947,7 +1040,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3025_ColumnMustBeArray",
+      "messageTemplate": "Column '{0}' must be an array or implement IEnumerable<T>",
       "explanation": "The expression must return an array or enumerable value for this operation.",
       "docsReference": "Core Spec - APPLY and Arrays",
       "suggestedFixes": [
@@ -961,7 +1054,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3026_ColumnNotBindable",
+      "messageTemplate": "Column '{0}' must be marked as BindablePropertyAsTable",
       "explanation": "The selected column cannot be bound as a table source.",
       "docsReference": "Core Spec - Bindable Properties",
       "suggestedFixes": [
@@ -975,7 +1068,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3027_InvalidExpressionType",
+      "messageTemplate": "Expression '{0}' has invalid type '{1}' in {2}",
       "explanation": "The expression returns a type that is not valid for the current query construct.",
       "docsReference": "Core Spec - Type System",
       "suggestedFixes": [
@@ -989,7 +1082,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3028_UnknownProperty",
+      "messageTemplate": "Property '{0}' not found on type '{1}'",
       "explanation": "The property name could not be resolved on the referenced object.",
       "docsReference": "Core Spec - Property Access",
       "suggestedFixes": [
@@ -1003,7 +1096,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3032_ArithmeticOverflow",
+      "messageTemplate": "Arithmetic overflow in constant expression",
       "explanation": "A constant arithmetic expression overflowed its target numeric type.",
       "docsReference": "Core Spec - Arithmetic Operators",
       "suggestedFixes": [
@@ -1017,7 +1110,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3033_InterpretFunctionOutsideApply",
+      "messageTemplate": "Interpret and Parse functions are only allowed inside CROSS APPLY or OUTER APPLY",
       "explanation": "Parse and Interpret functions can only be used inside CROSS APPLY or OUTER APPLY.",
       "docsReference": "Binary/Text Spec - Usage",
       "suggestedFixes": [
@@ -1129,7 +1222,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3041_StarExcludeColumnNotFound",
+      "messageTemplate": "EXCLUDE references non-existent column '{0}'",
       "explanation": "A star EXCLUDE modifier references a column that is not present in the source shape.",
       "docsReference": "Core Spec - Star Modifiers",
       "suggestedFixes": [
@@ -1143,7 +1236,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3042_StarReplaceColumnNotFound",
+      "messageTemplate": "REPLACE references non-existent column '{0}'",
       "explanation": "A star REPLACE modifier targets a column that is not present in the source shape.",
       "docsReference": "Core Spec - Star Modifiers",
       "suggestedFixes": [
@@ -1157,7 +1250,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3043_StarExcludeRemovesAllColumns",
+      "messageTemplate": "EXCLUDE would remove all columns from the star expansion",
       "explanation": "A star EXCLUDE or LIKE modifier would remove every column from the projection.",
       "docsReference": "Core Spec - Star Modifiers",
       "suggestedFixes": [
@@ -1171,7 +1264,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3044_StarColumnInBothExcludeAndReplace",
+      "messageTemplate": "Column '{0}' appears in both EXCLUDE and REPLACE",
       "explanation": "The same star-expanded column appears in both EXCLUDE and REPLACE modifiers.",
       "docsReference": "Core Spec - Star Modifiers",
       "suggestedFixes": [
@@ -1185,7 +1278,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3045_StarLikeMatchedNoColumns",
+      "messageTemplate": "Star modifier '{0}' matched no columns",
       "explanation": "A star LIKE pattern did not match any columns in the source shape.",
       "docsReference": "Core Spec - Star Modifiers",
       "suggestedFixes": [
@@ -1199,7 +1292,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3046_StarExcludeDuplicateColumn",
+      "messageTemplate": "Duplicate column '{0}' in EXCLUDE list",
       "explanation": "The same column appears more than once in a star EXCLUDE list.",
       "docsReference": "Core Spec - Star Modifiers",
       "suggestedFixes": [
@@ -1213,7 +1306,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3047_StarReplaceDuplicateColumn",
+      "messageTemplate": "Duplicate column '{0}' in REPLACE list",
       "explanation": "The same column appears more than once in a star REPLACE list.",
       "docsReference": "Core Spec - Star Modifiers",
       "suggestedFixes": [
@@ -1227,7 +1320,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3048_StarReplaceTargetsRemovedColumn",
+      "messageTemplate": "REPLACE targets column '{0}' removed by LIKE or EXCLUDE",
       "explanation": "A star REPLACE modifier targets a column already removed by EXCLUDE or LIKE filtering.",
       "docsReference": "Core Spec - Star Modifiers",
       "suggestedFixes": [
@@ -1241,7 +1334,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3049_InSubqueryMultipleColumns",
+      "messageTemplate": "IN subquery must return exactly one column",
       "explanation": "An IN subquery must return exactly one column so Musoq can match it against the left-hand expression.",
       "docsReference": "Core Spec - IN Subqueries",
       "suggestedFixes": [
@@ -1255,7 +1348,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3050_QualifyRequiresWindowFunction",
+      "messageTemplate": "QUALIFY clause requires at least one window function in its expression.",
       "explanation": "The QUALIFY clause filters rows based on window function results and must reference at least one window function.",
       "docsReference": "Core Spec - QUALIFY",
       "suggestedFixes": [
@@ -1269,7 +1362,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3051_FilterOnNonAggregate",
+      "messageTemplate": "FILTER can only be applied to aggregate functions; '{0}' is not an aggregate",
       "explanation": "The FILTER clause can only be applied to aggregate functions.",
       "docsReference": "Core Spec - FILTER",
       "suggestedFixes": [
@@ -1283,7 +1376,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3052_RangeFrameRequiresOrderBy",
+      "messageTemplate": "A RANGE window frame requires an ORDER BY clause in the window specification.",
       "explanation": "A RANGE window frame requires an ORDER BY clause in the window specification.",
       "docsReference": "Core Spec - Window Frames",
       "suggestedFixes": [
@@ -1297,7 +1390,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3053_InvalidWindowFrameBounds",
+      "messageTemplate": "Invalid window frame: start bound '{0}' is logically after end bound '{1}'.",
       "explanation": "The window frame start bound must not be logically after the end bound.",
       "docsReference": "Core Spec - Window Frames",
       "suggestedFixes": [
@@ -1311,7 +1404,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3054_StarModifierInInSubquery",
+      "messageTemplate": "Star modifiers cannot be used inside an IN subquery",
       "explanation": "Star modifiers cannot be used inside an IN subquery because the subquery must expose exactly one stable column.",
       "docsReference": "Core Spec - IN Subqueries",
       "suggestedFixes": [
@@ -1340,7 +1433,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3056_DuplicateScriptParameterBlock",
+      "messageTemplate": "Only one script parameter block is allowed",
       "explanation": "A script can have only one parameter block.",
       "docsReference": "Core Spec - Script Parameters",
       "suggestedFixes": [
@@ -1354,7 +1447,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3057_ScriptParameterBlockAfterStatement",
+      "messageTemplate": "Script parameter block must appear before executable statements",
       "explanation": "Script parameters are a script preamble and must be declared before query statements.",
       "docsReference": "Core Spec - Script Parameters",
       "suggestedFixes": [
@@ -1368,7 +1461,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3058_DuplicateScriptParameterName",
+      "messageTemplate": "Duplicate script parameter name '{0}'",
       "explanation": "The same script parameter name was declared more than once.",
       "docsReference": "Core Spec - Script Parameters",
       "suggestedFixes": [
@@ -1382,7 +1475,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3059_UndeclaredScriptParameter",
+      "messageTemplate": "Script parameter '{0}' is not declared",
       "explanation": "A parameter reference was used without a matching declaration in the param(...) block.",
       "docsReference": "Core Spec - Script Parameters",
       "suggestedFixes": [
@@ -1396,7 +1489,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3060_UnsupportedScriptParameterType",
+      "messageTemplate": "Script parameter type '{0}' is not supported",
       "explanation": "The declared script parameter type is not one of the supported primitive query types.",
       "docsReference": "Core Spec - Script Parameters",
       "suggestedFixes": [
@@ -1410,7 +1503,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3061_InvalidScriptParameterDefault",
+      "messageTemplate": "Invalid default for script parameter '{0}'",
       "explanation": "The script parameter default cannot be bound to the declared parameter type.",
       "docsReference": "Core Spec - Script Parameters",
       "suggestedFixes": [
@@ -1424,7 +1517,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3062_InvalidScriptParameterSourceArgument",
+      "messageTemplate": "Script parameter source argument '{0}' is invalid",
       "explanation": "Script parameters used as data-source arguments must be direct references. A default is needed only when the provider requires the value to resolve compile-time source metadata; computed or nested expressions are not supported.",
       "docsReference": "Core Spec - Script Parameters",
       "suggestedFixes": [
@@ -1438,7 +1531,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3063_DuplicateScriptSymbolName",
+      "messageTemplate": "Duplicate script symbol name '{0}'",
       "explanation": "A script variable and another script symbol use the same name, making $name ambiguous.",
       "docsReference": "Core Spec - Script Variables",
       "suggestedFixes": [
@@ -1452,7 +1545,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3064_UnsupportedScriptVariableType",
+      "messageTemplate": "Script variable type '{0}' is not supported",
       "explanation": "The declared script variable type is not one of the supported primitive query types.",
       "docsReference": "Core Spec - Script Variables",
       "suggestedFixes": [
@@ -1466,7 +1559,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3065_InvalidScriptVariableInitializer",
+      "messageTemplate": "Invalid initializer for script variable '{0}'",
       "explanation": "The script variable initializer cannot be evaluated as a compile-time constant for the declared type.",
       "docsReference": "Core Spec - Script Variables",
       "suggestedFixes": [
@@ -1480,7 +1573,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3066_ScriptVariableUsedBeforeDeclaration",
+      "messageTemplate": "Script variable '{0}' is used before declaration",
       "explanation": "A script variable initializer references a let variable that has not been declared yet.",
       "docsReference": "Core Spec - Script Variables",
       "suggestedFixes": [
@@ -1494,7 +1587,7 @@
       "phase": "Bind",
       "severity": "Error",
       "category": "Semantic",
-      "messageTemplate": "Error MQ3067_MissingSourceRuntimeSetting",
+      "messageTemplate": "Required source runtime setting '{0}' was not provided",
       "explanation": "A data source requires a runtime setting that was not provided.",
       "docsReference": "Data Source Runtime Settings",
       "suggestedFixes": [
@@ -1915,9 +2008,247 @@
       ]
     },
     {
+      "code": "MQ3099_WindowOrderByRequired",
+      "number": 3099,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Window function '{0}' requires ORDER BY in its OVER specification",
+      "explanation": "This ranking or offset window function cannot determine its row order without an ORDER BY clause.",
+      "docsReference": "Core Spec - Window Functions",
+      "suggestedFixes": [
+        "Add ORDER BY <expression> inside OVER (...).",
+        "If the calculation is partition-wide, use an aggregate window function that does not require row order."
+      ]
+    },
+    {
+      "code": "MQ3100_NestedWindowFunction",
+      "number": 3100,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Window functions cannot be nested",
+      "explanation": "A window function argument contains another window function. Window evaluation has one boundary per query level.",
+      "docsReference": "Core Spec - Window Functions",
+      "suggestedFixes": [
+        "Move the inner window expression into a CTE or derived query.",
+        "Apply the outer window function in the next query level over the materialized result."
+      ]
+    },
+    {
+      "code": "MQ3101_WindowFunctionInFilter",
+      "number": 3101,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Window functions are not allowed in {0}",
+      "explanation": "Window functions are evaluated after WHERE and HAVING, so they cannot be referenced by those filters.",
+      "docsReference": "Core Spec - Window Functions",
+      "suggestedFixes": [
+        "Move the window predicate to QUALIFY.",
+        "Compute the window value in an inner query and filter it from an outer query."
+      ]
+    },
+    {
+      "code": "MQ3102_InvalidStatementOrder",
+      "number": 3102,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Statement '{0}' is out of order",
+      "explanation": "TABLE and COUPLE declarations form the query preamble and must precede CTEs and executable statements.",
+      "docsReference": "TABLE/COUPLE Spec - Statement Order",
+      "suggestedFixes": [
+        "Move all TABLE definitions before COUPLE statements.",
+        "Move TABLE and COUPLE declarations before the first CTE or query."
+      ]
+    },
+    {
+      "code": "MQ3103_InvalidWindowFunctionArgument",
+      "number": 3103,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Window function '{0}' has an invalid argument: {1}",
+      "explanation": "A constant window-function argument has a valid CLR type but violates the function's value domain.",
+      "docsReference": "Core Spec - Window Functions",
+      "suggestedFixes": [
+        "Use a positive integer for the NTILE bucket count.",
+        "Use a one-based positive position for NTH_VALUE."
+      ]
+    },
+    {
+      "code": "MQ3104_UnknownNamedWindow",
+      "number": 3104,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Named window '{0}' is not defined in the current query.",
+      "explanation": "A window function references a named WINDOW specification that is not defined in the current query.",
+      "docsReference": "Core Spec - Window Functions",
+      "suggestedFixes": [
+        "Declare the referenced name with WINDOW name AS (...).",
+        "Use an inline OVER (...) specification instead."
+      ]
+    },
+    {
+      "code": "MQ3105_DuplicateNamedWindow",
+      "number": 3105,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Window definition '{0}' is declared more than once in this query.",
+      "explanation": "A query cannot declare two named WINDOW specifications with the same name.",
+      "docsReference": "Core Spec - Window Functions",
+      "suggestedFixes": [
+        "Remove the duplicate WINDOW definition.",
+        "Rename one of the definitions so every window name is unique."
+      ]
+    },
+    {
+      "code": "MQ3106_DuplicateEnumType",
+      "number": 3106,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Enum type '{0}' is declared more than once in this query.",
+      "explanation": "Query-local enum type names are case-insensitive and must be unique within a query batch.",
+      "docsReference": "Core Spec - Enum Types",
+      "suggestedFixes": [
+        "Remove the duplicate enum declaration.",
+        "Rename one declaration so its name differs by more than letter casing."
+      ]
+    },
+    {
+      "code": "MQ3107_UnknownEnumType",
+      "number": 3107,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Enum type '{0}' is not declared or reachable in this query.",
+      "explanation": "A TABLE enum type must be declared earlier in the query or identify a reachable native CLR enum exactly.",
+      "docsReference": "TABLE/COUPLE Spec - Enum Types",
+      "suggestedFixes": [
+        "Move the query-local enum declaration before the TABLE statement.",
+        "For a native enum, use its exact fully qualified CLR type name."
+      ]
+    },
+    {
+      "code": "MQ3108_UnknownEnumMember",
+      "number": 3108,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Enum member '{0}' is not defined by enum type '{1}'.",
+      "explanation": "Quoted enum member names use exact, case-sensitive matching.",
+      "docsReference": "Core Spec - Enum Types",
+      "suggestedFixes": [
+        "Use a member name exactly as declared.",
+        "Use a representable numeric source value only at a declared enum source boundary."
+      ]
+    },
+    {
+      "code": "MQ3109_EnumIdentityMismatch",
+      "number": 3109,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Enum types '{0}' and '{1}' cannot be combined.",
+      "explanation": "Enums are nominal types; equal backing types do not make two enum identities compatible.",
+      "docsReference": "Core Spec - Enum Types",
+      "suggestedFixes": [
+        "Compare values from the same enum declaration.",
+        "Project EnumValue(...) when an explicitly numeric result is required."
+      ]
+    },
+    {
+      "code": "MQ3110_UnsupportedEnumOperator",
+      "number": 3110,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Operator '{0}' is not supported for enum type '{1}'.",
+      "explanation": "Enums support equality, inequality, membership, null checks, and the explicit enum helpers only.",
+      "docsReference": "Core Spec - Enum Types",
+      "suggestedFixes": [
+        "Use =, <>, IN, NOT IN, IS NULL, or IS NOT NULL.",
+        "Use HasAnyFlags or HasAllFlags for flags masks."
+      ]
+    },
+    {
+      "code": "MQ3111_InvalidEnumHelper",
+      "number": 3111,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Enum helper '{0}' cannot be applied to the supplied arguments.",
+      "explanation": "The enum helper name, enum kind, argument count, or literal member arguments are invalid.",
+      "docsReference": "Core Spec - Enum Helpers",
+      "suggestedFixes": [
+        "Pass an enum expression as the first argument.",
+        "Pass exact quoted member names to flags helpers."
+      ]
+    },
+    {
+      "code": "MQ3112_UnsupportedEnumScriptParameter",
+      "number": 3112,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Enum script parameters are not supported.",
+      "explanation": "Enum-valued and implicit string-to-enum script parameters are deferred in the first enum contract.",
+      "docsReference": "Core Spec - Enum Types",
+      "suggestedFixes": [
+        "Use enum member literals directly in the query.",
+        "Pass an ordinary primitive parameter to a separate non-enum expression."
+      ]
+    },
+    {
+      "code": "MQ3113_UnsupportedEnumOutputTarget",
+      "number": 3113,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Enum values cannot be mapped directly into enum-valued typed output members.",
+      "explanation": "Final enum projections are numeric and cannot bind directly to CLR enum DTO members in v1.",
+      "docsReference": "Core Spec - Enum Output",
+      "suggestedFixes": [
+        "Use the enum backing integral type in the output DTO.",
+        "Use EnumName(...) when textual output is intended."
+      ]
+    },
+    {
+      "code": "MQ3114_EnumSourceCapabilityRequired",
+      "number": 3114,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Source '{0}' does not support logical scalar reads required by enum column '{1}'.",
+      "explanation": "Dynamic enum columns require a source that advertises logical scalar reads.",
+      "docsReference": "TABLE/COUPLE Spec - Enum Sources",
+      "suggestedFixes": [
+        "Upgrade the datasource to the enum-capable source contract.",
+        "Remove the enum TABLE column until the datasource supports logical scalar reads."
+      ]
+    },
+    {
+      "code": "MQ3115_EnumDescriptorMismatch",
+      "number": 3115,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Enum descriptor for column '{0}' does not match the compiled source contract.",
+      "explanation": "The source enum descriptor differs from the descriptor frozen when the query was compiled.",
+      "docsReference": "Core Spec - Enum Sources",
+      "suggestedFixes": [
+        "Recompile the query against the current datasource schema.",
+        "Keep descriptor fingerprints stable for the lifetime of a compiled query."
+      ]
+    },
+    {
       "code": "MQ4001_InvalidBinarySchemaField",
       "number": 4001,
-      "phase": "DataSource",
+      "phase": "Schema",
       "severity": "Error",
       "category": "Schema",
       "messageTemplate": "Invalid binary schema field '{0}'",
@@ -1930,7 +2261,7 @@
     {
       "code": "MQ4002_InvalidTextSchemaField",
       "number": 4002,
-      "phase": "DataSource",
+      "phase": "Schema",
       "severity": "Error",
       "category": "Schema",
       "messageTemplate": "Invalid text schema field '{0}'",
@@ -1944,7 +2275,7 @@
     {
       "code": "MQ4003_UndefinedSchemaReference",
       "number": 4003,
-      "phase": "DataSource",
+      "phase": "Schema",
       "severity": "Error",
       "category": "Schema",
       "messageTemplate": "Reference to undefined schema '{0}'",
@@ -1958,7 +2289,7 @@
     {
       "code": "MQ4004_CircularSchemaReference",
       "number": 4004,
-      "phase": "DataSource",
+      "phase": "Schema",
       "severity": "Error",
       "category": "Schema",
       "messageTemplate": "Circular schema reference: '{0}' references itself",
@@ -1972,7 +2303,7 @@
     {
       "code": "MQ4005_InvalidEndianness",
       "number": 4005,
-      "phase": "DataSource",
+      "phase": "Schema",
       "severity": "Error",
       "category": "Schema",
       "messageTemplate": "Invalid endianness specification",
@@ -1986,7 +2317,7 @@
     {
       "code": "MQ4006_InvalidFieldConstraint",
       "number": 4006,
-      "phase": "DataSource",
+      "phase": "Schema",
       "severity": "Error",
       "category": "Schema",
       "messageTemplate": "Invalid field constraint '{0}'",
@@ -2000,7 +2331,7 @@
     {
       "code": "MQ4007_InvalidSchemaFieldType",
       "number": 4007,
-      "phase": "DataSource",
+      "phase": "Schema",
       "severity": "Error",
       "category": "Schema",
       "messageTemplate": "Invalid type '{0}' in schema field",
@@ -2014,7 +2345,7 @@
     {
       "code": "MQ4008_DuplicateSchemaField",
       "number": 4008,
-      "phase": "DataSource",
+      "phase": "Schema",
       "severity": "Error",
       "category": "Schema",
       "messageTemplate": "Duplicate field name '{0}' in schema",
@@ -2028,7 +2359,7 @@
     {
       "code": "MQ4009_InvalidSchemaName",
       "number": 4009,
-      "phase": "DataSource",
+      "phase": "Schema",
       "severity": "Error",
       "category": "Schema",
       "messageTemplate": "Invalid schema name '{0}'",
@@ -2042,7 +2373,7 @@
     {
       "code": "MQ4010_MissingRequiredField",
       "number": 4010,
-      "phase": "DataSource",
+      "phase": "Schema",
       "severity": "Error",
       "category": "Schema",
       "messageTemplate": "Missing required field '{0}' in schema",
@@ -2056,7 +2387,7 @@
     {
       "code": "MQ4011_SwitchSelectorNotPreviousField",
       "number": 4011,
-      "phase": "DataSource",
+      "phase": "Schema",
       "severity": "Error",
       "category": "Schema",
       "messageTemplate": "Switch selector '{0}' must reference a field declared before the switch field",
@@ -2070,7 +2401,7 @@
     {
       "code": "MQ4012_DuplicateSwitchBranchAlias",
       "number": 4012,
-      "phase": "DataSource",
+      "phase": "Schema",
       "severity": "Error",
       "category": "Schema",
       "messageTemplate": "Duplicate switch branch alias '{0}'",
@@ -2084,7 +2415,7 @@
     {
       "code": "MQ4013_InvalidSwitchCaseLabel",
       "number": 4013,
-      "phase": "DataSource",
+      "phase": "Schema",
       "severity": "Error",
       "category": "Schema",
       "messageTemplate": "Switch case label must be a constant scalar literal",
@@ -2098,7 +2429,7 @@
     {
       "code": "MQ4014_InvalidSubstreamModifier",
       "number": 4014,
-      "phase": "DataSource",
+      "phase": "Schema",
       "severity": "Error",
       "category": "Schema",
       "messageTemplate": "Substream requires a 'raw' or 'as <type>' modifier with an optional 'exact' or 'lax' mode",
@@ -2112,7 +2443,7 @@
     {
       "code": "MQ4015_InvalidSubstreamTarget",
       "number": 4015,
-      "phase": "DataSource",
+      "phase": "Schema",
       "severity": "Error",
       "category": "Schema",
       "messageTemplate": "Substream 'as' requires a valid target type",
@@ -2171,7 +2502,7 @@
       "phase": "Bind",
       "severity": "Warning",
       "category": "Warning",
-      "messageTemplate": "Error MQ5010_TautologicalCondition",
+      "messageTemplate": "Condition is always true",
       "explanation": "A condition always evaluates to true and does not filter rows.",
       "docsReference": "Core Spec - WHERE Clause",
       "suggestedFixes": [
@@ -2185,7 +2516,7 @@
       "phase": "Bind",
       "severity": "Warning",
       "category": "Warning",
-      "messageTemplate": "Error MQ5011_ContradictoryCondition",
+      "messageTemplate": "Condition is always false",
       "explanation": "A condition always evaluates to false, so no rows can satisfy it.",
       "docsReference": "Core Spec - WHERE Clause",
       "suggestedFixes": [
@@ -2395,7 +2726,7 @@
       "phase": "Runtime",
       "severity": "Error",
       "category": "Runtime",
-      "messageTemplate": "Error MQ7003_RequiredScriptParameterMissing",
+      "messageTemplate": "Required script parameter '{0}' was not provided",
       "explanation": "A required script parameter was declared without a default value, but the host did not provide a runtime value.",
       "docsReference": "Core Spec - Script Parameters",
       "suggestedFixes": [
@@ -2409,7 +2740,7 @@
       "phase": "Runtime",
       "severity": "Error",
       "category": "Runtime",
-      "messageTemplate": "Error MQ7004_ScriptParameterTypeMismatch",
+      "messageTemplate": "Script parameter '{0}' has an incompatible type: expected '{1}', received '{2}'",
       "explanation": "Runtime script parameter values are strict CLR casts and are not converted from strings or other types.",
       "docsReference": "Core Spec - Script Parameters",
       "suggestedFixes": [
@@ -2423,7 +2754,7 @@
       "phase": "Runtime",
       "severity": "Error",
       "category": "Runtime",
-      "messageTemplate": "Error MQ7005_ScriptParameterNullNotAllowed",
+      "messageTemplate": "Script parameter '{0}' cannot be null",
       "explanation": "A null runtime value was supplied for a non-nullable script parameter.",
       "docsReference": "Core Spec - Script Parameters",
       "suggestedFixes": [
@@ -2437,7 +2768,7 @@
       "phase": "Runtime",
       "severity": "Error",
       "category": "Runtime",
-      "messageTemplate": "Error MQ7006_UnknownScriptParameter",
+      "messageTemplate": "Script parameter '{0}' was provided but is not declared",
       "explanation": "The host supplied a runtime script parameter that is not declared by the query.",
       "docsReference": "Core Spec - Script Parameters",
       "suggestedFixes": [
@@ -2549,7 +2880,7 @@
       "phase": "Runtime",
       "severity": "Error",
       "category": "CodeGeneration",
-      "messageTemplate": "Error MQ8002_CompiledArtifactIncompatible",
+      "messageTemplate": "Compiled query artifact is incompatible with the current host contract: {0}",
       "explanation": "The compiled query artifact cannot be used with the current script, schema, compilation options, engine version, or artifact loader.",
       "docsReference": "Runtime V2 - Compiled Artifacts",
       "suggestedFixes": [

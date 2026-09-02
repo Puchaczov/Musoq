@@ -14,7 +14,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class CouplingSyntaxTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenSingleValueTableIsCoupledWithSchema_ShouldHaveAppropriateTypesTest()

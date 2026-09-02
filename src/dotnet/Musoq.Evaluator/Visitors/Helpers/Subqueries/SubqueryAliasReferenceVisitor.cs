@@ -16,41 +16,41 @@ internal sealed class SubqueryAliasReferenceVisitor : NoOpExpressionVisitor
 
     public override void Visit(AccessColumnNode node)
     {
-        RecordAliasReference(node.Alias);
+        RecordAliasReference(node.Alias, node.Span);
     }
 
     public override void Visit(AccessObjectArrayNode node)
     {
-        RecordAliasReference(node.TableAlias);
+        RecordAliasReference(node.TableAlias, node.Span);
     }
 
     public override void Visit(AccessCallChainNode node)
     {
-        RecordAliasReference(node.Alias);
+        RecordAliasReference(node.Alias, node.Span);
     }
 
     public override void Visit(DotNode node)
     {
         if (TryGetRootAlias(node, out var alias))
-            RecordAliasReference(alias);
+            RecordAliasReference(alias, GetReferenceSpan(node));
     }
 
     public override void Visit(AccessMethodFromNode node)
     {
-        RecordAliasReference(node.SourceAlias);
+        RecordAliasReference(node.SourceAlias, node.Span);
     }
 
     public override void Visit(PropertyFromNode node)
     {
-        RecordAliasReference(node.SourceAlias);
+        RecordAliasReference(node.SourceAlias, node.Span);
     }
 
-    private void RecordAliasReference(string? alias)
+    private void RecordAliasReference(string? alias, TextSpan span)
     {
         if (string.IsNullOrWhiteSpace(alias))
             return;
 
-        RequireAnalyzer().RecordAliasReference(alias);
+        RequireAnalyzer().RecordAliasReference(alias, span);
     }
 
     private SubqueryCorrelationAnalyzer RequireAnalyzer()
@@ -79,5 +79,18 @@ internal sealed class SubqueryAliasReferenceVisitor : NoOpExpressionVisitor
                 alias = null;
                 return false;
         }
+    }
+
+    private static TextSpan GetReferenceSpan(Node node)
+    {
+        if (node is DotNode dot)
+        {
+            var rootSpan = GetReferenceSpan(dot.Root);
+            var expressionSpan = GetReferenceSpan(dot.Expression);
+            if (!rootSpan.IsEmpty && !expressionSpan.IsEmpty)
+                return rootSpan.Through(expressionSpan);
+        }
+
+        return node.Span;
     }
 }

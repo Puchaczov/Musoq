@@ -7,6 +7,7 @@ using System.Text;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
 using Musoq.Schema;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Converter;
 
@@ -241,7 +242,17 @@ internal static class CompiledQueryArtifactSupport
             AppendOrderBy(builder, entry.OrderBy);
             builder.Append("Skip=").Append(entry.Skip).Append('|');
             builder.Append("Take=").Append(entry.Take).Append('|');
-            builder.Append("PredicateType=").Append(entry.PredicateTypeName).AppendLine();
+            builder.Append("PredicateType=").Append(entry.PredicateTypeName);
+            if (entry.RequestedComputedProjectionFingerprints.Count > 0)
+            {
+                builder.Append("|Computed=")
+                    .Append(string.Join(",", entry.RequestedComputedProjectionFingerprints));
+            }
+
+            if (entry.Replayability != RowStreamReplayability.Unknown)
+                builder.Append("|Replayability=").Append(entry.Replayability);
+
+            builder.AppendLine();
         }
     }
 
@@ -272,6 +283,9 @@ internal static class CompiledQueryArtifactSupport
                 .Append(column.ColumnName).Append('|')
                 .Append(column.IntendedTypeName ?? "<null>").Append('|');
             AppendTypeName(builder, "ColumnType", column.ColumnTypeName);
+            AppendTypeName(builder, "SourceReadType", column.SourceReadTypeName);
+            builder.Append("EnumTypeFingerprint=").Append(column.EnumTypeFingerprint).Append('|');
+            builder.Append("Stability=").Append(column.Stability).Append('|');
             AppendReadModifiers(builder, column.ReadModifiers);
             builder.AppendLine();
         }

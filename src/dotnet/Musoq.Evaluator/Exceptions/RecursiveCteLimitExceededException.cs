@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
@@ -33,6 +34,20 @@ public sealed class RecursiveCteLimitExceededException : InvalidOperationExcepti
 
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return Diagnostic.Error(Code, Message, TextSpan.Empty);
+        return new Diagnostic(
+            Code,
+            DiagnosticSeverity.Error,
+            Message,
+            SourceLocation.None,
+            SourceLocation.None,
+            phase: DiagnosticPhase.Runtime,
+            sourceKind: DiagnosticSourceKind.Runtime,
+            arguments:
+            [
+                new KeyValuePair<string, string>("cteName", CteName),
+                new KeyValuePair<string, string>(
+                    "configuredLimit",
+                    ConfiguredLimit.ToString(System.Globalization.CultureInfo.InvariantCulture))
+            ]);
     }
 }

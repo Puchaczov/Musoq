@@ -33,7 +33,7 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine(culture, $"var {lengthVar} = {sizeExpr};");
         builder.AppendLine(culture, $"var {sliceVar} = ReadSubstreamSlice(data, {lengthVar});");
         builder.Append(GenerateSubstreamInterpreterConstruction(interpreterVar, fieldName, substreamType.Target!));
-        builder.AppendLine(culture, $"var {localVar} = {interpreterVar}.InterpretAt({sliceVar}, 0);");
+        AppendGeneratedLine(builder, $"var {localVar} = InterpretNestedAt({interpreterVar}, {sliceVar}, 0, \"{EscapeString(fieldName)}\");");
 
         if (substreamType.Mode == SubstreamMode.Exact)
             builder.AppendLine(culture, $"EnsureSubstreamFullyConsumed(\"{fieldName}\", {lengthVar}, {interpreterVar}.BytesConsumed);");

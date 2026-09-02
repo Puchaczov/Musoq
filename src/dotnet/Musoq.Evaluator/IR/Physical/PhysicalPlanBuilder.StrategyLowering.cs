@@ -37,7 +37,8 @@ public sealed partial class PhysicalPlanBuilder
             right,
             ResolvePredicateMovements(node, PredicateMovementSide.Left),
             ResolvePredicateMovements(node, PredicateMovementSide.Right),
-            node.TieBreak);
+            node.TieBreak,
+            node.WithOrdinality);
     }
     private static Dictionary<JoinNode, PredicateMovementPlan[]> CreatePredicateMovementsByJoin(
         IReadOnlyList<PredicateMovementPlan>? predicateMovementPlans)

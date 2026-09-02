@@ -9,7 +9,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenDescEnvironmentVariables_ShouldListAllColumns()

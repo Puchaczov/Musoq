@@ -36,7 +36,8 @@ internal static class PhysicalProjectionBoundaryClassifier
                     rewrittenRight,
                     join.LeftMovedPredicates,
                     join.RightMovedPredicates,
-                    join.TieBreak);
+                    join.TieBreak,
+                    join.WithOrdinality);
                 return true;
             case PhysicalHashJoinNode join
                 when join.Kind is JoinKind.Inner or JoinKind.LeftSemi or JoinKind.LeftAntiSemi:
@@ -65,4 +66,3 @@ internal static class PhysicalProjectionBoundaryClassifier
         }
     }
 }
-

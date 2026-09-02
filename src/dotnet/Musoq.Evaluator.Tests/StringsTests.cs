@@ -20,7 +20,6 @@ public class StringsTests : BasicEntityTestBase
     private static readonly CompiledQueryBatchRepository<char> SpecialCharacterQueries =
         new(CreateSpecialCharacterQueries);
 
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenQuoteUsed_MustNotThrow()

@@ -24,6 +24,7 @@ public static partial class InstanceCreator
             null
             or ParameterBlockNode
             or ScriptVariableDeclarationNode
+            or EnumDeclarationNode
             or CreateTableNode
             or CoupleNode
             or Parser.Nodes.InterpretationSchema.BinarySchemaNode

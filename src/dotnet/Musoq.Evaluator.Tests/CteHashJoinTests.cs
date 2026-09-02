@@ -12,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class CteHashJoinTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     /// <summary>
     ///     Minimal reproducible test case for CTE hash join.

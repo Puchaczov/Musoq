@@ -13,6 +13,7 @@ namespace Musoq.Parser.Lexing;
 /// </summary>
 public sealed partial class Lexer : ILexer
 {
+    private readonly List<CommentToken> _comments = [];
     private readonly Queue<Token> _pendingSchemaTokens = new();
     private readonly bool _skipWhiteSpaces;
     private Token _currentToken;
@@ -63,6 +64,11 @@ public sealed partial class Lexer : ILexer
     ///     Gets the source text for the input.
     /// </summary>
     public SourceText SourceText { get; }
+
+    /// <summary>
+    ///     Gets comments skipped while resolving the token stream.
+    /// </summary>
+    public IReadOnlyList<CommentToken> Comments => _comments;
 
     /// <summary>
     ///     Gets the diagnostic bag for collecting errors.
@@ -122,7 +128,12 @@ public sealed partial class Lexer : ILexer
 
         var token = NextInternal();
         while (ShouldSkipToken(token))
+        {
+            if (token is CommentToken comment)
+                _comments.Add(comment);
+
             token = NextInternal();
+        }
 
 
         if (IsSchemaContext)
@@ -179,8 +190,9 @@ public sealed partial class Lexer : ILexer
         }
         else
         {
-            while (end < Input.Length && (char.IsLetterOrDigit(Input[end]) || Input[end] == '_'))
-                end++;
+            var input = Input.AsSpan();
+            while (end < Input.Length && FastCharacterClassifier.IsIdentifierContinue(input, end))
+                end += FastCharacterClassifier.GetIdentifierCodePointLength(input, end);
         }
 
         if (end == start)

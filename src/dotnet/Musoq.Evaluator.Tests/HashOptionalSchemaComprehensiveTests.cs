@@ -12,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
 
     [TestMethod]

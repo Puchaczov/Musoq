@@ -62,8 +62,8 @@ ExecutionPlan [compiled]
     ChunkedForEach [a in aRows]
       HashProbe [bHash[a.City] -> bHashMatches]
         ForEach [b in bHashMatches]
-          Let [name: string = b.Name]
           GetOrAddSingleKeyAggregateGroup [group = groups[a.City] by a.City; typed: ResultAggregateGroup]
+          Let [name: string = b.Name]
           TypedAggregateSet [Set(group.__agg0, name)]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     PhaseBoundary [Select]
@@ -259,7 +259,35 @@ namespace GeneratedSample_Q227_PerformanceJoinAggregate
                                     foreach (var b in bHashMatches)
                                     {
                                         token.ThrowIfCancellationRequested();
-                                        UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, b, a);
+                                        string groupKey = a.City;
+                                        ResultAggregateGroup group = null;
+                                        if (groupKey != null)
+                                        {
+                                            ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
+                                            if (!groupExists)
+                                            {
+                                                groupRef = new ResultAggregateGroup(groupKey);
+                                                groupsToFinalize.Add(groupRef);
+                                            }
+
+                                            group = groupRef;
+                                        }
+                                        else
+                                        {
+                                            if (nullGroup == null)
+                                            {
+                                                nullGroup = new ResultAggregateGroup(null);
+                                                groupsToFinalize.Add(nullGroup);
+                                            }
+
+                                            group = nullGroup;
+                                        }
+
+                                        string name = b.Name;
+                                        if ((string)name != null)
+                                        {
+                                            group.__agg0.Count = checked(group.__agg0.Count + 1L);
+                                        }
                                     }
                                 }
                             }
@@ -284,7 +312,35 @@ namespace GeneratedSample_Q227_PerformanceJoinAggregate
                                     foreach (var b in bHashMatches)
                                     {
                                         token.ThrowIfCancellationRequested();
-                                        UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, b, a);
+                                        string groupKey = a.City;
+                                        ResultAggregateGroup group = null;
+                                        if (groupKey != null)
+                                        {
+                                            ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
+                                            if (!groupExists)
+                                            {
+                                                groupRef = new ResultAggregateGroup(groupKey);
+                                                groupsToFinalize.Add(groupRef);
+                                            }
+
+                                            group = groupRef;
+                                        }
+                                        else
+                                        {
+                                            if (nullGroup == null)
+                                            {
+                                                nullGroup = new ResultAggregateGroup(null);
+                                                groupsToFinalize.Add(nullGroup);
+                                            }
+
+                                            group = nullGroup;
+                                        }
+
+                                        string name = b.Name;
+                                        if ((string)name != null)
+                                        {
+                                            group.__agg0.Count = checked(group.__agg0.Count + 1L);
+                                        }
                                     }
                                 }
                             }
@@ -307,7 +363,35 @@ namespace GeneratedSample_Q227_PerformanceJoinAggregate
                             foreach (var b in bHashMatches)
                             {
                                 token.ThrowIfCancellationRequested();
-                                UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, b, a);
+                                string groupKey = a.City;
+                                ResultAggregateGroup group = null;
+                                if (groupKey != null)
+                                {
+                                    ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
+                                    if (!groupExists)
+                                    {
+                                        groupRef = new ResultAggregateGroup(groupKey);
+                                        groupsToFinalize.Add(groupRef);
+                                    }
+
+                                    group = groupRef;
+                                }
+                                else
+                                {
+                                    if (nullGroup == null)
+                                    {
+                                        nullGroup = new ResultAggregateGroup(null);
+                                        groupsToFinalize.Add(nullGroup);
+                                    }
+
+                                    group = nullGroup;
+                                }
+
+                                string name = b.Name;
+                                if ((string)name != null)
+                                {
+                                    group.__agg0.Count = checked(group.__agg0.Count + 1L);
+                                }
                             }
                         }
                     }
@@ -345,40 +429,6 @@ namespace GeneratedSample_Q227_PerformanceJoinAggregate
         private void OnPhaseChanged(string queryId, QueryPhase phase)
         {
             PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
-        }
-
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static void UpdateGroupsAggregates(List<ResultAggregateGroup> groupsToFinalize, Dictionary<string, ResultAggregateGroup> groups, ref ResultAggregateGroup nullGroup, Musoq.Evaluator.Tests.PerformanceJoinEntity b, Musoq.Evaluator.Tests.PerformanceJoinEntity a)
-        {
-            string name = b.Name;
-            string groupKey = a.City;
-            ResultAggregateGroup group = null;
-            if (groupKey != null)
-            {
-                ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, groupKey, out var groupExists);
-                if (!groupExists)
-                {
-                    groupRef = new ResultAggregateGroup(groupKey);
-                    groupsToFinalize.Add(groupRef);
-                }
-
-                group = groupRef;
-            }
-            else
-            {
-                if (nullGroup == null)
-                {
-                    nullGroup = new ResultAggregateGroup(null);
-                    groupsToFinalize.Add(nullGroup);
-                }
-
-                group = nullGroup;
-            }
-
-            if ((string)name != null)
-            {
-                group.__agg0.Count = checked(group.__agg0.Count + 1L);
-            }
         }
 
         private sealed class ResultAggregateGroup

@@ -36,10 +36,12 @@ public class DiagnosticMetadataAndPhasesTests
     }
 
     [TestMethod]
-    public void DiagnosticPhaseMapping_WhenCodeInMQ4xxxRange_ShouldReturnDataSource()
+    public void DiagnosticPhaseMapping_WhenCodeInSchemaDefinitionRange_ShouldReturnSchema()
     {
-        Assert.AreEqual(DiagnosticPhase.DataSource, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ4001_InvalidBinarySchemaField));
-        Assert.AreEqual(DiagnosticPhase.DataSource, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ4003_UndefinedSchemaReference));
+        Assert.AreEqual(DiagnosticPhase.Schema, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ4001_InvalidBinarySchemaField));
+        Assert.AreEqual(DiagnosticPhase.Schema, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ4003_UndefinedSchemaReference));
+        Assert.AreEqual(DiagnosticPhase.Schema, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ4015_InvalidSubstreamTarget));
+        Assert.AreEqual(DiagnosticPhase.Schema, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ4016_UnsupportedSchemaConstruction));
     }
 
     [TestMethod]
@@ -80,6 +82,29 @@ public class DiagnosticMetadataAndPhasesTests
 
         Assert.AreEqual(DiagnosticPhase.Parse, parseDiag.Phase);
         Assert.AreEqual(DiagnosticPhase.Bind, bindDiag.Phase);
+    }
+
+    [TestMethod]
+    public void Diagnostic_DefaultSourceKind_ShouldFollowTheOriginatingBoundary()
+    {
+        Assert.AreEqual(
+            DiagnosticSourceKind.Query,
+            Diagnostic.Error(DiagnosticCode.MQ3001_UnknownColumn, "query", new TextSpan(1, 1)).SourceKind);
+        Assert.AreEqual(
+            DiagnosticSourceKind.Schema,
+            Diagnostic.Error(DiagnosticCode.MQ4001_InvalidBinarySchemaField, "schema", new TextSpan(1, 1)).SourceKind);
+        Assert.AreEqual(
+            DiagnosticSourceKind.Runtime,
+            Diagnostic.Error(DiagnosticCode.MQ7003_RequiredScriptParameterMissing, "runtime", new TextSpan(1, 1)).SourceKind);
+        Assert.AreEqual(
+            DiagnosticSourceKind.DataSource,
+            Diagnostic.Error(DiagnosticCode.MQ7011_DataSourceReadFailed, "datasource", new TextSpan(1, 1)).SourceKind);
+        Assert.AreEqual(
+            DiagnosticSourceKind.GeneratedSource,
+            Diagnostic.Error(DiagnosticCode.MQ8002_CompiledArtifactIncompatible, "generated", new TextSpan(1, 1)).SourceKind);
+        Assert.AreEqual(
+            DiagnosticSourceKind.Internal,
+            Diagnostic.Error(DiagnosticCode.MQ9002_InternalExecutionError, "internal", new TextSpan(1, 1)).SourceKind);
     }
 
     #endregion

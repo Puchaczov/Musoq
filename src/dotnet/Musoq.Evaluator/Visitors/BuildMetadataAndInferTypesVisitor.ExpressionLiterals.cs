@@ -15,42 +15,42 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         AddAssembly(typeof(decimal).Assembly);
-        PushSemanticNode(new DecimalNode(node.Value));
+        PushSemanticNode(new DecimalNode(node.Value, node.Span));
     }
 
     public override void Visit(IntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         AddAssembly(typeof(int).Assembly);
-        PushSemanticNode(new IntegerNode(node.ObjValue));
+        PushSemanticNode(new IntegerNode(node.ObjValue, node.Span));
     }
 
     public override void Visit(HexIntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         AddAssembly(typeof(long).Assembly);
-        PushSemanticNode(new HexIntegerNode(node.ObjValue));
+        PushSemanticNode(new HexIntegerNode(node.ObjValue, node.Span));
     }
 
     public override void Visit(BinaryIntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         AddAssembly(typeof(long).Assembly);
-        PushSemanticNode(new BinaryIntegerNode(node.ObjValue));
+        PushSemanticNode(new BinaryIntegerNode(node.ObjValue, node.Span));
     }
 
     public override void Visit(OctalIntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         AddAssembly(typeof(long).Assembly);
-        PushSemanticNode(new OctalIntegerNode(node.ObjValue));
+        PushSemanticNode(new OctalIntegerNode(node.ObjValue, node.Span));
     }
 
     public override void Visit(BooleanNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         AddAssembly(typeof(bool).Assembly);
-        PushSemanticNode(new BooleanNode(node.Value));
+        PushSemanticNode(new BooleanNode(node.Value, node.Span));
     }
 
     public override void Visit(WordNode node)

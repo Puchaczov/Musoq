@@ -60,12 +60,12 @@ internal static partial class GeneratedCodeSamplesCatalog
                 "Q76_NonEquiJoinSortMergeEnabled",
                 "Join",
                 "select a.Name, b.Name from #A.entities() a inner join #A.entities() b on a.Population > b.Population + 950",
-                new CompilationOptions(useSortMergeJoin: true)),
+                new CompilationOptions(useSortMergeJoin: true).WithStabilityAwareScalarReuse()),
             BasicWithOptions(
                 "Q77_NonEquiJoinSortMergeDisabled",
                 "Join",
                 "select a.Name, b.Name from #A.entities() a inner join #A.entities() b on a.Population > b.Population + 950",
-                new CompilationOptions(useSortMergeJoin: false)),
+                new CompilationOptions(useSortMergeJoin: false).WithStabilityAwareScalarReuse()),
             Basic("Q78_WindowSumWholePartitionDecimal", "Window", "select Name, City, Sum(ToDecimal(Population)) over (partition by City) as total from #A.entities()"),
             Basic("Q79_WindowSumRunningDecimal", "Window", "select Name, City, Sum(ToDecimal(Population)) over (partition by City order by Population) as running from #A.entities()"),
             Basic("Q80_WindowAvgRunningDecimal", "Window", "select Name, City, Avg(ToDecimal(Population)) over (partition by City order by Population) as running_avg from #A.entities()"),
@@ -74,7 +74,7 @@ internal static partial class GeneratedCodeSamplesCatalog
                 "Q82_ParallelIndependentCtes",
                 "CTE",
                 "with p as (select Name as Name from #A.entities()), q as (select Name as Name from #B.entities()) select p.Name, q.Name from p inner join q on p.Name = q.Name",
-                new CompilationOptions(useCteParallelization: true)),
+                new CompilationOptions(useCteParallelization: true).WithStabilityAwareScalarReuse()),
             Basic(
                 "Q83_CompositeHashJoin",
                 "Join",
@@ -143,12 +143,13 @@ select pairs.Label,
                 "Q89_CompilationCseDisabled",
                 "Compilation",
                 "select Population as LeftPopulation, Population as RightPopulation from #A.Entities() where Population = Population",
-                new CompilationOptions(useCommonSubexpressionElimination: false)),
+                new CompilationOptions(useCommonSubexpressionElimination: false)
+                    .WithStabilityAwareScalarReuse(false)),
             BasicWithOptions(
                 "Q90_CompilationCseEnabled",
                 "Compilation",
                 "select Population as LeftPopulation, Population as RightPopulation from #A.Entities() where Population = Population",
-                new CompilationOptions(useCommonSubexpressionElimination: true)),
+                new CompilationOptions(useCommonSubexpressionElimination: true).WithStabilityAwareScalarReuse()),
             Basic(
                 "Q91_OrderBySimple",
                 "Ordering",
@@ -172,7 +173,7 @@ select pairs.Label,
                 new CompilationOptions(
                     useHashJoin: true,
                     useSortMergeJoin: false,
-                    useCteSidecarIndexes: true)),
+                    useCteSidecarIndexes: true).WithStabilityAwareScalarReuse()),
             BasicWithOptions(
                 "Q147_CteSidecarKeySetSemiJoin",
                 "CTE",
@@ -180,7 +181,7 @@ select pairs.Label,
                 new CompilationOptions(
                     useHashJoin: true,
                     useSortMergeJoin: false,
-                    useCteSidecarIndexes: true)),
+                    useCteSidecarIndexes: true).WithStabilityAwareScalarReuse()),
             BasicWithOptions(
                 "Q148_CteSidecarFanoutThreeHashes",
                 "CTE",
@@ -188,7 +189,7 @@ select pairs.Label,
                 new CompilationOptions(
                     useHashJoin: true,
                     useSortMergeJoin: false,
-                    useCteSidecarIndexes: true)),
+                    useCteSidecarIndexes: true).WithStabilityAwareScalarReuse()),
             BasicWithOptions(
                 "Q149_CteSidecarStagedGraphMixed",
                 "CTE",
@@ -197,7 +198,7 @@ select pairs.Label,
                     useHashJoin: true,
                     useSortMergeJoin: false,
                     useCteParallelization: false,
-                    useCteSidecarIndexes: true))
+                    useCteSidecarIndexes: true).WithStabilityAwareScalarReuse())
         ];
     }
 }

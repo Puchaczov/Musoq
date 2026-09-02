@@ -204,5 +204,9 @@ public sealed class SemanticPhaseArtifactTests : BasicEntityTestBase
         public int ColumnIndex { get; } = index;
 
         public Type ColumnType { get; } = type;
+
+        public Type SourceReadType { get; } = type;
+
+        public EnumTypeDescriptor? EnumType => null;
     }
 }

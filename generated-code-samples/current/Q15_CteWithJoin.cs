@@ -69,8 +69,9 @@ ExecutionPlan [compiled]
     PhaseBoundary [Where:cte0]
     ChunkedForEach [ko3iko in cte0_ko3ikoRows]
       If [(ko3iko.Population > 0)]
-        CreateHashPayload [cte0SidecarPayload0 <- Cte0HashPayload0(Name: ko3iko.Name)]
-        HashAdd [cte0HashSidecar0Name[ko3iko.Name] += cte0SidecarPayload0]
+        Let [name: string = ko3iko.Name]
+        CreateHashPayload [cte0SidecarPayload0 <- Cte0HashPayload0(Name: name)]
+        HashAdd [cte0HashSidecar0Name[name] += cte0SidecarPayload0]
     StoreCteIndex [cte0HashSidecar0Name -> _cteIndexResults.Slot0 Hash]
     PhaseBoundary [Select:cte0]
     PhaseBoundary [End:cte0]
@@ -179,8 +180,9 @@ namespace GeneratedSample_Q15_CteWithJoin
                                     var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                     if ((ko3iko.Population > 0))
                                     {
-                                        Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Name);
-                                        string cte0HashSidecar0NameKey0 = ko3iko.Name;
+                                        string name = ko3iko.Name;
+                                        Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(name);
+                                        string cte0HashSidecar0NameKey0 = name;
                                         if (cte0HashSidecar0NameKey0 != null)
                                         {
                                             {
@@ -214,8 +216,9 @@ namespace GeneratedSample_Q15_CteWithJoin
                                     var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                     if ((ko3iko.Population > 0))
                                     {
-                                        Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Name);
-                                        string cte0HashSidecar0NameKey0 = ko3iko.Name;
+                                        string name = ko3iko.Name;
+                                        Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(name);
+                                        string cte0HashSidecar0NameKey0 = name;
                                         if (cte0HashSidecar0NameKey0 != null)
                                         {
                                             {
@@ -247,8 +250,9 @@ namespace GeneratedSample_Q15_CteWithJoin
                             var ko3iko = ko3ikoChunk[ko3ikoIndex];
                             if ((ko3iko.Population > 0))
                             {
-                                Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(ko3iko.Name);
-                                string cte0HashSidecar0NameKey0 = ko3iko.Name;
+                                string name = ko3iko.Name;
+                                Cte0HashPayload0 cte0SidecarPayload0 = new Cte0HashPayload0(name);
+                                string cte0HashSidecar0NameKey0 = name;
                                 if (cte0HashSidecar0NameKey0 != null)
                                 {
                                     {

@@ -58,8 +58,8 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine("    /// <inheritdoc />");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public override {fullClassName} InterpretAt(ReadOnlySpan<byte> data, int offset)");
         builder.AppendLine("    {");
-        builder.AppendLine("        ParsePosition = offset;");
-        builder.AppendLine("        BitOffset = 0;");
+        builder.AppendLine("        InitializeParsePosition(data, offset);");
+        builder.AppendLine("        SetCurrentField(null);");
         builder.AppendLine();
 
         _discardCounter = 0;
@@ -67,6 +67,8 @@ public partial class InterpreterCodeGenerator
         var fieldInitializers = new List<string>();
         foreach (var field in plan.Fields)
         {
+            AppendGeneratedLine(builder, $"        SetCurrentField(\"{EscapeString(field.Name)}\");");
+
             switch (field.Source)
             {
                 case FieldDefinitionNode parsedField:
@@ -78,7 +80,10 @@ public partial class InterpreterCodeGenerator
             }
 
             if (field.EmitsProperty)
+            {
+                AppendGeneratedLine(builder, $"        RecordParsedField(\"{EscapeString(field.Name)}\", {field.LocalVariableName});");
                 fieldInitializers.Add($"{field.PropertyName} = {field.LocalVariableName}");
+            }
         }
 
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        return new {fullClassName}");
@@ -135,7 +140,7 @@ public partial class InterpreterCodeGenerator
             if (field.AtOffset != null)
             {
                 var offsetExpr = GenerateConditionExpression(field.AtOffset);
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    ParsePosition = (int)({offsetExpr});");
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    SeekTo((int)({offsetExpr}));");
             }
 
             var innerReadCode = GenerateFieldReadCodeInner(field, localVar);
@@ -158,7 +163,7 @@ public partial class InterpreterCodeGenerator
             if (field.AtOffset != null)
             {
                 var offsetExpr = GenerateConditionExpression(field.AtOffset);
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"ParsePosition = (int)({offsetExpr});");
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"SeekTo((int)({offsetExpr}));");
             }
 
             builder.AppendLine(GenerateFieldReadCode(field));

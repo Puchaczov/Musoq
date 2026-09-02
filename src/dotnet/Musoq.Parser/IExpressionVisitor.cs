@@ -113,6 +113,8 @@ public interface IExpressionVisitor
     void Visit(ApplyNode node);
     void Visit(OrderByNode node);
     void Visit(CreateTableNode node);
+    void Visit(EnumDeclarationNode node);
+    void Visit(EnumMemberNode node);
     void Visit(CoupleNode node);
     void Visit(CaseNode node);
     void Visit(WhenNode node);

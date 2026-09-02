@@ -14,10 +14,10 @@ public sealed partial class RewriteQueryVisitor
     private void PushGroupedQuerySplit(QueryRewriteContext context)
     {
         var groupBy = context.GroupBy!;
+        QueryRewriteUtilities.ThrowIfUnsupportedAggregateProjection(context.GroupBy, context.Select.Fields, true);
         var nestedFrom = context.SplitNodes.Count > 0
             ? new Parser.ExpressionFromNode(new InMemoryGroupedFromNode(context.LastJoinQuery!.From.Alias))
             : context.From;
-
         var refreshMethods = QueryRewriteUtilities.CreateRefreshMethods(context.UsedRefreshMethods ?? []);
         var splitSelectFields =
             FieldProcessingHelper.SplitBetweenAggregateAndNonAggregate(context.Select.Fields, groupBy.Fields, true);

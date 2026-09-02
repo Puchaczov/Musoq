@@ -1,7 +1,6 @@
 using System.Linq;
-using System.Reflection;
+using Musoq.Evaluator.IR.Analysis;
 using Musoq.Evaluator.IR.Expressions;
-using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.IR.Planning;
 
@@ -26,6 +25,8 @@ internal static class ParallelPlanningEligibilityRules
         return expression switch
         {
             null => ParallelEligibilityCheck.Enabled,
+            ColumnRef { Stability: Musoq.Schema.ColumnStability.Volatile } columnRef =>
+                ParallelEligibilityCheck.Skipped($"Expression reads volatile field {columnRef.Alias}.{columnRef.ColumnName}."),
             ColumnRef columnRef => fieldReadEligibility(columnRef),
             Literal => ParallelEligibilityCheck.Enabled,
             WildcardLiteral => ParallelEligibilityCheck.Enabled,
@@ -55,13 +56,12 @@ internal static class ParallelPlanningEligibilityRules
         MethodCall methodCall,
         Func<ColumnRef, ParallelEligibilityCheck> fieldReadEligibility)
     {
-        if (methodCall.Method.GetCustomAttribute<NonDeterministicAttribute>() != null)
-            return ParallelEligibilityCheck.Skipped($"Expression contains non-deterministic method {methodCall.Method.Name}.");
-
-        if (methodCall.Method.GetParameters()
-            .Any(static parameter => parameter.GetCustomAttribute<InjectQueryStatsAttribute>() != null))
+        if (ExpressionStabilityAnalyzer.TryGetMethodInstabilityReason(
+                methodCall.Method,
+                "Expression",
+                out var instabilityReason))
         {
-            return ParallelEligibilityCheck.Skipped($"Expression calls {methodCall.Method.Name}, which injects query statistics.");
+            return ParallelEligibilityCheck.Skipped(instabilityReason);
         }
 
         return Combine(IrExpressionTraversal

@@ -78,12 +78,19 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3020_SetOperatorColumnTypes,
-                $"Set operator must have the same types of columns in both queries. Left column expression is {left} and right column expression is {right}",
+                $"Set operator must have the same types of columns in both queries. Left column expression is {FormatSetOperatorColumnExpression(left)} and right column expression is {FormatSetOperatorColumnExpression(right)}",
                 node);
             return true;
         }
 
         throw new SetOperatorMustHaveSameTypesOfColumnsException(left, right);
+    }
+
+    private static string FormatSetOperatorColumnExpression(FieldNode field)
+    {
+        return field.Expression is AccessColumnNode
+            ? field.FieldName
+            : field.Expression.ToString();
     }
 
     /// <summary>

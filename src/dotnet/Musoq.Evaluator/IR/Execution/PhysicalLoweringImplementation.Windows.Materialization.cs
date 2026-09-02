@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Musoq.Evaluator.IR.Analysis;
+using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -11,7 +13,7 @@ internal sealed partial class PhysicalLoweringImplementation
             return CreateUnfilteredWindowMaterialization(context);
 
         var predicate = ExecutionExpressionConverter.Convert(context.LoweringSourcePipeline.Filter.Predicate, context.SourceLookup);
-        if (predicate.ReturnType.ResolveClrType() != typeof(bool))
+        if (!IrExpressionNullSemantics.IsBoolean(predicate.ReturnType.ResolveClrType()))
         {
             return LoweringAttempt<ExecutionNode>.Unsupported(
                 $"Execution IR ranking window lowering requires a boolean pre-window filter predicate. Found {predicate.ReturnType.ResolveClrType().Name}.");

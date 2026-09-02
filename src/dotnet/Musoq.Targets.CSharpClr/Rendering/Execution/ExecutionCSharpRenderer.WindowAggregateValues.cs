@@ -19,7 +19,7 @@ public sealed partial class ExecutionCSharpRenderer
         return
         [
             StatementEmitter.CreateIf(
-                CreateBooleanCondition(RenderExpression(kernel.FilterPredicate), kernel.FilterPredicate.ReturnType),
+                this.RenderBooleanCondition(kernel.FilterPredicate, CreateIsolatedRenderContext()),
                 StatementEmitter.CreateBlock(statements))
         ];
     }

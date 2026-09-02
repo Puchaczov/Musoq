@@ -1,4 +1,5 @@
 using Musoq.Parser.Exceptions;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Tokens;
@@ -46,7 +47,9 @@ public partial class Parser
         if (hasHashPrefix)
             throw new SyntaxException(
                 "DESC SETTINGS requires a source method or a coupled alias.",
-                _lexer.AlreadyResolvedQueryPart);
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2030_UnsupportedSyntax,
+                targetToken.Span);
 
         return new DescNode(
             new AliasedFromNode(targetName, ArgsListNode.Empty, string.Empty, targetToken.Span.Start),

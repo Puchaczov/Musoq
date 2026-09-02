@@ -11,11 +11,13 @@ internal sealed class SemanticMetadataPhaseCoordinator
 {
     public SemanticMetadataPhaseResult Analyze(
         RootNode query,
-        BuildMetadataAndInferTypesVisitor visitor)
+        BuildMetadataAndInferTypesVisitor visitor,
+        RootNode? sourceQuery = null)
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(visitor);
 
+        visitor.ValidateStatementOrder(sourceQuery ?? query);
         var traversal = new BuildMetadataAndInferTypesTraverseVisitor(visitor);
         query.Accept(traversal);
 

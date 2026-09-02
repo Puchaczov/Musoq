@@ -46,9 +46,9 @@ internal static partial class GeneratedCodeSamplesCatalog
         return new RuntimeV2RegressionSchemaProvider([]);
     }
 
-    private static Schema.RuntimeV2.BenchmarkParitySchemaProvider CreateBenchmarkParitySchemaProvider()
+    private static BenchmarkParitySchemaProvider CreateBenchmarkParitySchemaProvider()
     {
-        return new Schema.RuntimeV2.BenchmarkParitySchemaProvider([]);
+        return new BenchmarkParitySchemaProvider([]);
     }
 
     private static RuntimeV2CastGroupingFeatureSchemaProvider CreateRuntimeV2CastGroupingFeatureSchemaProvider()

@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class ProviderMethodTransitionMatrixTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; } = null!;
 
     [TestMethod]
     public void RightOuterJoin_ShouldNullLiftProviderMethodsOnMissingLeftRows()

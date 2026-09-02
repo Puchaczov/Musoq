@@ -20,11 +20,7 @@ public sealed partial class ExecutionShapeResolver
         else
         {
             columns = scan.OutputSchema.Columns
-                .Select(column => (ISchemaColumn)new SchemaColumn(
-                    column.Name,
-                    column.Index,
-                    column.Type,
-                    column.IntendedTypeName))
+                .Select(static column => column.ToSchemaColumn())
                 .ToArray();
         }
 
@@ -55,11 +51,7 @@ public sealed partial class ExecutionShapeResolver
         if (columns.Count > 0)
         {
             return columns
-                .Select(column => (ISchemaColumn)new SchemaColumn(
-                    column.Name,
-                    column.Index,
-                    column.Type,
-                    column.IntendedTypeName))
+                .Select(static column => column.ToSchemaColumn())
                 .ToArray();
         }
 
@@ -105,9 +97,12 @@ public sealed partial class ExecutionShapeResolver
                 column.ColumnType,
                 FieldNullability.Unknown,
                 resolveAccessStrategy(column),
-                readModifiers: column.ReadModifiers) with
+                readModifiers: column.ReadModifiers,
+                sourceReadType: column.SourceReadType,
+                enumType: column.EnumType) with
             {
-                GeneratedTypeName = column.IntendedTypeName
+                GeneratedTypeName = column.IntendedTypeName,
+                Stability = column.Stability
             };
         }
 

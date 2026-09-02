@@ -12,6 +12,7 @@ public abstract partial class TextInterpreterBase<TOut>
     public virtual PartialInterpretResult<TOut> PartialParse(ReadOnlySpan<char> text)
     {
         var parsedFields = new Dictionary<string, object?>();
+        var captureState = BeginPartialCapture(parsedFields);
 
         try
         {
@@ -25,11 +26,17 @@ public abstract partial class TextInterpreterBase<TOut>
         }
         catch (ParseException ex)
         {
-            return new PartialInterpretResult<TOut>(parsedFields, CharsConsumed, ex.FieldName ?? "Unknown", ex.Message);
+            return new PartialInterpretResult<TOut>(parsedFields, CharsConsumed,
+                ex.FieldName ?? _currentFieldName ?? "Unknown", ex.Message);
         }
         catch (Exception ex)
         {
-            return new PartialInterpretResult<TOut>(parsedFields, CharsConsumed, "Unknown", ex.Message);
+            return new PartialInterpretResult<TOut>(parsedFields, CharsConsumed,
+                _currentFieldName ?? "Unknown", ex.Message);
+        }
+        finally
+        {
+            EndPartialCapture(captureState);
         }
     }
 

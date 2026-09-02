@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class PassInferredColumnsTests : UnknownQueryTestsBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void PassInferredColumnsTest()
@@ -215,4 +214,3 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
             "Row with John age 22 not found");
     }
 }
-

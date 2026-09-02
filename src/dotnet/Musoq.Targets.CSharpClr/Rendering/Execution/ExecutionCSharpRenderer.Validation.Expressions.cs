@@ -39,7 +39,7 @@ public sealed partial class ExecutionCSharpRenderer
         return null;
     }
 
-    private static bool CanRenderExpression(ExecutionExpression expression)
+    internal static bool CanRenderExpression(ExecutionExpression expression)
     {
         return expression switch
         {

@@ -26,6 +26,7 @@ public sealed partial class ExecutionShapeResolver
                 TextFieldType.Pattern when field.CaptureGroups.Length > 0 => typeof(object),
                 TextFieldType.Repeat => typeof(object[]),
                 TextFieldType.Switch => DynamicEntityBoundary.ExpandoType,
+                TextFieldType.SchemaReference => typeof(object),
                 _ => typeof(string)
             };
 
@@ -35,6 +36,8 @@ public sealed partial class ExecutionShapeResolver
                     $"Musoq.Generated.Interpreters.{text.Name}.CaptureResult_{field.Name}",
                 { FieldType: TextFieldType.Repeat } =>
                     $"Musoq.Generated.Interpreters.{field.PrimaryValue ?? "object"}[]",
+                { FieldType: TextFieldType.SchemaReference } =>
+                    $"Musoq.Generated.Interpreters.{field.PrimaryValue ?? "object"}",
                 _ => null
             };
 

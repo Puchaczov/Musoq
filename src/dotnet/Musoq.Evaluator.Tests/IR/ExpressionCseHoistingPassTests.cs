@@ -6,6 +6,7 @@ using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.IR.Optimization.Execution;
+using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.Tests.IR;
@@ -34,6 +35,234 @@ public sealed class ExpressionCseHoistingPassTests
         Assert.AreEqual(expression, let.Value);
         Assert.AreSame(let.Variable, first.Variable);
         Assert.AreSame(let.Variable, second.Variable);
+    }
+
+    [TestMethod]
+    public void Optimize_WhenStabilityAwareReuseSharesExpressionAcrossOperators_ShouldInsertOneRegionLet()
+    {
+        var expression = new ExecutionBinary(
+            BinaryOpKind.Add,
+            new ExecutionLiteral(10, typeof(int)),
+            new ExecutionLiteral(20, typeof(int)),
+            typeof(int));
+        var plan = CreatePlan(
+            CreateAppendRow(expression, new ExecutionLiteral(1, typeof(int))),
+            CreateAppendRow(expression, new ExecutionLiteral(2, typeof(int))));
+
+        var result = Optimize(plan, enableExpressionCse: false, enableStabilityAwareReuse: true);
+
+        Assert.IsTrue(result.IsChanged);
+        var let = (ExecutionLet)result.Plan.Body.Nodes[0];
+        var first = (ExecutionAppendRow)result.Plan.Body.Nodes[1];
+        var second = (ExecutionAppendRow)result.Plan.Body.Nodes[2];
+        Assert.AreEqual(expression, let.Value);
+        Assert.AreSame(let.Variable, ((ExecutionVariableRead)first.Values[0].Value).Variable);
+        Assert.AreSame(let.Variable, ((ExecutionVariableRead)second.Values[0].Value).Variable);
+    }
+
+    [TestMethod]
+    public void Optimize_WhenGeneratedRowProloguePrecedesStableReuse_ShouldKeepPrologueExpressionInPlace()
+    {
+        var expression = new ExecutionFieldRead("p", "Value", typeof(int));
+        var generatedRow = new ExecutionCreateGeneratedRow(
+            new ExecutionVariable("generated", typeof(object)),
+            CreateRowShape(),
+            [new ExecutionRowValue("First", expression)],
+            []);
+        var plan = CreatePlan(
+            generatedRow,
+            CreateAppendRow(expression, new ExecutionLiteral(1, typeof(int))),
+            CreateAppendRow(expression, new ExecutionLiteral(2, typeof(int))));
+
+        var result = Optimize(plan, enableExpressionCse: false, enableStabilityAwareReuse: true);
+
+        Assert.IsTrue(result.IsChanged);
+        Assert.IsInstanceOfType<ExecutionCreateGeneratedRow>(result.Plan.Body.Nodes[0]);
+        var preservedPrologue = (ExecutionCreateGeneratedRow)result.Plan.Body.Nodes[0];
+        Assert.AreSame(expression, preservedPrologue.Values[0].Value);
+        var let = (ExecutionLet)result.Plan.Body.Nodes[1];
+        Assert.AreEqual(expression, let.Value);
+        Assert.IsInstanceOfType<ExecutionAppendRow>(result.Plan.Body.Nodes[2]);
+        Assert.IsInstanceOfType<ExecutionAppendRow>(result.Plan.Body.Nodes[3]);
+    }
+
+    [TestMethod]
+    public void Optimize_WhenAsOfIndexProloguePrecedesStableReuse_ShouldKeepIndexKeyInPlace()
+    {
+        var expression = new ExecutionFieldRead("candidate", "Timestamp", typeof(int));
+        var index = new ExecutionVariable("asOfIndex", typeof(object));
+        var candidate = new ExecutionVariable("candidate", typeof(object));
+        var createIndex = new ExecutionCreateAsOfIndex(
+            index,
+            candidate,
+            new ExecutionVariableRead(new ExecutionVariable("candidates", typeof(object))),
+            [],
+            expression,
+            BinaryOpKind.GreaterOrEqual,
+            typeof(int));
+        var plan = CreatePlan(
+            createIndex,
+            CreateAppendRow(expression, new ExecutionLiteral(1, typeof(int))),
+            CreateAppendRow(expression, new ExecutionLiteral(2, typeof(int))));
+
+        var result = Optimize(plan, enableExpressionCse: false, enableStabilityAwareReuse: true);
+
+        Assert.IsTrue(result.IsChanged);
+        Assert.IsInstanceOfType<ExecutionCreateAsOfIndex>(result.Plan.Body.Nodes[0]);
+        var preservedPrologue = (ExecutionCreateAsOfIndex)result.Plan.Body.Nodes[0];
+        Assert.AreSame(expression, preservedPrologue.CandidateKey);
+        var let = (ExecutionLet)result.Plan.Body.Nodes[1];
+        Assert.AreEqual(expression, let.Value);
+        Assert.IsInstanceOfType<ExecutionAppendRow>(result.Plan.Body.Nodes[2]);
+        Assert.IsInstanceOfType<ExecutionAppendRow>(result.Plan.Body.Nodes[3]);
+    }
+
+    [TestMethod]
+    public void Optimize_WhenStabilityAwareReuseSharesWindowInputs_ShouldInsertOneRegionLet()
+    {
+        var expression = CreateRepeatedLiteralExpression();
+        var row = new ExecutionVariable("row", typeof(object));
+        var window = new ExecutionComputeOffsetWindow(
+            new ExecutionVariable("windowRows", typeof(object)),
+            row,
+            ExecutionRowAccessMode.Direct,
+            expression,
+            [new ExecutionWindowOrderKey(expression, false)],
+            expression,
+            new ExecutionLiteral(1, typeof(int)),
+            new ExecutionLiteral(0, typeof(int)),
+            ExecutionOffsetWindowFunction.Lag,
+            new ExecutionVariable("windowResults", typeof(object)));
+        var plan = CreatePlan(window, CreateAppendRow(expression, expression));
+
+        var result = Optimize(plan, enableExpressionCse: false, enableStabilityAwareReuse: true);
+
+        Assert.IsTrue(result.IsChanged);
+        var let = (ExecutionLet)result.Plan.Body.Nodes[0];
+        var optimizedWindow = (ExecutionComputeOffsetWindow)result.Plan.Body.Nodes[1];
+        var optimizedAppend = (ExecutionAppendRow)result.Plan.Body.Nodes[2];
+        Assert.AreEqual(expression, let.Value);
+        Assert.AreSame(let.Variable, ((ExecutionVariableRead)optimizedWindow.PartitionKey!).Variable);
+        Assert.AreSame(let.Variable, ((ExecutionVariableRead)optimizedWindow.OrderKeys[0].Expression).Variable);
+        Assert.AreSame(let.Variable, ((ExecutionVariableRead)optimizedWindow.Value).Variable);
+        Assert.AreSame(let.Variable, ((ExecutionVariableRead)optimizedAppend.Values[0].Value).Variable);
+        Assert.AreSame(let.Variable, ((ExecutionVariableRead)optimizedAppend.Values[1].Value).Variable);
+    }
+
+    [TestMethod]
+    public void Optimize_WhenStabilityAwareReuseSharesSpecializedJoinKeys_ShouldInsertOneRegionLet()
+    {
+        var expression = new ExecutionFieldRead("r", "Timestamp", typeof(int));
+        var index = new ExecutionVariable("index", typeof(object));
+        var candidate = new ExecutionVariable("candidate", typeof(object));
+        var candidates = new ExecutionVariableRead(new ExecutionVariable("candidates", typeof(object)));
+        var first = new ExecutionCreateRangeIndex(
+            index,
+            candidate,
+            candidates,
+            expression,
+            typeof(int),
+            BinaryOpKind.LessThan);
+        var second = new ExecutionCreateRangeIndex(
+            index,
+            candidate,
+            candidates,
+            expression,
+            typeof(int),
+            BinaryOpKind.LessThan);
+        var plan = CreatePlan(first, second);
+
+        var result = Optimize(plan, enableExpressionCse: false, enableStabilityAwareReuse: true);
+
+        Assert.IsTrue(result.IsChanged);
+        var let = (ExecutionLet)result.Plan.Body.Nodes[0];
+        var firstIndex = (ExecutionCreateRangeIndex)result.Plan.Body.Nodes[1];
+        var secondIndex = (ExecutionCreateRangeIndex)result.Plan.Body.Nodes[2];
+        Assert.AreEqual(expression, let.Value);
+        Assert.AreSame(let.Variable, ((ExecutionVariableRead)firstIndex.CandidateKey).Variable);
+        Assert.AreSame(let.Variable, ((ExecutionVariableRead)secondIndex.CandidateKey).Variable);
+    }
+
+    [TestMethod]
+    public void Optimize_WhenStabilityAwareReuseSharesRecursiveCtePayload_ShouldInsertOneRegionLet()
+    {
+        var expression = new ExecutionFieldRead("r", "Value", typeof(int));
+        var result = new ExecutionVariable("result", typeof(object));
+        var frontier = new ExecutionVariable("frontier", typeof(object));
+        var appendRow = CreateAppendRow(expression, expression);
+        var first = new ExecutionRecursiveCteAppend("walk", result, frontier, null, [], 100, appendRow);
+        var second = new ExecutionRecursiveCteAppend("walk", result, frontier, null, [], 100, appendRow);
+        var plan = CreatePlan(first, second);
+
+        var optimized = Optimize(plan, enableExpressionCse: false, enableStabilityAwareReuse: true);
+
+        Assert.IsTrue(optimized.IsChanged);
+        var let = (ExecutionLet)optimized.Plan.Body.Nodes[0];
+        var firstAppend = (ExecutionRecursiveCteAppend)optimized.Plan.Body.Nodes[1];
+        var secondAppend = (ExecutionRecursiveCteAppend)optimized.Plan.Body.Nodes[2];
+        Assert.AreEqual(expression, let.Value);
+        Assert.AreSame(let.Variable, ((ExecutionVariableRead)firstAppend.AppendRow.Values[0].Value).Variable);
+        Assert.AreSame(let.Variable, ((ExecutionVariableRead)secondAppend.AppendRow.Values[1].Value).Variable);
+    }
+
+    [TestMethod]
+    public void Optimize_WhenStabilityAwareReuseSharesAggregateFilter_ShouldInsertOneRegionLet()
+    {
+        var expression = new ExecutionFieldRead("p", "Age", typeof(int));
+        var group = new ExecutionVariable("group", typeof(object));
+        var aggregateMethod = typeof(LibraryBase).GetMethod(nameof(LibraryBase.Count), [typeof(int?), typeof(int)])!;
+        var accumulator = new AggregateAccumulatorField(
+            "Count(Age)",
+            "__countAge",
+            AggregateKernelDescriptor.Create(aggregateMethod));
+        var first = new ExecutionAggregateSet(
+            group,
+            aggregateMethod,
+            [expression],
+            new ExecutionBinary(
+                BinaryOpKind.GreaterThan,
+                expression,
+                new ExecutionLiteral(0, typeof(int)),
+                typeof(bool)),
+            accumulator,
+            null);
+        var second = first with { FilterPredicate = first.FilterPredicate };
+        var plan = CreatePlan(first, second);
+
+        var result = Optimize(plan, enableExpressionCse: false, enableStabilityAwareReuse: true);
+
+        Assert.IsTrue(result.IsChanged);
+        var lets = result.Plan.Body.Nodes.OfType<ExecutionLet>().ToArray();
+        var aggregates = result.Plan.Body.Nodes.OfType<ExecutionAggregateSet>().ToArray();
+        Assert.HasCount(2, lets);
+        Assert.HasCount(2, aggregates);
+        var let = lets.Single(item => item.Value.Equals(expression));
+        var filterLet = lets.Single(item => item.Value is ExecutionBinary);
+        var firstAggregate = aggregates[0];
+        var secondAggregate = aggregates[1];
+        Assert.AreEqual(expression, let.Value);
+        Assert.AreSame(let.Variable, ((ExecutionVariableRead)firstAggregate.Arguments[0]).Variable);
+        Assert.AreSame(let.Variable, ((ExecutionVariableRead)secondAggregate.Arguments[0]).Variable);
+        Assert.AreSame(filterLet.Variable, ((ExecutionVariableRead)firstAggregate.FilterPredicate!).Variable);
+        Assert.AreSame(filterLet.Variable, ((ExecutionVariableRead)secondAggregate.FilterPredicate!).Variable);
+    }
+
+    [TestMethod]
+    public void Optimize_WhenStabilityAwareReuseOnlySeesConditionalArms_ShouldNotCreateEagerLocal()
+    {
+        var expression = new ExecutionFieldRead("p", "Age", typeof(int));
+        var conditional = new ExecutionCaseWhen(
+            [new ExecutionCaseWhenBranch(
+                new ExecutionLiteral(true, typeof(bool)),
+                expression)],
+            expression,
+            typeof(int));
+        var plan = CreatePlan(CreateAppendRow(conditional, conditional));
+
+        var result = Optimize(plan, enableExpressionCse: false, enableStabilityAwareReuse: true);
+
+        Assert.IsFalse(result.IsChanged);
+        Assert.AreSame(plan, result.Plan);
     }
 
     [TestMethod]
@@ -848,7 +1077,7 @@ public sealed class ExpressionCseHoistingPassTests
         return value;
     }
 
-    public sealed class InstanceLibrary : Musoq.Plugins.LibraryBase
+    public sealed class InstanceLibrary : Plugins.LibraryBase
     {
         public int Normalize(int value)
         {
@@ -859,12 +1088,14 @@ public sealed class ExpressionCseHoistingPassTests
     private static OptimizationResult<ExecutionPlan> Optimize(
         ExecutionPlan plan,
         bool? enableExpressionCse = null,
-        bool enableCrossNodeExpressionCse = false)
+        bool enableCrossNodeExpressionCse = false,
+        bool enableStabilityAwareReuse = false)
     {
         var options = new OptimizationOptions
         {
             ExpressionCseEnabled = enableExpressionCse ?? true,
-            CrossNodeExpressionCseEnabled = enableCrossNodeExpressionCse
+            CrossNodeExpressionCseEnabled = enableCrossNodeExpressionCse,
+            StabilityAwareScalarReuseEnabled = enableStabilityAwareReuse
         };
 
         return new ExpressionCseHoistingPass().Optimize(
@@ -876,9 +1107,9 @@ public sealed class ExpressionCseHoistingPassTests
                 OptimizationContextState.Empty));
     }
 
-    private static ExecutionPlan CreatePlan(ExecutionNode node)
+    private static ExecutionPlan CreatePlan(params ExecutionNode[] nodes)
     {
-        return new ExecutionPlan("compiled", [], new ExecutionBlock([node]));
+        return new ExecutionPlan("compiled", [], new ExecutionBlock(nodes));
     }
 
     private static ExecutionAppendRow CreateAppendRow(

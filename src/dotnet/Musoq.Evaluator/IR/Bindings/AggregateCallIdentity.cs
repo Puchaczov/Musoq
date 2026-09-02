@@ -139,6 +139,11 @@ internal static class AggregateCallIdentity
             case MethodCall method:
                 writer.Add(GetAggregateName(method.Method, method.Method.Name));
                 writer.Add(method.Alias ?? string.Empty);
+                writer.Add(method.EnumIntrinsic?.ToString() ?? string.Empty);
+                writer.Add(method.OperandEnumType?.Fingerprint ?? string.Empty);
+                writer.Add(method.EnumMask is { } enumMask
+                    ? $"{enumMask.Kind}:{enumMask.RawValue.ToString("X16", CultureInfo.InvariantCulture)}"
+                    : string.Empty);
                 foreach (var argument in method.Arguments)
                     WriteExpression(argument, writer);
                 break;

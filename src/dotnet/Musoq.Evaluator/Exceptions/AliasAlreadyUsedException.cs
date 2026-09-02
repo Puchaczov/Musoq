@@ -27,8 +27,7 @@ public class AliasAlreadyUsedException : Exception, IDiagnosticException
     ///     Initializes a new instance with node and alias.
     /// </summary>
     public AliasAlreadyUsedException(SchemaFromNode node, string alias)
-        : base(
-            $"Alias {alias} is already used in query. Please, use different alias. Problem occurred in schema from node {node}")
+        : base($"Alias '{alias}' is already used in query. Please use a different alias.")
     {
         ArgumentNullException.ThrowIfNull(node);
         Alias = alias;
@@ -70,4 +69,5 @@ public class AliasAlreadyUsedException : Exception, IDiagnosticException
         var span = Span ?? TextSpan.Empty;
         return Diagnostic.Error(Code, Message, span);
     }
+
 }

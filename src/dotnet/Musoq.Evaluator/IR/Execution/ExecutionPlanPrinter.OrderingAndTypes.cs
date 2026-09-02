@@ -12,7 +12,7 @@ public static partial class ExecutionPlanPrinter
 
     private static string FormatDesc(ExecutionReturnDesc desc)
     {
-        if (desc.Type == Musoq.Evaluator.IR.Logical.Nodes.DescType.Query)
+        if (desc.Type == Logical.Nodes.DescType.Query)
             return "query Query";
 
         var schemaName = string.IsNullOrWhiteSpace(desc.SchemaName)

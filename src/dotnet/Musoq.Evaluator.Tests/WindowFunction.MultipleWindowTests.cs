@@ -6,7 +6,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class WindowFunctionMultipleWindowTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenTwoWindowsInSelect_ShouldComputeBothIndependently()

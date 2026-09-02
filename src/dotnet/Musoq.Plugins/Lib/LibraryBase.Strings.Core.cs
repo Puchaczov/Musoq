@@ -187,12 +187,17 @@ public partial class LibraryBase
         return objects == null ? null : ConcatCore(objects);
     }
 
-    private static string ConcatCore<T>(T[] values)
+    private static string? ConcatCore<T>(T[] values)
     {
         var sb = new StringBuilder();
 
         foreach (var value in values)
+        {
+            if (value is null)
+                return null;
+
             sb.Append(value);
+        }
 
         return sb.ToString();
     }

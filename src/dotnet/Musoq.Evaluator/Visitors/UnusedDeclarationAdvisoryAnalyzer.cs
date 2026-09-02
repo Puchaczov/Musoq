@@ -35,7 +35,7 @@ internal static class UnusedDeclarationAdvisoryAnalyzer
                 context.Report(
                     DiagnosticCode.MQ5022_UnusedCte,
                     ErrorCatalog.GetMessage(DiagnosticCode.MQ5022_UnusedCte, deadCte.Name),
-                    definition.Span);
+                    GetDeclarationNameSpan(context, deadCte.Name, definition));
             }
         }
 
@@ -86,7 +86,7 @@ internal static class UnusedDeclarationAdvisoryAnalyzer
             context.Report(
                 DiagnosticCode.MQ5023_UnusedScriptVariable,
                 ErrorCatalog.GetMessage(DiagnosticCode.MQ5023_UnusedScriptVariable, name),
-                GetDeclarationNameSpan(context, declaration));
+                GetDeclarationNameSpan(context, declaration.Name, declaration));
         }
     }
 
@@ -155,7 +155,8 @@ internal static class UnusedDeclarationAdvisoryAnalyzer
 
     private static TextSpan GetDeclarationNameSpan(
         SemanticAdvisoryContext context,
-        ScriptVariableDeclarationNode declaration)
+        string name,
+        Node declaration)
     {
         var sourceText = context.Diagnostics.SourceText?.Text;
         if (sourceText == null || !declaration.HasSpan)
@@ -163,9 +164,9 @@ internal static class UnusedDeclarationAdvisoryAnalyzer
 
         var start = Math.Max(0, declaration.Span.Start);
         var end = Math.Min(sourceText.Length, declaration.Span.End);
-        var nameStart = sourceText.IndexOf(declaration.Name, start, end - start, StringComparison.Ordinal);
+        var nameStart = sourceText.IndexOf(name, start, end - start, StringComparison.OrdinalIgnoreCase);
         return nameStart >= 0
-            ? new TextSpan(nameStart, declaration.Name.Length)
+            ? new TextSpan(nameStart, name.Length)
             : declaration.Span;
     }
 }

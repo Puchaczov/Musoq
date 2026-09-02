@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Parser;
 
 namespace Musoq.Evaluator.IR.Logical.Nodes;
 
@@ -12,7 +13,8 @@ public sealed record DescNode(
     IrExpression[] Arguments,
     string SourceContextId,
     OutputSchema OutputSchema,
-    OutputSchema? QueryOutputSchema = null) : LogicalNode(OutputSchema)
+    OutputSchema? QueryOutputSchema = null,
+    TextSpan? ColumnSpan = null) : LogicalNode(OutputSchema)
 {
     public override IReadOnlyList<LogicalNode> Children { get; } = Array.Empty<LogicalNode>();
 }

@@ -92,9 +92,11 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             ("p.ErrorMessage", typeof(string)),
             ("p.BytesConsumed", typeof(int)));
         Assert.AreEqual(1, table.Count);
-        Assert.IsInstanceOfType<Dictionary<string, object?>>(table[0][0]);
-        Assert.AreEqual("Unknown", table[0][1]);
-        Assert.IsNotNull(table[0][2]);
+        var parsedFields = (Dictionary<string, object?>)table[0][0]!;
+        Assert.AreEqual(0x12345678, parsedFields["Magic"]);
+        Assert.IsFalse(parsedFields.ContainsKey("Version"));
+        Assert.AreEqual("Version", table[0][1]);
+        StringAssert.Contains((string)table[0][2]!, "ISE0001");
         Assert.AreEqual(4, table[0][3]);
     }
 

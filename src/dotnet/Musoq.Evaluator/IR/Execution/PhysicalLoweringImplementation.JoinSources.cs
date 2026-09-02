@@ -17,9 +17,17 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
         string? sourceRowsScope,
-        LoweringScope scope)
+        LoweringScope scope,
+        bool disableCteFusion = false)
     {
-        var leftSource = BuildJoinSource(left, cteIndexes, cteShapesByName, schemaFromIndex, sourceRowsScope, scope);
+        var leftSource = BuildJoinSource(
+            left,
+            cteIndexes,
+            cteShapesByName,
+            schemaFromIndex,
+            sourceRowsScope,
+            scope,
+            disableCteFusion);
         if (!leftSource.IsBuilt)
             return JoinSourcesBuildResult.Unsupported(leftSource.UnsupportedReason);
 
@@ -29,7 +37,8 @@ internal sealed partial class PhysicalLoweringImplementation
             cteShapesByName,
             schemaFromIndex + leftSource.Source.SchemaSourceCount,
             sourceRowsScope,
-            scope);
+            scope,
+            disableCteFusion);
         if (!rightSource.IsBuilt)
             return JoinSourcesBuildResult.Unsupported(rightSource.UnsupportedReason);
 
@@ -42,16 +51,25 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
         string? sourceRowsScope,
-        LoweringScope scope)
+        LoweringScope scope,
+        bool disableCteFusion = false)
     {
         if (source is PhysicalCteRefNode cteRef &&
+            !disableCteFusion &&
             TryBuildFusedCteHashBuildJoinSource(cteRef, cteIndexes, cteShapesByName, scope, out var fusedSource))
         {
             return SourceBuildResult.Success(fusedSource);
         }
 
         if (source is PhysicalFilterNode filter)
-            return BuildFilteredJoinSource(filter, cteIndexes, cteShapesByName, schemaFromIndex, sourceRowsScope, scope);
+            return BuildFilteredJoinSource(
+                filter,
+                cteIndexes,
+                cteShapesByName,
+                schemaFromIndex,
+                sourceRowsScope,
+                scope,
+                disableCteFusion);
 
         if (source is PhysicalNestedLoopJoinNode or PhysicalHashJoinNode or PhysicalSortMergeJoinNode)
             return BuildNestedJoinSource(source, cteIndexes, cteShapesByName, schemaFromIndex, scope);
@@ -80,10 +98,18 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
         string? sourceRowsScope,
-        LoweringScope scope)
+        LoweringScope scope,
+        bool disableCteFusion)
     {
         var filterSource = CollectFilterPredicate(filter);
-        var baseSource = BuildJoinSource(filterSource.Source, cteIndexes, cteShapesByName, schemaFromIndex, sourceRowsScope, scope);
+        var baseSource = BuildJoinSource(
+            filterSource.Source,
+            cteIndexes,
+            cteShapesByName,
+            schemaFromIndex,
+            sourceRowsScope,
+            scope,
+            disableCteFusion);
         if (!baseSource.IsBuilt)
             return baseSource;
 
@@ -272,12 +298,4 @@ internal sealed partial class PhysicalLoweringImplementation
         return ExecutionRowStreams.CreateForEachWithOrdinality(sourceShape, sourceRows, source, ordinal, loopBody);
     }
 
-    private static ExecutionNode CreateApplySourceLoop(
-        JoinSource source,
-        ExecutionBlock loopBody)
-    {
-        return source.OrdinalityVariable == null
-            ? CreateSourceLoop(source.Shape, source.Rows, source.Variable, loopBody)
-            : CreateSourceLoopWithOrdinality(source.Shape, source.Rows, source.Variable, source.OrdinalityVariable, loopBody);
-    }
 }

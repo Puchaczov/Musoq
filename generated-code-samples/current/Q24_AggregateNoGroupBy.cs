@@ -44,12 +44,14 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateAggregateContext [rootGroup, group, groupsToFinalize; typed: ResultAggregateGroup]
     ChunkedForEach [ko3iko in ko3ikoRows]
-      Let [population: decimal = ko3iko.Population]
-      Let [name: string = ko3iko.Name]
       EnsureAggregateGroup [group; typed: ResultAggregateGroup]
+      Let [population: decimal = ko3iko.Population]
       TypedAggregateSet [Set(group.__agg0, population)]
-      TypedAggregateSet [Set(group.__agg1, population)]
-      TypedAggregateSet [Set(group.__agg2, population)]
+      Let [population1: decimal = ko3iko.Population]
+      TypedAggregateSet [Set(group.__agg1, population1)]
+      Let [population2: decimal = ko3iko.Population]
+      TypedAggregateSet [Set(group.__agg2, population2)]
+      Let [name: string = ko3iko.Name]
       TypedAggregateSet [Set(group.__agg3, name)]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     PhaseBoundary [Select]
@@ -145,14 +147,13 @@ namespace GeneratedSample_Q24_AggregateNoGroupBy
                                 }
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                decimal population = ko3iko.Population;
-                                string name = ko3iko.Name;
                                 if (group == null)
                                 {
                                     group = new ResultAggregateGroup();
                                     groupsToFinalize.Add(group);
                                 }
 
+                                decimal population = ko3iko.Population;
                                 {
                                     var __agg0Input = (decimal?)population;
                                     if (__agg0Input.HasValue)
@@ -164,17 +165,36 @@ namespace GeneratedSample_Q24_AggregateNoGroupBy
                                         }
 
                                         group.__agg0.HasValue = true;
-                                        if (!group.__agg1.HasValue || __agg0Current < group.__agg1.Value)
+                                    }
+                                }
+
+                                decimal population1 = ko3iko.Population;
+                                {
+                                    var __agg1Input = (decimal?)population1;
+                                    if (__agg1Input.HasValue)
+                                    {
+                                        var __agg1Current = __agg1Input.GetValueOrDefault();
+                                        if (!group.__agg1.HasValue || __agg1Current < group.__agg1.Value)
                                         {
-                                            group.__agg1.Value = __agg0Current;
+                                            group.__agg1.Value = __agg1Current;
                                         }
 
                                         group.__agg1.HasValue = true;
-                                        group.__agg2.Value = group.__agg2.HasValue ? checked(group.__agg2.Value + __agg0Current) : __agg0Current;
+                                    }
+                                }
+
+                                decimal population2 = ko3iko.Population;
+                                {
+                                    var __agg2Input = (decimal?)population2;
+                                    if (__agg2Input.HasValue)
+                                    {
+                                        var __agg2Current = __agg2Input.GetValueOrDefault();
+                                        group.__agg2.Value = group.__agg2.HasValue ? checked(group.__agg2.Value + __agg2Current) : __agg2Current;
                                         group.__agg2.HasValue = true;
                                     }
                                 }
 
+                                string name = ko3iko.Name;
                                 if ((string)name != null)
                                 {
                                     group.__agg3.Count = checked(group.__agg3.Count + 1L);
@@ -195,14 +215,13 @@ namespace GeneratedSample_Q24_AggregateNoGroupBy
                                 }
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                decimal population = ko3iko.Population;
-                                string name = ko3iko.Name;
                                 if (group == null)
                                 {
                                     group = new ResultAggregateGroup();
                                     groupsToFinalize.Add(group);
                                 }
 
+                                decimal population = ko3iko.Population;
                                 {
                                     var __agg0Input = (decimal?)population;
                                     if (__agg0Input.HasValue)
@@ -214,17 +233,36 @@ namespace GeneratedSample_Q24_AggregateNoGroupBy
                                         }
 
                                         group.__agg0.HasValue = true;
-                                        if (!group.__agg1.HasValue || __agg0Current < group.__agg1.Value)
+                                    }
+                                }
+
+                                decimal population1 = ko3iko.Population;
+                                {
+                                    var __agg1Input = (decimal?)population1;
+                                    if (__agg1Input.HasValue)
+                                    {
+                                        var __agg1Current = __agg1Input.GetValueOrDefault();
+                                        if (!group.__agg1.HasValue || __agg1Current < group.__agg1.Value)
                                         {
-                                            group.__agg1.Value = __agg0Current;
+                                            group.__agg1.Value = __agg1Current;
                                         }
 
                                         group.__agg1.HasValue = true;
-                                        group.__agg2.Value = group.__agg2.HasValue ? checked(group.__agg2.Value + __agg0Current) : __agg0Current;
+                                    }
+                                }
+
+                                decimal population2 = ko3iko.Population;
+                                {
+                                    var __agg2Input = (decimal?)population2;
+                                    if (__agg2Input.HasValue)
+                                    {
+                                        var __agg2Current = __agg2Input.GetValueOrDefault();
+                                        group.__agg2.Value = group.__agg2.HasValue ? checked(group.__agg2.Value + __agg2Current) : __agg2Current;
                                         group.__agg2.HasValue = true;
                                     }
                                 }
 
+                                string name = ko3iko.Name;
                                 if ((string)name != null)
                                 {
                                     group.__agg3.Count = checked(group.__agg3.Count + 1L);
@@ -243,14 +281,13 @@ namespace GeneratedSample_Q24_AggregateNoGroupBy
                         }
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                        decimal population = ko3iko.Population;
-                        string name = ko3iko.Name;
                         if (group == null)
                         {
                             group = new ResultAggregateGroup();
                             groupsToFinalize.Add(group);
                         }
 
+                        decimal population = ko3iko.Population;
                         {
                             var __agg0Input = (decimal?)population;
                             if (__agg0Input.HasValue)
@@ -262,17 +299,36 @@ namespace GeneratedSample_Q24_AggregateNoGroupBy
                                 }
 
                                 group.__agg0.HasValue = true;
-                                if (!group.__agg1.HasValue || __agg0Current < group.__agg1.Value)
+                            }
+                        }
+
+                        decimal population1 = ko3iko.Population;
+                        {
+                            var __agg1Input = (decimal?)population1;
+                            if (__agg1Input.HasValue)
+                            {
+                                var __agg1Current = __agg1Input.GetValueOrDefault();
+                                if (!group.__agg1.HasValue || __agg1Current < group.__agg1.Value)
                                 {
-                                    group.__agg1.Value = __agg0Current;
+                                    group.__agg1.Value = __agg1Current;
                                 }
 
                                 group.__agg1.HasValue = true;
-                                group.__agg2.Value = group.__agg2.HasValue ? checked(group.__agg2.Value + __agg0Current) : __agg0Current;
+                            }
+                        }
+
+                        decimal population2 = ko3iko.Population;
+                        {
+                            var __agg2Input = (decimal?)population2;
+                            if (__agg2Input.HasValue)
+                            {
+                                var __agg2Current = __agg2Input.GetValueOrDefault();
+                                group.__agg2.Value = group.__agg2.HasValue ? checked(group.__agg2.Value + __agg2Current) : __agg2Current;
                                 group.__agg2.HasValue = true;
                             }
                         }
 
+                        string name = ko3iko.Name;
                         if ((string)name != null)
                         {
                             group.__agg3.Count = checked(group.__agg3.Count + 1L);

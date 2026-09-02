@@ -4,9 +4,13 @@ namespace Musoq.Evaluator.IR.Expressions;
 
 public sealed partial class ExpressionConverter
 {
-    private static ColumnRef ConvertColumnAccess(AccessColumnNode node)
+    private ColumnRef ConvertColumnAccess(AccessColumnNode node)
     {
         var (alias, name) = NormalizeAccessColumn(node);
-        return new ColumnRef(alias, name, RequireReturnType(node));
+        return new ColumnRef(alias, name, RequireReturnType(node))
+        {
+            Stability = ResolveColumnStability(alias, name),
+            EnumType = ResolveColumnEnumType(alias, name)
+        };
     }
 }

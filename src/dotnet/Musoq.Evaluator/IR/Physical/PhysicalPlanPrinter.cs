@@ -23,6 +23,9 @@ public static partial class PhysicalPlanPrinter
             case PhysicalProjectNode project:
                 PrintProject(project, sb, prefix, indent);
                 break;
+            case PhysicalComputeNode compute:
+                PrintCompute(compute, sb, prefix, indent);
+                break;
             case PhysicalAggregateCandidateNode aggregateCandidate:
                 PrintAggregateCandidate(aggregateCandidate, sb, prefix, indent);
                 break;
@@ -177,6 +180,8 @@ public static partial class PhysicalPlanPrinter
                 sb.Append(prefix).Append(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalNestedLoopJoin [{nlJoin.Kind}] [");
                 sb.Append(IrExpressionPrinter.Print(nlJoin.OnPredicate));
                 sb.Append(']');
+                if (nlJoin.WithOrdinality)
+                    sb.Append(" [with ordinality]");
                 AppendTieBreak(sb, nlJoin.TieBreak);
                 sb.AppendLine();
                 PrintNode(nlJoin.Left, sb, indent + 2);

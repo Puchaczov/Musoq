@@ -21,13 +21,17 @@ public partial class CloneQueryVisitor
             constraint,
             atOffset,
             whenCondition,
-            valueValidation));
+            valueValidation)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(ComputedFieldNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new ComputedFieldNode(node.Name, Nodes.Pop()));
+        Nodes.Push(new ComputedFieldNode(node.Name, Nodes.Pop())
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(FieldValueValidationNode node)
@@ -37,18 +41,21 @@ public partial class CloneQueryVisitor
         for (var index = values.Length - 1; index >= 0; index--)
             values[index] = Nodes.Pop();
 
-        Nodes.Push(new FieldValueValidationNode(node.Kind, values, node.IsByteList));
+        Nodes.Push(new FieldValueValidationNode(node.Kind, values, node.IsByteList)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(TextFieldDefinitionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(node.FieldType == TextFieldType.Switch
+        var clone = node.FieldType == TextFieldType.Switch
             ? new TextFieldDefinitionNode(
                 node.Name,
                 node.SwitchCases
                     .Select(static switchCase => new TextSwitchCaseNode(switchCase.Pattern, switchCase.TypeName))
-                    .ToArray())
+                    .ToArray(),
+                node.Modifiers)
             : new TextFieldDefinitionNode(
                 node.Name,
                 node.FieldType,
@@ -56,7 +63,11 @@ public partial class CloneQueryVisitor
                 node.SecondaryValue,
                 node.Modifiers,
                 node.EscapeCharacter,
-                (string[])node.CaptureGroups.Clone()));
+                (string[])node.CaptureGroups.Clone());
+
+        Nodes.Push(clone
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(FieldConstraintNode node)
@@ -73,7 +84,9 @@ public partial class CloneQueryVisitor
     public override void Visit(ByteArrayTypeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new ByteArrayTypeNode(Nodes.Pop()));
+        Nodes.Push(new ByteArrayTypeNode(Nodes.Pop())
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(BinarySwitchTypeNode node)
@@ -84,41 +97,60 @@ public partial class CloneQueryVisitor
         {
             var branchType = (TypeAnnotationNode)Nodes.Pop();
             var caseValue = node.Cases[index].CaseValue != null ? Nodes.Pop() : null;
-            cases[index] = new BinarySwitchCaseNode(caseValue, node.Cases[index].BranchAlias, branchType);
+            var sourceCase = node.Cases[index];
+            cases[index] = new BinarySwitchCaseNode(
+                caseValue,
+                sourceCase.BranchAlias,
+                branchType,
+                sourceCase.CaseLabelSpan,
+                sourceCase.BranchAliasSpan,
+                sourceCase.BranchTypeSpan);
         }
 
-        Nodes.Push(new BinarySwitchTypeNode(node.Selector, cases));
+        Nodes.Push(new BinarySwitchTypeNode(node.Selector, cases, node.SelectorSpan)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(StringTypeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new StringTypeNode(Nodes.Pop(), node.Encoding, node.Modifiers, node.AsTextSchemaName));
+        Nodes.Push(new StringTypeNode(Nodes.Pop(), node.Encoding, node.Modifiers, node.AsTextSchemaName)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(SchemaReferenceTypeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new SchemaReferenceTypeNode(node.SchemaName, (string[])node.TypeArguments.Clone()));
+        Nodes.Push(new SchemaReferenceTypeNode(node.SchemaName, (string[])node.TypeArguments.Clone())
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(ArrayTypeNode node)
     {
         var sizeExpression = Nodes.Pop();
         var elementType = (TypeAnnotationNode)Nodes.Pop();
-        Nodes.Push(new ArrayTypeNode(elementType, sizeExpression));
+        Nodes.Push(new ArrayTypeNode(elementType, sizeExpression)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(BitsTypeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new BitsTypeNode(node.BitCount));
+        Nodes.Push(new BitsTypeNode(node.BitCount)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(AlignmentNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new AlignmentNode(node.AlignmentBits));
+        Nodes.Push(new AlignmentNode(node.AlignmentBits)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(RepeatUntilTypeNode node)
@@ -126,16 +158,21 @@ public partial class CloneQueryVisitor
         ArgumentNullException.ThrowIfNull(node);
         var condition = node.Condition != null ? Nodes.Pop() : null;
         var elementType = (TypeAnnotationNode)Nodes.Pop();
-        Nodes.Push(node.StopKind == RepeatUntilStopKind.EndOfInput
+        var clonedRepeat = node.StopKind == RepeatUntilStopKind.EndOfInput
             ? RepeatUntilTypeNode.EndOfInput(elementType, node.FieldName)
-            : new RepeatUntilTypeNode(elementType, condition!, node.FieldName));
+            : new RepeatUntilTypeNode(elementType, condition!, node.FieldName);
+        Nodes.Push(clonedRepeat
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(SubstreamTypeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var target = node.Target != null ? (TypeAnnotationNode)Nodes.Pop() : null;
-        Nodes.Push(new SubstreamTypeNode(Nodes.Pop(), node.Mode, target));
+        Nodes.Push(new SubstreamTypeNode(Nodes.Pop(), node.Mode, target)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(InlineSchemaTypeNode node)
@@ -145,6 +182,8 @@ public partial class CloneQueryVisitor
         for (var index = fields.Length - 1; index >= 0; index--)
             fields[index] = (SchemaFieldNode)Nodes.Pop();
 
-        Nodes.Push(new InlineSchemaTypeNode(fields));
+        Nodes.Push(new InlineSchemaTypeNode(fields)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 }

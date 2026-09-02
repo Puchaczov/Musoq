@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class CrossApplyBugTestCases : GenericEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void CrossApply_WithNullParameter_ShouldHandleGracefully()

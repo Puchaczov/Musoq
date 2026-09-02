@@ -23,7 +23,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             ObjectResolver = CountOccurrences(sampleArray, ObjectResolverPattern),
             SmartForEach = CountOccurrences(sampleArray, SmartForEachPattern),
             ContextsAccess = CountOccurrences(sampleArray, ContextsAccessPattern),
-            DynamicDictionaryRead = CountOccurrences(sampleArray, MutableDynamicDictionaryPattern)
+            DynamicDictionaryRead = sampleArray.Sum(sample =>
+                MutableDynamicDictionaryPattern.Count(ExtractGeneratedCodeSection(sample.Content)))
         };
     }
 

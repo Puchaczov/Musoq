@@ -7,16 +7,16 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private static ClassDeclarationSyntax RenderFinalSelectShapeClass(FinalShapeResult finalResult)
     {
-        return ExecutionCSharpRenderer.RenderRowCarrierClass(
+        return RenderRowCarrierClass(
             FinalSelectShapeNaming.CreateTypeName(finalResult),
             finalResult.Shape.Fields,
-            ExecutionCSharpRenderer.GetGeneratedFieldName);
+            GetGeneratedFieldName);
     }
 
     private static bool CanRenderFinalSelectShape(FinalShapeResult finalResult)
     {
-        return ExecutionCSharpRenderer.CanRenderIdentifier(FinalSelectShapeNaming.CreateTypeName(finalResult)) &&
-               ExecutionCSharpRenderer.CanRenderFieldNames(finalResult.Shape.Fields.Select(ExecutionCSharpRenderer.GetGeneratedFieldName)) &&
-               ExecutionCSharpRenderer.CanRenderFieldTypes(finalResult.Shape.Fields);
+        return CanRenderIdentifier(FinalSelectShapeNaming.CreateTypeName(finalResult)) &&
+               CanRenderFieldNames(finalResult.Shape.Fields.Select(GetGeneratedFieldName)) &&
+               CanRenderFieldTypes(finalResult.Shape.Fields);
     }
 }

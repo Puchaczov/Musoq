@@ -202,8 +202,10 @@ namespace GeneratedSample_Q99_UnionWithGroupBySides
                 var resultKeys = new HashSet<string>(left.Count + right.Count);
                 foreach (var resultLeftRow in left)
                 {
-                    resultKeys.Add((string)resultLeftRow.City);
-                    __musoqFinalShapeRows.Add(new LeftShape0((string)resultLeftRow.City, (decimal?)resultLeftRow.Sum_Population_));
+                    if (resultKeys.Add((string)resultLeftRow.City))
+                    {
+                        __musoqFinalShapeRows.Add(new LeftShape0((string)resultLeftRow.City, (decimal?)resultLeftRow.Sum_Population_));
+                    }
                 }
 
                 foreach (var resultRightRow in right)

@@ -23,7 +23,7 @@ public partial class StringsTests : PluginsTestBase
     public void ConcatTest()
     {
         Assert.AreEqual("lorem ipsum dolor", Library.Concat("lorem ", "ipsum ", "dolor"));
-        Assert.AreEqual("lorem dolor", Library.Concat("lorem ", null, "dolor"));
+        Assert.IsNull(Library.Concat("lorem ", null, "dolor"));
         Assert.AreEqual("this is 1", Library.Concat("this ", "is ", 1));
     }
 

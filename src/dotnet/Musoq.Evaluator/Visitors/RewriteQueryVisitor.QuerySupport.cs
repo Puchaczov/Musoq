@@ -79,7 +79,10 @@ public sealed partial class RewriteQueryVisitor
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-            orderBy, skip, take));
+            orderBy, skip, take)
+        {
+            KeySpans = node.KeySpans
+        });
     }
 
     public void Visit(UnionAllNode node)
@@ -91,7 +94,10 @@ public sealed partial class RewriteQueryVisitor
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested,
-            node.IsTheLastOne, orderBy, skip, take));
+            node.IsTheLastOne, orderBy, skip, take)
+        {
+            KeySpans = node.KeySpans
+        });
     }
 
     public void Visit(ExceptNode node)
@@ -103,7 +109,10 @@ public sealed partial class RewriteQueryVisitor
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-            orderBy, skip, take));
+            orderBy, skip, take)
+        {
+            KeySpans = node.KeySpans
+        });
     }
 
     public void Visit(IntersectNode node)
@@ -116,7 +125,10 @@ public sealed partial class RewriteQueryVisitor
         var left = Nodes.Pop();
         Nodes.Push(
             new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-                orderBy, skip, take));
+                orderBy, skip, take)
+            {
+                KeySpans = node.KeySpans
+            });
     }
 
     public void Visit(PutTrueNode node)

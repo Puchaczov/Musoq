@@ -27,7 +27,7 @@ public sealed class ScriptParameterBindingException : InvalidOperationException,
 
     public DiagnosticCode Code { get; }
 
-    public TextSpan? Span => TextSpan.Empty;
+    public TextSpan? Span => null;
 
     public static ScriptParameterBindingException MissingRequired(string name)
     {
@@ -65,7 +65,10 @@ public sealed class ScriptParameterBindingException : InvalidOperationException,
 
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return Diagnostic.Error(Code, Message, Span ?? TextSpan.Empty);
+        return Diagnostic.ErrorUnknownLocation(
+            Code,
+            Message,
+            sourceKind: DiagnosticSourceKind.Runtime);
     }
 
     private static string FormatType(Type type)
@@ -73,6 +76,28 @@ public sealed class ScriptParameterBindingException : InvalidOperationException,
         var underlyingNullableType = Nullable.GetUnderlyingType(type);
         if (underlyingNullableType != null)
             return $"{FormatType(underlyingNullableType)}?";
+
+        if (type.IsArray)
+        {
+            var rank = type.GetArrayRank();
+            var suffix = rank == 1 ? "[]" : $"[{new string(',', rank - 1)}]";
+            return $"{FormatType(type.GetElementType()!)}{suffix}";
+        }
+
+        if (type.IsGenericType)
+        {
+            var typeName = type.GetGenericTypeDefinition().Name;
+            var aritySeparator = typeName.IndexOf('`');
+            if (aritySeparator >= 0)
+                typeName = typeName[..aritySeparator];
+
+            var arguments = type.GetGenericArguments();
+            var formattedArguments = new string[arguments.Length];
+            for (var index = 0; index < arguments.Length; index++)
+                formattedArguments[index] = FormatType(arguments[index]);
+
+            return $"{typeName}<{string.Join(", ", formattedArguments)}>";
+        }
 
         if (type == typeof(string))
             return "string";

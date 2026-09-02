@@ -4,7 +4,7 @@ using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Nodes;
 
-public class AccessObjectArrayNode(NumericAccessToken token) : IdentifierNode(token.Name)
+public class AccessObjectArrayNode(NumericAccessToken token) : IdentifierNode(token.Name, null, token.Span)
 {
     public AccessObjectArrayNode(NumericAccessToken token, PropertyInfo? propertyInfo)
         : this(token)

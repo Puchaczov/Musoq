@@ -86,8 +86,8 @@ public sealed class TargetRuntimeContractBuilderTests
         Assert.IsTrue(inventory.Requires(TargetHostAbiImportKind.Profiling));
         var sourceImport = inventory.Imports.Single(import => import.Kind == TargetHostAbiImportKind.SourceAccess);
         Assert.AreEqual("schema-source:s:1:test.rows", sourceImport.Name);
-        Assert.AreEqual("source-access-v1", sourceImport.Contract);
-        Assert.AreEqual(1, sourceImport.ContractVersion);
+        Assert.AreEqual("source-access-v2", sourceImport.Contract);
+        Assert.AreEqual(2, sourceImport.ContractVersion);
         var sourceDetails = Assert.IsInstanceOfType<TargetSourceAccessAbiDetails>(sourceImport.Details);
         Assert.AreEqual("schema-source", sourceDetails.SourceKind);
         Assert.AreEqual("s:1", sourceDetails.SourceContextId);

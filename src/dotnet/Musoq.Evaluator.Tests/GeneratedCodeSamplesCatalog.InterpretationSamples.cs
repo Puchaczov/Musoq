@@ -266,8 +266,9 @@ internal static partial class GeneratedCodeSamplesCatalog
             query,
             InterpretationSchemaProviderFactory.CreateBinary) with
         {
-            CompilationOptions = new Musoq.Evaluator.CompilationOptions(usePrimitiveTypeValidation: false)
+            CompilationOptions = new CompilationOptions(usePrimitiveTypeValidation: false)
                 .WithTableResultMaterialization()
+                .WithStabilityAwareScalarReuse()
         };
     }
 

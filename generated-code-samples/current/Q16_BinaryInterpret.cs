@@ -333,11 +333,17 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override TlvRecord InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("Type");
             var _type = ReadByte(data);
+            RecordParsedField("Type", _type);
+            SetCurrentField("Length");
             var _length = ReadByte(data);
+            RecordParsedField("Length", _length);
+            SetCurrentField("Value");
             var _value = ReadBytes(data, (int)_length);
+            RecordParsedField("Value", _value);
             return new TlvRecord
             {
                 Type = _type,

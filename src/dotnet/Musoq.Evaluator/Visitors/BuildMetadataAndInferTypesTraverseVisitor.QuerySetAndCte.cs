@@ -11,6 +11,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
         LoadQueryScope();
         var aliasPrecollector = Visitor as BuildMetadataAndInferTypesVisitor;
         aliasPrecollector?.PrecollectCurrentQuerySelectAliases(node.Select);
+        aliasPrecollector?.PrecollectCurrentQueryWindowDefinitions(node.Window);
 
         SetQueryPart(QueryPart.From);
         node.From.Accept(this);
@@ -39,6 +40,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
         node.Accept(Visitor);
         RestoreScope();
         SetQueryPart(QueryPart.None);
+        aliasPrecollector?.EndCurrentQueryWindowDefinitionScope();
         aliasPrecollector?.EndCurrentQuerySelectAliasScope();
         EndQueryScope();
     }

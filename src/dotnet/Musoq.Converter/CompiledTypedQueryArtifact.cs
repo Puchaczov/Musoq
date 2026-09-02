@@ -9,10 +9,10 @@ namespace Musoq.Converter;
 
 public sealed class CompiledTypedQueryArtifact : ICompiledTypedQueryArtifact
 {
-    public const int CurrentArtifactVersion = 1;
+    public const int CurrentArtifactVersion = 2;
 
     private static readonly string CurrentEngineVersion = GetAssemblyVersion(typeof(InstanceCreator));
-    private static readonly string CurrentRuntimeVersion = GetAssemblyVersion(typeof(global::Musoq.Evaluator.CompiledTypedQuery<>));
+    private static readonly string CurrentRuntimeVersion = GetAssemblyVersion(typeof(CompiledTypedQuery<>));
     private readonly byte[] _dllFile;
     private readonly byte[]? _pdbFile;
     private readonly IReadOnlyList<TypedArtifactSourceSlotIdentity> _sourceSlotIdentities;

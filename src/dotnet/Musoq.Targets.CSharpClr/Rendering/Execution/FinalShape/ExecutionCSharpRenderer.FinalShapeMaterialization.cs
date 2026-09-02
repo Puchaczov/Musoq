@@ -20,7 +20,7 @@ public sealed partial class ExecutionCSharpRenderer
             statements.Add(CreateLocalDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
                 rowNumberVariableName,
-                ExecutionCSharpRenderer.CreateIntLiteral(1)));
+                CreateIntLiteral(1)));
         }
 
         var recordVariableName = $"{materialize.Target.Name}Record";
@@ -47,7 +47,7 @@ public sealed partial class ExecutionCSharpRenderer
                 ? SyntaxFactory.PostfixUnaryExpression(
                     SyntaxKind.PostIncrementExpression,
                     SyntaxFactory.IdentifierName(rowNumberVariableName))
-                : ExecutionCSharpRenderer.CreateRecordPropertyRead(
+                : CreateRecordPropertyRead(
                     recordVariableName,
                     materialize.RecordShape.Fields[sourceIndex],
                     materialize.RowShape.Fields[fieldIndex].Type.RequireClrType());

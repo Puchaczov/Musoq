@@ -142,7 +142,7 @@ public class TypeErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE NOT Name"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind);
         AssertHasGuidance(ex);
     }
 
@@ -279,7 +279,7 @@ public class TypeErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE Age CONTAINS '5'"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2002_MissingToken, DiagnosticPhase.Parse);
         AssertHasGuidance(ex);
     }
 

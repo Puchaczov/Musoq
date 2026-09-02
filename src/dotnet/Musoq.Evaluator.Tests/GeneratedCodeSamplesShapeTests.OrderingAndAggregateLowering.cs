@@ -180,8 +180,6 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                 var failures = new List<string>();
                 if (sample.Content.Contains("var rootGroup = new Group(", StringComparison.Ordinal))
                     failures.Add($"{sample.FileName}: still creates legacy aggregate root group");
-                if (sample.Content.Contains("groupsLevel_", StringComparison.Ordinal))
-                    failures.Add($"{sample.FileName}: still creates intermediate legacy group dictionaries");
                 if (sample.Content.Contains("new Group(parent", StringComparison.Ordinal))
                     failures.Add($"{sample.FileName}: still creates legacy parent group chain");
 

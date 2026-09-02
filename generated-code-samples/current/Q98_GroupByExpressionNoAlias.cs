@@ -58,10 +58,11 @@ ExecutionPlan [compiled]
     CreateValueTupleAggregateContext [statement0Groups: (string, string) -> Statement0AggregateGroup]
     ChunkedForEach [ko3iko in statement0_ko3ikoRows]
       Let [city: string = ko3iko.City]
-      Let [population: decimal = ko3iko.Population]
       GetOrAddValueTupleAggregateGroup [statement0Group = statement0Groups[(Substring(city, IndexOf(city, ':')), ko3iko.Country)] by Substring(City, IndexOf(City, :)), Country; typed: Statement0AggregateGroup]
+      Let [population: decimal = ko3iko.Population]
       TypedAggregateSet [Set(statement0Group.__agg0, population)]
-      TypedAggregateSet [Set(statement0Group.__agg1, city)]
+      Let [city1: string = ko3iko.City]
+      TypedAggregateSet [Set(statement0Group.__agg1, city1)]
     EnsureCapacity [statement0 <- statement0GroupsToFinalize.Count]
     ForEach [statement0FinalGroup in statement0GroupsToFinalize]
       AppendRow [statement0 <- Statement0Row0(ko3iko.Country: statement0FinalGroup.Country, ko3iko.Substring(ko3iko.City, ko3iko.IndexOf(ko3iko.City, ':')): statement0FinalGroup.Substring(City, IndexOf(City, :)), ko3iko.Sum(ko3iko.Population): ko3iko.Sum(ko3iko.Population), ko3iko.Count(ko3iko.City): ko3iko.Count(ko3iko.City))]
@@ -215,7 +216,6 @@ namespace GeneratedSample_Q98_GroupByExpressionNoAlias
 
                             var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                             string city = ko3iko.City;
-                            decimal population = ko3iko.Population;
                             string groupKey0 = (string)__statement0LibraryBase0.Substring(city, (int?)__statement0LibraryBase0.IndexOf(city, ":"));
                             string groupKey1 = ko3iko.Country;
                             ref var statement0GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0Groups, (groupKey0, groupKey1), out var statement0GroupExists);
@@ -226,6 +226,7 @@ namespace GeneratedSample_Q98_GroupByExpressionNoAlias
                             }
 
                             Statement0AggregateGroup statement0Group = statement0GroupRef;
+                            decimal population = ko3iko.Population;
                             {
                                 var __agg0Input = (decimal?)population;
                                 if (__agg0Input.HasValue)
@@ -236,7 +237,8 @@ namespace GeneratedSample_Q98_GroupByExpressionNoAlias
                                 }
                             }
 
-                            if ((string)city != null)
+                            string city1 = ko3iko.City;
+                            if ((string)city1 != null)
                             {
                                 statement0Group.__agg1.Count = checked(statement0Group.__agg1.Count + 1L);
                             }
@@ -257,7 +259,6 @@ namespace GeneratedSample_Q98_GroupByExpressionNoAlias
 
                             var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                             string city = ko3iko.City;
-                            decimal population = ko3iko.Population;
                             string groupKey0 = (string)__statement0LibraryBase0.Substring(city, (int?)__statement0LibraryBase0.IndexOf(city, ":"));
                             string groupKey1 = ko3iko.Country;
                             ref var statement0GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0Groups, (groupKey0, groupKey1), out var statement0GroupExists);
@@ -268,6 +269,7 @@ namespace GeneratedSample_Q98_GroupByExpressionNoAlias
                             }
 
                             Statement0AggregateGroup statement0Group = statement0GroupRef;
+                            decimal population = ko3iko.Population;
                             {
                                 var __agg0Input = (decimal?)population;
                                 if (__agg0Input.HasValue)
@@ -278,7 +280,8 @@ namespace GeneratedSample_Q98_GroupByExpressionNoAlias
                                 }
                             }
 
-                            if ((string)city != null)
+                            string city1 = ko3iko.City;
+                            if ((string)city1 != null)
                             {
                                 statement0Group.__agg1.Count = checked(statement0Group.__agg1.Count + 1L);
                             }
@@ -297,7 +300,6 @@ namespace GeneratedSample_Q98_GroupByExpressionNoAlias
 
                     var ko3iko = ko3ikoChunk[ko3ikoIndex];
                     string city = ko3iko.City;
-                    decimal population = ko3iko.Population;
                     string groupKey0 = (string)__statement0LibraryBase0.Substring(city, (int?)__statement0LibraryBase0.IndexOf(city, ":"));
                     string groupKey1 = ko3iko.Country;
                     ref var statement0GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0Groups, (groupKey0, groupKey1), out var statement0GroupExists);
@@ -308,6 +310,7 @@ namespace GeneratedSample_Q98_GroupByExpressionNoAlias
                     }
 
                     Statement0AggregateGroup statement0Group = statement0GroupRef;
+                    decimal population = ko3iko.Population;
                     {
                         var __agg0Input = (decimal?)population;
                         if (__agg0Input.HasValue)
@@ -318,7 +321,8 @@ namespace GeneratedSample_Q98_GroupByExpressionNoAlias
                         }
                     }
 
-                    if ((string)city != null)
+                    string city1 = ko3iko.City;
+                    if ((string)city1 != null)
                     {
                         statement0Group.__agg1.Count = checked(statement0Group.__agg1.Count + 1L);
                     }

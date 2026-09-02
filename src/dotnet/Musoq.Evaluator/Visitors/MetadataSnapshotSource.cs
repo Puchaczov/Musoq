@@ -32,6 +32,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             HasDeclaredSourceRuntimeSettings = HasDeclaredSourceRuntimeSettings,
             HasSourceRuntimeSettingValues = HasSourceRuntimeSettingValues,
             Assemblies = _methodResolution.Assemblies,
+            QueryLocalEnumTypes = _enumBinding.QueryLocalTypes,
             SetOperatorFieldPositions = _queryState.SetOperatorFieldPositions,
             SetOperatorFieldTypes = _queryState.SetOperatorFieldTypes,
             ResultShape = new SemanticResultShapeSnapshotInput
@@ -76,7 +77,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             var columns = entry.Value.Select(BoundSchemaColumn.Capture).ToArray();
             var requiredMembers = columns
                 .Select(static column =>
-                    $"{column.ColumnName}:{column.ColumnType.AssemblyQualifiedName ?? column.ColumnType.FullName}:{column.IsNullable}")
+                    $"{column.ColumnName}:{column.ColumnType.AssemblyQualifiedName ?? column.ColumnType.FullName}:{column.IsNullable}:{column.Stability}")
                 .ToArray();
             var methodSignature = string.Concat(
                 source.Schema,

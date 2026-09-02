@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -22,11 +23,14 @@ public class TextSchemaNode : Node
     /// <param name="name">The schema name.</param>
     /// <param name="fields">The field definitions.</param>
     /// <param name="extends">Optional base schema name for inheritance.</param>
-    public TextSchemaNode(string name, TextFieldDefinitionNode[] fields, string? extends = null)
+    public TextSchemaNode(string name, TextFieldDefinitionNode[] fields, string? extends = null,
+        TextSpan extendsSpan = default, IReadOnlyList<SchemaComment>? comments = null)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         Fields = fields ?? throw new ArgumentNullException(nameof(fields));
         Extends = extends;
+        ExtendsSpan = extendsSpan;
+        Comments = comments != null ? [..comments] : [];
 
         var fieldsId = fields.Length == 0
             ? string.Empty
@@ -49,6 +53,16 @@ public class TextSchemaNode : Node
     ///     Gets the optional base schema name for inheritance.
     /// </summary>
     public string? Extends { get; }
+
+    /// <summary>
+    ///     Gets the source span of the inherited schema name, when parsed from query text.
+    /// </summary>
+    public TextSpan ExtendsSpan { get; }
+
+    /// <summary>
+    ///     Gets comments retained from the schema declaration for introspection and documentation generation.
+    /// </summary>
+    public IReadOnlyList<SchemaComment> Comments { get; }
 
     /// <inheritdoc />
     /// <remarks>

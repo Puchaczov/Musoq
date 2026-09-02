@@ -5,6 +5,7 @@ using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tables;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests.IR;
 
@@ -337,6 +338,51 @@ public sealed partial class ExecutionCSharpRendererTests
                     ColumnMetadata: new ExecutionColumnMetadata(
                         "shared",
                         [new ExecutionColumnMetadataField("Name", 0, typeof(string))],
+                        ExecutionColumnMetadataKind.TableColumns))
+            ]));
+    }
+
+    private static ExecutionPlan CreateSameReferenceDifferentEnumMetadataPlan()
+    {
+        var shape = new GeneratedRowShape(
+            "StatusRow",
+            [
+                new FieldBinding("Status", "Status", 0, typeof(short), FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Status"))
+            ]);
+        var firstTable = new ExecutionVariable("first", typeof(object));
+        var secondTable = new ExecutionVariable("second", typeof(object));
+        var status = new EnumTypeDescriptor(
+            "JobStatus",
+            EnumTypeOrigin.QueryLocal,
+            EnumUnderlyingKind.Int16,
+            false,
+            [new EnumMemberDescriptor("Queued", EnumScalarValue.FromInt16(10))]);
+        var priority = new EnumTypeDescriptor(
+            "Priority",
+            EnumTypeOrigin.QueryLocal,
+            EnumUnderlyingKind.Int16,
+            false,
+            [new EnumMemberDescriptor("Normal", EnumScalarValue.FromInt16(10))]);
+
+        return new ExecutionPlan(
+            "Q_EnumMetadataCollision",
+            [shape],
+            new ExecutionBlock(
+            [
+                new ExecutionCreateTable(
+                    firstTable,
+                    shape,
+                    ColumnMetadata: new ExecutionColumnMetadata(
+                        "shared",
+                        [new ExecutionColumnMetadataField("Status", 0, typeof(short), enumType: status)],
+                        ExecutionColumnMetadataKind.TableColumns)),
+                new ExecutionCreateTable(
+                    secondTable,
+                    shape,
+                    ColumnMetadata: new ExecutionColumnMetadata(
+                        "shared",
+                        [new ExecutionColumnMetadataField("Status", 0, typeof(short), enumType: priority)],
                         ExecutionColumnMetadataKind.TableColumns))
             ]));
     }

@@ -21,21 +21,19 @@ internal static partial class RequiredColumnUsagePlanner
                 return;
             }
 
-            var matchingSourceReferences = sourceReferences
-                .Where(source => source.ContainsOutputColumn(columnName))
-                .ToArray();
+            var matchingSourceReferences = RequiredColumnSourceResolver.Find(sourceReferences, columnName);
 
             if (matchingSourceReferences.Length == 0)
                 return;
 
-            AddRequiredColumn(alias, columnName);
+            AddRequiredColumn(alias, matchingSourceReferences[0].ColumnName);
 
             var confidence = matchingSourceReferences.Length == 1
                 ? PlanningConfidence.High
                 : PlanningConfidence.Medium;
 
-            foreach (var source in matchingSourceReferences)
-                AddSourceUsage(source, columnName, reason, confidence);
+            foreach (var match in matchingSourceReferences)
+                AddSourceUsage(match.Source, match.ColumnName, reason, confidence);
         }
 
         private void AddRequiredColumn(string alias, string columnName)

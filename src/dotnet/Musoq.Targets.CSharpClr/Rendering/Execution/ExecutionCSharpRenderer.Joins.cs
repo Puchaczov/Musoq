@@ -264,7 +264,7 @@ public sealed partial class ExecutionCSharpRenderer
                 break;
             case ExecutionIf branch:
                 yield return SyntaxFactory.IfStatement(
-                    RenderExpression(branch.Condition, context),
+                    this.RenderBooleanCondition(branch.Condition, context),
                     StatementEmitter.CreateBlock(CreateParallelProjectionProjectorStatements(branch.Body, createProjection, context)));
                 break;
             case ExecutionAppendRow appendRow:

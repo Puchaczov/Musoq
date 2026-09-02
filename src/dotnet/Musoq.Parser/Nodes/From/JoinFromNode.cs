@@ -2,22 +2,37 @@ namespace Musoq.Parser.Nodes.From;
 
 public class JoinFromNode : BinaryFromNode
 {
-    internal JoinFromNode(FromNode source, FromNode with, Node expression, JoinType joinType, FieldOrderedNode? tieBreak = null)
+    internal JoinFromNode(
+        FromNode source,
+        FromNode with,
+        Node expression,
+        JoinType joinType,
+        FieldOrderedNode? tieBreak = null,
+        bool withOrdinality = false)
         : base(source, with, CreateAlias(source, with))
     {
         Expression = expression;
         JoinType = joinType;
         TieBreak = tieBreak;
+        WithOrdinality = withOrdinality;
         Span = ComputeSpan(source, with, expression, tieBreak);
         FullSpan = Span;
     }
 
-    public JoinFromNode(FromNode source, FromNode with, Node expression, JoinType joinType, Type returnType, FieldOrderedNode? tieBreak = null)
+    public JoinFromNode(
+        FromNode source,
+        FromNode with,
+        Node expression,
+        JoinType joinType,
+        Type returnType,
+        FieldOrderedNode? tieBreak = null,
+        bool withOrdinality = false)
         : base(source, with, CreateAlias(source, with), returnType)
     {
         Expression = expression;
         JoinType = joinType;
         TieBreak = tieBreak;
+        WithOrdinality = withOrdinality;
         Span = ComputeSpan(source, with, expression, tieBreak);
         FullSpan = Span;
     }
@@ -25,7 +40,8 @@ public class JoinFromNode : BinaryFromNode
     public Node Expression { get; }
     public JoinType JoinType { get; }
     public FieldOrderedNode? TieBreak { get; }
-    public override string Id => $"{nameof(JoinFromNode)}{Source.Id}{With.Id}{Expression.Id}{TieBreak?.Id}";
+    public bool WithOrdinality { get; }
+    public override string Id => $"{nameof(JoinFromNode)}{Source.Id}{With.Id}{Expression.Id}{TieBreak?.Id}{(WithOrdinality ? "WithOrdinality" : string.Empty)}";
 
     public override void Accept(IExpressionVisitor visitor)
     {

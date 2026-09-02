@@ -139,7 +139,7 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
-        Assert.Contains("TypedAggregateSet [Set(group.__agg0, value) filter (m.Value > 1)]", result.ExecutionPlanText);
+        Assert.Contains("TypedAggregateSet [Set(group.__agg0, nValue) filter (m.Value > 1)]", result.ExecutionPlanText);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }

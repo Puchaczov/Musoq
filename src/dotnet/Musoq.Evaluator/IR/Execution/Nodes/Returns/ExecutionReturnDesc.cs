@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Logical.Nodes;
+using Musoq.Parser;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -13,7 +14,8 @@ public sealed record ExecutionReturnDesc : ExecutionNode
         IReadOnlyList<ExecutionExpression> arguments,
         string runtimeContextId,
         int schemaFromIndex,
-        ExecutionColumnMetadata? queryColumnMetadata = null)
+        ExecutionColumnMetadata? queryColumnMetadata = null,
+        TextSpan? columnSpan = null)
     {
         SchemaName = schemaName;
         MethodName = methodName;
@@ -23,6 +25,7 @@ public sealed record ExecutionReturnDesc : ExecutionNode
         RuntimeContextId = runtimeContextId;
         SchemaFromIndex = schemaFromIndex;
         QueryColumnMetadata = queryColumnMetadata;
+        ColumnSpan = columnSpan;
     }
 
     public string SchemaName { get; init; }
@@ -33,4 +36,5 @@ public sealed record ExecutionReturnDesc : ExecutionNode
     public string RuntimeContextId { get; init; }
     public int SchemaFromIndex { get; init; }
     public ExecutionColumnMetadata? QueryColumnMetadata { get; init; }
+    public TextSpan? ColumnSpan { get; init; }
 }

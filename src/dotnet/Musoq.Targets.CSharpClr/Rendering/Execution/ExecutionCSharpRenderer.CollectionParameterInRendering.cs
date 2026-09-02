@@ -1,5 +1,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Musoq.Evaluator.Helpers;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -14,33 +15,30 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ExpressionSyntax RenderCollectionInCheck(
         ExecutionCollectionInCheck collectionInCheck,
-        ExecutionRenderContext context)
-    {
-        var helper = SyntaxFactory.GenericName("CollectionParameterContains")
-            .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                SyntaxFactory.SingletonSeparatedList(CreateTypeSyntax(collectionInCheck.ElementType))));
+        ExecutionRenderContext context) =>
+        RenderCollectionParameterCheck(
+            collectionInCheck,
+            context,
+            nameof(EvaluationHelper.CollectionParameterContains));
 
-        return SyntaxFactory.InvocationExpression(helper)
+    private ExpressionSyntax RenderCollectionNotInCheck(
+        ExecutionCollectionInCheck collectionInCheck,
+        ExecutionRenderContext context) =>
+        RenderCollectionParameterCheck(
+            collectionInCheck,
+            context,
+            nameof(EvaluationHelper.CollectionParameterNotContains));
+
+    private ExpressionSyntax RenderCollectionParameterCheck(
+        ExecutionCollectionInCheck collectionInCheck,
+        ExecutionRenderContext context,
+        string helperName)
+    {
+        return SyntaxFactory.InvocationExpression(CreateGenericEvaluationHelperMemberAccess(
+                helperName,
+                EvaluationHelper.GetCastableType(collectionInCheck.ElementType.RequireClrType())))
             .WithArgumentList(CreateArgumentList(
                 RenderExpression(collectionInCheck.Expression, context),
                 RenderExpression(collectionInCheck.Collection, context)));
-    }
-
-    private static MethodDeclarationSyntax CreateCollectionParameterContainsFunction()
-    {
-        return (MethodDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration(
-            """
-            private static bool CollectionParameterContains<T>(T value, IReadOnlyList<T> values)
-            {
-                var comparer = EqualityComparer<T>.Default;
-                for (var index = 0; index < values.Count; index++)
-                {
-                    if (comparer.Equals(value, values[index]))
-                        return true;
-                }
-
-                return false;
-            }
-            """)!;
     }
 }

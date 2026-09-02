@@ -84,7 +84,7 @@ public sealed partial class ExecutionCSharpRenderer
         }
 
         var rowsExpression = topOffset.Strategy == ExecutionTopOffsetStrategy.BoundedHeap
-            ? ExecutionCSharpRenderer.CreateBoundedTopOffsetRowsExpression(topOffset)
+            ? CreateBoundedTopOffsetRowsExpression(topOffset)
             : CreateOrderedSliceRowsExpression(
                 topOffset,
                 TryGetGeneratedRowShape(topOffset.Source, context, out var rowShape) ? rowShape : null,
@@ -148,7 +148,7 @@ public sealed partial class ExecutionCSharpRenderer
             statements = RenderFinalShapeSourceBufferFromShapeRowsExpression(
                 topN.Target.Name,
                 $"{topN.Target.Name}Rows",
-                ExecutionCSharpRenderer.CreateRowsMethodExpression(bufferedOrderedRows, "Take", topN.Count),
+                CreateRowsMethodExpression(bufferedOrderedRows, "Take", topN.Count),
                 context,
                 topN.RenumberFieldIndexes);
             return true;
@@ -169,7 +169,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         statements = RenderFinalShapeRowsFromShapeRowsExpression(
             $"{topN.Target.Name}Rows",
-            ExecutionCSharpRenderer.CreateRowsMethodExpression(orderedRows, "Take", topN.Count),
+            CreateRowsMethodExpression(orderedRows, "Take", topN.Count),
             context,
             topN.RenumberFieldIndexes);
         return true;
@@ -293,7 +293,7 @@ public sealed partial class ExecutionCSharpRenderer
                    throw new InvalidOperationException("Final shape sink is not active.");
         ExpressionSyntax keyExpression = sink.Fields.Count switch
         {
-            0 => ExecutionCSharpRenderer.CreateIntLiteral(0),
+            0 => CreateIntLiteral(0),
             1 => CreateFinalShapeFieldRead(rowName, sink.Fields[0]),
             _ => SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(
                 sink.Fields.Select(field => SyntaxFactory.Argument(CreateFinalShapeFieldRead(rowName, field)))))
@@ -309,7 +309,7 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(rowName),
-            SyntaxFactory.IdentifierName(EscapeIdentifier(ExecutionCSharpRenderer.GetGeneratedFieldName(field))));
+            SyntaxFactory.IdentifierName(EscapeIdentifier(GetGeneratedFieldName(field))));
     }
 
     private bool TryRenderOrderedFinalShapeRows(
@@ -347,11 +347,11 @@ public sealed partial class ExecutionCSharpRenderer
 
         if (topOffset.Strategy == ExecutionTopOffsetStrategy.BoundedHeap)
         {
-            rowsExpression = ExecutionCSharpRenderer.CreateEvaluationHelperInvocation(
+            rowsExpression = CreateEvaluationHelperInvocation(
                 nameof(EvaluationHelper.SelectTopOffsetRecords),
                 SyntaxFactory.IdentifierName(topOffset.Source.Name),
-                ExecutionCSharpRenderer.CreateIntLiteral(topOffset.SkipCount),
-                ExecutionCSharpRenderer.CreateIntLiteral(topOffset.TakeCount),
+                CreateIntLiteral(topOffset.SkipCount),
+                CreateIntLiteral(topOffset.TakeCount),
                 comparer);
             return true;
         }
@@ -362,8 +362,8 @@ public sealed partial class ExecutionCSharpRenderer
             return false;
         }
 
-        rowsExpression = ExecutionCSharpRenderer.CreateRowsMethodExpression(
-            ExecutionCSharpRenderer.CreateRowsMethodExpression(orderedRows, "Skip", topOffset.SkipCount),
+        rowsExpression = CreateRowsMethodExpression(
+            CreateRowsMethodExpression(orderedRows, "Skip", topOffset.SkipCount),
             "Take",
             topOffset.TakeCount);
         return true;
@@ -418,7 +418,7 @@ public sealed partial class ExecutionCSharpRenderer
         for (var index = 0; index < keys.Count; index++)
         {
             var key = keys[index];
-            ExecutionCSharpRenderer.AddOrderRecordComparisonStatements(body, index, key, sink.Fields[key.OutputIndex]);
+            AddOrderRecordComparisonStatements(body, index, key, sink.Fields[key.OutputIndex]);
         }
 
         body.Add("        return 0;");

@@ -6,7 +6,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class ThirdRoundWindowResultTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void RowsAndRangeWithPeerValues_ShouldPreserveCompleteRowAssociations()

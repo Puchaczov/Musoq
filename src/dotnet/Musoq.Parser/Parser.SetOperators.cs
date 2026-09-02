@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
 
@@ -23,18 +22,30 @@ public partial class Parser
             var setOperatorType = Current.TokenType;
             Consume(Current.TokenType);
 
-            var keys = ComposeSetOperatorKeys();
+            var (keys, keySpans) = ComposeSetOperatorKeys();
 
             var nextSet = ComposeSetOperators(nestingLevel + 1, composeResultModifiers: false);
             var isQuery = nextSet is QueryNode;
             node = setOperatorType switch
             {
-                TokenType.Except => new ExceptNode(string.Empty, keys, node, nextSet, nestingLevel != 0, isQuery),
-                TokenType.Union => new UnionNode(string.Empty, keys, node, nextSet, nestingLevel != 0, isQuery),
+                TokenType.Except => new ExceptNode(string.Empty, keys, node, nextSet, nestingLevel != 0, isQuery)
+                {
+                    KeySpans = keySpans
+                },
+                TokenType.Union => new UnionNode(string.Empty, keys, node, nextSet, nestingLevel != 0, isQuery)
+                {
+                    KeySpans = keySpans
+                },
                 TokenType.UnionAll => new UnionAllNode(string.Empty, keys, node, nextSet, nestingLevel != 0,
-                    isQuery),
+                    isQuery)
+                {
+                    KeySpans = keySpans
+                },
                 TokenType.Intersect => new IntersectNode(string.Empty, keys, node, nextSet, nestingLevel != 0,
-                    isQuery),
+                    isQuery)
+                {
+                    KeySpans = keySpans
+                },
                 _ => node
             };
         }
@@ -82,7 +93,10 @@ public partial class Parser
                 node.IsTheLastOne,
                 orderBy,
                 skip,
-                take),
+                take)
+            {
+                KeySpans = node.KeySpans
+            },
             UnionAllNode => new UnionAllNode(
                 node.ResultTableName,
                 node.Keys,
@@ -92,7 +106,10 @@ public partial class Parser
                 node.IsTheLastOne,
                 orderBy,
                 skip,
-                take),
+                take)
+            {
+                KeySpans = node.KeySpans
+            },
             ExceptNode => new ExceptNode(
                 node.ResultTableName,
                 node.Keys,
@@ -102,7 +119,10 @@ public partial class Parser
                 node.IsTheLastOne,
                 orderBy,
                 skip,
-                take),
+                take)
+            {
+                KeySpans = node.KeySpans
+            },
             IntersectNode => new IntersectNode(
                 node.ResultTableName,
                 node.Keys,
@@ -112,51 +132,13 @@ public partial class Parser
                 node.IsTheLastOne,
                 orderBy,
                 skip,
-                take),
+                take)
+            {
+                KeySpans = node.KeySpans
+            },
             _ => throw new NotSupportedException($"Set operator '{node.GetType().Name}' is not supported.")
         };
     }
-
-
-    private string[] ComposeSetOperatorKeys()
-    {
-        var keys = new List<string>();
-
-        if (Current.TokenType != TokenType.LeftParenthesis) return keys.ToArray();
-
-        Consume(TokenType.LeftParenthesis);
-
-        if (Current.TokenType == TokenType.RightParenthesis)
-        {
-            Consume(TokenType.RightParenthesis);
-            return keys.ToArray();
-        }
-
-        keys.Add(ParsePotentiallyDottedName());
-        while (Current.TokenType == TokenType.Comma)
-        {
-            Consume(TokenType.Comma);
-            keys.Add(ParsePotentiallyDottedName());
-        }
-
-        Consume(TokenType.RightParenthesis);
-
-        return keys.ToArray();
-    }
-
-
-    private string ParsePotentiallyDottedName()
-    {
-        var value = Current.Value;
-        Consume(Current.TokenType);
-        if (Current.TokenType != TokenType.Dot) return value;
-
-        Consume(Current.TokenType);
-        value = $"{value}.{Current.Value}";
-        Consume(Current.TokenType);
-        return value;
-    }
-
 
     private static bool IsSetOperator(TokenType currentTokenType)
     {

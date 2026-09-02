@@ -150,7 +150,6 @@ public partial class TransformTree
         var reason = string.IsNullOrWhiteSpace(unsupportedReason)
             ? "Execution IR lowering did not produce a plan."
             : unsupportedReason;
-
         return InternalDiagnosticException.ForCompiler(
             new NotSupportedException(
                 $"Execution IR does not support this query shape and old physical rendering is disabled: {reason}"));

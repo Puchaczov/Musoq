@@ -41,9 +41,9 @@ public class CompileErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name, Age, City, Count(1) FROM #test.people() GROUP BY City"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3012_NonAggregateInSelect, DiagnosticPhase.Bind, "Age");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3012_NonAggregateInSelect, DiagnosticPhase.Bind, "Name");
         AssertHasGuidance(ex);
-        AssertSecondaryEnvelopeCode(ex, 1, DiagnosticCode.MQ3012_NonAggregateInSelect, "Name");
+        AssertSecondaryEnvelopeCode(ex, 1, DiagnosticCode.MQ3012_NonAggregateInSelect, "Age");
     }
 
     [TestMethod]

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Diagnostics;
@@ -15,7 +16,7 @@ public class ParserStatementRecoveryTests
         var result = ParseWithDiagnostics("select 1 + from #some.files() take 5");
 
         Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
-        Assert.AreEqual(DiagnosticCode.MQ2001_UnexpectedToken, result.Diagnostics[0].Code);
+        Assert.AreEqual(DiagnosticCode.MQ2020_MissingOperand, result.Diagnostics[0].Code);
     }
 
     [TestMethod]
@@ -38,7 +39,27 @@ public class ParserStatementRecoveryTests
 
         Assert.HasCount(2, result.Diagnostics, result.FormatDiagnostics());
         Assert.IsTrue(result.Diagnostics.All(diagnostic =>
-            diagnostic.Code == DiagnosticCode.MQ2001_UnexpectedToken));
+            diagnostic.Code == DiagnosticCode.MQ2020_MissingOperand));
+        Assert.IsNotNull(result.Root);
+        var statements = (StatementsArrayNode)result.Root.Expression;
+        Assert.HasCount(1, statements.Statements);
+    }
+
+    [TestMethod]
+    public void Recovery_ShouldKeepIndependentDiagnosticsInSourceOrder()
+    {
+        const string query =
+            "select 1 + from #some.files(); select Name,, City from #some.files(); " +
+            "select Name from #some.files()";
+
+        var result = ParseWithDiagnostics(query);
+
+        Assert.HasCount(2, result.Diagnostics, result.FormatDiagnostics());
+        Assert.AreEqual(DiagnosticCode.MQ2020_MissingOperand, result.Diagnostics[0].Code);
+        Assert.AreEqual(DiagnosticCode.MQ2001_UnexpectedToken, result.Diagnostics[1].Code);
+        Assert.IsTrue(
+            result.Diagnostics[0].Location.Offset < result.Diagnostics[1].Location.Offset,
+            result.FormatDiagnostics());
         Assert.IsNotNull(result.Root);
         var statements = (StatementsArrayNode)result.Root.Expression;
         Assert.HasCount(1, statements.Statements);
@@ -65,18 +86,22 @@ public class ParserStatementRecoveryTests
         var result = ParseWithDiagnostics(query);
 
         Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
-        Assert.AreEqual(DiagnosticCode.MQ2001_UnexpectedToken, result.Diagnostics[0].Code);
+        Assert.AreEqual(
+            query.Contains("[Name", StringComparison.Ordinal)
+                ? DiagnosticCode.MQ2011_MissingClosingBracket
+                : DiagnosticCode.MQ2001_UnexpectedToken,
+            result.Diagnostics[0].Code);
     }
 
     [TestMethod]
     [DataRow("select Name from #some.files() where Name =")]
     [DataRow("select Name from #some.files() where Name = 'test' and")]
-    public void IncompleteExpressionAtEnd_ShouldReportSingleUnexpectedToken(string query)
+    public void IncompleteExpressionAtEnd_ShouldReportSingleMissingOperand(string query)
     {
         var result = ParseWithDiagnostics(query);
 
         Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
-        Assert.AreEqual(DiagnosticCode.MQ2001_UnexpectedToken, result.Diagnostics[0].Code);
+        Assert.AreEqual(DiagnosticCode.MQ2020_MissingOperand, result.Diagnostics[0].Code);
     }
 
     private static ParseResult ParseWithDiagnostics(string query)

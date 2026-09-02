@@ -1,6 +1,9 @@
+using System.Linq;
 using Musoq.Evaluator.IR.Physical;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Physical.Rewriting;
+using Musoq.Plugins;
 
 namespace Musoq.Evaluator.IR.Optimization.Physical;
 
@@ -35,12 +38,34 @@ internal sealed class OrderingStrategySelectionPass : IPhysicalOptimizationPass
 
         if (input is PhysicalSkipNode { Input: PhysicalSortNode sort } skip)
         {
+            if (ContainsNonWindowRowNumberProjection(sort.Input))
+            {
+                AddDecision(
+                    state,
+                    TakeStrategyKind.Take,
+                    "A non-window RowNumber projection requires complete ordering before SKIP/TAKE.");
+                return ReferenceEquals(input, take.Input)
+                    ? take
+                    : new PhysicalTakeNode(take.Count, input);
+            }
+
             AddDecision(state, TakeStrategyKind.TopOffset, "Sort -> Skip -> Take can use bounded top-offset ordering.");
             return new PhysicalTopOffsetNode(skip.Count, take.Count, sort.Keys, sort.Input);
         }
 
         if (input is PhysicalSortNode sortOnly)
         {
+            if (ContainsNonWindowRowNumberProjection(sortOnly.Input))
+            {
+                AddDecision(
+                    state,
+                    TakeStrategyKind.Take,
+                    "A non-window RowNumber projection requires complete ordering before TAKE.");
+                return ReferenceEquals(input, take.Input)
+                    ? take
+                    : new PhysicalTakeNode(take.Count, input);
+            }
+
             AddDecision(state, TakeStrategyKind.TopN, "Sort -> Take can use bounded top-N ordering.");
             return new PhysicalTopNNode(take.Count, sortOnly.Keys, sortOnly.Input);
         }
@@ -64,5 +89,25 @@ internal sealed class OrderingStrategySelectionPass : IPhysicalOptimizationPass
             PlanningConfidence.High,
             reason));
     }
-}
 
+    private static bool ContainsNonWindowRowNumberProjection(PhysicalNode node)
+    {
+        if (node is PhysicalProjectNode project &&
+            project.Fields.Any(static field =>
+                field.Expression is MethodCall methodCall && IsRowNumberMethod(methodCall.Method)))
+        {
+            return true;
+        }
+
+        return node.Children.Any(ContainsNonWindowRowNumberProjection);
+    }
+
+    private static bool IsRowNumberMethod(System.Reflection.MethodInfo method)
+    {
+        if (!string.Equals(method.Name, "RowNumber", StringComparison.Ordinal))
+            return false;
+
+        var declaringType = method.DeclaringType;
+        return declaringType is not null && typeof(LibraryBase).IsAssignableFrom(declaringType);
+    }
+}

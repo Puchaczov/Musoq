@@ -87,7 +87,8 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         var fields = select.Fields
             .Where(field => !BuildMetadataAndInferTypesVisitorUtilities.ContainsAggregateFunction(field.Expression))
-            .Select((field, index) => new FieldNode(CloneExpression(field.Expression), index, string.Empty))
+            .Select((field, index) => (FieldNode)new FieldNode(CloneExpression(field.Expression), index, string.Empty, field.Span)
+                .WithFullSpan(field.FullSpan))
             .ToArray();
 
         if (fields.Length == 0)

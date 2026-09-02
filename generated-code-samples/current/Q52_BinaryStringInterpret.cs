@@ -329,10 +329,14 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override TextPacket InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("Length");
             var _length = ReadByte(data);
+            RecordParsedField("Length", _length);
+            SetCurrentField("Text");
             var _text = ReadString(data, (int)_length, System.Text.Encoding.ASCII).Trim();
+            RecordParsedField("Text", _text);
             return new TextPacket
             {
                 Length = _length,

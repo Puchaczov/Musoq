@@ -85,6 +85,9 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
     /// <inheritdoc />
     public bool? Equal(object? left, object? right)
     {
+        if (left is null || right is null)
+            return null;
+
         var leftDecimal = _strictConverter.TryConvertToDecimal(left);
         var rightDecimal = _strictConverter.TryConvertToDecimal(right);
 
@@ -100,6 +103,9 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
     /// <inheritdoc />
     public bool? NotEqual(object? left, object? right)
     {
+        if (left is null || right is null)
+            return null;
+
         var leftDecimal = _strictConverter.TryConvertToDecimal(left);
         var rightDecimal = _strictConverter.TryConvertToDecimal(right);
 

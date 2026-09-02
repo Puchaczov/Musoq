@@ -125,10 +125,21 @@ internal static class InterpretationPropertyTypeNameResolver
 
         var reference = ParseSchemaReference(typeName);
         if (!schemaRegistry.TryGetSchema(reference.SchemaName, out var registration) ||
-            registration?.Node is not BinarySchemaNode binary)
+            registration?.Node is null)
         {
             return null;
         }
+
+        if (registration.Node is TextSchemaNode text)
+        {
+            var textField = FindTextField(text, fieldName, schemaRegistry);
+            return textField == null
+                ? null
+                : ResolveTextFieldTypeName(text, textField, schemaRegistry);
+        }
+
+        if (registration.Node is not BinarySchemaNode binary)
+            return null;
 
         var bindings = CreateBindings(binary, reference);
         var field = FindBinaryField(binary, fieldName, schemaRegistry);
@@ -166,6 +177,42 @@ internal static class InterpretationPropertyTypeNameResolver
 
         return binary.Fields.FirstOrDefault(
             field => string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static TextFieldDefinitionNode? FindTextField(
+        TextSchemaNode text,
+        string fieldName,
+        SchemaRegistry schemaRegistry)
+    {
+        if (!string.IsNullOrWhiteSpace(text.Extends) &&
+            schemaRegistry.TryGetSchema(text.Extends, out var parentRegistration) &&
+            parentRegistration?.Node is TextSchemaNode parent)
+        {
+            var inherited = FindTextField(parent, fieldName, schemaRegistry);
+            if (inherited != null)
+                return inherited;
+        }
+
+        return text.Fields.FirstOrDefault(field =>
+            string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string? ResolveTextFieldTypeName(
+        TextSchemaNode text,
+        TextFieldDefinitionNode field,
+        SchemaRegistry schemaRegistry)
+    {
+        return field.FieldType switch
+        {
+            TextFieldType.SchemaReference => CreateGeneratedTypeName(
+                new SchemaReferenceTypeNode(field.PrimaryValue ?? "object"),
+                schemaRegistry),
+            TextFieldType.Repeat =>
+                $"{CreateGeneratedTypeName(new SchemaReferenceTypeNode(field.PrimaryValue ?? "object"), schemaRegistry)}[]",
+            TextFieldType.Pattern when field.CaptureGroups.Length > 0 =>
+                $"Musoq.Generated.Interpreters.{text.Name}.CaptureResult_{field.Name}",
+            _ => null
+        };
     }
 
     internal static string? ResolveFieldTypeName(

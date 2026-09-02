@@ -46,7 +46,7 @@ internal sealed class TypedOutputBinding
                     _plan.MemberBindings.Select(binding =>
                         SyntaxFactory.AssignmentExpression(
                             SyntaxKind.SimpleAssignmentExpression,
-                        ExecutionSyntaxFactory.CreateIdentifierName(binding.MemberName),
+                        CreateIdentifierName(binding.MemberName),
                         CreateRowValueRead(rowVariableName, binding.Column, binding.TargetType))))));
     }
 
@@ -69,7 +69,7 @@ internal sealed class TypedOutputBinding
                     _plan.MemberBindings.Select(binding =>
                         SyntaxFactory.AssignmentExpression(
                             SyntaxKind.SimpleAssignmentExpression,
-                            ExecutionSyntaxFactory.CreateIdentifierName(binding.MemberName),
+                            CreateIdentifierName(binding.MemberName),
                             CreateTypedValueExpression(values, binding.Column, binding.TargetType))))));
     }
 

@@ -408,20 +408,22 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override InlineRepeatPacket InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("Items");
             var __items_list = new System.Collections.Generic.List<Inline_Items>();
             Inline_Items __items_lastElem;
+            var __items_iteration = 0;
             do
             {
-                var ___items_list_elemInterpreter = new Inline_Items();
-                var ___items_list_elem = ___items_list_elemInterpreter.InterpretAt(data, ParsePosition);
-                ParsePosition = ___items_list_elemInterpreter.BytesConsumed;
-                __items_lastElem = ___items_list_elem;
+                EnsureRepeatIteration("Items", __items_iteration++);
+                var __items_lastElem_interpreter = new Inline_Items();
+                __items_lastElem = InterpretNested(__items_lastElem_interpreter, data, "Items");
                 __items_list.Add(__items_lastElem);
             }
             while (!((__items_lastElem.Tag == 0)));
             var _items = __items_list.ToArray();
+            RecordParsedField("Items", _items);
             return new InlineRepeatPacket
             {
                 Items = _items
@@ -444,10 +446,14 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override Inline_Items InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("Tag");
             var _tag = ReadByte(data);
+            RecordParsedField("Tag", _tag);
+            SetCurrentField("Value");
             var _value = ReadInt16Le(data);
+            RecordParsedField("Value", _value);
             return new Inline_Items
             {
                 Tag = _tag,

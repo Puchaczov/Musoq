@@ -11,15 +11,13 @@ public sealed partial class Lexer
             return false;
 
         var typeStart = identifierEnd + 1;
-        if (typeStart >= Input.Length || !FastCharacterClassifier.IsIdentifierStart(Input[typeStart]))
+        var input = Input.AsSpan();
+        if (typeStart >= Input.Length || !FastCharacterClassifier.IsIdentifierStart(input, typeStart))
             return false;
 
-        var typeEnd = typeStart + 1;
-        while (typeEnd < Input.Length &&
-               (FastCharacterClassifier.IsIdentifierContinue(Input[typeEnd]) || Input[typeEnd] == '_'))
-        {
-            typeEnd++;
-        }
+        var typeEnd = typeStart + FastCharacterClassifier.GetIdentifierCodePointLength(input, typeStart);
+        while (typeEnd < Input.Length && FastCharacterClassifier.IsIdentifierContinue(input, typeEnd))
+            typeEnd += FastCharacterClassifier.GetIdentifierCodePointLength(input, typeEnd);
 
         if (typeEnd + 1 >= Input.Length || Input[typeEnd] != '>' || Input[typeEnd + 1] != '(')
             return false;
@@ -39,12 +37,13 @@ public sealed partial class Lexer
             return false;
 
         var methodStart = identifierEnd + 1;
-        if (!IsMethodNameStart(Input[methodStart]))
+        var input = Input.AsSpan();
+        if (!IsMethodNameStart(input, methodStart))
             return false;
 
-        var methodEnd = methodStart + 1;
-        while (methodEnd < Input.Length && IsMethodNameContinue(Input[methodEnd]))
-            methodEnd++;
+        var methodEnd = methodStart + FastCharacterClassifier.GetIdentifierCodePointLength(input, methodStart);
+        while (methodEnd < Input.Length && IsMethodNameContinue(input, methodEnd))
+            methodEnd += FastCharacterClassifier.GetIdentifierCodePointLength(input, methodEnd);
 
         if (methodEnd >= Input.Length || Input[methodEnd] != '(')
             return false;
@@ -77,7 +76,8 @@ public sealed partial class Lexer
             token = new NumericAccessToken(
                 name,
                 Input[innerStart..position],
-                new TextSpan(start, Position - start));
+                new TextSpan(start, Position - start),
+                IsSchemaContext);
             return true;
         }
 
@@ -118,14 +118,16 @@ public sealed partial class Lexer
         return false;
     }
 
-    private static bool IsMethodNameStart(char value)
+    private static bool IsMethodNameStart(ReadOnlySpan<char> input, int index)
     {
-        return value is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or '_' or '-';
+        return index < input.Length &&
+            (input[index] == '-' || FastCharacterClassifier.IsIdentifierStart(input, index));
     }
 
-    private static bool IsMethodNameContinue(char value)
+    private static bool IsMethodNameContinue(ReadOnlySpan<char> input, int index)
     {
-        return value is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '_' or '-';
+        return index < input.Length &&
+            (input[index] == '-' || FastCharacterClassifier.IsIdentifierContinue(input, index));
     }
 
     private static bool IsKeyAccessConstChar(char value)

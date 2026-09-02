@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class CaseWhenTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenWhenTrueCaseWhenTest()

@@ -6,6 +6,7 @@ using System.Xml;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
+using Musoq.Parser;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Helpers;
@@ -53,7 +54,10 @@ public static partial class EvaluationHelper
         return newTable;
     }
 
-    public static Table GetSpecificColumnDescription(ISchemaTable table, string columnName)
+    public static Table GetSpecificColumnDescription(
+        ISchemaTable table,
+        string columnName,
+        TextSpan? columnSpan = null)
     {
         ArgumentNullException.ThrowIfNull(table);
         ArgumentNullException.ThrowIfNull(columnName);
@@ -71,7 +75,10 @@ public static partial class EvaluationHelper
             string.Equals(c.ColumnName, rootColumnName, StringComparison.OrdinalIgnoreCase));
 
         if (targetColumn == null)
-            throw new UnknownColumnOrAliasException($"Column '{rootColumnName}' does not exist in the table.");
+            throw new UnknownColumnOrAliasException(
+                rootColumnName,
+                string.Empty,
+                columnSpan ?? TextSpan.Empty);
 
         var canonicalPathParts = new List<string> { targetColumn.ColumnName };
         var currentType = targetColumn.ColumnType;
@@ -89,7 +96,9 @@ public static partial class EvaluationHelper
 
             if (property == null)
                 throw new UnknownColumnOrAliasException(
-                    $"Property '{propertyName}' does not exist on type '{currentType.Name}'.");
+                    propertyName,
+                    $"on type '{currentType.Name}'",
+                    columnSpan ?? TextSpan.Empty);
 
             canonicalPathParts.Add(property.Name);
             currentType = property.PropertyType;
@@ -105,7 +114,9 @@ public static partial class EvaluationHelper
         else if (IsGenericEnumerable(currentType, out var genericElementType))
             elementType = genericElementType;
         else if (currentType.IsPrimitive || currentType == typeof(string) || currentType == typeof(object))
-            throw new ColumnMustBeAnArrayOrImplementIEnumerableException();
+            throw new ColumnMustBeAnArrayOrImplementIEnumerableException(
+                columnName,
+                columnSpan ?? TextSpan.Empty);
         else
             elementType = currentType;
 

@@ -19,7 +19,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class MultiJoinHashJoinTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
 
 

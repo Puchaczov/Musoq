@@ -11,7 +11,7 @@ public partial class Parser
     {
         if (Current.TokenType != TokenType.Window) return null;
 
-        Consume(TokenType.Window);
+        var windowToken = ConsumeAndGetToken(TokenType.Window);
 
         var definitions = new List<WindowDefinitionNode>();
 
@@ -27,16 +27,18 @@ public partial class Parser
             Consume(TokenType.As);
 
             var spec = ComposeWindowSpecification();
-            definitions.Add(new WindowDefinitionNode(windowName, spec));
+            definitions.Add((WindowDefinitionNode)new WindowDefinitionNode(windowName, spec)
+                .WithSpan(nameToken.Span.Through(spec.Span)));
         } while (Current.TokenType == TokenType.Comma);
 
-        return new WindowNode(definitions.ToArray());
+        return (WindowNode)new WindowNode(definitions.ToArray())
+            .WithSpan(windowToken.Span.Through(definitions[^1].Span));
     }
 
 
     private WindowSpecificationNode ComposeWindowSpecification()
     {
-        Consume(TokenType.LeftParenthesis);
+        var openingToken = ConsumeAndGetToken(TokenType.LeftParenthesis);
 
         FieldNode[]? partitionFields = null;
         FieldOrderedNode[]? orderByFields = null;
@@ -50,33 +52,15 @@ public partial class Parser
         if (Current.TokenType == TokenType.OrderBy)
         {
             Consume(TokenType.OrderBy);
-            orderByFields = ComposeOrderedFields();
+            orderByFields = ComposeWindowOrderedFields();
         }
 
         var frame = ComposeWindowFrame();
 
-        Consume(TokenType.RightParenthesis);
+        var closingToken = ConsumeAndGetToken(TokenType.RightParenthesis);
 
-        return new WindowSpecificationNode(partitionFields, orderByFields, frame);
-    }
-
-
-    private FieldNode[] ComposeWindowPartitionFields()
-    {
-        var fields = new List<FieldNode>();
-        var i = 0;
-
-        do
-        {
-            var fieldExpression = ComposeOperations();
-            fields.Add(new FieldNode(fieldExpression, i++, string.Empty));
-        } while (Current.TokenType != TokenType.RightParenthesis &&
-                 Current.TokenType != TokenType.OrderBy &&
-                 !IsContextualKeyword("rows") &&
-                 !IsContextualKeyword("range") &&
-                 ConsumeAndGetToken().TokenType == TokenType.Comma);
-
-        return fields.ToArray();
+        return (WindowSpecificationNode)new WindowSpecificationNode(partitionFields, orderByFields, frame)
+            .WithSpan(openingToken.Span.Through(closingToken.Span));
     }
 
 
@@ -148,7 +132,17 @@ public partial class Parser
 
         if (Current.TokenType == TokenType.Integer)
         {
-            var offset = int.Parse(Current.Value, System.Globalization.CultureInfo.InvariantCulture);
+            var offsetToken = (IntegerToken)Current;
+            int offset;
+            try
+            {
+                offset = int.Parse(offsetToken.Value, System.Globalization.CultureInfo.InvariantCulture);
+            }
+            catch (Exception ex) when (IsNumericConstructionFailure(ex))
+            {
+                throw NumericLiteralOutOfRange(offsetToken, ex);
+            }
+
             Consume(TokenType.Integer);
 
             if (IsContextualKeyword("preceding"))
@@ -186,19 +180,21 @@ public partial class Parser
             if (Current.TokenType == TokenType.LeftParenthesis)
             {
                 var spec = ComposeWindowSpecification();
-                return new WindowFunctionNode(methodNode, spec);
+                return ((WindowFunctionNode)new WindowFunctionNode(methodNode, spec))
+                    .WithSpan(methodNode.Span.Through(spec.Span));
             }
 
-            var windowName = Current.Value;
-            Consume(Current.TokenType);
-            return new WindowFunctionNode(methodNode, windowName);
+            var windowNameToken = ConsumeAndGetToken(Current.TokenType);
+            return ((WindowFunctionNode)new WindowFunctionNode(methodNode, windowNameToken.Value))
+                .WithSpan(methodNode.Span.Through(windowNameToken.Span));
         }
 
         if (Current is FunctionToken { Value: var funcName } && funcName.Equals("over", StringComparison.OrdinalIgnoreCase))
         {
             Consume(TokenType.Function);
             var spec = ComposeWindowSpecification();
-            return new WindowFunctionNode(methodNode, spec);
+            return ((WindowFunctionNode)new WindowFunctionNode(methodNode, spec))
+                .WithSpan(methodNode.Span.Through(spec.Span));
         }
 
         return methodNode;

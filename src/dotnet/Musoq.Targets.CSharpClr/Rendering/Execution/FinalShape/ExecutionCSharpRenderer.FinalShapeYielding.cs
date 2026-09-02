@@ -148,7 +148,7 @@ public sealed partial class ExecutionCSharpRenderer
                 : SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(rowVariableName),
-                    SyntaxFactory.IdentifierName(EscapeIdentifier(ExecutionCSharpRenderer.GetGeneratedFieldName(field))))));
+                    SyntaxFactory.IdentifierName(EscapeIdentifier(GetGeneratedFieldName(field))))));
 
         return CreateFinalShapeCreation(sink.ShapeTypeName, arguments);
     }
@@ -166,7 +166,7 @@ public sealed partial class ExecutionCSharpRenderer
             .Select(index => CreateLocalDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
                 CreateFinalShapeRenumberCounterName(rowsVariableName, index),
-                ExecutionCSharpRenderer.CreateIntLiteral(1)))
+                CreateIntLiteral(1)))
             .ToArray();
     }
 

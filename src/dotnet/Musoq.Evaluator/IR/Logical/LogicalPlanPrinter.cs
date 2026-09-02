@@ -134,6 +134,8 @@ public static class LogicalPlanPrinter
                 sb.Append(prefix).Append(System.Globalization.CultureInfo.InvariantCulture, $"Join [{join.Kind}] [");
                 sb.Append(IrExpressionPrinter.Print(join.OnPredicate));
                 sb.Append(']');
+                if (join.WithOrdinality)
+                    sb.Append(" [with ordinality]");
                 AppendTieBreak(sb, join.TieBreak);
                 sb.AppendLine();
                 PrintNode(join.Left, sb, indent + 2);

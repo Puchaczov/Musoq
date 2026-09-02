@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class ThirdRoundApplyResultTests : GenericEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void ChainedOuterApplyWithEmptyIntermediate_ShouldPreserveOuterRowAndResetOrdinals()

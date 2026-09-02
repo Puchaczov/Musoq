@@ -87,7 +87,8 @@ ExecutionPlan [compiled]
           Let [eHasMatch: bool = FALSE]
           ChunkedForEach [e in cte0NextFrontier_eRows]
             Assign [eHasMatch = TRUE]
-            RecursiveAppend [cte0NextFrontier <- Cte0Row0(Id: CASE WHEN e.TargetId IS NULL THEN r.Id ELSE e.TargetId END::int32, Depth: (r.Depth + 1)); identity cte0Seen (Id); guard cte0.Count + cte0NextFrontier.Count < 10000000]
+            Let [targetId: int? = e.TargetId]
+            RecursiveAppend [cte0NextFrontier <- Cte0Row0(Id: CASE WHEN targetId IS NULL THEN r.Id ELSE targetId END::int32, Depth: (r.Depth + 1)); identity cte0Seen (Id); guard cte0.Count + cte0NextFrontier.Count < 10000000]
           If [NOT eHasMatch]
             RecursiveAppend [cte0NextFrontier <- Cte0Row0(Id: CASE WHEN TRUE THEN r.Id ELSE NULL END::int32, Depth: (r.Depth + 1)); identity cte0Seen (Id); guard cte0.Count + cte0NextFrontier.Count < 10000000]
     PhaseBoundary [Select:cte0]
@@ -304,13 +305,14 @@ namespace GeneratedSample_Q201_RecursiveOuterApplyNeighbors
 
                                             var e = eChunkViewArray[eChunkViewOffset + eIndex];
                                             eHasMatch = true;
+                                            int? targetId = e.TargetId;
                                             ++__cte0CancellationCounter;
                                             if ((__cte0CancellationCounter & 1023) == 0)
                                             {
                                                 token.ThrowIfCancellationRequested();
                                             }
 
-                                            var __cte0NextFrontierCandidate0 = (int)((e.TargetId == null) ? (int?)r.Id : (int?)e.TargetId);
+                                            var __cte0NextFrontierCandidate0 = (int)((targetId == null) ? (int?)r.Id : (int?)targetId);
                                             var __cte0NextFrontierCandidate1 = (r.Depth + 1);
                                             if (cte0Seen.Add(__cte0NextFrontierCandidate0))
                                             {
@@ -338,13 +340,14 @@ namespace GeneratedSample_Q201_RecursiveOuterApplyNeighbors
 
                                             var e = eChunkViewList[eChunkViewOffset + eIndex];
                                             eHasMatch = true;
+                                            int? targetId = e.TargetId;
                                             ++__cte0CancellationCounter;
                                             if ((__cte0CancellationCounter & 1023) == 0)
                                             {
                                                 token.ThrowIfCancellationRequested();
                                             }
 
-                                            var __cte0NextFrontierCandidate0 = (int)((e.TargetId == null) ? (int?)r.Id : (int?)e.TargetId);
+                                            var __cte0NextFrontierCandidate0 = (int)((targetId == null) ? (int?)r.Id : (int?)targetId);
                                             var __cte0NextFrontierCandidate1 = (r.Depth + 1);
                                             if (cte0Seen.Add(__cte0NextFrontierCandidate0))
                                             {
@@ -370,13 +373,14 @@ namespace GeneratedSample_Q201_RecursiveOuterApplyNeighbors
 
                                     var e = eChunk[eIndex];
                                     eHasMatch = true;
+                                    int? targetId = e.TargetId;
                                     ++__cte0CancellationCounter;
                                     if ((__cte0CancellationCounter & 1023) == 0)
                                     {
                                         token.ThrowIfCancellationRequested();
                                     }
 
-                                    var __cte0NextFrontierCandidate0 = (int)((e.TargetId == null) ? (int?)r.Id : (int?)e.TargetId);
+                                    var __cte0NextFrontierCandidate0 = (int)((targetId == null) ? (int?)r.Id : (int?)targetId);
                                     var __cte0NextFrontierCandidate1 = (r.Depth + 1);
                                     if (cte0Seen.Add(__cte0NextFrontierCandidate0))
                                     {

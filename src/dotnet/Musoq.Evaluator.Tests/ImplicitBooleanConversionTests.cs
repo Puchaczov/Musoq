@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class ImplicitBooleanConversionTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenMatchFunctionUsedWithExplicitTrueComparison_ShouldWork()

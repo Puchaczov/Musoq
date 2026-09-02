@@ -13,6 +13,7 @@ using Musoq.Evaluator.IR.Optimization.Physical;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Planning;
+using Musoq.Plugins;
 using PlanProperties = Musoq.Evaluator.IR.Planning.PlanProperties;
 
 namespace Musoq.Evaluator.Tests.IR;
@@ -213,6 +214,62 @@ public sealed class PhysicalOptimizerTests
         Assert.AreSame(input, topOffset.Input);
         Assert.AreEqual(PlanningDecisionCategory.OrderingStrategy, result.Decisions[0].Category);
         Assert.AreEqual("TopOffset", result.Decisions[0].Outcome);
+    }
+
+    [TestMethod]
+    public void Optimize_WhenSortSkipTakeContainsNonWindowRowNumber_ShouldRetainFullOrderingBeforePaging()
+    {
+        var input = CreateValuesScan("v", ("Value", typeof(int)));
+        var rowNumberMethod = typeof(LibraryBase).GetMethod(nameof(LibraryBase.RowNumber), [typeof(QueryStats)])!;
+        var project = new PhysicalProjectNode(
+            [
+                new ProjectedField("Value", new ColumnRef("v", "Value", typeof(int)), 0),
+                new ProjectedField("RowNumber", new MethodCall(rowNumberMethod, [], null, typeof(int)), 1)
+            ],
+            input);
+        var sort = new PhysicalSortNode(
+            [new OrderField(new ColumnRef("v", "Value", typeof(int)), false)],
+            project);
+        var skip = new PhysicalSkipNode(2, sort);
+        var take = new PhysicalTakeNode(5, skip);
+
+        var result = Optimize(take, CreateEmptyProperties());
+
+        var optimizedTake = Assert.IsInstanceOfType<PhysicalTakeNode>(result.OptimizedPlan);
+        var optimizedSkip = Assert.IsInstanceOfType<PhysicalSkipNode>(optimizedTake.Input);
+        var optimizedSort = Assert.IsInstanceOfType<PhysicalSortNode>(optimizedSkip.Input);
+        Assert.AreSame(project, optimizedSort.Input);
+        Assert.HasCount(1, result.Decisions);
+        Assert.AreEqual(PlanningDecisionCategory.OrderingStrategy, result.Decisions[0].Category);
+        Assert.AreEqual("Take", result.Decisions[0].Outcome);
+        Assert.Contains("complete ordering before SKIP/TAKE", result.Decisions[0].Reason);
+    }
+
+    [TestMethod]
+    public void Optimize_WhenSortTakeContainsNonWindowRowNumber_ShouldRetainFullOrderingBeforePaging()
+    {
+        var input = CreateValuesScan("v", ("Value", typeof(int)));
+        var rowNumberMethod = typeof(LibraryBase).GetMethod(nameof(LibraryBase.RowNumber), [typeof(QueryStats)])!;
+        var project = new PhysicalProjectNode(
+            [
+                new ProjectedField("Value", new ColumnRef("v", "Value", typeof(int)), 0),
+                new ProjectedField("RowNumber", new MethodCall(rowNumberMethod, [], null, typeof(int)), 1)
+            ],
+            input);
+        var sort = new PhysicalSortNode(
+            [new OrderField(new ColumnRef("v", "Value", typeof(int)), false)],
+            project);
+        var take = new PhysicalTakeNode(5, sort);
+
+        var result = Optimize(take, CreateEmptyProperties());
+
+        var optimizedTake = Assert.IsInstanceOfType<PhysicalTakeNode>(result.OptimizedPlan);
+        var optimizedSort = Assert.IsInstanceOfType<PhysicalSortNode>(optimizedTake.Input);
+        Assert.AreSame(project, optimizedSort.Input);
+        Assert.HasCount(1, result.Decisions);
+        Assert.AreEqual(PlanningDecisionCategory.OrderingStrategy, result.Decisions[0].Category);
+        Assert.AreEqual("Take", result.Decisions[0].Outcome);
+        Assert.Contains("complete ordering before TAKE", result.Decisions[0].Reason);
     }
 
     [TestMethod]

@@ -23,7 +23,8 @@ public sealed record GeneratedCodeSample
 
     public required Func<ISchemaProvider> CreateSchemaProvider { get; init; }
 
-    public CompilationOptions CompilationOptions { get; init; } = new();
+    public CompilationOptions CompilationOptions { get; init; } =
+        new CompilationOptions().WithStabilityAwareScalarReuse();
 
     public override string ToString()
     {

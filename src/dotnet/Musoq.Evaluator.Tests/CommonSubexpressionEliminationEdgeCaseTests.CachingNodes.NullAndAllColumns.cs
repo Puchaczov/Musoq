@@ -192,7 +192,6 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
         Assert.AreEqual(331m, usaRow[3]);
     }
 
-    public TestContext TestContext { get; set; }
 
     #endregion
 }

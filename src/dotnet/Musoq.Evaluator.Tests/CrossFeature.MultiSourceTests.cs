@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class CrossFeatureMultiSourceTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     #region QUALIFY + IN Subquery
 

@@ -218,7 +218,7 @@ public sealed class BuildItemsRenderedArtifactTests
             "namespace NonClrArtifactSmoke { public sealed class Placeholder { } }");
         var references = new[]
         {
-            Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
         };
 
         return CSharpCompilation.Create(

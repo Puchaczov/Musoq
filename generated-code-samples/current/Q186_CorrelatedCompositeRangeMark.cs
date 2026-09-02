@@ -204,7 +204,7 @@ namespace GeneratedSample_Q186_CorrelatedCompositeRangeMark
                                         {
                                             int? _sq_1_key = _sq_1._sq_1_key;
                                             string city = a.City;
-                                            if (((1 == _sq_1_key) && (((_sq_1._sq_1_corr_0 == a.Country) && (_sq_1._sq_1_corr_1 == city)) && (_sq_1._sq_1_corr_2 < a.Population))))
+                                            if (((Operators.SqlCompare<int, int?>(1, _sq_1_key, (int __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)) & ((Operators.SqlCompare<string, string>(_sq_1._sq_1_corr_0, a.Country, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & Operators.SqlCompare<string, string>(_sq_1._sq_1_corr_1, city, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) & Operators.SqlCompare<decimal?, decimal>(_sq_1._sq_1_corr_2, a.Population, (decimal? __sqlLeft, decimal __sqlRight) => (__sqlLeft < __sqlRight))))) == true)
                                             {
                                                 resultRangeHasMatch = true;
                                                 __musoqFinalShapeRows.Add(new ResultShape0(city, (_sq_1_key != null) ? (string)"Y" : (string)"N"));
@@ -239,7 +239,7 @@ namespace GeneratedSample_Q186_CorrelatedCompositeRangeMark
                                         {
                                             int? _sq_1_key = _sq_1._sq_1_key;
                                             string city = a.City;
-                                            if (((1 == _sq_1_key) && (((_sq_1._sq_1_corr_0 == a.Country) && (_sq_1._sq_1_corr_1 == city)) && (_sq_1._sq_1_corr_2 < a.Population))))
+                                            if (((Operators.SqlCompare<int, int?>(1, _sq_1_key, (int __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)) & ((Operators.SqlCompare<string, string>(_sq_1._sq_1_corr_0, a.Country, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & Operators.SqlCompare<string, string>(_sq_1._sq_1_corr_1, city, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) & Operators.SqlCompare<decimal?, decimal>(_sq_1._sq_1_corr_2, a.Population, (decimal? __sqlLeft, decimal __sqlRight) => (__sqlLeft < __sqlRight))))) == true)
                                             {
                                                 resultRangeHasMatch = true;
                                                 __musoqFinalShapeRows.Add(new ResultShape0(city, (_sq_1_key != null) ? (string)"Y" : (string)"N"));
@@ -272,7 +272,7 @@ namespace GeneratedSample_Q186_CorrelatedCompositeRangeMark
                                 {
                                     int? _sq_1_key = _sq_1._sq_1_key;
                                     string city = a.City;
-                                    if (((1 == _sq_1_key) && (((_sq_1._sq_1_corr_0 == a.Country) && (_sq_1._sq_1_corr_1 == city)) && (_sq_1._sq_1_corr_2 < a.Population))))
+                                    if (((Operators.SqlCompare<int, int?>(1, _sq_1_key, (int __sqlLeft, int? __sqlRight) => (__sqlLeft == __sqlRight)) & ((Operators.SqlCompare<string, string>(_sq_1._sq_1_corr_0, a.Country, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & Operators.SqlCompare<string, string>(_sq_1._sq_1_corr_1, city, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) & Operators.SqlCompare<decimal?, decimal>(_sq_1._sq_1_corr_2, a.Population, (decimal? __sqlLeft, decimal __sqlRight) => (__sqlLeft < __sqlRight))))) == true)
                                     {
                                         resultRangeHasMatch = true;
                                         __musoqFinalShapeRows.Add(new ResultShape0(city, (_sq_1_key != null) ? (string)"Y" : (string)"N"));

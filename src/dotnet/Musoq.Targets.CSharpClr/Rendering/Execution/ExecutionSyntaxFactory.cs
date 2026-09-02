@@ -95,6 +95,171 @@ internal static class ExecutionSyntaxFactory
 
     internal static bool CanBeNull(ExecutionTypeRef type) => CanBeNull(type.RequireClrType());
 
+    internal static ExpressionSyntax CreateBooleanCondition(ExpressionSyntax expression, bool nullable) => nullable
+        ? SyntaxFactory.BinaryExpression(
+            SyntaxKind.EqualsExpression,
+            SyntaxFactory.ParenthesizedExpression(expression),
+            SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression))
+        : expression;
+
+    internal static bool IsSqlComparison(BinaryOpKind kind) => kind is
+        BinaryOpKind.Equal or BinaryOpKind.NotEqual or BinaryOpKind.GreaterThan or
+        BinaryOpKind.LessThan or BinaryOpKind.GreaterOrEqual or BinaryOpKind.LessOrEqual;
+
+    internal static bool RequiresNullableBoolean(ExecutionExpression expression)
+    {
+        if (Nullable.GetUnderlyingType(expression.ReturnType.RequireClrType()) == typeof(bool))
+            return true;
+
+        return expression switch
+        {
+            ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null } => true,
+            ExecutionBinary binary when binary.Kind is BinaryOpKind.And or BinaryOpKind.Or =>
+                RequiresNullableBoolean(binary.Left) || RequiresNullableBoolean(binary.Right),
+            ExecutionBinary binary when binary.UsesSqlNullSemantics && IsSqlComparison(binary.Kind) =>
+                CanExecutionExpressionBeNull(binary.Left) || CanExecutionExpressionBeNull(binary.Right),
+            ExecutionUnary { Kind: UnaryOpKind.Not } unary => RequiresNullableBoolean(unary.Operand),
+            ExecutionBetween between => CanExecutionExpressionBeNull(between.Expression) ||
+                                        CanExecutionExpressionBeNull(between.Low) ||
+                                        CanExecutionExpressionBeNull(between.High),
+            _ => false
+        };
+    }
+
+    internal static bool CanExecutionExpressionBeNull(ExecutionExpression expression)
+    {
+        if (expression is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null })
+            return true;
+
+        var type = expression.ReturnType.RequireClrType();
+        if (!type.IsValueType || Nullable.GetUnderlyingType(type) != null)
+            return true;
+
+        return expression switch
+        {
+            ExecutionBinary binary when binary.UsesSqlNullSemantics && IsSqlComparison(binary.Kind) =>
+                CanExecutionExpressionBeNull(binary.Left) || CanExecutionExpressionBeNull(binary.Right),
+            ExecutionBinary binary when binary.Kind is BinaryOpKind.And or BinaryOpKind.Or =>
+                RequiresNullableBoolean(binary),
+            ExecutionUnary { Kind: UnaryOpKind.Not } unary => RequiresNullableBoolean(unary.Operand),
+            ExecutionBetween between => CanExecutionExpressionBeNull(between.Expression) ||
+                                        CanExecutionExpressionBeNull(between.Low) ||
+                                        CanExecutionExpressionBeNull(between.High),
+            _ => false
+        };
+    }
+
+    internal static InvocationExpressionSyntax CreateSqlNullComparison(
+        ExecutionBinary binary,
+        ExpressionSyntax left,
+        ExpressionSyntax right)
+    {
+        var method = SyntaxFactory.GenericName(nameof(Operators.SqlCompare))
+            .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList<TypeSyntax>(
+            [CreateTypeSyntax(binary.Left.ReturnType), CreateTypeSyntax(binary.Right.ReturnType)])));
+        return SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(nameof(Operators)),
+                    method))
+            .WithArgumentList(CreateArgumentList(left, right, CreateSqlComparisonLambda(binary)));
+    }
+
+    private static ParenthesizedLambdaExpressionSyntax CreateSqlComparisonLambda(ExecutionBinary binary)
+    {
+        const string leftName = "__sqlLeft";
+        const string rightName = "__sqlRight";
+        var body = CreateSqlComparisonBody(
+            binary,
+            SyntaxFactory.IdentifierName(leftName),
+            SyntaxFactory.IdentifierName(rightName));
+        return SyntaxFactory.ParenthesizedLambdaExpression(body)
+            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(
+            [
+                SyntaxFactory.Parameter(SyntaxFactory.Identifier(leftName)).WithType(CreateTypeSyntax(binary.Left.ReturnType)),
+                SyntaxFactory.Parameter(SyntaxFactory.Identifier(rightName)).WithType(CreateTypeSyntax(binary.Right.ReturnType))
+            ])));
+    }
+
+    private static ExpressionSyntax CreateSqlComparisonBody(
+        ExecutionBinary binary,
+        ExpressionSyntax left,
+        ExpressionSyntax right)
+    {
+        if (binary.Left is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null } ||
+            binary.Right is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null })
+            return SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression);
+
+        if (IsRelationalComparison(binary.Kind) &&
+            binary.Left.ReturnType.RequireClrType() == typeof(string) &&
+            binary.Right.ReturnType.RequireClrType() == typeof(string))
+        {
+            var compare = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName("string"),
+                        SyntaxFactory.IdentifierName(nameof(string.Compare))))
+                .WithArgumentList(CreateArgumentList(left, right, CreateStringComparisonExpression(nameof(StringComparison.Ordinal))));
+            return SyntaxFactory.ParenthesizedExpression(
+                SyntaxFactory.BinaryExpression(
+                    GetBinaryExpressionKind(binary.Kind),
+                    compare,
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))));
+        }
+
+        if (TryCreateCharStringEquality(binary, left, right, out var charStringEquality))
+            return charStringEquality;
+
+        return SyntaxFactory.ParenthesizedExpression(
+            SyntaxFactory.BinaryExpression(GetBinaryExpressionKind(binary.Kind), left, right));
+    }
+
+    private static bool TryCreateCharStringEquality(
+        ExecutionBinary binary,
+        ExpressionSyntax left,
+        ExpressionSyntax right,
+        out ExpressionSyntax result)
+    {
+        result = null!;
+        if (binary.Kind is not (BinaryOpKind.Equal or BinaryOpKind.NotEqual))
+            return false;
+
+        var leftType = binary.Left.ReturnType.RequireClrType();
+        var rightType = binary.Right.ReturnType.RequireClrType();
+        var leftIsChar = (Nullable.GetUnderlyingType(leftType) ?? leftType) == typeof(char);
+        var rightIsChar = (Nullable.GetUnderlyingType(rightType) ?? rightType) == typeof(char);
+        var leftString = binary.Left is ExecutionLiteral && leftType == typeof(string);
+        var rightString = binary.Right is ExecutionLiteral && rightType == typeof(string);
+        if (!((leftIsChar && rightString) || (rightIsChar && leftString)))
+            return false;
+
+        result = leftIsChar
+            ? SyntaxFactory.BinaryExpression(GetEqualitySyntaxKind(binary.Kind), left, CreateCharLiteral((ExecutionLiteral)binary.Right))
+            : SyntaxFactory.BinaryExpression(GetEqualitySyntaxKind(binary.Kind), CreateCharLiteral((ExecutionLiteral)binary.Left), right);
+        return true;
+    }
+
+    private static LiteralExpressionSyntax CreateCharLiteral(ExecutionLiteral literal)
+    {
+        var text = literal.Value.RequireClrValue() as string ?? string.Empty;
+        return SyntaxFactory.LiteralExpression(
+            SyntaxKind.CharacterLiteralExpression,
+            SyntaxFactory.Literal(text.Length > 0 ? text[0] : '\0'));
+    }
+
+    private static SyntaxKind GetEqualitySyntaxKind(BinaryOpKind kind) => kind == BinaryOpKind.NotEqual
+        ? SyntaxKind.NotEqualsExpression
+        : SyntaxKind.EqualsExpression;
+
+    private static bool IsRelationalComparison(BinaryOpKind kind) => kind is
+        BinaryOpKind.GreaterThan or BinaryOpKind.LessThan or BinaryOpKind.GreaterOrEqual or BinaryOpKind.LessOrEqual;
+
+    private static MemberAccessExpressionSyntax CreateStringComparisonExpression(string name) =>
+        SyntaxFactory.MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            SyntaxFactory.IdentifierName(nameof(StringComparison)),
+            SyntaxFactory.IdentifierName(name));
+
     internal static ObjectCreationExpressionSyntax CreateColumnCreation(FieldBinding field)
     {
         return CreateObjectCreation(
@@ -106,6 +271,17 @@ internal static class ExecutionSyntaxFactory
 
     internal static ExpressionSyntax CreateColumnCreation(ExecutionColumnMetadataField field)
     {
+        if (field.EnumType != null || field.SourceReadType != field.Type)
+        {
+            return CreateObjectCreation(
+                nameof(Column),
+                CreateStringLiteral(field.Name),
+                SyntaxFactory.TypeOfExpression(CreateTypeOfTypeSyntax(field.Type)),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(field.Index)),
+                SyntaxFactory.TypeOfExpression(CreateTypeOfTypeSyntax(field.SourceReadType)),
+                EnumDescriptorSyntax.Create(field.EnumType));
+        }
+
         return CreateObjectCreation(
             nameof(Column),
             CreateStringLiteral(field.Name),
@@ -117,6 +293,21 @@ internal static class ExecutionSyntaxFactory
     {
         if (field.ReadModifiers.Count == 0)
             return CreateColumnCreation(field);
+
+        if (field.EnumType != null || field.SourceReadType != field.Type)
+        {
+            return SyntaxFactory.ObjectCreationExpression(
+                    SyntaxFactory.ParseTypeName("global::Musoq.Schema.DataSources.SchemaColumn"))
+                .WithArgumentList(CreateArgumentList(
+                    CreateStringLiteral(field.Name),
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(field.Index)),
+                    SyntaxFactory.TypeOfExpression(CreateTypeOfTypeSyntax(field.Type)),
+                    SyntaxFactory.TypeOfExpression(CreateTypeOfTypeSyntax(field.SourceReadType)),
+                    EnumDescriptorSyntax.Create(field.EnumType),
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression),
+                    CSharpReadModifierMetadata.CreateDictionaryCreation(field.ReadModifiers),
+                    SyntaxFactory.ParseExpression("global::Musoq.Schema.ColumnStability.Stable")));
+        }
 
         return SyntaxFactory.ObjectCreationExpression(
                 SyntaxFactory.ParseTypeName("global::Musoq.Schema.DataSources.SchemaColumn"))

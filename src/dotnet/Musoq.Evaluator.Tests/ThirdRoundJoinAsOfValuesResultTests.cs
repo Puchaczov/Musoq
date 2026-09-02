@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class ThirdRoundJoinAsOfValuesResultTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void AsOfLeftJoinWithTieBreakAndMissingMatch_ShouldMaterializeCompleteRows()

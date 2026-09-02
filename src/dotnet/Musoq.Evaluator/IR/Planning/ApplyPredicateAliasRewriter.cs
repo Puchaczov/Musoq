@@ -25,7 +25,7 @@ internal sealed class ApplyPredicateAliasRewriter(
         var right = Visit(node.Right);
         return ReferenceEquals(left, node.Left) && ReferenceEquals(right, node.Right)
             ? node
-            : new BinaryOp(node.Kind, left, right, node.ReturnType);
+            : new BinaryOp(node.Kind, left, right, node.ReturnType) { UsesSqlNullSemantics = node.UsesSqlNullSemantics };
     }
 
     protected override IrExpression VisitUnaryOp(UnaryOp node)
@@ -40,7 +40,7 @@ internal sealed class ApplyPredicateAliasRewriter(
     {
         var arguments = RewriteExpressions(node.Arguments, out var changed);
         return changed
-            ? new MethodCall(node.Method, arguments, node.Alias, node.ReturnType)
+            ? node with { Arguments = arguments }
             : node;
     }
 
@@ -58,7 +58,7 @@ internal sealed class ApplyPredicateAliasRewriter(
         var values = RewriteExpressions(node.Values, out var valuesChanged);
         return ReferenceEquals(expression, node.Expression) && !valuesChanged
             ? node
-            : new InCheck(expression, values, node.ReturnType);
+            : new InCheck(expression, values, node.ReturnType, node.IsNegated);
     }
 
     protected override IrExpression VisitPatternMatch(PatternMatch node)

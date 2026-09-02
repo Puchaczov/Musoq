@@ -1,0 +1,1789 @@
+{
+  "schemaVersion": 1,
+  "specifications": [
+    "specs/musoq-core-language-spec.md",
+    "specs/musoq-table-couple-spec.md",
+    "specs/musoq-binary-text-spec.md"
+  ],
+  "features": [
+    {
+      "id": "existing-core-generated-corpus",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "2. Lexical Elements",
+        "3. Data Types",
+        "4. Statement Structure",
+        "5. SELECT Clause",
+        "6. FROM Clause",
+        "7. WHERE Clause",
+        "8. JOIN Clause",
+        "9. APPLY Clause",
+        "10. GROUP BY and Aggregation",
+        "11. Window Functions",
+        "12. Set Operations",
+        "13. ORDER BY, SKIP, TAKE",
+        "14. Common Table Expressions (CTEs)",
+        "17. Reordered Query Syntax",
+        "18. Built-in Functions",
+        "19. NULL Semantics",
+        "20. String Comparison Semantics",
+        "21. Array and Property Access",
+        "22. Automatic Type Coercion"
+      ],
+      "disposition": "equivalent-lowering",
+      "sampleFiles": [
+        "Q01_SimpleSelectWhere.cs",
+        "Q02_CteDownstream.cs",
+        "Q04_LeftJoin.cs",
+        "Q05_GroupBySingle.cs",
+        "Q06_GroupByMulti.cs",
+        "Q07_GroupByHavingOrderBy.cs",
+        "Q08_Distinct.cs",
+        "Q09_Union.cs",
+        "Q10_WindowRowNumber.cs",
+        "Q100_RuntimeV2CseNoDuplicateRegression.cs",
+        "Q101_RuntimeV2WindowRunningSum.cs",
+        "Q102_RuntimeV2WindowQualifyRank.cs",
+        "Q103_RuntimeV2SkipTakeNoOrder.cs",
+        "Q104_RuntimeV2StringFilter.cs",
+        "Q105_RuntimeV2DeterministicMethodCse.cs",
+        "Q105_RuntimeV2DeterministicMethodCseDisabled.cs",
+        "Q106_RuntimeV2ParallelFilterProject.cs",
+        "Q107_RuntimeV2LexerManyColumns.cs",
+        "Q108_RuntimeV2DecimalConversion.cs",
+        "Q109_RuntimeV2CompositeRegressionCanary.cs",
+        "Q11_WindowSumAggregate.cs",
+        "Q110_OrderByTopOffsetHiddenKey.cs",
+        "Q111_RuntimeV2WindowBenchmarkRowNumberNoPartition.cs",
+        "Q112_RuntimeV2WindowBenchmarkRowNumberPartitioned.cs",
+        "Q113_RuntimeV2WindowBenchmarkRankPartitioned.cs",
+        "Q114_RuntimeV2WindowBenchmarkDenseRankPartitioned.cs",
+        "Q115_RuntimeV2WindowBenchmarkCountWholePartition.cs",
+        "Q116_RuntimeV2ParallelTableAddBenchmark.cs",
+        "Q117_ValuesRowLiterals.cs",
+        "Q118_ValuesCteReuse.cs",
+        "Q119_ValuesNumericLiterals.cs",
+        "Q12_WindowLag.cs",
+        "Q120_ScriptParametersWhereSelect.cs",
+        "Q121_ScriptParameterPrimitiveDefaults.cs",
+        "Q122_ScriptParameterSourceArgument.cs",
+        "Q123_ScriptParameterGroupByHelperCapture.cs",
+        "Q124_ScriptParameterJoinHelperCapture.cs",
+        "Q125_ScriptParameterCteHelperCapture.cs",
+        "Q126_ScriptParameterWindowHelperCapture.cs",
+        "Q127_ScriptParameterParallelHelperCapture.cs",
+        "Q128_ScriptParameterTypedComparison.cs",
+        "Q129_ScriptParameterNumericWideningComparison.cs",
+        "Q13_MultipleWindows.cs",
+        "Q130_ScriptVariableWhereSelect.cs",
+        "Q131_ScriptVariablePrimitiveValues.cs",
+        "Q132_ScriptVariableSourceArgument.cs",
+        "Q133_ScriptVariableGroupByHavingCapture.cs",
+        "Q134_ScriptVariableJoinHelperCapture.cs",
+        "Q135_ScriptVariableCteHelperCapture.cs",
+        "Q136_ScriptVariableWindowHelperCapture.cs",
+        "Q137_ScriptVariableParallelHelperCapture.cs",
+        "Q138_CorrelatedInSubquery.cs",
+        "Q139_CorrelatedNotExistsSubquery.cs",
+        "Q14_Except.cs",
+        "Q140_CorrelatedScalarAggregateSubquery.cs",
+        "Q141_ScalarSubqueryJoinOn.cs",
+        "Q142_CorrelatedAllSubquery.cs",
+        "Q143_CorrelatedApplyDerivedTable.cs",
+        "Q144_CorrelatedCompositeValueTypeSubquery.cs",
+        "Q145_CorrelatedApplySelectiveDerivedTable.cs",
+        "Q146_CteSidecarHashJoin.cs",
+        "Q147_CteSidecarKeySetSemiJoin.cs",
+        "Q148_CteSidecarFanoutThreeHashes.cs",
+        "Q149_CteSidecarStagedGraphMixed.cs",
+        "Q150_RuntimeV2CastProjection.cs",
+        "Q151_RuntimeV2CastExpressions.cs",
+        "Q152_RuntimeV2CastAggregateGrouping.cs",
+        "Q153_RuntimeV2GroupByOrdinal.cs",
+        "Q154_RuntimeV2GroupByAllCasts.cs",
+        "Q155_RuntimeV2AliasWhereGroupBy.cs",
+        "Q156_RuntimeV2HavingAggregateAlias.cs",
+        "Q157_RuntimeV2AliasSourceConflict.cs",
+        "Q158_RuntimeV2CombinedGrouping.cs",
+        "Q159_UnpivotBasicStreaming.cs",
+        "Q160_UnpivotCteNullableOrdering.cs",
+        "Q161_UnpivotSetOperator.cs",
+        "Q162_PivotGroupedSingleMeasure.cs",
+        "Q163_PivotMultipleMeasures.cs",
+        "Q164_PivotCteNoGroupBy.cs",
+        "Q165_WindowAggregateFilter.cs",
+        "Q166_WindowRangeFrame.cs",
+        "Q167_MultiSourceAggregateOwnerResolution.cs",
+        "Q168_IsDistinctFromNullSafeComparison.cs",
+        "Q169_NullsFirstLastOrdering.cs",
+        "Q170_SelectStarRename.cs",
+        "Q171_ValuesStaticParametersAndLets.cs",
+        "Q172_CollectionParameterInMembership.cs",
+        "Q173_ApplyWithOrdinality.cs",
+        "Q174_AsOfTieBreak.cs",
+        "Q175_DescQuery.cs",
+        "Q176_BenchmarkCseNoDuplicateMaterialized.cs",
+        "Q177_BenchmarkCseCaseNoDuplicateMaterialized.cs",
+        "Q178_BenchmarkParallelTableAddMaterialized.cs",
+        "Q179_BenchmarkOptimizedHeavyMixedMaterialized.cs",
+        "Q18_CaseWhen.cs",
+        "Q180_BenchmarkOptimizedMixedColumnMethodMaterialized.cs",
+        "Q181_BenchmarkCompilationSimpleMaterialized.cs",
+        "Q182_BenchmarkCompilationComplexMaterialized.cs",
+        "Q185_RuntimeV2WeatherSingleAggregate.cs",
+        "Q186_CorrelatedCompositeRangeMark.cs",
+        "Q187_CteColumnListOrdinary.cs",
+        "Q188_RecursiveUnionAllCounter.cs",
+        "Q189_RecursiveUnionAllPredicateTermination.cs",
+        "Q19_CrossApply.cs",
+        "Q190_RecursiveEmptyAnchor.cs",
+        "Q191_RecursiveMultipleRoots.cs",
+        "Q192_RecursiveUnionFullRowCycle.cs",
+        "Q193_RecursiveUnionSingleKeyCycle.cs",
+        "Q194_RecursiveUnionCompositeKey.cs",
+        "Q195_RecursiveKeyedNonKeyPayload.cs",
+        "Q196_RecursiveAnchorDuplicates.cs",
+        "Q197_RecursiveDuplicateEdges.cs",
+        "Q198_RecursiveInnerJoinEdges.cs",
+        "Q199_RecursiveCrossJoinFilter.cs",
+        "Q20_OuterApply.cs",
+        "Q200_RecursiveCrossApplyNeighbors.cs",
+        "Q201_RecursiveOuterApplyNeighbors.cs",
+        "Q202_RecursiveInvariantSourceSnapshot.cs",
+        "Q203_RecursiveInvariantHashLookup.cs",
+        "Q204_RecursivePriorValuesCteEdges.cs",
+        "Q205_RecursivePriorMaterializedCte.cs",
+        "Q206_RecursiveDependentOrdinaryCte.cs",
+        "Q207_RecursiveTwoIndependentCtes.cs",
+        "Q208_RecursiveDependsOnEarlierRecursive.cs",
+        "Q209_RecursiveUnusedDefinition.cs",
+        "Q21_RightJoin.cs",
+        "Q210_RecursiveProjectionPrunedState.cs",
+        "Q211_RecursiveOuterFilterOrder.cs",
+        "Q212_RecursiveOuterJoin.cs",
+        "Q213_RecursiveOuterAggregate.cs",
+        "Q214_RecursiveOuterWindowAndSet.cs",
+        "Q215_RecursiveNullableColumns.cs",
+        "Q216_RecursiveExplicitDecimalCast.cs",
+        "Q217_RecursiveCaseAndScalarExpressions.cs",
+        "Q218_RecursiveWidePayload.cs",
+        "Q219_RecursiveLimitDefaultCodeShape.cs",
+        "Q22_OrderBySkipTake.cs",
+        "Q220_RecursiveLimitOverrideCodeShape.cs",
+        "Q221_RecursiveSidecarDisabled.cs",
+        "Q222_RecursiveCteParallelSiblings.cs",
+        "Q223_RecursiveUncorrelatedApplySnapshot.cs",
+        "Q224_RecursiveCompositeInvariantSubplan.cs",
+        "Q225_RecursiveMutableSourceValueSnapshot.cs",
+        "Q226_RecursiveSnapshotLimitCodeShape.cs",
+        "Q227_PerformanceJoinAggregate.cs",
+        "Q228_PerformanceWideCorrelatedSubquery.cs",
+        "Q229_PerformanceWindowCteSetOperation.cs",
+        "Q23_InClause.cs",
+        "Q230_PerformanceTableProjection.cs",
+        "Q231_PublicDynamicRootConstant.cs",
+        "Q232_PublicDynamicRootFilterProjection.cs",
+        "Q233_PublicDynamicNestedNullable.cs",
+        "Q234_PublicDynamicJoinMethod.cs",
+        "Q235_NullableProviderMethodLeftJoin.cs",
+        "Q236_QueryRowLegacyFallback.cs",
+        "Q237_QueryRowReadonlyStruct.cs",
+        "Q238_QueryRowSealedClass.cs",
+        "Q239_QueryRowZeroField.cs",
+        "Q24_AggregateNoGroupBy.cs",
+        "Q240_QueryRowSpecialNames.cs",
+        "Q241_QueryRowLifetimeBoundary.cs",
+        "Q242_WindowDistributionRankings.cs",
+        "Q243_CrossApplyWhereLeftGuard.cs",
+        "Q244_ChainedCrossApplyScopedGuards.cs",
+        "Q245_ChainedCrossApplyResidualPredicate.cs",
+        "Q246_OuterApplyWhereLeftGuard.cs",
+        "Q247_CrossApplyMethodWhereLeftGuard.cs",
+        "Q248_LoopInvariantStableApplyProjection.cs",
+        "Q249_LoopInvariantVolatileApplyProjection.cs",
+        "Q25_UnionAll.cs",
+        "Q250_LoopInvariantStableAndVolatileFunctions.cs",
+        "Q251_LoopInvariantEmptyApply.cs",
+        "Q252_StableFilterProjectionReuse.cs",
+        "Q253_VolatileFilterProjectionReuse.cs",
+        "Q254_SharedStableWindowInputs.cs",
+        "Q255_VolatileWindowInputs.cs",
+        "Q256_ParallelAggregateSharedArguments.cs",
+        "Q257_PivotPredicateDispatch.cs",
+        "Q258_GuardedStableApplyPredicate.cs",
+        "Q259_GuardedVolatileOuterApplyPredicate.cs",
+        "Q26_WindowRankDenseRank.cs",
+        "Q260_StableAsOfProbeKeys.cs",
+        "Q261_StableRangeJoinKeys.cs",
+        "Q262_CorrelatedCteProbeReuse.cs",
+        "Q263_StableUnpivotExpansion.cs",
+        "Q264_BoundaryRowShapeNarrowing.cs",
+        "Q265_SourceComputedProjectionAccepted.cs",
+        "Q266_SourceComputedProjectionResidual.cs",
+        "Q267_RecursiveStableScalarInvariant.cs",
+        "Q27_WindowLead.cs",
+        "Q28_MultipleCteChained.cs",
+        "Q29_Intersect.cs",
+        "Q30_GroupBySkipTake.cs",
+        "Q31_GroupByHavingNoOrderBy.cs",
+        "Q32_NonEquiJoin.cs",
+        "Q33_AsOfJoin.cs",
+        "Q34_InnerJoinWithWhere.cs",
+        "Q35_LeftJoinWithMultipleColumns.cs",
+        "Q36_InnerJoinWithFunctionCallInSelect.cs",
+        "Q37_InnerJoinWithArithmeticInSelect.cs",
+        "Q38_InnerJoinWithCaseWhenInSelect.cs",
+        "Q39_InnerJoinWithStringConcatInSelect.cs",
+        "Q40_InnerJoinWithCoalesceInSelect.cs",
+        "Q41_InnerJoinWithMultipleFunctionsInSelect.cs",
+        "Q42_InClauseLarge20Values.cs",
+        "Q42_WindowFrameRowsSum.cs",
+        "Q43_QualifyBasic.cs",
+        "Q44_WindowFrameWithJoin.cs",
+        "Q45_QualifyWithFrameSpec.cs",
+        "Q46_WindowFrameWithWhere.cs",
+        "Q47_CteJoinFrameQualify.cs",
+        "Q48_InnerJoinTwoSchemasSameColumnName.cs",
+        "Q49_LeftJoinTwoSchemasSameKey.cs",
+        "Q50_CteDistinctJoinByCountry.cs",
+        "Q61_ChainedApplyGroupedAggregateWindow.cs",
+        "Q62_AccessMethodApply.cs",
+        "Q63_OuterAccessMethodApply.cs",
+        "Q64_CteBackedAsOfJoin.cs",
+        "Q65_AggregateOverHashJoin.cs",
+        "Q66_CteBackedAggregateOverHashJoin.cs",
+        "Q67_DynamicCteBackedAsOfJoin.cs",
+        "Q68_ChainedApplyWindow.cs",
+        "Q69_ChainedApplyMixedDistinctAggregateSort.cs",
+        "Q70_ChainedApplyMixedDistinctMinMaxAggregateSort.cs",
+        "Q71_ChainedApplyMixedDistinctAvgAggregateSort.cs",
+        "Q72_ChainedApplyMixedDistinctMinMaxAggregateWindow.cs",
+        "Q73_ChainedApplyMixedDistinctAvgAggregateWindow.cs",
+        "Q74_ChainedApplyQualifyWindow.cs",
+        "Q75_ChainedApplyGroupedAggregateQualifyWindow.cs",
+        "Q76_NonEquiJoinSortMergeEnabled.cs",
+        "Q77_NonEquiJoinSortMergeDisabled.cs",
+        "Q78_WindowSumWholePartitionDecimal.cs",
+        "Q79_WindowSumRunningDecimal.cs",
+        "Q80_WindowAvgRunningDecimal.cs",
+        "Q81_WindowRunningProductPlugin.cs",
+        "Q82_ParallelIndependentCtes.cs",
+        "Q83_CompositeHashJoin.cs",
+        "Q84_RepeatedCteSelfJoin.cs",
+        "Q85_OrderByTake.cs",
+        "Q86_WindowRunningProductFramedPlugin.cs",
+        "Q87_CompilationSimpleSelect.cs",
+        "Q88_CompilationComplexGroupedSort.cs",
+        "Q89_CompilationCseDisabled.cs",
+        "Q90_CompilationCseEnabled.cs",
+        "Q91_OrderBySimple.cs",
+        "Q92_OrderByMultipleKeys.cs",
+        "Q93_OrderByAlias.cs",
+        "Q94_OrderByHiddenComputedKey.cs",
+        "Q98_GroupByExpressionNoAlias.cs",
+        "Q99_BitwiseShiftLeftIntDebug.cs",
+        "Q99_ExceptWithGroupBySides.cs",
+        "Q99_InSubqueryBasic.cs",
+        "Q99_Union3WithGroupBySides.cs",
+        "Q99_UnionWithGroupBySides.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog*.cs",
+      "reason": "Existing executable generated snapshots provide the baseline lowering coverage for the core language.",
+      "exclusionKind": null
+    },
+    {
+      "id": "existing-table-couple-generated-corpus",
+      "specification": "specs/musoq-table-couple-spec.md",
+      "sections": [
+        "5. Usage Patterns",
+        "9. Examples"
+      ],
+      "disposition": "equivalent-lowering",
+      "sampleFiles": [
+        "Q03_InnerJoin.cs",
+        "Q15_CteWithJoin.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog*.cs",
+      "reason": "Existing join and CTE snapshots exercise the established TABLE/COUPLE lowering used by these examples.",
+      "exclusionKind": null
+    },
+    {
+      "id": "existing-interpretation-generated-corpus",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "7.1 Method Signature Pattern",
+        "7.2 SQL Syntax for Interpretation",
+        "7.3 Binary Interpretation",
+        "7.4 Text Interpretation",
+        "8.1 Schema References",
+        "8.2 Inline Anonymous Schemas",
+        "8.4 Generic Schemas",
+        "4.3 Nested Schemas",
+        "4.4 Arrays",
+        "4.5 Conditional Fields",
+        "4.6 Computed Fields"
+      ],
+      "disposition": "equivalent-lowering",
+      "sampleFiles": [
+        "Q16_BinaryInterpret.cs",
+        "Q17_TextParse.cs",
+        "Q183_BenchmarkInterpretationMultipleFilesMaterialized.cs",
+        "Q184_BenchmarkInterpretationHighThroughputMaterialized.cs",
+        "Q51_BinaryConditionalInterpret.cs",
+        "Q52_BinaryStringInterpret.cs",
+        "Q53_BinaryComputedInterpret.cs",
+        "Q54_BinaryNestedInterpret.cs",
+        "Q55_BinaryInlineArrayInterpret.cs",
+        "Q56_BinaryStringRepeatUntilInterpret.cs",
+        "Q57_BinaryInlineRepeatUntilInterpret.cs",
+        "Q58_BinaryGenericInterpret.cs",
+        "Q59_BinaryNestedGenericInterpret.cs",
+        "Q60_BinaryBitsRepeatUntilInterpret.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog*.cs",
+      "reason": "Existing interpretation snapshots cover the established APPLY-based binary and text lowering.",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-operators-and-raw-literals",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "2.5 String Literals",
+        "Ordinary String Literals",
+        "Escape Sequences",
+        "Raw String Literals",
+        "2.6 Numeric Literals",
+        "Integer Literals",
+        "Decimal Literals",
+        "Numeric Type Suffixes",
+        "Alternative Number Bases",
+        "2.7 Boolean Literals",
+        "2.8 NULL Literal",
+        "2.9 Operators",
+        "Arithmetic Operators (by precedence, highest first)",
+        "Comparison Operators",
+        "Logical Operators",
+        "Null Fallback Operator",
+        "String Concatenation",
+        "22.3 Numeric Type Promotion",
+        "7.14 Implicit Boolean Conversion"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q268_SpecCoreOperatorsAndRawLiterals.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreExpressions.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-pattern-predicates",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "Pattern and Set Operators",
+        "7.6 LIKE Pattern Matching",
+        "7.7 RLIKE (Regular Expression Matching)",
+        "7.8 Multi-Field Pattern Predicate Quantifiers"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q269_SpecCorePatternPredicates.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreExpressions.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-membership-predicates",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "7.9 IN / NOT IN",
+        "7.9.1 Literal Lists",
+        "7.9.2 Collection Parameters",
+        "7.13 CONTAINS"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q270_SpecCoreMembershipPredicates.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreExpressions.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-quantified-subqueries",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "7.12 Quantified Subqueries: ANY, SOME, ALL"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q271_SpecCoreAnySomeSubqueries.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreExpressions.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-not-in-subquery",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "7.9.3 Subqueries"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q272_SpecCoreNotInSetSubquery.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreExpressions.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-correlated-set-subquery",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "7.9.4 Set Operators in IN Subqueries",
+        "7.9.5 IN Subqueries with Other Conditions",
+        "7.9.6 Correlated IN Subqueries",
+        "7.11 Scalar Subqueries"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q273_SpecCoreCorrelatedScalarSetOperation.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreExpressions.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-null-fallback",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "19.1 NULL Propagation",
+        "19.7 NULL Fallback Operator",
+        "19.8 NULL-Related Functions",
+        "19.9 NULL in Functions"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q274_SpecCoreNullFallback.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreExpressions.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-star-modifiers",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "5.4 Star Expression (Wildcard)",
+        "5.4.1 Star Modifiers"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q275_SpecCoreStarFilterModifiers.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreExpressions.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-row-member-access",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "5.6 RowNumber",
+        "21.1 Array Indexing",
+        "Negative Indexing",
+        "Out-of-Bounds Access",
+        "21.2 String Character Access",
+        "21.3 Dictionary Key Access",
+        "21.4 Property Navigation",
+        "21.5 Method Calls on Entities"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q276_SpecCoreRowAndMemberAccess.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreExpressions.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-named-source-arguments",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "6.1 Schema Data Sources",
+        "6.1.1 Named source arguments",
+        "6.6 Coupled Source References"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q277_SpecCoreNamedDatasourceArguments.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreSourceSamples.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-direct-semi-join",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "8.5 SEMI JOIN"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q278_SpecCoreDirectSemiJoin.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreJoins.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-semi-join-residual",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "8.5 SEMI JOIN"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q279_SpecCoreDirectSemiJoinResidual.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreJoins.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-direct-anti-join",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "8.6 ANTI JOIN"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q280_SpecCoreDirectAntiJoin.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreJoins.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-anti-join-residual",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "8.6 ANTI JOIN"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q281_SpecCoreDirectAntiJoinResidual.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreJoins.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-cross-join",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "8.7 CROSS JOIN"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q282_SpecCoreDirectCrossJoin.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreJoins.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-full-outer-join-row-presence",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "8.4 FULL OUTER JOIN",
+        "8.9 Join Condition Expressions"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q283_SpecCoreFullOuterJoinRowPresence.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreJoins.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-full-outer-join-non-equi",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "8.4 FULL OUTER JOIN",
+        "8.9 Join Condition Expressions"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q284_SpecCoreFullOuterJoinNonEqui.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreJoins.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-asof-left-join-row-presence",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "8.11 ASOF JOIN",
+        "8.11.1 Syntax",
+        "8.11.2 Inequality Operators",
+        "8.11.3 Basic Examples",
+        "8.11.4 ASOF LEFT JOIN",
+        "8.11.6 Match Cardinality and Tie-Breaking",
+        "8.11.7 NULL Handling",
+        "8.11.8 ON Clause Validation",
+        "8.11.9 Type Requirements",
+        "8.11.10 Interaction with Other Clauses",
+        "8.11.11 Chaining Multiple ASOF JOINs",
+        "19.6 NULL in ASOF JOIN"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q285_SpecCoreAsOfLeftJoinRowPresence.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreJoins.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-parent-level-aggregation",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "10.4 Parent-Level Aggregation",
+        "10.5 Aggregation Without GROUP BY"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q286_SpecCoreParentLevelAggregate.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreAggregates.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-aggregate-filter",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "10.10 FILTER Clause on Aggregates",
+        "10.10.1 Syntax",
+        "10.10.2 Equivalence to CASE WHEN",
+        "10.10.3 Supported Functions",
+        "10.10.4 Examples",
+        "10.10.5 Rules"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q287_SpecCoreAggregateFilter.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreAggregates.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-constant-grouping",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "10.6 GROUP BY with Constant"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q288_SpecCoreConstantGroup.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreAggregates.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-pivot-tuple-null-distinct",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "10.11 PIVOT Statement",
+        "10.11.1 Single-Key Example",
+        "10.11.2 Output Column Names",
+        "10.11.3 Measures",
+        "10.11.4 No GROUP BY",
+        "10.11.5 Multi-Column Pivot Keys",
+        "10.11.6 NULL Values",
+        "10.11.7 Composition"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q289_SpecCorePivotTupleNullDistinct.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreAggregates.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-named-window-analytics",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "11.5 Supported Window Functions",
+        "11.5.1 Ranking Functions",
+        "11.5.2 Offset Functions",
+        "11.5.3 Aggregate Window Functions",
+        "11.5.4 Value Access Functions"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q290_SpecCoreNamedWindowAnalytics.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreAggregates.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-set-result-modifiers",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "12.8 SKIP/TAKE Scope",
+        "12.10 ORDER BY with Set Operations"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q291_SpecCoreSetResultModifiers.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreAggregates.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-set-branch-local-slice",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "12.8 SKIP/TAKE Scope"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q292_SpecCoreSetBranchLocalSlice.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreAggregates.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-desc-schema",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "16.1 Describe a Schema"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q293_SpecCoreDescSchema.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreDescription.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-desc-method",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "16.2 Describe a Method (Overloads)"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q294_SpecCoreDescMethod.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreDescription.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-desc-constructor",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "16.3 Describe a Specific Constructor Result"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q295_SpecCoreDescConstructor.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreDescription.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-desc-column",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "16.4 Describe a Specific Column or Nested Property"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q296_SpecCoreDescColumn.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreDescription.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-desc-functions",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "16.5 Describe Schema Functions"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q297_SpecCoreDescFunctions.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreDescription.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-desc-settings",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "16.6 Describe Source Runtime Settings"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q298_SpecCoreDescSettings.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreDescription.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-string-numeric-coercion",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "22.1 String-to-Numeric Coercion"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q299_SpecCoreStringNumericCoercion.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreExpressions.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-temporal-coercion",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "22.2 String-to-DateTime Coercion"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q300_SpecCoreTemporalCoercion.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreExpressions.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-object-numeric-coercion",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "22.4 Object Column Coercion"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q301_SpecCoreObjectNumericCoercion.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecCoreExpressions.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-host-system-range-boundary",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "6.7 Optional host `system.range(start, end)` contract"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification boundary",
+      "reason": "The host-provided system.range contract is host-owned and is not a generated-code sample responsibility.",
+      "exclusionKind": "host-only"
+    },
+    {
+      "id": "spec-core-asof-right-join-boundary",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "8.11.5 ASOF RIGHT JOIN — Not Supported"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification boundary",
+      "reason": "ASOF RIGHT JOIN is explicitly unsupported by the specification.",
+      "exclusionKind": "unsupported"
+    },
+    {
+      "id": "spec-core-window-groups-exclude-boundary",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "11.11.5 Unsupported Standard SQL Window Features"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification boundary",
+      "reason": "GROUPS and EXCLUDE window-frame features are reserved or unsupported and therefore have no successful generated snapshot.",
+      "exclusionKind": "unsupported"
+    },
+    {
+      "id": "spec-core-positional-order-by-boundary",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "13.1 ORDER BY"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification boundary",
+      "reason": "Positional ORDER BY is outside the supported generated lowering contract.",
+      "exclusionKind": "unsupported"
+    },
+    {
+      "id": "spec-core-recursive-cte-boundary",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "14.9 Recursive CTEs and limitations"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification boundary",
+      "reason": "The recursive-CTE restrictions are documented as unsupported behavior rather than a code-generation sample.",
+      "exclusionKind": "unsupported"
+    },
+    {
+      "id": "spec-core-advisory-and-diagnostics",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "Advisory warning contract",
+        "4.3.7 Diagnostics",
+        "4.4.5 Diagnostics",
+        "23. Diagnostic Contract and Catalog",
+        "23.1 Diagnostic envelope contract",
+        "23.2 Phase and source-domain index",
+        "23.3 Root-cause classification",
+        "23.4 Exact parser diagnostics",
+        "23.5 Active advisory warnings",
+        "23.6 Schema, datasource, runtime, and internal failures",
+        "23.7 v17 to v18 migration"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification diagnostic contract",
+      "reason": "Malformed-query, warning, and diagnostic-catalog behavior is tested as diagnostics, not as successful generated-code snapshots.",
+      "exclusionKind": "diagnostic-only"
+    },
+    {
+      "id": "spec-table-type-matrix",
+      "specification": "specs/musoq-table-couple-spec.md",
+      "sections": [
+        "3. TABLE Statement",
+        "3.1 Syntax",
+        "3.2 Structure",
+        "3.3 Column Definitions",
+        "3.5 Scope and Visibility",
+        "3.6 Semantics",
+        "6. Type System",
+        "6.1 Supported Type Keywords",
+        "6.2 Nullable Types",
+        "6.3 Type Keywords Are Case-Insensitive",
+        "6.4 Fully-Qualified Type Names",
+        "9.5 All Supported Types",
+        "9.6 Nullable with Trailing Comma"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q319_SpecTableTypeMatrix.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecTableCouple.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-table-read-modifiers",
+      "specification": "specs/musoq-table-couple-spec.md",
+      "sections": [
+        "3.4 Column Read Modifiers",
+        "9.8 Column Read Modifiers"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q320_SpecTableReadModifiers.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecTableCouple.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-table-couple-arguments",
+      "specification": "specs/musoq-table-couple-spec.md",
+      "sections": [
+        "4. COUPLE Statement",
+        "4.1 Syntax",
+        "4.2 Structure",
+        "4.3 Schema Method Reference",
+        "4.4 Semantics",
+        "4.5 Alias Usage",
+        "5.3 With Parameters",
+        "5.4 With CTEs",
+        "5.5 With CTE as Argument",
+        "9.4 Passing Parameters"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q321_SpecTableCoupleArguments.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecTableCouple.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-table-settings-profiles",
+      "specification": "specs/musoq-table-couple-spec.md",
+      "sections": [
+        "5.6 With Source Runtime Settings",
+        "9.7 Source Runtime Settings Profiles",
+        "10.6 Statement Order Requirements"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q322_SpecTableSettingsProfiles.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecTableCouple.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-table-couple-composition",
+      "specification": "specs/musoq-table-couple-spec.md",
+      "sections": [
+        "10. Integration with Other Constructs",
+        "10.1 With CTEs (Common Table Expressions)",
+        "10.2 With JOINs",
+        "10.3 With APPLY",
+        "10.4 With Aggregations",
+        "10.5 With Set Operations"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q323_SpecTableCoupleComposition.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecTableCouple.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-table-diagnostics",
+      "specification": "specs/musoq-table-couple-spec.md",
+      "sections": [
+        "7. Error Handling",
+        "7.1 Parse-Time Errors",
+        "7.2 Semantic Errors",
+        "7.3 Source Contract Diagnostics",
+        "7.4 Runtime Adapter Diagnostics [Informative]",
+        "7.4 Diagnostic Codes"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification diagnostic contract",
+      "reason": "TABLE/COUPLE malformed-query and adapter diagnostics are diagnostic-only and are not fabricated as generated-code snapshots.",
+      "exclusionKind": "diagnostic-only"
+    },
+    {
+      "id": "spec-binary-primitive-endian-matrix",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "4. Binary Schema Syntax",
+        "4.1 Schema Declaration",
+        "4.2 Primitive Types",
+        "4.2.1 Integer Types",
+        "4.2.2 Floating-Point Types"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q302_SpecBinaryPrimitiveEndianMatrix.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationBinary.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-binary-bytes-and-strings",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "4.2.3 Byte Arrays",
+        "4.2.4 String Types"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q303_SpecBinaryBytesAndStrings.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationBinary.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-binary-bits-alignment-absolute",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "4.7 Bit Fields",
+        "4.8 Absolute Positioning"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q304_SpecBinaryBitsAlignmentAbsolute.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationBinary.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-binary-checks-const-magic-oneof",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "4.9 Validation Constraints",
+        "4.9.1 Field Value Validations (`const`, `magic`, `oneOf`)"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q305_SpecBinaryChecksConstMagicOneOf.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationBinary.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-binary-discard-repeat-until-eof",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "4.10 Repetition Until Condition",
+        "4.11 Discard Fields"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q306_SpecBinaryDiscardRepeatUntilEof.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationBinary.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-binary-switch-tagged-union",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "4.12 Switch (Tagged Union) Payloads",
+        "4.12.1 Result Shape",
+        "4.12.2 Cursor Semantics",
+        "4.12.3 Default and No-Match Behavior"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q307_SpecBinarySwitchTaggedUnion.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationBinary.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-binary-raw-substream",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "4.13 Substream (Length-Bounded) Payloads",
+        "4.13.1 Cursor Semantics",
+        "4.13.2 Modes"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q308_SpecBinaryRawSubstream.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationBinary.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-binary-structured-substreams",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "4.13 Substream (Length-Bounded) Payloads",
+        "4.13.1 Cursor Semantics",
+        "4.13.2 Modes"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q309_SpecBinaryStructuredSubstreams.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationBinary.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-binary-tryinterpret-interpretat",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "7.5 Safe Interpretation",
+        "7.6 Offset-Based Interpretation"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q310_SpecBinaryTryInterpretAndInterpretAt.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationBinary.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-binary-partial-interpret",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "7.8 Partial Interpretation (Debugging)"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q311_SpecBinaryPartialInterpret.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationBinary.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-binary-inheritance",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "8.3 Schema Inheritance (Extension)"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q312_SpecBinaryInheritance.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationBinary.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-binary-text-composition",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "8.5 Binary-Text Composition"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q313_SpecBinaryTextComposition.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationBinary.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-text-patterns-literals-tokens",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "5. Text Schema Syntax",
+        "5.1 Schema Declaration",
+        "5.2 Pattern Matching",
+        "5.3 Literal Matching",
+        "5.6 Token Capture",
+        "5.7 Rest of Input"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q314_SpecTextPatternsLiteralsTokens.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationText.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-text-until-between-chars-rest-nested",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "5.4 Delimiter-Based Capture",
+        "5.4.1 Until Delimiter",
+        "5.4.2 Between Delimiters",
+        "5.5 Fixed-Width Fields"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q315_SpecTextUntilBetweenCharsRestNested.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationText.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-text-optional-repeat-whitespace-modifiers",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "5.8 Optional Fields",
+        "5.9 Repetition",
+        "5.11 Whitespace Handling",
+        "5.12 Text Field Modifiers"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q316_SpecTextOptionalRepeatWhitespaceModifiers.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationText.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-text-switch",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "5.10 Alternatives (Switch)"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q317_SpecTextSwitch.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationText.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-text-tryparse-partialparse",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "7.4 Text Interpretation",
+        "7.7 Multiple Records",
+        "7.8 Partial Interpretation (Debugging)"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q318_SpecTextTryParseAndPartialParse.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.SpecInterpretationText.cs",
+      "reason": "",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-binary-interpretation-outside-apply",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "3.3 APPLY-Only Restriction"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification boundary",
+      "reason": "Interpretation functions outside CROSS APPLY or OUTER APPLY are explicitly forbidden and cannot be represented as successful generated code.",
+      "exclusionKind": "unsupported"
+    },
+    {
+      "id": "spec-binary-switch-substream-boundary",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "4.13.3 v1 Limits"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification boundary",
+      "reason": "Switch/tagged-union targets as substream payloads are reserved in v1 and unsupported.",
+      "exclusionKind": "unsupported"
+    },
+    {
+      "id": "spec-binary-diagnostics",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "9. Error Handling",
+        "9.1 Parse Error Structure",
+        "9.2 Error Categories",
+        "9.3 Error Behavior",
+        "9.4 Partial Results (Debugging)"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification diagnostic contract",
+      "reason": "Malformed schemas and diagnostic/partial-result behavior are diagnostic-only, not successful generated-code snapshots.",
+      "exclusionKind": "diagnostic-only"
+    },
+    {
+      "id": "spec-binary-future-extensions",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "12.1 Potential Extensions"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification roadmap",
+      "reason": "Future inline interpretation property access and other potential extensions are not implemented code-generation behavior.",
+      "exclusionKind": "future"
+    },
+    {
+      "id": "spec-core-language-non-codegen",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "Table of Contents",
+        "1. Introduction",
+        "1.1 Purpose",
+        "1.2 Scope",
+        "1.3 Relationship to Standard SQL",
+        "1.4 Terminology",
+        "1.5 Notation Conventions",
+        "1.6 Specification Family",
+        "1.7 Conformance",
+        "2.1 Character Set",
+        "2.2 Keywords",
+        "2.3 Identifiers",
+        "2.4 Comments",
+        "Appendix A: Complete Keyword List",
+        "Appendix B: Operator Precedence Table",
+        "Appendix C: String Literal Reference",
+        "C.1 Ordinary Escape Sequences",
+        "C.2 Raw String Literals",
+        "C.3 Suspicious Ordinary-String Path Escapes",
+        "Appendix D: Numeric Literal Format Summary",
+        "Appendix E: Key Differences from Standard SQL",
+        "Appendix F: CASE WHEN Requirements",
+        "Appendix G: Runtime V2 Cast and Grouping Quick Reference"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification classification",
+      "reason": "Introductory, grammar, appendix, or reference material does not define a distinct generated-code lowering.",
+      "exclusionKind": "non-codegen"
+    },
+    {
+      "id": "spec-core-language-unmapped-equivalent",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "Musoq Core SQL Language Specification",
+        "Single-Word Keywords",
+        "Multi-Word Keywords",
+        "Suspicious Ordinary-String Path Escapes",
+        "3.1 Primitive Types",
+        "3.2 Date and Time Types",
+        "3.3 Nullable Types",
+        "3.4 Complex Object Types",
+        "3.5 Collections and Arrays",
+        "3.6 Type Inference for Literals",
+        "3.7 Strict Postfix Casts",
+        "4.1 Statement Termination",
+        "4.2 Statement Types",
+        "4.3 Script Parameters",
+        "4.3.1 Declaration Syntax",
+        "4.3.2 Supported Parameter Types",
+        "4.3.3 Default Values",
+        "4.3.4 Expression Type Compatibility",
+        "4.3.5 Source Arguments",
+        "4.3.6 Unsupported Declaration Styles",
+        "4.4 Script Variables",
+        "4.4.1 Declaration Syntax",
+        "4.4.2 Supported Types",
+        "4.4.3 Initializers",
+        "4.4.4 Source Arguments",
+        "5.1 Basic Syntax",
+        "5.2 Column Expressions",
+        "5.3 Column Aliasing",
+        "5.5 DISTINCT",
+        "6.2 Table and Source Aliasing",
+        "6.3 CTE References",
+        "6.4 Derived Tables",
+        "6.5 Inline VALUES Row Sources",
+        "7.1 Basic Syntax",
+        "7.2 Comparison Expressions",
+        "7.3 Logical Operators",
+        "7.4 IS NULL / IS NOT NULL",
+        "7.5 IS DISTINCT FROM / IS NOT DISTINCT FROM",
+        "7.10 EXISTS / NOT EXISTS",
+        "8.1 INNER JOIN",
+        "8.2 LEFT OUTER JOIN",
+        "8.3 RIGHT OUTER JOIN",
+        "8.8 Multiple Joins",
+        "8.10 Function Calls in Multi-Source Queries",
+        "8.10.1 Method Auto-Resolution Algorithm",
+        "8.10.2 Method Categories",
+        "8.10.3 Examples",
+        "8.10.4 Explicit Alias Prefix",
+        "8.10.5 Best Practices",
+        "8.12 Keywords Are Case-Insensitive",
+        "9.1 CROSS APPLY",
+        "9.2 OUTER APPLY",
+        "9.3 Apply with Row Methods",
+        "9.4 Apply with Collection Properties",
+        "9.5 APPLY WITH ORDINALITY",
+        "9.6 Chaining Applies",
+        "9.7 APPLY with Derived Tables",
+        "9.8 Multiple Independent Applies",
+        "10.1 Basic Syntax",
+        "10.2 Aggregate Functions",
+        "10.3 GROUP BY Examples",
+        "10.3.1 GROUP BY Positional References",
+        "10.3.2 GROUP BY ALL",
+        "10.7 HAVING Clause",
+        "10.8 Non-Aggregated Column Restrictions",
+        "10.9 NULL in GROUP BY",
+        "10.11.8 Validation Rules",
+        "10.12 UNPIVOT Statement",
+        "10.12.1 Example",
+        "10.12.2 Output Columns",
+        "10.12.3 Name Values",
+        "10.12.4 Type and NULL Rules",
+        "10.12.5 Composition",
+        "10.12.6 Validation Rules",
+        "11.1 Overview",
+        "11.2 Syntax",
+        "11.3 PARTITION BY",
+        "11.4 ORDER BY within Window Specification",
+        "11.6 Underscore Naming Variants",
+        "11.7 WHERE Clause Interaction",
+        "11.8 Evaluation Order",
+        "11.9 Restrictions",
+        "11.10 Custom Window Functions",
+        "11.11 Frame Semantics",
+        "11.11.1 Implicit Frame",
+        "11.11.2 ROWS vs RANGE: Behavior with Tied ORDER BY Values",
+        "11.11.3 Which Functions Are Affected",
+        "11.11.4 NULL Ordering",
+        "11.11.6 Practical Implications",
+        "11.12 Window Frame Specifications",
+        "11.12.1 Syntax",
+        "11.12.2 Frame Bound Clamping",
+        "11.12.3 Supported Frame Types",
+        "11.12.4 Examples",
+        "11.13 QUALIFY Clause",
+        "11.13.1 Syntax",
+        "11.13.2 Execution Order",
+        "11.13.3 Examples",
+        "11.13.4 Comparison with CTE Workaround",
+        "12.1 Syntax",
+        "12.2 UNION",
+        "12.3 UNION ALL",
+        "12.4 EXCEPT",
+        "12.5 INTERSECT",
+        "12.6 Chaining Set Operations",
+        "12.7 Different Source Columns",
+        "12.9 Set Operations in CTEs",
+        "13.2 ORDER BY with SELECT Aliases",
+        "13.3 SKIP",
+        "13.4 TAKE",
+        "13.5 SKIP + TAKE (Pagination)",
+        "13.6 Interaction with GROUP BY and HAVING",
+        "14.1 Basic Syntax",
+        "14.2 Simple CTE",
+        "14.3 Output Column Names and Aliases",
+        "14.4 Star Expansion from CTE",
+        "14.5 CTE with Aggregation",
+        "14.6 Multiple CTEs",
+        "14.7 CTE with Set Operations",
+        "14.8 CTE with JOIN",
+        "15. TABLE and COUPLE Statements",
+        "15.1 TABLE Definition",
+        "15.2 COUPLE Statement",
+        "15.3 Purpose",
+        "16. DESC Statement",
+        "16.7 Describe Query Output",
+        "16.8 General DESC Rules",
+        "17.1 FROM-First Syntax",
+        "17.2 Standard vs. Reordered Clause Order",
+        "17.3 Examples",
+        "18.1 Conventions",
+        "18.2 Discovering Available Functions",
+        "18.3 Function Categories",
+        "19.2 NULL in Comparisons",
+        "19.2.1 NULL Comparisons Inside `CASE WHEN`",
+        "19.3 NULL in LIKE, RLIKE, CONTAINS",
+        "19.4 NULL in GROUP BY",
+        "19.5 NULL from OUTER Joins",
+        "20.1 Case-Insensitive Contexts",
+        "20.2 Case-Sensitive (Ordinal) Contexts",
+        "20.3 Achieving Case-Insensitive Grouping",
+        "20.4 Unicode Support",
+        "24. Formal Grammar",
+        "24.1 Notation",
+        "24.2 Statement-Level Grammar",
+        "24.3 Query Grammar",
+        "24.4 FROM Clause Grammar",
+        "24.5 SELECT List Grammar",
+        "24.6 Expression Grammar (by precedence, lowest to highest)",
+        "24.7 Literal Grammar",
+        "24.8 Utility Statement Grammar",
+        "24.9 Window Function Grammar",
+        "25. Appendices"
+      ],
+      "disposition": "equivalent-lowering",
+      "sampleFiles": [
+        "Q01_SimpleSelectWhere.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog*.cs",
+      "reason": "The heading is represented by existing positive generated coverage or shares an equivalent lowering; it remains explicitly tracked for drift.",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-table-couple-non-codegen",
+      "specification": "specs/musoq-table-couple-spec.md",
+      "sections": [
+        "Table of Contents",
+        "1. Introduction",
+        "1.1 Purpose",
+        "1.2 Scope",
+        "1.3 Relationship to Other Specifications",
+        "1.4 Conformance",
+        "1.5 Terminology",
+        "2. Purpose and Motivation",
+        "2.1 Problem Statement",
+        "2.2 Solution",
+        "2.3 Design Philosophy",
+        "Appendix A: Quick Reference",
+        "TABLE Statement",
+        "COUPLE Statement",
+        "Usage in Query",
+        "Type Keywords",
+        "Appendix B: Comparison with Related Constructs",
+        "Appendix C: Type Mapping Table"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification classification",
+      "reason": "Introductory, grammar, appendix, or reference material does not define a distinct generated-code lowering.",
+      "exclusionKind": "non-codegen"
+    },
+    {
+      "id": "spec-table-couple-unmapped-equivalent",
+      "specification": "specs/musoq-table-couple-spec.md",
+      "sections": [
+        "Musoq TABLE and COUPLE Statements Specification",
+        "5.1 Basic Pattern",
+        "5.2 Multiple Tables and Sources",
+        "8. Grammar Specification",
+        "8.1 Table Definition Grammar",
+        "8.2 Couple Statement Grammar",
+        "8.3 Coupled Alias Reference Grammar",
+        "9.1 Basic String Column",
+        "9.2 Multiple Typed Columns",
+        "9.3 JOIN Between Coupled Sources"
+      ],
+      "disposition": "equivalent-lowering",
+      "sampleFiles": [
+        "Q03_InnerJoin.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog*.cs",
+      "reason": "The heading is represented by existing positive generated coverage or shares an equivalent lowering; it remains explicitly tracked for drift.",
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-core-enum-profile",
+      "specification": "specs/musoq-core-language-spec.md",
+      "sections": [
+        "3.8 Enum Types",
+        "18.4 Enum Intrinsics",
+        "19.10 NULL in Enum Intrinsics",
+        "22.5 Enum Non-Coercion"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q324_EnumQueryScopedRows.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.QueryScopedRows.cs",
+      "reason": null,
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-table-enum-profile",
+      "specification": "specs/musoq-table-couple-spec.md",
+      "sections": [
+        "3.7 Enum Columns",
+        "6.5 Enum Type References"
+      ],
+      "disposition": "sampled",
+      "sampleFiles": [
+        "Q324_EnumQueryScopedRows.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog.QueryScopedRows.cs",
+      "reason": null,
+      "exclusionKind": null
+    },
+    {
+      "id": "spec-binary-text-non-codegen",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "Table of Contents",
+        "1. Introduction",
+        "1.1 Purpose",
+        "1.2 Motivation",
+        "1.3 Scope",
+        "1.4 Terminology",
+        "1.5 Design Conventions",
+        "1.6 Relationship to Existing Musoq Constructs",
+        "2. Design Principles",
+        "2.1 Declarative Over Imperative",
+        "2.2 Schemas Are Documentation",
+        "2.3 Composition Through References",
+        "Appendix A: Reserved Keywords",
+        "Appendix B: Type Mapping",
+        "Appendix C: Error Codes",
+        "Appendix D: CROSS APPLY / OUTER APPLY Behavior",
+        "D.1 Behavior Summary"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification classification",
+      "reason": "Introductory, grammar, appendix, or reference material does not define a distinct generated-code lowering.",
+      "exclusionKind": "non-codegen"
+    },
+    {
+      "id": "spec-binary-text-diagnostic-only",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "2.4 Fail-Fast with Clear Diagnostics",
+        "4.12.4 Diagnostics"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification classification",
+      "reason": "Diagnostics and malformed-query behavior are tracked separately from successful generated-code snapshots.",
+      "exclusionKind": "diagnostic-only"
+    },
+    {
+      "id": "spec-binary-text-future",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "12. Future Considerations",
+        "12.2 Performance Considerations",
+        "12.3 Tooling Support"
+      ],
+      "disposition": "excluded",
+      "sampleFiles": [],
+      "evidence": "specification classification",
+      "reason": "Future or roadmap behavior is not an implemented generated-code contract.",
+      "exclusionKind": "future"
+    },
+    {
+      "id": "spec-binary-text-unmapped-equivalent",
+      "specification": "specs/musoq-binary-text-spec.md",
+      "sections": [
+        "Musoq Interpretation Schemas: Language Extension Specification",
+        "2.5 Zero Runtime Reflection",
+        "2.6 SQL Spirit Alignment",
+        "3. Core Language Changes",
+        "3.1 Schema Definition Placement",
+        "3.2 CROSS APPLY / OUTER APPLY Relaxation",
+        "4.12.5 v1 Limits",
+        "5.4.3 Escaped Content",
+        "6. Common Elements",
+        "6.1 Identifiers",
+        "6.2 Comments",
+        "6.3 Expressions",
+        "6.4 Field Reference Scoping",
+        "6.5 Built-in Functions for Schemas",
+        "7. Interpretation Functions",
+        "8. Schema Composition",
+        "10. Grammar Specification",
+        "10.1 Complete Binary Schema Grammar",
+        "10.2 Complete Text Schema Grammar",
+        "11. Examples",
+        "11.1 PNG File Header",
+        "11.2 Apache Combined Log Format",
+        "11.3 Mixed Binary/Text Protocol",
+        "11.4 COBOL Copybook Record",
+        "11.5 Structured Storage with Mixed Data"
+      ],
+      "disposition": "equivalent-lowering",
+      "sampleFiles": [
+        "Q16_BinaryInterpret.cs"
+      ],
+      "evidence": "src/dotnet/Musoq.Evaluator.Tests/GeneratedCodeSamplesCatalog*.cs",
+      "reason": "The heading is represented by existing positive generated coverage or shares an equivalent lowering; it remains explicitly tracked for drift.",
+      "exclusionKind": null
+    }
+  ]
+}

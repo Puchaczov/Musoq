@@ -5,8 +5,12 @@ using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
 
-internal sealed class SemanticDiagnosticReporter(DiagnosticContext? diagnosticContext)
+internal sealed class SemanticDiagnosticReporter(
+    DiagnosticContext? diagnosticContext,
+    IReadOnlyCollection<string>? generatedAliases = null)
 {
+    private readonly IReadOnlyCollection<string> _generatedAliases = generatedAliases ?? [];
+
     public bool TryReportTypeMismatch(string message, Node node)
     {
         if (diagnosticContext == null)
@@ -35,7 +39,7 @@ internal sealed class SemanticDiagnosticReporter(DiagnosticContext? diagnosticCo
 
         diagnosticContext.ReportError(
             DiagnosticCode.MQ3027_InvalidExpressionType,
-            $"Query output column '{field.FieldName}' has invalid type '{invalidType?.FullName ?? "null"}' in {context}. Only primitive types are allowed in query outputs.",
+            $"Query output column '{field.FieldName}' has invalid type '{invalidType?.Name ?? "null"}' in {context}. Only primitive types are allowed in query outputs.",
             node);
         return true;
     }
@@ -50,7 +54,7 @@ internal sealed class SemanticDiagnosticReporter(DiagnosticContext? diagnosticCo
 
         diagnosticContext.ReportError(
             DiagnosticCode.MQ3027_InvalidExpressionType,
-            $"Expression '{expressionDescription}' has invalid type '{invalidType?.FullName ?? "null"}' in {context}. Only primitive types are allowed in query expressions.",
+            $"Expression '{expressionDescription}' has invalid type '{invalidType?.Name ?? "null"}' in {context}. Only primitive types are allowed in query expressions.",
             node);
         return true;
     }
@@ -67,7 +71,9 @@ internal sealed class SemanticDiagnosticReporter(DiagnosticContext? diagnosticCo
                 diagnostic.Code == DiagnosticCode.MQ3092_AggregateInGroupBy))
             return true;
 
-        var groupByColumnList = groupByColumns.ToArray();
+        var groupByColumnList = groupByColumns
+            .Select(FormatGroupByColumn)
+            .ToArray();
         var groupByList = groupByColumnList.Length > 0
             ? string.Join(", ", groupByColumnList)
             : "(none)";
@@ -77,5 +83,16 @@ internal sealed class SemanticDiagnosticReporter(DiagnosticContext? diagnosticCo
             $"Current GROUP BY columns: {groupByList}.",
             node);
         return true;
+    }
+
+    private string FormatGroupByColumn(string value)
+    {
+        foreach (var alias in _generatedAliases)
+        {
+            if (value.StartsWith(alias + ".", StringComparison.OrdinalIgnoreCase))
+                return value[(alias.Length + 1)..];
+        }
+
+        return value;
     }
 }

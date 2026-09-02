@@ -89,7 +89,7 @@ public sealed partial class LogicalPlanBuilder
         var left = _nodeStack.Pop();
         var onPredicate = _converter.Convert(node.Expression);
         var kind = MapJoinKind(node.JoinType);
-        _nodeStack.Push(new IrNodes.JoinNode(kind, onPredicate, left, right, ConvertTieBreak(node.TieBreak, kind)));
+        _nodeStack.Push(new IrNodes.JoinNode(kind, onPredicate, left, right, ConvertTieBreak(node.TieBreak, kind), node.WithOrdinality));
     }
 
     public void Visit(ApplyFromNode node)
@@ -188,7 +188,12 @@ public sealed partial class LogicalPlanBuilder
                     columns[i].ColumnName,
                     columns[i].ColumnType,
                     columns[i].ColumnIndex,
-                    columns[i].IntendedTypeName);
+                    columns[i].IntendedTypeName,
+                    columns[i].SourceReadType,
+                    columns[i].EnumType)
+                {
+                    Stability = columns[i].Stability
+                };
 
             return new OutputSchema(schemaColumns);
         }

@@ -98,9 +98,13 @@ public sealed partial class ExecutionCSharpRenderer
             StatementEmitter.CreateForeach(
                 leftRowName,
                 CreateSetRowsRead(setOperation.Left, context),
-                StatementEmitter.CreateBlock(
-                    CreateHashSetAddStatement(keysName, leftRowName, setOperation, setOperation.Left, context),
-                    CreateSetOperationTargetAddStatement(setOperation, leftRowName, setOperation.Left, context))),
+                StatementEmitter.CreateBlock(CreateConditionalSetRowAppend(
+                    keysName,
+                    leftRowName,
+                    setOperation,
+                    setOperation.Left,
+                    SetKeyCondition.Added,
+                    context))),
             StatementEmitter.CreateForeach(
                 rightRowName,
                 CreateSetRowsRead(setOperation.Right, context),

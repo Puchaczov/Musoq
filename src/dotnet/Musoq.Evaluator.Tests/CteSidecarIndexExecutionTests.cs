@@ -31,7 +31,6 @@ public sealed class CteSidecarIndexExecutionTests : BasicEntityTestBase
         useCteParallelization: true,
         useCteSidecarIndexes: true);
 
-    public TestContext TestContext { get; set; } = null!;
 
     [TestMethod]
     public void InnerCteHashJoin_WithDuplicates_ShouldMatchBaseline()

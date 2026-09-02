@@ -19,7 +19,7 @@ namespace Musoq.Evaluator.Tests;
 internal static class GeneratedCodeSampleArtifacts
 {
     private const int SnapshotMaxDegreeOfParallelism = 24;
-    private const int CacheGenerationVersion = 1;
+    private const int CacheGenerationVersion = 2;
 
     private static readonly GeneratedCodeArtifactCache<GeneratedCodeSampleCacheKey, string> Cache = new();
     private static readonly Encoding Utf8WithBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
@@ -135,7 +135,9 @@ internal static class GeneratedCodeSampleArtifacts
 
     private static CompilationOptions CreateSnapshotCompilationOptions(CompilationOptions? options)
     {
-        options ??= new CompilationOptions();
+        // Tracked samples represent the qualified optimized corpus. Preserve each
+        // sample's explicit switch values while constraining snapshot parallelism.
+        options ??= new CompilationOptions().WithStabilityAwareScalarReuse();
 
         return new CompilationOptions(
             options.ParallelizationMode,
@@ -150,6 +152,8 @@ internal static class GeneratedCodeSampleArtifacts
             options.InstrumentationMode,
             SnapshotMaxDegreeOfParallelism,
             options.ForceTableResultMaterialization)
+            .WithLoopInvariantCodeMotion(options.UseLoopInvariantCodeMotion)
+            .WithStabilityAwareScalarReuse(options.UseStabilityAwareScalarReuse)
             .WithRecursiveCteLimits(options.RecursiveCteLimits);
     }
 

@@ -147,7 +147,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             {
                 returnType = schemaRegistration?.GeneratedType;
                 if (returnType != null && interpretCall is PartialInterpretCallNode or PartialParseCallNode)
-                    returnType = typeof(Musoq.Schema.Interpreters.PartialInterpretResult<>).MakeGenericType(returnType);
+                    returnType = typeof(Schema.Interpreters.PartialInterpretResult<>).MakeGenericType(returnType);
             }
 
             var interpretTableSymbol = new TableSymbol(

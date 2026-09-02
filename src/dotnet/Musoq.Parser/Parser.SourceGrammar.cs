@@ -78,7 +78,7 @@ public partial class Parser
             message,
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2035_MissingRequiredAlias,
-            new TextSpan(source.SourceEndSpan.End, 0));
+            new TextSpan(source.SourceEndSpan.End, 0), ParserDiagnosticFacts.RequiredAlias(source.Kind, operatorText, GetSourceBoundaryText(), isFirstSource));
     }
 
     private static string GetJoinOperatorText(Token token)
@@ -174,6 +174,6 @@ public partial class Parser
             $"The {sourceKind} source requires an alias after {delimiter}.",
             queryPart,
             DiagnosticCode.MQ2035_MissingRequiredAlias,
-            new TextSpan(position.End, 0));
+            new TextSpan(position.End, 0), ParserDiagnosticFacts.RequiredAliasAfterDelimiter(sourceKind, delimiter));
     }
 }

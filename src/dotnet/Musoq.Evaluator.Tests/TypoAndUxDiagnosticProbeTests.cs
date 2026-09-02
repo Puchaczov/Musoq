@@ -47,9 +47,8 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name FRM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
-        // Message uses PascalCase enum name "From"
-        AssertMessageContains(ex, "From");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2004_MissingFromClause, DiagnosticPhase.Parse);
+        AssertMessageContains(ex, "FROM");
     }
 
     [TestMethod]
@@ -58,9 +57,8 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name FOMR #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
-        // Message uses PascalCase enum name "From"
-        AssertMessageContains(ex, "From");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2004_MissingFromClause, DiagnosticPhase.Parse);
+        AssertMessageContains(ex, "FROM");
     }
 
     [TestMethod]

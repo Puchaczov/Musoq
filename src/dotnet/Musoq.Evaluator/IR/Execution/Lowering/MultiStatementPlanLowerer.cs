@@ -62,7 +62,7 @@ internal sealed class MultiStatementPlanLowerer(
     }
 
     private static string? ResolveStatementNamePrefix(string resultTableName) =>
-        string.Equals(resultTableName, "result", System.StringComparison.Ordinal)
+        string.Equals(resultTableName, "result", StringComparison.Ordinal)
             ? null
             : resultTableName;
 }

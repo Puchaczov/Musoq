@@ -27,6 +27,8 @@ internal static class MusoqExceptionAssertions
             $"Expected diagnostic code {expectedCode} but got {envelope.Code}. Message: {envelope.Message}");
         Assert.AreEqual(DiagnosticSeverity.Error, envelope.Severity);
         Assert.AreEqual(expectedPhase, envelope.Phase);
+        Assert.AreEqual(ExpectedSourceKind(expectedCode), envelope.SourceKind);
+        AssertEnvelopeLocationConsistency(envelope);
         // A diagnostic may legitimately have no source location (for example, a
         // schema/runtime failure reported after the query text is no longer the
         // failing domain).  In that case the envelope must keep the location
@@ -221,5 +223,59 @@ internal static class MusoqExceptionAssertions
             Assert.AreEqual(expectedCodes[i], actualCodes[i],
                 $"Error at index {i}: expected {expectedCodes[i]} but got {actualCodes[i]}. " +
                 $"Actual errors: [{string.Join(", ", result.Errors.Select(e => $"{e.Code}: {e.Message}"))}]");
+    }
+
+    private static DiagnosticSourceKind ExpectedSourceKind(DiagnosticCode code)
+    {
+        var value = (int)code;
+
+        return value switch
+        {
+            >= 4001 and <= 4016 => DiagnosticSourceKind.Schema,
+            >= 7003 and <= 7009 => DiagnosticSourceKind.Runtime,
+            >= 7010 and <= 7012 => DiagnosticSourceKind.DataSource,
+            >= 8001 and <= 8002 => DiagnosticSourceKind.GeneratedSource,
+            >= 9001 and <= 9002 => DiagnosticSourceKind.Internal,
+            _ => DiagnosticSourceKind.Query
+        };
+    }
+
+    private static void AssertEnvelopeLocationConsistency(MusoqErrorEnvelope envelope)
+    {
+        var hasLocation = envelope.Offset.HasValue ||
+                          envelope.EndOffset.HasValue ||
+                          envelope.Length.HasValue ||
+                          envelope.Line.HasValue ||
+                          envelope.Column.HasValue ||
+                          envelope.EndLine.HasValue ||
+                          envelope.EndColumn.HasValue;
+
+        if (!hasLocation)
+            return;
+
+        Assert.IsTrue(envelope.Offset.HasValue, "A located diagnostic must include its start offset.");
+        Assert.IsTrue(envelope.EndOffset.HasValue, "A located diagnostic must include its end offset.");
+        Assert.IsTrue(envelope.Length.HasValue, "A located diagnostic must include its span length.");
+        Assert.IsTrue(envelope.Line.HasValue, "A located diagnostic must include its start line.");
+        Assert.IsTrue(envelope.Column.HasValue, "A located diagnostic must include its start column.");
+        Assert.IsTrue(envelope.EndLine.HasValue, "A located diagnostic must include its end line.");
+        Assert.IsTrue(envelope.EndColumn.HasValue, "A located diagnostic must include its end column.");
+        Assert.IsNotNull(envelope.Offset);
+        Assert.IsTrue(envelope.Offset.Value >= 0, "A diagnostic start offset cannot be negative.");
+        Assert.IsNotNull(envelope.Length);
+        Assert.IsTrue(envelope.Length.Value >= 0, "A diagnostic span length cannot be negative.");
+        Assert.IsNotNull(envelope.Line);
+        Assert.IsTrue(envelope.Line.Value >= 1, "A diagnostic start line must be one-based.");
+        Assert.IsNotNull(envelope.Column);
+        Assert.IsTrue(envelope.Column.Value >= 1, "A diagnostic start column must be one-based.");
+        Assert.IsNotNull(envelope.EndLine);
+        Assert.IsTrue(envelope.EndLine.Value >= 1, "A diagnostic end line must be one-based.");
+        Assert.IsNotNull(envelope.EndColumn);
+        Assert.IsTrue(envelope.EndColumn.Value >= 1, "A diagnostic end column must be one-based.");
+        Assert.IsNotNull(envelope.EndOffset);
+        Assert.AreEqual(
+            envelope.Offset.Value + envelope.Length.Value,
+            envelope.EndOffset.Value,
+            "A diagnostic span must end at offset plus length.");
     }
 }

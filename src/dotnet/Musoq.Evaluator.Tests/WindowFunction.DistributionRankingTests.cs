@@ -6,7 +6,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class WindowFunctionDistributionRankingTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     [FeatureEvidence("percent-rank-cume-dist", FeatureEvidenceKind.RuntimePositive)]

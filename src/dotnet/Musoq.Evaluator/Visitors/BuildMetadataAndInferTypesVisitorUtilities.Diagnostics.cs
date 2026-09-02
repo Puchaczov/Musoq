@@ -58,7 +58,8 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
             throw new UnknownColumnOrAliasException(
                 identifier,
                 $"Did you mean to use [{candidates}]?",
-                span);
+                span,
+                candidatesColumns.Select(static column => column.ColumnName));
         }
 
         throw new UnknownColumnOrAliasException(identifier, string.Empty, span);
@@ -88,7 +89,8 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
             throw new UnknownPropertyException(
                 identifier,
                 $"Did you mean to use [{candidates}]?",
-                span);
+                span,
+                candidatesProperties.Select(static property => property.Name));
         }
 
         throw new UnknownPropertyException(identifier, "unknown", span);

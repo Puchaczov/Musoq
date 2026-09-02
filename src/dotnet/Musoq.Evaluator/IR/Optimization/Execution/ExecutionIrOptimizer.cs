@@ -14,7 +14,9 @@ internal sealed class ExecutionIrOptimizer
         {
             FieldReadDiscoveryEnabled = false,
             ExpressionCseEnabled = effectiveOptions.UseCommonSubexpressionElimination,
-            CrossNodeExpressionCseEnabled = effectiveOptions.UseCommonSubexpressionElimination
+            CrossNodeExpressionCseEnabled = effectiveOptions.UseCommonSubexpressionElimination,
+            LoopInvariantCodeMotionEnabled = effectiveOptions.UseLoopInvariantCodeMotion,
+            StabilityAwareScalarReuseEnabled = effectiveOptions.UseStabilityAwareScalarReuse
         };
         var result = new PlanOptimizationRunner<ExecutionPlan>(
             ExecutionIrOptimizationGroup.Pipeline).Run(
@@ -24,4 +26,3 @@ internal sealed class ExecutionIrOptimizer
         return new ExecutionIrOptimizationResult(initialPlan, result.Plan, trace);
     }
 }
-

@@ -20,7 +20,9 @@ internal sealed partial class PhysicalLoweringImplementation
                     column.Index,
                     column.Type,
                     FieldNullability.Unknown,
-                    new PositionalAccess(column.Index));
+                    new PositionalAccess(column.Index),
+                    sourceReadType: column.SourceReadType,
+                    enumType: column.EnumType);
                 return column.IntendedTypeName is { Length: > 0 } generatedTypeName
                     ? field with { GeneratedTypeName = generatedTypeName }
                     : field;

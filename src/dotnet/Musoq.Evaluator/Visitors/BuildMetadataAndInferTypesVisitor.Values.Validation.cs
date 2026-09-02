@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Evaluator.Exceptions;
+using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -34,11 +34,11 @@ public partial class BuildMetadataAndInferTypesVisitor
     private static ISchemaColumn[] ValidateValuesRowsAndCreateColumns(ValuesRowNode[] rows, ValuesFromNode node)
     {
         if (rows.Length == 0)
-            throw CreateValuesSourceException("VALUES source requires at least one row.", node);
+            throw ValuesSourceSpanHelpers.CreateException("VALUES source requires at least one row.", node, "empty-source");
 
         var firstRow = rows[0];
         if (firstRow.Fields.Count == 0)
-            throw CreateValuesSourceException("VALUES rows require at least one field.", node);
+            throw ValuesSourceSpanHelpers.CreateException("VALUES rows require at least one field.", node, "empty-row");
 
         ValidateValuesRowHasNoDuplicateFields(firstRow, 0, node);
 
@@ -59,10 +59,20 @@ public partial class BuildMetadataAndInferTypesVisitor
                 if (!columnNameSet.Contains(field.Name))
                     ThrowUnexpectedValuesField(field, rowIndex, columnNames, node);
 
+                if (field.Expression is ParameterReferenceNode parameter &&
+                    ValuesStaticExpressionRules.IsCollectionParameter(parameter))
+                    throw ValuesSourceDiagnostics.Error(
+                        $"VALUES field '{field.Name}' cannot use collection parameter '${parameter.Name}'. VALUES fields must be scalar; expand or index the collection before constructing the row.",
+                        ValuesSourceDiagnostics.ExpressionSpan(field, node),
+                        ("constraint", "collection-parameter"),
+                        ("field", field.Name));
+
                 if (!ValuesStaticExpressionRules.IsStaticScalarExpression(field.Expression))
-                    throw new ValuesSourceException(
+                    throw ValuesSourceDiagnostics.Error(
                         $"VALUES field '{field.Name}' must be a constant literal expression or scalar script parameter/let expression. Use literals, NULL, scalar script parameters, scalar let variables, or arithmetic over them.",
-                        GetExpressionSpan(field, node));
+                        ValuesSourceDiagnostics.ExpressionSpan(field, node),
+                        ("constraint", "non-static-expression"),
+                        ("field", field.Name));
             }
         }
 
@@ -94,18 +104,26 @@ public partial class BuildMetadataAndInferTypesVisitor
         var missingField = columnNames.FirstOrDefault(columnName => !rowNames.Contains(columnName));
         if (!string.IsNullOrEmpty(missingField))
         {
-            throw new ValuesSourceException(
+            throw ValuesSourceDiagnostics.Error(
                 $"VALUES row {rowIndex + 1} is missing field '{missingField}'. Every row must contain the same fields as the first row: {string.Join(", ", columnNames)}.",
-                GetRowSpan(row, node));
+                ValuesSourceSpanHelpers.GetMissingFieldInsertionSpan(row, node),
+                ("constraint", "missing-field"),
+                ("row", ValuesSourceDiagnostics.RowNumber(rowIndex)),
+                ("field", missingField),
+                ("expectedFields", string.Join(", ", columnNames)));
         }
 
         var unexpectedField = row.Fields.FirstOrDefault(field => !columnNameSet.Contains(field.Name));
         if (unexpectedField != null)
             ThrowUnexpectedValuesField(unexpectedField, rowIndex, columnNames, node);
 
-        throw new ValuesSourceException(
+        throw ValuesSourceDiagnostics.Error(
             $"VALUES row {rowIndex + 1} must contain exactly {columnNames.Length} field(s): {string.Join(", ", columnNames)}.",
-            GetRowSpan(row, node));
+            ValuesSourceSpanHelpers.GetRowSpan(row, node),
+            ("constraint", "row-shape"),
+            ("row", ValuesSourceDiagnostics.RowNumber(rowIndex)),
+            ("expectedFields", string.Join(", ", columnNames)),
+            ("expectedFieldCount", ValuesSourceDiagnostics.InvariantNumber(columnNames.Length)));
     }
 
     private static void ThrowUnexpectedValuesField(
@@ -114,9 +132,13 @@ public partial class BuildMetadataAndInferTypesVisitor
         IReadOnlyList<string> columnNames,
         ValuesFromNode node)
     {
-        throw new ValuesSourceException(
+        throw ValuesSourceDiagnostics.Error(
             $"VALUES row {rowIndex + 1} contains unexpected field '{field.Name}'. Expected fields are: {string.Join(", ", columnNames)}.",
-            GetFieldNameSpan(field, node));
+            ValuesSourceSpanHelpers.GetFieldNameSpan(field, node),
+            ("constraint", "unexpected-field"),
+            ("row", ValuesSourceDiagnostics.RowNumber(rowIndex)),
+            ("field", field.Name),
+            ("expectedFields", string.Join(", ", columnNames)));
     }
 
     private static void ValidateValuesRowHasNoDuplicateFields(ValuesRowNode row, int rowIndex, ValuesFromNode node)
@@ -124,9 +146,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var field in row.Fields)
             if (!names.Add(field.Name))
-                throw new ValuesSourceException(
+                throw ValuesSourceDiagnostics.Error(
                     $"VALUES row {rowIndex + 1} contains duplicate field '{field.Name}'. Field names in a VALUES row are case-insensitive and must be unique.",
-                    GetFieldNameSpan(field, node));
+                    ValuesSourceSpanHelpers.GetFieldNameSpan(field, node),
+                    ("constraint", "duplicate-field"),
+                    ("row", ValuesSourceDiagnostics.RowNumber(rowIndex)),
+                    ("field", field.Name));
     }
 
 }

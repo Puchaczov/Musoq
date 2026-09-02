@@ -36,6 +36,8 @@ public sealed record ExecutionPortableCallableDescriptor(
 
     public ExecutionIntrinsicCallableKind IntrinsicKind { get; init; }
 
+    public bool IsStable { get; init; } = true;
+
     private static IReadOnlyList<T> Freeze<T>(IEnumerable<T>? values)
     {
         return Array.AsReadOnly(values?.ToArray() ?? []);

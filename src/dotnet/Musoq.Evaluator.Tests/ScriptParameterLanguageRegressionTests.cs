@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenParametersAreUsedInCteBodyAndConsumer_ShouldRun()

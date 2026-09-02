@@ -20,7 +20,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class StringComparisonConsistencyTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
 
     [TestMethod]

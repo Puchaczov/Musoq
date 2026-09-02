@@ -79,7 +79,7 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
             try
             {
                 using (EvaluatorPerformanceTelemetry.BeginPhase("semantic.metadata-binding"))
-                    metadataPhase = new SemanticMetadataPhaseCoordinator().Analyze(queryTree, metadataVisitor);
+                    metadataPhase = new SemanticMetadataPhaseCoordinator().Analyze(queryTree, metadataVisitor, parsedQueryTree);
                 queryTree = metadataPhase.Query;
             }
             catch (Exception ex)
@@ -127,11 +127,20 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
 
             var metadataScopeArtifact = metadataPhase.Scope;
             RootNode rewrittenQueryTree;
-            using (EvaluatorPerformanceTelemetry.BeginPhase("semantic.rewrite"))
-                rewrittenQueryTree = new SemanticRewritePhaseCoordinator().Rewrite(
-                    queryTree,
-                    metadataScopeArtifact,
-                    context.CompilationOptions);
+            try
+            {
+                using (EvaluatorPerformanceTelemetry.BeginPhase("semantic.rewrite"))
+                    rewrittenQueryTree = new SemanticRewritePhaseCoordinator().Rewrite(
+                        queryTree,
+                        metadataScopeArtifact,
+                        context.CompilationOptions);
+            }
+            catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
+            {
+                if (!context.DiagnosticContext.HasErrors)
+                    context.DiagnosticContext.ReportException(ex);
+                return;
+            }
             queryTree = rewrittenQueryTree;
 
             using (EvaluatorPerformanceTelemetry.BeginPhase("semantic.artifact-freeze"))

@@ -20,6 +20,8 @@ internal sealed class SemanticAnalysisState
 
     public DiagnosticState Diagnostics { get; } = new();
 
+    public EnumBindingState Enums { get; } = new();
+
     public MethodResolutionState MethodResolution { get; } = new();
 
     public SemanticQueryState Query { get; } = new();
@@ -40,7 +42,8 @@ internal sealed partial record SourceBindingState
 
     public Dictionary<string, ISchemaTable> ExplicitlyDefinedTables { get; } = new();
 
-    public Dictionary<string, CoupledSourceDefinition> ExplicitlyCoupledSources { get; } = new();
+    public Dictionary<string, CoupledSourceDefinition> ExplicitlyCoupledSources { get; } =
+        new(StringComparer.OrdinalIgnoreCase);
 
     public Dictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; } = new();
 
@@ -86,6 +89,7 @@ internal sealed record DiagnosticState
     public List<Type> NullSuspiciousTypes { get; } = [];
 
     public bool HasSeenNonParameterStatement { get; set; }
+
 }
 
 internal sealed record SemanticQueryState

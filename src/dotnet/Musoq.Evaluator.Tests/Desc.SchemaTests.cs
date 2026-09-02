@@ -14,7 +14,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class DescStatementTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void DescSchema_ShouldReturnAvailableMethods()

@@ -128,7 +128,7 @@ namespace GeneratedSample_Q23_InClause
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 string city = ko3iko.City;
-                                if ((((city == "Warsaw") || (city == "Berlin")) || (city == "Paris")))
+                                if ((((Operators.SqlCompare<string, string>(city, "Warsaw", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | Operators.SqlCompare<string, string>(city, "Berlin", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) | Operators.SqlCompare<string, string>(city, "Paris", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) == true)
                                 {
                                     yield return new ResultShape0(ko3iko.Name, city);
                                 }
@@ -149,7 +149,7 @@ namespace GeneratedSample_Q23_InClause
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 string city = ko3iko.City;
-                                if ((((city == "Warsaw") || (city == "Berlin")) || (city == "Paris")))
+                                if ((((Operators.SqlCompare<string, string>(city, "Warsaw", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | Operators.SqlCompare<string, string>(city, "Berlin", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) | Operators.SqlCompare<string, string>(city, "Paris", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) == true)
                                 {
                                     yield return new ResultShape0(ko3iko.Name, city);
                                 }
@@ -168,7 +168,7 @@ namespace GeneratedSample_Q23_InClause
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
                         string city = ko3iko.City;
-                        if ((((city == "Warsaw") || (city == "Berlin")) || (city == "Paris")))
+                        if ((((Operators.SqlCompare<string, string>(city, "Warsaw", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | Operators.SqlCompare<string, string>(city, "Berlin", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) | Operators.SqlCompare<string, string>(city, "Paris", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)))) == true)
                         {
                             yield return new ResultShape0(ko3iko.Name, city);
                         }

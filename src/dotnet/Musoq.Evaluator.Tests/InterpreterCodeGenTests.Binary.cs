@@ -490,7 +490,7 @@ public partial class InterpreterCodeGenTests
             code, $"Expected position save for optional discard but got:\n{code}");
         Assert.Contains("try",
             code, $"Expected 'try' block for optional discard but got:\n{code}");
-        Assert.Contains("ExpectLiteral(data, \"\\t\")",
+        Assert.Contains("ExpectLiteral(data, \"\\t\", fieldName: \"_\")",
             code, $"Expected 'ExpectLiteral' call but got:\n{code}");
     }
 

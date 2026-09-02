@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Execution;
+using Musoq.Schema;
 
 namespace Musoq.Targets.Execution.Analysis;
 
@@ -137,6 +138,8 @@ internal static class TargetRuntimeContractBuilder
                         field.SourceColumnIndex,
                         field.Name,
                         field.FieldType.Descriptor,
+                        field.SourceReadType.Descriptor,
+                        CreateEnumType(field.EnumType),
                         field.IsNullable,
                         field.ReadModifiers)).ToArray());
             })
@@ -252,6 +255,8 @@ internal static class TargetRuntimeContractBuilder
                 field.QualifiedName,
                 field.Type.Descriptor,
                 field.ColumnType.Descriptor,
+                field.SourceReadType.Descriptor,
+                CreateEnumType(field.EnumType),
                 field.Nullability.ToString(),
                 field.ReadModifiers))
             .OrderBy(static field => field.Index)
@@ -267,7 +272,36 @@ internal static class TargetRuntimeContractBuilder
         FieldNullability nullability)
     {
         var symbol = type.Descriptor;
-        return new TargetFieldContract(index, name, qualifiedName, symbol, symbol, nullability.ToString(), null);
+        return new TargetFieldContract(
+            index,
+            name,
+            qualifiedName,
+            symbol,
+            symbol,
+            symbol,
+            null,
+            nullability.ToString(),
+            null);
+    }
+
+    private static TargetEnumTypeAbiContract? CreateEnumType(EnumTypeDescriptor? descriptor)
+    {
+        if (descriptor == null)
+            return null;
+
+        return new TargetEnumTypeAbiContract(
+            descriptor.DisplayName,
+            descriptor.Origin.ToString(),
+            descriptor.UnderlyingKind.ToString(),
+            descriptor.IsFlags,
+            descriptor.Fingerprint,
+            descriptor.Members.Select(member =>
+            {
+                if (!descriptor.TryGetCanonicalName(member.Value, out var canonicalName) || canonicalName == null)
+                    throw new InvalidOperationException($"Enum member '{member.Name}' has no canonical name.");
+
+                return new TargetEnumMemberAbiContract(member.Name, member.Value.RawValue, canonicalName);
+            }).ToArray());
     }
 
     private static TargetNullBehaviorContract CreateNullBehavior(
@@ -276,7 +310,7 @@ internal static class TargetRuntimeContractBuilder
     {
         var allSymbols = rowShapes
             .SelectMany(static shape => shape.Fields)
-            .SelectMany(static field => new[] { field.Type, field.PublicType })
+            .SelectMany(static field => new[] { field.Type, field.PublicType, field.SourceReadType })
             .Concat(typeSymbols)
             .ToArray();
 

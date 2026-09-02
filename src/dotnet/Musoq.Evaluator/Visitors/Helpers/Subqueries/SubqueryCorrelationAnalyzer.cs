@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors.Helpers.Subqueries;
@@ -11,6 +12,7 @@ internal sealed partial class SubqueryCorrelationAnalyzer : RawTraverseVisitor<S
     private readonly Stack<IReadOnlySet<string>> _forbiddenAliasScopes = new();
     private readonly HashSet<string> _illegalOuterConsumingCteAliases = CreateAliasSet();
     private readonly HashSet<QueryNode> _existsProjectionIgnoredQueries = [];
+    private TextSpan _illegalOuterConsumingCteReferenceSpan = TextSpan.Empty;
 
     private int _cteDefinitionDepth;
 
@@ -29,7 +31,8 @@ internal sealed partial class SubqueryCorrelationAnalyzer : RawTraverseVisitor<S
 
         return new SubqueryCorrelationAnalysis(
             analyzer._subqueries,
-            CopyAliasSet(analyzer._illegalOuterConsumingCteAliases));
+            CopyAliasSet(analyzer._illegalOuterConsumingCteAliases),
+            analyzer._illegalOuterConsumingCteReferenceSpan);
     }
 
     public override void Visit(QueryNode node)
@@ -125,7 +128,7 @@ internal sealed partial class SubqueryCorrelationAnalyzer : RawTraverseVisitor<S
         node.Accept(Visitor);
     }
 
-    internal void RecordAliasReference(string alias)
+    internal void RecordAliasReference(string alias, TextSpan span)
     {
         if (string.IsNullOrWhiteSpace(alias))
             return;
@@ -136,6 +139,8 @@ internal sealed partial class SubqueryCorrelationAnalyzer : RawTraverseVisitor<S
         if (IsForbiddenAlias(alias))
         {
             _illegalOuterConsumingCteAliases.Add(alias);
+            if (_illegalOuterConsumingCteReferenceSpan.IsEmpty && !span.IsEmpty)
+                _illegalOuterConsumingCteReferenceSpan = span;
             foreach (var scope in _subqueryScopes)
                 scope.AddIllegalOuterConsumingCteAlias(alias);
         }

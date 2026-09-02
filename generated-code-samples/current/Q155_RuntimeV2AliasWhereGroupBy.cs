@@ -147,7 +147,7 @@ namespace GeneratedSample_Q155_RuntimeV2AliasWhereGroupBy
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 string city = ko3iko.City;
-                                if ((city != ""))
+                                if ((Operators.SqlCompare<string, string>(city, "", (string __sqlLeft, string __sqlRight) => (__sqlLeft != __sqlRight))) == true)
                                 {
                                     string groupKey = city;
                                     ResultAggregateGroup group = null;
@@ -192,7 +192,7 @@ namespace GeneratedSample_Q155_RuntimeV2AliasWhereGroupBy
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 string city = ko3iko.City;
-                                if ((city != ""))
+                                if ((Operators.SqlCompare<string, string>(city, "", (string __sqlLeft, string __sqlRight) => (__sqlLeft != __sqlRight))) == true)
                                 {
                                     string groupKey = city;
                                     ResultAggregateGroup group = null;
@@ -235,7 +235,7 @@ namespace GeneratedSample_Q155_RuntimeV2AliasWhereGroupBy
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
                         string city = ko3iko.City;
-                        if ((city != ""))
+                        if ((Operators.SqlCompare<string, string>(city, "", (string __sqlLeft, string __sqlRight) => (__sqlLeft != __sqlRight))) == true)
                         {
                             string groupKey = city;
                             ResultAggregateGroup group = null;

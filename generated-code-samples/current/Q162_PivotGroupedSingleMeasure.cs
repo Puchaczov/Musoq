@@ -53,8 +53,10 @@ ExecutionPlan [compiled]
     ParallelSingleKeyAggregateLoop [ko3iko in ko3ikoRows by ko3iko.City; threshold 4096, sample 8192/6144, maxDegree 24, group ResultAggregateGroup]
       ParallelAccumulate
         Let [money: decimal = ko3iko.Money]
-        TypedAggregateSet [Set(group.__agg0, money) filter (ko3iko.Month = 'Feb')]
-        TypedAggregateSet [Set(group.__agg1, money) filter (ko3iko.Month = 'Jan')]
+        Let [month: string = ko3iko.Month]
+        TypedAggregateSet [Set(group.__agg0, money) filter (month = 'Feb')]
+        Let [money1: decimal = ko3iko.Money]
+        TypedAggregateSet [Set(group.__agg1, money1) filter (month = 'Jan')]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     PhaseBoundary [Select]
     ForEach [finalGroup in groupsToFinalize]
@@ -219,7 +221,8 @@ namespace GeneratedSample_Q162_PivotGroupedSingleMeasure
                 }
 
                 decimal money = ko3iko.Money;
-                if ((ko3iko.Month == "Feb"))
+                string month = ko3iko.Month;
+                if ((Operators.SqlCompare<string, string>(month, "Feb", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                 {
                     {
                         var __agg0Input = (decimal?)money;
@@ -232,10 +235,11 @@ namespace GeneratedSample_Q162_PivotGroupedSingleMeasure
                     }
                 }
 
-                if ((ko3iko.Month == "Jan"))
+                decimal money1 = ko3iko.Money;
+                if ((Operators.SqlCompare<string, string>(month, "Jan", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                 {
                     {
-                        var __agg1Input = (decimal?)money;
+                        var __agg1Input = (decimal?)money1;
                         if (__agg1Input.HasValue)
                         {
                             var __agg1Current = __agg1Input.GetValueOrDefault();

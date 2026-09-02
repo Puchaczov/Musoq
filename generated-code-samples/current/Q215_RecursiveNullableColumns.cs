@@ -84,7 +84,8 @@ ExecutionPlan [compiled]
       RecursiveMember
         ForEach [s in cte0CurrentFrontier]
           If [(s.Depth < 2)]
-            RecursiveAppend [cte0NextFrontier <- Cte0Row0(Id: (s.Id + 1), ParentId: CASE WHEN (s.Id < 0) THEN NULL ELSE s.Id END, Depth: (s.Depth + 1)); identity cte0Seen (Id); guard cte0.Count + cte0NextFrontier.Count < 10000000]
+            Let [id: int = s.Id]
+            RecursiveAppend [cte0NextFrontier <- Cte0Row0(Id: (id + 1), ParentId: CASE WHEN (id < 0) THEN NULL ELSE id END, Depth: (s.Depth + 1)); identity cte0Seen (Id); guard cte0.Count + cte0NextFrontier.Count < 10000000]
     PhaseBoundary [Where:cte0]
     PhaseBoundary [Select:cte0]
     StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]
@@ -222,14 +223,15 @@ namespace GeneratedSample_Q215_RecursiveNullableColumns
                             Cte0Row0 s = (Cte0Row0)cte0CurrentFrontier[cte0CurrentFrontierIndex];
                             if ((s.Depth < 2))
                             {
+                                int id = s.Id;
                                 ++__cte0CancellationCounter;
                                 if ((__cte0CancellationCounter & 1023) == 0)
                                 {
                                     token.ThrowIfCancellationRequested();
                                 }
 
-                                var __cte0NextFrontierCandidate0 = (s.Id + 1);
-                                var __cte0NextFrontierCandidate1 = ((s.Id < 0) ? (int?)null : (int?)s.Id);
+                                var __cte0NextFrontierCandidate0 = (id + 1);
+                                var __cte0NextFrontierCandidate1 = ((id < 0) ? (int?)null : (int?)id);
                                 var __cte0NextFrontierCandidate2 = (s.Depth + 1);
                                 if (cte0Seen.Add(__cte0NextFrontierCandidate0))
                                 {

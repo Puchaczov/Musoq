@@ -49,7 +49,7 @@ public partial class Parser
 
         Consume(TokenType.Equality);
         var initializer = ComposeOperations();
-        var span = start.Span.Through(initializer.Span);
+        var span = start.Span.Through(initializer is AccessMethodNode accessMethod && accessMethod.Arguments.HasSpan ? accessMethod.FunctionToken.Span.Through(accessMethod.Arguments.Span) : initializer.Span);
 
         return new ScriptVariableDeclarationNode(name.Value, type.Value, isNullable, initializer, span);
     }

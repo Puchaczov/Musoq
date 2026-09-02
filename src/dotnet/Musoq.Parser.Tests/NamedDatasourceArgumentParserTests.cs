@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
@@ -33,6 +35,26 @@ public sealed class NamedDatasourceArgumentParserTests
     }
 
     [TestMethod]
+    public void PositionalAfterNamed_ReportsOnlyOffendingExpressionAndBindingFacts()
+    {
+        const string validQuery = "select a.Value from #schema.method('first', middle: 2, third: 3) a";
+        var query = validQuery.Replace("third: 3", "3", StringComparison.Ordinal);
+        var exception = Assert.Throws<SyntaxException>(() =>
+            new Parser(new Lexer(query, true)).ComposeAll());
+        var envelope = MusoqErrorEnvelope.FromException(exception, query);
+        var argumentSpan = new TextSpan(query.LastIndexOf('3'), 1);
+
+        Assert.AreEqual(DiagnosticCode.MQ2034_InvalidNamedSourceArgument, envelope.Code);
+        Assert.AreEqual(DiagnosticPhase.Parse, envelope.Phase);
+        Assert.AreEqual(argumentSpan.Start, envelope.Offset);
+        Assert.AreEqual(argumentSpan.Length, envelope.Length);
+        Assert.AreEqual("positional-after-named", envelope.Arguments["argumentKind"]);
+        Assert.AreEqual("2", envelope.Arguments["argumentIndex"]);
+        StringAssert.Contains(envelope.Message, "before named arguments");
+        Assert.IsFalse(envelope.Actions.Any(action => action.TextEdit != null));
+    }
+
+    [TestMethod]
     public void ScalarFunctionCall_RejectsNamedArguments()
     {
         var exception = Assert.Throws<SyntaxException>(() =>
@@ -63,10 +85,16 @@ public sealed class NamedDatasourceArgumentParserTests
     [TestMethod]
     public void NamedArgument_MissingValueReportsParserDiagnostic()
     {
+        const string query = "select 1 from #schema.method(value: )";
         var exception = Assert.Throws<SyntaxException>(() =>
-            new Parser(new Lexer("select 1 from #schema.method(value: )", true)).ComposeAll());
+            new Parser(new Lexer(query, true)).ComposeAll());
+        var envelope = MusoqErrorEnvelope.FromException(exception, query);
 
         Assert.AreEqual(DiagnosticCode.MQ2034_InvalidNamedSourceArgument, exception.Code);
+        Assert.AreEqual(query.IndexOf(')'), envelope.Offset);
+        Assert.AreEqual(0, envelope.Length);
+        Assert.AreEqual("missing-value", envelope.Arguments["argumentKind"]);
+        Assert.AreEqual("value", envelope.Arguments["argument"]);
     }
 
     [TestMethod]

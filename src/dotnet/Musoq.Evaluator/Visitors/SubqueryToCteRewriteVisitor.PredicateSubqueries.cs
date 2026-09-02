@@ -205,6 +205,9 @@ public partial class SubqueryToCteRewriteVisitor
                     functionCall,
                     specification ?? throw new InvalidOperationException("Window function requires a window specification."));
 
+            rewritten.WithSpan(node.Span);
+            rewritten.WithFullSpan(node.FullSpan);
+
             if (node.ReturnType is { } returnType && returnType != typeof(void))
                 rewritten.SetReturnType(returnType);
 
@@ -221,7 +224,9 @@ public partial class SubqueryToCteRewriteVisitor
             for (var i = node.PartitionFields.Length - 1; i >= 0; i--)
                 partitionFields[i] = (FieldNode)Nodes.Pop();
 
-            Nodes.Push(new WindowSpecificationNode(partitionFields, orderByFields, node.Frame));
+            Nodes.Push(((WindowSpecificationNode)new WindowSpecificationNode(partitionFields, orderByFields, node.Frame))
+                .WithSpan(node.Span)
+                .WithFullSpan(node.FullSpan));
         }
 
         private PredicateSubqueryJoin PrepareSubquery(SubqueryInfo subqueryInfo)

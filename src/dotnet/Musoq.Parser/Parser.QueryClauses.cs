@@ -34,6 +34,22 @@ public partial class Parser
         {
             _fromPosition += 1;
             var selectNode = ComposeSelectNode();
+            if (Current.TokenType != TokenType.From)
+            {
+                var code = Current.TokenType is TokenType.GroupBy or
+                    TokenType.Having or TokenType.OrderBy or TokenType.Take or TokenType.Skip or
+                    TokenType.RightParenthesis or TokenType.Comma
+                    ? DiagnosticCode.MQ2001_UnexpectedToken
+                    : DiagnosticCode.MQ2004_MissingFromClause;
+                throw new SyntaxException(
+                    Current.TokenType == TokenType.RightParenthesis
+                        ? "Unexpected RightParenthesis while parsing the SELECT projection."
+                    : "A regular SELECT query must contain a FROM clause.",
+                    _lexer.AlreadyResolvedQueryPart,
+                    code,
+                    KeywordMisspellingFacts.GetFromDiagnosticSpan(Current, _lexer.Input));
+            }
+
             var fromNode = ComposeFrom();
             var fromExpression = ComposeJoinOrApply(fromNode);
             var whereNode = ComposeWhere(false);
@@ -140,17 +156,17 @@ public partial class Parser
     private GroupByNode? ComposeGroupByNode()
     {
         if (Current.TokenType != TokenType.GroupBy) return null;
-
         Consume(TokenType.GroupBy);
-
         if (Current.TokenType == TokenType.Comma)
             throw new SyntaxException("Unnecessary comma found after GROUP BY clause.",
                 _lexer.AlreadyResolvedQueryPart);
-
         if (Current.TokenType == TokenType.All)
             return ComposeGroupByAllNode();
 
         var fields = ComposeFields();
+        foreach (var field in fields)
+            if (field.Expression is IdentifierNode identifier && identifier.Name.Equals("all", StringComparison.OrdinalIgnoreCase))
+                throw GroupByAllWithExplicitFields(field.Expression.SpanOrEmpty());
 
         if (Previous?.TokenType == TokenType.Comma && Current.TokenType == TokenType.EndOfFile)
             throw new SyntaxException("Unnecessary comma found after GROUP BY clause.",

@@ -131,8 +131,6 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
         Assert.AreEqual("Match", table[0].Values[0]);
     }
 
-    public TestContext TestContext { get; set; }
 
     #endregion
 }
-

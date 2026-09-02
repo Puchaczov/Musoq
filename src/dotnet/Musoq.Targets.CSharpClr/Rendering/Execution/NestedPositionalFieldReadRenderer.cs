@@ -17,8 +17,8 @@ internal static class NestedPositionalFieldReadRenderer
 
         var indexedCell = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
             SyntaxFactory.ParseTypeName(fieldRead.GeneratedTypeName),
-            ExecutionSyntaxFactory.CreateElementAccess(
-                ExecutionSyntaxFactory.CreateIdentifierName(fieldRead.Alias),
+            CreateElementAccess(
+                CreateIdentifierName(fieldRead.Alias),
                 SyntaxFactory.LiteralExpression(
                     SyntaxKind.NumericLiteralExpression,
                     SyntaxFactory.Literal(nestedPositional.Index)))));
@@ -33,7 +33,7 @@ internal static class NestedPositionalFieldReadRenderer
         return fieldRead.ReturnType.RequireClrType() == typeof(object)
             ? value
             : SyntaxFactory.CastExpression(
-                ExecutionSyntaxFactory.CreateTypeSyntax(fieldRead.ReturnType),
+                CreateTypeSyntax(fieldRead.ReturnType),
                 value);
     }
 }

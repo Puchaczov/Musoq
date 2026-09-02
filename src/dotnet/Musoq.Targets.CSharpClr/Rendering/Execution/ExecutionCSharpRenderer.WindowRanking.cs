@@ -81,13 +81,13 @@ public sealed partial class ExecutionCSharpRenderer
         if (rankingPartitions == null)
         {
             rankingPartitions = new ExecutionWindowPartitionSet(
-                new ExecutionVariable($"{ranking.Results.Name}Partitions", typeof(Musoq.Evaluator.Helpers.WindowPartitionSet)),
+                new ExecutionVariable($"{ranking.Results.Name}Partitions", typeof(Evaluator.Helpers.WindowPartitionSet)),
                 true);
             statements.Add(CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 rankingPartitions.Variable.Name,
                 CreateWindowHelperInvocation(
-                    nameof(Musoq.Evaluator.Helpers.WindowFunctionHelpers.ResolvePartitionSet),
+                    nameof(Evaluator.Helpers.WindowFunctionHelpers.ResolvePartitionSet),
                     CreateBufferCountExpression(ranking.Buffer),
                     SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))));
         }

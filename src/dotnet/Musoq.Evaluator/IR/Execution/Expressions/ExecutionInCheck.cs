@@ -10,13 +10,15 @@ public sealed record ExecutionInCheck : ExecutionExpression
         ExecutionExpression expression,
         IReadOnlyList<ExecutionExpression> values,
         ExecutionTypeRef returnType,
-        ExecutionConstantInSet? constantSet = null)
+        ExecutionConstantInSet? constantSet = null,
+        bool isNegated = false)
         : base(returnType)
     {
         Expression = expression;
         Values = ExecutionIrCollections.Freeze(values);
         ReturnType = returnType;
         ConstantSet = constantSet;
+        IsNegated = isNegated;
     }
 
     public ExecutionExpression Expression { get; init; }
@@ -31,12 +33,15 @@ public sealed record ExecutionInCheck : ExecutionExpression
 
     public ExecutionConstantInSet? ConstantSet { get; init; }
 
+    public bool IsNegated { get; init; }
+
     internal ExecutionInCheck(
         ExecutionExpression expression,
         IReadOnlyList<ExecutionExpression> values,
         Type returnType,
-        ExecutionConstantInSet? constantSet = null)
-        : this(expression, values, ExecutionClrBindingFactory.FromClr(returnType), constantSet)
+        ExecutionConstantInSet? constantSet = null,
+        bool isNegated = false)
+        : this(expression, values, ExecutionClrBindingFactory.FromClr(returnType), constantSet, isNegated)
     {
     }
 }

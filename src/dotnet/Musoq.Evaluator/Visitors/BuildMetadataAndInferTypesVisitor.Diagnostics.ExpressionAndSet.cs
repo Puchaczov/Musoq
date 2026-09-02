@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Exceptions;
-using Musoq.Evaluator.Tables;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 
@@ -25,7 +24,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3027_InvalidExpressionType,
-                $"Query output column '{field.FieldName}' has invalid type '{invalidType?.FullName ?? "null"}' in {context}. Only primitive types are allowed in query outputs.",
+                $"Query output column '{field.FieldName}' has invalid type '{invalidType?.Name ?? "null"}' in {context}. Only primitive types are allowed in query outputs.",
                 node);
             return true;
         }
@@ -50,7 +49,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3027_InvalidExpressionType,
-                $"Expression '{expressionDescription}' has invalid type '{invalidType?.FullName ?? "null"}' in {context}. Only primitive types are allowed in query expressions.",
+                $"Expression '{expressionDescription}' has invalid type '{invalidType?.Name ?? "null"}' in {context}. Only primitive types are allowed in query expressions.",
                 node);
             return true;
         }
@@ -97,16 +96,10 @@ public partial class BuildMetadataAndInferTypesVisitor
                 DiagnosticContext.HasNearbyError(DiagnosticCode.MQ3028_UnknownProperty, node.Span))
                 return true;
 
-            var library = new TransitionLibrary();
-            var candidatesProperties = properties.Where(prop =>
-                library.Soundex(prop.Name) == library.Soundex(identifier) ||
-                library.LevenshteinDistance(prop.Name, identifier) < 3).ToArray();
-
-            var message = candidatesProperties.Length > 0
-                ? $"Unknown property '{identifier}'. Did you mean to use [{string.Join(", ", candidatesProperties.Select(p => p.Name))}]?"
-                : $"Unknown property '{identifier}'.";
-
-            DiagnosticContext.ReportError(DiagnosticCode.MQ3028_UnknownProperty, message, node);
+            DiagnosticContext.ReportUnknownProperty(
+                identifier,
+                properties.Select(static property => property.Name),
+                node);
             return true;
         }
 

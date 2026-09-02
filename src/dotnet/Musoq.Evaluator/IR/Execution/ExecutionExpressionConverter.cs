@@ -42,7 +42,7 @@ public static partial class ExecutionExpressionConverter
                 binary.Kind,
                 Convert(binary.Left, sourceShapes, cteTableIndexes, methodTargets),
                 Convert(binary.Right, sourceShapes, cteTableIndexes, methodTargets),
-                binary.ReturnType),
+                binary.ReturnType) { UsesSqlNullSemantics = binary.UsesSqlNullSemantics },
             UnaryOp unary => new ExecutionUnary(unary.Kind, Convert(unary.Operand, sourceShapes, cteTableIndexes, methodTargets), unary.ReturnType),
             MethodCall method => ConvertMethodCall(method, sourceShapes, cteTableIndexes, methodTargets),
             StrictCast strictCast => new ExecutionStrictCast(
@@ -63,7 +63,8 @@ public static partial class ExecutionExpressionConverter
                 Convert(inCheck.Expression, sourceShapes, cteTableIndexes, methodTargets),
                 inCheck.Values.Select(value => Convert(value, sourceShapes, cteTableIndexes, methodTargets)).ToArray(),
                 inCheck.ReturnType,
-                TryCreateConstantInSet(inCheck)),
+                TryCreateConstantInSet(inCheck),
+                inCheck.IsNegated),
             CollectionInCheck collectionInCheck => ConvertCollectionInCheck(collectionInCheck, sourceShapes, cteTableIndexes, methodTargets),
             PatternMatch patternMatch => new ExecutionPatternMatch(
                 Convert(patternMatch.Expression, sourceShapes, cteTableIndexes, methodTargets),

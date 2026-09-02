@@ -145,7 +145,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionIf branch,
         ExecutionRenderContext context)
     {
-        return StatementEmitter.CreateIf(RenderExpression(branch.Condition, context), RenderBlock(branch.Body, context));
+        return StatementEmitter.CreateIf(this.RenderBooleanCondition(branch.Condition, context), RenderBlock(branch.Body, context));
     }
 
     private IfStatementSyntax RenderContinueIf(
@@ -153,7 +153,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         return StatementEmitter.CreateIf(
-            RenderExpression(continueIf.Condition, context),
+            this.RenderBooleanCondition(continueIf.Condition, context),
             StatementEmitter.CreateBlock(SyntaxFactory.ContinueStatement()));
     }
 }

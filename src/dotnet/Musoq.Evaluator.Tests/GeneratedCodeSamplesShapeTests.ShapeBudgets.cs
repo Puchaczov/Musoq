@@ -70,6 +70,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             SmartForEach = 0,
             ContextsAccess = 0
         },
+        ["LoopInvariant"] = new() { ContextsAccess = 0 },
         ["Ordering"] = new() { ContextsAccess = 0 },
         ["Pagination"] = new() { ContextsAccess = 0 },
         ["Parameters"] = new() { ContextsAccess = 0 },
@@ -88,6 +89,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         ["RecursiveCte"] = new() { ContextsAccess = 0 },
         ["RuntimeDynamic"] = new() { ContextsAccess = 0 },
         ["Scalar"] = new() { ContextsAccess = 0 },
+        ["ScalarReuse"] = new() { ContextsAccess = 0 },
         ["Scan"] = new() { ContextsAccess = 0 },
         ["Set"] = new(),
         ["Subquery"] = new() { ContextsAccess = 0 },

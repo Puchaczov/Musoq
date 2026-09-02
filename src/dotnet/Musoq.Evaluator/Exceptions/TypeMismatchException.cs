@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Musoq.Evaluator;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
@@ -53,6 +55,15 @@ public sealed class TypeMismatchException : Exception, IDiagnosticException
 
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return Diagnostic.Error(Code, Message, Span ?? TextSpan.Empty);
+        return SemanticDiagnosticFactory.Create(
+            Code,
+            Message,
+            Span,
+            sourceText,
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["expectedType"] = ExpectedType.Name,
+                ["actualType"] = ActualType.Name
+            });
     }
 }

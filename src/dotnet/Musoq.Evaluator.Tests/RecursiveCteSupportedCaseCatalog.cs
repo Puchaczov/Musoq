@@ -450,7 +450,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "case when l.Value = 1 then 'even' else 'odd' end " +
             "from labels l where l.Depth < 2) " +
             "select Value, Depth, Label from labels order by Depth",
-            new CompilationOptions(),
+            new CompilationOptions().WithStabilityAwareScalarReuse(false),
             [new("Value", typeof(int)), new("Depth", typeof(int)), new("Label", typeof(string))],
             [[1, 0, "one"], [2, 1, "even"], [3, 2, "odd"]],
             true,

@@ -9,7 +9,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class CrossApplyTests : GenericEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenSchemaMethodCrossAppliedWithAnotherSchema_UsesValuesOfSchemaMethodWithinTableValue_ShouldPass()

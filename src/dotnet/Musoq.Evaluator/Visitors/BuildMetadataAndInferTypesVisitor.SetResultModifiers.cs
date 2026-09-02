@@ -128,13 +128,25 @@ public partial class BuildMetadataAndInferTypesVisitor
         return setOperatorName switch
         {
             "Union" => new UnionNode(node.ResultTableName, keys, left, right, node.IsNested, node.IsTheLastOne,
-                resultOrderBy, resultSkip, resultTake),
+                resultOrderBy, resultSkip, resultTake)
+            {
+                KeySpans = node.KeySpans
+            },
             "UnionAll" => new UnionAllNode(node.ResultTableName, keys, left, right, node.IsNested,
-                node.IsTheLastOne, resultOrderBy, resultSkip, resultTake),
+                node.IsTheLastOne, resultOrderBy, resultSkip, resultTake)
+            {
+                KeySpans = node.KeySpans
+            },
             "Except" => new ExceptNode(node.ResultTableName, keys, left, right, node.IsNested, node.IsTheLastOne,
-                resultOrderBy, resultSkip, resultTake),
+                resultOrderBy, resultSkip, resultTake)
+            {
+                KeySpans = node.KeySpans
+            },
             "Intersect" => new IntersectNode(node.ResultTableName, keys, left, right, node.IsNested,
-                node.IsTheLastOne, resultOrderBy, resultSkip, resultTake),
+                node.IsTheLastOne, resultOrderBy, resultSkip, resultTake)
+            {
+                KeySpans = node.KeySpans
+            },
             _ => throw new VisitorException(
                 VisitorName,
                 nameof(CreateSetOperatorNode),

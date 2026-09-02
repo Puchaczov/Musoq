@@ -120,8 +120,8 @@ public partial class UserMistakesTests : BasicEntityTestBase
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - MQ2001_UnexpectedToken: "Expected token is From"
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "SELECT without FROM");
+        // Assert - the parser reports the missing required clause.
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2004_MissingFromClause, "SELECT without FROM");
     }
 
     [TestMethod]
@@ -176,8 +176,8 @@ public partial class UserMistakesTests : BasicEntityTestBase
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - MQ2030_UnsupportedSyntax: incomplete WHERE
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "missing WHERE condition");
+        // Assert - the WHERE-specific EOF diagnostic is actionable.
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2017_UnexpectedEndOfFile, "missing WHERE condition");
     }
 
     [TestMethod]
@@ -234,8 +234,8 @@ public partial class UserMistakesTests : BasicEntityTestBase
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - MQ2001_UnexpectedToken: Expected RightParenthesis
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "unclosed parenthesis in expression");
+        // Assert - the parser identifies the missing grouping delimiter.
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2010_MissingClosingParenthesis, "unclosed parenthesis in expression");
     }
 
     [TestMethod]
@@ -279,7 +279,7 @@ public partial class UserMistakesTests : BasicEntityTestBase
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - invalid bracketed identifier syntax
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "unclosed square bracket");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2011_MissingClosingBracket, "unclosed square bracket");
     }
 
     [TestMethod]

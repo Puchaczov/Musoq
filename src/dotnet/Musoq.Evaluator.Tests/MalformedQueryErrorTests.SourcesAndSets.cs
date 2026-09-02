@@ -47,7 +47,7 @@ public partial class MalformedQueryErrorTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("select * from Source(); table MyTable { Name: string }; couple #test.people with table MyTable as Source"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3023_TableNotDefined, DiagnosticPhase.Bind, "'Source'");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3102_InvalidStatementOrder, DiagnosticPhase.Bind, "COUPLE");
     }
 
     [TestMethod]
@@ -57,7 +57,7 @@ public partial class MalformedQueryErrorTests
             CompileQuery(
                 "table MyTable { Col: banana }; couple #test.people with table MyTable as Source; select Col from Source()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "Col");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind, "banana");
     }
 
     [TestMethod]

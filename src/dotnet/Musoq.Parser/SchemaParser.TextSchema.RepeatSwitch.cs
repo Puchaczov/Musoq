@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes.InterpretationSchema;
 using Musoq.Parser.Tokens;
 
@@ -33,14 +35,31 @@ public partial class SchemaParser
         Consume(TokenType.LBracket);
 
         var cases = new List<TextSwitchCaseNode>();
+        var seenDefault = false;
+
+        if (Current.TokenType == TokenType.RBracket)
+            throw new SyntaxException(
+                $"Text switch field '{name}' must contain at least one case.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ4002_InvalidTextSchemaField,
+                Current.Span);
 
         while (Current.TokenType != TokenType.RBracket)
         {
             TextSwitchCaseNode switchCase;
 
-            if (Current.TokenType is TokenType.Word or TokenType.Identifier &&
-                Current.Value == "_")
+            var isDefault = Current.Value == "_" &&
+                            (Current.TokenType is TokenType.Word or TokenType.Identifier or TokenType.Property);
+            if (isDefault)
             {
+                if (seenDefault)
+                    throw new SyntaxException(
+                        $"Text switch field '{name}' may contain only one default case.",
+                        _lexer.AlreadyResolvedQueryPart,
+                        DiagnosticCode.MQ4002_InvalidTextSchemaField,
+                        Current.Span);
+
+                seenDefault = true;
                 Consume(Current.TokenType);
                 Consume(TokenType.FatArrow);
                 var defaultTypeName = ComposeIdentifierOrWord();
@@ -48,8 +67,23 @@ public partial class SchemaParser
             }
             else
             {
+                if (seenDefault)
+                    throw new SyntaxException(
+                        $"Text switch field '{name}' must place the default case after all pattern cases.",
+                        _lexer.AlreadyResolvedQueryPart,
+                        DiagnosticCode.MQ4002_InvalidTextSchemaField,
+                        Current.Span);
+
                 Consume(TokenType.Pattern);
+                var patternToken = Current;
                 var pattern = ComposeStringLiteral();
+                if (!TextPatternValidator.TryValidate(pattern, Array.Empty<string>(), out var validationError))
+                    throw new SyntaxException(
+                        $"Invalid switch pattern for text field '{name}': {validationError}",
+                        _lexer.AlreadyResolvedQueryPart,
+                        DiagnosticCode.MQ4002_InvalidTextSchemaField,
+                        patternToken.Span);
+
                 Consume(TokenType.FatArrow);
                 var typeName = ComposeIdentifierOrWord();
                 switchCase = new TextSwitchCaseNode(pattern, typeName);

@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class WindowFunctionCteFanoutAndSetBoundaryTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenWindowedCteFansOutToJoinAndMarkConsumers_ShouldReuseStableRanks()

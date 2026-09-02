@@ -14,7 +14,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenMissingSchema_ShouldFail()

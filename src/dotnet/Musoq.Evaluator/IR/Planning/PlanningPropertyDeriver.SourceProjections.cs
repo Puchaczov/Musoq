@@ -3,7 +3,6 @@ using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.IR.Planning;
 
@@ -179,7 +178,7 @@ internal static partial class PlanningPropertyDeriver
             return inferredColumns;
 
         return scan.OutputSchema.Columns
-            .Select(static column => (ISchemaColumn)new SchemaColumn(column.Name, column.Index, column.Type))
+            .Select(static column => column.ToSchemaColumn())
             .ToArray();
     }
 }

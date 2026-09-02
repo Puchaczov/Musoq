@@ -45,8 +45,8 @@ ExecutionPlan [compiled]
     PhaseBoundary [GroupBy]
     CreateValueTupleAggregateContext [groups: (string, string) -> ResultAggregateGroup]
     ChunkedForEach [ko3iko in ko3ikoRows]
-      Let [name: string = ko3iko.Name]
       GetOrAddValueTupleAggregateGroup [group = groups[(ko3iko.City, ko3iko.Country)] by City, Country; typed: ResultAggregateGroup]
+      Let [name: string = ko3iko.Name]
       TypedAggregateSet [Set(group.__agg0, name)]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     PhaseBoundary [Select]
@@ -141,7 +141,6 @@ namespace GeneratedSample_Q06_GroupByMulti
                                 }
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                string name = ko3iko.Name;
                                 string groupKey0 = ko3iko.City;
                                 string groupKey1 = ko3iko.Country;
                                 ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, (groupKey0, groupKey1), out var groupExists);
@@ -152,6 +151,7 @@ namespace GeneratedSample_Q06_GroupByMulti
                                 }
 
                                 ResultAggregateGroup group = groupRef;
+                                string name = ko3iko.Name;
                                 if ((string)name != null)
                                 {
                                     group.__agg0.Count = checked(group.__agg0.Count + 1L);
@@ -172,7 +172,6 @@ namespace GeneratedSample_Q06_GroupByMulti
                                 }
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                string name = ko3iko.Name;
                                 string groupKey0 = ko3iko.City;
                                 string groupKey1 = ko3iko.Country;
                                 ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, (groupKey0, groupKey1), out var groupExists);
@@ -183,6 +182,7 @@ namespace GeneratedSample_Q06_GroupByMulti
                                 }
 
                                 ResultAggregateGroup group = groupRef;
+                                string name = ko3iko.Name;
                                 if ((string)name != null)
                                 {
                                     group.__agg0.Count = checked(group.__agg0.Count + 1L);
@@ -201,7 +201,6 @@ namespace GeneratedSample_Q06_GroupByMulti
                         }
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                        string name = ko3iko.Name;
                         string groupKey0 = ko3iko.City;
                         string groupKey1 = ko3iko.Country;
                         ref var groupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, (groupKey0, groupKey1), out var groupExists);
@@ -212,6 +211,7 @@ namespace GeneratedSample_Q06_GroupByMulti
                         }
 
                         ResultAggregateGroup group = groupRef;
+                        string name = ko3iko.Name;
                         if ((string)name != null)
                         {
                             group.__agg0.Count = checked(group.__agg0.Count + 1L);

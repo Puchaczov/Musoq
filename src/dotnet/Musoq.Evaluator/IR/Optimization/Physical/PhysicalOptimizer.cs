@@ -29,10 +29,14 @@ internal sealed class PhysicalOptimizer
         {
             PhysicalOptimizationState = state
         };
+        var options = new OptimizationOptions
+        {
+            StabilityAwareScalarReuseEnabled = session.CompilationOptions.UseStabilityAwareScalarReuse
+        };
         var result = new PlanOptimizationRunner<PhysicalNode>(
             PhysicalOptimizationGroup.Pipeline).Run(
             initialPlan,
-            new OptimizationContext(OptimizationStage.PhysicalOptimization, trace, OptimizationOptions.Default, contextState));
+            new OptimizationContext(OptimizationStage.PhysicalOptimization, trace, options, contextState));
 
         return new PhysicalOptimizationResult(
             initialPlan,
@@ -42,4 +46,3 @@ internal sealed class PhysicalOptimizer
             trace);
     }
 }
-

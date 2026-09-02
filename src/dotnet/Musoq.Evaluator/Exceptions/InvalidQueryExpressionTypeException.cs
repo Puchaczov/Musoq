@@ -12,7 +12,7 @@ public class InvalidQueryExpressionTypeException : Exception, IDiagnosticExcepti
     private static string CreateFieldMessage(FieldNode field, Type? invalidType, string context)
     {
         ArgumentNullException.ThrowIfNull(field);
-        return $"Query output column '{field.FieldName}' has invalid type '{invalidType?.FullName ?? "null"}' in {context}. " +
+        return $"Query output column '{field.FieldName}' has invalid type '{invalidType?.Name ?? "null"}' in {context}. " +
             "Only primitive types (numeric, string, bool, char, DateTime, DateTimeOffset, Guid, TimeSpan, decimal, null) are allowed in query outputs.";
     }
 
@@ -35,7 +35,7 @@ public class InvalidQueryExpressionTypeException : Exception, IDiagnosticExcepti
     /// </summary>
     public InvalidQueryExpressionTypeException(string expressionDescription, Type? invalidType, string context)
         : base(
-            $"Expression '{expressionDescription}' has invalid type '{invalidType?.FullName ?? "null"}' in {context}. " +
+            $"Expression '{expressionDescription}' has invalid type '{invalidType?.Name ?? "null"}' in {context}. " +
             "Only primitive types (numeric, string, bool, char, DateTime, DateTimeOffset, Guid, TimeSpan, decimal, null) are allowed in query expressions.")
     {
         Code = DiagnosticCode.MQ3027_InvalidExpressionType;

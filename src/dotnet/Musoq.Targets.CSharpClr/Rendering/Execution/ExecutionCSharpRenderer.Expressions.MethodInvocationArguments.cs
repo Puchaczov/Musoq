@@ -48,7 +48,9 @@ public sealed partial class ExecutionCSharpRenderer
             }
 
             var argument = methodCall.Arguments[argumentIndex++];
-            var renderedArgument = RenderExpression(argument, context);
+            var renderedArgument = parameter.ParameterType == typeof(bool) && argument.RequiresNullableBoolean()
+                ? this.RenderBooleanCondition(argument, context)
+                : RenderExpression(argument, context);
             if (argument is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null })
             {
                 var parameterType = parameter.ParameterType.IsByRef

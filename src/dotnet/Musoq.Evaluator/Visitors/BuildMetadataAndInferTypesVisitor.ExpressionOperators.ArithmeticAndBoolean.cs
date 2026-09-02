@@ -35,6 +35,15 @@ public partial class BuildMetadataAndInferTypesVisitor
         var leftIsStringLiteral = left is WordNode;
         var rightIsStringLiteral = right is WordNode;
 
+        if (TryGetEnumExpressionType(left, out _) || TryGetEnumExpressionType(right, out _))
+        {
+            PushSemanticNode(left);
+            PushSemanticNode(right);
+            VisitBinaryOperatorWithTypeConversion((l, r) => new AddNode(l, r), node, BinaryOperatorKind.Add,
+                BinaryOperationContext.ArithmeticOperation);
+            return;
+        }
+
         if (leftIsStringLiteral || rightIsStringLiteral)
         {
             PushSemanticNode(left);

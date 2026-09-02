@@ -35,6 +35,6 @@ internal static class RecursiveCteIdentitySyntaxFactory
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(append.Seen!.Name),
                     SyntaxFactory.IdentifierName(nameof(HashSet<object>.Add))))
-            .WithArgumentList(ExecutionSyntaxFactory.CreateArgumentList(key));
+            .WithArgumentList(CreateArgumentList(key));
     }
 }

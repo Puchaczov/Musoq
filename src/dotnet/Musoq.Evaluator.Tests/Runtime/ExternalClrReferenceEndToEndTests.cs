@@ -83,10 +83,11 @@ public sealed class ExternalClrReferenceEndToEndTests
             table,
             ("r.Payload.Nested.Value", typeof(int)),
             ("r.Payload.Leaves", typeof(ExternalLeaf[])),
-            ("r.Status", typeof(ExternalStatus?)));
+            ("r.Status", typeof(int?)));
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(7, table[0].Values[0]);
-        Assert.AreEqual(ExternalStatus.Ready, table[0].Values[2]);
+        Assert.AreEqual((int)ExternalStatus.Ready, table[0].Values[2]);
+        Assert.IsNotInstanceOfType<Enum>(table[0].Values[2]);
         var leaves = (ExternalLeaf[])table[0].Values[1];
         Assert.HasCount(1, leaves);
         Assert.AreEqual(11, leaves[0].Value);

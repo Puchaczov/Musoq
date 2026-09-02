@@ -41,6 +41,11 @@ public enum TextFieldType
     Rest,
 
     /// <summary>
+    ///     Parse a previously defined text schema: SchemaName.
+    /// </summary>
+    SchemaReference,
+
+    /// <summary>
     ///     Match and consume whitespace: whitespace.
     /// </summary>
     Whitespace,

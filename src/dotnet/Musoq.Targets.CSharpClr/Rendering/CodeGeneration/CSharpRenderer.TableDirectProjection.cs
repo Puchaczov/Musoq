@@ -765,7 +765,7 @@ public sealed partial class CSharpRenderer
                 SyntaxFactory.GenericName(nameof(IEnumerable<object>))
                     .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
                         SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                            ExecutionSyntaxFactory.CreateTypeSyntax(binding.OutputType)))),
+                            CreateTypeSyntax(binding.OutputType)))),
                 SyntaxFactory.Identifier(rowsMethodName))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
             .WithParameterList(MethodDeclarationHelper.CreateTypedRunContextParameterList())

@@ -27,7 +27,7 @@ public sealed class Diagnostic
         string? explanation = null,
         string? docsReference = null,
         DiagnosticPhase? phase = null,
-        DiagnosticSourceKind sourceKind = DiagnosticSourceKind.Query,
+        DiagnosticSourceKind? sourceKind = null,
         IEnumerable<KeyValuePair<string, string>>? arguments = null,
         IEnumerable<DiagnosticRelatedLocation>? relatedLocations = null,
         string? correlationId = null)
@@ -51,7 +51,7 @@ public sealed class Diagnostic
         Explanation = explanation;
         DocsReference = docsReference;
         _phase = phase ?? DiagnosticPhaseMapping.FromCode(code);
-        SourceKind = sourceKind;
+        SourceKind = sourceKind ?? DiagnosticSourceKindMapping.FromCode(code);
         CorrelationId = correlationId;
     }
 
@@ -196,6 +196,28 @@ public sealed class Diagnostic
     }
 
     /// <summary>
+    ///     Creates a copy whose locations and context snippet are resolved from
+    ///     one source span. A zero-length span is preserved as a known
+    ///     insertion point; callers must use <c>null</c> when the location is
+    ///     genuinely unknown.
+    /// </summary>
+    public Diagnostic WithSourceContext(SourceText? sourceText, TextSpan span)
+    {
+        var locations = sourceText != null
+            ? sourceText.GetLocations(span)
+            : (Start: new SourceLocation(span.Start, 1, span.Start + 1),
+                End: new SourceLocation(span.End, 1, span.End + 1));
+        var contextSnippet = sourceText != null && locations.Start.IsValid
+            ? sourceText.GetContextSnippet(span)
+            : null;
+
+        return Copy(
+            location: locations.Start,
+            endLocation: locations.End,
+            contextSnippet: contextSnippet);
+    }
+
+    /// <summary>
     ///     Creates a copy with an additional structured argument.
     /// </summary>
     public Diagnostic WithArgument(string name, string value)
@@ -255,6 +277,7 @@ public sealed class Diagnostic
     private Diagnostic Copy(
         SourceLocation? location = null,
         SourceLocation? endLocation = null,
+        string? contextSnippet = null,
         IEnumerable<string>? relatedInfo = null,
         IEnumerable<DiagnosticAction>? suggestedFixes = null,
         string? explanation = null,
@@ -268,7 +291,7 @@ public sealed class Diagnostic
             Message,
             location ?? Location,
             endLocation ?? EndLocation,
-            ContextSnippet,
+            contextSnippet ?? ContextSnippet,
             relatedInfo ?? _relatedInfo,
             suggestedFixes ?? _suggestedFixes,
             explanation ?? Explanation,
@@ -297,76 +320,174 @@ public sealed class Diagnostic
     /// <summary>
     ///     Creates an error diagnostic from a TextSpan.
     /// </summary>
-    public static Diagnostic Error(DiagnosticCode code, string message, TextSpan span)
+    public static Diagnostic Error(
+        DiagnosticCode code,
+        string message,
+        TextSpan span,
+        DiagnosticSourceKind? sourceKind = null)
     {
         var location = new SourceLocation(span.Start, 1, span.Start + 1);
         var endLocation = new SourceLocation(span.End, 1, span.End + 1);
-        return new Diagnostic(code, DiagnosticSeverity.Error, message, location, endLocation);
+        return new Diagnostic(
+            code,
+            DiagnosticSeverity.Error,
+            message,
+            location,
+            endLocation,
+            sourceKind: sourceKind);
     }
 
     /// <summary>
     ///     Creates an error diagnostic.
     /// </summary>
-    public static Diagnostic Error(DiagnosticCode code, string message, SourceLocation location,
-        SourceLocation? endLocation = null)
+    public static Diagnostic Error(
+        DiagnosticCode code,
+        string message,
+        SourceLocation location,
+        SourceLocation? endLocation = null,
+        DiagnosticSourceKind? sourceKind = null)
     {
-        return new Diagnostic(code, DiagnosticSeverity.Error, message, location, endLocation);
+        return new Diagnostic(
+            code,
+            DiagnosticSeverity.Error,
+            message,
+            location,
+            endLocation,
+            sourceKind: sourceKind);
+    }
+
+    /// <summary>
+    ///     Creates an error diagnostic whose source location is genuinely
+    ///     unknown. This is distinct from a known zero-length insertion span.
+    /// </summary>
+    public static Diagnostic ErrorUnknownLocation(
+        DiagnosticCode code,
+        string message,
+        DiagnosticSourceKind? sourceKind = null)
+    {
+        return new Diagnostic(
+            code,
+            DiagnosticSeverity.Error,
+            message,
+            SourceLocation.None,
+            SourceLocation.None,
+            sourceKind: sourceKind);
     }
 
     /// <summary>
     ///     Creates a warning diagnostic from a TextSpan.
     /// </summary>
-    public static Diagnostic Warning(DiagnosticCode code, string message, TextSpan span)
+    public static Diagnostic Warning(
+        DiagnosticCode code,
+        string message,
+        TextSpan span,
+        DiagnosticSourceKind? sourceKind = null)
     {
         var location = new SourceLocation(span.Start, 1, span.Start + 1);
         var endLocation = new SourceLocation(span.End, 1, span.End + 1);
-        return new Diagnostic(code, DiagnosticSeverity.Warning, message, location, endLocation);
+        return new Diagnostic(
+            code,
+            DiagnosticSeverity.Warning,
+            message,
+            location,
+            endLocation,
+            sourceKind: sourceKind);
     }
 
     /// <summary>
     ///     Creates a warning diagnostic.
     /// </summary>
-    public static Diagnostic Warning(DiagnosticCode code, string message, SourceLocation location,
-        SourceLocation? endLocation = null)
+    public static Diagnostic Warning(
+        DiagnosticCode code,
+        string message,
+        SourceLocation location,
+        SourceLocation? endLocation = null,
+        DiagnosticSourceKind? sourceKind = null)
     {
-        return new Diagnostic(code, DiagnosticSeverity.Warning, message, location, endLocation);
+        return new Diagnostic(
+            code,
+            DiagnosticSeverity.Warning,
+            message,
+            location,
+            endLocation,
+            sourceKind: sourceKind);
     }
 
     /// <summary>
     ///     Creates an info diagnostic from a TextSpan.
     /// </summary>
-    public static Diagnostic Info(DiagnosticCode code, string message, TextSpan span)
+    public static Diagnostic Info(
+        DiagnosticCode code,
+        string message,
+        TextSpan span,
+        DiagnosticSourceKind? sourceKind = null)
     {
         var location = new SourceLocation(span.Start, 1, span.Start + 1);
         var endLocation = new SourceLocation(span.End, 1, span.End + 1);
-        return new Diagnostic(code, DiagnosticSeverity.Info, message, location, endLocation);
+        return new Diagnostic(
+            code,
+            DiagnosticSeverity.Info,
+            message,
+            location,
+            endLocation,
+            sourceKind: sourceKind);
     }
 
     /// <summary>
     ///     Creates an info diagnostic.
     /// </summary>
-    public static Diagnostic Info(DiagnosticCode code, string message, SourceLocation location,
-        SourceLocation? endLocation = null)
+    public static Diagnostic Info(
+        DiagnosticCode code,
+        string message,
+        SourceLocation location,
+        SourceLocation? endLocation = null,
+        DiagnosticSourceKind? sourceKind = null)
     {
-        return new Diagnostic(code, DiagnosticSeverity.Info, message, location, endLocation);
+        return new Diagnostic(
+            code,
+            DiagnosticSeverity.Info,
+            message,
+            location,
+            endLocation,
+            sourceKind: sourceKind);
     }
 
     /// <summary>
     ///     Creates a hint diagnostic from a TextSpan.
     /// </summary>
-    public static Diagnostic Hint(DiagnosticCode code, string message, TextSpan span)
+    public static Diagnostic Hint(
+        DiagnosticCode code,
+        string message,
+        TextSpan span,
+        DiagnosticSourceKind? sourceKind = null)
     {
         var location = new SourceLocation(span.Start, 1, span.Start + 1);
         var endLocation = new SourceLocation(span.End, 1, span.End + 1);
-        return new Diagnostic(code, DiagnosticSeverity.Hint, message, location, endLocation);
+        return new Diagnostic(
+            code,
+            DiagnosticSeverity.Hint,
+            message,
+            location,
+            endLocation,
+            sourceKind: sourceKind);
     }
 
     /// <summary>
     ///     Creates a hint diagnostic.
     /// </summary>
-    public static Diagnostic Hint(DiagnosticCode code, string message, SourceLocation location,
-        SourceLocation? endLocation = null)
+    public static Diagnostic Hint(
+        DiagnosticCode code,
+        string message,
+        SourceLocation location,
+        SourceLocation? endLocation = null,
+        DiagnosticSourceKind? sourceKind = null)
     {
-        return new Diagnostic(code, DiagnosticSeverity.Hint, message, location, endLocation);
+        return new Diagnostic(
+            code,
+            DiagnosticSeverity.Hint,
+            message,
+            location,
+            endLocation,
+            sourceKind: sourceKind);
     }
 }

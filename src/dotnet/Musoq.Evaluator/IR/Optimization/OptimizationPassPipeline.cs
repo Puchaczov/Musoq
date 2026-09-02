@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.IR.Analysis;
 
 namespace Musoq.Evaluator.IR.Optimization;
 
@@ -22,6 +23,8 @@ internal sealed class OptimizationPassPipeline<TPlan>
             ArgumentNullException.ThrowIfNull(step.Pass);
             if (string.IsNullOrWhiteSpace(step.Reason))
                 throw new ArgumentException("Optimization pipeline step reason cannot be null or whitespace.", nameof(steps));
+
+            OptimizerClassificationRegistry.Require(step.Pass);
         }
 
         Stage = stage;

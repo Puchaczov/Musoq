@@ -55,14 +55,15 @@ ExecutionPlan [compiled]
     CreateTable [statement0: Statement0Row0]
     PhaseBoundary [Where]
     ChunkedForEach [i in statement0_iRows]
-      ContinueIf [NOT (i.Name = 'empty')]
+      Let [iName: string = i.Name]
+      ContinueIf [NOT ((i.Name = 'empty') = TRUE)]
       EnumerableSource [i.Numbers -> statement0_nRows]
       Let [nHasMatch: bool = FALSE]
       ChunkedForEach [n in statement0_nRows]
         Assign [nHasMatch = TRUE]
-        AppendRow [statement0 <- Statement0Row0(i.Name: i.Name, i.Numbers: i.Numbers, n.Value: n.Value)]
+        AppendRow [statement0 <- Statement0Row0(i.Name: iName, i.Numbers: i.Numbers, n.Value: n.Value)]
       If [NOT nHasMatch]
-        AppendRow [statement0 <- Statement0Row0(i.Name: i.Name, i.Numbers: i.Numbers, n.Value: NULL)]
+        AppendRow [statement0 <- Statement0Row0(i.Name: iName, i.Numbers: i.Numbers, n.Value: NULL)]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     PhaseBoundary [Select]
@@ -206,7 +207,8 @@ namespace GeneratedSample_Q246_OuterApplyWhereLeftGuard
                             }
 
                             var i = iChunkViewArray[iChunkViewOffset + iIndex];
-                            if ((!(i.Name == "empty")))
+                            string iName = i.Name;
+                            if ((!(Operators.SqlCompare<string, string>(i.Name, "empty", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) == true)))
                             {
                                 continue;
                             }
@@ -229,7 +231,7 @@ namespace GeneratedSample_Q246_OuterApplyWhereLeftGuard
 
                                             var n = nChunkViewArray[nChunkViewOffset + nIndex];
                                             nHasMatch = true;
-                                            statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                            statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                         }
 
                                         continue;
@@ -247,7 +249,7 @@ namespace GeneratedSample_Q246_OuterApplyWhereLeftGuard
 
                                             var n = nChunkViewList[nChunkViewOffset + nIndex];
                                             nHasMatch = true;
-                                            statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                            statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                         }
 
                                         continue;
@@ -263,13 +265,13 @@ namespace GeneratedSample_Q246_OuterApplyWhereLeftGuard
 
                                     var n = nChunk[nIndex];
                                     nHasMatch = true;
-                                    statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                    statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                 }
                             }
 
                             if ((!nHasMatch))
                             {
-                                statement0.Add(new Statement0Row0(i.Name, i.Numbers, null));
+                                statement0.Add(new Statement0Row0(iName, i.Numbers, null));
                             }
                         }
 
@@ -287,7 +289,8 @@ namespace GeneratedSample_Q246_OuterApplyWhereLeftGuard
                             }
 
                             var i = iChunkViewList[iChunkViewOffset + iIndex];
-                            if ((!(i.Name == "empty")))
+                            string iName = i.Name;
+                            if ((!(Operators.SqlCompare<string, string>(i.Name, "empty", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) == true)))
                             {
                                 continue;
                             }
@@ -310,7 +313,7 @@ namespace GeneratedSample_Q246_OuterApplyWhereLeftGuard
 
                                             var n = nChunkViewArray[nChunkViewOffset + nIndex];
                                             nHasMatch = true;
-                                            statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                            statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                         }
 
                                         continue;
@@ -328,7 +331,7 @@ namespace GeneratedSample_Q246_OuterApplyWhereLeftGuard
 
                                             var n = nChunkViewList[nChunkViewOffset + nIndex];
                                             nHasMatch = true;
-                                            statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                            statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                         }
 
                                         continue;
@@ -344,13 +347,13 @@ namespace GeneratedSample_Q246_OuterApplyWhereLeftGuard
 
                                     var n = nChunk[nIndex];
                                     nHasMatch = true;
-                                    statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                    statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                 }
                             }
 
                             if ((!nHasMatch))
                             {
-                                statement0.Add(new Statement0Row0(i.Name, i.Numbers, null));
+                                statement0.Add(new Statement0Row0(iName, i.Numbers, null));
                             }
                         }
 
@@ -366,7 +369,8 @@ namespace GeneratedSample_Q246_OuterApplyWhereLeftGuard
                     }
 
                     var i = iChunk[iIndex];
-                    if ((!(i.Name == "empty")))
+                    string iName = i.Name;
+                    if ((!(Operators.SqlCompare<string, string>(i.Name, "empty", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) == true)))
                     {
                         continue;
                     }
@@ -389,7 +393,7 @@ namespace GeneratedSample_Q246_OuterApplyWhereLeftGuard
 
                                     var n = nChunkViewArray[nChunkViewOffset + nIndex];
                                     nHasMatch = true;
-                                    statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                    statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                 }
 
                                 continue;
@@ -407,7 +411,7 @@ namespace GeneratedSample_Q246_OuterApplyWhereLeftGuard
 
                                     var n = nChunkViewList[nChunkViewOffset + nIndex];
                                     nHasMatch = true;
-                                    statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                                    statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                                 }
 
                                 continue;
@@ -423,13 +427,13 @@ namespace GeneratedSample_Q246_OuterApplyWhereLeftGuard
 
                             var n = nChunk[nIndex];
                             nHasMatch = true;
-                            statement0.Add(new Statement0Row0(i.Name, i.Numbers, n));
+                            statement0.Add(new Statement0Row0(iName, i.Numbers, n));
                         }
                     }
 
                     if ((!nHasMatch))
                     {
-                        statement0.Add(new Statement0Row0(i.Name, i.Numbers, null));
+                        statement0.Add(new Statement0Row0(iName, i.Numbers, null));
                     }
                 }
             }

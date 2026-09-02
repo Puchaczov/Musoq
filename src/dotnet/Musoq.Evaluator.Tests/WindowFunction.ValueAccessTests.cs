@@ -6,7 +6,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class WindowFunctionValueAccessTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenFirstValueOverOrderByName_ShouldReturnFirstInPartition()

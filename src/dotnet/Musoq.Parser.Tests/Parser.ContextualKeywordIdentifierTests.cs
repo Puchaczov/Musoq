@@ -194,12 +194,18 @@ public class ParserContextualKeywordIdentifierTests
     }
 
     [TestMethod]
-    public void ExistsWithNonSubqueryArgument_ShouldReportSingleUnexpectedToken()
+    public void ExistsWithNonSubqueryArgument_ShouldReportRootCauseWithoutKeywordSuggestion()
     {
-        var result = ParseWithDiagnostics("select exists(1) from #some.files()");
+        const string query = "select exists(1) from system.dual()";
+
+        var result = ParseWithDiagnostics(query);
 
         Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
-        Assert.AreEqual(DiagnosticCode.MQ2001_UnexpectedToken, result.Diagnostics[0].Code);
+        var diagnostic = result.Diagnostics[0];
+        Assert.AreEqual(DiagnosticCode.MQ2024_InvalidSubquery, diagnostic.Code);
+        Assert.AreEqual("EXISTS requires a SELECT, FROM, PIVOT, or UNPIVOT subquery.", diagnostic.Message);
+        Assert.AreEqual(new TextSpan(query.IndexOf('1'), 1), diagnostic.Span);
+        Assert.IsFalse(diagnostic.SuggestedFixes.Any(action => action.Kind == DiagnosticActionKind.QuickFix));
     }
 
     [TestMethod]

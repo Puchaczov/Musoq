@@ -14,14 +14,14 @@ MultiStatement
 /*
 PhysicalMultiStatement
   PhysicalProject [r.Id as r.Id, r.Name as r.Name]
-    PhysicalSchemaScan [#queryrowsample.rows() as r] [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=DBB8D143B6FA2504DD7ED1773B15FF7FD8948901BF71CE5A75CA9077585B573A]
+    PhysicalSchemaScan [#queryrowsample.rows() as r] [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=A8CCE6ACE921C950DDFDEA91A09C06EB8E3D1C623485BF45A1E68D0BF21808A4]
 */
 
 // === Execution Plan ===
 /*
 ExecutionPlan [compiled]
   Shapes
-    Generated [QueryRow_DBB8D143B6FA_S]
+    Generated [QueryRow_A8CCE6ACE921_S]
       Id: int <- field Field0
       Name: string <- field Field1
     Generated [ResultRow0]
@@ -31,7 +31,7 @@ ExecutionPlan [compiled]
   Body
     PhaseBoundary [Begin]
     PhaseBoundary [From]
-    SourceScan [r: object] -> rRows [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=DBB8D143B6FA2504DD7ED1773B15FF7FD8948901BF71CE5A75CA9077585B573A]
+    SourceScan [r: object] -> rRows [query-row:ReadonlyStruct;lifetime=ScanLocal;shape=A8CCE6ACE921C950DDFDEA91A09C06EB8E3D1C623485BF45A1E68D0BF21808A4]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     PhaseBoundary [Select]
     ChunkedForEach [r in rRows]
@@ -65,7 +65,7 @@ namespace GeneratedSample_Q237_QueryRowReadonlyStruct
             new Column("r.Id", typeof(int), 0),
             new Column("r.Name", typeof(string), 1)
         };
-        private static readonly QueryRowShape __queryRowShape_DBB8D143B6FA = new QueryRowShape(new QueryRowField[] { new QueryRowField(0, 0, "Id", typeof(int), false), new QueryRowField(1, 1, "Name", typeof(string), true) });
+        private static readonly QueryRowShape __queryRowShape_A8CCE6ACE921 = new QueryRowShape(new QueryRowField[] { new QueryRowField(0, 0, "Id", typeof(int), false), new QueryRowField(1, 1, "Name", typeof(string), true) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_r_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Id", typeof(int), 0), new Column("Name", typeof(string), 1) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
@@ -94,12 +94,12 @@ namespace GeneratedSample_Q237_QueryRowReadonlyStruct
             this.OnPhaseChanged("compiled", QueryPhase.Begin);
             this.OnPhaseChanged("compiled", QueryPhase.From);
             var __rSchema = provider.GetSchema("#queryrowsample");
-            var __rSchemaQueryRows = __rSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape DBB8D143B6FA2504DD7ED1773B15FF7FD8948901BF71CE5A75CA9077585B573A).");
-            var rRowsSource = __rSchemaQueryRows.GetQueryScopedRowSource<QueryRow_DBB8D143B6FA_S, QueryRowMaterializer_DBB8D143B6FA_S>("rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("r:1", sourceExecutionPlans["r:1"], token, __schemaColumns_compiled_r_0, sourceRuntimeSettingsBySourceContextId["r:1"], logger, OnDataSourceProgress), __queryRowShape_DBB8D143B6FA), Array.Empty<object>());
-            var rRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_DBB8D143B6FA_S>(rRowsSource.Chunks, __musoqProgressContext, "r:1") : rRowsSource.Chunks;
+            var __rSchemaQueryRows = __rSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape A8CCE6ACE921C950DDFDEA91A09C06EB8E3D1C623485BF45A1E68D0BF21808A4).");
+            var rRowsSource = __rSchemaQueryRows.GetQueryScopedRowSource<QueryRow_A8CCE6ACE921_S, QueryRowMaterializer_A8CCE6ACE921_S>("rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("r:1", sourceExecutionPlans["r:1"], token, __schemaColumns_compiled_r_0, sourceRuntimeSettingsBySourceContextId["r:1"], logger, OnDataSourceProgress), __queryRowShape_A8CCE6ACE921), Array.Empty<object>());
+            var rRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_A8CCE6ACE921_S>(rRowsSource.Chunks, __musoqProgressContext, "r:1") : rRowsSource.Chunks;
             var __musoqTableSourceRows = rRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<QueryRow_DBB8D143B6FA_S, ResultRow0>(__musoqTableSourceRows, (r) => true, (r) => new ResultRow0(r.Field0, r.Field1), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<QueryRow_A8CCE6ACE921_S, ResultRow0>(__musoqTableSourceRows, (r) => true, (r) => new ResultRow0(r.Field0, r.Field1), token), token, onCompleted: () =>
             {
                 try
                 {
@@ -144,15 +144,15 @@ namespace GeneratedSample_Q237_QueryRowReadonlyStruct
             PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
         }
 
-        private readonly struct QueryRowMaterializer_DBB8D143B6FA_S : IQueryRowMaterializer<QueryRow_DBB8D143B6FA_S>
+        private readonly struct QueryRowMaterializer_A8CCE6ACE921_S : IQueryRowMaterializer<QueryRow_A8CCE6ACE921_S>
         {
-            public static QueryRow_DBB8D143B6FA_S Materialize<TReader>(scoped ref TReader reader)
-                where TReader : IQuerySourceFieldReader, allows ref struct => new QueryRow_DBB8D143B6FA_S(reader.Read<int>(0), reader.Read<string>(1));
+            public static QueryRow_A8CCE6ACE921_S Materialize<TReader>(scoped ref TReader reader)
+                where TReader : IQuerySourceFieldReader, allows ref struct => new QueryRow_A8CCE6ACE921_S(reader.Read<int>(0), reader.Read<string>(1));
         }
 
-        private readonly struct QueryRow_DBB8D143B6FA_S
+        private readonly struct QueryRow_A8CCE6ACE921_S
         {
-            public QueryRow_DBB8D143B6FA_S(int Field0, string Field1)
+            public QueryRow_A8CCE6ACE921_S(int Field0, string Field1)
             {
                 this.Field0 = Field0;
                 this.Field1 = Field1;

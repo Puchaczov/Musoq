@@ -8,15 +8,19 @@ public partial class SchemaParser
 {
     private TypeAnnotationNode ComposeStringType()
     {
-        Consume(TokenType.StringType);
+        var stringToken = ConsumeAndGetToken(TokenType.StringType);
         Consume(TokenType.LeftSquareBracket);
         var sizeExpr = ComposeSizeExpression();
         Consume(TokenType.RightSquareBracket);
+
+        if (IsNegativeConstantSizeExpression(sizeExpr, out var negativeValue))
+            throw InvalidBinarySchemaField($"string[] size must be non-negative, but got {negativeValue}.", sizeExpr.Span);
 
         var encoding = ComposeStringEncoding();
         var modifiers = ComposeStringModifiers();
 
         string? asTextSchemaName = null;
+        var stringTypeEndSpan = stringToken.Span;
         if (Current.TokenType == TokenType.As)
         {
             Consume(TokenType.As);
@@ -24,11 +28,14 @@ public partial class SchemaParser
                 throw new SyntaxException(
                     $"Expected text schema name after 'as' but found '{Current.TokenType}'",
                     _lexer.AlreadyResolvedQueryPart);
+            var schemaNameToken = Current;
             asTextSchemaName = Current.Value;
             Consume(TokenType.Identifier);
+            stringTypeEndSpan = schemaNameToken.Span;
         }
 
-        var stringType = new StringTypeNode(sizeExpr, encoding, modifiers, asTextSchemaName);
+        var stringType = (StringTypeNode)new StringTypeNode(sizeExpr, encoding, modifiers, asTextSchemaName)
+            .WithSpan(stringToken.Span.Through(stringTypeEndSpan));
 
         if (Current.TokenType == TokenType.LeftSquareBracket) return ComposeArrayOfType(stringType);
 
@@ -45,9 +52,9 @@ public partial class SchemaParser
             TokenType.Ascii => StringEncoding.Ascii,
             TokenType.Latin1 => StringEncoding.Latin1,
             TokenType.Ebcdic => StringEncoding.Ebcdic,
-            _ => throw new SyntaxException(
+            _ => throw InvalidBinarySchemaField(
                 $"Expected string encoding (utf8, utf16le, utf16be, ascii, latin1, ebcdic) but found '{Current.TokenType}'",
-                _lexer.AlreadyResolvedQueryPart)
+                Current.Span)
         };
         Consume(Current.TokenType);
         return encoding;

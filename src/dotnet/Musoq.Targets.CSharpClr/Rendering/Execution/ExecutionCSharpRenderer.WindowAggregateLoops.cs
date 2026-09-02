@@ -144,7 +144,7 @@ public sealed partial class ExecutionCSharpRenderer
         {
             valuePresent = SyntaxFactory.BinaryExpression(
                 SyntaxKind.LogicalAndExpression,
-                CreateBooleanCondition(RenderExpression(kernel.FilterPredicate), kernel.FilterPredicate.ReturnType),
+                this.RenderBooleanCondition(kernel.FilterPredicate, CreateIsolatedRenderContext()),
                 valuePresent);
         }
 

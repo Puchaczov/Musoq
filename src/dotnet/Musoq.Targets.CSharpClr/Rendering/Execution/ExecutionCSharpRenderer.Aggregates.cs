@@ -78,22 +78,9 @@ public sealed partial class ExecutionCSharpRenderer
             return statement;
 
         return StatementEmitter.CreateIf(
-            CreateBooleanCondition(RenderExpression(filterPredicate), filterPredicate.ReturnType),
+            this.RenderBooleanCondition(filterPredicate, CreateIsolatedRenderContext()),
             StatementEmitter.CreateBlock(statement));
     }
-
-    private static ExpressionSyntax CreateBooleanCondition(ExpressionSyntax expression, Type type)
-    {
-        return Nullable.GetUnderlyingType(type) == typeof(bool)
-            ? SyntaxFactory.BinaryExpression(
-                SyntaxKind.EqualsExpression,
-                SyntaxFactory.ParenthesizedExpression(expression),
-                SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression))
-            : expression;
-    }
-
-    private static ExpressionSyntax CreateBooleanCondition(ExpressionSyntax expression, ExecutionTypeRef type) =>
-        CreateBooleanCondition(expression, type.RequireClrType());
 
     private ExpressionStatementSyntax RenderAggregateCapturedValueSet(ExecutionAggregateCapturedValueSet capturedValueSet)
     {

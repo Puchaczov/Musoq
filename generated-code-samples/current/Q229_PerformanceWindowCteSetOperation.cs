@@ -248,8 +248,10 @@ namespace GeneratedSample_Q229_PerformanceWindowCteSetOperation
                 var resultKeys = new HashSet<ValueTuple<string, string, long>>(left.Count + right.Count);
                 foreach (var resultLeftRow in left)
                 {
-                    resultKeys.Add(((string)resultLeftRow.Name, (string)resultLeftRow.Country, (long)resultLeftRow.BranchRank));
-                    result.Add(new LeftShape0((string)resultLeftRow.Name, (string)resultLeftRow.Country, (long)resultLeftRow.BranchRank));
+                    if (resultKeys.Add(((string)resultLeftRow.Name, (string)resultLeftRow.Country, (long)resultLeftRow.BranchRank)))
+                    {
+                        result.Add(new LeftShape0((string)resultLeftRow.Name, (string)resultLeftRow.Country, (long)resultLeftRow.BranchRank));
+                    }
                 }
 
                 foreach (var resultRightRow in right)

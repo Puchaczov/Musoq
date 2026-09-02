@@ -25,7 +25,7 @@ public sealed class MusoqErrorEnvelope
         string? docsReference,
         string? details,
         IReadOnlyList<DiagnosticAction>? actions = null,
-        DiagnosticSourceKind sourceKind = DiagnosticSourceKind.Query,
+        DiagnosticSourceKind? sourceKind = null,
         int? offset = null,
         int? endOffset = null,
         int? endLine = null,
@@ -47,7 +47,7 @@ public sealed class MusoqErrorEnvelope
         DocsReference = docsReference;
         Details = details;
         Actions = actions ?? Array.Empty<DiagnosticAction>();
-        SourceKind = sourceKind;
+        SourceKind = sourceKind ?? DiagnosticSourceKindMapping.FromCode(code);
         Offset = offset;
         EndOffset = endOffset;
         EndLine = endLine;
@@ -149,10 +149,13 @@ public sealed class MusoqErrorEnvelope
             ? diagnostic.Span.Length
             : (int?)null;
 
-        if (snippet == null && queryText != null && hasLocation)
+        if (snippet == null && queryText != null && hasLocation && diagnostic.SourceKind == DiagnosticSourceKind.Query)
         {
             var sourceText = new SourceText(queryText);
-            snippet = sourceText.GetContextSnippet(diagnostic.Span);
+            var snippetSpan = hasEndLocation && diagnostic.EndLocation.Offset >= diagnostic.Location.Offset
+                ? diagnostic.Span
+                : new TextSpan(diagnostic.Location.Offset, 0);
+            snippet = sourceText.GetContextSnippet(snippetSpan);
         }
 
         int? line = hasLocation ? diagnostic.Location.Line : null;

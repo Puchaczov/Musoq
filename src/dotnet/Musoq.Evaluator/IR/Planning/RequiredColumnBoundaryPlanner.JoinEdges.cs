@@ -124,7 +124,7 @@ internal static partial class RequiredColumnBoundaryPlanner
         private void VisitPredicateJoin(
             PhysicalNode left,
             PhysicalNode right,
-            Musoq.Evaluator.IR.Expressions.IrExpression predicate,
+            Expressions.IrExpression predicate,
             OrderField? tieBreak,
             IReadOnlyList<string> requiredAfter)
         {

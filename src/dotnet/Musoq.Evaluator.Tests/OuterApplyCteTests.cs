@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class OuterApplyCteTests : GenericEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void WhenSchemaMethodOuterAppliedWithAnotherSchema_WithinCte_ShouldPass()

@@ -39,6 +39,16 @@ internal static partial class GeneratedCodeSamplesCatalog
                 "select l.Id as LeftId, r.Id as RightId from #queryrowsample.rows() l " +
                 "inner join #queryrowsample.rows() r on l.Id = r.Id",
                 GeneratedQueryRowSampleShape.Narrow,
+                queryScopedRowsEnabled: true),
+            QueryScopedRowSample(
+                "Q324_EnumQueryScopedRows",
+                "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };" +
+                "flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };" +
+                "table EnumRows { Id: int, Status: JobStatus, Access: FileAccess };" +
+                "couple #queryrowsample.rows with table EnumRows as Rows;" +
+                "select Status, EnumName(Status) as StatusName, HasAllFlags(Access, 'Read', 'Write') as CanWrite " +
+                "from Rows() where Status in ('Queued', 'Running')",
+                GeneratedQueryRowSampleShape.Enum,
                 queryScopedRowsEnabled: true)
         ];
     }

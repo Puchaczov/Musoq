@@ -161,7 +161,6 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
         Assert.AreEqual("A", table[0].Values[0]);
     }
 
-    public TestContext TestContext { get; set; }
 
     #endregion
 }

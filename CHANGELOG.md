@@ -4,6 +4,37 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.9-alpha.1
+
+See [release-notes/v17.0.9-alpha.1.md](release-notes/v17.0.9-alpha.1.md) for the curated full-train release notes.
+
+### Musoq.Parser
+
+- Added query-local `enum` and `flags enum` declarations with structured parsing and semantic diagnostics.
+- Expanded language, specification, generated-code, and source-location coverage across the Runtime V2 query surface.
+
+### Musoq.Schema
+
+- Added portable enum descriptors, scalar values, underlying-kind metadata, and enum-aware datasource planning contracts.
+- Added column-stability, replayability, and computed-projection metadata for safe planner-owned scalar reuse.
+- This alpha intentionally permits breaking datasource ABI changes; providers should rebuild against the five-package 17.0.9-alpha.1 Core train.
+
+### Musoq.Evaluator
+
+- Added first-class enum binding, intrinsic operations, integral execution carriers, native-enum normalization, and accepted/residual source-predicate planning.
+- Added default-on loop-invariant code motion and stability-aware scalar reuse with conservative volatile and boundary handling.
+- Strengthened diagnostic classification, source locations, error envelopes, and cross-feature regression coverage.
+
+### Musoq.Converter and generated execution
+
+- Carried enum, source-contract, scalar-reuse, and diagnostic semantics through compilation, Execution IR, generated C#, and target compatibility analysis.
+- Added generated-code samples, qualification baselines, and guardrails for enum carriers, stable/volatile reuse, and execution shape.
+
+### Tooling and verification
+
+- Added specification coverage evidence, a consolidated diagnostic regression inventory, and expanded parser/evaluator/converter/schema/benchmark tests.
+- Published the full train: `Musoq.Parser`, `Musoq.Plugins`, `Musoq.Schema`, `Musoq.Evaluator`, and `Musoq.Converter`.
+
 ## 17.0.8-alpha.1
 
 See [release-notes/v17.0.8-alpha.1.md](release-notes/v17.0.8-alpha.1.md) for the curated full-train release notes.

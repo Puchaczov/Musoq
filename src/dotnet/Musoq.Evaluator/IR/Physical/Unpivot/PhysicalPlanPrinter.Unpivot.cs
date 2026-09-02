@@ -17,7 +17,7 @@ public static partial class PhysicalPlanPrinter
         sb.Append("; keep: ");
         PlanPrinterHelpers.AppendProjectedFields(sb, unpivot.KeepFields.ToArray());
         sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"] as {unpivot.Alias}");
-        PhysicalPlanPrinter.PrintNode(unpivot.Source, sb, indent + 2);
+        PrintNode(unpivot.Source, sb, indent + 2);
     }
 
     private static void AppendUnpivotEntries(StringBuilder sb, IReadOnlyList<UnpivotEntry> entries)

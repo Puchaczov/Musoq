@@ -473,9 +473,9 @@ public static partial class InstanceCreator
 
     private static Diagnostic CreateArtifactDiagnostic(string message)
     {
-        return Diagnostic.Error(
+        return Diagnostic.ErrorUnknownLocation(
             DiagnosticCode.MQ8002_CompiledArtifactIncompatible,
             message,
-            TextSpan.Empty);
+            sourceKind: DiagnosticSourceKind.GeneratedSource);
     }
 }

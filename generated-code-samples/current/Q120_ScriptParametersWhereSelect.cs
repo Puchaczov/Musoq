@@ -144,7 +144,7 @@ namespace GeneratedSample_Q120_ScriptParametersWhereSelect
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 decimal population = ko3iko.Population;
-                                if (((ko3iko.Country == paramCountry) && (population > paramMinPopulation)))
+                                if (((Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (population > paramMinPopulation))) == true)
                                 {
                                     yield return new ResultShape0(ko3iko.Name, population, paramCountry);
                                 }
@@ -165,7 +165,7 @@ namespace GeneratedSample_Q120_ScriptParametersWhereSelect
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 decimal population = ko3iko.Population;
-                                if (((ko3iko.Country == paramCountry) && (population > paramMinPopulation)))
+                                if (((Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (population > paramMinPopulation))) == true)
                                 {
                                     yield return new ResultShape0(ko3iko.Name, population, paramCountry);
                                 }
@@ -184,7 +184,7 @@ namespace GeneratedSample_Q120_ScriptParametersWhereSelect
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
                         decimal population = ko3iko.Population;
-                        if (((ko3iko.Country == paramCountry) && (population > paramMinPopulation)))
+                        if (((Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) & (population > paramMinPopulation))) == true)
                         {
                             yield return new ResultShape0(ko3iko.Name, population, paramCountry);
                         }

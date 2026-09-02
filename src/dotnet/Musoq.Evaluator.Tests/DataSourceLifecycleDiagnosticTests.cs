@@ -133,6 +133,9 @@ public sealed class DataSourceLifecycleDiagnosticTests
         Assert.AreSame(lifecycle, exception.InnerException);
         Assert.DoesNotContain("secret-source-argument", exception.Message);
         Assert.AreEqual("ctx-6", exception.Envelope.Arguments["sourceContextId"]);
+        Assert.IsNull(exception.Envelope.Offset);
+        Assert.IsNull(exception.Envelope.EndOffset);
+        Assert.IsNull(exception.Envelope.Snippet);
     }
 
     [TestMethod]

@@ -156,6 +156,7 @@ public sealed class LooseContractGuardrailTests
             "CteReadOnceFusionPass",
             "CteSidecarIndexLoweringPass",
             "MethodTargetReusePass",
+            "LoopInvariantCodeMotionPass",
             "FieldExpressionHoistingPass",
             "ExpressionCseHoistingPass",
             "CapacityHintPass",

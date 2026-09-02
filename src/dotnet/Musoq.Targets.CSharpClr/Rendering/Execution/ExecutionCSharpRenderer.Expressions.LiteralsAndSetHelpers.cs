@@ -6,7 +6,7 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static ExpressionSyntax RenderLiteral(object? value)
+    internal static ExpressionSyntax RenderLiteral(object? value)
     {
         return value switch
         {

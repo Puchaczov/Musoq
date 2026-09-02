@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class RawStringLiteralExecutionGapTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; } = null!;
 
     [TestMethod]
     public void ValuesSource_WhenUppercaseEmptyAndQuotedRawLiteralsAreUsed_ShouldPreserveValues()

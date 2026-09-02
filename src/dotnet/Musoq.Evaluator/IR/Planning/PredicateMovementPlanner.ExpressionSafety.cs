@@ -10,7 +10,7 @@ internal static partial class PredicateMovementPlanner
 {
     private static ExpressionSafety CanMovePredicate(IrExpression predicate)
     {
-        if (predicate.ReturnType != typeof(bool))
+        if (!IrExpressionNullSemantics.IsBoolean(predicate.ReturnType))
             return ExpressionSafety.Unsafe($"Predicate {IrExpressionPrinter.Print(predicate)} is not a typed boolean expression.");
 
         return CanMoveExpression(predicate);

@@ -266,7 +266,7 @@ namespace GeneratedSample_Q125_ScriptParameterCteHelperCapture
                                 }
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                if ((ko3iko.Country == paramCountry))
+                                if ((Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                                 {
                                     Cte0Row0 cte0SidecarRow0 = new Cte0Row0(ko3iko.Name, paramCountry);
                                     cte0.Add(cte0SidecarRow0);
@@ -303,7 +303,7 @@ namespace GeneratedSample_Q125_ScriptParameterCteHelperCapture
                                 }
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                if ((ko3iko.Country == paramCountry))
+                                if ((Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                                 {
                                     Cte0Row0 cte0SidecarRow0 = new Cte0Row0(ko3iko.Name, paramCountry);
                                     cte0.Add(cte0SidecarRow0);
@@ -338,7 +338,7 @@ namespace GeneratedSample_Q125_ScriptParameterCteHelperCapture
                         }
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                        if ((ko3iko.Country == paramCountry))
+                        if ((Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) == true)
                         {
                             Cte0Row0 cte0SidecarRow0 = new Cte0Row0(ko3iko.Name, paramCountry);
                             cte0.Add(cte0SidecarRow0);

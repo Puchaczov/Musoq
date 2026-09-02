@@ -79,7 +79,7 @@ public class MethodResolutionException : InvalidOperationException, IDiagnosticE
     /// <inheritdoc />
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return Diagnostic.Error(Code, Message, TextSpan.Empty)
+        return Diagnostic.ErrorUnknownLocation(Code, Message)
             .WithArgument("methodName", MethodName)
             .WithArgument("providedTypes", string.Join(", ", ProvidedParameterTypes))
             .WithArgument("candidateSignatures", string.Join("; ", AvailableSignatures))

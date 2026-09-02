@@ -17,14 +17,20 @@ internal sealed class BoundSchemaColumn : ISchemaColumn
         string columnName,
         int columnIndex,
         Type columnType,
+        Type sourceReadType,
+        EnumTypeDescriptor? enumType,
         string? intendedTypeName,
-        IReadOnlyDictionary<string, string> readModifiers)
+        IReadOnlyDictionary<string, string> readModifiers,
+        ColumnStability stability)
     {
         ColumnName = columnName;
         ColumnIndex = columnIndex;
         ColumnType = columnType;
+        SourceReadType = sourceReadType;
+        EnumType = enumType;
         IntendedTypeName = intendedTypeName;
         ReadModifiers = readModifiers;
+        Stability = stability;
         IsNullable = Nullable.GetUnderlyingType(columnType) != null || !columnType.IsValueType;
     }
 
@@ -34,9 +40,15 @@ internal sealed class BoundSchemaColumn : ISchemaColumn
 
     public Type ColumnType { get; }
 
+    public Type SourceReadType { get; }
+
+    public EnumTypeDescriptor? EnumType { get; }
+
     public IReadOnlyDictionary<string, string> ReadModifiers { get; }
 
     public string? IntendedTypeName { get; }
+
+    public ColumnStability Stability { get; }
 
     public bool IsNullable { get; }
 
@@ -48,10 +60,13 @@ internal sealed class BoundSchemaColumn : ISchemaColumn
             column.ColumnName,
             column.ColumnIndex,
             column.ColumnType,
+            column.SourceReadType,
+            column.EnumType,
             column.IntendedTypeName,
             new ReadOnlyDictionary<string, string>(
                 (column.ReadModifiers ?? new Dictionary<string, string>())
-                .ToDictionary(static pair => pair.Key, static pair => pair.Value, StringComparer.Ordinal)));
+                .ToDictionary(static pair => pair.Key, static pair => pair.Value, StringComparer.Ordinal)),
+            column.Stability);
     }
 }
 

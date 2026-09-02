@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
 
@@ -13,36 +12,7 @@ public partial class Parser
         Consume(TokenType.Identifier);
         Consume(TokenType.LBracket);
 
-        var columns = new List<CreateTableColumnDefinition>();
-        while (Current.TokenType != TokenType.RBracket)
-        {
-            var fieldToken = ConsumeAndGetToken(TokenType.Identifier);
-            var fieldName = fieldToken.Value;
-
-            Consume(TokenType.Colon);
-
-            var (typeName, columnEndSpan) = ComposeTableColumnTypeName();
-
-            if (Current.TokenType == TokenType.QuestionMark)
-            {
-                typeName += "?";
-                columnEndSpan = ConsumeAndGetToken(TokenType.QuestionMark).Span;
-            }
-
-            var readModifiers = ComposeTableColumnReadModifiers(fieldName);
-            if (readModifiers.Count > 0)
-                columnEndSpan = readModifiers[^1].Span;
-
-            columns.Add(new CreateTableColumnDefinition(
-                fieldName,
-                typeName,
-                readModifiers,
-                fieldToken.Span.Through(columnEndSpan),
-                fieldToken.Span));
-
-            if (Current.TokenType == TokenType.Comma)
-                Consume(TokenType.Comma);
-        }
+        var columns = ComposeTableColumns();
 
         var closingToken = ConsumeAndGetToken(Current.TokenType);
 

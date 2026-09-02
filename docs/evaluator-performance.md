@@ -2835,6 +2835,35 @@ planning. The coordinator emitted `610` successful batches containing `3,646`
 items; ordinary coordinator batches averaged `4.81` items, while the explicit
 recursive matrix batches averaged `34` items.
 
+## Stability-aware loop-invariant code motion — implementation and qualification
+
+The loop-invariant optimization is owned by the Execution IR pipeline. The
+shared `ExpressionStabilityAnalyzer` is consulted by all evaluation-changing
+rewrites, and `LoopInvariantCodeMotionPass` runs after method-target reuse and
+before field/expression CSE. It emits eager `ExecutionLet` locals for stable
+scalar expressions repeated by a descendant serial loop. Volatile values remain
+at their producer boundary, and no runtime cache or initialization branch is
+introduced. See [loop-invariant-code-motion.md](loop-invariant-code-motion.md)
+for the provider contract, excluded boundaries, and user-facing switch.
+
+The Wave 6 qualification command ran three complete cohorts in one process:
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj -c Release --no-build -- `
+  gate-loop-invariant `
+  --report BenchmarkDotNet.Artifacts/results/loop-invariant-inprocess-cohort-1.json `
+  --report BenchmarkDotNet.Artifacts/results/loop-invariant-inprocess-cohort-2.json `
+  --report BenchmarkDotNet.Artifacts/results/loop-invariant-inprocess-cohort-3.json
+```
+
+The gate covered fan-outs 1, 8, and 64 for stable expensive, stable cheap, and
+volatile producers, with identical result/counter oracles and allocation
+diagnostics. The accepted high-fan-out expensive ratios were `0.5919x` for the
+getter and `0.4025x` for the callable; cheap and volatile cases remained within
+`1.03x`, and allocation stayed within the configured diagnostic noise bound.
+The raw JSON is intentionally ignored; keep the command and committed report
+description here reproducible instead of checking in BenchmarkDotNet artifacts.
+
 The current worker sweep passed all tests at every setting:
 
 | MSTest workers | Wall time | Peak private memory |
@@ -2893,3 +2922,58 @@ generated samples `168.511s`, repeated compilation `205.576s`, benchmark
 documentation update also passed all `16,866` tests plus four skips in
 `108.898s` wall time, with `2,739.826s` summed TRX duration; its per-project
 TRX files are under `TestResults/evaluator-rendering-wave-7-final-final`.
+
+## Corrective scalar-reuse qualification
+
+The corrective stability-aware scalar-reuse campaign extends LICM across the
+other high-reuse scalar boundaries without adding runtime caching. C0 records
+the recomputation baseline; C1–C15 cover the stability contract, region-aware
+collector, row/operator boundaries, windows, aggregates, PIVOT, guarded APPLY,
+specialized joins, correlated probes, UNPIVOT, boundary row width, provider
+computed projections, recursive invariants, and exact semantic counters. C17
+activates the qualified umbrella option and refreshes the 326-sample corpus.
+
+The qualification matrix has ten workload families:
+
+1. cross-boundary projections;
+2. windows;
+3. aggregates and PIVOT;
+4. guarded APPLY;
+5. nested, ASOF, and range joins;
+6. correlated probes;
+7. UNPIVOT;
+8. boundary row width;
+9. provider computed projections; and
+10. recursive CTEs.
+
+Each family must run cheap stable, no-inlining expensive stable, volatile, and
+no-candidate cases at fan-outs 1, 8, and 64. Three isolated JSON cohorts are
+required. The machine-readable gate compares equivalent LICM/scalar-reuse
+off/on queries and exact counter/result oracles. Acceptance thresholds are:
+
+* expensive no-storage median ratio `<= 0.97x`;
+* carried-storage median ratio `<= 0.90x`;
+* cheap, volatile, low-reuse, and no-op ratios `<= 1.03x`;
+* tiny compilation/cache ratio `<= 1.03x` and feature-heavy compilation
+  ratio `<= 1.05x`;
+* no-storage allocation increase within `1,024 B/op` noise and storage no
+  greater than predicted payload plus `1,024 B/op` or `1.03x`;
+* width-128 narrowing time `<= 1.03x` and allocation `<= 0.97x`.
+
+The family qualification command is:
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks -c Release --no-build -- `
+  gate-stability-aware-reuse-families `
+  --report BenchmarkDotNet.Artifacts/results/stability-aware-reuse-family-1.json `
+  --report BenchmarkDotNet.Artifacts/results/stability-aware-reuse-family-2.json `
+  --report BenchmarkDotNet.Artifacts/results/stability-aware-reuse-family-3.json
+```
+
+Generated code is the authoritative branch gate: accepted paths contain
+ordinary lexical locals or typed storage and no initialization flag, cache
+lookup, runtime stability check, or runtime option branch. Disassembly and
+hardware branch/misprediction counters are supporting evidence only. Raw JSON
+and profiler artifacts remain ignored; the benchmark source and committed
+report record the environment, commands, counters, allocation policy, and
+thresholds.

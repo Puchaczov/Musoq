@@ -33,7 +33,13 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (node.JoinType is JoinType.AsOf or JoinType.AsOfLeft)
             ValidateAsOfJoinCondition(expression, source, joinedTable, tieBreak);
 
-        var joinedFrom = new Parser.JoinFromNode(source, joinedTable, expression, node.JoinType, tieBreak);
+        var joinedFrom = new Parser.JoinFromNode(
+            source,
+            joinedTable,
+            expression,
+            node.JoinType,
+            tieBreak,
+            node.WithOrdinality);
         _sourceBinding.Identifier = joinedFrom.Alias;
         PushSemanticNode(joinedFrom);
     }
@@ -41,30 +47,33 @@ public partial class BuildMetadataAndInferTypesVisitor
     private void ValidateAsOfJoinCondition(Node expression, FromNode source, FromNode joinedTable, FieldOrderedNode? tieBreak)
     {
         if (ContainsOrNode(expression))
-            throw new VisitorException(
-                nameof(BuildMetadataAndInferTypesVisitor),
-                "ASOF JOIN validation",
-                "ASOF JOIN ON clause does not support OR.",
+        {
+            ReportOrThrowAsOfDiagnostic(
                 DiagnosticCode.MQ3038_AsOfJoinOrNotSupported,
+                "ASOF JOIN ON clause does not support OR.",
                 expression.Span);
+            return;
+        }
 
         var (inequalities, _) = CollectConditions(expression);
 
         if (inequalities.Count == 0)
-            throw new VisitorException(
-                nameof(BuildMetadataAndInferTypesVisitor),
-                "ASOF JOIN validation",
-                "ASOF JOIN requires at least one inequality condition (>=, >, <=, <).",
+        {
+            ReportOrThrowAsOfDiagnostic(
                 DiagnosticCode.MQ3036_AsOfJoinMissingInequality,
+                "ASOF JOIN requires at least one inequality condition (>=, >, <=, <).",
                 expression.Span);
+            return;
+        }
 
         if (inequalities.Count > 1)
-            throw new VisitorException(
-                nameof(BuildMetadataAndInferTypesVisitor),
-                "ASOF JOIN validation",
-                $"ASOF JOIN supports exactly one inequality condition. Found {inequalities.Count}.",
+        {
+            ReportOrThrowAsOfDiagnostic(
                 DiagnosticCode.MQ3037_AsOfJoinMultipleInequalities,
+                $"ASOF JOIN supports exactly one inequality condition. Found {inequalities.Count}.",
                 expression.Span);
+            return;
+        }
 
         var inequality = inequalities[0];
         var leftAliases = CollectFromNodeAliases(source);
@@ -130,15 +139,13 @@ public partial class BuildMetadataAndInferTypesVisitor
         var referencesRight = columnAliases.Overlaps(rightAliases);
 
         if (!referencesLeft || !referencesRight)
-            throw new VisitorException(
-                nameof(BuildMetadataAndInferTypesVisitor),
-                "ASOF JOIN validation",
-                "ASOF JOIN inequality must reference columns from both sides.",
+            ReportOrThrowAsOfDiagnostic(
                 DiagnosticCode.MQ3039_AsOfJoinInequalityMustReferenceBothSides,
+                "ASOF JOIN inequality must reference columns from both sides.",
                 inequality.Span);
     }
 
-    private static void ValidateTieBreakReferencesRightSide(
+    private void ValidateTieBreakReferencesRightSide(
         FieldOrderedNode? tieBreak,
         HashSet<string> leftAliases,
         HashSet<string> rightAliases)
@@ -151,14 +158,10 @@ public partial class BuildMetadataAndInferTypesVisitor
             return;
 
         if (columnAliases.Overlaps(leftAliases) || columnAliases.Any(alias => !rightAliases.Contains(alias)))
-        {
-            throw new VisitorException(
-                nameof(BuildMetadataAndInferTypesVisitor),
-                "ASOF JOIN validation",
-                "ASOF JOIN TIE BREAK BY expression must reference only right-side columns.",
+            ReportOrThrowAsOfDiagnostic(
                 DiagnosticCode.MQ3039_AsOfJoinInequalityMustReferenceBothSides,
+                "ASOF JOIN TIE BREAK BY expression must reference only right-side columns.",
                 tieBreak.SpanOrEmpty());
-        }
     }
 
     private static HashSet<string> CollectFromNodeAliases(FromNode node)
@@ -204,39 +207,54 @@ public partial class BuildMetadataAndInferTypesVisitor
         return aliases;
     }
 
-    private static void ValidateInequalityColumnIsOrderable(BinaryNode inequality)
+    private void ValidateInequalityColumnIsOrderable(BinaryNode inequality)
     {
-        ThrowIfNotOrderable(inequality.Left.ReturnType);
-        ThrowIfNotOrderable(inequality.Right.ReturnType);
+        ThrowIfNotOrderable(inequality.Left.ReturnType, inequality.Span);
+        ThrowIfNotOrderable(inequality.Right.ReturnType, inequality.Span);
     }
 
-    private static void ValidateTieBreakColumnIsOrderable(FieldOrderedNode? tieBreak)
+    private void ValidateTieBreakColumnIsOrderable(FieldOrderedNode? tieBreak)
     {
         if (tieBreak == null)
             return;
 
-        ThrowIfNotOrderable(tieBreak.Expression.ReturnType);
+        ThrowIfNotOrderable(tieBreak.Expression.ReturnType, tieBreak.Expression.SpanOrEmpty());
     }
 
-    private static void ThrowIfNotOrderable(Type? columnType)
+    private void ThrowIfNotOrderable(Type? columnType, TextSpan span)
     {
         if (columnType == null)
-            throw new VisitorException(
-                nameof(BuildMetadataAndInferTypesVisitor),
-                "ASOF JOIN validation",
-                "ASOF JOIN inequality column type could not be inferred.",
+        {
+            ReportOrThrowAsOfDiagnostic(
                 DiagnosticCode.MQ3040_AsOfJoinInequalityColumnNotOrderable,
-                TextSpan.Empty);
+                "ASOF JOIN inequality column type could not be inferred.",
+                span);
+            return;
+        }
 
         var underlying = Nullable.GetUnderlyingType(columnType) ?? columnType;
 
         if (!IsOrderableType(underlying))
-            throw new VisitorException(
-                nameof(BuildMetadataAndInferTypesVisitor),
-                "ASOF JOIN validation",
-                $"ASOF JOIN inequality column type '{underlying.Name}' is not orderable.",
+            ReportOrThrowAsOfDiagnostic(
                 DiagnosticCode.MQ3040_AsOfJoinInequalityColumnNotOrderable,
-                TextSpan.Empty);
+                $"ASOF JOIN inequality column type '{underlying.Name}' is not orderable.",
+                span);
+    }
+
+    private void ReportOrThrowAsOfDiagnostic(DiagnosticCode code, string message, TextSpan span)
+    {
+        if (DiagnosticContext is not null)
+        {
+            DiagnosticContext.ReportError(code, message, span);
+            return;
+        }
+
+        throw new VisitorException(
+            nameof(BuildMetadataAndInferTypesVisitor),
+            "ASOF JOIN validation",
+            message,
+            code,
+            span);
     }
 
     private static bool IsOrderableType(Type type)

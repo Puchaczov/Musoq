@@ -125,7 +125,7 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
     {
         if (type == null) return false;
 
-        return PrimitiveTypeResolver.IsValidQueryExpressionType(type) || (Nullable.GetUnderlyingType(type) ?? type) is { IsGenericType: true } candidate && candidate.GetGenericTypeDefinition() == typeof(Musoq.Plugins.CorrelatedScalarSubqueryResult<>);
+        return PrimitiveTypeResolver.IsValidQueryExpressionType(type) || (Nullable.GetUnderlyingType(type) ?? type) is { IsGenericType: true } candidate && candidate.GetGenericTypeDefinition() == typeof(Plugins.CorrelatedScalarSubqueryResult<>);
     }
 
     /// <summary>

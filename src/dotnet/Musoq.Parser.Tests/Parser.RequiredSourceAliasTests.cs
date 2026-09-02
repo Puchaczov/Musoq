@@ -23,6 +23,11 @@ public sealed class ParserRequiredSourceAliasTests
         Assert.AreEqual("The CROSS APPLY source requires an alias before TAKE.", diagnostic.Message);
         Assert.AreEqual(query.IndexOf("Column", StringComparison.Ordinal) + "Column".Length, diagnostic.Span.Start);
         Assert.AreEqual(0, diagnostic.Span.Length);
+        Assert.AreEqual("required-source-alias", diagnostic.Arguments["aliasKind"]);
+        Assert.AreEqual("property", diagnostic.Arguments["sourceKind"]);
+        Assert.AreEqual("CROSS APPLY", diagnostic.Arguments["operator"]);
+        Assert.AreEqual("TAKE", diagnostic.Arguments["boundary"]);
+        Assert.AreEqual("false", diagnostic.Arguments["isFirstSource"]);
         Assert.IsTrue(new DiagnosticFormatter { UseColor = false }.Format(diagnostic).Contains("MQ2035_MissingRequiredAlias"));
 
         var metadata = ErrorMetadataCatalog.Get(diagnostic.Code);
@@ -135,6 +140,8 @@ public sealed class ParserRequiredSourceAliasTests
         Assert.AreEqual("The source requires an alias identifier after AS.", diagnostic.Message);
         Assert.AreEqual(asEnd, diagnostic.Span.Start);
         Assert.AreEqual(0, diagnostic.Span.Length);
+        Assert.AreEqual("missing-after-as", diagnostic.Arguments["aliasKind"]);
+        Assert.AreEqual("source", diagnostic.Arguments["context"]);
     }
 
     [TestMethod]

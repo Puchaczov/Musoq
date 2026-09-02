@@ -39,6 +39,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         var right = PopSemanticNode("Visit(LikeNode) right");
         var left = PopSemanticNode("Visit(LikeNode) left");
 
+        if (TryRejectUnsupportedEnumOperator("LIKE", node, left, right))
+        {
+            PushSemanticNode(new LikeNode(left, right));
+            return;
+        }
+
         ValidatePatternOperand(left, "LIKE", node);
         ValidatePatternOperand(right, "LIKE", node);
 
@@ -50,6 +56,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var right = PopSemanticNode("Visit(RLikeNode) right");
         var left = PopSemanticNode("Visit(RLikeNode) left");
+
+        if (TryRejectUnsupportedEnumOperator("RLIKE", node, left, right))
+        {
+            PushSemanticNode(new RLikeNode(left, right));
+            return;
+        }
 
         ValidatePatternOperand(left, "RLIKE", node);
         ValidatePatternOperand(right, "RLIKE", node);
@@ -83,6 +95,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         var left = PopSemanticNode(VisitorOperationNames.VisitInNodeLeft);
         var args = (ArgsListNode)right;
 
+        if (TryBindEnumCollectionPredicate(left, args, node, out var enumArgs))
+        {
+            PushSemanticNode(new InNode(left, enumArgs));
+            return;
+        }
+
         ValidateCollectionPredicateItems(left, args, node);
 
         PushSemanticNode(new InNode(left, args));
@@ -92,6 +110,16 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         var collection = PopSemanticNode("Visit(CollectionInNode).Collection");
         var left = PopSemanticNode("Visit(CollectionInNode).Expression");
+
+        if (TryGetEnumExpressionType(left, out var enumType))
+        {
+            ReportEnumSemanticError(
+                DiagnosticCode.MQ3112_UnsupportedEnumScriptParameter,
+                $"Enum script parameters are not supported for enum type '{enumType.DisplayName}'. Use exact quoted members directly in IN (...).",
+                node);
+            PushSemanticNode(new CollectionInNode(left, collection));
+            return;
+        }
 
         ValidateCollectionParameterPredicate(left, collection, node);
 
@@ -105,6 +133,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         var min = PopSemanticNode("Visit(BetweenNode).Min");
         var expression = PopSemanticNode("Visit(BetweenNode).Expression");
 
+        if (TryRejectUnsupportedEnumOperator("BETWEEN", node, expression, min, max))
+        {
+            PushSemanticNode(new BetweenNode(expression, min, max));
+            return;
+        }
+
         ValidateBinaryOperatorOperands(expression, min, BinaryOperatorKind.Relational, node);
         ValidateBinaryOperatorOperands(expression, max, BinaryOperatorKind.Relational, node);
 
@@ -116,6 +150,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         var right = PopSemanticNode(VisitorOperationNames.VisitContainsNodeRight);
         var left = PopSemanticNode(VisitorOperationNames.VisitContainsNodeLeft);
         var args = (ArgsListNode)right;
+
+        if (TryBindEnumCollectionPredicate(left, args, node, out var enumArgs))
+        {
+            PushSemanticNode(new ContainsNode(left, enumArgs));
+            return;
+        }
 
         ValidateCollectionPredicateItems(left, args, node);
 
@@ -187,7 +227,9 @@ public partial class BuildMetadataAndInferTypesVisitor
             throw new InvalidOperationException(message);
         }
 
-        PushSemanticNode(new RowPresenceNode(aliasNode, node.IsPresent));
+        PushSemanticNode(new RowPresenceNode(aliasNode, node.IsPresent)
+            .WithSpan(node.Span)
+            .WithFullSpan(node.FullSpan));
     }
 
     private bool TryGetCurrentTableSymbol(out TableSymbol? tableSymbol)

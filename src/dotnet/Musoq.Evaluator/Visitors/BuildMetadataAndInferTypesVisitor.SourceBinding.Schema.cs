@@ -9,6 +9,7 @@ using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 using Musoq.Schema.Exceptions;
+using Musoq.Schema.Reflection;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Evaluator.Visitors;
@@ -18,6 +19,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(SchemaFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        var sourceSpan = node.Parameters.SpanOrEmpty().Through(node.SpanOrEmpty());
         ISchema schema;
         try
         {
@@ -25,7 +27,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedSchemaLookupFailure(ex))
         {
-            var span = node.HasSpan ? node.Span : TextSpan.Empty;
+            var span = node.SchemaSpan ?? sourceSpan;
             throw new UnknownInterpretationSchemaException(
                 node.Schema,
                 $"Unknown schema '{node.Schema}'.",
@@ -56,14 +58,29 @@ public partial class BuildMetadataAndInferTypesVisitor
         BoundSchemaInvocation? boundInvocation = null;
         if (!IsDescribingConstructors && (_sourceBinding.CurrentScope.Name != "Desc" || !string.IsNullOrWhiteSpace(node.Method)))
         {
-            var sourceMethods = SchemaProviderBoundary.Invoke(() => schema.GetRawConstructors(
-                node.Method,
-                new SourceMetadataContext(
-                    queryId,
-                    CancellationToken.None,
-                    GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
-                    new Dictionary<string, string>(),
-                    _logger)));
+            SchemaMethodInfo[] sourceMethods;
+            try
+            {
+                sourceMethods = SchemaProviderBoundary.Invoke(() => schema.GetRawConstructors(
+                    node.Method,
+                    new SourceMetadataContext(
+                        queryId,
+                        CancellationToken.None,
+                        GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
+                        new Dictionary<string, string>(),
+                        _logger)));
+            }
+            catch (SchemaProviderFailureException exception) when (exception.InnerException is NotSupportedException)
+            {
+                if (DiagnosticContext == null)
+                    throw;
+
+                throw new UnknownSourceException(
+                    node.Schema,
+                    node.Method,
+                    node.MethodSpan ?? sourceSpan,
+                    exception.InnerException);
+            }
             var bindingResult = SchemaSourceArgumentBinder.Bind(
                 schemaArgsNode,
                 sourceMethods);
@@ -72,7 +89,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                     bindingFailure.Message,
                     bindingFailure.Code,
                     bindingFailure.Span,
-                    bindingFailure.Arguments);
+                    bindingFailure.Arguments,
+                    bindingFailure.SuggestedFixes);
 
             boundInvocation = bindingResult.Invocation;
             SuspiciousOrdinaryStringEscapeDiagnostics.ReportSchemaArgumentRisks(
@@ -89,13 +107,15 @@ public partial class BuildMetadataAndInferTypesVisitor
             boundInvocation);
         var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, schemaArgsNode,
             _sourceBinding.QueryAlias, node.QueryId, hasExternallyProvidedTypes);
+        if (node.SchemaSpan is { } schemaSpan) aliasedSchemaFromNode.WithSchemaSpan(schemaSpan);
+        if (node.MethodSpan is { } methodSpan) aliasedSchemaFromNode.WithMethodSpan(methodSpan);
         if (boundInvocation != null)
             aliasedSchemaFromNode.SetBoundInvocation(boundInvocation);
         aliasedSchemaFromNode.SetStaticMetadataArguments(
             staticSchemaArguments,
             _scriptParameters.HasRequiredSourceParameter(schemaArgsNode));
-        if (node.HasSpan)
-            aliasedSchemaFromNode.WithSpan(node.Span);
+        if (!sourceSpan.IsEmpty)
+            aliasedSchemaFromNode.WithSpan(sourceSpan);
 
         var isDesc = _sourceBinding.CurrentScope.Name == "Desc";
         var sourceRuntimeSettings = isDesc && string.IsNullOrWhiteSpace(node.Method)
@@ -156,13 +176,14 @@ public partial class BuildMetadataAndInferTypesVisitor
         object?[] sourceArguments,
         bool hasRequiredRuntimeArguments)
     {
+        var sourceSpan = node.MethodSpan ?? node.Parameters.SpanOrEmpty().Through(node.SpanOrEmpty());
         try
         {
             return GetSchemaSourceTable(
                 schema,
                 node.Schema,
                 node.Method,
-                node.SpanOrEmpty(),
+                sourceSpan,
                 queryId,
                 GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
                 sourceRuntimeSettings,
@@ -171,12 +192,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         }
         catch (TableNotFoundException)
         {
-            throw new UnknownSourceException(node.Schema, node.Method, node.SpanOrEmpty());
+            throw new UnknownSourceException(node.Schema, node.Method, sourceSpan);
         }
         catch (SchemaArgumentException exception) when (
             string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal))
         {
-            throw new UnknownSourceException(node.Schema, node.Method, node.SpanOrEmpty());
+            throw new UnknownSourceException(node.Schema, node.Method, sourceSpan);
         }
     }
 
@@ -202,6 +223,13 @@ public partial class BuildMetadataAndInferTypesVisitor
                     sourceRuntimeSettings,
                     _logger),
                 sourceArguments));
+        }
+        catch (SchemaProviderFailureException exception) when (exception.InnerException is NotSupportedException)
+        {
+            if (DiagnosticContext == null)
+                throw;
+
+            throw new UnknownSourceException(schemaName, methodName, span, exception.InnerException);
         }
         catch (SchemaProviderFailureException exception) when (hasRequiredRuntimeArguments)
         {

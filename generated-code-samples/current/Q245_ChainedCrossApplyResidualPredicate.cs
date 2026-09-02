@@ -49,7 +49,7 @@ ExecutionPlan [compiled]
     PhaseBoundary [Where]
     PhaseBoundary [Select]
     ChunkedForEach [i in iRows]
-      ContinueIf [NOT (i.Name = 'left')]
+      ContinueIf [NOT ((i.Name = 'left') = TRUE)]
       EnumerableSource [i.Numbers -> nRows]
       ChunkedForEach [n in nRows]
         ContinueIf [NOT (n.Value = 1)]
@@ -144,7 +144,7 @@ namespace GeneratedSample_Q245_ChainedCrossApplyResidualPredicate
                                 }
 
                                 var i = iChunkViewArray[iChunkViewOffset + iIndex];
-                                if ((!(i.Name == "left")))
+                                if ((!(Operators.SqlCompare<string, string>(i.Name, "left", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) == true)))
                                 {
                                     continue;
                                 }
@@ -417,7 +417,7 @@ namespace GeneratedSample_Q245_ChainedCrossApplyResidualPredicate
                                 }
 
                                 var i = iChunkViewList[iChunkViewOffset + iIndex];
-                                if ((!(i.Name == "left")))
+                                if ((!(Operators.SqlCompare<string, string>(i.Name, "left", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) == true)))
                                 {
                                     continue;
                                 }
@@ -688,7 +688,7 @@ namespace GeneratedSample_Q245_ChainedCrossApplyResidualPredicate
                         }
 
                         var i = iChunk[iIndex];
-                        if ((!(i.Name == "left")))
+                        if ((!(Operators.SqlCompare<string, string>(i.Name, "left", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) == true)))
                         {
                             continue;
                         }

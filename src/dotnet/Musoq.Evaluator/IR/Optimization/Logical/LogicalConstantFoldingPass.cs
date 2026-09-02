@@ -125,7 +125,7 @@ internal sealed partial class LogicalConstantFoldingPass : ILogicalNormalization
         return ReferenceEquals(predicate, node.OnPredicate) &&
                ReferenceEquals(tieBreak, node.TieBreak)
             ? node
-            : new JoinNode(node.Kind, predicate, node.Left, node.Right, tieBreak);
+            : new JoinNode(node.Kind, predicate, node.Left, node.Right, tieBreak, node.WithOrdinality);
     }
 
     private static LogicalNode RewriteProject(ProjectNode node, LogicalConstantExpressionFolder folder)
@@ -175,4 +175,3 @@ internal sealed partial class LogicalConstantFoldingPass : ILogicalNormalization
             : new WindowNode(registrations, node.Input);
     }
 }
-

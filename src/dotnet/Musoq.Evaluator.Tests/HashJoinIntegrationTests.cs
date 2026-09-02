@@ -12,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class HashJoinIntegrationTests : MultiSchemaTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void LeftOuterJoin_WithHashJoinEnabled_ShouldUseHashJoin()

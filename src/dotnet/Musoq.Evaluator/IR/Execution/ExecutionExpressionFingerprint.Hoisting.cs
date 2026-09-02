@@ -9,8 +9,8 @@ internal static partial class ExecutionExpressionFingerprint
     internal static string ForHoist(ExecutionExpression expression) =>
         expression switch
         {
-            ExecutionFieldRead fieldRead => $"field:{fieldRead.Alias}:{fieldRead.FieldName}:{HoistType(fieldRead.ReturnType)}:{fieldRead.AccessStrategy}",
-            ExecutionMemberRead memberRead => $"member:{memberRead.IsDynamic}:{memberRead.MemberName}:{ForHoist(memberRead.Receiver)}:{HoistType(memberRead.ReturnType)}",
+            ExecutionFieldRead fieldRead => $"field:{fieldRead.Alias}:{fieldRead.FieldName}:{HoistType(fieldRead.ReturnType)}:{fieldRead.AccessStrategy}:stability={fieldRead.Stability}{(fieldRead.EnumType == null ? string.Empty : $":source={fieldRead.SourceReadType?.StableId ?? "-"}:enum={fieldRead.EnumType.Fingerprint}")}",
+            ExecutionMemberRead memberRead => $"member:{memberRead.IsDynamic}:{memberRead.MemberName}:{ForHoist(memberRead.Receiver)}:{HoistType(memberRead.ReturnType)}:stable={Musoq.Evaluator.IR.Analysis.ExpressionStabilityAnalyzer.IsStable(memberRead)}",
             ExecutionLiteral literal => $"literal:{HoistType(literal.ReturnType)}:{literal.Value}",
             ExecutionBinary binary => $"binary:{binary.Kind}:{ForHoist(binary.Left)}:{ForHoist(binary.Right)}:{HoistType(binary.ReturnType)}",
             ExecutionUnary unary => $"unary:{unary.Kind}:{ForHoist(unary.Operand)}:{HoistType(unary.ReturnType)}",
@@ -20,7 +20,7 @@ internal static partial class ExecutionExpressionFingerprint
             ExecutionArrayAccess arrayAccess => $"array:{ForHoist(arrayAccess.Array)}:{ForHoist(arrayAccess.Index)}:{HoistType(arrayAccess.ElementType)}:{HoistType(arrayAccess.ReturnType)}",
             ExecutionIsNullCheck isNull => $"isnull:{isNull.IsNegated}:{ForHoist(isNull.Expression)}:{HoistType(isNull.ReturnType)}",
             ExecutionRowPresence rowPresence => $"presence:{rowPresence.Alias}:{rowPresence.IsPresent}:{ForHoist(rowPresence.PresenceSource)}",
-            ExecutionInCheck inCheck => $"in:{ForHoist(inCheck.Expression)}:{string.Join(",", inCheck.Values.Select(ForHoist))}:{HoistType(inCheck.ReturnType)}",
+            ExecutionInCheck inCheck => $"in:{inCheck.IsNegated}:{ForHoist(inCheck.Expression)}:{string.Join(",", inCheck.Values.Select(ForHoist))}:{HoistType(inCheck.ReturnType)}",
             ExecutionCollectionInCheck collectionInCheck => $"collection-in:{ForHoist(collectionInCheck.Expression)}:{collectionInCheck.Collection.Name}:{HoistType(collectionInCheck.ElementType)}:{HoistType(collectionInCheck.ReturnType)}",
             ExecutionPatternMatch patternMatch => $"pattern:{patternMatch.Kind}:{ForHoist(patternMatch.Expression)}:{ForHoist(patternMatch.Pattern)}:{HoistType(patternMatch.ReturnType)}",
             ExecutionBetween between => $"between:{ForHoist(between.Expression)}:{ForHoist(between.Low)}:{ForHoist(between.High)}:{HoistType(between.ReturnType)}",
@@ -43,6 +43,9 @@ internal static partial class ExecutionExpressionFingerprint
         var builder = new StringBuilder();
         builder.Append("method:");
         builder.Append(HoistMethod(methodCall.Method));
+        builder.Append(":stable=");
+        builder.Append(methodCall.Method.Descriptor.IsStable);
+        AppendEnumIntrinsicFingerprint(builder, methodCall);
         builder.Append(':');
         builder.Append(methodCall.Target == null
             ? string.Empty
@@ -56,6 +59,25 @@ internal static partial class ExecutionExpressionFingerprint
         builder.Append(':');
         builder.Append(HoistType(methodCall.ReturnType));
         return builder.ToString();
+    }
+
+    private static void AppendEnumIntrinsicFingerprint(StringBuilder builder, ExecutionMethodCall methodCall)
+    {
+        builder.Append(":enum-intrinsic=");
+        builder.Append(methodCall.EnumIntrinsic?.ToString() ?? "-");
+        builder.Append(':');
+        builder.Append(methodCall.OperandEnumType?.Fingerprint ?? "-");
+        builder.Append(':');
+        if (methodCall.EnumMask is { } mask)
+        {
+            builder.Append(mask.Kind);
+            builder.Append(':');
+            builder.Append(mask.RawValue.ToString("X16", CultureInfo.InvariantCulture));
+        }
+        else
+        {
+            builder.Append('-');
+        }
     }
 
     private static string HoistMethod(ExecutionCallableRef method) => method.StableId;

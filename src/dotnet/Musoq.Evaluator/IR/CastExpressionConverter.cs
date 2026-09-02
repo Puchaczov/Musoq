@@ -13,6 +13,6 @@ public sealed partial class ExpressionConverter
         return new StrictCast(
             Convert(node.Expression),
             canonicalTypeName,
-            Expressions.ExpressionConverter.RequireReturnType(node));
+            RequireReturnType(node));
     }
 }

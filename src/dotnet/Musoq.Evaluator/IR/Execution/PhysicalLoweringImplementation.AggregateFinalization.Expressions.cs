@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Musoq.Evaluator.IR.Analysis;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Plugins.Attributes;
@@ -58,7 +59,7 @@ internal sealed partial class PhysicalLoweringImplementation
         if (!condition.IsBuilt)
             return LoweringAttempt<ExecutionBlock>.Unsupported(condition.UnsupportedReason);
 
-        if (condition.Value.ReturnType.ResolveClrType() != typeof(bool))
+        if (!IrExpressionNullSemantics.IsBoolean(condition.Value.ReturnType.ResolveClrType()))
         {
             return LoweringAttempt<ExecutionBlock>.Unsupported(
                 $"Execution IR {context.AggregateKind} HAVING lowering requires a boolean predicate. Found {condition.Value.ReturnType.ResolveClrType().Name}.");
@@ -119,7 +120,10 @@ internal sealed partial class PhysicalLoweringImplementation
             binary.Kind,
             left.Value,
             right.Value,
-            binary.ReturnType));
+            binary.ReturnType)
+        {
+            UsesSqlNullSemantics = binary.UsesSqlNullSemantics
+        });
     }
 
     private static LoweringAttempt<ExecutionExpression> ConvertAggregateFinalUnaryExpression(

@@ -133,6 +133,19 @@ internal sealed record TargetQueryRowFieldContract
         ExecutionPortableTypeDescriptor type,
         bool isNullable,
         IReadOnlyDictionary<string, string>? readModifiers)
+        : this(slot, sourceColumnIndex, name, type, type, null, isNullable, readModifiers)
+    {
+    }
+
+    public TargetQueryRowFieldContract(
+        int slot,
+        int sourceColumnIndex,
+        string name,
+        ExecutionPortableTypeDescriptor type,
+        ExecutionPortableTypeDescriptor sourceReadType,
+        TargetEnumTypeAbiContract? enumType,
+        bool isNullable,
+        IReadOnlyDictionary<string, string>? readModifiers)
     {
         if (slot < 0)
             throw new ArgumentOutOfRangeException(nameof(slot));
@@ -145,6 +158,8 @@ internal sealed record TargetQueryRowFieldContract
             ? throw new ArgumentException("Query-row field name cannot be empty.", nameof(name))
             : name;
         Type = type ?? throw new ArgumentNullException(nameof(type));
+        SourceReadType = sourceReadType ?? throw new ArgumentNullException(nameof(sourceReadType));
+        EnumType = enumType;
         IsNullable = isNullable;
         ReadModifiers = new System.Collections.ObjectModel.ReadOnlyDictionary<string, string>(
             readModifiers is null
@@ -159,6 +174,10 @@ internal sealed record TargetQueryRowFieldContract
     public string Name { get; }
 
     public ExecutionPortableTypeDescriptor Type { get; }
+
+    public ExecutionPortableTypeDescriptor SourceReadType { get; }
+
+    public TargetEnumTypeAbiContract? EnumType { get; }
 
     public bool IsNullable { get; }
 
@@ -281,12 +300,28 @@ internal sealed record TargetFieldContract
         ExecutionPortableTypeDescriptor publicType,
         string nullability,
         IReadOnlyDictionary<string, string>? readModifiers)
+        : this(index, name, qualifiedName, type, publicType, publicType, null, nullability, readModifiers)
+    {
+    }
+
+    public TargetFieldContract(
+        int index,
+        string name,
+        string qualifiedName,
+        ExecutionPortableTypeDescriptor type,
+        ExecutionPortableTypeDescriptor publicType,
+        ExecutionPortableTypeDescriptor sourceReadType,
+        TargetEnumTypeAbiContract? enumType,
+        string nullability,
+        IReadOnlyDictionary<string, string>? readModifiers)
     {
         Index = index;
         Name = name;
         QualifiedName = qualifiedName;
         Type = type;
         PublicType = publicType;
+        SourceReadType = sourceReadType;
+        EnumType = enumType;
         Nullability = nullability;
         ReadModifiers = new System.Collections.ObjectModel.ReadOnlyDictionary<string, string>(
             readModifiers is null
@@ -303,6 +338,10 @@ internal sealed record TargetFieldContract
     public ExecutionPortableTypeDescriptor Type { get; }
 
     public ExecutionPortableTypeDescriptor PublicType { get; }
+
+    public ExecutionPortableTypeDescriptor SourceReadType { get; }
+
+    public TargetEnumTypeAbiContract? EnumType { get; }
 
     public string Nullability { get; }
 

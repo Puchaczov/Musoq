@@ -9,7 +9,7 @@ public class TurnQueryIntoRunnableCode(BuildChain? successor) : BuildChain(succe
     public override void Build(BuildItems items)
     {
         ArgumentNullException.ThrowIfNull(items);
-        var phase = global::Musoq.Converter.EvaluatorPerformanceTelemetry.BeginPhase("emission");
+        var phase = EvaluatorPerformanceTelemetry.BeginPhase("emission");
         try
         {
             var artifacts = Finalize(items.RenderingArtifacts, items.EmitPdb, items.FinalizationPurpose);

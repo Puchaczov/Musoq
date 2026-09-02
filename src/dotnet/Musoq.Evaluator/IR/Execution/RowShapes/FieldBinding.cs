@@ -13,7 +13,9 @@ public sealed record FieldBinding
         FieldNullability nullability,
         FieldAccessStrategy accessStrategy,
         ExecutionTypeRef? publicType = null,
-        IReadOnlyDictionary<string, string>? readModifiers = null)
+        IReadOnlyDictionary<string, string>? readModifiers = null,
+        ExecutionTypeRef? sourceReadType = null,
+        EnumTypeDescriptor? enumType = null)
     {
         Name = name;
         QualifiedName = qualifiedName;
@@ -22,6 +24,8 @@ public sealed record FieldBinding
         Nullability = nullability;
         AccessStrategy = accessStrategy;
         PublicType = publicType;
+        SourceReadType = sourceReadType ?? publicType ?? type;
+        EnumType = enumType;
         ReadModifiers = ColumnReadModifiers.Create(readModifiers);
     }
 
@@ -33,7 +37,9 @@ public sealed record FieldBinding
         FieldNullability nullability,
         FieldAccessStrategy accessStrategy,
         Type? publicType = null,
-        IReadOnlyDictionary<string, string>? readModifiers = null)
+        IReadOnlyDictionary<string, string>? readModifiers = null,
+        Type? sourceReadType = null,
+        EnumTypeDescriptor? enumType = null)
         : this(
             name,
             qualifiedName,
@@ -42,7 +48,9 @@ public sealed record FieldBinding
             nullability,
             accessStrategy,
             ExecutionClrBindingFactory.FromOptionalClr(publicType),
-            readModifiers)
+            readModifiers,
+            ExecutionClrBindingFactory.FromOptionalClr(sourceReadType),
+            enumType)
     {
     }
 
@@ -60,12 +68,18 @@ public sealed record FieldBinding
 
     public ExecutionTypeRef? PublicType { get; init; }
 
+    public ExecutionTypeRef SourceReadType { get; init; }
+
+    public EnumTypeDescriptor? EnumType { get; init; }
+
     public string? GeneratedTypeName { get; init; }
 
     public IReadOnlyDictionary<string, string> GeneratedMemberTypeNames { get; init; } =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
     public IReadOnlyDictionary<string, string> ReadModifiers { get; init; }
+
+    public ColumnStability Stability { get; init; } = ColumnStability.Stable;
 
     public ExecutionTypeRef ColumnType => PublicType ?? Type;
 }

@@ -9,13 +9,13 @@ public sealed partial class ExecutionCSharpRenderer
     private ExpressionSyntax RenderFieldRead(ExecutionFieldRead fieldRead, ExecutionRenderContext context)
     {
         if (fieldRead.AccessStrategy is DirectScalarValueAccess)
-            return RenderDirectScalarValueRead(fieldRead);
+            return NativeEnumReadNormalizer.Normalize(fieldRead, RenderDirectScalarValueRead(fieldRead));
 
         if (fieldRead.AccessStrategy is ApplyOrdinalityAccess ordinality)
             return CreateIdentifierName(ordinality.VariableName);
 
         if (fieldRead.AccessStrategy is NestedClrPropertyAccess nestedProperty)
-            return SyntaxFactory.ParseExpression(CreateNestedPropertyReadExpressionText(fieldRead, nestedProperty));
+            return NestedPropertyReadRenderer.Render(fieldRead, nestedProperty);
 
         if (fieldRead.AccessStrategy is GeneratedRowNestedAccess generatedNested)
             return RenderGeneratedRowNestedFieldRead(fieldRead, generatedNested, context);
@@ -49,15 +49,19 @@ public sealed partial class ExecutionCSharpRenderer
             return RenderPositionalFieldRead(fieldRead, positional);
 
         if (RequiresParsedFieldRead(fieldRead))
-            return SyntaxFactory.ParseExpression(CreateFieldReadExpressionText(fieldRead));
+            return NativeEnumReadNormalizer.Normalize(
+                fieldRead,
+                SyntaxFactory.ParseExpression(CreateFieldReadExpressionText(fieldRead)));
 
         if (string.IsNullOrWhiteSpace(fieldRead.Alias))
             return SyntaxFactory.IdentifierName(fieldRead.FieldName);
 
-        return SyntaxFactory.MemberAccessExpression(
-            SyntaxKind.SimpleMemberAccessExpression,
-            CreateIdentifierName(fieldRead.Alias),
-            CreateIdentifierName(fieldRead.FieldName));
+        return NativeEnumReadNormalizer.Normalize(
+            fieldRead,
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                CreateIdentifierName(fieldRead.Alias),
+                CreateIdentifierName(fieldRead.FieldName)));
     }
 
     private static ExpressionSyntax RenderRuntimeDynamicMemberRead(
@@ -76,7 +80,9 @@ public sealed partial class ExecutionCSharpRenderer
             receiver,
             CreateIdentifierName(runtimeDynamic.MemberName));
 
-        return CastDynamicValue(fieldRead.ReturnType, member);
+        return fieldRead.EnumType == null
+            ? CastDynamicValue(fieldRead.ReturnType, member)
+            : NativeEnumReadNormalizer.Normalize(fieldRead, member, sourceValueIsBoxed: true);
     }
 
     private ExpressionSyntax RenderMemberRead(
@@ -240,19 +246,6 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.CastExpression(CreateTypeSyntax(fieldRead.ReturnType), value);
     }
 
-    private static string CreateNestedPropertyReadExpressionText(
-        ExecutionFieldRead fieldRead,
-        NestedClrPropertyAccess nestedProperty)
-    {
-        if (string.IsNullOrWhiteSpace(fieldRead.Alias))
-            throw new InvalidOperationException("Nested CLR property field reads require a source alias.");
-
-        var separator = nestedProperty.PropertyPath.StartsWith('[')
-            ? string.Empty
-            : ".";
-        return $"{EscapeIdentifier(fieldRead.Alias)}{separator}{nestedProperty.PropertyPath}";
-    }
-
     private static ExpressionSyntax RenderPositionalFieldRead(
         ExecutionFieldRead fieldRead,
         PositionalAccess positional)
@@ -263,6 +256,9 @@ public sealed partial class ExecutionCSharpRenderer
         var value = CreateElementAccess(
             CreateIdentifierName(fieldRead.Alias),
             SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(positional.Index)));
+
+        if (fieldRead.EnumType != null)
+            return NativeEnumReadNormalizer.Normalize(fieldRead, value, sourceValueIsBoxed: true);
 
         if (fieldRead.ReturnType.RequireClrType() == typeof(object))
             return value;

@@ -1,6 +1,5 @@
 using System.Linq;
-using System.Reflection;
-using Musoq.Plugins.Attributes;
+using Musoq.Evaluator.IR.Analysis;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -23,7 +22,11 @@ internal static class ParallelExecutionEligibilityRules
         return expression switch
         {
             null => ParallelExecutionEligibilityCheck.Enabled,
+            ExecutionFieldRead { Stability: Musoq.Schema.ColumnStability.Volatile } fieldRead =>
+                ParallelExecutionEligibilityCheck.Skipped($"Expression reads volatile field {fieldRead.Alias}.{fieldRead.FieldName}."),
             ExecutionFieldRead fieldRead => fieldReadEligibility(fieldRead),
+            ExecutionMemberRead memberRead when !ExpressionStabilityAnalyzer.IsStable(memberRead) =>
+                ParallelExecutionEligibilityCheck.Skipped($"Expression reads unstable member {memberRead.MemberName}."),
             ExecutionMemberRead memberRead => CanUseExpression(memberRead.Receiver, fieldReadEligibility),
             ExecutionLiteral => ParallelExecutionEligibilityCheck.Enabled,
             ExecutionBinary binary => Combine(
@@ -121,13 +124,12 @@ internal static class ParallelExecutionEligibilityRules
         ExecutionMethodCall methodCall,
         Func<ExecutionFieldRead, ParallelExecutionEligibilityCheck> fieldReadEligibility)
     {
-        if (methodCall.Method.ResolveClrMethod().GetCustomAttribute<NonDeterministicAttribute>() != null)
-            return ParallelExecutionEligibilityCheck.Skipped($"Expression contains non-deterministic method {methodCall.Method.MethodName}.");
-
-        if (methodCall.Method.ResolveClrMethod().GetParameters()
-            .Any(static parameter => parameter.GetCustomAttribute<InjectQueryStatsAttribute>() != null))
+        if (ExpressionStabilityAnalyzer.TryGetMethodInstabilityReason(
+                methodCall.Method.ResolveClrMethod(),
+                "Expression",
+                out var instabilityReason))
         {
-            return ParallelExecutionEligibilityCheck.Skipped($"Expression calls {methodCall.Method.MethodName}, which injects query statistics.");
+            return ParallelExecutionEligibilityCheck.Skipped(instabilityReason);
         }
 
         return Combine(

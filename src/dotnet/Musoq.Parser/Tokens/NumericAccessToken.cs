@@ -18,10 +18,36 @@ public class NumericAccessToken : Token
         Name = name;
     }
 
+    internal NumericAccessToken(string name, string value, TextSpan span, bool allowOutOfRange)
+        : base(value, TokenType.NumericAccess, span)
+    {
+        if (int.TryParse(value, System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture, out var index))
+        {
+            Index = index;
+        }
+        else if (allowOutOfRange)
+        {
+            Index = 0;
+            IsOutOfRange = true;
+        }
+        else
+        {
+            Index = int.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        Name = name;
+    }
+
     /// <summary>
     ///     Gets the numeric index value.
     /// </summary>
     public int Index { get; }
+
+    /// <summary>
+    ///     Gets whether the source value did not fit in the indexed-access integer representation.
+    /// </summary>
+    public bool IsOutOfRange { get; }
 
     /// <summary>
     ///     Gets the name of the array or object being accessed.

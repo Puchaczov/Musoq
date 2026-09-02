@@ -23,7 +23,7 @@ public partial class InterpreterCodeGenerator
                 break;
 
             case StringTypeNode stringType:
-                builder.Append(GenerateStringAssignmentCode(localVar, stringType));
+                builder.Append(GenerateStringAssignmentCode(localVar, stringType, field.Name));
                 break;
 
             case BitsTypeNode bitsType:
@@ -33,9 +33,8 @@ public partial class InterpreterCodeGenerator
                 break;
 
             case SchemaReferenceTypeNode schemaRef:
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {localVar}_interpreter = new {schemaRef.SchemaName}();");
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{localVar} = {localVar}_interpreter.InterpretAt(data, ParsePosition);");
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"ParsePosition = {localVar}_interpreter.BytesConsumed;");
+                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {localVar}_interpreter = new {schemaRef.FullTypeName}();");
+                AppendGeneratedLine(builder, $"{localVar} = InterpretNested({localVar}_interpreter, data, \"{EscapeString(field.Name)}\");");
                 break;
 
             case ArrayTypeNode arrayType:
@@ -51,14 +50,14 @@ public partial class InterpreterCodeGenerator
                     builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
                         $"    {localVar}[{loopVarInner}] = {GetPrimitiveReadMethod(elemPrimitive)}(data);");
                 }
+                else if (arrayType.ElementType is StringTypeNode elemString)
+                    AppendStringArrayElementReadCode(builder, localVar, loopVarInner, elemString, field.Name);
                 else if (arrayType.ElementType is SchemaReferenceTypeNode elemSchemaRef)
                 {
-                    var elemSchemaName = elemSchemaRef.SchemaName;
+                    var elemSchemaName = elemSchemaRef.FullTypeName;
                     var elemInterpreterVar = $"_{localVar}_elem_interpreter";
                     builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var {elemInterpreterVar} = new {elemSchemaName}();");
-                    builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
-                        $"    {localVar}[{loopVarInner}] = {elemInterpreterVar}.InterpretAt(data, ParsePosition);");
-                    builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    ParsePosition = {elemInterpreterVar}.BytesConsumed;");
+                    AppendGeneratedLine(builder, $"    {localVar}[{loopVarInner}] = InterpretNested({elemInterpreterVar}, data, \"{EscapeString(field.Name)}\");");
                 }
                 else if (arrayType.ElementType is InlineSchemaTypeNode elemInlineSchema)
                 {
@@ -82,6 +81,10 @@ public partial class InterpreterCodeGenerator
                 builder.AppendLine("}");
                 break;
 
+            case RepeatUntilTypeNode repeatUntilType:
+                builder.Append(GenerateRepeatUntilReadCode(localVar, repeatUntilType, field.Name, false));
+                break;
+
             case AlignmentNode alignmentNode:
                 builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"AlignToBits(data, {alignmentNode.AlignmentBits});");
                 break;
@@ -91,8 +94,7 @@ public partial class InterpreterCodeGenerator
                 var inlineClassName = GetOrRegisterInlineSchemaClassName(field.Name, inlineSchema, null);
                 builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {localVar}_interpreter = new {inlineClassName}();");
                 builder.Append(GenerateOuterRefAssignments($"{localVar}_interpreter", inlineSchema));
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{localVar} = {localVar}_interpreter.InterpretAt(data, ParsePosition);");
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"ParsePosition = {localVar}_interpreter.BytesConsumed;");
+                AppendGeneratedLine(builder, $"{localVar} = InterpretNested({localVar}_interpreter, data, \"{EscapeString(field.Name)}\");");
                 break;
 
             case BinarySwitchTypeNode switchType:
@@ -100,8 +102,7 @@ public partial class InterpreterCodeGenerator
                 break;
 
             case SubstreamTypeNode substreamType:
-                var substreamSize = GenerateRawSubstreamSize(field.Name, substreamType);
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{localVar} = ReadBytes(data, {substreamSize});");
+                builder.Append(GenerateSubstreamReadCodeInner(localVar, field.Name, substreamType));
                 break;
 
             default:
@@ -131,7 +132,7 @@ public partial class InterpreterCodeGenerator
                 break;
 
             case StringTypeNode stringType:
-                builder.AppendLine(GenerateStringReadCode(localVar, stringType));
+                builder.AppendLine(GenerateStringReadCode(localVar, stringType, field.Name));
                 break;
 
             case BitsTypeNode bitsType:
@@ -139,7 +140,7 @@ public partial class InterpreterCodeGenerator
                 break;
 
             case SchemaReferenceTypeNode schemaRef:
-                builder.AppendLine(GenerateSchemaReferenceReadCode(localVar, schemaRef));
+                builder.AppendLine(GenerateSchemaReferenceReadCode(localVar, field.Name, schemaRef));
                 break;
 
             case ArrayTypeNode arrayType:

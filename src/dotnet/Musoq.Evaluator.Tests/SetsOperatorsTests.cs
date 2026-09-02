@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public partial class SetsOperatorsTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
 
 

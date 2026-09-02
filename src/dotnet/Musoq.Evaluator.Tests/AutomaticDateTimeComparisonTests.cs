@@ -322,6 +322,5 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         return [earlier, equal, later];
     }
 
-    public TestContext TestContext { get; set; }
 
 }

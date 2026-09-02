@@ -4,7 +4,7 @@ using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Evaluator.IR.SourcePlanning;
 
-internal static class SourcePredicateExpressionConverter
+internal static partial class SourcePredicateExpressionConverter
 {
     public static bool TryConvertPredicate(
         IrExpression expression,
@@ -34,8 +34,16 @@ internal static class SourcePredicateExpressionConverter
 
                 break;
             case BinaryOp comparison when TryConvertComparisonOperator(comparison.Kind, out var comparisonOperator):
-                if (TryConvertPredicate(comparison.Left, sourceAlias, out var leftComparison) &&
-                    TryConvertPredicate(comparison.Right, sourceAlias, out var rightComparison))
+                var comparisonEnum = comparison.Left.EnumType ?? comparison.Right.EnumType;
+                if (comparisonEnum != null &&
+                    comparisonOperator is not (SourcePredicateComparisonOperator.Equal or
+                        SourcePredicateComparisonOperator.NotEqual))
+                {
+                    break;
+                }
+
+                if (TryConvertPredicateOperand(comparison.Left, sourceAlias, comparisonEnum, out var leftComparison) &&
+                    TryConvertPredicateOperand(comparison.Right, sourceAlias, comparisonEnum, out var rightComparison))
                 {
                     predicate = new SourcePredicateComparison(
                         comparisonOperator,
@@ -51,7 +59,11 @@ internal static class SourcePredicateExpressionConverter
                     var values = new List<SourcePredicateExpression>(inCheck.Values.Count);
                     foreach (var value in inCheck.Values)
                     {
-                        if (!TryConvertPredicate(value, sourceAlias, out var convertedValue))
+                        if (!TryConvertPredicateOperand(
+                                value,
+                                sourceAlias,
+                                inCheck.Expression.EnumType,
+                                out var convertedValue))
                         {
                             predicate = null;
                             return false;
@@ -60,11 +72,13 @@ internal static class SourcePredicateExpressionConverter
                         values.Add(convertedValue);
                     }
 
-                    predicate = new SourcePredicateIn(inExpression, values);
+                    predicate = new SourcePredicateIn(inExpression, values, inCheck.IsNegated);
                     return true;
                 }
 
                 break;
+            case MethodCall methodCall when TryConvertEnumFlagsPredicate(methodCall, sourceAlias, out predicate):
+                return true;
             case IsNullCheck nullCheck:
                 if (TryConvertPredicate(nullCheck.Expression, sourceAlias, out var nullExpression))
                 {
@@ -79,33 +93,4 @@ internal static class SourcePredicateExpressionConverter
         return false;
     }
 
-    private static bool TryConvertComparisonOperator(
-        BinaryOpKind kind,
-        out SourcePredicateComparisonOperator comparisonOperator)
-    {
-        switch (kind)
-        {
-            case BinaryOpKind.Equal:
-                comparisonOperator = SourcePredicateComparisonOperator.Equal;
-                return true;
-            case BinaryOpKind.NotEqual:
-                comparisonOperator = SourcePredicateComparisonOperator.NotEqual;
-                return true;
-            case BinaryOpKind.GreaterThan:
-                comparisonOperator = SourcePredicateComparisonOperator.GreaterThan;
-                return true;
-            case BinaryOpKind.GreaterOrEqual:
-                comparisonOperator = SourcePredicateComparisonOperator.GreaterOrEqual;
-                return true;
-            case BinaryOpKind.LessThan:
-                comparisonOperator = SourcePredicateComparisonOperator.LessThan;
-                return true;
-            case BinaryOpKind.LessOrEqual:
-                comparisonOperator = SourcePredicateComparisonOperator.LessOrEqual;
-                return true;
-            default:
-                comparisonOperator = default;
-                return false;
-        }
-    }
 }

@@ -1,3 +1,4 @@
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Tokens;
 
@@ -15,8 +16,11 @@ public partial class Parser
             if (Current.TokenType == TokenType.Table)
             {
                 if (tableName != null)
-                    throw new SyntaxException("Duplicate table option in couple statement.",
-                        _lexer.AlreadyResolvedQueryPart);
+                    throw new SyntaxException(
+                        "Duplicate table option in couple statement.",
+                        _lexer.AlreadyResolvedQueryPart,
+                        DiagnosticCode.MQ2001_UnexpectedToken,
+                        Current.Span);
 
                 Consume(TokenType.Table);
                 tableName = ComposeCoupleOptionName("table");
@@ -24,17 +28,21 @@ public partial class Parser
             else if (IsSettingsOption())
             {
                 if (profileName != null)
-                    throw new SyntaxException("Duplicate settings option in couple statement.",
-                        _lexer.AlreadyResolvedQueryPart);
+                    throw new SyntaxException(
+                        "Duplicate settings option in couple statement.",
+                        _lexer.AlreadyResolvedQueryPart,
+                        DiagnosticCode.MQ2001_UnexpectedToken,
+                        Current.Span);
 
                 Consume(Current.TokenType);
                 profileName = ComposeCoupleOptionName("settings");
             }
             else
-            {
-                throw new SyntaxException("Expected table or settings option in couple statement.",
-                    _lexer.AlreadyResolvedQueryPart);
-            }
+                throw new SyntaxException(
+                    "Expected table or settings option in couple statement.",
+                    _lexer.AlreadyResolvedQueryPart,
+                    DiagnosticCode.MQ2001_UnexpectedToken,
+                    Current.Span);
 
             if (Current.TokenType != TokenType.And)
                 break;
@@ -47,9 +55,12 @@ public partial class Parser
 
     private string ComposeCoupleOptionName(string optionName)
     {
-        if (Current.TokenType is TokenType.As or TokenType.And or TokenType.Semicolon or TokenType.EndOfFile)
-            throw new SyntaxException($"Expected {optionName} name in couple statement.",
-                _lexer.AlreadyResolvedQueryPart);
+        if (Current.TokenType != TokenType.Identifier)
+            throw new SyntaxException(
+                $"Expected {optionName} name in couple statement.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2001_UnexpectedToken,
+                Current.Span);
 
         var name = Current.Value;
         Consume(Current.TokenType);

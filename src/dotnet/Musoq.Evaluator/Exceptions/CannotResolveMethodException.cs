@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Collections.Generic;
+using Musoq.Evaluator;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
@@ -59,7 +60,8 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
         string message,
         DiagnosticCode code,
         TextSpan span,
-        IReadOnlyDictionary<string, string>? arguments)
+        IReadOnlyDictionary<string, string>? arguments,
+        IReadOnlyList<DiagnosticAction>? suggestedFixes = null)
         : base(message)
     {
         Code = code;
@@ -67,6 +69,9 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
         Arguments = arguments is null
             ? new Dictionary<string, string>(StringComparer.Ordinal)
             : new Dictionary<string, string>(arguments, StringComparer.Ordinal);
+        SuggestedFixes = suggestedFixes is null
+            ? []
+            : [..suggestedFixes];
     }
 
     /// <summary>
@@ -86,16 +91,57 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
         new Dictionary<string, string>(StringComparer.Ordinal);
 
     /// <summary>
+    ///     Gets safe structured actions associated with this callable-resolution failure.
+    /// </summary>
+    public IReadOnlyList<DiagnosticAction> SuggestedFixes { get; } = [];
+
+    /// <summary>
     ///     Converts this exception to a Diagnostic instance.
     /// </summary>
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
         var span = Span ?? TextSpan.Empty;
-        var diagnostic = Diagnostic.Error(Code, Message, span);
-        foreach (var (name, value) in Arguments)
-            diagnostic = diagnostic.WithArgument(name, value);
+        var actions = SuggestedFixes.Count > 0
+            ? SuggestedFixes
+            : CreateCallableReplacement(sourceText, span);
+        return SemanticDiagnosticFactory.Create(Code, Message, Span, sourceText, Arguments, actions);
+    }
 
-        return diagnostic;
+    private IReadOnlyList<DiagnosticAction>? CreateCallableReplacement(SourceText? sourceText, TextSpan span)
+    {
+        if (sourceText == null || span.IsEmpty || Code != DiagnosticCode.MQ3086_UnknownCallable ||
+            !Arguments.TryGetValue("callable", out var callable) ||
+            !Arguments.TryGetValue("suggestion", out var suggestion) ||
+            !Arguments.TryGetValue("candidateCallables", out var candidateCallables))
+            return null;
+
+        var candidates = candidateCallables.Split(
+                ',',
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        if (candidates.Length != 1 || !string.Equals(candidates[0], suggestion, StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        var start = Math.Max(0, span.Start);
+        var end = Math.Min(sourceText.Length, span.End);
+        if (start >= end)
+            return null;
+
+        var index = sourceText.Text.IndexOf(
+            callable,
+            start,
+            end - start,
+            StringComparison.OrdinalIgnoreCase);
+        return index < 0
+            ? null
+            :
+            [
+                DiagnosticAction.QuickFix(
+                    $"Replace '{callable}' with '{suggestion}'",
+                    new TextSpan(index, callable.Length),
+                    suggestion)
+            ];
     }
 
     /// <summary>

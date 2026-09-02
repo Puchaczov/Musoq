@@ -4,7 +4,7 @@ namespace Musoq.Evaluator.Tests;
 
 public sealed partial class GeneratedCodeSamplesShapeTests
 {
-    private const int ExpectedSampleFileCount = 250;
+    private const int ExpectedSampleFileCount = 327;
     private const int InlineInArrayAllocationBudget = 0;
     private const string CrossApplySampleFileName = "Q19_CrossApply.cs";
     private const string OuterApplySampleFileName = "Q20_OuterApply.cs";
@@ -310,6 +310,22 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             RegexOptions.Multiline);
     private static readonly Regex GeneratedRowCastPattern =
         new(@"\(\((?<rowType>[A-Za-z_][A-Za-z0-9_]*Row\d+)\)(?<sourceName>[A-Za-z_][A-Za-z0-9_]*)\)");
+
+    // These generated-row casts are intrinsic to the documented anti-semi join and
+    // are kept as explicit, single-sample exceptions to the corpus-wide guard.
+    private static readonly string[] IntentionalGeneratedRowCastSampleFileNames =
+    [
+        "Q272_SpecCoreNotInSetSubquery.cs"
+    ];
+
+    // Set-branch slicing and a CTE-backed TABLE/COUPLE argument intentionally
+    // materialize typed rows before their consumer can proceed.
+    private static readonly string[] IntentionalTableBackedStoredRowSampleFileNames =
+    [
+        "Q273_SpecCoreCorrelatedScalarSetOperation.cs",
+        "Q292_SpecCoreSetBranchLocalSlice.cs",
+        "Q321_SpecTableCoupleArguments.cs"
+    ];
 
     private const string ObjectsRowValueArrayCreationPattern = "new ObjectsRow(new object[]";
     private const int RetiredGeneratedCodePatternBudget = 0;

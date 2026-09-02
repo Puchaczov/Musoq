@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Musoq.Evaluator.IR.Planning;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -107,6 +108,8 @@ public sealed record ExecutionQueryRowSourceTransfer
                 field.SourceColumnIndex,
                 field.Name,
                 ExecutionClrBindingFactory.FromClr(field.FieldType),
+                ExecutionClrBindingFactory.FromClr(field.SourceReadType),
+                field.EnumType,
                 field.IsNullable,
                 field.ReadModifiers)).ToArray());
     }
@@ -133,6 +136,19 @@ public sealed record ExecutionQueryRowField
         ExecutionTypeRef fieldType,
         bool isNullable,
         IReadOnlyDictionary<string, string>? readModifiers = null)
+        : this(slot, sourceColumnIndex, name, fieldType, fieldType, null, isNullable, readModifiers)
+    {
+    }
+
+    public ExecutionQueryRowField(
+        int slot,
+        int sourceColumnIndex,
+        string name,
+        ExecutionTypeRef fieldType,
+        ExecutionTypeRef sourceReadType,
+        EnumTypeDescriptor? enumType,
+        bool isNullable,
+        IReadOnlyDictionary<string, string>? readModifiers = null)
     {
         if (slot < 0)
             throw new ArgumentOutOfRangeException(nameof(slot));
@@ -141,10 +157,13 @@ public sealed record ExecutionQueryRowField
 
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(fieldType);
+        ArgumentNullException.ThrowIfNull(sourceReadType);
         Slot = slot;
         SourceColumnIndex = sourceColumnIndex;
         Name = name;
         FieldType = fieldType;
+        SourceReadType = sourceReadType;
+        EnumType = enumType;
         IsNullable = isNullable;
         ReadModifiers = new ReadOnlyDictionary<string, string>(
             readModifiers is null
@@ -159,6 +178,10 @@ public sealed record ExecutionQueryRowField
     public string Name { get; }
 
     public ExecutionTypeRef FieldType { get; }
+
+    public ExecutionTypeRef SourceReadType { get; }
+
+    public EnumTypeDescriptor? EnumType { get; }
 
     public bool IsNullable { get; }
 

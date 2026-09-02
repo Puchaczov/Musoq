@@ -177,8 +177,7 @@ public partial class SetsOperatorsTests
             ("Tag", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            [1, "A"],
-            [1, "B"]);
+            [1, "A"]);
     }
 
     [TestMethod]
@@ -231,7 +230,7 @@ public partial class SetsOperatorsTests
         };
     }
 
-    private static void AssertNameCityRows(Musoq.Evaluator.Tables.Table table, params object?[][] rows)
+    private static void AssertNameCityRows(Tables.Table table, params object?[][] rows)
     {
         TableMaterializationTestHelper.AssertColumns(
             table,

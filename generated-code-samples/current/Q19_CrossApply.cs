@@ -45,9 +45,10 @@ ExecutionPlan [compiled]
     SourceScan [a: BasicEntity] -> aRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ChunkedForEach [a in aRows]
+      Let [aName: string = a.Name]
       SourceScan [b: BasicEntity] -> bRows
       ChunkedForEach [b in bRows]
-        AppendShape [result <- ResultShape0(a.Name: a.Name, ChildName: b.Name)]
+        AppendShape [result <- ResultShape0(a.Name: aName, ChildName: b.Name)]
     PhaseBoundary [End:cte0]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
@@ -137,6 +138,7 @@ namespace GeneratedSample_Q19_CrossApply
                                     }
 
                                     var a = aChunkViewArray[aChunkViewOffset + aIndex];
+                                    string aName = a.Name;
                                     var __bSchema = provider.GetSchema("#B");
                                     var bRowsSource = __bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), Array.Empty<object>());
                                     var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:1") : bRowsSource.Chunks;
@@ -155,7 +157,7 @@ namespace GeneratedSample_Q19_CrossApply
                                                     }
 
                                                     var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                                    yield return new ResultShape0(a.Name, b.Name);
+                                                    yield return new ResultShape0(aName, b.Name);
                                                 }
 
                                                 continue;
@@ -172,7 +174,7 @@ namespace GeneratedSample_Q19_CrossApply
                                                     }
 
                                                     var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                                    yield return new ResultShape0(a.Name, b.Name);
+                                                    yield return new ResultShape0(aName, b.Name);
                                                 }
 
                                                 continue;
@@ -187,7 +189,7 @@ namespace GeneratedSample_Q19_CrossApply
                                             }
 
                                             var b = bChunk[bIndex];
-                                            yield return new ResultShape0(a.Name, b.Name);
+                                            yield return new ResultShape0(aName, b.Name);
                                         }
                                     }
                                 }
@@ -206,6 +208,7 @@ namespace GeneratedSample_Q19_CrossApply
                                     }
 
                                     var a = aChunkViewList[aChunkViewOffset + aIndex];
+                                    string aName = a.Name;
                                     var __bSchema = provider.GetSchema("#B");
                                     var bRowsSource = __bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), Array.Empty<object>());
                                     var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:1") : bRowsSource.Chunks;
@@ -224,7 +227,7 @@ namespace GeneratedSample_Q19_CrossApply
                                                     }
 
                                                     var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                                    yield return new ResultShape0(a.Name, b.Name);
+                                                    yield return new ResultShape0(aName, b.Name);
                                                 }
 
                                                 continue;
@@ -241,7 +244,7 @@ namespace GeneratedSample_Q19_CrossApply
                                                     }
 
                                                     var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                                    yield return new ResultShape0(a.Name, b.Name);
+                                                    yield return new ResultShape0(aName, b.Name);
                                                 }
 
                                                 continue;
@@ -256,7 +259,7 @@ namespace GeneratedSample_Q19_CrossApply
                                             }
 
                                             var b = bChunk[bIndex];
-                                            yield return new ResultShape0(a.Name, b.Name);
+                                            yield return new ResultShape0(aName, b.Name);
                                         }
                                     }
                                 }
@@ -273,6 +276,7 @@ namespace GeneratedSample_Q19_CrossApply
                             }
 
                             var a = aChunk[aIndex];
+                            string aName = a.Name;
                             var __bSchema = provider.GetSchema("#B");
                             var bRowsSource = __bSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), Array.Empty<object>());
                             var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:1") : bRowsSource.Chunks;
@@ -291,7 +295,7 @@ namespace GeneratedSample_Q19_CrossApply
                                             }
 
                                             var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                            yield return new ResultShape0(a.Name, b.Name);
+                                            yield return new ResultShape0(aName, b.Name);
                                         }
 
                                         continue;
@@ -308,7 +312,7 @@ namespace GeneratedSample_Q19_CrossApply
                                             }
 
                                             var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                            yield return new ResultShape0(a.Name, b.Name);
+                                            yield return new ResultShape0(aName, b.Name);
                                         }
 
                                         continue;
@@ -323,7 +327,7 @@ namespace GeneratedSample_Q19_CrossApply
                                     }
 
                                     var b = bChunk[bIndex];
-                                    yield return new ResultShape0(a.Name, b.Name);
+                                    yield return new ResultShape0(aName, b.Name);
                                 }
                             }
                         }

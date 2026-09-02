@@ -51,24 +51,6 @@ internal static partial class SyntaxDiagnosticEnhancer
         return end > start ? text[start..end] : null;
     }
 
-    private static bool ContainsWholeWord(string text, string word)
-    {
-        var index = text.IndexOf(word, StringComparison.OrdinalIgnoreCase);
-        while (index >= 0)
-        {
-            var startsAtBoundary = index == 0 || !char.IsLetterOrDigit(text[index - 1]);
-            var endIndex = index + word.Length;
-            var endsAtBoundary = endIndex >= text.Length || !char.IsLetterOrDigit(text[endIndex]);
-
-            if (startsAtBoundary && endsAtBoundary)
-                return true;
-
-            index = text.IndexOf(word, endIndex, StringComparison.OrdinalIgnoreCase);
-        }
-
-        return false;
-    }
-
     private static string AppendSentence(string message, string sentence)
     {
         if (string.IsNullOrWhiteSpace(message))

@@ -116,6 +116,9 @@ public sealed class StructuredDiagnosticPayloadTests
         var safe = MusoqErrorEnvelope.FromException(exception);
         var verbose = MusoqErrorEnvelope.FromExceptionVerbose(exception);
 
+        Assert.AreEqual(DiagnosticSourceKind.Internal, safe.SourceKind);
+        Assert.IsNull(safe.Offset);
+        Assert.IsNull(safe.EndOffset);
         Assert.IsNull(safe.Details);
         StringAssert.Contains(verbose.Details!, secret);
     }

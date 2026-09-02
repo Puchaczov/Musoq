@@ -309,9 +309,11 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override TinyHeader InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("Id");
             var _id = ReadInt32Le(data);
+            RecordParsedField("Id", _id);
             return new TinyHeader
             {
                 Id = _id

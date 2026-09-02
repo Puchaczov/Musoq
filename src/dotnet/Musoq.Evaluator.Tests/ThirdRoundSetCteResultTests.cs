@@ -7,10 +7,9 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class ThirdRoundSetCteResultTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void UnionAndUnionAll_ShouldPreserveTheirDifferentDuplicateContracts()
+    public void UnionAndUnionAll_ShouldApplyDistinctAndAllDuplicateContracts()
     {
         const string unionQuery = @"
             select Name from #A.entities()
@@ -33,7 +32,6 @@ public sealed class ThirdRoundSetCteResultTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertRowsUnordered(
             union,
             ["001"],
-            ["002"],
             ["002"],
             ["003"]);
         TableMaterializationTestHelper.AssertColumns(unionAll, ("Name", typeof(string)));

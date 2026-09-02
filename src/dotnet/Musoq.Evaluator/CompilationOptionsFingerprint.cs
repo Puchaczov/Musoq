@@ -27,6 +27,8 @@ public static class CompilationOptionsFingerprint
         Append(builder, nameof(options.InstrumentationMode), (int)options.InstrumentationMode);
         Append(builder, nameof(options.MaxDegreeOfParallelismOverride), options.MaxDegreeOfParallelismOverride);
         Append(builder, nameof(options.ForceTableResultMaterialization), options.ForceTableResultMaterialization);
+        Append(builder, nameof(options.UseLoopInvariantCodeMotion), options.UseLoopInvariantCodeMotion);
+        Append(builder, nameof(options.UseStabilityAwareScalarReuse), options.UseStabilityAwareScalarReuse);
         Append(builder, nameof(options.RecursiveCteLimits.MaxIterations), options.RecursiveCteLimits.MaxIterations);
         Append(builder, nameof(options.RecursiveCteLimits.MaxRows), options.RecursiveCteLimits.MaxRows);
         Append(builder, nameof(options.RecursiveCteLimits.MaxSnapshotRows), options.RecursiveCteLimits.MaxSnapshotRows);

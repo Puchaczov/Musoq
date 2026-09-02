@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Schema.Interpreters;
 using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.Tests;
@@ -166,8 +167,176 @@ public class BinaryOrTextualSwitchTests : BinaryOrTextualEvaluatorTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("p.Payload.Case", typeof(string)),
-            ("p.Payload.Code", typeof(int)));
+            ("p.Payload.Code", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Code", 7]);
+    }
+
+    [TestMethod]
+    public void Query_SwitchPayload_DefaultCase_ShouldLeavePrimitiveBranchNull()
+    {
+        var query = @"
+            binary Packet {
+                Type: byte,
+                Length: byte,
+                Payload: switch Type {
+                    1 => Code: int le,
+                    _ => Raw: byte[Length]
+                }
+            };
+            select p.Payload.Code, p.Payload.Raw from #test.files() f
+            cross apply Interpret<Packet>(f.Content) p";
+
+        var data = new byte[] { 0x09, 0x03, 0xAA, 0xBB, 0xCC };
+        var table = RunQuery(query, data);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Payload.Code", typeof(int?)),
+            ("p.Payload.Raw", typeof(byte[])));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [null, new byte[] { 0xAA, 0xBB, 0xCC }]);
+    }
+
+    [TestMethod]
+    public void Query_SwitchPayload_SelectedBranch_ShouldAdvanceCursorExactlyOnce()
+    {
+        var query = @"
+            binary Packet {
+                Type: byte,
+                Payload: switch Type {
+                    1 => Code: byte,
+                    _ => Raw: byte[1]
+                },
+                Tail: byte
+            };
+            select p.Payload.Code, p.Tail from #test.files() f
+            cross apply Interpret<Packet>(f.Content) p";
+
+        var data = new byte[] { 0x01, 0x07, 0x09 };
+        var table = RunQuery(query, data);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Payload.Code", typeof(byte?)),
+            ("p.Tail", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)0x07, (byte)0x09]);
+    }
+
+    [TestMethod]
+    public void Query_SwitchPayload_StringSelector_ShouldMatchStringLabel()
+    {
+        var query = @"
+            binary Packet {
+                Kind: string[1] ascii,
+                Payload: switch Kind {
+                    'A' => Letter: byte,
+                    _ => Raw: byte[1]
+                }
+            };
+            select p.Payload.Case, p.Payload.Letter from #test.files() f
+            cross apply Interpret<Packet>(f.Content) p";
+
+        var data = new byte[] { 0x41, 0x07 };
+        var table = RunQuery(query, data);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Payload.Case", typeof(string)),
+            ("p.Payload.Letter", typeof(byte?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Letter", (byte)0x07]);
+    }
+
+    [TestMethod]
+    public void Query_SwitchPayload_ComputedBooleanSelector_ShouldMatchBooleanLabel()
+    {
+        var query = @"
+            binary Packet {
+                Type: byte,
+                IsLogin: Type = 1,
+                Payload: switch IsLogin {
+                    true => Login: byte,
+                    _ => Raw: byte[1]
+                }
+            };
+            select p.Payload.Case, p.Payload.Login from #test.files() f
+            cross apply Interpret<Packet>(f.Content) p";
+
+        var data = new byte[] { 0x01, 0x07 };
+        var table = RunQuery(query, data);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Payload.Case", typeof(string)),
+            ("p.Payload.Login", typeof(byte?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Login", (byte)0x07]);
+    }
+
+    [TestMethod]
+    public void Query_SwitchPayload_BinaryAndOctalLabels_ShouldMatchTheirValues()
+    {
+        var query = @"
+            binary Packet {
+                Type: byte,
+                Payload: switch Type {
+                    0b1 => Binary: byte,
+                    0o2 => Octal: byte
+                }
+            };
+            select p.Payload.Case from #test.files() f
+            cross apply Interpret<Packet>(f.Content) p";
+
+        var data = new byte[] { 0x02, 0x07 };
+        var table = RunQuery(query, data);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Payload.Case", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Octal"]);
+    }
+
+    [TestMethod]
+    public void Query_SwitchPayload_FloatingPointLabel_ShouldMatchCompatibleSelector()
+    {
+        var query = @"
+            binary Packet {
+                Type: float le,
+                Payload: switch Type {
+                    1.5 => Hit: byte,
+                    _ => Raw: byte[1]
+                }
+            };
+            select p.Payload.Case, p.Payload.Hit from #test.files() f
+            cross apply Interpret<Packet>(f.Content) p";
+
+        var data = new byte[] { 0x00, 0x00, 0xC0, 0x3F, 0x07 };
+        var table = RunQuery(query, data);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Payload.Case", typeof(string)),
+            ("p.Payload.Hit", typeof(byte?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Hit", (byte)0x07]);
+    }
+
+    [TestMethod]
+    public void Query_SwitchPayload_NegativeSignedLabel_ShouldMatchCompatibleSelector()
+    {
+        var query = @"
+            binary Packet {
+                Type: sbyte,
+                Payload: switch Type {
+                    -1 => Negative: byte,
+                    _ => Raw: byte[1]
+                }
+            };
+            select p.Payload.Case, p.Payload.Negative from #test.files() f
+            cross apply Interpret<Packet>(f.Content) p";
+
+        var data = new byte[] { 0xFF, 0x07 };
+        var table = RunQuery(query, data);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Payload.Case", typeof(string)),
+            ("p.Payload.Negative", typeof(byte?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Negative", (byte)0x07]);
     }
 
     [TestMethod]
@@ -211,7 +380,14 @@ public class BinaryOrTextualSwitchTests : BinaryOrTextualEvaluatorTestBase
 
         var data = new byte[] { 0x09, 0x03, 0xAA, 0xBB, 0xCC };
 
-        Assert.Throws<InvalidOperationException>(() => RunQuery(query, data));
+        var exception = Assert.ThrowsExactly<ParseException>(() => RunQuery(query, data));
+
+        Assert.AreEqual(ParseErrorCode.NoAlternativeMatched, exception.ErrorCode);
+        Assert.AreEqual("Packet", exception.SchemaName);
+        Assert.AreEqual("Payload", exception.FieldName);
+        Assert.AreEqual(2, exception.Position);
+        Assert.AreEqual("ISE0012", exception.FormattedErrorCode);
+        StringAssert.Contains(exception.Details, "9");
     }
 
     private Table RunQuery(string query, byte[] content)

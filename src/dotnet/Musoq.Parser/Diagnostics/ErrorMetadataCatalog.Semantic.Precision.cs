@@ -60,5 +60,69 @@ internal static partial class SemanticErrorMetadataCatalog
             "A RANGE frame with a PRECEDING or FOLLOWING offset requires exactly one numeric ORDER BY key.",
             ["Use one numeric ORDER BY expression for a bounded RANGE frame.", "Use CURRENT ROW boundaries for peer-aware RANGE frames with composite or nonnumeric ordering."],
             "Core Spec - Window Frames");
+
+        yield return Entry(
+            DiagnosticCode.MQ3099_WindowOrderByRequired,
+            "This ranking or offset window function cannot determine its row order without an ORDER BY clause.",
+            [
+                "Add ORDER BY <expression> inside OVER (...).",
+                "If the calculation is partition-wide, use an aggregate window function that does not require row order."
+            ],
+            "Core Spec - Window Functions");
+
+        yield return Entry(
+            DiagnosticCode.MQ3100_NestedWindowFunction,
+            "A window function argument contains another window function. Window evaluation has one boundary per query level.",
+            [
+                "Move the inner window expression into a CTE or derived query.",
+                "Apply the outer window function in the next query level over the materialized result."
+            ],
+            "Core Spec - Window Functions");
+
+        yield return Entry(
+            DiagnosticCode.MQ3101_WindowFunctionInFilter,
+            "Window functions are evaluated after WHERE and HAVING, so they cannot be referenced by those filters.",
+            [
+                "Move the window predicate to QUALIFY.",
+                "Compute the window value in an inner query and filter it from an outer query."
+            ],
+            "Core Spec - Window Functions");
+
+        yield return Entry(
+            DiagnosticCode.MQ3102_InvalidStatementOrder,
+            "TABLE and COUPLE declarations form the query preamble and must precede CTEs and executable statements.",
+            [
+                "Move all TABLE definitions before COUPLE statements.",
+                "Move TABLE and COUPLE declarations before the first CTE or query."
+            ],
+            "TABLE/COUPLE Spec - Statement Order");
+
+        yield return Entry(
+            DiagnosticCode.MQ3103_InvalidWindowFunctionArgument,
+            "A constant window-function argument has a valid CLR type but violates the function's value domain.",
+            [
+                "Use a positive integer for the NTILE bucket count.",
+                "Use a one-based positive position for NTH_VALUE."
+            ],
+            "Core Spec - Window Functions");
+
+        yield return Entry(
+            DiagnosticCode.MQ3104_UnknownNamedWindow,
+            "A window function references a named WINDOW specification that is not defined in the current query.",
+            [
+                "Declare the referenced name with WINDOW name AS (...).",
+                "Use an inline OVER (...) specification instead."
+            ],
+            "Core Spec - Window Functions");
+
+        yield return Entry(
+            DiagnosticCode.MQ3105_DuplicateNamedWindow,
+            "A query cannot declare two named WINDOW specifications with the same name.",
+            [
+                "Remove the duplicate WINDOW definition.",
+                "Rename one of the definitions so every window name is unique."
+            ],
+            "Core Spec - Window Functions");
+
     }
 }

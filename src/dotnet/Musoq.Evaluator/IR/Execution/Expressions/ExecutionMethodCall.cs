@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
+using Musoq.Evaluator.IR.Expressions;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -43,6 +45,12 @@ public sealed record ExecutionMethodCall : ExecutionExpression
     public ExecutionVariable? Target { get; init; }
 
     public ExecutionVariable? Cache { get; init; }
+
+    internal EnumIntrinsicKind? EnumIntrinsic { get; init; }
+
+    internal EnumTypeDescriptor? OperandEnumType { get; init; }
+
+    internal EnumScalarValue? EnumMask { get; init; }
 
     internal ExecutionMethodCall(
         MethodInfo method,

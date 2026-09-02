@@ -129,7 +129,7 @@ ExecutionPlan [compiled]
       C45: int <- field C45
       C46: bool <- field C46
       C47: bool <- field C47
-      C48: bool <- field C48
+      C48: bool? <- field C48
       C49: string <- field C49
       C50: string <- field C50
 
@@ -224,7 +224,7 @@ namespace GeneratedSample_Q107_RuntimeV2LexerManyColumns
             new Column("C45", typeof(int), 44),
             new Column("C46", typeof(bool), 45),
             new Column("C47", typeof(bool), 46),
-            new Column("C48", typeof(bool), 47),
+            new Column("C48", typeof(bool?), 47),
             new Column("C49", typeof(string), 48),
             new Column("C50", typeof(string), 49)
         };
@@ -294,7 +294,7 @@ namespace GeneratedSample_Q107_RuntimeV2LexerManyColumns
                                 int salary = ko3iko.Salary;
                                 bool __expr = (value > 100);
                                 bool __expr1 = (salary > 1000);
-                                yield return new ResultShape0(ko3iko.Id, name, firstName, lastName, email, value, category, department, salary, (value + 1), (value + 2), (value + 3), (value + 4), (value + 5), (value + 6), (value + 7), (value + 8), (value + 9), (value + 10), (value + 11), (salary + 1), (salary + 2), (salary + 3), (salary + 4), (salary + 5), (salary + 6), (salary + 7), (salary + 8), (salary + 9), (salary + 10), ((name + "-") + category), ((firstName + " ") + lastName), ((department + ":") + category), ((email + ":") + name), (value * 2), (value * 3), (value * 4), (salary * 2), (salary * 3), (salary * 4), (value - salary), (salary - value), (value + salary), (value % 10), (salary % 10), __expr, __expr1, (((category == "A") || (category == "B")) || (category == "C")), __expr ? (string)"High" : (string)"Low", __expr1 ? (string)"Large" : (string)"Small");
+                                yield return new ResultShape0(ko3iko.Id, name, firstName, lastName, email, value, category, department, salary, (value + 1), (value + 2), (value + 3), (value + 4), (value + 5), (value + 6), (value + 7), (value + 8), (value + 9), (value + 10), (value + 11), (salary + 1), (salary + 2), (salary + 3), (salary + 4), (salary + 5), (salary + 6), (salary + 7), (salary + 8), (salary + 9), (salary + 10), ((name + "-") + category), ((firstName + " ") + lastName), ((department + ":") + category), ((email + ":") + name), (value * 2), (value * 3), (value * 4), (salary * 2), (salary * 3), (salary * 4), (value - salary), (salary - value), (value + salary), (value % 10), (salary % 10), __expr, __expr1, ((Operators.SqlCompare<string, string>(category, "A", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | Operators.SqlCompare<string, string>(category, "B", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) | Operators.SqlCompare<string, string>(category, "C", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))), __expr ? (string)"High" : (string)"Low", __expr1 ? (string)"Large" : (string)"Small");
                             }
 
                             continue;
@@ -321,7 +321,7 @@ namespace GeneratedSample_Q107_RuntimeV2LexerManyColumns
                                 int salary = ko3iko.Salary;
                                 bool __expr = (value > 100);
                                 bool __expr1 = (salary > 1000);
-                                yield return new ResultShape0(ko3iko.Id, name, firstName, lastName, email, value, category, department, salary, (value + 1), (value + 2), (value + 3), (value + 4), (value + 5), (value + 6), (value + 7), (value + 8), (value + 9), (value + 10), (value + 11), (salary + 1), (salary + 2), (salary + 3), (salary + 4), (salary + 5), (salary + 6), (salary + 7), (salary + 8), (salary + 9), (salary + 10), ((name + "-") + category), ((firstName + " ") + lastName), ((department + ":") + category), ((email + ":") + name), (value * 2), (value * 3), (value * 4), (salary * 2), (salary * 3), (salary * 4), (value - salary), (salary - value), (value + salary), (value % 10), (salary % 10), __expr, __expr1, (((category == "A") || (category == "B")) || (category == "C")), __expr ? (string)"High" : (string)"Low", __expr1 ? (string)"Large" : (string)"Small");
+                                yield return new ResultShape0(ko3iko.Id, name, firstName, lastName, email, value, category, department, salary, (value + 1), (value + 2), (value + 3), (value + 4), (value + 5), (value + 6), (value + 7), (value + 8), (value + 9), (value + 10), (value + 11), (salary + 1), (salary + 2), (salary + 3), (salary + 4), (salary + 5), (salary + 6), (salary + 7), (salary + 8), (salary + 9), (salary + 10), ((name + "-") + category), ((firstName + " ") + lastName), ((department + ":") + category), ((email + ":") + name), (value * 2), (value * 3), (value * 4), (salary * 2), (salary * 3), (salary * 4), (value - salary), (salary - value), (value + salary), (value % 10), (salary % 10), __expr, __expr1, ((Operators.SqlCompare<string, string>(category, "A", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | Operators.SqlCompare<string, string>(category, "B", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) | Operators.SqlCompare<string, string>(category, "C", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))), __expr ? (string)"High" : (string)"Low", __expr1 ? (string)"Large" : (string)"Small");
                             }
 
                             continue;
@@ -346,7 +346,7 @@ namespace GeneratedSample_Q107_RuntimeV2LexerManyColumns
                         int salary = ko3iko.Salary;
                         bool __expr = (value > 100);
                         bool __expr1 = (salary > 1000);
-                        yield return new ResultShape0(ko3iko.Id, name, firstName, lastName, email, value, category, department, salary, (value + 1), (value + 2), (value + 3), (value + 4), (value + 5), (value + 6), (value + 7), (value + 8), (value + 9), (value + 10), (value + 11), (salary + 1), (salary + 2), (salary + 3), (salary + 4), (salary + 5), (salary + 6), (salary + 7), (salary + 8), (salary + 9), (salary + 10), ((name + "-") + category), ((firstName + " ") + lastName), ((department + ":") + category), ((email + ":") + name), (value * 2), (value * 3), (value * 4), (salary * 2), (salary * 3), (salary * 4), (value - salary), (salary - value), (value + salary), (value % 10), (salary % 10), __expr, __expr1, (((category == "A") || (category == "B")) || (category == "C")), __expr ? (string)"High" : (string)"Low", __expr1 ? (string)"Large" : (string)"Small");
+                        yield return new ResultShape0(ko3iko.Id, name, firstName, lastName, email, value, category, department, salary, (value + 1), (value + 2), (value + 3), (value + 4), (value + 5), (value + 6), (value + 7), (value + 8), (value + 9), (value + 10), (value + 11), (salary + 1), (salary + 2), (salary + 3), (salary + 4), (salary + 5), (salary + 6), (salary + 7), (salary + 8), (salary + 9), (salary + 10), ((name + "-") + category), ((firstName + " ") + lastName), ((department + ":") + category), ((email + ":") + name), (value * 2), (value * 3), (value * 4), (salary * 2), (salary * 3), (salary * 4), (value - salary), (salary - value), (value + salary), (value % 10), (salary % 10), __expr, __expr1, ((Operators.SqlCompare<string, string>(category, "A", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)) | Operators.SqlCompare<string, string>(category, "B", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))) | Operators.SqlCompare<string, string>(category, "C", (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight))), __expr ? (string)"High" : (string)"Low", __expr1 ? (string)"Large" : (string)"Small");
                     }
                 }
             }
@@ -426,13 +426,13 @@ namespace GeneratedSample_Q107_RuntimeV2LexerManyColumns
                 static (row, value) => row.C45 = (int)value,
                 static (row, value) => row.C46 = (bool)value,
                 static (row, value) => row.C47 = (bool)value,
-                static (row, value) => row.C48 = (bool)value,
+                static (row, value) => row.C48 = (bool?)value,
                 static (row, value) => row.C49 = (string)value,
                 static (row, value) => row.C50 = (string)value
             };
             private const string __columnIndexPairs = "C01\n0\nC02\n1\nC03\n2\nC04\n3\nC05\n4\nC06\n5\nC07\n6\nC08\n7\nC09\n8\nC10\n9\nC11\n10\nC12\n11\nC13\n12\nC14\n13\nC15\n14\nC16\n15\nC17\n16\nC18\n17\nC19\n18\nC20\n19\nC21\n20\nC22\n21\nC23\n22\nC24\n23\nC25\n24\nC26\n25\nC27\n26\nC28\n27\nC29\n28\nC30\n29\nC31\n30\nC32\n31\nC33\n32\nC34\n33\nC35\n34\nC36\n35\nC37\n36\nC38\n37\nC39\n38\nC40\n39\nC41\n40\nC42\n41\nC43\n42\nC44\n43\nC45\n44\nC46\n45\nC47\n46\nC48\n47\nC49\n48\nC50\n49";
             private static readonly Dictionary<string, int> __columnIndexes = CreateColumnIndexes();
-            public ResultRow0(int __value0, string __value1, string __value2, string __value3, string __value4, int __value5, string __value6, string __value7, int __value8, int __value9, int __value10, int __value11, int __value12, int __value13, int __value14, int __value15, int __value16, int __value17, int __value18, int __value19, int __value20, int __value21, int __value22, int __value23, int __value24, int __value25, int __value26, int __value27, int __value28, int __value29, string __value30, string __value31, string __value32, string __value33, int __value34, int __value35, int __value36, int __value37, int __value38, int __value39, int __value40, int __value41, int __value42, int __value43, int __value44, bool __value45, bool __value46, bool __value47, string __value48, string __value49)
+            public ResultRow0(int __value0, string __value1, string __value2, string __value3, string __value4, int __value5, string __value6, string __value7, int __value8, int __value9, int __value10, int __value11, int __value12, int __value13, int __value14, int __value15, int __value16, int __value17, int __value18, int __value19, int __value20, int __value21, int __value22, int __value23, int __value24, int __value25, int __value26, int __value27, int __value28, int __value29, string __value30, string __value31, string __value32, string __value33, int __value34, int __value35, int __value36, int __value37, int __value38, int __value39, int __value40, int __value41, int __value42, int __value43, int __value44, bool __value45, bool __value46, bool? __value47, string __value48, string __value49)
             {
                 C01 = __value0;
                 C02 = __value1;
@@ -533,7 +533,7 @@ namespace GeneratedSample_Q107_RuntimeV2LexerManyColumns
             public int C45 { get; private set; }
             public bool C46 { get; private set; }
             public bool C47 { get; private set; }
-            public bool C48 { get; private set; }
+            public bool? C48 { get; private set; }
             public string C49 { get; private set; }
             public string C50 { get; private set; }
             public override int Count => 50;
@@ -614,7 +614,7 @@ namespace GeneratedSample_Q107_RuntimeV2LexerManyColumns
 
         private sealed class ResultShape0
         {
-            public ResultShape0(int C01, string C02, string C03, string C04, string C05, int C06, string C07, string C08, int C09, int C10, int C11, int C12, int C13, int C14, int C15, int C16, int C17, int C18, int C19, int C20, int C21, int C22, int C23, int C24, int C25, int C26, int C27, int C28, int C29, int C30, string C31, string C32, string C33, string C34, int C35, int C36, int C37, int C38, int C39, int C40, int C41, int C42, int C43, int C44, int C45, bool C46, bool C47, bool C48, string C49, string C50)
+            public ResultShape0(int C01, string C02, string C03, string C04, string C05, int C06, string C07, string C08, int C09, int C10, int C11, int C12, int C13, int C14, int C15, int C16, int C17, int C18, int C19, int C20, int C21, int C22, int C23, int C24, int C25, int C26, int C27, int C28, int C29, int C30, string C31, string C32, string C33, string C34, int C35, int C36, int C37, int C38, int C39, int C40, int C41, int C42, int C43, int C44, int C45, bool C46, bool C47, bool? C48, string C49, string C50)
             {
                 this.C01 = C01;
                 this.C02 = C02;
@@ -715,7 +715,7 @@ namespace GeneratedSample_Q107_RuntimeV2LexerManyColumns
             public int C45 { get; }
             public bool C46 { get; }
             public bool C47 { get; }
-            public bool C48 { get; }
+            public bool? C48 { get; }
             public string C49 { get; }
             public string C50 { get; }
         }

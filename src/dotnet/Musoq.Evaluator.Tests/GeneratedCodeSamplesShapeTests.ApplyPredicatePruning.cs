@@ -77,7 +77,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
     private static void AssertGuardBeforeSource(string planText, string predicate, string source)
     {
-        var guardIndex = planText.IndexOf($"ContinueIf [NOT ({predicate})]", StringComparison.Ordinal);
+        var guardIndex = planText.IndexOf($"ContinueIf [NOT (({predicate}) = TRUE)]", StringComparison.Ordinal);
         var sourceIndex = planText.IndexOf($"EnumerableSource [{source}", StringComparison.Ordinal);
 
         Assert.IsTrue(guardIndex >= 0 && guardIndex < sourceIndex, planText);

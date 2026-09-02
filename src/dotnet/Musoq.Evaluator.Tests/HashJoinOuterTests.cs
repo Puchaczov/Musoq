@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class HashJoinOuterTests : BasicEntityTestBase
 {
-    public TestContext TestContext { get; set; }
 
     private CompiledQuery CreateAndRunVirtualMachine(
         string script,

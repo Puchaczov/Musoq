@@ -111,7 +111,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate missing operand
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "dangling + operator");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2020_MissingOperand, "dangling + operator");
     }
 
     [TestMethod]
@@ -125,7 +125,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate invalid operator
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "double ++ operator");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2020_MissingOperand, "double ++ operator");
     }
 
     [TestMethod]
@@ -209,7 +209,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate unclosed parenthesis
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "unclosed parenthesis in expression");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2010_MissingClosingParenthesis, "unclosed parenthesis in expression");
     }
 
     [TestMethod]
@@ -222,10 +222,8 @@ select Name from Source()";
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert — In Musoq, IN() with empty argument list is syntactically valid.
-        // The parser treats () as an empty args list. At runtime, IN with no values
-        // will simply never match (always false).
-        AssertNoErrors(result);
+        // Assert — the language specification requires at least one IN value.
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed, "empty IN list");
     }
 
     [TestMethod]
@@ -239,7 +237,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate missing parentheses for IN
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "IN without parentheses");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2002_MissingToken, "IN without parentheses");
     }
 
     [TestMethod]
@@ -253,7 +251,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate missing LIKE pattern
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "LIKE without pattern");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2020_MissingOperand, "LIKE without pattern");
     }
 
     [TestMethod]
@@ -267,7 +265,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should suggest CASE WHEN expression
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "ternary ?: should suggest CASE WHEN");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2004_MissingFromClause, "ternary ?: should suggest CASE WHEN");
     }
 
     [TestMethod]
@@ -281,7 +279,7 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should error with clear message
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "lambda => expression not supported");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2004_MissingFromClause, "lambda => expression not supported");
     }
 
     #endregion

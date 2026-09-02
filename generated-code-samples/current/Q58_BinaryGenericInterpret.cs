@@ -395,9 +395,11 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override GenericItem InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("Value");
             var _value = ReadByte(data);
+            RecordParsedField("Value", _value);
             return new GenericItem
             {
                 Value = _value
@@ -421,19 +423,22 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override LengthPrefixed<T> InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("Count");
             var _count = ReadByte(data);
+            RecordParsedField("Count", _count);
+            SetCurrentField("Data");
             var __data_list = new System.Collections.Generic.List<T>();
             for (int __data_i = 0; __data_i < (int)_count; __data_i++)
             {
                 var __data_elemInterpreter = new T();
-                var _elem = __data_elemInterpreter.InterpretAt(data, ParsePosition);
-                ParsePosition = __data_elemInterpreter.BytesConsumed;
+                var _elem = InterpretNested(__data_elemInterpreter, data, "Data");
                 __data_list.Add(_elem);
             }
 
             var _data = __data_list.ToArray();
+            RecordParsedField("Data", _data);
             return new LengthPrefixed<T>
             {
                 Count = _count,
@@ -455,11 +460,12 @@ namespace Musoq.Generated.Interpreters
         /// <inheritdoc/>
         public override GenericContainer InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
-            ParsePosition = offset;
-            BitOffset = 0;
+            InitializeParsePosition(data, offset);
+            SetCurrentField(null);
+            SetCurrentField("Items");
             var __items_interpreter = new LengthPrefixed<GenericItem>();
-            var _items = __items_interpreter.InterpretAt(data, ParsePosition);
-            ParsePosition = __items_interpreter.BytesConsumed;
+            var _items = InterpretNested(__items_interpreter, data, "Items");
+            RecordParsedField("Items", _items);
             return new GenericContainer
             {
                 Items = _items

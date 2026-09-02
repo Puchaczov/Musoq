@@ -76,6 +76,8 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var accessColumn = new AccessColumnNode(column.ColumnName, identifier, column.ColumnType, TextSpan.Empty,
             column.IntendedTypeName);
+        if (column.EnumType != null)
+            MarkEnumExpression(accessColumn, column.EnumType);
         var fieldName = outputName ?? (isCompoundTable
             ? $"{identifier}.{column.ColumnName}"
             : tableSymbol.HasAlias ? $"{identifier}.{column.ColumnName}" : column.ColumnName);

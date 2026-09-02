@@ -20,7 +20,7 @@ public class IntegerNode : ConstantValueNode
             "UI" => uint.Parse(value, System.Globalization.CultureInfo.InvariantCulture),
             "L" => long.Parse(value, System.Globalization.CultureInfo.InvariantCulture),
             "UL" => ulong.Parse(value, System.Globalization.CultureInfo.InvariantCulture),
-            _ => Parse(value)
+            _ => int.Parse(value, System.Globalization.CultureInfo.InvariantCulture)
         };
 
         Id = $"{nameof(IntegerNode)}{value}{ReturnType.Name}";
@@ -58,12 +58,4 @@ public class IntegerNode : ConstantValueNode
         visitor.Visit(this);
     }
 
-    private static object Parse(string value)
-    {
-        if (int.TryParse(value, out var value1)) return value1;
-
-        if (long.TryParse(value, out var value2)) return value2;
-
-        throw new NotSupportedException($"Integer value {value} is not supported.");
-    }
 }
