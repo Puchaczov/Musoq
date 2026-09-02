@@ -19,7 +19,9 @@ jobs:
   validate-pack:
     name: Validate and pack
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     permissions:
+      actions: read
       contents: read
     outputs:
       release_tag: ${{ steps.release.outputs.release_tag }}
@@ -76,14 +78,77 @@ jobs:
           "is_prerelease=$($summary.isPrerelease.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
           "is_dry_run=$isDryRun" >> $env:GITHUB_OUTPUT
 
+      - name: Require successful CI for exact release commit
+        shell: pwsh
+        env:
+          CI_WORKFLOW: ci.yml
+          GITHUB_API_URL: ${{ github.api_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.release_tag }}
+        run: |
+          $releaseSha = (git rev-parse "$($env:RELEASE_TAG)^{commit}").Trim()
+          if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($releaseSha)) {
+            throw "Could not resolve release tag '$($env:RELEASE_TAG)' to a commit."
+          }
+
+          $checkedOutSha = (git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($checkedOutSha)) {
+            throw 'Could not resolve the checked-out commit.'
+          }
+
+          if ($checkedOutSha -ne $releaseSha) {
+            throw "Checked-out commit $checkedOutSha does not match release tag '$($env:RELEASE_TAG)' at $releaseSha."
+          }
+
+          $headers = @{
+            Accept = 'application/vnd.github+json'
+            Authorization = "Bearer $($env:GITHUB_TOKEN)"
+            'X-GitHub-Api-Version' = '2022-11-28'
+          }
+          $uri = "$($env:GITHUB_API_URL)/repos/$($env:GITHUB_REPOSITORY)/actions/workflows/$($env:CI_WORKFLOW)/runs?head_sha=$releaseSha&event=push&status=completed&per_page=100"
+
+          $successfulRun = $null
+          $lastApiError = $null
+          for ($attempt = 1; $attempt -le 3; $attempt++) {
+            try {
+              $runs = Invoke-RestMethod -Method Get -Uri $uri -Headers $headers
+              $lastApiError = $null
+              $successfulRun = @($runs.workflow_runs | Where-Object {
+                  $_.head_sha -eq $releaseSha -and
+                  $_.event -eq 'push' -and
+                  $_.conclusion -eq 'success'
+                }) | Sort-Object { [DateTimeOffset]$_.updated_at } -Descending | Select-Object -First 1
+
+              if ($null -ne $successfulRun) {
+                break
+              }
+            }
+            catch {
+              $lastApiError = $_
+            }
+
+            if ($attempt -lt 3) {
+              Write-Host "CI success evidence is not available yet; retrying in 5 seconds (attempt $($attempt + 1) of 3)."
+              Start-Sleep -Seconds 5
+            }
+          }
+
+          if ($null -eq $successfulRun) {
+            if ($null -ne $lastApiError) {
+              throw "Could not query CI workflow runs for release commit $releaseSha. $($lastApiError.Exception.Message)"
+            }
+
+            throw "No successful CI push run found for release tag '$($env:RELEASE_TAG)' at commit $releaseSha."
+          }
+
+          Write-Host "Using successful CI run $($successfulRun.id) for release commit $releaseSha."
+
       - name: Restore
         run: dotnet restore src/dotnet/Musoq.sln --nologo --verbosity quiet
 
       - name: Build
         run: dotnet build src/dotnet/Musoq.sln --configuration Release --no-restore --nologo --verbosity quiet
-
-      - name: Test
-        run: dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
 
       - name: Pack selected packages
         shell: pwsh
@@ -116,6 +181,7 @@ jobs:
     needs: validate-pack
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     environment: nuget-production
     permissions:
       contents: write
