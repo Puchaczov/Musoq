@@ -102,7 +102,7 @@ namespace GeneratedSample_P18_PivotPredicateDispatch_Full
             new Column("Feb_Sales", typeof(decimal?), 3),
             new Column("Feb_Orders", typeof(long), 4)
         };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 11), new Column("Money", typeof(decimal), 15), new Column("Month", typeof(string), 16) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 0), new Column("Money", typeof(decimal), 1), new Column("Month", typeof(string), 2) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();

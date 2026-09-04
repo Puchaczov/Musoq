@@ -73,11 +73,6 @@ public partial class SubqueryToCteRewriteVisitor
         return new HashSet<string>(aliases.Where(alias => !string.IsNullOrWhiteSpace(alias)), StringComparer.OrdinalIgnoreCase);
     }
 
-    private static EqualityNode CreateAlwaysTruePredicate()
-    {
-        return new EqualityNode(new IntegerNode(1), new IntegerNode(1));
-    }
-
     [DoesNotReturn]
     private static void ThrowUnsupportedDerivedCorrelation(
         DerivedTableFromNode derived,

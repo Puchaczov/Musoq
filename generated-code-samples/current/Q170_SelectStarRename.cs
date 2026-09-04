@@ -86,7 +86,7 @@ namespace GeneratedSample_Q170_SelectStarRename
             new Column("Id", typeof(int), 7),
             new Column("NullableValue", typeof(int?), 8)
         };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 10), new Column("City", typeof(string), 11), new Column("Country", typeof(string), 12), new Column("Population", typeof(decimal), 13), new Column("Money", typeof(decimal), 15), new Column("Month", typeof(string), 16), new Column("Time", typeof(DateTime), 17), new Column("Id", typeof(int), 18), new Column("NullableValue", typeof(int?), 19) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("City", typeof(string), 1), new Column("Country", typeof(string), 2), new Column("Population", typeof(decimal), 3), new Column("Money", typeof(decimal), 4), new Column("Month", typeof(string), 5), new Column("Time", typeof(DateTime), 6), new Column("Id", typeof(int), 7), new Column("NullableValue", typeof(int?), 8) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();

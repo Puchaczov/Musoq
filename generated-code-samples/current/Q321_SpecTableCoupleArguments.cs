@@ -175,7 +175,7 @@ namespace GeneratedSample_Q321_SpecTableCoupleArguments
             new Column("p.Second", typeof(int), 3)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_c_4 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Text", typeof(string), 0) });
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_d_2 = Array.AsReadOnly(new ISchemaColumn[] { new Column("First", typeof(string), 1), new Column("Second", typeof(int), 2) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_d_2 = Array.AsReadOnly(new ISchemaColumn[] { new Column("First", typeof(string), 0), new Column("Second", typeof(int), 1) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = new ScriptParameterContract[]

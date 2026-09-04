@@ -92,7 +92,7 @@ namespace GeneratedSample_Q152_RuntimeV2CastAggregateGrouping
             new Column("City", typeof(string), 0),
             new Column("TotalAmount", typeof(decimal?), 1)
         };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 0), new Column("Population", typeof(string), 2), new Column("Amount", typeof(string), 3) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 0), new Column("Population", typeof(string), 1), new Column("Amount", typeof(string), 2) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();

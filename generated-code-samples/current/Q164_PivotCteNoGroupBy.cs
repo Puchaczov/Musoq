@@ -112,7 +112,7 @@ namespace GeneratedSample_Q164_PivotCteNoGroupBy
             new Column("Jan", typeof(decimal?), 0),
             new Column("Feb", typeof(decimal?), 1)
         };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Money", typeof(decimal), 15), new Column("Month", typeof(string), 16) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Money", typeof(decimal), 0), new Column("Month", typeof(string), 1) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();

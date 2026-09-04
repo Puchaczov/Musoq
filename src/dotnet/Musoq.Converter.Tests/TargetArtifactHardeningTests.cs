@@ -204,6 +204,33 @@ public sealed class TargetArtifactHardeningTests
         StringAssert.Contains(exception.Message, "canonical definition");
     }
 
+    [TestMethod]
+    public void TargetSourceAccessAbiDetails_ShouldRejectDuplicateFieldIndices()
+    {
+        var type = new ExecutionPortableTypeDescriptor(
+            ExecutionPortableTypeKind.Primitive,
+            "string",
+            "string");
+
+        Assert.Throws<ArgumentException>(() =>
+            new TargetSourceAccessAbiDetails(
+                "schema-source",
+                "source:1",
+                "schema",
+                "rows",
+                "rows:type",
+                ExecutionPortableSymbolPortability.Portable,
+                "source:type",
+                ExecutionPortableSymbolPortability.Portable,
+                [],
+                [
+                    new TargetSourceFieldAbiContract(0, "Who", type, type, "Unknown", null),
+                    new TargetSourceFieldAbiContract(0, "Age", type, type, "Unknown", null)
+                ],
+                [],
+                []));
+    }
+
     private static TargetArtifactPackage CreatePackage(bool reverse)
     {
         var sourceFiles = reverse

@@ -39,13 +39,13 @@ internal static partial class PredicateAdvisoryAnalyzer
                 AnalyzePredicate(context, resolver, variables, qualify.Expression, "QUALIFY");
                 break;
             case JoinFromNode join:
-                AnalyzePredicate(context, resolver, variables, join.Expression, "ON");
+                AnalyzeJoinPredicate(context, resolver, variables, join.JoinType, join.Expression);
                 break;
             case JoinSourcesTableFromNode join:
-                AnalyzePredicate(context, resolver, variables, join.Expression, "ON");
+                AnalyzeJoinPredicate(context, resolver, variables, join.JoinType, join.Expression);
                 break;
             case JoinInMemoryWithSourceTableFromNode join:
-                AnalyzePredicate(context, resolver, variables, join.Expression, "ON");
+                AnalyzeJoinPredicate(context, resolver, variables, join.JoinType, join.Expression);
                 break;
             case AccessMethodNode method when method.FilterExpression is { } filter:
                 AnalyzePredicate(context, resolver, variables, filter, "FILTER");
@@ -54,6 +54,19 @@ internal static partial class PredicateAdvisoryAnalyzer
 
         foreach (var child in ParserNodeTraversalRegistry.EnumerateChildren(node))
             VisitStructure(context, resolver, variables, child, visited);
+    }
+
+    private static void AnalyzeJoinPredicate(
+        SemanticAdvisoryContext context,
+        PredicateConstantResolver resolver,
+        IReadOnlyDictionary<string, ScriptVariableDefinition> variables,
+        JoinType joinType,
+        Node predicate)
+    {
+        if (joinType == JoinType.Cross)
+            return;
+
+        AnalyzePredicate(context, resolver, variables, predicate, "ON");
     }
 
     private static void AnalyzePredicate(

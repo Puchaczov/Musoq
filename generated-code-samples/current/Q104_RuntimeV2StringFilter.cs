@@ -77,7 +77,7 @@ namespace GeneratedSample_Q104_RuntimeV2StringFilter
             new Column("LastName", typeof(string), 1),
             new Column("Email", typeof(string), 2)
         };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("FirstName", typeof(string), 2), new Column("LastName", typeof(string), 3), new Column("Email", typeof(string), 4) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("FirstName", typeof(string), 0), new Column("LastName", typeof(string), 1), new Column("Email", typeof(string), 2) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();

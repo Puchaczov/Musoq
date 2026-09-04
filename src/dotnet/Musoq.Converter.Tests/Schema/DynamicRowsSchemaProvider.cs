@@ -9,17 +9,21 @@ namespace Musoq.Converter.Tests.Schema;
 
 public sealed class DynamicRowsSchemaProvider(
     IReadOnlyDictionary<string, Type> columns,
-    IReadOnlyList<IReadOnlyDictionary<string, object>> rows)
+    IReadOnlyList<IReadOnlyDictionary<string, object>> rows,
+    IReadOnlyList<ISchemaColumn>? schemaColumns = null)
     : ISchemaProvider
 {
     public ISchema GetSchema(string schema)
     {
-        return new DynamicRowsSchema(columns, rows);
+        var resolvedColumns = schemaColumns ?? columns
+            .Select((column, index) => (ISchemaColumn)new SchemaColumn(column.Key, index, column.Value))
+            .ToArray();
+        return new DynamicRowsSchema(resolvedColumns, rows);
     }
 }
 
 public sealed class DynamicRowsSchema(
-    IReadOnlyDictionary<string, Type> columns,
+    IReadOnlyList<ISchemaColumn> columns,
     IReadOnlyList<IReadOnlyDictionary<string, object>> rows)
     : SchemaBase(Dynamic, CreateLibrary())
 {
@@ -54,11 +58,9 @@ public sealed class DynamicRowsSchema(
 
 public sealed class DynamicRowsTable : ISchemaTable
 {
-    public DynamicRowsTable(IReadOnlyDictionary<string, Type> columns)
+    public DynamicRowsTable(IReadOnlyList<ISchemaColumn> columns)
     {
-        Columns = columns
-            .Select((column, index) => (ISchemaColumn)new SchemaColumn(column.Key, index, column.Value))
-            .ToArray();
+        Columns = columns.ToArray();
     }
 
     public ISchemaColumn[] Columns { get; }

@@ -4,6 +4,24 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.9-alpha.2
+
+See the curated package release notes for [Musoq.Evaluator](release-notes/evaluator/v17.0.9-alpha.2.md) and [Musoq.Converter](release-notes/converter/v17.0.9-alpha.2.md).
+
+### Musoq.Evaluator
+
+- Corrected source-shape field identity so dense output slots are distinct from physical schema indices, preserving positional access and qualified dictionary/name lookup while preventing duplicate indices at the compiled-artifact ABI boundary.
+- Stopped advisory analysis from treating valid `CROSS JOIN` and uncorrelated derived `CROSS APPLY`/`OUTER APPLY` operations as synthetic `ON true` predicates; explicit `INNER JOIN ... ON true` warnings remain intact.
+
+### Musoq.Converter
+
+- Released the matching converter package so compiled artifact consumers resolve the corrected `Musoq.Evaluator` dependency and receive dynamic-source self-join packaging and load/execute parity fixes.
+
+### Compatibility and verification
+
+- This is a package-specific alpha release for `Musoq.Evaluator` and `Musoq.Converter`. `Musoq.Parser`, `Musoq.Plugins`, and `Musoq.Schema` remain at `17.0.9-alpha.1`; no full-train compatibility break was found.
+- Release validation, the Release build, the complete solution test gate, package packing, and selected-package smoke tests passed. The Cloud-owned CLI manual check remained current with 89 chapters and 25 checks; no manual update was required.
+
 ## 17.0.9-alpha.1
 
 See [release-notes/v17.0.9-alpha.1.md](release-notes/v17.0.9-alpha.1.md) for the curated full-train release notes.

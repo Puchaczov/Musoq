@@ -578,7 +578,7 @@ namespace GeneratedSample_Q228_PerformanceWideCorrelatedSubquery
             new Column("_sq_3_corr_7", typeof(int?), 33),
             new Column("_sq_3_value", typeof(Musoq.Plugins.CorrelatedScalarSubqueryResult<string>), 34)
         };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 10), new Column("City", typeof(string), 11), new Column("Country", typeof(string), 12), new Column("Population", typeof(decimal), 13), new Column("Money", typeof(decimal), 15), new Column("Month", typeof(string), 16), new Column("Id", typeof(int), 18), new Column("NullableValue", typeof(int?), 19) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("City", typeof(string), 1), new Column("Country", typeof(string), 2), new Column("Population", typeof(decimal), 3), new Column("Money", typeof(decimal), 4), new Column("Month", typeof(string), 5), new Column("Id", typeof(int), 6), new Column("NullableValue", typeof(int?), 7) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();

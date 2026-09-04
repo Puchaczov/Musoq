@@ -244,9 +244,9 @@ namespace GeneratedSample_Q323_SpecTableCoupleComposition
             new Column("Name", typeof(string), 0),
             new Column("Total", typeof(decimal?), 1)
         };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_l_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 10), new Column("Population", typeof(decimal), 13), new Column("Id", typeof(int), 18) });
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_nnr1je_5 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 10), new Column("Population", typeof(decimal), 13) });
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_r_2 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 10), new Column("Id", typeof(int), 18) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_l_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("Population", typeof(decimal), 1), new Column("Id", typeof(int), 2) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_nnr1je_5 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("Population", typeof(decimal), 1) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_r_2 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("Id", typeof(int), 1) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();

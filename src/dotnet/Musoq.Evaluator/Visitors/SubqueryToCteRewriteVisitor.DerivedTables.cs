@@ -98,7 +98,21 @@ public partial class SubqueryToCteRewriteVisitor
                         false,
                         null);
 
-                return new DerivedTableRewriteResult(new Parser.JoinFromNode(source.From, with.From, with.JoinPredicate ?? CreateAlwaysTruePredicate(), apply.ApplyType == ApplyType.Cross ? JoinType.Inner : JoinType.OuterLeft, withOrdinality: apply.WithOrdinality), false, null);
+                if (with.JoinPredicate is null)
+                    return new DerivedTableRewriteResult(
+                        new Parser.ApplyFromNode(source.From, with.From, apply.ApplyType, apply.WithOrdinality),
+                        false,
+                        null);
+
+                return new DerivedTableRewriteResult(
+                    new Parser.JoinFromNode(
+                        source.From,
+                        with.From,
+                        with.JoinPredicate,
+                        apply.ApplyType == ApplyType.Cross ? JoinType.Inner : JoinType.OuterLeft,
+                        withOrdinality: apply.WithOrdinality),
+                    false,
+                    null);
             }
 
             default:

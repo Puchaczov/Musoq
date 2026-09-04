@@ -76,7 +76,7 @@ namespace GeneratedSample_Q114_RuntimeV2WindowBenchmarkDenseRankPartitioned
             new Column("Department", typeof(string), 1),
             new Column("rn", typeof(long), 2)
         };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 1), new Column("Department", typeof(string), 7), new Column("Salary", typeof(int), 8) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("Department", typeof(string), 1), new Column("Salary", typeof(int), 2) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();

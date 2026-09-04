@@ -78,7 +78,7 @@ namespace GeneratedSample_Q276_SpecCoreRowAndMemberAccess
             new Column("NestedName", typeof(string), 6),
             new Column("EntityText", typeof(string), 7)
         };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Self", typeof(Musoq.Evaluator.Tests.Schema.Basic.BasicEntity), 14), new Column("Array", typeof(int[]), 20) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Self", typeof(Musoq.Evaluator.Tests.Schema.Basic.BasicEntity), 0), new Column("Array", typeof(int[]), 1) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();

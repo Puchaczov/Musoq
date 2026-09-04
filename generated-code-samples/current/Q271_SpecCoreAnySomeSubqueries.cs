@@ -179,9 +179,9 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
             new Column("a.Population", typeof(decimal), 2),
             new Column("_sq_1.Country", typeof(string), 3)
         };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_2 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 11), new Column("Country", typeof(string), 12), new Column("Population", typeof(decimal), 13) });
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_3 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Country", typeof(string), 12) });
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_c_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Population", typeof(decimal), 13) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_2 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 0), new Column("Country", typeof(string), 1), new Column("Population", typeof(decimal), 2) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_3 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Country", typeof(string), 0) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_c_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Population", typeof(decimal), 0) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();

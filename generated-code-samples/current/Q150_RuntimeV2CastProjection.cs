@@ -71,7 +71,7 @@ namespace GeneratedSample_Q150_RuntimeV2CastProjection
             new Column("AmountDecimal", typeof(decimal?), 1),
             new Column("EntityGuid", typeof(Guid?), 2)
         };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Population", typeof(string), 2), new Column("Amount", typeof(string), 3), new Column("Id", typeof(string), 4) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Population", typeof(string), 0), new Column("Amount", typeof(string), 1), new Column("Id", typeof(string), 2) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();

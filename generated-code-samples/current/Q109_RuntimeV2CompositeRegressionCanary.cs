@@ -103,7 +103,7 @@ namespace GeneratedSample_Q109_RuntimeV2CompositeRegressionCanary
             new Column("RunningSalary", typeof(decimal), 4),
             new Column("SalaryRank", typeof(long), 5)
         };
-        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 1), new Column("FirstName", typeof(string), 2), new Column("Email", typeof(string), 4), new Column("Value", typeof(int), 5), new Column("Department", typeof(string), 7), new Column("Salary", typeof(int), 8) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_ko3iko_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Name", typeof(string), 0), new Column("FirstName", typeof(string), 1), new Column("Email", typeof(string), 2), new Column("Value", typeof(int), 3), new Column("Department", typeof(string), 4), new Column("Salary", typeof(int), 5) });
         public ILogger Logger { get; set; }
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();

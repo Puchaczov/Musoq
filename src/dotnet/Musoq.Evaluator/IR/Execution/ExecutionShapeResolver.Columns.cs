@@ -93,7 +93,7 @@ public sealed partial class ExecutionShapeResolver
             fields[index] = new FieldBinding(
                 column.ColumnName,
                 $"{alias}.{column.ColumnName}",
-                column.ColumnIndex,
+                index,
                 column.ColumnType,
                 FieldNullability.Unknown,
                 resolveAccessStrategy(column),
