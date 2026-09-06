@@ -2430,7 +2430,7 @@ The ASOF JOIN ON clause has specific requirements beyond normal joins:
 5. **The inequality column type MUST be orderable** (implement `IComparable`). Non-orderable types produce error `AsOfJoinInequalityColumnNotOrderable`.
 6. **The tie-break expression MUST reference the right side only** and MUST have an orderable type.
 
-See [§23](#23-error-catalog) for the full error catalog.
+See [§23](#23-diagnostic-contract-and-catalog) for the full diagnostic catalog.
 
 #### 8.11.9 Type Requirements
 

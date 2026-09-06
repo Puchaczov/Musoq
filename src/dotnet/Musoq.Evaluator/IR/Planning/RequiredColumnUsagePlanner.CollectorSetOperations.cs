@@ -14,6 +14,7 @@ internal static partial class RequiredColumnUsagePlanner
     {
         private void AddSetOperationKeys(SetOperationNode setOperation)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             var keyNames = ResolveSetOperationKeyNames(setOperation);
             if (keyNames.Length == 0)
                 return;
@@ -35,6 +36,7 @@ internal static partial class RequiredColumnUsagePlanner
             IReadOnlySet<string> keys,
             SetOperationKeyMatchMode keyMatchMode)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             switch (node)
             {
                 case ProjectNode project:
@@ -61,7 +63,10 @@ internal static partial class RequiredColumnUsagePlanner
                     break;
                 default:
                     foreach (var child in node.Children)
+                    {
+                        _cancellationToken.ThrowIfCancellationRequested();
                         AddSetOperationKeys(child, keys, keyMatchMode);
+                    }
                     break;
             }
         }
@@ -73,6 +78,7 @@ internal static partial class RequiredColumnUsagePlanner
         {
             foreach (var field in project.Fields)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
                 if (ShouldAddSetOperationKey(field, keys, keyMatchMode))
                     AddExpression(field.Expression, RequiredColumnUsageReason.SetOperationKey);
             }
@@ -91,16 +97,21 @@ internal static partial class RequiredColumnUsagePlanner
             RequiredColumnUsageReason reason)
         {
             foreach (var expression in expressions)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
                 AddExpression(expression, reason);
+            }
         }
 
         private void AddExpression(IrExpression? expression, RequiredColumnUsageReason reason)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             if (expression == null)
                 return;
 
             foreach (var column in ColumnRefExtractor.Extract(expression))
             {
+                _cancellationToken.ThrowIfCancellationRequested();
                 if (string.IsNullOrWhiteSpace(column.Alias) || string.IsNullOrWhiteSpace(column.ColumnName))
                     continue;
 

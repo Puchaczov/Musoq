@@ -9,6 +9,8 @@ using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
+using Musoq.Schema.Optimization;
+using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Converter;
 
@@ -31,7 +33,15 @@ internal static class SemanticTemplateCache
 
     internal static SemanticTemplateCacheKey? CreateKey(SemanticTemplateCacheInput input)
     {
+        return CreateKey(input, CancellationToken.None);
+    }
+
+    internal static SemanticTemplateCacheKey? CreateKey(
+        SemanticTemplateCacheInput input,
+        CancellationToken cancellationToken)
+    {
         ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (!IsEligible(input))
             return null;
@@ -49,7 +59,9 @@ internal static class SemanticTemplateCache
             RuntimeV2Contract.ContractSignature,
             ExecutionSemanticsContract.Version1.Fingerprint,
             providerType.AssemblyQualifiedName ?? providerType.FullName ?? providerType.Name,
-            InstanceCreator.CreateSemanticProviderContractSignatureForCache(input.SchemaProvider),
+            InstanceCreator.CreateSemanticProviderContractSignatureForCache(
+                input.SchemaProvider,
+                cancellationToken),
             CompilationOptionsFingerprint.Compute(input.CompilationOptions),
             input.ExecutionTarget,
             input.ResultMode,
@@ -58,7 +70,26 @@ internal static class SemanticTemplateCache
             input.SchemaRegistryType);
     }
 
-    internal static IDisposable Acquire(SemanticTemplateCacheKey key)
+    internal static IDisposable Acquire(
+        SemanticTemplateCacheKey key,
+        CancellationToken cancellationToken = default)
+    {
+        return AcquireCore(key, cancellationToken, waiterRegistered: null);
+    }
+
+    internal static IDisposable AcquireForTests(
+        SemanticTemplateCacheKey key,
+        Action waiterRegistered,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(waiterRegistered);
+        return AcquireCore(key, cancellationToken, waiterRegistered);
+    }
+
+    private static IDisposable AcquireCore(
+        SemanticTemplateCacheKey key,
+        CancellationToken cancellationToken,
+        Action? waiterRegistered)
     {
         SemanticTemplateFlight flight;
         lock (FlightGate)
@@ -72,12 +103,39 @@ internal static class SemanticTemplateCache
             flight.Waiters++;
         }
 
-        Monitor.Enter(flight.Gate);
+        try
+        {
+            waiterRegistered?.Invoke();
+            flight.Gate.Wait(cancellationToken);
+        }
+        catch
+        {
+            lock (FlightGate)
+            {
+                if (--flight.Waiters == 0)
+                {
+                    Flights.Remove(key);
+                    flight.Gate.Dispose();
+                }
+            }
+
+            throw;
+        }
+
         return new SemanticTemplateFlightLease(key, flight);
     }
 
     internal static bool TryGet(SemanticTemplateCacheKey key, out SemanticBuildArtifacts artifacts)
     {
+        return TryGet(key, CancellationToken.None, out artifacts);
+    }
+
+    internal static bool TryGet(
+        SemanticTemplateCacheKey key,
+        CancellationToken cancellationToken,
+        out SemanticBuildArtifacts artifacts)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         if (!Entries.TryGetValue(key, out var entry))
         {
             artifacts = null!;
@@ -87,40 +145,107 @@ internal static class SemanticTemplateCache
         entry.Touch();
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             artifacts = Clone(entry.Artifacts);
+            cancellationToken.ThrowIfCancellationRequested();
             return true;
         }
         catch (Exception ex) when (IsCloneFailure(ex))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             Remove(key, entry);
             artifacts = null!;
             return false;
         }
     }
 
-    internal static void Publish(SemanticTemplateCacheKey key, SemanticBuildArtifacts artifacts)
+    internal static SemanticTemplateCachePublication? PreparePublication(
+        SemanticTemplateCacheKey key,
+        SemanticBuildArtifacts artifacts,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(artifacts);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        lock (MutationGate)
+        SemanticBuildArtifacts snapshot;
+        try
         {
-            if (Entries.ContainsKey(key))
-                return;
-
-            try
-            {
-                _ = Clone(artifacts);
-            }
-            catch (Exception ex) when (IsCloneFailure(ex))
-            {
-                return;
-            }
-
-            EnsureCapacity(key.Script.Length);
-            Entries[key] = new SemanticTemplateEntry(artifacts);
-            InsertionOrder.Enqueue(key);
-            _retainedTextCharacters += key.Script.Length;
+            // Prepare the provider-neutral copy without changing the cache.
+            // Clone also clears transient SourcePlanRequest tokens so a cache
+            // entry can never retain the publishing invocation.
+            snapshot = Clone(artifacts);
+            cancellationToken.ThrowIfCancellationRequested();
         }
+        catch (Exception ex) when (IsCloneFailure(ex))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return null;
+        }
+
+        return new SemanticTemplateCachePublication(key, snapshot);
+    }
+
+    internal static void Publish(SemanticTemplateCacheKey key, SemanticBuildArtifacts artifacts)
+    {
+        Publish(key, artifacts, CancellationToken.None);
+    }
+
+    internal static void Publish(
+        SemanticTemplateCacheKey key,
+        SemanticBuildArtifacts artifacts,
+        CancellationToken cancellationToken)
+    {
+        var publication = PreparePublication(key, artifacts, cancellationToken);
+        if (publication is null)
+            return;
+
+        try
+        {
+            Commit(publication, cancellationToken);
+        }
+        finally
+        {
+            Discard(publication);
+        }
+    }
+
+    internal static void Commit(
+        SemanticTemplateCachePublication publication,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(publication);
+        if (!publication.TryBeginCommit())
+            return;
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (MutationGate)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!Entries.ContainsKey(publication.Key))
+                {
+                    EnsureCapacity(publication.Key.Script.Length);
+                    Entries[publication.Key] = new SemanticTemplateEntry(publication.Artifacts);
+                    InsertionOrder.Enqueue(publication.Key);
+                    _retainedTextCharacters += publication.Key.Script.Length;
+                }
+
+                // This is the cache publication linearization point. There is
+                // deliberately no cancellable work after the mutation.
+                publication.MarkCommitted();
+            }
+        }
+        catch
+        {
+            publication.ResetPending();
+            throw;
+        }
+    }
+
+    internal static void Discard(SemanticTemplateCachePublication? publication)
+    {
+        publication?.Discard();
     }
 
     internal static SemanticTemplateCacheSnapshot Snapshot
@@ -217,7 +342,7 @@ internal static class SemanticTemplateCache
             TransformedQueryTree = transformed,
             UsedColumns = ReKey(source.UsedColumns, metadataMap),
             UsedWhereNodes = ReKey(source.UsedWhereNodes, metadataMap, metadataMap),
-            SourcePlanRequestsPerSchema = ReKey(source.SourcePlanRequestsPerSchema, metadataMap),
+            SourcePlanRequestsPerSchema = ReKeySourcePlanRequests(source.SourcePlanRequestsPerSchema, metadataMap),
             SourceContractDiagnosticLocationsPerSchema = ReKey(
                 source.SourceContractDiagnosticLocationsPerSchema,
                 metadataMap),
@@ -248,7 +373,7 @@ internal static class SemanticTemplateCache
                 StringComparer.Ordinal),
             UsedColumns = ReKey(source.UsedColumns, nodeMap),
             UsedWhereNodes = ReKey(source.UsedWhereNodes, nodeMap, nodeMap),
-            SourcePlanRequestsPerSchema = ReKey(source.SourcePlanRequestsPerSchema, nodeMap),
+            SourcePlanRequestsPerSchema = ReKeySourcePlanRequests(source.SourcePlanRequestsPerSchema, nodeMap),
             SourceContractDiagnosticLocationsPerSchema = ReKey(
                 source.SourceContractDiagnosticLocationsPerSchema,
                 nodeMap),
@@ -277,6 +402,15 @@ internal static class SemanticTemplateCache
         return source.ToDictionary(
             pair => (TKey)MapNode(pair.Key, nodeMap),
             static pair => pair.Value);
+    }
+
+    private static IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest> ReKeySourcePlanRequests(
+        IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest> source,
+        IReadOnlyDictionary<Node, Node> nodeMap)
+    {
+        return source.ToDictionary(
+            pair => (SchemaFromNode)MapNode(pair.Key, nodeMap),
+            static pair => pair.Value with { CancellationToken = CancellationToken.None });
     }
 
     private static IReadOnlyDictionary<TKey, TValue> ReKey<TKey, TValue>(
@@ -349,7 +483,7 @@ internal static class SemanticTemplateCache
 
     private sealed class SemanticTemplateFlight
     {
-        public object Gate { get; } = new();
+        public SemaphoreSlim Gate { get; } = new(1, 1);
 
         public int Waiters { get; set; }
     }
@@ -366,13 +500,51 @@ internal static class SemanticTemplateCache
                 return;
 
             _disposed = true;
-            Monitor.Exit(flight.Gate);
+            flight.Gate.Release();
             lock (FlightGate)
             {
                 if (--flight.Waiters == 0)
+                {
                     Flights.Remove(key);
+                    flight.Gate.Dispose();
+                }
             }
         }
+    }
+}
+
+internal sealed class SemanticTemplateCachePublication(
+    SemanticTemplateCacheKey key,
+    SemanticBuildArtifacts artifacts)
+{
+    private const int Pending = 0;
+    private const int Committed = 1;
+    private const int Discarded = 2;
+    private int _state = Pending;
+
+    public SemanticTemplateCacheKey Key { get; } = key;
+
+    public SemanticBuildArtifacts Artifacts { get; } = artifacts ??
+        throw new ArgumentNullException(nameof(artifacts));
+
+    public bool TryBeginCommit()
+    {
+        return Volatile.Read(ref _state) == Pending;
+    }
+
+    public void MarkCommitted()
+    {
+        Interlocked.CompareExchange(ref _state, Committed, Pending);
+    }
+
+    public void ResetPending()
+    {
+        Interlocked.CompareExchange(ref _state, Pending, Committed);
+    }
+
+    public void Discard()
+    {
+        Interlocked.CompareExchange(ref _state, Discarded, Pending);
     }
 }
 

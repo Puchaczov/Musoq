@@ -1,5 +1,6 @@
 using Musoq.Evaluator.Runtime;
 using Musoq.Targets.CSharpClr;
+using System.Threading;
 
 namespace Musoq.Converter.Build;
 
@@ -17,16 +18,17 @@ internal static class CSharpClrTargetComposition
             inspectionPhase: new CSharpRenderedQueryInspector(),
             createRenderInputs: CreateRenderInputs,
             createFinalizationOptions: static context =>
-                new CSharpClrFinalizationOptions(context.EmitPdb, context.Purpose),
+                new CSharpClrFinalizationOptions(context.EmitPdb, context.Purpose, context.CancellationToken),
             createRenderBuildContribution: CreateRenderBuildContribution,
             createArtifactPackage: CreateArtifactPackage);
     }
 
     private static TargetBackendRenderInputs CreateRenderInputs(TargetRenderInputBuildContext context)
     {
+        context.CancellationToken.ThrowIfCancellationRequested();
         var compilerState = context.CompilerState;
 
-        return new CSharpClrRenderInputs
+        var inputs = new CSharpClrRenderInputs
         {
             CompilationOptions = context.CompilationOptions,
             RenderProfile = context.Profile,
@@ -46,6 +48,8 @@ internal static class CSharpClrTargetComposition
                 out var contextualExecution) &&
                 string.Equals(contextualExecution, "true", StringComparison.OrdinalIgnoreCase)
         };
+        context.CancellationToken.ThrowIfCancellationRequested();
+        return inputs;
     }
 
     private static string SanitizeNameForNamespace(string name)
@@ -75,6 +79,7 @@ internal static class CSharpClrTargetComposition
 
     private static TargetArtifactPackage CreateArtifactPackage(TargetArtifactPackagingContext context)
     {
+        context.CancellationToken.ThrowIfCancellationRequested();
         var renderedArtifact = CSharpClrArtifactCompatibility.RequireRenderedArtifact(
             context.RenderedArtifact,
             "compiled artifact packaging");
@@ -84,7 +89,10 @@ internal static class CSharpClrTargetComposition
         var runnableTypeName = string.IsNullOrWhiteSpace(executableArtifact.RunnableTypeName)
             ? CompiledQueryArtifactSupport.GetRunnableTypeName(context.PackageName)
             : executableArtifact.RunnableTypeName;
-        var generatedCodeSha256 = CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(renderedArtifact);
+        var generatedCodeSha256 = CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(
+            renderedArtifact,
+            context.CancellationToken);
+        context.CancellationToken.ThrowIfCancellationRequested();
 
         return CSharpClrTargetPackageFactory.CreateClrAssemblyPackage(
             CompiledQueryArtifactSupport.ArtifactKindRuntimeV2Query,
@@ -94,8 +102,9 @@ internal static class CSharpClrTargetComposition
                 context,
                 runnableTypeName,
                 CompiledQueryArtifactSupport.ExecutableArtifactKindClrAssembly,
-                generatedCodeSha256),
-            binaryBlobs: CreateBinaryBlobs(context.ExecutableArtifact),
+                generatedCodeSha256,
+                context.CancellationToken),
+            binaryBlobs: CreateBinaryBlobs(context.ExecutableArtifact, context.CancellationToken),
             entrypoints:
             [
                 new TargetRuntimeEntrypoint(
@@ -119,18 +128,22 @@ internal static class CSharpClrTargetComposition
                 CompiledQueryArtifactSupport.MetadataScriptSha256,
                 CompiledQueryArtifactSupport.MetadataSemanticShapeSha256
             ],
-            executionIrVersion: context.ExecutionIrVersion);
+            executionIrVersion: context.ExecutionIrVersion,
+            cancellationToken: context.CancellationToken);
     }
 
     private static TargetExportBinaryBlob[] CreateBinaryBlobs(
-        ExecutableQueryArtifact executableArtifact)
+        ExecutableQueryArtifact executableArtifact,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var clrArtifact = CSharpClrArtifactCompatibility.RequireAssemblyExecutable(
             executableArtifact,
             "compiled artifact packaging");
 
         if (clrArtifact.PdbFile is not { Length: > 0 } pdbFile)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             return
             [
                 new TargetExportBinaryBlob(
@@ -140,6 +153,7 @@ internal static class CSharpClrTargetComposition
             ];
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         return
         [
             new TargetExportBinaryBlob(

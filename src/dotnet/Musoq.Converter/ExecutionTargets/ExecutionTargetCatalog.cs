@@ -25,6 +25,7 @@ internal static class ExecutionTargetCatalog
     public static TargetRenderResult Render(TargetRenderRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
+        request.CancellationToken.ThrowIfCancellationRequested();
 
         if (request.BackendInputs.TargetId != request.TargetId)
         {
@@ -57,12 +58,14 @@ internal static class ExecutionTargetCatalog
         var descriptor = ResolveDescriptor(request.TargetId, "Execution target");
         var backend = descriptor.RenderPhase ?? throw CreateUnsupportedPhaseException(request.TargetId, "rendering");
         var capabilityFailure = CreateCapabilityFailure(descriptor, request);
+        request.CancellationToken.ThrowIfCancellationRequested();
         if (capabilityFailure != null)
             return capabilityFailure;
 
         var result = backend.Render(request) ??
                      throw new InvalidOperationException(
                          $"Execution target '{request.TargetId}' rendering returned no result.");
+        request.CancellationToken.ThrowIfCancellationRequested();
         ValidateProducedTarget(request.TargetId, result.TargetId, "render result");
         if (result.Artifact is { } artifact)
             ValidateProducedTarget(request.TargetId, artifact.TargetId, "rendered artifact");
@@ -74,8 +77,10 @@ internal static class ExecutionTargetCatalog
         TargetRenderInputBuildContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
+        context.CancellationToken.ThrowIfCancellationRequested();
 
         var inputs = ResolveDescriptor(targetId, "Execution target").CreateRenderInputs(context);
+        context.CancellationToken.ThrowIfCancellationRequested();
         if (inputs.TargetId == targetId)
             return inputs;
 
@@ -95,25 +100,46 @@ internal static class ExecutionTargetCatalog
     {
         ArgumentNullException.ThrowIfNull(artifact);
         ArgumentNullException.ThrowIfNull(options);
+        options.CancellationToken.ThrowIfCancellationRequested();
 
-        var result = ResolveFinalizer(artifact.TargetId).Finalize(artifact, options) ??
+        TargetFinalizationResult? result = null;
+        try
+        {
+            result = ResolveFinalizer(artifact.TargetId).Finalize(artifact, options) ??
                      throw new InvalidOperationException(
                          $"Execution target '{artifact.TargetId}' finalization returned no result.");
-        ValidateProducedTarget(artifact.TargetId, result.TargetId, "finalization result");
-        if (result.Artifact is { } executableArtifact)
-            ValidateProducedTarget(artifact.TargetId, executableArtifact.TargetId, "executable artifact");
+            options.CancellationToken.ThrowIfCancellationRequested();
+            ValidateProducedTarget(artifact.TargetId, result.TargetId, "finalization result");
+            if (result.Artifact is { } executableArtifact)
+                ValidateProducedTarget(artifact.TargetId, executableArtifact.TargetId, "executable artifact");
 
-        return result;
+            return result;
+        }
+        catch (OperationCanceledException)
+        {
+            (result?.Artifact as IDisposable)?.Dispose();
+            throw;
+        }
     }
 
     public static RenderedArtifactBuildContribution CreateRenderBuildContribution(
         RenderedQueryArtifact artifact)
     {
-        ArgumentNullException.ThrowIfNull(artifact);
+        return CreateRenderBuildContribution(artifact, CancellationToken.None);
+    }
 
-        return ResolveDescriptor(
+    public static RenderedArtifactBuildContribution CreateRenderBuildContribution(
+        RenderedQueryArtifact artifact,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(artifact);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var contribution = ResolveDescriptor(
             artifact.TargetId,
             "Rendered query target").CreateRenderBuildContribution(artifact);
+        cancellationToken.ThrowIfCancellationRequested();
+        return contribution;
     }
 
     public static TargetFinalizationOptions CreateFinalizationOptions(
@@ -121,6 +147,7 @@ internal static class ExecutionTargetCatalog
         TargetFinalizationOptionsContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
+        context.CancellationToken.ThrowIfCancellationRequested();
 
         return ResolveDescriptor(targetId, "Rendered query target").CreateFinalizationOptions(context);
     }
@@ -129,12 +156,15 @@ internal static class ExecutionTargetCatalog
         TargetArtifactPackagingContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
+        context.CancellationToken.ThrowIfCancellationRequested();
 
         var packageFactory = ResolveDescriptor(
                 context.TargetId,
                 "Executable artifact target")
             .CreateArtifactPackage ?? throw CreateUnsupportedPhaseException(context.TargetId, "artifact packaging");
+        context.CancellationToken.ThrowIfCancellationRequested();
         var package = packageFactory(context);
+        context.CancellationToken.ThrowIfCancellationRequested();
         if (package.TargetId != context.TargetId)
         {
             throw new InvalidOperationException(
@@ -172,7 +202,16 @@ internal static class ExecutionTargetCatalog
 
     public static RenderedQueryInspection InspectArtifact(RenderedQueryArtifact artifact)
     {
-        if (TryInspectArtifact(artifact, out var inspection))
+        return InspectArtifact(artifact, CancellationToken.None);
+    }
+
+    public static RenderedQueryInspection InspectArtifact(
+        RenderedQueryArtifact artifact,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(artifact);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (TryInspectArtifact(artifact, cancellationToken, out var inspection))
             return inspection;
 
         throw CreateUnsupportedPhaseException(artifact.TargetId, "inspection");
@@ -182,7 +221,16 @@ internal static class ExecutionTargetCatalog
         RenderedQueryArtifact artifact,
         out RenderedQueryInspection inspection)
     {
+        return TryInspectArtifact(artifact, CancellationToken.None, out inspection);
+    }
+
+    public static bool TryInspectArtifact(
+        RenderedQueryArtifact artifact,
+        CancellationToken cancellationToken,
+        out RenderedQueryInspection inspection)
+    {
         ArgumentNullException.ThrowIfNull(artifact);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var descriptor = ResolveDescriptor(artifact.TargetId, "Rendered query target");
         if (descriptor.InspectionPhase is not { } inspector)
@@ -191,9 +239,12 @@ internal static class ExecutionTargetCatalog
             return false;
         }
 
-        inspection = inspector.Inspect(artifact) ??
+        inspection = inspector is ICancellableRenderedQueryInspector cancellableInspector
+            ? cancellableInspector.Inspect(artifact, cancellationToken)
+            : inspector.Inspect(artifact) ??
                      throw new InvalidOperationException(
                          $"Execution target '{artifact.TargetId}' inspection returned no result.");
+        cancellationToken.ThrowIfCancellationRequested();
         ValidateProducedTarget(artifact.TargetId, inspection.TargetId, "inspection result");
         return true;
     }

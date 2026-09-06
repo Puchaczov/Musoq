@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Threading;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
 using Musoq.Schema;
@@ -12,10 +13,16 @@ public static partial class InstanceCreator
         return CreateRunnable(items, loadAssembly);
     }
 
-    private static BuildItems CreateBuildItems(string script, string assemblyName, ISchemaProvider schemaProvider, DiagnosticContext diagnosticContext)
+    private static BuildItems CreateBuildItems(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        DiagnosticContext diagnosticContext,
+        CancellationToken cancellationToken = default)
     {
         return new BuildItems
         {
+            CancellationToken = cancellationToken,
             SchemaProvider = schemaProvider,
             RawQuery = script,
             AssemblyName = assemblyName,
@@ -27,7 +34,20 @@ public static partial class InstanceCreator
 
     private static void Build(BuildItems items, BuildChain chain)
     {
-        chain.Build(items);
+        ArgumentNullException.ThrowIfNull(items);
+        ArgumentNullException.ThrowIfNull(chain);
+        items.CancellationToken.ThrowIfCancellationRequested();
+        try
+        {
+            chain.Build(items);
+        }
+        catch
+        {
+            items.CancellationToken.ThrowIfCancellationRequested();
+            throw;
+        }
+
+        items.CancellationToken.ThrowIfCancellationRequested();
     }
 
     private static CreateTree CreateExecutableBuildChain(ILoggerResolver loggerResolver)

@@ -52,7 +52,15 @@ public static partial class InstanceCreator
     internal static IReadOnlyList<ExecutionBatchCompilationResult> CompileForExecutionBatch(
         IReadOnlyList<ExecutionBatchCompilationRequest> requests)
     {
+        return CompileForExecutionBatch(requests, CancellationToken.None);
+    }
+
+    internal static IReadOnlyList<ExecutionBatchCompilationResult> CompileForExecutionBatch(
+        IReadOnlyList<ExecutionBatchCompilationRequest> requests,
+        CancellationToken cancellationToken)
+    {
         ArgumentNullException.ThrowIfNull(requests);
+        cancellationToken.ThrowIfCancellationRequested();
         if (requests.Count == 0)
             return Array.Empty<ExecutionBatchCompilationResult>();
 
@@ -64,6 +72,7 @@ public static partial class InstanceCreator
 
         foreach (var request in requests)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (keys.Add(request.Key))
             {
                 uniqueRequests.Add(request);
@@ -78,17 +87,27 @@ public static partial class InstanceCreator
 
         Parallel.ForEach(
             uniqueRequests,
-            new ParallelOptions { MaxDegreeOfParallelism = ExecutionBatchPreparationDegree },
+            new ParallelOptions
+            {
+                MaxDegreeOfParallelism = ExecutionBatchPreparationDegree,
+                CancellationToken = cancellationToken
+            },
             request =>
             {
-                ExecutionBatchPreparationBudget.Wait();
+                cancellationToken.ThrowIfCancellationRequested();
+                ExecutionBatchPreparationBudget.Wait(cancellationToken);
                 try
                 {
                     using var consumer = BeginConsumerScope(request);
-                    prepared.Add(PrepareExecutionBatchItem(request, batchId, requests.Count));
+                    prepared.Add(PrepareExecutionBatchItem(request, batchId, requests.Count, cancellationToken));
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
                 }
                 catch (Exception exception)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     lock (results)
                     {
                         results[request.Key] = CreateFailedBatchResult(request, exception, null);
@@ -101,44 +120,65 @@ public static partial class InstanceCreator
             });
 
         var groups = prepared
-            .GroupBy(CreateBatchCompatibilityKey, StringComparer.Ordinal)
+            .GroupBy(item => CreateBatchCompatibilityKey(item, cancellationToken), StringComparer.Ordinal)
             .Select(static group => group.ToArray())
             .ToArray();
+        cancellationToken.ThrowIfCancellationRequested();
         var compatibilityGroupCount = groups.Length;
-        Parallel.ForEach(
-            groups,
-            new ParallelOptions { MaxDegreeOfParallelism = ExecutionBatchFinalizationDegree },
-            group =>
-            {
-                ExecutionBatchFinalizationBudget.Wait();
-                try
+        try
+        {
+            Parallel.ForEach(
+                groups,
+                new ParallelOptions
                 {
-                    FinalizeBatchGroup(group, results, batchId, compatibilityGroupCount);
-                }
-                finally
+                    MaxDegreeOfParallelism = ExecutionBatchFinalizationDegree,
+                    CancellationToken = cancellationToken
+                },
+                group =>
                 {
-                    ExecutionBatchFinalizationBudget.Release();
-                }
-            });
+                    cancellationToken.ThrowIfCancellationRequested();
+                    ExecutionBatchFinalizationBudget.Wait(cancellationToken);
+                    try
+                    {
+                        FinalizeBatchGroup(group, results, batchId, compatibilityGroupCount, cancellationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    finally
+                    {
+                        ExecutionBatchFinalizationBudget.Release();
+                    }
+                });
 
-        return requests
-            .Select(request => new ExecutionBatchCompilationResult(
-                request.Key,
-                results.TryGetValue(request.Key, out var result)
-                    ? result
-                    : BuildResult.Failure(
-                        Array.Empty<ParserDiagnostic>(),
-                        request.Script,
-                        new InvalidOperationException(
-                            $"Execution batch did not produce a result for '{request.Key}'."))))
-            .ToArray();
+            cancellationToken.ThrowIfCancellationRequested();
+            return requests
+                .Select(request => new ExecutionBatchCompilationResult(
+                    request.Key,
+                    results.TryGetValue(request.Key, out var result)
+                        ? result
+                        : BuildResult.Failure(
+                            Array.Empty<ParserDiagnostic>(),
+                            request.Script,
+                            new InvalidOperationException(
+                                $"Execution batch did not produce a result for '{request.Key}'."))))
+                .ToArray();
+        }
+        catch (OperationCanceledException)
+        {
+            DisposeBatchResults(results.Values);
+            throw;
+        }
     }
 
     private static PreparedExecutionBatchItem PrepareExecutionBatchItem(
         ExecutionBatchCompilationRequest request,
         string batchId,
-        int batchSize)
+        int batchSize,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(request.SchemaProvider);
         ArgumentNullException.ThrowIfNull(request.LoggerResolver);
 
@@ -150,20 +190,22 @@ public static partial class InstanceCreator
         telemetry.SetCompilationMode("batch", batchId, batchSize);
         telemetry.SetReusePath("batch-preparation");
         if (EvaluatorPerformanceTelemetry.IsEnabled)
-            telemetry.SetProviderSignature(CreateProviderSignature(request.SchemaProvider));
+            telemetry.SetProviderSignature(CreateProviderSignature(request.SchemaProvider, cancellationToken));
 
         var diagnosticContext = new DiagnosticContext(new SourceText(request.Script));
         var items = CreateBuildItems(
             request.Script,
             request.AssemblyName,
             request.SchemaProvider,
-            diagnosticContext);
+            diagnosticContext,
+            cancellationToken);
         items.EmitPdb = false;
         items.EmitExecutionPlanText = false;
         items.CompilationOptions = request.CompilationOptions;
         items.EnableContextualExecution = true;
 
         Build(items, CreateInspectionBuildChain(request.LoggerResolver));
+        cancellationToken.ThrowIfCancellationRequested();
         RejectUnsupportedMultiStatementQuery(items.RawQueryTree);
 
         if (diagnosticContext.HasErrors)
@@ -179,48 +221,69 @@ public static partial class InstanceCreator
         IReadOnlyList<PreparedExecutionBatchItem> group,
         IDictionary<string, BuildResult> results,
         string batchId,
-        int compatibilityGroupCount)
+        int compatibilityGroupCount,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         using var telemetry = EvaluatorPerformanceTelemetry.BeginBatchFinalization(
             $"{batchId}-{Guid.NewGuid():N}",
             group.Count,
-            CreateBatchCompatibilityKey(group[0]),
+            CreateBatchCompatibilityKey(group[0], cancellationToken),
             group[0].Request.BatchOrigin,
             compatibilityGroupCount,
             GetQueueDelayMilliseconds(group[0].Request));
+        TargetFinalizationResult? finalization = null;
+        ExecutableQueryArtifact? artifact = null;
+        IReadOnlyList<CSharpClrBatchActivationResult>? activations = null;
         try
         {
-            var finalization = FinalizeCompatibleGroup(group);
+            finalization = FinalizeCompatibleGroup(group, cancellationToken);
             if (!finalization.Success || finalization.Artifact is null)
             {
                 telemetry.SetFallbackReason("shared-finalization-failed");
                 telemetry.SetResult(null, succeeded: false, emitted: false, loaded: false);
                 FinalizeIndividually(group, results, new InvalidOperationException(
                     "Shared execution-batch emission failed: " +
-                    string.Join("; ", finalization.Diagnostics.Select(static diagnostic => diagnostic.Message))));
+                    string.Join("; ", finalization.Diagnostics.Select(static diagnostic => diagnostic.Message))),
+                    cancellationToken);
                 return;
             }
 
-            var artifact = CSharpClrBatchCompatibility.CreateBatchExecutable(
-                finalization,
-                group[0].Items.RenderingArtifacts.AccessToClassPath);
+            try
+            {
+                artifact = CSharpClrBatchCompatibility.CreateBatchExecutable(
+                    finalization,
+                    group[0].Items.RenderingArtifacts.AccessToClassPath,
+                    cancellationToken);
+            }
+            finally
+            {
+                // The batch executable owns copied bytes. The finalizer's
+                // stream-backed artifact is no longer needed after that copy.
+                (finalization.Artifact as IDisposable)?.Dispose();
+            }
+
             var activationRequests = group
                 .Select(static item => new CSharpClrBatchActivationRequest(
                     item.Items.RenderingArtifacts.AccessToClassPath,
                     CreateRuntimeBinding(item.Items)))
                 .ToArray();
-            var activations = CSharpClrBatchCompatibility.ActivateBatch(
+            activations = CSharpClrBatchCompatibility.ActivateBatch(
                 group[0].Items.ExecutionTarget,
                 artifact,
-                activationRequests);
+                activationRequests,
+                cancellationToken);
             telemetry.SetResult(
                 group[0].Items.RenderingArtifacts.AccessToClassPath,
                 succeeded: true,
                 emitted: true,
                 loaded: true);
+            (artifact as IDisposable)?.Dispose();
+            artifact = null;
 
             for (var index = 0; index < group.Count; index++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var item = group[index];
                 var activation = activations[index];
                 try
@@ -241,6 +304,7 @@ public static partial class InstanceCreator
                 catch (Exception exception)
                 {
                     (activation.Runnable as IDisposable)?.Dispose();
+                    cancellationToken.ThrowIfCancellationRequested();
                     results[item.Request.Key] = CreateFailedBatchResult(
                         item.Request,
                         exception,
@@ -248,72 +312,140 @@ public static partial class InstanceCreator
                 }
             }
         }
+        catch (OperationCanceledException)
+        {
+            DisposeBatchCancellationResources(group, results, activations, artifact);
+            (finalization?.Artifact as IDisposable)?.Dispose();
+            throw;
+        }
         catch (Exception exception)
         {
+            DisposeBatchCancellationResources(group, results, activations, artifact);
+            (finalization?.Artifact as IDisposable)?.Dispose();
+            cancellationToken.ThrowIfCancellationRequested();
             telemetry.SetFallbackReason(exception.GetType().Name);
             telemetry.SetResult(null, succeeded: false, emitted: false, loaded: false);
-            FinalizeIndividually(group, results, exception);
+            FinalizeIndividually(group, results, exception, cancellationToken);
         }
     }
 
     private static void FinalizeIndividually(
         IReadOnlyList<PreparedExecutionBatchItem> group,
         IDictionary<string, BuildResult> results,
-        Exception batchException)
+        Exception batchException,
+        CancellationToken cancellationToken)
     {
         foreach (var item in group)
         {
+            ITableRunnable? runnable = null;
+            CompiledQuery? compiledQuery = null;
+            ExecutableQueryArtifact? artifact = null;
             try
             {
-                var finalization = FinalizeCompatibleGroup([item]);
+                cancellationToken.ThrowIfCancellationRequested();
+                var finalization = FinalizeCompatibleGroup([item], cancellationToken);
                 if (!finalization.Success || finalization.Artifact is null)
                     throw new InvalidOperationException(
                         "Individual execution emission failed after batch fallback: " +
                         string.Join("; ", finalization.Diagnostics.Select(static diagnostic => diagnostic.Message)),
                         batchException);
 
-                var artifact = CSharpClrBatchCompatibility.CreateBatchExecutable(
+                artifact = CSharpClrBatchCompatibility.CreateBatchExecutable(
                     finalization,
-                    item.Items.RenderingArtifacts.AccessToClassPath);
+                    item.Items.RenderingArtifacts.AccessToClassPath,
+                    cancellationToken);
                 var activator = ExecutionTargetCatalog.ResolveActivator(item.Items.ExecutionTarget);
-                var runnable = activator.ActivateTable(
+                runnable = activator.ActivateTable(
                     artifact,
                     new QueryRuntimeBinding(
                         item.Items.SchemaProvider,
                         item.Items.SourceRuntimeSettingsBySourceContextId,
                         item.Items.SourceRuntimeSettingDescriptionsBySourceContextId,
                         CreateSourceExecutionPlans(item.Items)));
+                cancellationToken.ThrowIfCancellationRequested();
                 runnable.Logger = item.Request.LoggerResolver.ResolveLogger();
+                cancellationToken.ThrowIfCancellationRequested();
+                compiledQuery = new CompiledQuery(runnable);
+                runnable = null;
                 results[item.Request.Key] = BuildResult.Success(
-                    new CompiledQuery(runnable),
+                    compiledQuery,
                     item.Items.DiagnosticContext.Diagnostics.ToArray(),
                     item.Request.Script,
                     item.Items);
+                compiledQuery = null;
+            }
+            catch (OperationCanceledException)
+            {
+                compiledQuery?.Dispose();
+                (runnable as IDisposable)?.Dispose();
+                throw;
             }
             catch (Exception exception)
             {
+                compiledQuery?.Dispose();
+                (runnable as IDisposable)?.Dispose();
+                cancellationToken.ThrowIfCancellationRequested();
                 results[item.Request.Key] = CreateFailedBatchResult(item.Request, exception, item.Items);
+            }
+            finally
+            {
+                (artifact as IDisposable)?.Dispose();
             }
         }
     }
 
-    private static TargetFinalizationResult FinalizeCompatibleGroup(
-        IReadOnlyList<PreparedExecutionBatchItem> group)
+    private static void DisposeBatchCancellationResources(
+        IReadOnlyList<PreparedExecutionBatchItem> group,
+        IDictionary<string, BuildResult> results,
+        IReadOnlyList<CSharpClrBatchActivationResult>? activations,
+        ExecutableQueryArtifact? artifact)
     {
+        for (var index = 0; index < group.Count; index++)
+        {
+            var key = group[index].Request.Key;
+            if (results.TryGetValue(key, out var result) && result.CompiledQuery is { } compiledQuery)
+            {
+                compiledQuery.Dispose();
+                continue;
+            }
+
+            if (activations is { Count: > 0 } && index < activations.Count)
+                (activations[index].Runnable as IDisposable)?.Dispose();
+        }
+
+        (artifact as IDisposable)?.Dispose();
+    }
+
+    private static void DisposeBatchResults(IEnumerable<BuildResult> results)
+    {
+        foreach (var result in results)
+            result.CompiledQuery?.Dispose();
+    }
+
+    private static TargetFinalizationResult FinalizeCompatibleGroup(
+        IReadOnlyList<PreparedExecutionBatchItem> group,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         return CSharpClrBatchCompatibility.FinalizeBatch(
             group.Select(static item => item.Items.RenderingArtifacts).ToArray(),
             group[0].Items.ExecutionTarget,
-            group[0].Items.EmitPdb);
+            group[0].Items.EmitPdb,
+            cancellationToken);
     }
 
-    private static string CreateBatchCompatibilityKey(PreparedExecutionBatchItem item)
+    private static string CreateBatchCompatibilityKey(
+        PreparedExecutionBatchItem item,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         return CSharpClrBatchCompatibility.CreateBatchCompatibilityKey(
             item.Items.RenderingArtifacts,
             item.Items.ExecutionTarget,
             item.Items.EmitPdb,
             item.Items.InterpreterSourceCode is not null,
-            item.Items.QueryResultMode);
+            item.Items.QueryResultMode,
+            cancellationToken);
     }
 
     private static IDisposable BeginConsumerScope(ExecutionBatchCompilationRequest request)

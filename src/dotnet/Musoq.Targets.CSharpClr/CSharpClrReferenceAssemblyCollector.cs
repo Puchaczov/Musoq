@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -22,14 +23,18 @@ internal sealed class CSharpClrReferenceAssemblyCollector
     private readonly HashSet<string> _visitedCallableNames = new(StringComparer.Ordinal);
     private readonly HashSet<Type> _visitedTypes = [];
     private readonly List<Assembly> _assemblies = [];
+    private readonly CancellationToken _cancellationToken;
 
     private CSharpClrReferenceAssemblyCollector(
         CSharpClrExecutionBindingContext bindingContext,
         IReadOnlySet<string> preloadedAssemblyPaths,
-        IEnumerable<Assembly> semanticReferences)
+        IEnumerable<Assembly> semanticReferences,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         _bindingContext = bindingContext ?? throw new ArgumentNullException(nameof(bindingContext));
-        _preloadedAssemblyPaths = NormalizePaths(preloadedAssemblyPaths);
+        _cancellationToken = cancellationToken;
+        _preloadedAssemblyPaths = NormalizePaths(preloadedAssemblyPaths, cancellationToken);
         _preloadedAssemblyNames = _preloadedAssemblyPaths
             .Select(static path => Path.GetFileNameWithoutExtension(path))
             .Where(static name => !string.IsNullOrWhiteSpace(name))
@@ -38,6 +43,7 @@ internal sealed class CSharpClrReferenceAssemblyCollector
         var semanticAssembliesByName = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
         foreach (var assembly in semanticReferences)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (assembly.GetName().Name is not { Length: > 0 } name)
                 continue;
 
@@ -55,24 +61,31 @@ internal sealed class CSharpClrReferenceAssemblyCollector
         IEnumerable<Assembly> semanticReferences,
         IEnumerable<Type> additionalReferenceTypes,
         Type? outputType,
-        IReadOnlySet<string> preloadedAssemblyPaths)
+        IReadOnlySet<string> preloadedAssemblyPaths,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(compatibilityReport);
         ArgumentNullException.ThrowIfNull(semanticReferences);
         ArgumentNullException.ThrowIfNull(additionalReferenceTypes);
         ArgumentNullException.ThrowIfNull(preloadedAssemblyPaths);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var semanticAssemblyArray = semanticReferences.ToArray();
         var collector = new CSharpClrReferenceAssemblyCollector(
             bindingContext,
             preloadedAssemblyPaths,
-            semanticAssemblyArray);
+            semanticAssemblyArray,
+            cancellationToken);
 
         foreach (var assembly in semanticAssemblyArray)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             collector.AddAssembly(assembly, skipPreloaded: false);
+        }
 
         foreach (var requirement in compatibilityReport.Requirements)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (requirement.TypeSymbol is { } typeSymbol)
                 collector.VisitDescriptor(typeSymbol, requirement.Detail);
 
@@ -81,24 +94,37 @@ internal sealed class CSharpClrReferenceAssemblyCollector
         }
 
         foreach (var referenceType in additionalReferenceTypes)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             collector.VisitRuntimeType(referenceType, $"additional reference type '{referenceType}'");
+        }
 
         if (outputType is not null)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             collector.VisitRuntimeType(outputType, $"typed output '{outputType}'");
+        }
 
         return collector._assemblies.ToArray();
     }
 
     private void VisitDescriptor(ExecutionPortableTypeDescriptor descriptor, string requirementDetail)
     {
+        _cancellationToken.ThrowIfCancellationRequested();
         if (!_visitedDescriptorNames.Add(descriptor.StableName))
             return;
 
         foreach (var argument in descriptor.Arguments)
+        {
+            _cancellationToken.ThrowIfCancellationRequested();
             VisitDescriptor(argument, requirementDetail);
+        }
 
         foreach (var field in descriptor.Fields)
+        {
+            _cancellationToken.ThrowIfCancellationRequested();
             VisitDescriptor(field.Type, requirementDetail);
+        }
 
         if (descriptor.Kind is ExecutionPortableTypeKind.Primitive or
             ExecutionPortableTypeKind.GenericParameter or
@@ -135,6 +161,7 @@ internal sealed class CSharpClrReferenceAssemblyCollector
 
     private void VisitCallable(ExecutionPortableCallableDescriptor descriptor, string requirementDetail)
     {
+        _cancellationToken.ThrowIfCancellationRequested();
         if (!_visitedCallableNames.Add(descriptor.StableName))
             return;
 
@@ -145,12 +172,15 @@ internal sealed class CSharpClrReferenceAssemblyCollector
             VisitDescriptor(returnType, requirementDetail);
 
         foreach (var parameterType in descriptor.ParameterTypes)
+        {
+            _cancellationToken.ThrowIfCancellationRequested();
             VisitDescriptor(parameterType, requirementDetail);
+        }
 
         if (descriptor.DeclaringType is { } preloadedDeclaringType &&
             IsDescriptorPreloaded(preloadedDeclaringType) &&
             (descriptor.ReturnType is null || IsDescriptorPreloaded(descriptor.ReturnType)) &&
-            descriptor.ParameterTypes.All(IsDescriptorPreloaded))
+            AreDescriptorsPreloaded(descriptor.ParameterTypes))
         {
             return;
         }
@@ -180,30 +210,41 @@ internal sealed class CSharpClrReferenceAssemblyCollector
             VisitRuntimeType(runtimeDeclaringType, requirementDetail);
         VisitRuntimeType(method.ReturnType, requirementDetail);
         foreach (var parameter in method.GetParameters())
+        {
+            _cancellationToken.ThrowIfCancellationRequested();
             VisitRuntimeType(parameter.ParameterType, requirementDetail);
+        }
 
         if (method.IsGenericMethod)
         {
             foreach (var parameter in method.GetGenericMethodDefinition().GetGenericArguments())
             {
+                _cancellationToken.ThrowIfCancellationRequested();
                 foreach (var constraint in parameter.GetGenericParameterConstraints())
                     VisitRuntimeType(constraint, requirementDetail);
             }
 
             foreach (var argument in method.GetGenericArguments())
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
                 VisitRuntimeType(argument, requirementDetail);
+            }
         }
     }
 
     private void VisitRuntimeType(Type type, string requirementDetail)
     {
+        _cancellationToken.ThrowIfCancellationRequested();
         if (type is null)
             return;
 
         if (type.IsGenericParameter)
         {
             foreach (var constraint in type.GetGenericParameterConstraints())
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
                 VisitRuntimeType(constraint, requirementDetail);
+            }
 
             return;
         }
@@ -225,7 +266,10 @@ internal sealed class CSharpClrReferenceAssemblyCollector
         {
             VisitRuntimeType(type.GetGenericTypeDefinition(), requirementDetail);
             foreach (var argument in type.GetGenericArguments())
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
                 VisitRuntimeType(argument, requirementDetail);
+            }
         }
 
         if (IsAssemblyPreloaded(type.Assembly))
@@ -235,8 +279,12 @@ internal sealed class CSharpClrReferenceAssemblyCollector
         {
             foreach (var parameter in type.GetGenericArguments())
             {
+                _cancellationToken.ThrowIfCancellationRequested();
                 foreach (var constraint in parameter.GetGenericParameterConstraints())
+                {
+                    _cancellationToken.ThrowIfCancellationRequested();
                     VisitRuntimeType(constraint, requirementDetail);
+                }
             }
         }
 
@@ -244,7 +292,10 @@ internal sealed class CSharpClrReferenceAssemblyCollector
             VisitRuntimeType(baseType, requirementDetail);
 
         foreach (var interfaceType in type.GetInterfaces())
+        {
+            _cancellationToken.ThrowIfCancellationRequested();
             VisitRuntimeType(interfaceType, requirementDetail);
+        }
     }
 
     private void AddAssembly(
@@ -253,7 +304,9 @@ internal sealed class CSharpClrReferenceAssemblyCollector
         bool required = false,
         string? requirementDetail = null)
     {
+        _cancellationToken.ThrowIfCancellationRequested();
         var location = GetNormalizedAssemblyPath(assembly);
+        _cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(location))
         {
             if (required)
@@ -292,11 +345,14 @@ internal sealed class CSharpClrReferenceAssemblyCollector
         _assemblies.Add(assembly);
     }
 
-    private static IReadOnlySet<string> NormalizePaths(IEnumerable<string> paths)
+    private static IReadOnlySet<string> NormalizePaths(
+        IEnumerable<string> paths,
+        CancellationToken cancellationToken)
     {
         var normalized = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var path in paths)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!string.IsNullOrWhiteSpace(path))
                 normalized.Add(NormalizePath(path));
         }
@@ -329,13 +385,16 @@ internal sealed class CSharpClrReferenceAssemblyCollector
             path = null;
         }
 
+        _cancellationToken.ThrowIfCancellationRequested();
         _normalizedAssemblyPaths.Add(assembly, path);
         return path;
     }
 
     private bool IsAssemblyPreloaded(Assembly assembly)
     {
+        _cancellationToken.ThrowIfCancellationRequested();
         var path = GetNormalizedAssemblyPath(assembly);
+        _cancellationToken.ThrowIfCancellationRequested();
         return path is not null && _preloadedAssemblyPaths.Contains(path);
     }
 
@@ -351,6 +410,7 @@ internal sealed class CSharpClrReferenceAssemblyCollector
 
     private bool IsDescriptorPreloaded(ExecutionPortableTypeDescriptor descriptor)
     {
+        _cancellationToken.ThrowIfCancellationRequested();
         if (descriptor.Kind is ExecutionPortableTypeKind.Primitive or
             ExecutionPortableTypeKind.GenericParameter or
             ExecutionPortableTypeKind.GeneratedRow)
@@ -367,11 +427,22 @@ internal sealed class CSharpClrReferenceAssemblyCollector
             ExecutionPortableTypeKind.Pair or
             ExecutionPortableTypeKind.ByRef)
         {
-            return descriptor.Arguments.All(IsDescriptorPreloaded);
+            return AreDescriptorsPreloaded(descriptor.Arguments);
         }
 
-        return IsDescriptorAssemblyPreloaded(descriptor) &&
-               descriptor.Arguments.All(IsDescriptorPreloaded);
+        return IsDescriptorAssemblyPreloaded(descriptor) && AreDescriptorsPreloaded(descriptor.Arguments);
+    }
+
+    private bool AreDescriptorsPreloaded(IEnumerable<ExecutionPortableTypeDescriptor> descriptors)
+    {
+        foreach (var descriptor in descriptors)
+        {
+            _cancellationToken.ThrowIfCancellationRequested();
+            if (!IsDescriptorPreloaded(descriptor))
+                return false;
+        }
+
+        return true;
     }
 
     private bool IsDescriptorAssemblySeeded(ExecutionPortableTypeDescriptor descriptor)

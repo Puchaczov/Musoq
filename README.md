@@ -353,6 +353,13 @@ Musoq decorrelates supported `IN`, `EXISTS`, quantified, scalar, and `CROSS APPL
 
 See the [correlated subquery support matrix and limitations](docs/correlated-subqueries.md).
 
+### 6. Compile-time cancellation
+
+Core compilation, analysis, artifact, inspection, profiling, and loading APIs
+accept a final cancellation token. See the [compile-time cancellation contract](docs/compile-time-cancellation.md)
+for propagation boundaries, compatibility behavior, and cooperative-provider
+limitations.
+
 ---
 
 ## 🧰 The Developer Toolbox: Supporting Ad-Hoc Workflows

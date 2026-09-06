@@ -24,7 +24,8 @@ internal sealed class SemanticMetadataSnapshotBuilder
             InferredColumnsByAlias = MetadataSnapshotContractsFreezer.FreezeSchemaColumns(input.InferredColumnsByAlias),
             UsedColumns = MetadataSnapshotContractsFreezer.FreezeSchemaColumns(input.UsedColumns),
             UsedWhereNodes = SemanticMetadataSnapshotFreezer.FreezeDictionary(input.UsedWhereNodes),
-            SourcePlanRequestsPerSchema = SemanticMetadataSnapshotFreezer.FreezeDictionary(input.SourcePlanRequestsPerSchema),
+            SourcePlanRequestsPerSchema = MetadataSnapshotContractsFreezer.FreezeSourcePlanRequests(
+                input.SourcePlanRequestsPerSchema),
             SourceContractDiagnosticLocationsPerSchema = SemanticMetadataSnapshotFreezer.FreezeDictionary(
                 input.SourceContractDiagnosticLocationsPerSchema),
             SourceContracts = MetadataSnapshotContractsFreezer.FreezeSourceContracts(input.SourceContracts),

@@ -45,8 +45,12 @@ public abstract class SchemaBase : ISchema
         if (metadataContext == null)
             throw SchemaArgumentException.ForNullArgument(nameof(metadataContext), "getting a table by name");
 
+        metadataContext.EndWorkToken.ThrowIfCancellationRequested();
+
         var tableName = $"{NormalizeSchemaMemberName(name)}{TablePart}";
-        return ResolveAndCreate<ISchemaTable>(name, tableName, GetAvailableTableNames, parameters);
+        var table = ResolveAndCreate<ISchemaTable>(name, tableName, GetAvailableTableNames, parameters);
+        metadataContext.EndWorkToken.ThrowIfCancellationRequested();
+        return table;
     }
 
     public virtual SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
@@ -57,7 +61,10 @@ public abstract class SchemaBase : ISchema
         if (context == null)
             throw SchemaArgumentException.ForNullArgument(nameof(context), "describing a source");
 
+        context.MetadataContext.EndWorkToken.ThrowIfCancellationRequested();
+
         var table = GetTableByName(name, context.MetadataContext, parameters);
+        context.MetadataContext.EndWorkToken.ThrowIfCancellationRequested();
         return new SourceDescriptor
         {
             Identity = context.Identity,
@@ -77,6 +84,8 @@ public abstract class SchemaBase : ISchema
         if (context == null)
             throw SchemaArgumentException.ForNullArgument(nameof(context), "describing source runtime settings");
 
+        context.MetadataContext.EndWorkToken.ThrowIfCancellationRequested();
+
         var tableName = $"{NormalizeSchemaMemberName(name)}{TablePart}";
         var sourceName = $"{NormalizeSchemaMemberName(name)}{SourcePart}";
         var requirements = new Dictionary<string, SourceRuntimeSettingRequirement>(StringComparer.Ordinal);
@@ -84,14 +93,19 @@ public abstract class SchemaBase : ISchema
         foreach (var constructor in GetMatchingConstructors(tableName, parameters)
                      .Concat(GetMatchingConstructors(sourceName, parameters)))
         {
+            context.MetadataContext.EndWorkToken.ThrowIfCancellationRequested();
             var originConstructor = constructor.OriginConstructor;
             if (originConstructor == null)
                 continue;
 
             foreach (var attribute in originConstructor.GetCustomAttributes<SourceRuntimeSettingAttribute>())
+            {
+                context.MetadataContext.EndWorkToken.ThrowIfCancellationRequested();
                 AddOrMergeRequirement(requirements, attribute.ToRequirement());
+            }
         }
 
+        context.MetadataContext.EndWorkToken.ThrowIfCancellationRequested();
         return requirements.Values.ToArray();
     }
 
@@ -102,6 +116,8 @@ public abstract class SchemaBase : ISchema
 
         if (request == null)
             throw SchemaArgumentException.ForNullArgument(nameof(request), "planning a source");
+
+        request.CancellationToken.ThrowIfCancellationRequested();
 
         return SourcePlanResult.RejectAll(request);
     }
@@ -209,6 +225,10 @@ public abstract class SchemaBase : ISchema
                 throw new InvalidOperationException($"Constructor metadata for '{displayName}' has no origin constructor.");
             return (T)originConstructor.Invoke(parameters);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             throw new InvalidOperationException($"Failed to create {typeof(T).Name} '{displayName}': {ex.Message}", ex);
@@ -249,19 +269,27 @@ public abstract class SchemaBase : ISchema
         ArgumentNullException.ThrowIfNull(metadataContext);
         metadataContext.EndWorkToken.ThrowIfCancellationRequested();
 
-        return ConstructorsMethods
+        var constructors = ConstructorsMethods
             .Where(cm => cm.MethodName.Contains(TablePart, StringComparison.Ordinal))
             .Select(cm =>
             {
+                metadataContext.EndWorkToken.ThrowIfCancellationRequested();
                 var index = cm.MethodName.IndexOf(TablePart, StringComparison.Ordinal);
                 var rawMethodName = cm.MethodName[..index];
                 return new SchemaMethodInfo(rawMethodName, cm.ConstructorInfo);
             }).ToArray();
+        metadataContext.EndWorkToken.ThrowIfCancellationRequested();
+        return constructors;
     }
 
     public virtual SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext)
     {
-        return GetRawConstructors(metadataContext).Where(constr => constr.MethodName == methodName).ToArray();
+        metadataContext.EndWorkToken.ThrowIfCancellationRequested();
+        var constructors = GetRawConstructors(metadataContext);
+        metadataContext.EndWorkToken.ThrowIfCancellationRequested();
+        var result = constructors.Where(constr => constr.MethodName == methodName).ToArray();
+        metadataContext.EndWorkToken.ThrowIfCancellationRequested();
+        return result;
     }
 
     public bool TryResolveAggregationMethod(string method, Type[] parameters, Type? entityType,

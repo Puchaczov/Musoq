@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Musoq.Evaluator.Runtime;
@@ -103,7 +104,18 @@ public class InterpreterCompilationUnit : IDisposable
     /// <returns>True if compilation succeeded; otherwise, false.</returns>
     public bool Compile()
     {
+        return Compile(CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Compiles the source code and loads the assembly with cooperative cancellation.
+    /// </summary>
+    /// <param name="cancellationToken">Token used to cancel compilation.</param>
+    /// <returns>True if compilation succeeded; otherwise, false.</returns>
+    public bool Compile(CancellationToken cancellationToken)
+    {
         ThrowIfDisposed();
+        cancellationToken.ThrowIfCancellationRequested();
 
         var syntaxTree = CSharpSyntaxTree.ParseText(SourceCode);
 
@@ -111,11 +123,13 @@ public class InterpreterCompilationUnit : IDisposable
         _compilation = _compilation.AddSyntaxTrees(syntaxTree);
 
         var interpreterReferences = _interpreterReferenceProvider.GetReferences();
+        cancellationToken.ThrowIfCancellationRequested();
         if (interpreterReferences.Count > 0)
             _compilation = _compilation.AddReferences(interpreterReferences);
 
         using var ms = new MemoryStream();
-        var result = _compilation.Emit(ms);
+        var result = _compilation.Emit(ms, cancellationToken: cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
 
         Diagnostics = result.Diagnostics.ToList();
 
@@ -123,6 +137,15 @@ public class InterpreterCompilationUnit : IDisposable
 
         _assemblyBytes = ms.ToArray();
         var loadedAssembly = _assemblyLoader.Load(_assemblyBytes);
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+        catch
+        {
+            loadedAssembly.Dispose();
+            throw;
+        }
         _loadedAssembly?.Dispose();
         _loadedAssembly = loadedAssembly;
         CompiledAssembly = loadedAssembly.Assembly;

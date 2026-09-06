@@ -1,8 +1,9 @@
+using System;
 using System.IO;
 
 namespace Musoq.Targets.CSharpClr;
 
-internal sealed record ClrAssemblyExecutableArtifact : ExecutableQueryArtifact
+internal sealed record ClrAssemblyExecutableArtifact : ExecutableQueryArtifact, IDisposable
 {
     private readonly object _streamGate = new();
     private byte[]? _dllFile;
@@ -49,6 +50,19 @@ internal sealed record ClrAssemblyExecutableArtifact : ExecutableQueryArtifact
         : (byte[])GetBytes(ref _pdbFile, _pdbStream).Clone();
 
     public string RunnableTypeName { get; }
+
+    public void Dispose()
+    {
+        lock (_streamGate)
+        {
+            _dllStream?.Dispose();
+            _pdbStream?.Dispose();
+            _dllStream = null;
+            _pdbStream = null;
+        }
+
+        GC.SuppressFinalize(this);
+    }
 
     internal Stream OpenDllStream(out bool disposeAfterUse)
     {

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using System.Threading;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.IR.Optimization;
@@ -12,6 +13,8 @@ namespace Musoq.Converter.Build;
 
 internal sealed record TransformPipelineContext
 {
+    public required CancellationToken CancellationToken { get; init; }
+
     public required string AssemblyName { get; init; }
 
     public required ISchemaProvider SchemaProvider { get; init; }
@@ -59,6 +62,7 @@ internal sealed record TransformPipelineContext
 
         return new TransformPipelineContext
         {
+            CancellationToken = items.CancellationToken,
             AssemblyName = items.AssemblyName,
             SchemaProvider = items.SchemaProvider,
             CompilationOptions = items.CompilationOptions,

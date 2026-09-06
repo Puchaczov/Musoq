@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Musoq.Evaluator;
@@ -94,24 +95,48 @@ internal static class CSharpClrBatchCompatibility
     internal static IReadOnlyList<CSharpClrBatchActivationResult> ActivateBatch(
         ExecutionTargetId executionTarget,
         ExecutableQueryArtifact executable,
-        IReadOnlyList<CSharpClrBatchActivationRequest> requests)
+        IReadOnlyList<CSharpClrBatchActivationRequest> requests,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var activator = ExecutionTargetCatalog.ResolveActivator(executionTarget)
             as ClrAssemblyExecutableActivator ??
             throw new InvalidOperationException(
                 $"Execution target '{executionTarget}' does not expose CLR batch activation.");
-        var results = activator.ActivateTableBatch(
-            executable,
-            requests
-                .Select(static request => new ClrBatchTableActivationRequest(
-                    request.RunnableTypeName,
-                    request.Binding))
-                .ToArray());
-        return results
-            .Select(static result => new CSharpClrBatchActivationResult(
-                result.Runnable,
-                result.Exception))
-            .ToArray();
+        var activationRequests = new ClrBatchTableActivationRequest[requests.Count];
+        for (var index = 0; index < requests.Count; index++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            activationRequests[index] = new ClrBatchTableActivationRequest(
+                requests[index].RunnableTypeName,
+                requests[index].Binding);
+        }
+
+        IReadOnlyList<ClrBatchTableActivationResult>? results = null;
+        try
+        {
+            results = activator.ActivateTableBatch(executable, activationRequests);
+            cancellationToken.ThrowIfCancellationRequested();
+            var converted = new CSharpClrBatchActivationResult[results.Count];
+            for (var index = 0; index < results.Count; index++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                converted[index] = new CSharpClrBatchActivationResult(
+                    results[index].Runnable,
+                    results[index].Exception);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            return converted;
+        }
+        catch (OperationCanceledException)
+        {
+            if (results is not null)
+                foreach (var result in results)
+                    (result.Runnable as IDisposable)?.Dispose();
+
+            throw;
+        }
     }
 
     internal static string CreateBatchCompatibilityKey(
@@ -121,12 +146,35 @@ internal static class CSharpClrBatchCompatibility
         bool hasInterpreter,
         QueryResultMode resultMode)
     {
+        return CreateBatchCompatibilityKey(
+            rendering,
+            executionTarget,
+            emitPdb,
+            hasInterpreter,
+            resultMode,
+            CancellationToken.None);
+    }
+
+    internal static string CreateBatchCompatibilityKey(
+        RenderingBuildArtifacts rendering,
+        ExecutionTargetId executionTarget,
+        bool emitPdb,
+        bool hasInterpreter,
+        QueryResultMode resultMode,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         var compilation = rendering.Compilation;
         var references = string.Join(
             "\u001f",
             compilation.References
-                .Select(static reference => reference.Display ?? reference.ToString())
+                .Select(reference =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return reference.Display ?? reference.ToString();
+                })
                 .Order(StringComparer.Ordinal));
+        cancellationToken.ThrowIfCancellationRequested();
         var syntaxShape = hasInterpreter ? "interpreter-fallback" : "no-interpreter";
         return string.Join(
             "\u001e",
@@ -141,8 +189,10 @@ internal static class CSharpClrBatchCompatibility
     internal static TargetFinalizationResult FinalizeBatch(
         IReadOnlyList<RenderingBuildArtifacts> renderings,
         ExecutionTargetId executionTarget,
-        bool emitPdb)
+        bool emitPdb,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(renderings);
         if (renderings.Count == 0)
             throw new ArgumentException("At least one rendered item is required.", nameof(renderings));
@@ -150,30 +200,40 @@ internal static class CSharpClrBatchCompatibility
         var first = renderings[0];
         var compilation = first.Compilation
             .RemoveAllSyntaxTrees()
-            .AddSyntaxTrees(renderings.SelectMany(static item => item.Compilation.SyntaxTrees));
+            .AddSyntaxTrees(renderings.SelectMany(item =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return item.Compilation.SyntaxTrees;
+            }));
+        cancellationToken.ThrowIfCancellationRequested();
         var renderedArtifact = CSharpClrArtifactCompatibility.CreateRenderedArtifact(
             compilation,
             first.AccessToClassPath);
+        cancellationToken.ThrowIfCancellationRequested();
         var options = ExecutionTargetCatalog.CreateFinalizationOptions(
             executionTarget,
-            new TargetFinalizationOptionsContext(emitPdb));
+            new TargetFinalizationOptionsContext(emitPdb, CancellationToken: cancellationToken));
         return ExecutionTargetCatalog.FinalizeArtifact(renderedArtifact, options);
     }
 
     internal static ExecutableQueryArtifact CreateBatchExecutable(
         TargetFinalizationResult finalization,
-        string runnableTypeName)
+        string runnableTypeName,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(finalization);
         if (!finalization.Success || finalization.Artifact is null)
             throw new InvalidOperationException("Cannot create a batch executable from failed finalization.");
 
         var dllFile = CSharpClrArtifactCompatibility.GetDllFile(finalization.Artifact) ??
                       throw new InvalidOperationException("Batch finalization produced no DLL.");
-        return CSharpClrArtifactCompatibility.CreateAssemblyExecutable(
+        var executable = CSharpClrArtifactCompatibility.CreateAssemblyExecutable(
             dllFile,
             CSharpClrArtifactCompatibility.GetPdbFile(finalization.Artifact),
             runnableTypeName);
+        cancellationToken.ThrowIfCancellationRequested();
+        return executable;
     }
 }
 
@@ -181,7 +241,15 @@ internal static class CSharpClrGeneratedCodeCompatibility
 {
     internal static CSharpGeneratedSyntaxIdentity CreateStructuralIdentity(RenderedQueryArtifact artifact)
     {
+        return CreateStructuralIdentity(artifact, CancellationToken.None);
+    }
+
+    internal static CSharpGeneratedSyntaxIdentity CreateStructuralIdentity(
+        RenderedQueryArtifact artifact,
+        CancellationToken cancellationToken)
+    {
         ArgumentNullException.ThrowIfNull(artifact);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var compilation = CSharpClrArtifactCompatibility.RequireCompilation(
             artifact,
@@ -201,31 +269,38 @@ internal static class CSharpClrGeneratedCodeCompatibility
                      static tree => tree.FilePath,
                      StringComparer.Ordinal))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var root = syntaxTree.GetRoot();
             builder.Append("tree:").Append(treeIndex++).Append(';');
             foreach (var token in root.DescendantTokens())
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var value = token.IsKind(SyntaxKind.IdentifierToken) &&
                             identityParts.TryGetValue(token.ValueText, out var replacement)
                     ? replacement
                     : token.Text;
                 builder.Append(token.RawKind).Append(':').Append(value.Length).Append(':').Append(value);
-                AppendStructuredTrivia(builder, token.LeadingTrivia);
-                AppendStructuredTrivia(builder, token.TrailingTrivia);
+                AppendStructuredTrivia(builder, token.LeadingTrivia, cancellationToken);
+                AppendStructuredTrivia(builder, token.TrailingTrivia, cancellationToken);
                 builder.Append(';');
             }
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         var descriptor = builder.ToString();
         return new CSharpGeneratedSyntaxIdentity(
             descriptor,
             CompiledQueryArtifactSupport.ComputeHash(descriptor));
     }
 
-    private static void AppendStructuredTrivia(StringBuilder builder, SyntaxTriviaList trivia)
+    private static void AppendStructuredTrivia(
+        StringBuilder builder,
+        SyntaxTriviaList trivia,
+        CancellationToken cancellationToken)
     {
         foreach (var item in trivia)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!item.HasStructure)
                 continue;
 

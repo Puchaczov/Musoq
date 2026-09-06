@@ -14,8 +14,9 @@ public static partial class InstanceCreator
         var rendering = items.RenderingArtifacts;
         var options = ExecutionTargetCatalog.CreateFinalizationOptions(
             rendering.Artifact.TargetId,
-            new TargetFinalizationOptionsContext(items.EmitPdb));
+            new TargetFinalizationOptionsContext(items.EmitPdb, CancellationToken: items.CancellationToken));
         var finalization = ExecutionTargetCatalog.FinalizeArtifact(rendering.Artifact, options);
+        items.CancellationToken.ThrowIfCancellationRequested();
         items.CompilationArtifacts = CompilationBuildArtifacts.From(finalization);
 
         if (finalization.Success)
@@ -25,6 +26,7 @@ public static partial class InstanceCreator
         foreach (var diagnostic in finalization.Diagnostics.Where(static diagnostic =>
                      diagnostic.Severity == TargetDiagnosticSeverity.Error))
         {
+            items.CancellationToken.ThrowIfCancellationRequested();
             message.AppendLine(diagnostic.Message);
         }
 

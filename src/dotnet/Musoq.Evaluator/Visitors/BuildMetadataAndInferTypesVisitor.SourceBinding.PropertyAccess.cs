@@ -13,12 +13,14 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(PropertyFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        ThrowIfCancellationRequested();
         ISchemaTable table;
         ISchema schema;
 
         if (_sourceBinding.AliasToSchemaFromNodeMap.TryGetValue(node.SourceAlias, out var schemaFrom))
         {
             schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(schemaFrom.Schema));
+            ThrowIfCancellationRequested();
             table = GetTableFromSchema(schema, schemaFrom);
         }
         else
@@ -139,12 +141,14 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(AccessMethodFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        ThrowIfCancellationRequested();
         ISchemaTable table;
         ISchema schema;
 
         if (_sourceBinding.AliasToSchemaFromNodeMap.TryGetValue(node.SourceAlias, out var schemaFrom))
         {
             schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(schemaFrom.Schema));
+            ThrowIfCancellationRequested();
         }
         else
         {

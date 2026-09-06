@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
+using System.Threading;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
 using Musoq.Parser;
@@ -35,21 +36,46 @@ internal static class CSharpClrCompiledArtifactLoader
     public static ClrLoadedExecutableArtifact CreateLoadedExecutableArtifact(
         CompiledQueryArtifactLoadResult? loadResult)
     {
-        if (loadResult == null)
-            throw new InvalidOperationException("Compiled artifact loader returned a null load result.");
+        return CreateLoadedExecutableArtifact(loadResult, CancellationToken.None);
+    }
 
-        var artifact = ExecutionTargetCatalog
-            .ResolveActivator(ExecutionTargetIds.CSharpClr)
-            .CreateLoadedExecutableArtifact(loadResult.RunnableType, loadResult.LifetimeOwner);
+    public static ClrLoadedExecutableArtifact CreateLoadedExecutableArtifact(
+        CompiledQueryArtifactLoadResult? loadResult,
+        CancellationToken cancellationToken)
+    {
+        ClrLoadedExecutableArtifact? loadedArtifact = null;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (loadResult == null)
+                throw new InvalidOperationException("Compiled artifact loader returned a null load result.");
 
-        return CSharpClrArtifactCompatibility.RequireLoadedExecutable(
-            artifact,
-            "compiled artifact loader");
+            loadedArtifact = CSharpClrArtifactCompatibility.RequireLoadedExecutable(
+                ExecutionTargetCatalog
+                    .ResolveActivator(ExecutionTargetIds.CSharpClr)
+                    .CreateLoadedExecutableArtifact(loadResult.RunnableType, loadResult.LifetimeOwner),
+                "compiled artifact loader");
+            cancellationToken.ThrowIfCancellationRequested();
+            return loadedArtifact;
+        }
+        catch
+        {
+            DisposeArtifactLifetime(loadedArtifact?.LifetimeOwner ?? loadResult?.LifetimeOwner);
+            throw;
+        }
     }
 
     public static ClrLoadedExecutableArtifact LoadExecutableArtifactFromArtifactBytes(
         ICompiledQueryArtifact artifact)
     {
+        return LoadExecutableArtifactFromArtifactBytes(artifact, CancellationToken.None);
+    }
+
+    public static ClrLoadedExecutableArtifact LoadExecutableArtifactFromArtifactBytes(
+        ICompiledQueryArtifact artifact,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         var assemblyBytes = artifact is CompiledQueryArtifact ownedArtifact
             ? ownedArtifact.AssemblyBytesUnsafe
             : artifact.AssemblyBytes;
@@ -61,6 +87,8 @@ internal static class CSharpClrCompiledArtifactLoader
             throw new InvalidOperationException("Compiled artifact assembly bytes are empty.");
 
         var loadContext = new CompiledQueryArtifactAssemblyLoadContext($"musoq-artifact-{Guid.NewGuid()}");
+        ClrLoadedExecutableArtifact? loadedArtifact = null;
+        IDisposable? lifetimeOwner = null;
         try
         {
             using var assemblyStream = new MemoryStream(assemblyBytes, writable: false);
@@ -75,21 +103,24 @@ internal static class CSharpClrCompiledArtifactLoader
                 assembly = loadContext.LoadFromStream(assemblyStream);
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             var runnableType = assembly.GetType(artifact.RunnableTypeName)
                                ?? throw new InvalidOperationException(
                                    $"Type {artifact.RunnableTypeName} was not found in artifact assembly {assembly.FullName}.");
-            var loadedArtifact = ExecutionTargetCatalog
+            lifetimeOwner = new CompiledQueryArtifactLoadContextLifetime(loadContext);
+            loadedArtifact = CSharpClrArtifactCompatibility.RequireLoadedExecutable(ExecutionTargetCatalog
                 .ResolveActivator(ExecutionTargetIds.CSharpClr)
                 .CreateLoadedExecutableArtifact(
                     runnableType,
-                    new CompiledQueryArtifactLoadContextLifetime(loadContext));
-
-            return CSharpClrArtifactCompatibility.RequireLoadedExecutable(
-                loadedArtifact,
+                    lifetimeOwner),
                 "compiled artifact byte loading");
+
+            cancellationToken.ThrowIfCancellationRequested();
+            return loadedArtifact;
         }
         catch
         {
+            DisposeArtifactLifetime(loadedArtifact?.LifetimeOwner ?? lifetimeOwner);
             loadContext.Unload();
             throw;
         }
@@ -102,23 +133,28 @@ internal static class CSharpClrCompiledArtifactLoader
         CompilationOptions compilationOptions,
         CompiledQueryArtifactValidationMode validationMode,
         BuildItems items,
-        ICollection<Diagnostic> diagnostics)
+        ICollection<Diagnostic> diagnostics,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ValidateEqual(
             "artifact format version",
             CompiledQueryArtifact.CurrentArtifactFormatVersion,
             artifact.ArtifactFormatVersion,
             diagnostics);
+        cancellationToken.ThrowIfCancellationRequested();
         ValidateEqual(
             "engine version",
             CompiledQueryArtifactSupport.CurrentEngineVersion,
             artifact.EngineVersion,
             diagnostics);
+        cancellationToken.ThrowIfCancellationRequested();
         ValidateEqual(
             "compilation options signature",
             CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(compilationOptions),
             artifact.CompilationOptionsSignature,
             diagnostics);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var expectedRunnableTypeName = CompiledQueryArtifactSupport.GetRunnableTypeName(assemblyName);
         ValidateEqual(
@@ -132,46 +168,57 @@ internal static class CSharpClrCompiledArtifactLoader
             CompiledQueryArtifactSupport.MetadataArtifactKind,
             CompiledQueryArtifactSupport.ArtifactKindRuntimeV2Query,
             diagnostics);
+        cancellationToken.ThrowIfCancellationRequested();
         ValidateMetadataValue(
             artifact,
             CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature,
             RuntimeV2Contract.ContractSignature,
             diagnostics);
+        cancellationToken.ThrowIfCancellationRequested();
         ValidateMetadataValue(
             artifact,
             CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion,
             ExecutionSemanticsContract.Version1.Version.ToString(System.Globalization.CultureInfo.InvariantCulture),
             diagnostics);
+        cancellationToken.ThrowIfCancellationRequested();
         ValidateOptionalMetadataValue(
             artifact,
             CompiledQueryArtifactSupport.MetadataExecutionTarget,
             ExecutionTargetIds.CSharpClr.ToString(),
             diagnostics);
+        cancellationToken.ThrowIfCancellationRequested();
         ValidateOptionalMetadataValue(
             artifact,
             CompiledQueryArtifactSupport.MetadataExecutableArtifactKind,
             CompiledQueryArtifactSupport.ExecutableArtifactKindClrAssembly,
             diagnostics);
+        cancellationToken.ThrowIfCancellationRequested();
         ValidateMetadataValue(
             artifact,
             CompiledQueryArtifactSupport.MetadataScriptSha256,
             CompiledQueryArtifactSupport.ComputeHash(script),
             diagnostics);
+        cancellationToken.ThrowIfCancellationRequested();
         ValidateMetadataValue(
             artifact,
             CompiledQueryArtifactSupport.MetadataSemanticShapeSha256,
             CompiledQueryArtifactSupport.ComputeSemanticShapeHash(
-                TargetArtifactSemanticFactsFactory.From(items),
-                expectedRunnableTypeName),
+                TargetArtifactSemanticFactsFactory.From(items, cancellationToken),
+                expectedRunnableTypeName,
+                cancellationToken),
             diagnostics);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (validationMode == CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash)
         {
             ValidateMetadataValue(
                 artifact,
                 CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256,
-                CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(items.RenderingArtifact),
+                CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(
+                    items.RenderingArtifact,
+                    cancellationToken),
                 diagnostics);
+            cancellationToken.ThrowIfCancellationRequested();
         }
 
         var assemblyBytes = artifact is CompiledQueryArtifact ownedArtifact
@@ -179,13 +226,16 @@ internal static class CSharpClrCompiledArtifactLoader
             : artifact.AssemblyBytes;
         if (assemblyBytes is not { Length: > 0 })
             diagnostics.Add(CreateArtifactDiagnostic("Compiled artifact assembly bytes are empty."));
+        cancellationToken.ThrowIfCancellationRequested();
     }
 
     public static void ValidateLoadedRunnableType(
         ICompiledQueryArtifact artifact,
         Type? runnableType,
-        ICollection<Diagnostic> diagnostics)
+        ICollection<Diagnostic> diagnostics,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (runnableType == null)
         {
             diagnostics.Add(CreateArtifactDiagnostic("Compiled artifact loader returned a null runnable type."));
@@ -199,6 +249,7 @@ internal static class CSharpClrCompiledArtifactLoader
             return;
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         if (!string.Equals(runnableType.FullName, artifact.RunnableTypeName, StringComparison.Ordinal))
         {
             diagnostics.Add(CreateArtifactDiagnostic(

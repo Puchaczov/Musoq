@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
@@ -15,13 +16,15 @@ internal sealed class SemanticAdvisoryContext
         SemanticMetadataSnapshot metadata,
         DiagnosticContext diagnosticContext,
         RootNode? sourceQuery = null,
-        RootNode? authoredQuery = null)
+        RootNode? authoredQuery = null,
+        CancellationToken cancellationToken = default)
     {
         Query = query;
         SourceQuery = sourceQuery ?? query;
         AuthoredQuery = authoredQuery ?? SourceQuery;
         Metadata = metadata;
         Diagnostics = diagnosticContext;
+        CancellationToken = cancellationToken;
         Literals = new LiteralOriginResolver(query, diagnosticContext.SourceText);
     }
 
@@ -36,6 +39,10 @@ internal sealed class SemanticAdvisoryContext
     public DiagnosticContext Diagnostics { get; }
 
     public LiteralOriginResolver Literals { get; }
+
+    public CancellationToken CancellationToken { get; }
+
+    public void ThrowIfCancellationRequested() => CancellationToken.ThrowIfCancellationRequested();
 
     public void Report(DiagnosticCode code, string message, TextSpan span)
     {

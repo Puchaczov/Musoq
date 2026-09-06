@@ -74,6 +74,18 @@ public static partial class InstanceCreator
         return RequireClrActivator(executable.TargetId).LoadRunnableType(executable);
     }
 
+    private static ClrAssemblyExecutableActivator.ClrLoadedRunnableType LoadRunnableTypeWithLifetime(
+        BuildItems items)
+    {
+        var executable = GetExecutableArtifact(
+            items.ExecutableArtifact,
+            items.DllFile,
+            items.PdbFile,
+            () => items.AccessToClassPath,
+            () => CreateMissingRunnableDllMessage(items));
+        return RequireClrActivator(executable.TargetId).LoadRunnableTypeWithLifetime(executable);
+    }
+
     private static string CreateMissingRunnableDllMessage(BuildItems items)
     {
         var diagnostics = items.DiagnosticContext.Diagnostics.ToArray();

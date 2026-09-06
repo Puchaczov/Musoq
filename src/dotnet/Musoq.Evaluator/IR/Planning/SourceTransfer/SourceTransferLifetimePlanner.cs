@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Nodes;
 
@@ -8,29 +9,41 @@ internal static class SourceTransferLifetimePlanner
 {
     public static IReadOnlyDictionary<string, SourceTransferLifetimePlan> Plan(LogicalNode logicalPlan)
     {
-        ArgumentNullException.ThrowIfNull(logicalPlan);
+        return Plan(logicalPlan, CancellationToken.None);
+    }
 
-        var parents = CreateParentIndex(logicalPlan);
+    public static IReadOnlyDictionary<string, SourceTransferLifetimePlan> Plan(
+        LogicalNode logicalPlan,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(logicalPlan);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var parents = CreateParentIndex(logicalPlan, cancellationToken);
         var plans = new Dictionary<string, SourceTransferLifetimePlan>(StringComparer.Ordinal);
-        foreach (var scan in FindSchemaScans(logicalPlan))
+        foreach (var scan in FindSchemaScans(logicalPlan, cancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (string.IsNullOrWhiteSpace(scan.SourceContextId))
                 continue;
 
-            plans[scan.SourceContextId] = Classify(scan, parents);
+            plans[scan.SourceContextId] = Classify(scan, parents, cancellationToken);
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         return plans;
     }
 
     private static SourceTransferLifetimePlan Classify(
         SchemaScanNode scan,
-        IReadOnlyDictionary<LogicalNode, List<LogicalNode>> parents)
+        IReadOnlyDictionary<LogicalNode, List<LogicalNode>> parents,
+        CancellationToken cancellationToken)
     {
         LogicalNode current = scan;
         var visited = new HashSet<LogicalNode>(ReferenceEqualityComparer.Instance);
         while (visited.Add(current))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!parents.TryGetValue(current, out var currentParents) || currentParents.Count == 0)
             {
                 return SourceTransferLifetimePlan.Escapes(
@@ -71,6 +84,7 @@ internal static class SourceTransferLifetimePlanner
                 $"{parent.GetType().Name} retains or crosses the source row before a row-shape replacement.");
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         return SourceTransferLifetimePlan.Escapes(
             scan.SourceContextId!,
             "A logical-plan cycle was encountered before a row-shape replacement.");
@@ -81,24 +95,30 @@ internal static class SourceTransferLifetimePlanner
         return node is FilterNode or HavingFilterNode or QualifyFilterNode or SkipNode or TakeNode;
     }
 
-    private static Dictionary<LogicalNode, List<LogicalNode>> CreateParentIndex(LogicalNode root)
+    private static Dictionary<LogicalNode, List<LogicalNode>> CreateParentIndex(
+        LogicalNode root,
+        CancellationToken cancellationToken)
     {
         var parents = new Dictionary<LogicalNode, List<LogicalNode>>(ReferenceEqualityComparer.Instance);
         var visited = new HashSet<LogicalNode>(ReferenceEqualityComparer.Instance);
-        AddParents(root, parents, visited);
+        AddParents(root, parents, visited, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         return parents;
     }
 
     private static void AddParents(
         LogicalNode node,
         IDictionary<LogicalNode, List<LogicalNode>> parents,
-        ISet<LogicalNode> visited)
+        ISet<LogicalNode> visited,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (!visited.Add(node))
             return;
 
         foreach (var child in node.Children)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!parents.TryGetValue(child, out var childParents))
             {
                 childParents = [];
@@ -106,18 +126,27 @@ internal static class SourceTransferLifetimePlanner
             }
 
             childParents.Add(node);
-            AddParents(child, parents, visited);
+            AddParents(child, parents, visited, cancellationToken);
         }
     }
 
-    private static IEnumerable<SchemaScanNode> FindSchemaScans(LogicalNode node)
+    private static IEnumerable<SchemaScanNode> FindSchemaScans(
+        LogicalNode node,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (node is SchemaScanNode scan)
             yield return scan;
 
         foreach (var child in node.Children)
-        foreach (var descendant in FindSchemaScans(child))
-            yield return descendant;
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            foreach (var descendant in FindSchemaScans(child, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return descendant;
+            }
+        }
     }
 }
 

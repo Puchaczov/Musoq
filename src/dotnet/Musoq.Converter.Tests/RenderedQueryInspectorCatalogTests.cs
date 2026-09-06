@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -52,10 +53,8 @@ public sealed class RenderedQueryInspectorCatalogTests
         var artifact = new TestOnlyRenderedQueryArtifact("bytecode:noop");
         using var _ = ExecutionTargetCatalog.UseTemporaryDescriptor(
             TestOnlyExecutionTarget.CreateDescriptor(inspector: new TestOnlyRenderedQueryInspector()));
-        var method = typeof(InstanceCreator).GetMethod(
-            "InspectGeneratedCSharpCode",
-            BindingFlags.NonPublic | BindingFlags.Static);
-        Assert.IsNotNull(method);
+        var method = typeof(InstanceCreator).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+            .Single(item => item.Name == "InspectGeneratedCSharpCode" && item.GetParameters().Length == 1);
 
         var exception = Assert.Throws<TargetInvocationException>(
             () => method.Invoke(null, [artifact]));

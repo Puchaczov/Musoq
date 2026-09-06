@@ -35,11 +35,13 @@ internal static partial class SourceInteractionPlanner
         SchemaFromNode? sourceNode,
         string sourceContextId)
     {
+        context.CancellationToken.ThrowIfCancellationRequested();
         if (sourceNode != null && context.SourcePlanRequestsBySource.TryGetValue(sourceNode, out var directRequest))
             return directRequest;
 
         foreach (var entry in context.SourcePlanRequestsBySource)
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
             if (string.Equals(entry.Key.Id, sourceContextId, StringComparison.Ordinal))
                 return entry.Value;
         }
@@ -56,11 +58,13 @@ internal static partial class SourceInteractionPlanner
         SchemaFromNode? sourceNode,
         string sourceContextId)
     {
+        context.CancellationToken.ThrowIfCancellationRequested();
         if (sourceNode != null && context.UsedSchemaColumns.TryGetValue(sourceNode, out var directColumns))
             return directColumns;
 
         foreach (var entry in context.UsedSchemaColumns)
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
             if (string.Equals(entry.Key.Id, sourceContextId, StringComparison.Ordinal))
                 return entry.Value;
         }
@@ -73,11 +77,13 @@ internal static partial class SourceInteractionPlanner
         SchemaFromNode? sourceNode,
         string sourceContextId)
     {
+        context.CancellationToken.ThrowIfCancellationRequested();
         if (sourceNode != null && context.UsedWhereNodes.TryGetValue(sourceNode, out var directWhereNode))
             return directWhereNode;
 
         foreach (var entry in context.UsedWhereNodes)
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
             if (string.Equals(entry.Key.Id, sourceContextId, StringComparison.Ordinal))
                 return entry.Value;
         }
@@ -89,18 +95,21 @@ internal static partial class SourceInteractionPlanner
     {
         foreach (var sourceNode in context.UsedSchemaColumns.Keys)
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
             if (string.Equals(sourceNode.Id, sourceContextId, StringComparison.Ordinal))
                 return sourceNode;
         }
 
         foreach (var sourceNode in context.UsedWhereNodes.Keys)
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
             if (string.Equals(sourceNode.Id, sourceContextId, StringComparison.Ordinal))
                 return sourceNode;
         }
 
         foreach (var sourceNode in context.SourcePlanRequestsBySource.Keys)
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
             if (string.Equals(sourceNode.Id, sourceContextId, StringComparison.Ordinal))
                 return sourceNode;
         }

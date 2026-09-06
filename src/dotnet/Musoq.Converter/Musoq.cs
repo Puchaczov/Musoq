@@ -20,14 +20,29 @@ public static class Musoq
 
     public static ICompiledTypedQuery<TOut> Compile<TArg, TOut>(string query)
     {
+        return Compile<TArg, TOut>(query, CancellationToken.None);
+    }
+
+    public static ICompiledTypedQuery<TOut> Compile<TArg, TOut>(
+        string query,
+        CancellationToken cancellationToken)
+    {
         var builder = Query(query);
         return TypedShorthandSourceMapper
             .AddSource<TArg>(builder, 0)
-            .Compile<TOut>();
+            .Compile<TOut>(cancellationToken);
     }
 
     public static ICompiledTypedQuery<TOut> Load<TOut>(CompiledTypedQueryArtifact artifact)
     {
+        return Load<TOut>(artifact, CancellationToken.None);
+    }
+
+    public static ICompiledTypedQuery<TOut> Load<TOut>(
+        CompiledTypedQueryArtifact artifact,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(artifact);
 
         if (artifact.InMemorySourceSlots.Count == 0)
@@ -44,8 +59,17 @@ public static class Musoq
 
         var factory = InstanceCreator.LoadTypedArtifactFactory<TOut>(
             artifact,
-            NullLoggerResolver.Instance);
+            NullLoggerResolver.Instance,
+            cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         return new PublicCompiledTypedQuery<TOut>(factory, new InMemorySourceBinding(artifact.InMemorySourceSlots));
+    }
+
+    public static IEnumerable<TOut> CompileAndRun<TArg, TOut>(
+        string query,
+        IEnumerable<IReadOnlyList<TArg>> source)
+    {
+        return CompileAndRun<TArg, TOut>(query, source, CancellationToken.None);
     }
 
     public static IEnumerable<TOut> CompileAndRun<TArg, TOut>(
@@ -61,11 +85,26 @@ public static class Musoq
 
     public static ICompiledTypedQuery<TOut> Compile<TArg1, TArg2, TOut>(string query)
     {
+        return Compile<TArg1, TArg2, TOut>(query, CancellationToken.None);
+    }
+
+    public static ICompiledTypedQuery<TOut> Compile<TArg1, TArg2, TOut>(
+        string query,
+        CancellationToken cancellationToken)
+    {
         var builder = Query(query);
         TypedShorthandSourceMapper.AddSource<TArg1>(builder, 0);
         return TypedShorthandSourceMapper
             .AddSource<TArg2>(builder, 1)
-            .Compile<TOut>();
+            .Compile<TOut>(cancellationToken);
+    }
+
+    public static IEnumerable<TOut> CompileAndRun<TArg1, TArg2, TOut>(
+        string query,
+        IEnumerable<IReadOnlyList<TArg1>> source1,
+        IEnumerable<IReadOnlyList<TArg2>> source2)
+    {
+        return CompileAndRun<TArg1, TArg2, TOut>(query, source1, source2, CancellationToken.None);
     }
 
     public static IEnumerable<TOut> CompileAndRun<TArg1, TArg2, TOut>(
@@ -83,12 +122,28 @@ public static class Musoq
 
     public static ICompiledTypedQuery<TOut> Compile<TArg1, TArg2, TArg3, TOut>(string query)
     {
+        return Compile<TArg1, TArg2, TArg3, TOut>(query, CancellationToken.None);
+    }
+
+    public static ICompiledTypedQuery<TOut> Compile<TArg1, TArg2, TArg3, TOut>(
+        string query,
+        CancellationToken cancellationToken)
+    {
         var builder = Query(query);
         TypedShorthandSourceMapper.AddSource<TArg1>(builder, 0);
         TypedShorthandSourceMapper.AddSource<TArg2>(builder, 1);
         return TypedShorthandSourceMapper
             .AddSource<TArg3>(builder, 2)
-            .Compile<TOut>();
+            .Compile<TOut>(cancellationToken);
+    }
+
+    public static IEnumerable<TOut> CompileAndRun<TArg1, TArg2, TArg3, TOut>(
+        string query,
+        IEnumerable<IReadOnlyList<TArg1>> source1,
+        IEnumerable<IReadOnlyList<TArg2>> source2,
+        IEnumerable<IReadOnlyList<TArg3>> source3)
+    {
+        return CompileAndRun<TArg1, TArg2, TArg3, TOut>(query, source1, source2, source3, CancellationToken.None);
     }
 
     public static IEnumerable<TOut> CompileAndRun<TArg1, TArg2, TArg3, TOut>(
@@ -108,13 +163,36 @@ public static class Musoq
 
     public static ICompiledTypedQuery<TOut> Compile<TArg1, TArg2, TArg3, TArg4, TOut>(string query)
     {
+        return Compile<TArg1, TArg2, TArg3, TArg4, TOut>(query, CancellationToken.None);
+    }
+
+    public static ICompiledTypedQuery<TOut> Compile<TArg1, TArg2, TArg3, TArg4, TOut>(
+        string query,
+        CancellationToken cancellationToken)
+    {
         var builder = Query(query);
         TypedShorthandSourceMapper.AddSource<TArg1>(builder, 0);
         TypedShorthandSourceMapper.AddSource<TArg2>(builder, 1);
         TypedShorthandSourceMapper.AddSource<TArg3>(builder, 2);
         return TypedShorthandSourceMapper
             .AddSource<TArg4>(builder, 3)
-            .Compile<TOut>();
+            .Compile<TOut>(cancellationToken);
+    }
+
+    public static IEnumerable<TOut> CompileAndRun<TArg1, TArg2, TArg3, TArg4, TOut>(
+        string query,
+        IEnumerable<IReadOnlyList<TArg1>> source1,
+        IEnumerable<IReadOnlyList<TArg2>> source2,
+        IEnumerable<IReadOnlyList<TArg3>> source3,
+        IEnumerable<IReadOnlyList<TArg4>> source4)
+    {
+        return CompileAndRun<TArg1, TArg2, TArg3, TArg4, TOut>(
+            query,
+            source1,
+            source2,
+            source3,
+            source4,
+            CancellationToken.None);
     }
 
     public static IEnumerable<TOut> CompileAndRun<TArg1, TArg2, TArg3, TArg4, TOut>(

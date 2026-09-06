@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Musoq.Evaluator.IR.Optimization;
@@ -186,10 +187,28 @@ internal static class CSharpClrArtifactCompatibility
     public static string ComputeGeneratedCodeHash(RenderedQueryArtifact artifact)
     {
         return ComputeGeneratedCodeHash(
-            RequireRenderedArtifact(artifact, "generated code hashing").Compilation);
+            RequireRenderedArtifact(artifact, "generated code hashing").Compilation,
+            CancellationToken.None);
+    }
+
+    public static string ComputeGeneratedCodeHash(
+        RenderedQueryArtifact artifact,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return ComputeGeneratedCodeHash(
+            RequireRenderedArtifact(artifact, "generated code hashing").Compilation,
+            cancellationToken);
     }
 
     public static string ComputeGeneratedCodeHash(CSharpCompilation compilation)
+    {
+        return ComputeGeneratedCodeHash(compilation, CancellationToken.None);
+    }
+
+    public static string ComputeGeneratedCodeHash(
+        CSharpCompilation compilation,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(compilation);
 
@@ -197,6 +216,7 @@ internal static class CSharpClrArtifactCompatibility
         var index = 0;
         foreach (var syntaxTree in compilation.SyntaxTrees)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var text = syntaxTree.GetText().ToString();
             builder
                 .Append(CultureInfo.InvariantCulture, $"tree:{index}:")
@@ -207,6 +227,7 @@ internal static class CSharpClrArtifactCompatibility
             index++;
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         return ComputeHash(builder.ToString());
     }
 

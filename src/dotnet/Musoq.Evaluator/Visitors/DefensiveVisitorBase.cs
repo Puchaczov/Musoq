@@ -148,6 +148,10 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
         {
             action();
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (VisitorException)
         {
             throw;
@@ -178,6 +182,10 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
         try
         {
             return func();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (VisitorException)
         {

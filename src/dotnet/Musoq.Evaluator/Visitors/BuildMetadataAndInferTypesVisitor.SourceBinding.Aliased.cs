@@ -32,6 +32,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(AliasedFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        ThrowIfCancellationRequested();
         if (IsInterpretFunction(node.Identifier) && node.TypeParameter != null)
         {
             _sourceBinding.QueryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _resultShape.GeneratedAliases, _sourceBinding.SchemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture));
@@ -92,8 +93,6 @@ public partial class BuildMetadataAndInferTypesVisitor
                         ? $"{node.Identifier}<{schemaName}> requires a string source value."
                         : $"{node.Identifier}<{schemaName}> requires a byte-array source value.",
                     args.Args[0].SpanOrEmpty());
-
-
             Type? returnType = null;
             returnType = schemaRegistration.GeneratedType;
             if (returnType != null && isPartialInterpret)
@@ -172,7 +171,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             : null;
         var hasExternallyProvidedTypes = table != null;
         var schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(schemaInfo.Schema));
-
+        ThrowIfCancellationRequested();
         AddAssembly(schema.GetType().Assembly);
 
         _sourceBinding.QueryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _resultShape.GeneratedAliases, _sourceBinding.SchemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture));
@@ -193,16 +192,18 @@ public partial class BuildMetadataAndInferTypesVisitor
         SchemaMethodInfo[] sourceMethods;
         try
         {
+            ThrowIfCancellationRequested();
             sourceMethods = SchemaProviderBoundary.Invoke(() => schema.GetRawConstructors(
                 schemaInfo.Method,
                 new SourceMetadataContext(
                     queryId,
-                    CancellationToken.None,
+                    CancellationToken,
                     GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
                     new Dictionary<string, string>(),
                     _logger)));
-            }
-            catch (SchemaProviderFailureException exception) when (exception.InnerException is NotSupportedException)
+            ThrowIfCancellationRequested();
+             }
+             catch (SchemaProviderFailureException exception) when (exception.InnerException is NotSupportedException)
             {
                 if (DiagnosticContext == null)
                     throw;

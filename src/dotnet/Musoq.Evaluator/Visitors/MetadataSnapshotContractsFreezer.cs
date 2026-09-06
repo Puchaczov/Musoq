@@ -3,6 +3,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Musoq.Evaluator.Utils;
 using Musoq.Schema;
+using Musoq.Schema.Optimization;
+using System.Threading;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -29,5 +31,15 @@ internal static class MetadataSnapshotContractsFreezer
                 RequiredMemberSignatures = Array.AsReadOnly(contract.RequiredMemberSignatures.ToArray())
             })
             .ToArray());
+    }
+
+    public static IReadOnlyDictionary<TKey, SourcePlanRequest> FreezeSourcePlanRequests<TKey>(
+        IReadOnlyDictionary<TKey, SourcePlanRequest> values)
+        where TKey : notnull
+    {
+        return new ReadOnlyDictionary<TKey, SourcePlanRequest>(
+            values.ToDictionary(
+                pair => pair.Key,
+                pair => pair.Value with { CancellationToken = CancellationToken.None }));
     }
 }

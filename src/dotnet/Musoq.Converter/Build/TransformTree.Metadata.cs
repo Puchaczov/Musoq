@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Musoq.Evaluator.Visitors;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
+using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Converter.Build;
 
@@ -18,8 +20,10 @@ public partial class TransformTree
         SemanticMetadataSnapshot metadata,
         SemanticScopeArtifact scopeArtifact,
         CteExecutionPlan? cteExecutionPlan,
-        IEnumerable<Diagnostic> diagnostics)
+        IEnumerable<Diagnostic> diagnostics,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var phase = new SemanticPhaseArtifacts
         {
             ParsedQuery = parsedQueryTree,
@@ -31,13 +35,22 @@ public partial class TransformTree
             Diagnostics = diagnostics.ToArray()
         };
 
+        var usedColumns = new Dictionary<SchemaFromNode, ISchemaColumn[]>();
+        foreach (var pair in metadata.UsedColumns)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            usedColumns[pair.Key] = pair.Value.ToArray();
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var pipelineInferredColumns = CreateAliasKeyedInferredColumns(metadata, cancellationToken);
+        var pipelineUsedColumns = CreateAliasKeyedUsedColumns(metadata, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         return new SemanticBuildArtifacts
         {
             Phase = phase,
             TransformedQueryTree = rewrittenQueryTree,
-            UsedColumns = metadata.UsedColumns.ToDictionary(
-                pair => pair.Key,
-                pair => pair.Value.ToArray()),
+            UsedColumns = usedColumns,
             UsedWhereNodes = metadata.UsedWhereNodes,
             SourcePlanRequestsPerSchema = metadata.SourcePlanRequestsPerSchema,
             SourceContractDiagnosticLocationsPerSchema = metadata.SourceContractDiagnosticLocationsPerSchema,
@@ -49,34 +62,22 @@ public partial class TransformTree
             HasDeclaredSourceRuntimeSettings = metadata.HasDeclaredSourceRuntimeSettings,
             HasSourceRuntimeSettingValues = metadata.HasSourceRuntimeSettingValues,
             ScopeArtifact = scopeArtifact,
-            PipelineInferredColumns = CreateAliasKeyedInferredColumns(metadata),
-            PipelineUsedColumns = CreateAliasKeyedUsedColumns(metadata),
+            PipelineInferredColumns = pipelineInferredColumns,
+            PipelineUsedColumns = pipelineUsedColumns,
             CteExecutionPlan = cteExecutionPlan
         };
     }
 
-    private BuildMetadataAndInferTypesVisitor CreateMetadataVisitor(
-        TransformPipelineContext context,
-        IReadOnlyDictionary<string, string[]> columns)
-    {
-        return context.CreateBuildMetadataAndInferTypesVisitor?.Invoke(
-            context.SchemaProvider, columns, context.CompilationOptions, context.SchemaRegistry, loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>()) ??
-               new BuildMetadataAndInferTypesVisitor(
-                   context.SchemaProvider,
-                   columns,
-                   loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(),
-                   context.DiagnosticContext,
-                   context.CompilationOptions,
-                   context.SchemaRegistry);
-    }
-
     private static Dictionary<string, ISchemaColumn[]> CreateAliasKeyedInferredColumns(
-        SemanticMetadataSnapshot metadata)
+        SemanticMetadataSnapshot metadata,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var aliasKeyedColumns = new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal);
 
         foreach (var inferredColumn in metadata.InferredColumns)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var alias = inferredColumn.Key.Alias;
 
             if (string.IsNullOrWhiteSpace(alias))
@@ -88,18 +89,25 @@ public partial class TransformTree
         }
 
         foreach (var aliasColumnsPair in metadata.InferredColumnsByAlias)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             aliasKeyedColumns[aliasColumnsPair.Key] = aliasColumnsPair.Value.ToArray();
+        }
 
+        cancellationToken.ThrowIfCancellationRequested();
         return aliasKeyedColumns;
     }
 
     private static Dictionary<string, IReadOnlySet<string>> CreateAliasKeyedUsedColumns(
-        SemanticMetadataSnapshot metadata)
+        SemanticMetadataSnapshot metadata,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var aliasKeyedUsed = new Dictionary<string, IReadOnlySet<string>>(StringComparer.Ordinal);
 
         foreach (var usedEntry in metadata.UsedColumns)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var alias = usedEntry.Key.Alias;
 
             if (string.IsNullOrWhiteSpace(alias))
@@ -107,11 +115,15 @@ public partial class TransformTree
 
             var names = new HashSet<string>(StringComparer.Ordinal);
             foreach (var column in usedEntry.Value)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
                 names.Add(column.ColumnName);
+            }
 
             aliasKeyedUsed[alias] = names;
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         return aliasKeyedUsed;
     }
 }

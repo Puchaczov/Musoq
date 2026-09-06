@@ -30,9 +30,10 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private ISchemaTable GetTableFromSchema(ISchema schema, SchemaFromNode schemaFrom)
     {
+        ThrowIfCancellationRequested();
         var metadataContext = new SourceMetadataContext(
             schemaFrom.QueryId.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            CancellationToken.None,
+            CancellationToken,
             GetColumnsForAlias(schemaFrom.Alias, _sourceBinding.SchemaFromKey),
             GetResolvedSourceRuntimeSettings(GetSourceContextIdForAlias(schemaFrom.Alias, schemaFrom.Id)),
             _logger
@@ -42,8 +43,10 @@ public partial class BuildMetadataAndInferTypesVisitor
             ? semanticSource.StaticMetadataArguments
             : SchemaArgumentBinder.BindStaticArguments(schemaFrom.Parameters);
 
-        return SchemaProviderBoundary.Invoke(() =>
+        var table = SchemaProviderBoundary.Invoke(() =>
             schema.GetTableByName(schemaFrom.Method, metadataContext, parameters));
+        ThrowIfCancellationRequested();
+        return table;
     }
 
     private void UpdateQueryAliasAndSymbolTable(PropertyFromNode node, ISchema schema, ISchemaTable table)
@@ -77,6 +80,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private bool TryResolveAsStandaloneFunction(AliasedFromNode node)
     {
+        ThrowIfCancellationRequested();
         var sourceAlias = _sourceBinding.QueryAlias;
 
         if (string.IsNullOrEmpty(sourceAlias))
@@ -88,6 +92,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (_sourceBinding.AliasToSchemaFromNodeMap.TryGetValue(sourceAlias, out var schemaFrom))
         {
             schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(schemaFrom.Schema));
+            ThrowIfCancellationRequested();
             var sourceSymbol = FindTableSymbolInScopeHierarchy(sourceAlias);
             sourceTable = sourceSymbol.FullTable;
         }
@@ -153,6 +158,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private DynamicTable? TurnTypeIntoTableWithDiagnostics(Type type, Node? node)
     {
+        ThrowIfCancellationRequested();
         var columns = new List<ISchemaColumn>();
 
         Type? nestedType;
@@ -171,7 +177,10 @@ public partial class BuildMetadataAndInferTypesVisitor
             return new DynamicTable([new SchemaColumn(nameof(PrimitiveTypeEntity<object>.Value), 0, nestedType)]);
 
         foreach (var property in nestedType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        {
+            ThrowIfCancellationRequested();
             columns.Add(new SchemaColumn(property.Name, columns.Count, property.PropertyType));
+        }
 
         return new DynamicTable(columns.ToArray(), nestedType);
     }
@@ -205,6 +214,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         foreach (var property in propertiesWithoutColumnType)
         {
+            ThrowIfCancellationRequested();
             var propertyInfo = type.GetProperty(property.PropertyName);
 
             if (propertyInfo == null)
@@ -232,6 +242,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         for (var i = 1; i < nodePropertiesChain.Length; i++)
         {
+            ThrowIfCancellationRequested();
             var property = nodePropertiesChain[i];
             var propertyInfo = rootType.GetProperty(property.PropertyName);
 
@@ -267,6 +278,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private ISchemaColumn[] GetColumnsForAlias(string alias, int schemaFromKey)
     {
+        ThrowIfCancellationRequested();
         var key = alias + schemaFromKey;
         if (_columns.TryGetValue(key, out var columnNames))
             return columnNames

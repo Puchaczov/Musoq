@@ -108,9 +108,11 @@ public sealed class GitSourceExecutionTests : GitExampleTestBase
             SourceExecutionPlan.Empty(SourceIdentity.Empty),
             (_, args) => phases.Add(args.Phase),
             cancellation.Token);
-        var source = new GitSchema().GetRowSource<GitCommitRow>(GitSchema.Commits, context);
-
-        Assert.Throws<OperationCanceledException>(() => source.Chunks.SelectMany(static chunk => chunk).ToArray());
+        Assert.Throws<OperationCanceledException>(() =>
+        {
+            var source = new GitSchema().GetRowSource<GitCommitRow>(GitSchema.Commits, context);
+            _ = source.Chunks.SelectMany(static chunk => chunk).ToArray();
+        });
 
         Assert.AreEqual(0, phases.Count);
     }

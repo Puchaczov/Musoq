@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -98,6 +100,38 @@ public sealed class CSharpClrRenderedQueryFinalizerTests
 
         StringAssert.Contains(exception.Message, nameof(CSharpClrFinalizationOptions));
         StringAssert.Contains(exception.Message, TargetFinalizationOptions.Empty.GetType().Name);
+    }
+
+    [TestMethod]
+    public void Finalize_WhenCancellationIsRequestedBeforeRoslynEmission_ShouldThrowOriginalCancellation()
+    {
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        var compilation = CreateValidCompilation();
+        var rendering = new RenderingBuildArtifacts(
+            new CSharpRenderedQueryArtifact(compilation, "FinalizerCancellation.CompiledQuery"));
+        var finalizer = ExecutionTargetCatalog.ResolveFinalizer(ExecutionTargetIds.CSharpClr);
+
+        var exception = Assert.Throws<OperationCanceledException>(
+            () => finalizer.Finalize(
+                rendering.Artifact,
+                new CSharpClrFinalizationOptions(false, cancellationToken: cancellation.Token)));
+
+        Assert.AreEqual(cancellation.Token, exception.CancellationToken);
+    }
+
+    [TestMethod]
+    public void ComputeGeneratedCodeHash_WhenCancellationIsRequested_ShouldThrowOriginalCancellation()
+    {
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        var exception = Assert.Throws<OperationCanceledException>(
+            () => CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(
+                CreateValidCompilation(),
+                cancellation.Token));
+
+        Assert.AreEqual(cancellation.Token, exception.CancellationToken);
     }
 
     [TestMethod]

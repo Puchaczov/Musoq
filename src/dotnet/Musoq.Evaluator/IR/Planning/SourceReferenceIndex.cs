@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Nodes;
 
@@ -11,8 +12,17 @@ internal sealed record SourceReferenceIndex(
 {
     public static SourceReferenceIndex Create(LogicalNode node)
     {
+        return Create(node, CancellationToken.None);
+    }
+
+    public static SourceReferenceIndex Create(
+        LogicalNode node,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         var references = new List<SourceReference>();
-        AddSourceReferences(node, references);
+        AddSourceReferences(node, references, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var byAlias = references
             .GroupBy(static source => source.Alias, StringComparer.OrdinalIgnoreCase)
@@ -21,6 +31,7 @@ internal sealed record SourceReferenceIndex(
                 static group => group.ToArray(),
                 StringComparer.OrdinalIgnoreCase);
 
+        cancellationToken.ThrowIfCancellationRequested();
         return new SourceReferenceIndex(references, byAlias);
     }
 
@@ -31,19 +42,37 @@ internal sealed record SourceReferenceIndex(
             : [];
     }
 
-    private static void AddSourceReferences(LogicalNode node, List<SourceReference> references)
+    private static void AddSourceReferences(
+        LogicalNode node,
+        List<SourceReference> references,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (node is SchemaScanNode scan)
-            references.Add(new SourceReference(scan.SourceContextId, scan.Alias, CreateOutputColumnSet(scan)));
+            references.Add(new SourceReference(
+                scan.SourceContextId,
+                scan.Alias,
+                CreateOutputColumnSet(scan, cancellationToken)));
 
         foreach (var child in node.Children)
-            AddSourceReferences(child, references);
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AddSourceReferences(child, references, cancellationToken);
+        }
     }
 
-    private static HashSet<string> CreateOutputColumnSet(SchemaScanNode scan)
+    private static HashSet<string> CreateOutputColumnSet(
+        SchemaScanNode scan,
+        CancellationToken cancellationToken)
     {
-        return scan.OutputSchema.Columns
-            .Select(static column => column.Name)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var column in scan.OutputSchema.Columns)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            columns.Add(column.Name);
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return columns;
     }
 }

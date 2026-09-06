@@ -9,10 +9,16 @@ internal static partial class RequiredColumnUsagePlanner
         private void AddUnpivotExpressions(UnpivotNode unpivot)
         {
             foreach (var keepField in unpivot.KeepFields)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
                 AddExpression(keepField.Expression, RequiredColumnUsageReason.Projection);
+            }
 
             foreach (var entry in unpivot.Entries)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
                 AddExpression(entry.Value, RequiredColumnUsageReason.Projection);
+            }
         }
     }
 }

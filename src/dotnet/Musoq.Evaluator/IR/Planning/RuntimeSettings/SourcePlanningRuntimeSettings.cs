@@ -17,7 +17,7 @@ internal static partial class SourcePlanningPlanner
             Identity = identity,
             SourceRuntimeSettings = ResolveSourceRuntimeSettings(context, scan),
             RequiredColumns = ResolveRequiredColumns(context, scan, requiredColumnUsagesBySourceId),
-            Predicate = ResolvePredicate(scan, sourcePredicatePlansBySourceId)
+            Predicate = ResolvePredicate(scan, sourcePredicatePlansBySourceId, context.CancellationToken)
         };
     }
 
@@ -25,6 +25,7 @@ internal static partial class SourcePlanningPlanner
         PlanningContext context,
         SchemaScanNode scan)
     {
+        context.CancellationToken.ThrowIfCancellationRequested();
         var sourceNode = ResolveSourceNode(context, scan);
         if (sourceNode != null &&
             context.SourcePlanRequestsBySource.TryGetValue(sourceNode, out var sourceRequest))
@@ -34,6 +35,7 @@ internal static partial class SourcePlanningPlanner
 
         foreach (var entry in context.SourcePlanRequestsBySource)
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
             if (string.Equals(entry.Key.Id, scan.SourceContextId, StringComparison.Ordinal))
                 return entry.Value.SourceRuntimeSettings;
         }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Schema;
@@ -19,32 +20,51 @@ internal sealed record TargetArtifactSemanticFacts
         IReadOnlyList<ScriptVariableDefinition>? scriptVariableDefinitions,
         IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>? usedColumns,
         IReadOnlyDictionary<string, ISchemaColumn[]>? pipelineInferredColumns,
-        IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest>? sourcePlanRequestsPerSchema)
+        IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest>? sourcePlanRequestsPerSchema,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         QueryResultMode = queryResultMode;
         OutputType = outputType;
-        ScriptParameterDefinitions = Freeze(scriptParameterDefinitions);
-        ScriptVariableDefinitions = Freeze(scriptVariableDefinitions);
-        UsedColumns = FreezeSchemaColumnsBySource(usedColumns);
+        ScriptParameterDefinitions = Freeze(scriptParameterDefinitions, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        ScriptVariableDefinitions = Freeze(scriptVariableDefinitions, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        UsedColumns = FreezeSchemaColumnsBySource(usedColumns, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         PipelineInferredColumns = pipelineInferredColumns is null
             ? null
-            : FreezeSchemaColumnsByAlias(pipelineInferredColumns);
-        SourcePlanRequestsPerSchema = FreezeDictionary(sourcePlanRequestsPerSchema);
+            : FreezeSchemaColumnsByAlias(pipelineInferredColumns, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        SourcePlanRequestsPerSchema = FreezeSourcePlanRequests(sourcePlanRequestsPerSchema, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         PortableOutputTypeName = FormatTypeName(outputType);
-        PortableScriptParameters = Freeze(scriptParameterDefinitions?.Select(CreateParameterFact));
-        PortableScriptVariables = Freeze(scriptVariableDefinitions?.Select(CreateVariableFact));
-        PortableUsedColumns = Freeze((usedColumns ?? new Dictionary<SchemaFromNode, ISchemaColumn[]>())
-            .Select(static entry => new TargetArtifactSourceColumnsFact(
+        PortableScriptParameters = Freeze(
+            scriptParameterDefinitions?.Select(CreateParameterFact),
+            cancellationToken);
+        PortableScriptVariables = Freeze(
+            scriptVariableDefinitions?.Select(CreateVariableFact),
+            cancellationToken);
+        PortableUsedColumns = Freeze(
+            (usedColumns ?? new Dictionary<SchemaFromNode, ISchemaColumn[]>())
+            .Select(entry => new TargetArtifactSourceColumnsFact(
                 CreateSourceFact(entry.Key),
-                Freeze(entry.Value.Select(CreateColumnFact)))));
+                Freeze(entry.Value.Select(CreateColumnFact), cancellationToken))),
+            cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         PortablePipelineInferredColumns = pipelineInferredColumns is null
             ? null
             : Freeze(pipelineInferredColumns
-                .Select(static entry => new TargetArtifactAliasColumnsFact(
+                .Select(entry => new TargetArtifactAliasColumnsFact(
                     entry.Key,
-                    Freeze(entry.Value.Select(CreateColumnFact)))));
-        PortableSourcePlanSignatures = Freeze((sourcePlanRequestsPerSchema ?? new Dictionary<SchemaFromNode, SourcePlanRequest>())
-            .Select(static entry => CreateSourcePlanFact(entry.Key, entry.Value)));
+                    Freeze(entry.Value.Select(CreateColumnFact), cancellationToken))),
+                cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        PortableSourcePlanSignatures = Freeze(
+            (sourcePlanRequestsPerSchema ?? new Dictionary<SchemaFromNode, SourcePlanRequest>())
+            .Select(entry => CreateSourcePlanFact(entry.Key, entry.Value, cancellationToken)),
+            cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
     }
 
     public QueryResultMode QueryResultMode { get; }
@@ -82,9 +102,21 @@ internal sealed record TargetArtifactSemanticFacts
         null,
         new Dictionary<SchemaFromNode, SourcePlanRequest>());
 
-    private static IReadOnlyList<T> Freeze<T>(IEnumerable<T>? values)
+    private static IReadOnlyList<T> Freeze<T>(
+        IEnumerable<T>? values,
+        CancellationToken cancellationToken)
     {
-        return Array.AsReadOnly(values?.ToArray() ?? []);
+        if (values is null)
+            return Array.AsReadOnly(Array.Empty<T>());
+
+        var frozen = new List<T>();
+        foreach (var value in values)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            frozen.Add(value);
+        }
+
+        return Array.AsReadOnly(frozen.ToArray());
     }
 
     private static TargetArtifactScriptParameterFact CreateParameterFact(
@@ -149,27 +181,43 @@ internal sealed record TargetArtifactSemanticFacts
 
     private static TargetArtifactSourcePlanFact CreateSourcePlanFact(
         SchemaFromNode source,
-        SourcePlanRequest request)
+        SourcePlanRequest request,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         return new TargetArtifactSourcePlanFact(
             CreateSourceFact(source),
             request.Identity.SchemaName,
             request.Identity.MethodName,
             request.Identity.SourceContextId,
             request.Identity.Alias,
-            Freeze(request.RequiredColumns.Select(CreateSourceColumnRefFact)),
-            Freeze(request.OrderBy.Select(CreateOrderByFact)),
+            Freeze(request.RequiredColumns.Select(CreateSourceColumnRefFact), cancellationToken),
+            Freeze(request.OrderBy.Select(CreateOrderByFact), cancellationToken),
             request.Skip?.ToString(CultureInfo.InvariantCulture) ?? "<null>",
             request.Take?.ToString(CultureInfo.InvariantCulture) ?? "<null>",
             FormatTypeName(request.Predicate?.GetType()) ?? "<null>")
         {
-            RequestedComputedProjectionFingerprints = request.RequestedComputedProjections
-                .OrderBy(static projection => projection.Name, StringComparer.Ordinal)
-                .Select(static projection =>
-                    $"{projection.Name}:{SourceScalarExpressionFingerprint.Compute(projection.Expression)}:{projection.Stability}")
-                .ToArray(),
+            RequestedComputedProjectionFingerprints = CreateComputedProjectionFingerprints(
+                request,
+                cancellationToken),
             Replayability = request.Replayability
         };
+    }
+
+    private static IReadOnlyList<string> CreateComputedProjectionFingerprints(
+        SourcePlanRequest request,
+        CancellationToken cancellationToken)
+    {
+        var fingerprints = new List<string>(request.RequestedComputedProjections.Count);
+        foreach (var projection in request.RequestedComputedProjections
+                     .OrderBy(static projection => projection.Name, StringComparer.Ordinal))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            fingerprints.Add(
+                $"{projection.Name}:{SourceScalarExpressionFingerprint.Compute(projection.Expression)}:{projection.Stability}");
+        }
+
+        return fingerprints;
     }
 
     private static string? FormatTypeName(Type? type)
@@ -187,25 +235,52 @@ internal sealed record TargetArtifactSemanticFacts
                 : new Dictionary<TKey, TValue>(values));
     }
 
-    private static IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> FreezeSchemaColumnsBySource(
-        IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>? values)
+    private static IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest> FreezeSourcePlanRequests(
+        IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest>? values,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        var frozen = new Dictionary<SchemaFromNode, SourcePlanRequest>();
+        foreach (var entry in values ?? new Dictionary<SchemaFromNode, SourcePlanRequest>())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            frozen.Add(entry.Key, entry.Value with { CancellationToken = CancellationToken.None });
+        }
+
+        return new ReadOnlyDictionary<SchemaFromNode, SourcePlanRequest>(
+            frozen);
+    }
+
+    private static IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> FreezeSchemaColumnsBySource(
+        IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>? values,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var frozen = new Dictionary<SchemaFromNode, ISchemaColumn[]>();
+        foreach (var entry in values ?? new Dictionary<SchemaFromNode, ISchemaColumn[]>())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            frozen.Add(entry.Key, entry.Value.ToArray());
+        }
+
         return new ReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>(
-            values is null
-                ? new Dictionary<SchemaFromNode, ISchemaColumn[]>()
-                : values.ToDictionary(
-                    static entry => entry.Key,
-                    static entry => entry.Value.ToArray()));
+            frozen);
     }
 
     private static IReadOnlyDictionary<string, ISchemaColumn[]> FreezeSchemaColumnsByAlias(
-        IReadOnlyDictionary<string, ISchemaColumn[]> values)
+        IReadOnlyDictionary<string, ISchemaColumn[]> values,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        var frozen = new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal);
+        foreach (var entry in values)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            frozen.Add(entry.Key, entry.Value.ToArray());
+        }
+
         return new ReadOnlyDictionary<string, ISchemaColumn[]>(
-            values.ToDictionary(
-                static entry => entry.Key,
-                static entry => entry.Value.ToArray(),
-                StringComparer.Ordinal));
+            frozen);
     }
 }
 

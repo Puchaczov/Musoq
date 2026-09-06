@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using Musoq.Parser.Nodes;
@@ -9,6 +11,22 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers.CteDependencyGraph;
 [TestClass]
 public class CteParallelizationAnalyzerTests
 {
+    [TestMethod]
+    public void CreatePlan_WhenPreCancelled_ShouldThrowOriginalCancellation()
+    {
+        var cte = new CteInnerExpressionNode(new IntegerNode("1"), "cte");
+        var expression = new CteExpressionNode(
+            [cte],
+            new InMemoryTableFromNode("cte", "c", typeof(object)));
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        var exception = Assert.Throws<OperationCanceledException>(() =>
+            CteParallelizationAnalyzer.CreatePlan(expression, cancellation.Token));
+
+        Assert.AreEqual(cancellation.Token, exception.CancellationToken);
+    }
+
     #region GetExecutionLevelNames Tests
 
     [TestMethod]

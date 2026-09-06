@@ -52,7 +52,8 @@ public static partial class InstanceCreator
             assemblyName,
             schemaProvider,
             loggerResolver,
-            compilationOptions);
+            compilationOptions,
+            token);
 
         return query.Run(token);
     }
@@ -63,7 +64,29 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver)
     {
-        return CompileForExplainAnalyze(script, assemblyName, schemaProvider, loggerResolver, null);
+        return CompileForExplainAnalyze(
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            null,
+            CancellationToken.None);
+    }
+
+    public static CompiledExplainAnalyzeQuery CompileForExplainAnalyze(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken)
+    {
+        return CompileForExplainAnalyze(
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            null,
+            cancellationToken);
     }
 
     public static CompiledExplainAnalyzeQuery CompileForExplainAnalyze(
@@ -73,6 +96,24 @@ public static partial class InstanceCreator
         ILoggerResolver loggerResolver,
         CompilationOptions? compilationOptions)
     {
+        return CompileForExplainAnalyze(
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            compilationOptions,
+            CancellationToken.None);
+    }
+
+    public static CompiledExplainAnalyzeQuery CompileForExplainAnalyze(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions? compilationOptions,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         var options = CreateExplainAnalyzeCompilationOptions(compilationOptions);
         var build = CompileWithDiagnostics(
             script,
@@ -80,7 +121,8 @@ public static partial class InstanceCreator
             schemaProvider,
             loggerResolver,
             options,
-            requireExecutionPlan: true);
+            requireExecutionPlan: true,
+            cancellationToken);
 
         if (!build.Succeeded)
         {

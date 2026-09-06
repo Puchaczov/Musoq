@@ -98,13 +98,16 @@ internal static partial class RequiredColumnUsagePlanner
 
             foreach (var item in _usagesBySourceId.OrderBy(static item => item.Key, StringComparer.Ordinal))
             {
+                _cancellationToken.ThrowIfCancellationRequested();
                 result[item.Key] = item.Value.Values
                     .OrderBy(static usage => usage.ColumnName, StringComparer.OrdinalIgnoreCase)
                     .ThenBy(static usage => usage.UsageReason.ToString(), StringComparer.Ordinal)
                     .ThenBy(static usage => usage.Alias, StringComparer.OrdinalIgnoreCase)
                     .ToArray();
+                _cancellationToken.ThrowIfCancellationRequested();
             }
 
+            _cancellationToken.ThrowIfCancellationRequested();
             return result;
         }
 
@@ -114,9 +117,11 @@ internal static partial class RequiredColumnUsagePlanner
 
             foreach (var item in _requiredColumnsByAlias.OrderBy(static item => item.Key, StringComparer.OrdinalIgnoreCase))
             {
+                _cancellationToken.ThrowIfCancellationRequested();
                 result[item.Key] = new HashSet<string>(item.Value, StringComparer.OrdinalIgnoreCase);
             }
 
+            _cancellationToken.ThrowIfCancellationRequested();
             return result;
         }
 
@@ -127,6 +132,7 @@ internal static partial class RequiredColumnUsagePlanner
 
             foreach (var source in _sources.All.OrderBy(static source => source.SourceContextId, StringComparer.Ordinal))
             {
+                _cancellationToken.ThrowIfCancellationRequested();
                 if (string.IsNullOrWhiteSpace(source.SourceContextId))
                     continue;
 
@@ -141,6 +147,7 @@ internal static partial class RequiredColumnUsagePlanner
                     CreateDecisionReason(source, usageCount)));
             }
 
+            _cancellationToken.ThrowIfCancellationRequested();
             return decisions;
         }
 

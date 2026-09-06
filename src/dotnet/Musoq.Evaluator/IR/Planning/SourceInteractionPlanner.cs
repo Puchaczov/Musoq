@@ -19,9 +19,9 @@ internal static partial class SourceInteractionPlanner
         var plans = new Dictionary<string, SourceInteractionPlan>(StringComparer.Ordinal);
         var boundaryPlanningResult = SourceBoundaryPlanner.Plan(context.LogicalPlan);
         var decisions = new List<PlanningDecision>();
-
         foreach (var scan in scans)
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
             if (string.IsNullOrWhiteSpace(scan.SourceContextId))
                 continue;
 

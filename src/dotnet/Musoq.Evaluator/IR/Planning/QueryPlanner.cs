@@ -9,8 +9,11 @@ internal sealed class QueryPlanner
     public PlanningResult Plan(PlanningContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
+        context.CancellationToken.ThrowIfCancellationRequested();
         var propertyResult = PlanningPropertyDeriver.Derive(context);
+        context.CancellationToken.ThrowIfCancellationRequested();
         var sourceTransferResult = SourceTransferPlanner.Plan(context, propertyResult.Facts.SourcePlanning);
+        context.CancellationToken.ThrowIfCancellationRequested();
         var decisions = new List<PlanningDecision>(propertyResult.Decisions)
         {
             new(
@@ -28,15 +31,25 @@ internal sealed class QueryPlanner
             propertyResult.Facts,
             context.ShapeResolver,
             sourceTransferResult.PlansBySourceId);
+        context.CancellationToken.ThrowIfCancellationRequested();
         var physicalPlanningArtifacts = physicalPlanningResult.Artifacts;
         decisions.AddRange(physicalPlanningArtifacts.Decisions);
         var physicalPlan = physicalPlanningArtifacts.OptimizedPhysicalPlan;
         var sourceRewrittenFacts = physicalPlanningArtifacts.OptimizedFacts;
+        context.CancellationToken.ThrowIfCancellationRequested();
         decisions.AddRange(SubqueryLoweringStrategyPlanner.Plan(physicalPlan).Decisions);
+        context.CancellationToken.ThrowIfCancellationRequested();
         var rowShapePlanningResult = BoundaryRowShapePlanner.Plan(physicalPlan, sourceRewrittenFacts.RequiredColumns);
+        context.CancellationToken.ThrowIfCancellationRequested();
         var requiredColumnBoundaryResult = RequiredColumnBoundaryPlanner.Plan(physicalPlan, rowShapePlanningResult.Plans);
+        context.CancellationToken.ThrowIfCancellationRequested();
         var rowWidthPruningResult = RowWidthPruningPlanner.Plan(rowShapePlanningResult.Plans);
-        var cardinalityFactResult = CardinalityFactPlanner.Plan(physicalPlan, sourceRewrittenFacts.SourcePlanning);
+        context.CancellationToken.ThrowIfCancellationRequested();
+        var cardinalityFactResult = CardinalityFactPlanner.Plan(
+            physicalPlan,
+            sourceRewrittenFacts.SourcePlanning,
+            context.CancellationToken);
+        context.CancellationToken.ThrowIfCancellationRequested();
         var planFacts = sourceRewrittenFacts with
         {
             RequiredColumns = sourceRewrittenFacts.RequiredColumns with
@@ -58,6 +71,7 @@ internal sealed class QueryPlanner
             context.CompilationOptions,
             context.CteExecutionPlan,
             context.ShapeResolver);
+        context.CancellationToken.ThrowIfCancellationRequested();
         var executionStrategies = executionStrategyResult.Strategies
             .WithSourceBoundaryStrategies(planFacts.SourcePlanning.SourceBoundaryStrategyPlans)
             .WithRowWidthPruningPlans(rowWidthPruningResult.Plans)
@@ -69,6 +83,7 @@ internal sealed class QueryPlanner
             sourceTransferResult.PlansBySourceId);
         decisions.AddRange(executionPlanningArtifacts.Decisions);
         decisions.AddRange(MaterializationPlanner.Plan(physicalPlan, executionPlanningArtifacts.ExecutionStrategies));
+        context.CancellationToken.ThrowIfCancellationRequested();
 
         return new PlanningResult(
             context.LogicalArtifacts,

@@ -44,7 +44,7 @@ public static partial class InstanceCreator
         CompilationOptions? compilationOptions,
         CancellationToken token)
     {
-        return CompileForProfile(script, assemblyName, schemaProvider, loggerResolver, compilationOptions)
+        return CompileForProfile(script, assemblyName, schemaProvider, loggerResolver, compilationOptions, token)
             .RunWithProfile(token);
     }
 
@@ -54,7 +54,17 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver)
     {
-        return CompileForProfile(script, assemblyName, schemaProvider, loggerResolver, null);
+        return CompileForProfile(script, assemblyName, schemaProvider, loggerResolver, null, CancellationToken.None);
+    }
+
+    public static CompiledQuery CompileForProfile(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken)
+    {
+        return CompileForProfile(script, assemblyName, schemaProvider, loggerResolver, null, cancellationToken);
     }
 
     public static CompiledQuery CompileForProfile(
@@ -64,12 +74,30 @@ public static partial class InstanceCreator
         ILoggerResolver loggerResolver,
         CompilationOptions? compilationOptions)
     {
+        return CompileForProfile(
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            compilationOptions,
+            CancellationToken.None);
+    }
+
+    public static CompiledQuery CompileForProfile(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions? compilationOptions,
+        CancellationToken cancellationToken)
+    {
         return CompileForExecution(
             script,
             assemblyName,
             schemaProvider,
             loggerResolver,
-            CreateProfileCompilationOptions(compilationOptions));
+            CreateProfileCompilationOptions(compilationOptions),
+            cancellationToken);
     }
 
     private static CompilationOptions CreateProfileCompilationOptions(CompilationOptions? compilationOptions)

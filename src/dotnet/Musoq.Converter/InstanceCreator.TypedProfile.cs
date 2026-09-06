@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Musoq.Evaluator;
 using Musoq.Schema;
 
@@ -17,7 +18,24 @@ public static partial class InstanceCreator
             assemblyName,
             schemaProvider,
             loggerResolver,
-            null);
+            null,
+            CancellationToken.None);
+    }
+
+    public static CompiledTypedProfileQuery<TOut> CompileForTypedProfile<TOut>(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken)
+    {
+        return CompileForTypedProfile<TOut>(
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            null,
+            cancellationToken);
     }
 
     public static CompiledTypedProfileQuery<TOut> CompileForTypedProfile<TOut>(
@@ -33,7 +51,25 @@ public static partial class InstanceCreator
             schemaProvider,
             loggerResolver,
             compilationOptions,
-            []);
+            CancellationToken.None);
+    }
+
+    public static CompiledTypedProfileQuery<TOut> CompileForTypedProfile<TOut>(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions? compilationOptions,
+        CancellationToken cancellationToken)
+    {
+        return CompileForTypedProfile<TOut>(
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            compilationOptions,
+            [],
+            cancellationToken);
     }
 
     internal static CompiledTypedProfileQuery<TOut> CompileForTypedProfile<TOut>(
@@ -42,7 +78,8 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
         CompilationOptions? compilationOptions,
-        IReadOnlyList<Type> additionalReferenceTypes)
+        IReadOnlyList<Type> additionalReferenceTypes,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(additionalReferenceTypes);
 
@@ -52,9 +89,12 @@ public static partial class InstanceCreator
             schemaProvider,
             loggerResolver,
             compilationOptions,
-            additionalReferenceTypes);
+            additionalReferenceTypes,
+            cancellationToken);
 
-        return factory.Create(schemaProvider);
+        var result = factory.Create(schemaProvider);
+        cancellationToken.ThrowIfCancellationRequested();
+        return result;
     }
 
     private static CompilationOptions CreateTypedProfileCompilationOptions(CompilationOptions? compilationOptions)

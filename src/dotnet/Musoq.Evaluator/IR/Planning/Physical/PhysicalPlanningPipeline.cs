@@ -16,13 +16,17 @@ internal sealed class PhysicalPlanningPipeline
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(initialFacts);
+        context.CancellationToken.ThrowIfCancellationRequested();
 
         var initialProperties = initialFacts.ToPlanProperties();
         var decisions = new List<PlanningDecision>();
+        context.CancellationToken.ThrowIfCancellationRequested();
         var strategyResult = PhysicalStrategyPlanner.Plan(
             context.LogicalPlan,
             context.CompilationOptions,
-            initialProperties.SourcePlanning.SourcePlanResultsBySourceId);
+            initialProperties.SourcePlanning.SourcePlanResultsBySourceId,
+            context.CancellationToken);
+        context.CancellationToken.ThrowIfCancellationRequested();
         decisions.AddRange(strategyResult.Decisions);
 
         var initialPhysicalPlan = BuildInitialPhysicalPlan(
@@ -30,18 +34,26 @@ internal sealed class PhysicalPlanningPipeline
             initialFacts.PhysicalStrategies,
             strategyResult.Strategies,
             sourceTransferPlans);
-        var initialCardinalityFacts = CardinalityFactPlanner.Plan(initialPhysicalPlan, initialFacts.SourcePlanning);
+        context.CancellationToken.ThrowIfCancellationRequested();
+        var initialCardinalityFacts = CardinalityFactPlanner.Plan(
+            initialPhysicalPlan,
+            initialFacts.SourcePlanning,
+            context.CancellationToken);
+        context.CancellationToken.ThrowIfCancellationRequested();
         var propertiesWithCardinalityFacts = initialProperties with
         {
             CardinalityFacts = initialCardinalityFacts.Facts
         };
+        context.CancellationToken.ThrowIfCancellationRequested();
         var optimizationResult = new PhysicalOptimizer().Optimize(
             initialPhysicalPlan,
             propertiesWithCardinalityFacts,
             context.CompilationOptions,
             shapeResolver);
+        context.CancellationToken.ThrowIfCancellationRequested();
         decisions.AddRange(optimizationResult.Decisions);
 
+        context.CancellationToken.ThrowIfCancellationRequested();
         return new PhysicalPlanningPipelineResult(
             new PhysicalPlanningArtifacts(
                 optimizationResult.InitialPlan,
@@ -57,12 +69,15 @@ internal sealed class PhysicalPlanningPipeline
         PhysicalStrategyPlan strategyPlan,
         IReadOnlyDictionary<string, SourceTransferStrategyPlan>? sourceTransferPlans)
     {
+        context.CancellationToken.ThrowIfCancellationRequested();
         var physicalBuilder = new PhysicalPlanBuilder(
             physicalStrategies.PredicateMovementPlans,
             strategyPlan,
             sourceTransferPlans,
             physicalStrategies.ApplyPredicateMovementPlans);
 
-        return physicalBuilder.Lower(context.LogicalPlan);
+        var result = physicalBuilder.Lower(context.LogicalPlan);
+        context.CancellationToken.ThrowIfCancellationRequested();
+        return result;
     }
 }

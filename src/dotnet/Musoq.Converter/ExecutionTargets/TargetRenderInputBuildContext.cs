@@ -1,3 +1,4 @@
+using System.Threading;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
 
@@ -14,7 +15,31 @@ internal sealed record TargetRenderInputBuildContext
         TargetRenderPurpose purpose,
         TargetRenderProfile profile,
         TargetRenderInputCompilerState compilerState)
+        : this(
+            CancellationToken.None,
+            compilationOptions,
+            queryResultMode,
+            scriptBinding,
+            references,
+            options,
+            purpose,
+            profile,
+            compilerState)
     {
+    }
+
+    public TargetRenderInputBuildContext(
+        CancellationToken cancellationToken,
+        CompilationOptions compilationOptions,
+        QueryResultMode queryResultMode,
+        TargetScriptBindingContract scriptBinding,
+        TargetReferenceInventory references,
+        TargetRenderOptions options,
+        TargetRenderPurpose purpose,
+        TargetRenderProfile profile,
+        TargetRenderInputCompilerState compilerState)
+    {
+        CancellationToken = cancellationToken;
         CompilationOptions = compilationOptions ?? throw new ArgumentNullException(nameof(compilationOptions));
         QueryResultMode = queryResultMode;
         ScriptBinding = scriptBinding ?? TargetScriptBindingContract.Empty;
@@ -24,6 +49,8 @@ internal sealed record TargetRenderInputBuildContext
         Profile = profile;
         CompilerState = compilerState ?? throw new ArgumentNullException(nameof(compilerState));
     }
+
+    public CancellationToken CancellationToken { get; }
 
     public CompilationOptions CompilationOptions { get; }
 

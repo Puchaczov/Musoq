@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 
 namespace Musoq.Targets.Execution;
 
@@ -19,8 +20,10 @@ internal sealed record TargetArtifactPackage
         TargetRuntimeServiceRequirements? runtimeServices = null,
         TargetHostAbiInventory? hostAbiInventory = null,
         int executionIrVersion = TargetContractVersions.ExecutionIr,
-        int packageFormatVersion = TargetContractVersions.PackageFormat)
+        int packageFormatVersion = TargetContractVersions.PackageFormat,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (executionIrVersion <= 0)
             throw new ArgumentOutOfRangeException(nameof(executionIrVersion));
         if (packageFormatVersion <= 0)
@@ -32,15 +35,18 @@ internal sealed record TargetArtifactPackage
         SemanticsContract = semanticsContract ?? throw new ArgumentNullException(nameof(semanticsContract));
         ExecutionIrVersion = executionIrVersion;
         PackageFormatVersion = packageFormatVersion;
-        Metadata = FreezeDictionary(metadata);
-        SourceFiles = Freeze(sourceFiles);
-        BinaryBlobs = Freeze(binaryBlobs);
-        Entrypoints = Freeze(entrypoints);
-        ValidateArtifactPaths(SourceFiles, BinaryBlobs);
-        ValidateEntrypoints(Entrypoints);
+        Metadata = FreezeDictionary(metadata, cancellationToken);
+        SourceFiles = Freeze(sourceFiles, cancellationToken);
+        BinaryBlobs = Freeze(binaryBlobs, cancellationToken);
+        Entrypoints = Freeze(entrypoints, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidateArtifactPaths(SourceFiles, BinaryBlobs, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidateEntrypoints(Entrypoints, cancellationToken);
         RuntimeServices = runtimeServices ?? TargetRuntimeServiceRequirements.Empty;
         HostAbiInventory = hostAbiInventory ?? TargetHostAbiInventory.Empty;
         HostAbiInventory.ValidateRuntimeServices(RuntimeServices);
+        cancellationToken.ThrowIfCancellationRequested();
     }
 
     public ExecutionTargetId TargetId { get; }
@@ -83,6 +89,38 @@ internal sealed record TargetArtifactPackage
         int executionIrVersion = TargetContractVersions.ExecutionIr,
         int packageFormatVersion = TargetContractVersions.PackageFormat)
     {
+        return CreateValidated(
+            targetId,
+            artifactKind,
+            executableArtifactKind,
+            semanticsContract,
+            metadata,
+            sourceFiles,
+            binaryBlobs,
+            entrypoints,
+            runtimeServices,
+            hostAbiInventory,
+            executionIrVersion,
+            packageFormatVersion,
+            CancellationToken.None);
+    }
+
+    public static TargetArtifactPackage CreateValidated(
+        ExecutionTargetId targetId,
+        string artifactKind,
+        string executableArtifactKind,
+        ExecutionSemanticsContract semanticsContract,
+        IReadOnlyDictionary<string, string>? metadata,
+        IEnumerable<TargetExportSourceFile>? sourceFiles,
+        IEnumerable<TargetExportBinaryBlob>? binaryBlobs,
+        IEnumerable<TargetRuntimeEntrypoint>? entrypoints,
+        TargetRuntimeServiceRequirements? runtimeServices,
+        TargetHostAbiInventory? hostAbiInventory,
+        int executionIrVersion,
+        int packageFormatVersion,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(targetId.Value))
             throw new ArgumentException("Target artifact package must declare a target id.", nameof(targetId));
 
@@ -98,7 +136,8 @@ internal sealed record TargetArtifactPackage
             runtimeServices,
             hostAbiInventory,
             executionIrVersion,
-            packageFormatVersion);
+            packageFormatVersion,
+            cancellationToken);
     }
 
     public static TargetArtifactPackage CreatePortableExportPackage(
@@ -110,6 +149,28 @@ internal sealed record TargetArtifactPackage
         int executionIrVersion = TargetContractVersions.ExecutionIr,
         int packageFormatVersion = TargetContractVersions.PackageFormat)
     {
+        return CreatePortableExportPackage(
+            targetId,
+            artifactKind,
+            exportArtifact,
+            semanticsContract,
+            metadata,
+            executionIrVersion,
+            packageFormatVersion,
+            CancellationToken.None);
+    }
+
+    public static TargetArtifactPackage CreatePortableExportPackage(
+        ExecutionTargetId targetId,
+        string artifactKind,
+        TargetExportArtifact exportArtifact,
+        ExecutionSemanticsContract semanticsContract,
+        IReadOnlyDictionary<string, string>? metadata,
+        int executionIrVersion,
+        int packageFormatVersion,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(exportArtifact);
 
         if (exportArtifact.TargetId != targetId)
@@ -121,7 +182,7 @@ internal sealed record TargetArtifactPackage
         if (exportArtifact.SourceFiles.Count == 0 && exportArtifact.BinaryBlobs.Count == 0)
             throw new InvalidOperationException("Portable export package must include at least one source file or binary blob.");
 
-        RequireQueryEntrypoint(exportArtifact.Entrypoints, "Portable export package");
+        RequireQueryEntrypoint(exportArtifact.Entrypoints, "Portable export package", cancellationToken);
 
         return CreateValidated(
             targetId,
@@ -135,21 +196,44 @@ internal sealed record TargetArtifactPackage
             exportArtifact.RuntimeServices,
             exportArtifact.HostAbiInventory,
             executionIrVersion,
-            packageFormatVersion);
+            packageFormatVersion,
+            cancellationToken);
     }
 
-    private static IReadOnlyList<T> Freeze<T>(IEnumerable<T>? values)
+    private static IReadOnlyList<T> Freeze<T>(
+        IEnumerable<T>? values,
+        CancellationToken cancellationToken)
     {
-        return Array.AsReadOnly(values?.ToArray() ?? []);
+        if (values is null)
+            return Array.AsReadOnly(Array.Empty<T>());
+
+        var frozen = new List<T>();
+        foreach (var value in values)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            frozen.Add(value);
+        }
+
+        return Array.AsReadOnly(frozen.ToArray());
     }
 
     private static IReadOnlyDictionary<string, string> FreezeDictionary(
-        IReadOnlyDictionary<string, string>? metadata)
+        IReadOnlyDictionary<string, string>? metadata,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        var frozen = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (metadata is not null)
+        {
+            foreach (var entry in metadata)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                frozen.Add(entry.Key, entry.Value);
+            }
+        }
+
         return new ReadOnlyDictionary<string, string>(
-            metadata is null
-                ? new Dictionary<string, string>(StringComparer.Ordinal)
-                : new Dictionary<string, string>(metadata, StringComparer.Ordinal));
+            frozen);
     }
 
     private static string RequireText(string value, string parameterName)
@@ -161,23 +245,32 @@ internal sealed record TargetArtifactPackage
 
     private static void RequireQueryEntrypoint(
         IReadOnlyList<TargetRuntimeEntrypoint> entrypoints,
-        string packageLabel)
+        string packageLabel,
+        CancellationToken cancellationToken)
     {
-        if (!entrypoints.Any(static entrypoint =>
-                entrypoint.Kind is TargetRuntimeEntrypointKind.TableQuery or TargetRuntimeEntrypointKind.TypedQuery &&
-                !string.IsNullOrWhiteSpace(entrypoint.SymbolName)))
+        cancellationToken.ThrowIfCancellationRequested();
+        foreach (var entrypoint in entrypoints)
         {
-            throw new InvalidOperationException(
-                $"{packageLabel} must include a table-query or typed-query entrypoint with a symbol name.");
+            cancellationToken.ThrowIfCancellationRequested();
+            if (entrypoint.Kind is TargetRuntimeEntrypointKind.TableQuery or TargetRuntimeEntrypointKind.TypedQuery &&
+                !string.IsNullOrWhiteSpace(entrypoint.SymbolName))
+                return;
         }
+
+        throw new InvalidOperationException(
+            $"{packageLabel} must include a table-query or typed-query entrypoint with a symbol name.");
     }
 
     private static void ValidateArtifactPaths(
         IReadOnlyList<TargetExportSourceFile> sourceFiles,
-        IReadOnlyList<TargetExportBinaryBlob> binaryBlobs)
+        IReadOnlyList<TargetExportBinaryBlob> binaryBlobs,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         TargetArtifactPath.RequireUnique(sourceFiles, static file => file.Path, "Source file");
+        cancellationToken.ThrowIfCancellationRequested();
         TargetArtifactPath.RequireUnique(binaryBlobs, static blob => blob.Name, "Binary blob");
+        cancellationToken.ThrowIfCancellationRequested();
         var duplicate = sourceFiles.Select(static file => file.Path)
             .Intersect(binaryBlobs.Select(static blob => blob.Name), StringComparer.Ordinal)
             .FirstOrDefault();
@@ -185,19 +278,26 @@ internal sealed record TargetArtifactPackage
             throw new ArgumentException($"Package path '{duplicate}' is used by both a source file and binary blob.");
     }
 
-    private static void ValidateEntrypoints(IReadOnlyList<TargetRuntimeEntrypoint> entrypoints)
+    private static void ValidateEntrypoints(
+        IReadOnlyList<TargetRuntimeEntrypoint> entrypoints,
+        CancellationToken cancellationToken)
     {
-        RequireUnique(entrypoints, static entrypoint => entrypoint.Name, "name");
-        RequireUnique(entrypoints, static entrypoint => entrypoint.SymbolName, "symbol");
+        cancellationToken.ThrowIfCancellationRequested();
+        RequireUnique(entrypoints, static entrypoint => entrypoint.Name, "name", cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        RequireUnique(entrypoints, static entrypoint => entrypoint.SymbolName, "symbol", cancellationToken);
     }
 
     private static void RequireUnique(
         IEnumerable<TargetRuntimeEntrypoint> entrypoints,
         Func<TargetRuntimeEntrypoint, string> selector,
-        string label)
+        string label,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var duplicate = entrypoints.GroupBy(selector, StringComparer.Ordinal)
             .FirstOrDefault(static group => group.Count() > 1);
+        cancellationToken.ThrowIfCancellationRequested();
         if (duplicate != null)
             throw new ArgumentException($"Runtime entrypoint {label} '{duplicate.Key}' is duplicated.");
     }

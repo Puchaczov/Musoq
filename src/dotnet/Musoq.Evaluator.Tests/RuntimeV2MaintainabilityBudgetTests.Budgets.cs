@@ -270,7 +270,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         new("src/dotnet/Musoq.Evaluator/IR/Optimization", "*.cs", 8163),
         new("src/dotnet/Musoq.Evaluator/IR/Optimization", "ExpressionCse*.cs", 882), new("src/dotnet/Musoq.Evaluator/IR/Optimization", "MethodTarget*.cs", 837),
         new("src/dotnet/Musoq.Evaluator/IR/Optimization", "CteSidecar*.cs", 117), new("src/dotnet/Musoq.Evaluator/IR/Optimization", "ProjectionPruning*.cs", 754),
-        new("src/dotnet/Musoq.Evaluator/IR/Planning", "*.cs", 8629),
+        // Compile-time cancellation now checks CTE, source-transfer, and physical-planning traversals.
+        new("src/dotnet/Musoq.Evaluator/IR/Planning", "*.cs", 8822),
         new("src/dotnet/Musoq.Evaluator/IR/Planning/SourcePlanning", "*.cs", 453),
         new("src/dotnet/Musoq.Evaluator/IR/Physical/SourcePlanning", "*.cs", 427),
         new("src/dotnet/Musoq.Evaluator/IR/SourcePlanning", "*.cs", 355),
@@ -289,7 +290,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         // Stability metadata and resolver plumbing intentionally expand this family.
         new("src/dotnet/Musoq.Evaluator/IR/Expressions", "*.cs", 1730),
         new("src/dotnet/Musoq.Parser/Diagnostics", "ErrorMetadataCatalog*.cs", 1764),
-        new("src/dotnet/Musoq.Converter/Build", "*.cs", 1728),
+        // Target-request and execution-IR cancellation boundaries are repository-owned build stages.
+        new("src/dotnet/Musoq.Converter/Build", "*.cs", 1832),
         new("src/dotnet/Musoq.Evaluator/IR/Physical", "*.cs", 895),
         new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionNode*.cs", 849),
         new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionExpressionConverter*.cs", 821),

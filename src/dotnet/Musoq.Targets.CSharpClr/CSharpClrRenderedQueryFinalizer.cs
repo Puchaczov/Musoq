@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading;
 using Microsoft.CodeAnalysis.Emit;
 
 namespace Musoq.Targets.CSharpClr;
@@ -17,14 +18,31 @@ internal sealed class CSharpClrRenderedQueryFinalizer : IRenderedQueryFinalizer
             throw new NotSupportedException(
                 $"C# CLR finalizer expected options type '{nameof(CSharpClrFinalizationOptions)}', but received '{options.GetType().Name}'.");
 
+        csharpOptions.CancellationToken.ThrowIfCancellationRequested();
+
         var emitPdb = csharpOptions.EmitPdb;
         var dllStream = new MemoryStream();
         var pdbStream = emitPdb ? new MemoryStream() : null;
 
-        var result = emitPdb
-            ? csharp.Compilation.Emit(dllStream, pdbStream,
-                options: new EmitOptions(false, DebugInformationFormat.PortablePdb))
-            : csharp.Compilation.Emit(dllStream);
+        EmitResult result;
+        try
+        {
+            result = emitPdb
+                ? csharp.Compilation.Emit(dllStream, pdbStream,
+                    options: new EmitOptions(false, DebugInformationFormat.PortablePdb),
+                    cancellationToken: csharpOptions.CancellationToken)
+                : csharp.Compilation.Emit(
+                    dllStream,
+                    cancellationToken: csharpOptions.CancellationToken);
+        }
+        catch
+        {
+            pdbStream?.Dispose();
+            dllStream.Dispose();
+            throw;
+        }
+
+        csharpOptions.CancellationToken.ThrowIfCancellationRequested();
 
         if (!result.Success)
         {
@@ -35,18 +53,37 @@ internal sealed class CSharpClrRenderedQueryFinalizer : IRenderedQueryFinalizer
 
         if (csharpOptions.Purpose == TargetFinalizationPurpose.Execution)
         {
-            return new CSharpClrFinalizationResult(
-                result,
-                new ClrAssemblyExecutableArtifact(dllStream, pdbStream, csharp.AccessToClassPath));
+            ClrAssemblyExecutableArtifact? artifactResult = null;
+            try
+            {
+                artifactResult = new ClrAssemblyExecutableArtifact(dllStream, pdbStream, csharp.AccessToClassPath);
+                csharpOptions.CancellationToken.ThrowIfCancellationRequested();
+                return new CSharpClrFinalizationResult(result, artifactResult);
+            }
+            catch
+            {
+                artifactResult?.Dispose();
+                if (artifactResult == null)
+                {
+                    pdbStream?.Dispose();
+                    dllStream.Dispose();
+                }
+
+                throw;
+            }
         }
 
         try
         {
-            var dllFile = ToByteArray(dllStream);
-            var pdbFile = pdbStream is null ? null : ToByteArray(pdbStream);
-            return new CSharpClrFinalizationResult(
+            var dllFile = ToByteArray(dllStream, csharpOptions.CancellationToken);
+            var pdbFile = pdbStream is null
+                ? null
+                : ToByteArray(pdbStream, csharpOptions.CancellationToken);
+            var finalizationResult = new CSharpClrFinalizationResult(
                 result,
                 new ClrAssemblyExecutableArtifact(dllFile, pdbFile, csharp.AccessToClassPath));
+            csharpOptions.CancellationToken.ThrowIfCancellationRequested();
+            return finalizationResult;
         }
         finally
         {
@@ -55,15 +92,19 @@ internal sealed class CSharpClrRenderedQueryFinalizer : IRenderedQueryFinalizer
         }
     }
 
-    private static byte[] ToByteArray(MemoryStream stream)
+    private static byte[] ToByteArray(MemoryStream stream, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (stream.TryGetBuffer(out var buffer) &&
             buffer.Offset == 0 &&
             buffer.Count == buffer.Array!.Length)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             return buffer.Array;
         }
 
-        return stream.ToArray();
+        var result = stream.ToArray();
+        cancellationToken.ThrowIfCancellationRequested();
+        return result;
     }
 }

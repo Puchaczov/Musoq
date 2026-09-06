@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Musoq.Evaluator.IR.Expressions.CollectionParameters;
 
 namespace Musoq.Evaluator.IR.Expressions;
@@ -84,13 +85,27 @@ internal static class IrExpressionTraversal
 
     public static IEnumerable<IrExpression> SelfAndDescendants(IrExpression? expression)
     {
+        return SelfAndDescendants(expression, CancellationToken.None);
+    }
+
+    public static IEnumerable<IrExpression> SelfAndDescendants(
+        IrExpression? expression,
+        CancellationToken cancellationToken)
+    {
         if (expression == null)
             yield break;
 
+        cancellationToken.ThrowIfCancellationRequested();
         yield return expression;
 
         foreach (var child in Children(expression))
-        foreach (var descendant in SelfAndDescendants(child))
-            yield return descendant;
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            foreach (var descendant in SelfAndDescendants(child, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return descendant;
+            }
+        }
     }
 }

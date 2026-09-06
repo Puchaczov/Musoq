@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Musoq.Converter.Build;
 
@@ -16,17 +17,24 @@ internal static class CSharpClrTargetPackageFactory
         string assemblyBlobName,
         string generatedCodeSha256MetadataKey,
         IEnumerable<string>? requiredMetadataKeys = null,
-        int executionIrVersion = TargetContractVersions.ExecutionIr)
+        int executionIrVersion = TargetContractVersions.ExecutionIr,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(metadata);
         ArgumentNullException.ThrowIfNull(binaryBlobs);
         ArgumentNullException.ThrowIfNull(entrypoints);
 
         var frozenBlobs = binaryBlobs.ToArray();
+        cancellationToken.ThrowIfCancellationRequested();
         var frozenEntrypoints = entrypoints.ToArray();
         RequireMetadata(metadata, generatedCodeSha256MetadataKey);
+        cancellationToken.ThrowIfCancellationRequested();
         foreach (var key in requiredMetadataKeys ?? [])
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             RequireMetadata(metadata, key);
+        }
         var expectedSemanticsVersion = semanticsContract.Version.ToString(System.Globalization.CultureInfo.InvariantCulture);
         if (!metadata.TryGetValue(CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion, out var semanticsVersion) ||
             !string.Equals(semanticsVersion, expectedSemanticsVersion, StringComparison.Ordinal))
@@ -34,20 +42,32 @@ internal static class CSharpClrTargetPackageFactory
             throw new InvalidOperationException(
                 $"CSharpClr package semantics metadata must be '{expectedSemanticsVersion}', but was '{semanticsVersion ?? "<missing>"}'.");
         }
+        cancellationToken.ThrowIfCancellationRequested();
 
-        if (!frozenBlobs.Any(blob =>
-                string.Equals(blob.Name, assemblyBlobName, StringComparison.Ordinal) &&
-                blob.Content.Length > 0))
+        var hasAssemblyBlob = false;
+        foreach (var blob in frozenBlobs)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (string.Equals(blob.Name, assemblyBlobName, StringComparison.Ordinal) &&
+                blob.Content.Length > 0)
+            {
+                hasAssemblyBlob = true;
+                break;
+            }
+        }
+
+        if (!hasAssemblyBlob)
         {
             throw new InvalidOperationException(
                 $"CSharpClr package is missing required CLR assembly blob '{assemblyBlobName}'.");
         }
 
-        RequireTableEntrypoint(frozenEntrypoints, "CSharpClr package");
+        RequireTableEntrypoint(frozenEntrypoints, "CSharpClr package", cancellationToken);
 
         var abiInventory = hostAbiInventory ?? TargetHostAbiInventory.Empty;
         var runtimeServices = abiInventory.CreateServiceRequirements(
             TargetRuntimeServiceFulfillmentKind.TargetProvided);
+        cancellationToken.ThrowIfCancellationRequested();
 
         return TargetArtifactPackage.CreateValidated(
             ExecutionTargetIds.CSharpClr,
@@ -55,11 +75,14 @@ internal static class CSharpClrTargetPackageFactory
             executableArtifactKind,
             semanticsContract,
             metadata,
+            sourceFiles: null,
             binaryBlobs: frozenBlobs,
             entrypoints: frozenEntrypoints,
             runtimeServices: runtimeServices,
             hostAbiInventory: abiInventory,
-            executionIrVersion: executionIrVersion);
+            executionIrVersion: executionIrVersion,
+            packageFormatVersion: TargetContractVersions.PackageFormat,
+            cancellationToken: cancellationToken);
     }
 
     private static void RequireMetadata(
@@ -75,14 +98,19 @@ internal static class CSharpClrTargetPackageFactory
 
     private static void RequireTableEntrypoint(
         IReadOnlyList<TargetRuntimeEntrypoint> entrypoints,
-        string packageLabel)
+        string packageLabel,
+        CancellationToken cancellationToken)
     {
-        if (!entrypoints.Any(static entrypoint =>
-                entrypoint.Kind == TargetRuntimeEntrypointKind.TableQuery &&
-                !string.IsNullOrWhiteSpace(entrypoint.SymbolName)))
+        cancellationToken.ThrowIfCancellationRequested();
+        foreach (var entrypoint in entrypoints)
         {
-            throw new InvalidOperationException(
-                $"{packageLabel} must include a table-query entrypoint with a symbol name.");
+            cancellationToken.ThrowIfCancellationRequested();
+            if (entrypoint.Kind == TargetRuntimeEntrypointKind.TableQuery &&
+                !string.IsNullOrWhiteSpace(entrypoint.SymbolName))
+                return;
         }
+
+        throw new InvalidOperationException(
+            $"{packageLabel} must include a table-query entrypoint with a symbol name.");
     }
 }

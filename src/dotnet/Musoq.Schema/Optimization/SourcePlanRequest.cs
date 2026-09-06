@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Musoq.Schema.Optimization;
 
@@ -6,6 +7,12 @@ namespace Musoq.Schema.Optimization;
 public sealed record SourcePlanRequest
 {
     public required SourceIdentity Identity { get; init; }
+
+    /// <summary>
+    /// Gets the cooperative cancellation token for this transient planning request.
+    /// Providers must not persist this token in a plan or artifact.
+    /// </summary>
+    public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
 
     public IReadOnlyDictionary<string, string> SourceRuntimeSettings { get; init; } =
         new Dictionary<string, string>();

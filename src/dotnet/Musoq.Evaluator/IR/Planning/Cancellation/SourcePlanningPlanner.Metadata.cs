@@ -1,7 +1,7 @@
 using System.Threading;
 using Microsoft.Extensions.Logging.Abstractions;
-using Musoq.Evaluator.IR.Planning.OptimizationDiagnostics;
 using Musoq.Evaluator.IR.Logical.Nodes;
+using Musoq.Evaluator.IR.Planning.OptimizationDiagnostics;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
@@ -18,7 +18,10 @@ internal static partial class SourcePlanningPlanner
         SchemaFromNode? sourceNode,
         SourcePlanRequest request)
     {
+        context.CancellationToken.ThrowIfCancellationRequested();
+        request = request with { CancellationToken = context.CancellationToken };
         var schema = SchemaProviderBoundary.Invoke(() => context.SchemaProvider.GetSchema(scan.SchemaName));
+        context.CancellationToken.ThrowIfCancellationRequested();
         var semanticSource = sourceNode as Musoq.Evaluator.Parser.SchemaFromNode;
         var parameters = semanticSource is { StaticMetadataArguments.Length: > 0 } or
                          { HasRequiredRuntimeArguments: true }
@@ -30,7 +33,7 @@ internal static partial class SourcePlanningPlanner
                     : [];
         var metadataContext = new SourceMetadataContext(
             request.Identity.SourceContextId,
-            CancellationToken.None,
+            context.CancellationToken,
             ResolveColumns(context, scan),
             request.SourceRuntimeSettings,
             NullLogger.Instance);
@@ -41,12 +44,14 @@ internal static partial class SourcePlanningPlanner
                 scan.MethodName,
                 new SourceDescribeContext(request.Identity, metadataContext),
                 parameters));
+            context.CancellationToken.ThrowIfCancellationRequested();
             EnumSourceDescriptorContractValidator.Validate(
                 metadataContext.AllColumns,
                 descriptor,
                 columnName => ResolveColumnSpan(context, sourceNode, columnName));
             var result = SchemaProviderBoundary.Invoke(() => schema.TryPlanSource(scan.MethodName, request, parameters))
                          ?? SourcePlanResult.RejectAll(request);
+            context.CancellationToken.ThrowIfCancellationRequested();
             SourcePredicatePlanContractValidator.Validate(
                 request,
                 result,
@@ -68,5 +73,4 @@ internal static partial class SourcePlanningPlanner
             throw CreateMetadataDefaultException(scan, semanticSource, exception);
         }
     }
-
 }

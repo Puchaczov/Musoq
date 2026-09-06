@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using System.Threading;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Evaluator.Exceptions;
@@ -48,6 +49,18 @@ public sealed class QueryAnalyzer
     /// <returns>Analysis result containing AST and diagnostics.</returns>
     public QueryAnalysisResult Analyze(string query)
     {
+        return Analyze(query, CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Analyzes a SQL query with cooperative cancellation.
+    /// </summary>
+    /// <param name="query">The SQL query text to analyze.</param>
+    /// <param name="cancellationToken">Token used to cancel semantic analysis.</param>
+    /// <returns>Analysis result containing AST and diagnostics.</returns>
+    public QueryAnalysisResult Analyze(string query, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         var sourceText = new SourceText(query);
         var diagnosticBag = new DiagnosticBag { SourceText = sourceText };
 
@@ -56,6 +69,7 @@ public sealed class QueryAnalyzer
         RootNode? parsedQueryTree = null;
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var lexer = new Lexer(query, true);
             var parser = new Musoq.Parser.Parser(lexer, diagnosticBag);
             var parseResult = parser.ParseWithDiagnostics();
@@ -69,14 +83,17 @@ public sealed class QueryAnalyzer
         }
         catch (SchemaProviderFailureException ex)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             RethrowProviderFailure(ex);
         }
         catch (ParseException ex)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             AddParseDiagnostics(diagnosticBag, ex, sourceText);
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
                 RethrowProviderFailure(providerFailure);
 
@@ -84,6 +101,7 @@ public sealed class QueryAnalyzer
         }
         catch (Exception ex)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
                 RethrowProviderFailure(providerFailure);
 
@@ -96,6 +114,7 @@ public sealed class QueryAnalyzer
         // Do not normalize or bind a recovery tree that already contains parser errors.
         // Invalid recovery nodes are not semantic input and would otherwise produce misleading
         // stack, cast, or missing-member failures that hide the parser root cause.
+        cancellationToken.ThrowIfCancellationRequested();
         if (diagnosticBag.HasErrors)
             return new QueryAnalysisResult
             {
@@ -112,7 +131,9 @@ public sealed class QueryAnalyzer
 
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             rootNode = new PreLogicalNormalizer().Normalize(rootNode).NormalizedRoot;
+            cancellationToken.ThrowIfCancellationRequested();
         }
         catch (OperationCanceledException)
         {
@@ -120,10 +141,12 @@ public sealed class QueryAnalyzer
         }
         catch (SchemaProviderFailureException ex)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             RethrowProviderFailure(ex);
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
                 RethrowProviderFailure(providerFailure);
 
@@ -131,6 +154,7 @@ public sealed class QueryAnalyzer
         }
         catch (Exception ex)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
                 RethrowProviderFailure(providerFailure);
 
@@ -146,6 +170,7 @@ public sealed class QueryAnalyzer
                     .ToDiagnostic(sourceText));
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         if (diagnosticBag.HasErrors)
             return new QueryAnalysisResult
             {
@@ -163,7 +188,7 @@ public sealed class QueryAnalyzer
             var logger = _loggerFactory?.CreateLogger<BuildMetadataAndInferTypesVisitor>()
                          ?? new NullLogger<BuildMetadataAndInferTypesVisitor>();
 
-            var schemaRegistry = CreateSchemaRegistry(rootNode, diagnosticBag);
+            var schemaRegistry = CreateSchemaRegistry(rootNode, diagnosticBag, cancellationToken);
             if (diagnosticBag.HasErrors)
                 return new QueryAnalysisResult
                 {
@@ -177,7 +202,8 @@ public sealed class QueryAnalyzer
                 logger,
                 diagnosticContext,
                 _compilationOptions,
-                schemaRegistry);
+                schemaRegistry,
+                cancellationToken);
 
             var metadataPhase = new SemanticMetadataPhaseCoordinator().Analyze(rootNode, metadataVisitor, parsedQueryTree);
             rootNode = metadataPhase.Query;
@@ -189,12 +215,17 @@ public sealed class QueryAnalyzer
                 scopeArtifact = metadataPhase.Scope;
 
                 if (!diagnosticContext.HasErrors)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
                     new SemanticAdvisoryPhaseCoordinator().Analyze(
                         rootNode,
                         metadataSnapshot,
                         diagnosticContext,
                         normalizedQueryTree,
-                        parsedQueryTree);
+                        parsedQueryTree,
+                        cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
             }
         }
         catch (OperationCanceledException)
@@ -203,10 +234,12 @@ public sealed class QueryAnalyzer
         }
         catch (SchemaProviderFailureException ex)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             RethrowProviderFailure(ex);
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (ex is UnknownSourceException { ProviderFailure: { } originalProviderFailure })
             {
                 ExceptionDispatchInfo.Capture(originalProviderFailure).Throw();
@@ -221,6 +254,7 @@ public sealed class QueryAnalyzer
         }
         catch (Exception ex)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
                 RethrowProviderFailure(providerFailure);
 
@@ -230,6 +264,7 @@ public sealed class QueryAnalyzer
         }
 
         var allDiagnosticsBag = new DiagnosticBag { SourceText = sourceText };
+        cancellationToken.ThrowIfCancellationRequested();
         allDiagnosticsBag.AddRange(diagnosticBag);
         allDiagnosticsBag.AddRange(diagnosticContext.Diagnostics);
         var allDiagnostics = allDiagnosticsBag.ToSortedList().ToList();
@@ -324,7 +359,10 @@ public sealed class QueryAnalyzer
         diagnosticBag.AddError(exception, sourceText);
     }
 
-    private static SchemaRegistry CreateSchemaRegistry(RootNode rootNode, DiagnosticBag diagnosticBag)
+    private static SchemaRegistry CreateSchemaRegistry(
+        RootNode rootNode,
+        DiagnosticBag diagnosticBag,
+        CancellationToken cancellationToken = default)
     {
         var registry = new SchemaRegistry();
         if (rootNode.Expression is not StatementsArrayNode statements)
@@ -333,6 +371,7 @@ public sealed class QueryAnalyzer
         var visitor = new SchemaDefinitionVisitor(registry);
         foreach (var statement in statements.Statements)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (statement.Node is not (BinarySchemaNode or TextSchemaNode))
                 continue;
 

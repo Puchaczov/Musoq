@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Schema;
@@ -9,12 +10,15 @@ namespace Musoq.Evaluator.IR.Planning;
 internal static partial class PlanningPropertyDeriver
 {
     private static Dictionary<string, ISchemaColumn[]> CreateProjectedSchemaColumns(
-        IReadOnlyDictionary<string, SourcePlanProperties> sources)
+        IReadOnlyDictionary<string, SourcePlanProperties> sources,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var result = new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal);
 
         foreach (var source in sources.Values)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (source.QueryRowProjection.State == SourceProjectionState.Unavailable &&
                 source.ProjectedColumns.Length == 0)
                 continue;
@@ -24,6 +28,7 @@ internal static partial class PlanningPropertyDeriver
                 : source.ProjectedSchemaColumns;
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         return result;
     }
 
@@ -34,16 +39,19 @@ internal static partial class PlanningPropertyDeriver
         IReadOnlyDictionary<string, IrExpression[]> pushedPredicates,
         List<PlanningDecision> decisions)
     {
+        context.CancellationToken.ThrowIfCancellationRequested();
         var sources = new Dictionary<string, SourcePlanProperties>(StringComparer.Ordinal);
 
         foreach (var scan in scans)
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
             if (string.IsNullOrWhiteSpace(scan.SourceContextId))
                 continue;
 
             var requiredColumns = requiredColumnsByAlias.TryGetValue(scan.Alias, out var required)
                 ? required.OrderBy(static name => name, StringComparer.OrdinalIgnoreCase).ToArray()
                 : [];
+            context.CancellationToken.ThrowIfCancellationRequested();
             var predicates = pushedPredicates.TryGetValue(scan.SourceContextId, out var pushed)
                 ? pushed
                 : [];
@@ -56,6 +64,7 @@ internal static partial class PlanningPropertyDeriver
                 out var queryRowProjection,
                 out var confidence,
                 out var reason);
+            context.CancellationToken.ThrowIfCancellationRequested();
 
             sources[scan.SourceContextId] = new SourcePlanProperties(
                 scan.SourceContextId,
@@ -71,6 +80,7 @@ internal static partial class PlanningPropertyDeriver
                 reason);
         }
 
+        context.CancellationToken.ThrowIfCancellationRequested();
         return sources;
     }
 
@@ -84,6 +94,7 @@ internal static partial class PlanningPropertyDeriver
         out PlanningConfidence confidence,
         out string reason)
     {
+        context.CancellationToken.ThrowIfCancellationRequested();
         projectedSchemaColumns = [];
         confidence = PlanningConfidence.Low;
         queryRowProjection = SourceQueryRowProjection.Unavailable(
@@ -98,6 +109,7 @@ internal static partial class PlanningPropertyDeriver
         }
 
         var entityType = SourceEntityMetadataResolver.ResolveSourceEntityType(context.Scope, scan.Alias);
+        context.CancellationToken.ThrowIfCancellationRequested();
         if (entityType == null)
         {
             reason = "Source entity type could not be resolved from metadata.";
@@ -113,6 +125,7 @@ internal static partial class PlanningPropertyDeriver
         }
 
         var availableColumns = ResolveAvailableColumns(context, scan);
+        context.CancellationToken.ThrowIfCancellationRequested();
         if (availableColumns.Length == 0)
         {
             reason = "Source columns could not be resolved.";
@@ -120,24 +133,42 @@ internal static partial class PlanningPropertyDeriver
             return [];
         }
 
-        var availableByName = availableColumns.ToDictionary(
-            static column => column.ColumnName,
+        var availableByName = new Dictionary<string, ISchemaColumn>(
             StringComparer.OrdinalIgnoreCase);
-
-        if (requiredColumns.Any(requiredColumn => !availableByName.ContainsKey(requiredColumn)))
+        foreach (var column in availableColumns)
         {
-            reason = "At least one required column was not present in source metadata.";
-            AddProjectionDecision(decisions, scan, "Skipped", confidence, reason);
-            return [];
+            context.CancellationToken.ThrowIfCancellationRequested();
+            availableByName.Add(column.ColumnName, column);
+        }
+        context.CancellationToken.ThrowIfCancellationRequested();
+
+        foreach (var requiredColumn in requiredColumns)
+        {
+            context.CancellationToken.ThrowIfCancellationRequested();
+            if (!availableByName.ContainsKey(requiredColumn))
+            {
+                reason = "At least one required column was not present in source metadata.";
+                AddProjectionDecision(decisions, scan, "Skipped", confidence, reason);
+                return [];
+            }
         }
 
         var requiredSet = new HashSet<string>(requiredColumns, StringComparer.OrdinalIgnoreCase);
-        var projected = availableColumns
-            .Where(column => requiredSet.Contains(column.ColumnName))
-            .ToArray();
-        var projectedColumnNames = projected
-            .Select(static column => column.ColumnName)
-            .ToArray();
+        var projectedList = new List<ISchemaColumn>();
+        foreach (var column in availableColumns)
+        {
+            context.CancellationToken.ThrowIfCancellationRequested();
+            if (requiredSet.Contains(column.ColumnName))
+                projectedList.Add(column);
+        }
+
+        var projected = projectedList.ToArray();
+        var projectedColumnNames = new string[projected.Length];
+        for (var index = 0; index < projected.Length; index++)
+        {
+            context.CancellationToken.ThrowIfCancellationRequested();
+            projectedColumnNames[index] = projected[index].ColumnName;
+        }
         queryRowProjection = SourceQueryRowProjection.Exact(
             projected,
             $"Resolved an exact {projected.Length}-column query-row projection.");
@@ -153,6 +184,7 @@ internal static partial class PlanningPropertyDeriver
         projectedSchemaColumns = projected;
         reason = $"Retained {projected.Length} of {availableColumns.Length} known source column(s).";
         AddProjectionDecision(decisions, scan, "Applied", confidence, reason);
+        context.CancellationToken.ThrowIfCancellationRequested();
         return projectedColumnNames;
     }
 
@@ -174,11 +206,18 @@ internal static partial class PlanningPropertyDeriver
 
     private static ISchemaColumn[] ResolveAvailableColumns(PlanningContext context, SchemaScanNode scan)
     {
+        context.CancellationToken.ThrowIfCancellationRequested();
         if (context.InferredColumns.TryGetValue(scan.Alias, out var inferredColumns) && inferredColumns.Length > 0)
             return inferredColumns;
 
-        return scan.OutputSchema.Columns
-            .Select(static column => column.ToSchemaColumn())
-            .ToArray();
+        var columns = new ISchemaColumn[scan.OutputSchema.Columns.Length];
+        for (var index = 0; index < scan.OutputSchema.Columns.Length; index++)
+        {
+            context.CancellationToken.ThrowIfCancellationRequested();
+            columns[index] = scan.OutputSchema.Columns[index].ToSchemaColumn();
+        }
+
+        context.CancellationToken.ThrowIfCancellationRequested();
+        return columns;
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 
@@ -9,14 +10,31 @@ internal static class LogicalExpressionTraversal
 {
     public static IEnumerable<IrExpression> SelfAndDescendantExpressions(LogicalNode node)
     {
+        return SelfAndDescendantExpressions(node, CancellationToken.None);
+    }
+
+    public static IEnumerable<IrExpression> SelfAndDescendantExpressions(
+        LogicalNode node,
+        CancellationToken cancellationToken)
+    {
         ArgumentNullException.ThrowIfNull(node);
+        cancellationToken.ThrowIfCancellationRequested();
 
         foreach (var expression in NodeExpressions(node))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             yield return expression;
+        }
 
         foreach (var child in node.Children)
-        foreach (var expression in SelfAndDescendantExpressions(child))
-            yield return expression;
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            foreach (var expression in SelfAndDescendantExpressions(child, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return expression;
+            }
+        }
     }
 
     private static IEnumerable<IrExpression> NodeExpressions(LogicalNode node)

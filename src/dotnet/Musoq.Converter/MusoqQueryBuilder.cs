@@ -52,6 +52,12 @@ public sealed class MusoqQueryBuilder
 
     public ICompiledTypedQuery<TOut> Compile<TOut>()
     {
+        return Compile<TOut>(CancellationToken.None);
+    }
+
+    public ICompiledTypedQuery<TOut> Compile<TOut>(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         var sourceBinding = CreateSourceBinding();
         var factory = InstanceCreator.CompileForTypedExecutionFactory<TOut>(
             _query,
@@ -59,13 +65,20 @@ public sealed class MusoqQueryBuilder
             sourceBinding.CreateMetadataProvider(),
             _loggerResolver,
             _compilationOptions,
-            sourceBinding.AdditionalReferenceTypes);
+            sourceBinding.AdditionalReferenceTypes,
+            cancellationToken);
 
         return new PublicCompiledTypedQuery<TOut>(factory, sourceBinding);
     }
 
     public CompiledTypedQueryArtifact CompileArtifact<TOut>()
     {
+        return CompileArtifact<TOut>(CancellationToken.None);
+    }
+
+    public CompiledTypedQueryArtifact CompileArtifact<TOut>(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         var sourceBinding = CreateSourceBinding();
         return InstanceCreator.CompileForTypedArtifact<TOut>(
             _query,
@@ -74,11 +87,18 @@ public sealed class MusoqQueryBuilder
             _loggerResolver,
             _compilationOptions,
             sourceBinding.AdditionalReferenceTypes,
-            sourceBinding.Slots);
+            sourceBinding.Slots,
+            cancellationToken);
     }
 
     public TypedQueryInspectionResult InspectTyped<TOut>()
     {
+        return InspectTyped<TOut>(CancellationToken.None);
+    }
+
+    public TypedQueryInspectionResult InspectTyped<TOut>(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         var sourceBinding = CreateSourceBinding();
         return InstanceCreator.CompileForTypedInspection<TOut>(
             _query,
@@ -86,21 +106,35 @@ public sealed class MusoqQueryBuilder
             sourceBinding.CreateMetadataProvider(),
             _loggerResolver,
             _compilationOptions,
-            sourceBinding.AdditionalReferenceTypes);
+            sourceBinding.AdditionalReferenceTypes,
+            cancellationToken);
     }
 
     public ICompiledTypedProfileQuery<TOut> CompileForProfile<TOut>()
     {
+        return CompileForProfile<TOut>(CancellationToken.None);
+    }
+
+    public ICompiledTypedProfileQuery<TOut> CompileForProfile<TOut>(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         return new PublicCompiledTypedProfileQuery<TOut>(
             _query,
             CreateSourceBinding(),
             _loggerResolver,
-            _compilationOptions);
+            _compilationOptions,
+            cancellationToken);
+    }
+
+    public IEnumerable<TOut> CompileAndRun<TOut>()
+    {
+        return CompileAndRun<TOut>(CancellationToken.None);
     }
 
     public IEnumerable<TOut> CompileAndRun<TOut>(CancellationToken token)
     {
-        return Compile<TOut>().Run(token, CreateSourceBinding().SnapshotDefaultRows(_defaultRows.Values));
+        var sourceBinding = CreateSourceBinding();
+        return Compile<TOut>(token).Run(token, sourceBinding.SnapshotDefaultRows(_defaultRows.Values));
     }
 
     private InMemorySourceBinding CreateSourceBinding()

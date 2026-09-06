@@ -26,6 +26,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         string? profileName = null,
         SourceRuntimeSettingsResolutionMode mode = SourceRuntimeSettingsResolutionMode.EnforceRequiredSettings)
     {
+        ThrowIfCancellationRequested();
         var sourceContextId = sourceNode.Id;
         ResolvedSourceRuntimeSettings resolved;
         try
@@ -39,7 +40,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 profileName,
                 RetrieveInitialSourceRuntimeSettings(sourceContextId, sourceNode),
                 _logger,
-                mode);
+                mode,
+                CancellationToken);
         }
         catch (SchemaProviderFailureException exception) when (sourceNode.HasRequiredRuntimeArguments)
         {
@@ -66,6 +68,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (resolved.HasResolvedValues)
             _hasSourceRuntimeSettingValues = true;
 
+        ThrowIfCancellationRequested();
         InternalSourceRuntimeSettingsBySourceContextId[sourceContextId] = resolved.Values;
         InternalSourceRuntimeSettingDescriptionsBySourceContextId[sourceContextId] = resolved.Descriptions;
 

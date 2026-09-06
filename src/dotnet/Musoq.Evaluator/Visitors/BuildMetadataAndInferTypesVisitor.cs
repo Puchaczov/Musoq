@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.RuntimeSettings;
@@ -30,6 +31,7 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
     private readonly TypeConversionNodeFactory _nodeFactory;
     private readonly ISchemaProvider _provider;
     private readonly SourceRuntimeSettingsResolutionService _sourceRuntimeSettingsResolutionService;
+    private CancellationToken _cancellationToken;
 
     /// <summary>
     ///     Public constructor for external use (e.g., from Musoq.Converter).
@@ -40,7 +42,18 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         ILogger<BuildMetadataAndInferTypesVisitor> logger,
         CompilationOptions? compilationOptions = null,
         SchemaRegistry? schemaRegistry = null)
-        : this(provider, columns, logger, null, compilationOptions, schemaRegistry, null)
+        : this(provider, columns, logger, null, compilationOptions, schemaRegistry, null, CancellationToken.None)
+    {
+    }
+
+    public BuildMetadataAndInferTypesVisitor(
+        ISchemaProvider provider,
+        IReadOnlyDictionary<string, string[]> columns,
+        ILogger<BuildMetadataAndInferTypesVisitor> logger,
+        CompilationOptions? compilationOptions,
+        SchemaRegistry? schemaRegistry,
+        CancellationToken cancellationToken)
+        : this(provider, columns, logger, null, compilationOptions, schemaRegistry, null, cancellationToken)
     {
     }
 
@@ -54,7 +67,19 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         DiagnosticContext diagnosticContext,
         CompilationOptions? compilationOptions = null,
         SchemaRegistry? schemaRegistry = null)
-        : this(provider, columns, logger, null, compilationOptions, schemaRegistry, diagnosticContext)
+        : this(provider, columns, logger, null, compilationOptions, schemaRegistry, diagnosticContext, CancellationToken.None)
+    {
+    }
+
+    public BuildMetadataAndInferTypesVisitor(
+        ISchemaProvider provider,
+        IReadOnlyDictionary<string, string[]> columns,
+        ILogger<BuildMetadataAndInferTypesVisitor> logger,
+        DiagnosticContext diagnosticContext,
+        CompilationOptions? compilationOptions,
+        SchemaRegistry? schemaRegistry,
+        CancellationToken cancellationToken)
+        : this(provider, columns, logger, null, compilationOptions, schemaRegistry, diagnosticContext, cancellationToken)
     {
     }
 
@@ -65,11 +90,13 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         ILibraryMethodResolver? methodResolver,
         CompilationOptions? compilationOptions = null,
         SchemaRegistry? schemaRegistry = null,
-        DiagnosticContext? diagnosticContext = null)
+        DiagnosticContext? diagnosticContext = null,
+        CancellationToken cancellationToken = default)
     {
         _provider = provider;
         _columns = columns;
         _logger = logger;
+        _cancellationToken = cancellationToken;
         var methodResolver1 = methodResolver ?? new LibraryMethodResolver();
         _nodeFactory = new TypeConversionNodeFactory(methodResolver1);
         _compilationOptions = compilationOptions ?? new CompilationOptions();
@@ -99,26 +126,44 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
     protected DiagnosticContext? DiagnosticContext { get; }
 
     protected override string VisitorName => nameof(BuildMetadataAndInferTypesVisitor);
+    /// <summary>
+    /// Gets the cooperative cancellation token used by compile-time metadata access.
+    /// </summary>
+    public CancellationToken CancellationToken => _cancellationToken;
+
+    /// <summary>
+    /// Throws when the current compile-time operation has been cancelled.
+    /// </summary>
+    internal void ThrowIfCancellationRequested() => _cancellationToken.ThrowIfCancellationRequested();
+
+    internal void SetCancellationToken(CancellationToken cancellationToken)
+    {
+        _cancellationToken = cancellationToken;
+    }
 
     private SemanticTraversalFrame TraversalFrame => _semanticState.Traversal;
 
     private void PushSemanticNode(Node node)
     {
+        ThrowIfCancellationRequested();
         SemanticNodeResult.From(node).ApplyTo(TraversalFrame);
     }
 
     private Node PopSemanticNode([System.Runtime.CompilerServices.CallerMemberName] string operation = "")
     {
+        ThrowIfCancellationRequested();
         return TraversalFrame.PopNode(VisitorName, operation);
     }
 
     private Node[] PopSemanticNodes(int count, string operation)
     {
+        ThrowIfCancellationRequested();
         return TraversalFrame.PopNodes(VisitorName, count, operation);
     }
 
     private Node PeekSemanticNode([System.Runtime.CompilerServices.CallerMemberName] string operation = "")
     {
+        ThrowIfCancellationRequested();
         return TraversalFrame.PeekNode(VisitorName, operation);
     }
 

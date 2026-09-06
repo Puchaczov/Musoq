@@ -27,7 +27,8 @@ internal sealed record ClrBatchTableActivationResult(
 
 internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActivator
 {
-    private static readonly ConditionalWeakTable<Type, AssemblyLoadContextLifetime> TypeLifetimes = new();
+    private static readonly ConditionalWeakTable<Type, IDisposable> TypeLifetimes = new();
+    private static readonly AsyncLocal<Action<ClrLoadedRunnableType>?> RunnableTypeLoadedTestHook = new();
 
     public ExecutionTargetId TargetId => ExecutionTargetIds.CSharpClr;
 
@@ -146,12 +147,31 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
     {
         ArgumentNullException.ThrowIfNull(executable);
 
+        using var loadedRunnableType = LoadRunnableTypeWithLifetime(executable);
+        loadedRunnableType.RetainForTypeLifetime();
+        return loadedRunnableType.RunnableType;
+    }
+
+    internal ClrLoadedRunnableType LoadRunnableTypeWithLifetime(ExecutableQueryArtifact executable)
+    {
+        ArgumentNullException.ThrowIfNull(executable);
+
         return executable switch
         {
-            ClrLoadedExecutableArtifact loadedArtifact => loadedArtifact.RunnableType,
-            ClrAssemblyExecutableArtifact assemblyArtifact => LoadRunnableTypeAndRetainLifetime(assemblyArtifact),
+            ClrLoadedExecutableArtifact loadedArtifact =>
+                new ClrLoadedRunnableType(loadedArtifact.RunnableType, loadedArtifact.LifetimeOwner),
+            ClrAssemblyExecutableArtifact assemblyArtifact => LoadRunnableTypeAndCreateLifetime(assemblyArtifact),
             _ => throw CreateUnsupportedArtifactException(executable)
         };
+    }
+
+    internal static IDisposable SetRunnableTypeLoadedTestHookForTests(
+        Action<ClrLoadedRunnableType> callback)
+    {
+        ArgumentNullException.ThrowIfNull(callback);
+        var previous = RunnableTypeLoadedTestHook.Value;
+        RunnableTypeLoadedTestHook.Value = callback;
+        return new TestHookLease(() => RunnableTypeLoadedTestHook.Value = previous);
     }
 
     internal Type LoadRunnableType(ExecutableQueryArtifact executable, Func<Assembly> loadAssembly)
@@ -180,22 +200,73 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
         return type;
     }
 
-    private static Type LoadRunnableTypeAndRetainLifetime(ClrAssemblyExecutableArtifact artifact)
+    private static ClrLoadedRunnableType LoadRunnableTypeAndCreateLifetime(
+        ClrAssemblyExecutableArtifact artifact)
     {
         var loadContext = new RuntimeQueryAssemblyLoadContext($"musoq-query-type-{Guid.NewGuid():N}");
+        ClrLoadedRunnableType? loadedRunnableType = null;
         try
         {
             var assembly = LoadAssembly(artifact, loadContext);
             var type = assembly.GetType(artifact.RunnableTypeName) ??
                        throw new InvalidOperationException(
                            $"Type {artifact.RunnableTypeName} was not found in assembly {assembly.FullName}.");
-            TypeLifetimes.Add(type, new AssemblyLoadContextLifetime(loadContext));
-            return type;
+            loadedRunnableType = new ClrLoadedRunnableType(type, new AssemblyLoadContextLifetime(loadContext));
+            RunnableTypeLoadedTestHook.Value?.Invoke(loadedRunnableType);
+            return loadedRunnableType;
         }
         catch
         {
+            loadedRunnableType?.Dispose();
             loadContext.Unload();
             throw;
+        }
+    }
+
+    internal sealed class ClrLoadedRunnableType : IDisposable
+    {
+        private IDisposable? _lifetimeOwner;
+
+        public ClrLoadedRunnableType(Type runnableType, IDisposable? lifetimeOwner)
+        {
+            RunnableType = runnableType ?? throw new ArgumentNullException(nameof(runnableType));
+            _lifetimeOwner = lifetimeOwner;
+        }
+
+        public Type RunnableType { get; }
+
+        internal bool HasLifetimeOwner => Volatile.Read(ref _lifetimeOwner) is not null;
+
+        public void RetainForTypeLifetime()
+        {
+            var lifetimeOwner = Interlocked.Exchange(ref _lifetimeOwner, null);
+            if (lifetimeOwner is null)
+                return;
+
+            try
+            {
+                TypeLifetimes.Add(RunnableType, lifetimeOwner);
+            }
+            catch
+            {
+                lifetimeOwner.Dispose();
+                throw;
+            }
+        }
+
+        public void Dispose()
+        {
+            Interlocked.Exchange(ref _lifetimeOwner, null)?.Dispose();
+        }
+    }
+
+    private sealed class TestHookLease(Action release) : IDisposable
+    {
+        private Action? _release = release ?? throw new ArgumentNullException(nameof(release));
+
+        public void Dispose()
+        {
+            Interlocked.Exchange(ref _release, null)?.Invoke();
         }
     }
 

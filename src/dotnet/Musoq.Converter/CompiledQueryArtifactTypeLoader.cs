@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace Musoq.Converter;
 
 /// <summary>
@@ -7,3 +9,10 @@ namespace Musoq.Converter;
 ///     for collectible or otherwise owned loading strategies.
 /// </summary>
 public delegate Type CompiledQueryArtifactTypeLoader(ICompiledQueryArtifact artifact);
+
+/// <summary>
+/// Loads a runnable type while receiving the current cooperative cancellation token.
+/// </summary>
+public delegate Type CompiledQueryArtifactTypeLoaderWithCancellation(
+    ICompiledQueryArtifact artifact,
+    CancellationToken cancellationToken);

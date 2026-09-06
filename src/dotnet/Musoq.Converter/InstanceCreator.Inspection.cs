@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using Musoq.Converter.Build;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
@@ -11,6 +12,7 @@ public static partial class InstanceCreator
 {
     private static QueryInspectionResult CreateInspectionResult(BuildItems items)
     {
+        items.CancellationToken.ThrowIfCancellationRequested();
         var logicalPlan = items.LogicalPlan ?? throw new InvalidOperationException(
             "Logical plan inspection failed because the compilation pipeline did not produce a logical plan.");
         var physicalPlan = items.PhysicalPlan ?? throw new InvalidOperationException(
@@ -48,7 +50,7 @@ public static partial class InstanceCreator
             physicalPlan,
             LogicalPlanPrinter.Print(logicalPlan),
             PhysicalPlanPrinter.Print(physicalPlan),
-            InspectGeneratedCSharpCode(renderedArtifact))
+            InspectGeneratedCSharpCode(renderedArtifact, items.CancellationToken))
         {
             PlanningText = planningText,
             ExecutionPlanText = executionPlanText,
@@ -65,14 +67,22 @@ public static partial class InstanceCreator
         };
     }
 
-    private static string InspectGeneratedCSharpCode(RenderedQueryArtifact renderedArtifact)
+    private static string InspectGeneratedCSharpCode(
+        RenderedQueryArtifact renderedArtifact) =>
+        InspectGeneratedCSharpCode(renderedArtifact, CancellationToken.None);
+
+    private static string InspectGeneratedCSharpCode(
+        RenderedQueryArtifact renderedArtifact,
+        CancellationToken cancellationToken)
     {
-        var inspection = ExecutionTargetCatalog.InspectArtifact(renderedArtifact);
+        cancellationToken.ThrowIfCancellationRequested();
+        var inspection = ExecutionTargetCatalog.InspectArtifact(renderedArtifact, cancellationToken);
 
         if (inspection.TargetId != ExecutionTargetIds.CSharpClr)
             throw new InvalidOperationException(
                 $"Generated C# inspection requires execution target '{ExecutionTargetIds.CSharpClr}', but got '{inspection.TargetId}'.");
 
+        cancellationToken.ThrowIfCancellationRequested();
         return inspection.GeneratedCSharpCode ?? string.Empty;
     }
 }

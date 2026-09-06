@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Musoq.Evaluator.Runtime;
@@ -17,6 +18,7 @@ public sealed class CompilationContextManager
     private readonly HashSet<string> _loadedAssemblies = new(20, StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _namespaces = new(16);
     private readonly EvaluatorRuntimeEnvironment? _runtimeEnvironment;
+    private readonly CancellationToken _cancellationToken;
     private CSharpCompilation _compilation;
 
     /// <summary>
@@ -24,7 +26,19 @@ public sealed class CompilationContextManager
     /// </summary>
     /// <param name="initialCompilation">The initial compilation to build upon.</param>
     public CompilationContextManager(CSharpCompilation initialCompilation)
-        : this(initialCompilation, null)
+        : this(initialCompilation, null, CancellationToken.None)
+    {
+    }
+
+    /// <summary>
+    ///     Creates a compilation context owned by an explicit evaluator runtime environment.
+    /// </summary>
+    /// <param name="initialCompilation">The initial compilation to build upon.</param>
+    /// <param name="runtimeEnvironment">The evaluator runtime environment used for shared references.</param>
+    public CompilationContextManager(
+        CSharpCompilation initialCompilation,
+        EvaluatorRuntimeEnvironment? runtimeEnvironment)
+        : this(initialCompilation, runtimeEnvironment, CancellationToken.None)
     {
     }
 
@@ -33,14 +47,20 @@ public sealed class CompilationContextManager
     /// </summary>
     public CompilationContextManager(
         CSharpCompilation initialCompilation,
-        EvaluatorRuntimeEnvironment? runtimeEnvironment)
+        EvaluatorRuntimeEnvironment? runtimeEnvironment,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         _compilation = initialCompilation ?? throw new ArgumentNullException(nameof(initialCompilation));
         _runtimeEnvironment = runtimeEnvironment;
+        _cancellationToken = cancellationToken;
 
         foreach (var path in _runtimeEnvironment?.PreloadedAssemblyPaths ??
                              GetPreloadedAssemblyPaths(initialCompilation))
+        {
+            _cancellationToken.ThrowIfCancellationRequested();
             _loadedAssemblies.Add(path);
+        }
     }
 
     /// <summary>
@@ -48,6 +68,7 @@ public sealed class CompilationContextManager
     /// </summary>
     public void InitializeDefaults()
     {
+        _cancellationToken.ThrowIfCancellationRequested();
     }
 
     /// <summary>
@@ -57,11 +78,13 @@ public sealed class CompilationContextManager
     /// <param name="assemblies">Plugin assemblies to reference.</param>
     public void InitializeCoreReferences(IEnumerable<Assembly> assemblies)
     {
+        _cancellationToken.ThrowIfCancellationRequested();
         var assemblyArray = assemblies as Assembly[] ?? [.. assemblies];
         var newReferences = new List<MetadataReference>(assemblyArray.Length);
 
         foreach (var assembly in assemblyArray)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             if (string.IsNullOrEmpty(assembly.Location))
                 continue;
 
@@ -86,12 +109,15 @@ public sealed class CompilationContextManager
 
         if (newReferences.Count > 0)
             _compilation = _compilation.AddReferences(newReferences);
+
+        _cancellationToken.ThrowIfCancellationRequested();
     }
 
     #region INamespaceTracker
 
     public void TrackNamespace(string ns)
     {
+        _cancellationToken.ThrowIfCancellationRequested();
         if (!string.IsNullOrEmpty(ns)) _namespaces.Add(ns);
     }
 
@@ -105,6 +131,7 @@ public sealed class CompilationContextManager
     {
         ArgumentNullException.ThrowIfNull(types);
         foreach (var type in types) TrackNamespace(type);
+        _cancellationToken.ThrowIfCancellationRequested();
     }
 
     public IReadOnlyCollection<string> GetNamespaces()
@@ -119,11 +146,16 @@ public sealed class CompilationContextManager
     public void TrackTypes(params Type[] types)
     {
         ArgumentNullException.ThrowIfNull(types);
-        foreach (var type in types) TrackType(type);
+        foreach (var type in types)
+        {
+            _cancellationToken.ThrowIfCancellationRequested();
+            TrackType(type);
+        }
     }
 
     public void AddAssemblyReference(string assemblyPath)
     {
+        _cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrEmpty(assemblyPath))
             return;
 
@@ -133,6 +165,7 @@ public sealed class CompilationContextManager
         _loadedAssemblies.Add(assemblyPath);
         _compilation = _compilation.AddReferences(
             GetMetadataReference(assemblyPath));
+        _cancellationToken.ThrowIfCancellationRequested();
     }
 
     public void AddAssemblyReferences(params Assembly[] assemblies)
@@ -142,6 +175,7 @@ public sealed class CompilationContextManager
 
         foreach (var assembly in assemblies)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             if (string.IsNullOrEmpty(assembly.Location))
                 continue;
 
@@ -153,6 +187,7 @@ public sealed class CompilationContextManager
         }
 
         if (newReferences.Count > 0) _compilation = _compilation.AddReferences(newReferences);
+        _cancellationToken.ThrowIfCancellationRequested();
     }
 
     private void TrackType(Type type)
@@ -224,7 +259,9 @@ public sealed class CompilationContextManager
     /// </summary>
     public void AddSyntaxTree(SyntaxTree syntaxTree)
     {
+        _cancellationToken.ThrowIfCancellationRequested();
         _compilation = _compilation.AddSyntaxTrees(syntaxTree);
+        _cancellationToken.ThrowIfCancellationRequested();
     }
 
     #endregion

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Schema;
@@ -13,7 +14,8 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
         CompilationOptions? compilationOptions,
-        IReadOnlyList<Type> additionalReferenceTypes)
+        IReadOnlyList<Type> additionalReferenceTypes,
+        CancellationToken cancellationToken = default)
     {
         var items = BuildTypedItems<TOut>(
             script,
@@ -23,9 +25,18 @@ public static partial class InstanceCreator
             CreateTypedProfileCompilationOptions(compilationOptions),
             additionalReferenceTypes,
             CreateExecutableBuildChain,
-            QueryResultMode.Table);
+            QueryResultMode.Table,
+            cancellationToken: cancellationToken);
 
-        var product = CreateTypedBuildProduct(items, LoadRunnableType(items), TypedQueryProfileMode.TableBacked);
-        return CreateTypedProfileRunnableFactory<TOut>(product, loggerResolver);
+        using var loadedRunnableType = LoadRunnableTypeWithLifetime(items);
+        cancellationToken.ThrowIfCancellationRequested();
+        var product = CreateTypedBuildProduct(
+            items,
+            loadedRunnableType.RunnableType,
+            TypedQueryProfileMode.TableBacked);
+        var factory = CreateTypedProfileRunnableFactory<TOut>(product, loggerResolver);
+        cancellationToken.ThrowIfCancellationRequested();
+        loadedRunnableType.RetainForTypeLifetime();
+        return factory;
     }
 }

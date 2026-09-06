@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Schema;
@@ -20,7 +21,24 @@ public static partial class InstanceCreator
             assemblyName,
             schemaProvider,
             loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions(),
+            CancellationToken.None);
+    }
+
+    public static ICompiledTypedQueryArtifact CompileForTypedArtifact<TOut>(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken)
+    {
+        return CompileForTypedArtifact<TOut>(
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            new CompilationOptions(),
+            cancellationToken);
     }
 
     public static ICompiledTypedQueryArtifact CompileForTypedArtifact<TOut>(
@@ -36,8 +54,26 @@ public static partial class InstanceCreator
             schemaProvider,
             loggerResolver,
             compilationOptions,
+            CancellationToken.None);
+    }
+
+    public static ICompiledTypedQueryArtifact CompileForTypedArtifact<TOut>(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions compilationOptions,
+        CancellationToken cancellationToken)
+    {
+        return CompileForTypedArtifact<TOut>(
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            compilationOptions,
             [],
-            []);
+            [],
+            cancellationToken);
     }
 
     internal static CompiledTypedQueryArtifact CompileForTypedArtifact<TOut>(
@@ -47,8 +83,10 @@ public static partial class InstanceCreator
         ILoggerResolver loggerResolver,
         CompilationOptions compilationOptions,
         IReadOnlyList<Type> additionalReferenceTypes,
-        IReadOnlyList<InMemorySourceSlot> inMemorySourceSlots)
+        IReadOnlyList<InMemorySourceSlot> inMemorySourceSlots,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(inMemorySourceSlots);
         var items = BuildTypedItems<TOut>(
             script,
@@ -57,7 +95,8 @@ public static partial class InstanceCreator
             loggerResolver,
             compilationOptions,
             additionalReferenceTypes,
-            CreateExecutableBuildChain);
+            CreateExecutableBuildChain,
+            cancellationToken: cancellationToken);
         var product = CreateTypedBuildProduct(items, null);
 
         return new CompiledTypedQueryArtifact(
@@ -78,16 +117,30 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver)
     {
+        return LoadTypedArtifact<TOut>(artifact, schemaProvider, loggerResolver, CancellationToken.None);
+    }
+
+    public static CompiledTypedQuery<TOut> LoadTypedArtifact<TOut>(
+        ICompiledTypedQueryArtifact artifact,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(schemaProvider);
 
-        var factory = LoadTypedArtifactFactory<TOut>(artifact, loggerResolver);
-        return factory.Create(schemaProvider);
+        var factory = LoadTypedArtifactFactory<TOut>(artifact, loggerResolver, cancellationToken);
+        var result = factory.Create(schemaProvider);
+        cancellationToken.ThrowIfCancellationRequested();
+        return result;
     }
 
     internal static TypedRunnableFactory<TOut> LoadTypedArtifactFactory<TOut>(
         ICompiledTypedQueryArtifact artifact,
-        ILoggerResolver loggerResolver)
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(artifact);
         ArgumentNullException.ThrowIfNull(loggerResolver);
 
@@ -114,13 +167,19 @@ public static partial class InstanceCreator
                 $"Typed query artifact output type '{artifact.OutputType.FullName}' cannot be loaded as '{typeof(TOut).FullName}'.");
         }
 
-        var runnableType = RequireClrActivator(ExecutionTargetIds.CSharpClr)
-            .LoadRunnableType(CSharpClrArtifactCompatibility.CreateAssemblyExecutable(
+        var activator = RequireClrActivator(ExecutionTargetIds.CSharpClr);
+        using var loadedRunnableType = activator.LoadRunnableTypeWithLifetime(
+            CSharpClrArtifactCompatibility.CreateAssemblyExecutable(
                 dllFile,
                 pdbFile,
                 artifact.RunnableTypeName));
 
-        var product = CreateTypedBuildProduct(artifact, runnableType);
-        return CreateTypedRunnableFactory<TOut>(product, loggerResolver);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var product = CreateTypedBuildProduct(artifact, loadedRunnableType.RunnableType);
+        var factory = CreateTypedRunnableFactory<TOut>(product, loggerResolver);
+        cancellationToken.ThrowIfCancellationRequested();
+        loadedRunnableType.RetainForTypeLifetime();
+        return factory;
     }
 }

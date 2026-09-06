@@ -198,7 +198,6 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         return (returnType, resolvedFactory);
     }
-
     private static bool IsValueAccessWindowFunction(string normalizedName)
     {
         return normalizedName is "FIRSTVALUE" or "LASTVALUE" or "NTHVALUE";
@@ -213,28 +212,29 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         foreach (var schemaFrom in _sourceBinding.AliasToSchemaFromNodeMap.Values)
         {
+            ThrowIfCancellationRequested();
             var schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(schemaFrom.Schema));
+            ThrowIfCancellationRequested();
             if (schema.TryResolveWindowFunction(functionName, out var resolved))
             {
                 factoryMethod = resolved;
                 return true;
             }
         }
-
         foreach (var schemaName in _sourceBinding.AllUsedSchemaNames)
         {
+            ThrowIfCancellationRequested();
             var schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(schemaName));
+            ThrowIfCancellationRequested();
             if (schema.TryResolveWindowFunction(functionName, out var resolved))
             {
                 factoryMethod = resolved;
                 return true;
             }
         }
-
         factoryMethod = null;
         return false;
     }
-
     private static Type? ExtractWindowFunctionResultType(MethodInfo factoryMethod)
     {
         var returnType = factoryMethod.ReturnType;

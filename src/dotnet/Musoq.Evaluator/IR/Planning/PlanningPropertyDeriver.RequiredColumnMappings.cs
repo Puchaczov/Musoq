@@ -1,35 +1,59 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Musoq.Evaluator.IR.Planning;
 
 internal static partial class PlanningPropertyDeriver
 {
     private static RequiredColumnMappingPlan[] CreateRequiredColumnMappingPlans(
-        IReadOnlyDictionary<string, SourcePlanProperties> sources)
+        IReadOnlyDictionary<string, SourcePlanProperties> sources,
+        CancellationToken cancellationToken)
     {
-        return sources.Values
-            .OrderBy(static source => source.SourceContextId, StringComparer.Ordinal)
-            .Select(CreateRequiredColumnMappingPlan)
-            .ToArray();
+        cancellationToken.ThrowIfCancellationRequested();
+        var orderedSources = sources.Values.ToList();
+        cancellationToken.ThrowIfCancellationRequested();
+        orderedSources.Sort((left, right) =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return StringComparer.Ordinal.Compare(left.SourceContextId, right.SourceContextId);
+        });
+
+        var plans = new RequiredColumnMappingPlan[orderedSources.Count];
+        for (var index = 0; index < orderedSources.Count; index++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            plans[index] = CreateRequiredColumnMappingPlan(orderedSources[index], cancellationToken);
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return plans;
     }
 
-    private static RequiredColumnMappingPlan CreateRequiredColumnMappingPlan(SourcePlanProperties source)
+    private static RequiredColumnMappingPlan CreateRequiredColumnMappingPlan(
+        SourcePlanProperties source,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var requiredColumns = source.RequiredColumns
             .OrderBy(static column => column, StringComparer.OrdinalIgnoreCase)
             .ToArray();
+        cancellationToken.ThrowIfCancellationRequested();
         var retainedColumns = source.ProjectedColumns.Length > 0
             ? source.ProjectedColumns.OrderBy(static column => column, StringComparer.OrdinalIgnoreCase).ToArray()
             : requiredColumns;
+        cancellationToken.ThrowIfCancellationRequested();
         var blockedColumns = source.ProjectedColumns.Length == 0 &&
                              requiredColumns.Length > 0 &&
                              !string.Equals(source.ShapeReason, "All known source columns are required.", StringComparison.Ordinal)
             ? requiredColumns
             : [];
-        var mappings = retainedColumns
-            .Select(column => $"{source.Alias}.{column}->{column}")
-            .ToArray();
+        var mappings = new string[retainedColumns.Length];
+        for (var index = 0; index < retainedColumns.Length; index++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            mappings[index] = $"{source.Alias}.{retainedColumns[index]}->{retainedColumns[index]}";
+        }
         var confidence = blockedColumns.Length > 0
             ? PlanningConfidence.Medium
             : source.ShapeConfidence;
@@ -37,6 +61,7 @@ internal static partial class PlanningPropertyDeriver
             ? $"Required columns were retained but cannot yet be represented as a narrower source projection: {source.ShapeReason}"
             : $"Required columns have stable source-output mappings for alias {source.Alias}.";
 
+        cancellationToken.ThrowIfCancellationRequested();
         return new RequiredColumnMappingPlan(
             source.SourceContextId,
             source.Alias,

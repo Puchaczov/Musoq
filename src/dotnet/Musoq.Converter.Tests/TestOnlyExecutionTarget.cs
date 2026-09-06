@@ -13,6 +13,7 @@ internal static class TestOnlyExecutionTarget
         IClrExecutableQueryActivator? activator = null,
         IRenderedQueryInspector? inspector = null,
         Func<TargetRenderInputBuildContext, TargetBackendRenderInputs>? createRenderInputs = null,
+        Func<TargetFinalizationOptionsContext, TargetFinalizationOptions>? createFinalizationOptions = null,
         Func<RenderedQueryArtifact, RenderedArtifactBuildContribution>? createRenderBuildContribution = null,
         Func<TargetArtifactPackagingContext, TargetArtifactPackage>? createArtifactPackage = null)
     {
@@ -23,6 +24,7 @@ internal static class TestOnlyExecutionTarget
             activationPhase: activator,
             inspectionPhase: inspector,
             createRenderInputs: createRenderInputs,
+            createFinalizationOptions: createFinalizationOptions,
             createRenderBuildContribution: createRenderBuildContribution,
             createArtifactPackage: createArtifactPackage);
     }

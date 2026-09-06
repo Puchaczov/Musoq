@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Runtime;
@@ -26,6 +27,8 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
 
     public TargetRenderResult Render(TargetRenderRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
+        request.CancellationToken.ThrowIfCancellationRequested();
         var inputs = RequireInputs(request);
         var assemblyName = inputs.AssemblyName;
         var safeNamespaceName = inputs.NamespaceName;
@@ -51,6 +54,7 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
         ExecutionQueryRenderOutcome renderOutcome;
         using (TargetRenderTelemetry.BeginPhase("render.execution-method"))
             renderOutcome = renderer.TryRenderExecutionQueryMethod(executionPlan, queryIdentifier);
+        request.CancellationToken.ThrowIfCancellationRequested();
         if (renderOutcome.Method is not { } executionQueryResult)
         {
             var reason = string.IsNullOrWhiteSpace(renderOutcome.UnsupportedReason)
@@ -64,6 +68,7 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
         CompilationUnitSyntax compilationUnit;
         using (TargetRenderTelemetry.BeginPhase("render.class-assembly"))
         {
+            request.CancellationToken.ThrowIfCancellationRequested();
             renderContext.AddClassMember(executionQueryResult.MethodDeclaration);
             compilationUnit = renderer.RenderCompilationUnit(
                 queryIdentifier,
@@ -74,11 +79,14 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
             compilationUnit,
             inputs.RenderProfile);
         compilationUnit = readabilityResult.OptimizedCode;
+        request.CancellationToken.ThrowIfCancellationRequested();
 
         var compilationContext = new CompilationContextManager(
             _runtimeEnvironment.CreateCompilation(assemblyName),
-            _runtimeEnvironment);
+            _runtimeEnvironment,
+            request.CancellationToken);
         compilationContext.InitializeDefaults();
+        request.CancellationToken.ThrowIfCancellationRequested();
         try
         {
             var referenceAssemblies = CSharpClrReferenceAssemblyCollector.Collect(
@@ -87,9 +95,15 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
                 inputs.ReferenceAssemblies,
                 inputs.AdditionalReferenceTypes,
                 inputs.OutputType,
-                _runtimeEnvironment.PreloadedAssemblyPaths);
+                _runtimeEnvironment.PreloadedAssemblyPaths,
+                request.CancellationToken);
 
             compilationContext.InitializeCoreReferences(referenceAssemblies);
+            request.CancellationToken.ThrowIfCancellationRequested();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (CSharpClrReferenceDiscoveryException exception)
         {
@@ -110,6 +124,7 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
             compilationUnit,
             inputs.RenderProfile,
             generatedSourcePath));
+        request.CancellationToken.ThrowIfCancellationRequested();
         if (!string.IsNullOrEmpty(inputs.InterpreterSourceCode))
         {
             compilationContext.TrackNamespace("Musoq.Generated.Interpreters");
@@ -119,12 +134,14 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
                 $"{safeNamespaceName}.interpreter.g.cs",
                 Encoding.UTF8));
         }
+        request.CancellationToken.ThrowIfCancellationRequested();
 
         var artifact = new CSharpRenderedQueryArtifact(
             compilationContext.GetCompilation(),
             $"{safeNamespaceName}.CompiledQuery",
             executionQueryResult.Metadata,
             readabilityResult.Trace);
+        request.CancellationToken.ThrowIfCancellationRequested();
         return TargetRenderResult.Succeeded(artifact);
     }
 

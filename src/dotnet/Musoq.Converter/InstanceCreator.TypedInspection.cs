@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Schema;
@@ -18,7 +19,24 @@ public static partial class InstanceCreator
             assemblyName,
             schemaProvider,
             loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions(),
+            CancellationToken.None);
+    }
+
+    public static TypedQueryInspectionResult CompileForTypedInspection<TOut>(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken)
+    {
+        return CompileForTypedInspection<TOut>(
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            new CompilationOptions(),
+            cancellationToken);
     }
 
     public static TypedQueryInspectionResult CompileForTypedInspection<TOut>(
@@ -34,7 +52,25 @@ public static partial class InstanceCreator
             schemaProvider,
             loggerResolver,
             compilationOptions,
-            []);
+            CancellationToken.None);
+    }
+
+    public static TypedQueryInspectionResult CompileForTypedInspection<TOut>(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions compilationOptions,
+        CancellationToken cancellationToken)
+    {
+        return CompileForTypedInspection<TOut>(
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            compilationOptions,
+            [],
+            cancellationToken);
     }
 
     internal static TypedQueryInspectionResult CompileForTypedInspection<TOut>(
@@ -43,8 +79,10 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
         CompilationOptions compilationOptions,
-        IReadOnlyList<Type> additionalReferenceTypes)
+        IReadOnlyList<Type> additionalReferenceTypes,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(schemaProvider);
         ArgumentNullException.ThrowIfNull(loggerResolver);
         ArgumentNullException.ThrowIfNull(compilationOptions);
@@ -60,10 +98,12 @@ public static partial class InstanceCreator
                 compilationOptions,
                 additionalReferenceTypes,
                 CreateInspectionBuildChain,
-                emitExecutionPlanText: true);
+                emitExecutionPlanText: true,
+                cancellationToken: cancellationToken);
 
             var product = CreateTypedBuildProduct(items, null);
             var query = CreateInspectionResult(items);
+            cancellationToken.ThrowIfCancellationRequested();
             var metadata = product.RenderMetadata;
             var rowsKind = ResolveTypedGeneratedRowsKind(metadata.RowPathKind);
             return new TypedQueryInspectionResult(
@@ -80,8 +120,13 @@ public static partial class InstanceCreator
                 FinalSinkRejectionReason = metadata.FinalSinkRejectionReason
             };
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (InvalidOperationException exception) when (IsTypedOutputBindingFailure(exception))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             return new TypedQueryInspectionResult(
                 null,
                 QueryResultMode.TypedEnumerable,
@@ -92,6 +137,7 @@ public static partial class InstanceCreator
         }
         catch (Exception exception) when (IsTypedOutputRenderingFailure(exception))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             return new TypedQueryInspectionResult(
                 null,
                 QueryResultMode.TypedEnumerable,

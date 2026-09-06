@@ -4,6 +4,28 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.10-alpha.1
+
+See the curated full-train release notes for [Musoq 17.0.10-alpha.1](release-notes/v17.0.10-alpha.1.md).
+
+### Musoq.Converter, Musoq.Evaluator, and compile-time execution
+
+- Added cooperative cancellation across Core compilation, analysis, execution, typed execution, diagnostics, inspection, profiling, artifact storage/loading, target rendering, Roslyn emission, and activation APIs.
+- Propagated invocation cancellation through metadata discovery, runtime-settings resolution, source planning, query analysis, transformation, Execution IR lowering, target finalization, artifact packaging, and generated-code inspection.
+- Hardened semantic-template, execution-compilation, and canonical-artifact cache publication, waiter cancellation, cache-hit rebinding, reader leases, and disposable artifact ownership.
+- Preserved legacy overloads and exception behavior while exposing cancellation-aware overloads; cancellation remains an `OperationCanceledException` rather than a compiler diagnostic.
+
+### Musoq.Schema and target contracts
+
+- Added cancellation state to transient source-planning and runtime-settings resolution requests without persisting invocation tokens in reusable plans, cache keys, semantic artifacts, or portable artifact contracts.
+- Added cancellation-aware target rendering, finalization, artifact-package creation, C# emission, and rendered-query inspection while retaining legacy target contracts.
+
+### Documentation and verification
+
+- Documented compile-time cancellation boundaries, cooperative-provider limitations, compatibility behavior, and cache-token rules.
+- Corrected the ASOF JOIN diagnostic-catalog cross-reference.
+- Published as a full five-package Core train so the cross-package cancellation contract and bundled C# target remain version-aligned.
+
 ## 17.0.9-alpha.2
 
 See the curated package release notes for [Musoq.Evaluator](release-notes/evaluator/v17.0.9-alpha.2.md) and [Musoq.Converter](release-notes/converter/v17.0.9-alpha.2.md).

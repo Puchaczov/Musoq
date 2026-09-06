@@ -14,7 +14,9 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
     public override void Build(BuildItems items)
     {
         ArgumentNullException.ThrowIfNull(items);
+        items.CancellationToken.ThrowIfCancellationRequested();
         var telemetry = EvaluatorPerformanceTelemetry.BeginPhase("semantic-pipeline");
+        IDisposable? semanticCacheFlight = null;
         try
         {
         var semanticCacheKey = SemanticTemplateCache.CreateKey(new SemanticTemplateCacheInput(
@@ -31,24 +33,32 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
             items.HasSourceRuntimeSettingValues,
             items.CreateBuildMetadataAndInferTypesVisitor is not null,
             items.AdditionalReferenceTypes,
-            items.SchemaRegistry?.GetType().AssemblyQualifiedName ?? string.Empty));
-        using var semanticCacheFlight = semanticCacheKey is { } key
-            ? SemanticTemplateCache.Acquire(key)
+            items.SchemaRegistry?.GetType().AssemblyQualifiedName ?? string.Empty),
+            items.CancellationToken);
+        semanticCacheFlight = semanticCacheKey is { } key
+            ? SemanticTemplateCache.Acquire(key, items.CancellationToken)
             : null;
+        if (items.RetainSemanticCacheState)
+            items.SemanticCacheFlight = semanticCacheFlight;
         var context = TransformPipelineContext.From(items) with
         {
             SchemaProvider = new TransitionSchemaProvider(items.SchemaProvider)
         };
+        context.CancellationToken.ThrowIfCancellationRequested();
         items.SchemaProvider = context.SchemaProvider;
 
         SemanticBuildArtifacts? semanticArtifacts = null;
-        if (semanticCacheKey is { } cachedKey && SemanticTemplateCache.TryGet(cachedKey, out var cachedArtifacts))
+        if (semanticCacheKey is { } cachedKey &&
+            SemanticTemplateCache.TryGet(cachedKey, items.CancellationToken, out var cachedArtifacts))
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
             DiagnosticReplay.AddMissing(context.DiagnosticContext, cachedArtifacts.Phase.Diagnostics);
             semanticArtifacts = cachedArtifacts with
             {
                 CteExecutionPlan = context.CompilationOptions.UseCteParallelization
-                    ? ComputeCteExecutionPlan(cachedArtifacts.TransformedQueryTree)
+                    ? ComputeCteExecutionPlan(
+                        cachedArtifacts.TransformedQueryTree,
+                        context.CancellationToken)
                     : null
             };
             items.CteExecutionPlan = semanticArtifacts.CteExecutionPlan;
@@ -60,11 +70,13 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
             var parsedQueryTree = parseArtifacts.RawQueryTree;
             var queryTree = parsedQueryTree;
             PreLogicalNormalizationResult? normalization;
+            context.CancellationToken.ThrowIfCancellationRequested();
             using (EvaluatorPerformanceTelemetry.BeginPhase("semantic.normalization"))
                 normalization = NormalizeQuery(queryTree, context.DiagnosticContext);
             if (normalization == null)
                 return;
             var normalizedQueryTree = normalization.NormalizedRoot;
+            context.CancellationToken.ThrowIfCancellationRequested();
             queryTree = normalizedQueryTree;
             context = context.AppendTrace(normalization.Trace);
             ExtractRawColumnsVisitor extractColumnsVisitor;
@@ -73,6 +85,7 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
                 extractColumnsVisitor = new ExtractRawColumnsVisitor();
                 queryTree.Accept(new ExtractRawColumnsTraverseVisitor(extractColumnsVisitor));
             }
+            context.CancellationToken.ThrowIfCancellationRequested();
 
             var metadataVisitor = CreateMetadataVisitor(context, extractColumnsVisitor.Columns);
             SemanticMetadataPhaseResult? metadataPhase = null;
@@ -81,11 +94,14 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
                 using (EvaluatorPerformanceTelemetry.BeginPhase("semantic.metadata-binding"))
                     metadataPhase = new SemanticMetadataPhaseCoordinator().Analyze(queryTree, metadataVisitor, parsedQueryTree);
                 queryTree = metadataPhase.Query;
+                context.CancellationToken.ThrowIfCancellationRequested();
             }
             catch (Exception ex)
             {
                 if (ex is OperationCanceledException)
                     throw;
+
+                context.CancellationToken.ThrowIfCancellationRequested();
 
                 if (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is { } providerFailure)
                 {
@@ -105,30 +121,37 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
             if (context.DiagnosticContext.HasErrors || metadataPhase is null)
                 return;
 
+            context.CancellationToken.ThrowIfCancellationRequested();
             new SemanticAdvisoryPhaseCoordinator().Analyze(
                 metadataPhase.Query,
                 metadataPhase.Metadata,
                 context.DiagnosticContext,
                 normalizedQueryTree,
-                parsedQueryTree);
+                parsedQueryTree,
+                context.CancellationToken);
 
             if (context.DiagnosticContext.HasErrors)
                 return;
+
+            context.CancellationToken.ThrowIfCancellationRequested();
 
             var metadataQueryTree = queryTree;
             var semanticMetadata = metadataPhase.Metadata;
 
             CteExecutionPlan? cteExecutionPlan;
+            context.CancellationToken.ThrowIfCancellationRequested();
             using (EvaluatorPerformanceTelemetry.BeginPhase("semantic.cte-facts"))
                 cteExecutionPlan = context.CompilationOptions.UseCteParallelization
-                    ? ComputeCteExecutionPlan(queryTree)
+                    ? ComputeCteExecutionPlan(queryTree, context.CancellationToken)
                     : null;
+            context.CancellationToken.ThrowIfCancellationRequested();
             items.CteExecutionPlan = cteExecutionPlan;
 
             var metadataScopeArtifact = metadataPhase.Scope;
             RootNode rewrittenQueryTree;
             try
             {
+                context.CancellationToken.ThrowIfCancellationRequested();
                 using (EvaluatorPerformanceTelemetry.BeginPhase("semantic.rewrite"))
                     rewrittenQueryTree = new SemanticRewritePhaseCoordinator().Rewrite(
                         queryTree,
@@ -137,11 +160,13 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
             }
             catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
             {
+                context.CancellationToken.ThrowIfCancellationRequested();
                 if (!context.DiagnosticContext.HasErrors)
                     context.DiagnosticContext.ReportException(ex);
                 return;
             }
             queryTree = rewrittenQueryTree;
+            context.CancellationToken.ThrowIfCancellationRequested();
 
             using (EvaluatorPerformanceTelemetry.BeginPhase("semantic.artifact-freeze"))
                 semanticArtifacts = BuildSemanticArtifacts(
@@ -152,8 +177,10 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
                     semanticMetadata,
                     metadataScopeArtifact,
                     cteExecutionPlan,
-                    context.DiagnosticContext.Diagnostics);
+                    context.DiagnosticContext.Diagnostics,
+                    context.CancellationToken);
             items.SemanticArtifacts = semanticArtifacts;
+            context.CancellationToken.ThrowIfCancellationRequested();
             bool sourceContractsValid;
             using (EvaluatorPerformanceTelemetry.BeginPhase("semantic.source-contracts"))
                 sourceContractsValid = ValidateGeneratedExecutionSourceContracts(
@@ -162,22 +189,29 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
                     metadataScopeArtifact,
                     semanticMetadata,
                     semanticArtifacts);
+            context.CancellationToken.ThrowIfCancellationRequested();
             if (!sourceContractsValid)
                 return;
 
             if (semanticCacheKey is { } publishKey &&
                 !semanticArtifacts.HasDeclaredSourceRuntimeSettings &&
                 !semanticArtifacts.HasSourceRuntimeSettingValues)
-                SemanticTemplateCache.Publish(
+            {
+                context.CancellationToken.ThrowIfCancellationRequested();
+                items.SemanticCachePublication = SemanticTemplateCache.PreparePublication(
                     publishKey,
-                    semanticArtifacts with { CteExecutionPlan = null });
+                    semanticArtifacts with { CteExecutionPlan = null },
+                    context.CancellationToken);
+            }
         }
 
         var scopeArtifact = semanticArtifacts.ScopeArtifact;
 
         PlanningStageBuildResult? planningStage;
+        context.CancellationToken.ThrowIfCancellationRequested();
         using (EvaluatorPerformanceTelemetry.BeginPhase("semantic.planning"))
             planningStage = BuildPlans(semanticArtifacts, context);
+        context.CancellationToken.ThrowIfCancellationRequested();
         PlanningBuildArtifacts? planningArtifacts = null;
         if (planningStage != null)
         {
@@ -195,12 +229,15 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
             return;
 
         ExecutionStageBuildResult executionStage;
+        context.CancellationToken.ThrowIfCancellationRequested();
         using (EvaluatorPerformanceTelemetry.BeginPhase("semantic.execution-ir"))
             executionStage = BuildExecutionInspection(context, semanticArtifacts, planningArtifacts);
+        context.CancellationToken.ThrowIfCancellationRequested();
         context = executionStage.Context;
         items.ExecutionArtifacts = executionStage.Artifacts;
 
         RenderingStageBuildResult? renderingStage;
+        context.CancellationToken.ThrowIfCancellationRequested();
         using (EvaluatorPerformanceTelemetry.BeginPhase("semantic.rendering"))
             renderingStage = BuildWithIrRenderer(
                 context,
@@ -208,6 +245,7 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
                 planningArtifacts,
                 executionStage.Artifacts,
                 scopeArtifact);
+        context.CancellationToken.ThrowIfCancellationRequested();
         if (renderingStage == null)
             return;
 
@@ -217,9 +255,16 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
         }
         finally
         {
+            if (!items.RetainSemanticCacheState)
+            {
+                SemanticTemplateCache.Discard(items.SemanticCachePublication);
+                semanticCacheFlight?.Dispose();
+            }
+
             telemetry.Dispose();
         }
 
+        items.CancellationToken.ThrowIfCancellationRequested();
         Successor?.Build(items);
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
@@ -20,16 +21,18 @@ public static partial class InstanceCreator
         IReadOnlyList<Type> additionalReferenceTypes,
         Func<ILoggerResolver, BuildChain> createBuildChain,
         QueryResultMode resultMode = QueryResultMode.TypedEnumerable,
-        bool emitExecutionPlanText = false)
+        bool emitExecutionPlanText = false,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(schemaProvider);
         ArgumentNullException.ThrowIfNull(loggerResolver);
         ArgumentNullException.ThrowIfNull(compilationOptions);
         ArgumentNullException.ThrowIfNull(additionalReferenceTypes);
         ArgumentNullException.ThrowIfNull(createBuildChain);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var diagnosticContext = new DiagnosticContext(new SourceText(script));
-        var items = CreateBuildItems(script, assemblyName, schemaProvider, diagnosticContext);
+        var items = CreateBuildItems(script, assemblyName, schemaProvider, diagnosticContext, cancellationToken);
         items.EmitPdb = Debugger.IsAttached;
         items.EmitExecutionPlanText = emitExecutionPlanText;
         items.CompilationOptions = compilationOptions;
@@ -38,6 +41,7 @@ public static partial class InstanceCreator
         items.AdditionalReferenceTypes = CreateTypedReferenceTypes<TOut>(additionalReferenceTypes);
 
         Build(items, createBuildChain(loggerResolver));
+        cancellationToken.ThrowIfCancellationRequested();
         RejectUnsupportedMultiStatementQuery(items.RawQueryTree);
 
         return items;

@@ -19,11 +19,13 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(SchemaFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        ThrowIfCancellationRequested();
         var sourceSpan = node.Parameters.SpanOrEmpty().Through(node.SpanOrEmpty());
         ISchema schema;
         try
         {
             schema = _provider.GetSchema(node.Schema);
+            ThrowIfCancellationRequested();
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedSchemaLookupFailure(ex))
         {
@@ -61,14 +63,16 @@ public partial class BuildMetadataAndInferTypesVisitor
             SchemaMethodInfo[] sourceMethods;
             try
             {
+                ThrowIfCancellationRequested();
                 sourceMethods = SchemaProviderBoundary.Invoke(() => schema.GetRawConstructors(
                     node.Method,
                     new SourceMetadataContext(
                         queryId,
-                        CancellationToken.None,
+                        CancellationToken,
                         GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
                         new Dictionary<string, string>(),
                         _logger)));
+                ThrowIfCancellationRequested();
             }
             catch (SchemaProviderFailureException exception) when (exception.InnerException is NotSupportedException)
             {
@@ -164,6 +168,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(SchemaMethodFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        ThrowIfCancellationRequested();
         _sourceBinding.UsedSchemasQuantity += 1;
         PushSemanticNode(new Parser.SchemaMethodFromNode(node.Alias, node.Schema, node.Method));
     }
@@ -176,6 +181,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         object?[] sourceArguments,
         bool hasRequiredRuntimeArguments)
     {
+        ThrowIfCancellationRequested();
         var sourceSpan = node.MethodSpan ?? node.Parameters.SpanOrEmpty().Through(node.SpanOrEmpty());
         try
         {
@@ -212,17 +218,20 @@ public partial class BuildMetadataAndInferTypesVisitor
         object?[] sourceArguments,
         bool hasRequiredRuntimeArguments)
     {
+        ThrowIfCancellationRequested();
         try
         {
-            return SchemaProviderBoundary.Invoke(() => schema.GetTableByName(
+            var table = SchemaProviderBoundary.Invoke(() => schema.GetTableByName(
                 methodName,
                 new SourceMetadataContext(
                     queryId,
-                    CancellationToken.None,
+                    CancellationToken,
                     columns,
                     sourceRuntimeSettings,
                     _logger),
                 sourceArguments));
+            ThrowIfCancellationRequested();
+            return table;
         }
         catch (SchemaProviderFailureException exception) when (exception.InnerException is NotSupportedException)
         {

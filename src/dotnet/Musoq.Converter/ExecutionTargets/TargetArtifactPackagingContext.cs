@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace Musoq.Converter.Build;
 
 internal sealed record TargetArtifactPackagingContext
@@ -14,7 +16,37 @@ internal sealed record TargetArtifactPackagingContext
         TargetRuntimeContract? runtimeContract = null,
         ExecutionTargetReadinessReport? readinessReport = null,
         int executionIrVersion = TargetContractVersions.ExecutionIr)
+        : this(
+            CancellationToken.None,
+            targetId,
+            packageName,
+            script,
+            compilationOptionsSignature,
+            renderedArtifact,
+            executableArtifact,
+            semanticFacts,
+            semanticsContract,
+            runtimeContract,
+            readinessReport,
+            executionIrVersion)
     {
+    }
+
+    public TargetArtifactPackagingContext(
+        CancellationToken cancellationToken,
+        ExecutionTargetId targetId,
+        string packageName,
+        string script,
+        string compilationOptionsSignature,
+        RenderedQueryArtifact renderedArtifact,
+        ExecutableQueryArtifact executableArtifact,
+        TargetArtifactSemanticFacts semanticFacts,
+        ExecutionSemanticsContract semanticsContract,
+        TargetRuntimeContract? runtimeContract = null,
+        ExecutionTargetReadinessReport? readinessReport = null,
+        int executionIrVersion = TargetContractVersions.ExecutionIr)
+    {
+        CancellationToken = cancellationToken;
         if (executionIrVersion <= 0)
             throw new ArgumentOutOfRangeException(nameof(executionIrVersion));
 
@@ -30,6 +62,8 @@ internal sealed record TargetArtifactPackagingContext
         ReadinessReport = readinessReport;
         ExecutionIrVersion = executionIrVersion;
     }
+
+    public CancellationToken CancellationToken { get; }
 
     public ExecutionTargetId TargetId { get; }
 

@@ -107,6 +107,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         foreach (var schemaFromNode in _sourceBinding.AliasToSchemaFromNodeMap.Values)
         {
+            ThrowIfCancellationRequested();
             var identity = SourceIdentityFactory.Create(schemaFromNode);
             var sourceRuntimeSettings = GetResolvedSourceRuntimeSettings(schemaFromNode.Id);
             _sourceBinding.SourcePlanRequestsPerSchema[schemaFromNode] = canPassHints

@@ -17,9 +17,12 @@ internal sealed class SemanticMetadataPhaseCoordinator
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(visitor);
 
+        visitor.ThrowIfCancellationRequested();
         visitor.ValidateStatementOrder(sourceQuery ?? query);
+        visitor.ThrowIfCancellationRequested();
         var traversal = new BuildMetadataAndInferTypesTraverseVisitor(visitor);
         query.Accept(traversal);
+        visitor.ThrowIfCancellationRequested();
 
         return new SemanticMetadataPhaseResult(
             visitor.Root,

@@ -17,6 +17,7 @@ public class CreateTree(BuildChain successor) : BuildChain(successor)
         if (items == null)
             throw new ArgumentNullException(nameof(items), "BuildItems cannot be null when creating AST tree.");
 
+        items.CancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(items.RawQuery))
             throw AstValidationException.ForInvalidNodeStructure("Query", "CreateTree", "RawQuery is null or empty");
 
@@ -26,6 +27,7 @@ public class CreateTree(BuildChain successor) : BuildChain(successor)
             var script = items.RawQuery;
             var parsedTemplate = ParsedQueryTemplateCache.GetOrAddWithDiagnostics(script,
                 ParsedQueryTemplateCache.DefaultParserContract, () => Parse(script));
+            items.CancellationToken.ThrowIfCancellationRequested();
 
             if (parsedTemplate.Root == null)
                 throw AstValidationException.ForNullNode("RootNode", "CreateTree after parsing");
@@ -48,7 +50,7 @@ public class CreateTree(BuildChain successor) : BuildChain(successor)
                     span);
             }
         }
-        catch (Exception ex) when (ex is not AstValidationException)
+        catch (Exception ex) when (ex is not AstValidationException and not OperationCanceledException)
         {
             throw new AstValidationException("Query", "CreateTree", $"Failed to parse SQL query: {ex.Message}", ex);
         }

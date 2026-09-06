@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using Musoq.Evaluator.IR.Execution;
 
 namespace Musoq.Targets.Execution;
@@ -56,6 +57,8 @@ internal sealed record EmptyTargetBackendRenderInputs(ExecutionTargetId TargetId
 
 internal sealed record TargetRenderRequest
 {
+    public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
+
     public required ExecutionTargetId TargetId { get; init; }
 
     public required TargetRenderPurpose Purpose { get; init; }

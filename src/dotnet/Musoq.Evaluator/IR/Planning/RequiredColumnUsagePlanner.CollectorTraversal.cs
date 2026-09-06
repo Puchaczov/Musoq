@@ -12,6 +12,7 @@ internal static partial class RequiredColumnUsagePlanner
     {
         public void Collect(LogicalNode node)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             if (node is CteNode cte)
             {
                 Collect(cte.Query);
@@ -22,7 +23,10 @@ internal static partial class RequiredColumnUsagePlanner
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
                 foreach (var definition in cte.Definitions)
+                {
+                    _cancellationToken.ThrowIfCancellationRequested();
                     CollectCteDefinition(definition, materializedDefinitions.Contains(definition.Name));
+                }
 
                 return;
             }
@@ -30,20 +34,28 @@ internal static partial class RequiredColumnUsagePlanner
             AddNodeUsages(node);
 
             foreach (var child in node.Children)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
                 Collect(child);
+            }
         }
 
         public RequiredColumnUsageResult CreateResult()
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             var usagesBySourceId = CreateUsagesBySourceId();
+            _cancellationToken.ThrowIfCancellationRequested();
             var requiredColumnsByAlias = CreateRequiredColumnsByAlias();
+            _cancellationToken.ThrowIfCancellationRequested();
             var decisions = CreateDecisions(usagesBySourceId);
 
+            _cancellationToken.ThrowIfCancellationRequested();
             return new RequiredColumnUsageResult(requiredColumnsByAlias, usagesBySourceId, decisions);
         }
 
         private void AddNodeUsages(LogicalNode node)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             switch (node)
             {
                 case SchemaScanNode scan:
@@ -97,7 +109,10 @@ internal static partial class RequiredColumnUsagePlanner
         private void AddProjectedFields(IReadOnlyList<ProjectedField> fields)
         {
             foreach (var field in fields)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
                 AddExpression(field.Expression, ResolveProjectionReason(field));
+            }
         }
 
         private void AddProjectedFields(
@@ -106,6 +121,7 @@ internal static partial class RequiredColumnUsagePlanner
         {
             foreach (var field in fields)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
                 if (ContainsOutputColumn(requiredOutputColumns, field.OutputName))
                     AddExpression(field.Expression, ResolveProjectionReason(field));
             }
@@ -113,6 +129,7 @@ internal static partial class RequiredColumnUsagePlanner
 
         private void CollectCteDefinition(CteDefinition definition, bool materialized)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             if (!materialized &&
                 _requiredColumnsByCteName.TryGetValue(definition.Name, out var requiredColumns) &&
                 requiredColumns.Count > 0)
@@ -124,27 +141,33 @@ internal static partial class RequiredColumnUsagePlanner
             Collect(definition.Plan);
         }
 
-        private static bool RequiresMaterializedDefinition(CteNode cte, string cteName)
+        private bool RequiresMaterializedDefinition(CteNode cte, string cteName)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             return CountCteReferences(cte, cteName) != 1 ||
                    !IsTerminalReadOnceReference(cte.Query, cteName);
         }
 
-        private static int CountCteReferences(LogicalNode node, string cteName)
+        private int CountCteReferences(LogicalNode node, string cteName)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             var count = node is CteRefNode reference &&
                         string.Equals(reference.CteName, cteName, StringComparison.OrdinalIgnoreCase)
                 ? 1
                 : 0;
 
             foreach (var child in node.Children)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
                 count += CountCteReferences(child, cteName);
+            }
 
             return count;
         }
 
-        private static bool IsTerminalReadOnceReference(LogicalNode node, string cteName)
+        private bool IsTerminalReadOnceReference(LogicalNode node, string cteName)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             if (node is MultiStatementNode { Statements.Length: 1 } multiStatement)
                 return IsTerminalReadOnceReference(multiStatement.Statements[0], cteName);
 
@@ -156,6 +179,7 @@ internal static partial class RequiredColumnUsagePlanner
             LogicalNode node,
             IReadOnlySet<string> requiredOutputColumns)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             if (node is MultiStatementNode { Statements.Length: 1 } multiStatement)
             {
                 CollectCteDefinitionPlan(multiStatement.Statements[0], requiredOutputColumns);
@@ -172,16 +196,22 @@ internal static partial class RequiredColumnUsagePlanner
             Collect(node);
         }
 
-        private static bool ContainsOutputColumn(
+        private bool ContainsOutputColumn(
             IReadOnlySet<string> requiredOutputColumns,
             string outputName)
         {
             if (requiredOutputColumns.Contains(outputName))
                 return true;
 
-            return requiredOutputColumns.Any(required =>
-                outputName.EndsWith($".{required}", StringComparison.OrdinalIgnoreCase) ||
-                required.EndsWith($".{outputName}", StringComparison.OrdinalIgnoreCase));
+            foreach (var required in requiredOutputColumns)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
+                if (outputName.EndsWith($".{required}", StringComparison.OrdinalIgnoreCase) ||
+                    required.EndsWith($".{outputName}", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
         }
 
         private static RequiredColumnUsageReason ResolveProjectionReason(ProjectedField field)
@@ -196,13 +226,17 @@ internal static partial class RequiredColumnUsagePlanner
             RequiredColumnUsageReason reason)
         {
             foreach (var field in fields)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
                 AddExpression(field.Expression, reason);
+            }
         }
 
         private void AddAggregateBindings(IReadOnlyList<AggregateBinding> bindings)
         {
             foreach (var binding in bindings)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
                 AddExpressions(binding.SetArguments, RequiredColumnUsageReason.AggregateSetArgument);
                 if (binding.FilterPredicate != null)
                     AddExpression(binding.FilterPredicate, RequiredColumnUsageReason.AggregateSetArgument);
@@ -214,6 +248,7 @@ internal static partial class RequiredColumnUsagePlanner
         {
             foreach (var registration in registrations)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
                 AddExpressions(registration.PartitionKeys, RequiredColumnUsageReason.WindowPartition);
                 AddOrderFields(registration.OrderKeys, RequiredColumnUsageReason.WindowOrder);
                 AddExpressions(registration.ValueArguments, RequiredColumnUsageReason.WindowValue);

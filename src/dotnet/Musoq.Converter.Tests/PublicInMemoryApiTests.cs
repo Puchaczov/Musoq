@@ -204,13 +204,15 @@ public class PublicInMemoryApiTests
         var compileArtifact = typeof(MusoqQueryBuilder)
             .GetMethods()
             .Single(static method => method.Name == nameof(MusoqQueryBuilder.CompileArtifact) &&
-                                     method.IsGenericMethodDefinition);
+                                     method.IsGenericMethodDefinition &&
+                                     method.GetParameters().Length == 0);
         Assert.AreEqual(typeof(CompiledTypedQueryArtifact), compileArtifact.ReturnType);
 
         var publicLoad = typeof(Musoq)
             .GetMethods()
             .Single(static method => method.Name == nameof(Musoq.Load) &&
-                                     method.IsGenericMethodDefinition);
+                                     method.IsGenericMethodDefinition &&
+                                     method.GetParameters().Length == 1);
         Assert.AreEqual(typeof(CompiledTypedQueryArtifact), publicLoad.GetParameters()[0].ParameterType);
 
         var portableLoad = typeof(InstanceCreator)

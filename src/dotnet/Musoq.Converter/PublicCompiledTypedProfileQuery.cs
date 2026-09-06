@@ -16,6 +16,16 @@ internal sealed class PublicCompiledTypedProfileQuery<TOut> : ICompiledTypedProf
         InMemorySourceBinding sourceBinding,
         ILoggerResolver loggerResolver,
         CompilationOptions compilationOptions)
+        : this(query, sourceBinding, loggerResolver, compilationOptions, CancellationToken.None)
+    {
+    }
+
+    public PublicCompiledTypedProfileQuery(
+        string query,
+        InMemorySourceBinding sourceBinding,
+        ILoggerResolver loggerResolver,
+        CompilationOptions compilationOptions,
+        CancellationToken cancellationToken)
     {
         _sourceBinding = sourceBinding ?? throw new ArgumentNullException(nameof(sourceBinding));
 
@@ -25,7 +35,8 @@ internal sealed class PublicCompiledTypedProfileQuery<TOut> : ICompiledTypedProf
             _sourceBinding.CreateMetadataProvider(),
             loggerResolver ?? throw new ArgumentNullException(nameof(loggerResolver)),
             compilationOptions ?? throw new ArgumentNullException(nameof(compilationOptions)),
-            _sourceBinding.AdditionalReferenceTypes);
+            _sourceBinding.AdditionalReferenceTypes,
+            cancellationToken);
         _runState = new TypedRunState(_factory.ParameterDefinitions);
     }
 

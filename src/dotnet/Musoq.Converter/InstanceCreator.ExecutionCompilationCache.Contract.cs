@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using Musoq.Converter.Build;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Schema;
@@ -14,54 +15,85 @@ public static partial class InstanceCreator
 {
     private static string CreateSemanticExecutionContractFingerprint(
         BuildItems items,
-        ISchemaProvider schemaProvider)
+        ISchemaProvider schemaProvider,
+        CancellationToken cancellationToken)
     {
-        var facts = TargetArtifactSemanticFactsFactory.From(items);
+        cancellationToken.ThrowIfCancellationRequested();
+        var facts = TargetArtifactSemanticFactsFactory.From(items, cancellationToken);
         var builder = new StringBuilder();
-        builder.Append(CompiledQueryArtifactSupport.ComputeSemanticShapeHash(facts, "<execution-cache>"));
+        builder.Append(CompiledQueryArtifactSupport.ComputeSemanticShapeHash(
+            facts,
+            "<execution-cache>",
+            cancellationToken));
         builder.AppendLine();
         builder.Append(PhysicalPlanPrinter.Print(items.PhysicalPlan ?? throw new InvalidOperationException(
             "Execution compilation cache requires a physical plan.")));
         builder.AppendLine();
         builder.Append(items.InterpreterSourceCode ?? string.Empty);
         builder.AppendLine();
-        builder.Append(CreateProviderContractSignature(schemaProvider));
+        builder.Append(CreateProviderContractSignature(schemaProvider, cancellationToken));
         builder.AppendLine();
         foreach (var type in items.AdditionalReferenceTypes
                      .Select(static type => type.AssemblyQualifiedName ?? type.FullName ?? type.Name)
                      .OrderBy(static name => name, StringComparer.Ordinal))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             builder.Append(type).AppendLine();
+        }
 
+        cancellationToken.ThrowIfCancellationRequested();
         return CompiledQueryArtifactSupport.ComputeHash(builder.ToString());
     }
 
     private static string CreateProviderContractSignature(ISchemaProvider schemaProvider)
     {
+        return CreateProviderContractSignature(schemaProvider, CancellationToken.None);
+    }
+
+    private static string CreateProviderContractSignature(
+        ISchemaProvider schemaProvider,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         var builder = new StringBuilder();
         var visited = new HashSet<object>(ReferenceEqualityComparer.Instance);
-        foreach (var field in GetDeclaredInstanceFields(schemaProvider.GetType())
-                     .OrderBy(static field => field.DeclaringType?.FullName, StringComparer.Ordinal)
-                     .ThenBy(static field => field.Name, StringComparer.Ordinal))
+        foreach (var field in GetOrderedDeclaredInstanceFields(schemaProvider.GetType(), cancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             builder.Append(field.DeclaringType?.FullName).Append('.').Append(field.Name).Append('=');
-            AppendProviderContractValue(builder, field.GetValue(schemaProvider), 1, visited);
+            AppendProviderContractValue(
+                builder,
+                field.GetValue(schemaProvider),
+                1,
+                visited,
+                cancellationToken);
             builder.Append(';');
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         return builder.ToString();
     }
 
     internal static string CreateSemanticProviderContractSignatureForCache(ISchemaProvider schemaProvider)
     {
-        return CreateProviderContractSignature(schemaProvider);
+        return CreateSemanticProviderContractSignatureForCache(schemaProvider, CancellationToken.None);
+    }
+
+    internal static string CreateSemanticProviderContractSignatureForCache(
+        ISchemaProvider schemaProvider,
+        CancellationToken cancellationToken)
+    {
+        return CreateProviderContractSignature(schemaProvider, cancellationToken);
     }
 
     private static void AppendProviderContractValue(
         StringBuilder builder,
         object? value,
         int depth,
-        HashSet<object> visited)
+        HashSet<object> visited,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (value is null)
         {
             builder.Append("<null>");
@@ -127,10 +159,16 @@ public static partial class InstanceCreator
                 builder.Append(formattable.ToString(null, CultureInfo.InvariantCulture));
                 return;
             case IDictionary dictionary:
-                foreach (var entry in ReadDictionaryEntries(dictionary))
+                foreach (var entry in ReadDictionaryEntries(dictionary, cancellationToken))
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     builder.Append("key=");
-                    AppendProviderContractValue(builder, entry.Key, depth + 1, visited);
+                    AppendProviderContractValue(
+                        builder,
+                        entry.Key,
+                        depth + 1,
+                        visited,
+                        cancellationToken);
                     builder.Append("value-type=")
                         .Append(entry.Value?.GetType().AssemblyQualifiedName ?? "<null>")
                         .Append(';');
@@ -142,30 +180,67 @@ public static partial class InstanceCreator
                 return;
         }
 
-        foreach (var field in GetDeclaredInstanceFields(type)
-                     .OrderBy(static field => field.DeclaringType?.FullName, StringComparer.Ordinal)
-                     .ThenBy(static field => field.Name, StringComparer.Ordinal))
+        foreach (var field in GetOrderedDeclaredInstanceFields(type, cancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             builder.Append(field.Name).Append('=');
-            AppendProviderContractValue(builder, field.GetValue(value), depth + 1, visited);
+            AppendProviderContractValue(
+                builder,
+                field.GetValue(value),
+                depth + 1,
+                visited,
+                cancellationToken);
             builder.Append(';');
         }
     }
 
     private static IEnumerable<FieldInfo> GetDeclaredInstanceFields(Type type)
     {
-        return type.GetFields(
+        return GetDeclaredInstanceFields(type, CancellationToken.None);
+    }
+
+    private static IEnumerable<FieldInfo> GetDeclaredInstanceFields(
+        Type type,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var fields = type.GetFields(
             BindingFlags.Instance |
             BindingFlags.Public |
             BindingFlags.NonPublic |
             BindingFlags.DeclaredOnly);
+        cancellationToken.ThrowIfCancellationRequested();
+        return fields;
     }
 
-    private static IEnumerable<(object? Key, object? Value)> ReadDictionaryEntries(IDictionary dictionary)
+    private static IReadOnlyList<FieldInfo> GetOrderedDeclaredInstanceFields(
+        Type type,
+        CancellationToken cancellationToken)
+    {
+        var fields = GetDeclaredInstanceFields(type, cancellationToken).ToList();
+        cancellationToken.ThrowIfCancellationRequested();
+        fields.Sort((left, right) =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var declaringTypeComparison = StringComparer.Ordinal.Compare(
+                left.DeclaringType?.FullName,
+                right.DeclaringType?.FullName);
+            return declaringTypeComparison != 0
+                ? declaringTypeComparison
+                : StringComparer.Ordinal.Compare(left.Name, right.Name);
+        });
+        cancellationToken.ThrowIfCancellationRequested();
+        return fields;
+    }
+
+    private static IEnumerable<(object? Key, object? Value)> ReadDictionaryEntries(
+        IDictionary dictionary,
+        CancellationToken cancellationToken)
     {
         var entries = new List<(object? Key, object? Value)>();
         foreach (var item in (IEnumerable)dictionary)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (item is DictionaryEntry dictionaryEntry)
             {
                 entries.Add((dictionaryEntry.Key, dictionaryEntry.Value));
@@ -178,9 +253,13 @@ public static partial class InstanceCreator
                 itemType.GetProperty("Value", BindingFlags.Instance | BindingFlags.Public)?.GetValue(item)));
         }
 
-        entries.Sort(static (left, right) => StringComparer.Ordinal.Compare(
-            left.Key?.ToString(),
-            right.Key?.ToString()));
+        cancellationToken.ThrowIfCancellationRequested();
+        entries.Sort((left, right) =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return StringComparer.Ordinal.Compare(left.Key?.ToString(), right.Key?.ToString());
+        });
+        cancellationToken.ThrowIfCancellationRequested();
         return entries;
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
@@ -8,19 +9,32 @@ internal static class CardinalityFactPlanner
 {
     public static CardinalityFactPlanningResult Plan(PhysicalNode physicalPlan, SourcePlanningFacts sourcePlanning)
     {
+        return Plan(physicalPlan, sourcePlanning, CancellationToken.None);
+    }
+
+    public static CardinalityFactPlanningResult Plan(
+        PhysicalNode physicalPlan,
+        SourcePlanningFacts sourcePlanning,
+        CancellationToken cancellationToken)
+    {
         ArgumentNullException.ThrowIfNull(physicalPlan);
         ArgumentNullException.ThrowIfNull(sourcePlanning);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        var state = new State(sourcePlanning);
+        var state = new State(sourcePlanning, cancellationToken);
         state.Visit(physicalPlan);
+        cancellationToken.ThrowIfCancellationRequested();
 
         return new CardinalityFactPlanningResult(state.Facts, state.Decisions);
     }
 
-    private sealed class State(SourcePlanningFacts sourcePlanning)
+    private sealed class State(
+        SourcePlanningFacts sourcePlanning,
+        CancellationToken cancellationToken)
     {
         private readonly List<CardinalityFact> _facts = [];
         private readonly List<PlanningDecision> _decisions = [];
+        private readonly CancellationToken _cancellationToken = cancellationToken;
         private int _takeIndex;
         private int _topNIndex;
         private int _topOffsetIndex;
@@ -31,6 +45,7 @@ internal static class CardinalityFactPlanner
 
         public CardinalityBounds? Visit(PhysicalNode node)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             switch (node)
             {
                 case PhysicalValuesScanNode values:
@@ -96,7 +111,10 @@ internal static class CardinalityFactPlanner
 
                 default:
                     foreach (var child in node.Children)
+                    {
+                        _cancellationToken.ThrowIfCancellationRequested();
                         Visit(child);
+                    }
 
                     return null;
             }
@@ -110,6 +128,7 @@ internal static class CardinalityFactPlanner
             PhysicalNode targetNode,
             string reason)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             var inputBounds = Visit(input);
             var fact = inputBounds?.ExactRows is { } exact
                 ? new CardinalityFact(
@@ -136,6 +155,7 @@ internal static class CardinalityFactPlanner
 
         private CardinalityBounds VisitTopOffset(PhysicalTopOffsetNode topOffset)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             var inputBounds = Visit(topOffset.Input);
             var exactRows = inputBounds?.ExactRows;
             var targetId = $"top-offset:{_topOffsetIndex++}";
@@ -164,6 +184,7 @@ internal static class CardinalityFactPlanner
 
         private bool TryCreateSourceFact(PhysicalSchemaScanNode scan, out CardinalityFact fact)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             fact = null!;
             if (string.IsNullOrWhiteSpace(scan.SourceContextId) ||
                 !sourcePlanning.SourcePlanResultsBySourceId.TryGetValue(scan.SourceContextId, out var result) ||
@@ -190,6 +211,7 @@ internal static class CardinalityFactPlanner
 
         private CardinalityBounds AddFact(CardinalityFact fact, PhysicalNode node)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             fact = fact with { Node = node };
             _facts.Add(fact);
             _decisions.Add(new PlanningDecision(
@@ -200,6 +222,7 @@ internal static class CardinalityFactPlanner
                 ResolveConfidence(fact),
                 fact.Reason));
 
+            _cancellationToken.ThrowIfCancellationRequested();
             return new CardinalityBounds(
                 fact.Kind,
                 fact.ExactRows,

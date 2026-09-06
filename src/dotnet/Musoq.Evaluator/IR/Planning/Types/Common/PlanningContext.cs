@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
@@ -22,5 +23,6 @@ internal sealed partial record PlanningContext(
     IPlanningShapeResolver ShapeResolver,
     CteExecutionPlan? CteExecutionPlan,
     SourceTransferCapabilities TargetSourceTransferCapabilities =
-        SourceTransferCapabilities.QueryScopedRows | SourceTransferCapabilities.LogicalScalarReads)
+        SourceTransferCapabilities.QueryScopedRows | SourceTransferCapabilities.LogicalScalarReads,
+    CancellationToken CancellationToken = default)
 { public LogicalNode LogicalPlan => LogicalArtifacts.OptimizedLogicalPlan; }
