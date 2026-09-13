@@ -1,4 +1,6 @@
+using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
@@ -32,7 +34,7 @@ internal sealed partial class PhysicalLoweringImplementation
         if (producerPipeline == null ||
             producerPipeline.Filter != null ||
             producerPipeline.PostOperations.Count != 0 ||
-            !CanInlineFinalProjectionSource(producerPipeline.Source))
+            !CanInlineFinalProjectionSource(producerPipeline.Source, finalPipeline.Filter))
         {
             return null;
         }
@@ -79,6 +81,17 @@ internal sealed partial class PhysicalLoweringImplementation
     private static bool CanInlineFinalProjectionSource(PhysicalNode source)
     {
         return CanInlineFinalJoinProjectionSource(source) || IsPlainSchemaScanApplySource(source);
+    }
+
+    private static bool CanInlineFinalProjectionSource(
+        PhysicalNode source,
+        PhysicalFilterNode? finalFilter)
+    {
+        return CanInlineFinalProjectionSource(source) ||
+               finalFilter != null &&
+               IrExpressionTraversal.SelfAndDescendants(finalFilter.Predicate)
+                   .Any(static expression => expression is PatternMatch { Kind: PatternKind.Like }) &&
+               CanInlineSideEffectApplyProjectionSource(source);
     }
 
     private static bool IsPlainSchemaScanApplySource(PhysicalNode source)

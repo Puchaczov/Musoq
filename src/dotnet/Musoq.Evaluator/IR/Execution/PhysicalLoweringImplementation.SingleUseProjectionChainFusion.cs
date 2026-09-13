@@ -47,7 +47,7 @@ internal sealed partial class PhysicalLoweringImplementation
         if (producerPipeline == null ||
             producerPipeline.Project.IsDistinct ||
             producerPipeline.PostOperations.Count != 0 ||
-            (!CanInlineFinalProjectionSource(producerPipeline.Source) &&
+            (!CanInlineFinalProjectionSource(producerPipeline.Source, finalPipeline.Filter) &&
              (scope.RecursiveCteSink == null ||
               !CanInlineRecursiveCteProjectionSource(producerPipeline.Source))))
         {

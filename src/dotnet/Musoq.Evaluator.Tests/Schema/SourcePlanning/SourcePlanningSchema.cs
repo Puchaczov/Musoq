@@ -4,11 +4,12 @@ using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Optimization;
 using Musoq.Tests.Common.SourcePlanning;
 
 namespace Musoq.Evaluator.Tests.Schema.SourcePlanning;
 
-public sealed class SourcePlanningSchema(
+public sealed partial class SourcePlanningSchema(
     string schemaName,
     IReadOnlyList<SourcePlanningEntity> rows,
     SourcePlanningMode mode,
@@ -36,7 +37,44 @@ public sealed class SourcePlanningSchema(
         params object?[] parameters)
     {
         recorder.RecordDescribe();
-        return base.DescribeSource(name, context, parameters);
+        var descriptor = base.DescribeSource(name, context, parameters);
+        return mode switch
+        {
+            SourcePlanningMode.AcceptTypedStringPredicate => descriptor with
+            {
+                PredicateCapabilities = CreateStringPredicateCapabilities()
+            },
+            SourcePlanningMode.MalformedTypedMissingApplication or
+                SourcePlanningMode.MalformedTypedDuplicateApplication or
+                SourcePlanningMode.MalformedTypedAlteredApplication or
+                SourcePlanningMode.MalformedTypedNestedAccepted => descriptor with
+                {
+                    PredicateCapabilities = CreateStringPredicateCapabilities()
+                },
+            SourcePlanningMode.AcceptTypedStringPrefixPredicate => descriptor with
+            {
+                PredicateCapabilities = CreateStringPredicateCapabilities(SourceStringMatchOperations.Prefix)
+            },
+            SourcePlanningMode.AcceptTypedStringPredicateUnknownVersion => descriptor with
+            {
+                PredicateCapabilities = CreateStringPredicateCapabilities(SourceStringMatchOperations.All) with
+                {
+                    ContractVersion = SourcePredicateCapabilities.CurrentContractVersion + 100
+                }
+            },
+            SourcePlanningMode.MalformedTypedUnknownVersionApplication => descriptor with
+            {
+                PredicateCapabilities = CreateStringPredicateCapabilities() with
+                {
+                    ContractVersion = SourcePredicateCapabilities.CurrentContractVersion + 100
+                }
+            },
+            SourcePlanningMode.MalformedTypedUnadvertisedPhaseApplication => descriptor with
+            {
+                PredicateCapabilities = CreateRowFilterOnlyStringPredicateCapabilities()
+            },
+            _ => descriptor
+        };
     }
 
     public override SourcePlanResult TryPlanSource(
@@ -48,7 +86,9 @@ public sealed class SourcePlanningSchema(
             return SourcePlanResult.RejectAll(request);
 
         recorder.RecordRequest(request);
-        return CreatePlanResult(request);
+        var result = CreatePlanResult(request);
+        recorder.RecordPlanResult(result);
+        return result;
     }
 
     public override RowSource<T> GetRowSource<T>(
@@ -98,6 +138,28 @@ public sealed class SourcePlanningSchema(
                 residualTake: request.Take,
                 acceptedPredicate: request.Predicate,
                 predicateAccepted: true),
+            SourcePlanningMode.AcceptTypedStringPredicate or
+                SourcePlanningMode.AcceptTypedStringPrefixPredicate or
+                SourcePlanningMode.AcceptTypedStringPredicateUnknownVersion => SourcePlanningPlanResultBuilder.CreateAccepted(
+                request,
+                acceptedOrderBy: [],
+                residualOrderBy: request.OrderBy,
+                acceptedSkip: null,
+                residualSkip: request.Skip,
+                acceptedTake: null,
+                residualTake: request.Take,
+                acceptedPredicate: request.Predicate,
+                predicateAccepted: request.Predicate != null),
+            SourcePlanningMode.MalformedTypedMissingApplication => CreateMalformedTypedResult(
+                request, MalformedTypedResultKind.MissingApplication),
+            SourcePlanningMode.MalformedTypedDuplicateApplication => CreateMalformedTypedResult(
+                request, MalformedTypedResultKind.DuplicateApplication),
+            SourcePlanningMode.MalformedTypedAlteredApplication => CreateMalformedTypedResult(
+                request, MalformedTypedResultKind.AlteredApplication),
+            SourcePlanningMode.MalformedTypedNestedAccepted => CreateMalformedNestedTypedResult(request),
+            SourcePlanningMode.MalformedTypedUnknownVersionApplication => CreateMalformedUnknownVersionResult(request),
+            SourcePlanningMode.MalformedTypedUnadvertisedPhaseApplication => CreateMalformedTypedResult(
+                request, MalformedTypedResultKind.UnadvertisedPhase),
             SourcePlanningMode.AcceptFirstPredicate => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
                 acceptedOrderBy: [],
@@ -219,6 +281,45 @@ public sealed class SourcePlanningSchema(
                 strategy: SourcePlanningExecutionStrategy.NaturalOrder),
             _ => SourcePlanResult.RejectAll(request)
         };
+    }
+
+    private static SourcePredicateCapabilities CreateStringPredicateCapabilities(
+        SourceStringMatchOperations operations = SourceStringMatchOperations.All)
+    {
+        return new SourcePredicateCapabilities
+        {
+            StringMatches =
+            [
+                CreateStringMatchCapability(nameof(SourcePlanningEntity.Name), operations),
+                CreateStringMatchCapability(nameof(SourcePlanningEntity.Category), operations)
+            ]
+        };
+    }
+
+    private static SourcePredicateCapabilities CreateRowFilterOnlyStringPredicateCapabilities()
+    {
+        return new SourcePredicateCapabilities
+        {
+            StringMatches =
+            [
+                new SourceStringMatchCapability(
+                    new SourceColumnRef(nameof(SourcePlanningEntity.Name)),
+                    SourceStringMatchOperations.All,
+                    phases: SourcePredicateEvaluationPhases.RowFiltering)
+            ]
+        };
+    }
+
+    private static SourceStringMatchCapability CreateStringMatchCapability(
+        string columnName,
+        SourceStringMatchOperations operations)
+    {
+        return new SourceStringMatchCapability(
+            new SourceColumnRef(columnName),
+            operations,
+            SourceStringComparison.LikeIgnoreCase,
+            supportsNegation: true,
+            SourcePredicateEvaluationPhases.All);
     }
 
     private static MethodsAggregator CreateLibrary()

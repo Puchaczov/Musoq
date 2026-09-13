@@ -65,6 +65,7 @@ public sealed record SourcePlanResult
                 AcceptedComputedProjections = request.RequestedComputedProjections,
                 Replayability = request.Replayability,
                 AcceptedPredicate = request.Predicate,
+                PredicateApplications = SourcePredicateApplication.ForRowFiltering(request.Predicate),
                 AcceptedOrderBy = request.OrderBy,
                 AcceptedSkip = request.Skip,
                 AcceptedTake = request.Take

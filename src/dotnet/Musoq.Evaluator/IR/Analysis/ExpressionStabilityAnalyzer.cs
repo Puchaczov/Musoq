@@ -65,6 +65,11 @@ internal static class ExpressionStabilityAnalyzer
             ExecutionInCheck check => IsStable(check.Expression) && check.Values.All(IsStable),
             ExecutionCollectionInCheck check => IsStable(check.Expression) && IsStable(check.Collection),
             ExecutionPatternMatch match => IsStable(match.Expression) && IsStable(match.Pattern),
+            ExecutionStringMatch match => IsStable(match.Input),
+            ExecutionPrepareLikeMatcher prepare => IsStable(prepare.Pattern),
+            ExecutionPreparedLikeMatch match => IsStable(match.Input) && IsStable(match.Matcher),
+            ExecutionDynamicLikeMatch match => IsStable(match.Input) && IsStable(match.Pattern),
+            ExecutionLikeMatcherCacheSlot => false,
             ExecutionBetween between => IsStable(between.Expression) &&
                                         IsStable(between.Low) &&
                                         IsStable(between.High),

@@ -818,3 +818,30 @@ internal sealed record TargetProfilingAbiDetails(
         ("sourceBoundaryCount", RequireNonNegative(SourceBoundaryCount, nameof(SourceBoundaryCount))),
         ("operatorCount", RequireNonNegative(OperatorCount, nameof(OperatorCount))));
 }
+
+internal sealed record TargetLikeMatcherAbiDetails(
+    int CacheCapacity,
+    string Comparison,
+    bool CultureAware) : TargetHostAbiImportDetails
+{
+    public override TargetHostAbiImportKind Kind => TargetHostAbiImportKind.LikeMatcher;
+
+    internal override string CanonicalDefinition => CreateCanonicalDefinition(
+        Kind.ToString(),
+        builder =>
+        {
+            AppendScalar(builder, "cacheCapacity", CacheCapacity);
+            AppendScalar(builder, "comparison", Comparison);
+            AppendScalar(builder, "cultureAware", CultureAware);
+        });
+
+    public override IReadOnlyDictionary<string, string> Attributes { get; } = BuildAttributes(
+        ("cache-capacity", RequirePositive(CacheCapacity)),
+        ("comparison", RequireText(Comparison, nameof(Comparison))),
+        ("culture-aware", CultureAware));
+
+    private static int RequirePositive(int value) =>
+        value > 0
+            ? value
+            : throw new ArgumentOutOfRangeException(nameof(CacheCapacity), "Cache capacity must be positive.");
+}

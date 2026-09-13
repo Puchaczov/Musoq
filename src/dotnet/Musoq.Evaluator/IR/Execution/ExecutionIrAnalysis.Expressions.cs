@@ -3,7 +3,6 @@ using System.Linq;
 using Musoq.Evaluator.IR.Execution.Facts;
 
 namespace Musoq.Evaluator.IR.Execution;
-
 internal static partial class ExecutionIrAnalysis
 {
     internal static IEnumerable<ExecutionExpression> GetContextLayoutExpressions(ExecutionContextLayout? contextLayout) =>
@@ -83,7 +82,8 @@ internal static partial class ExecutionIrAnalysis
             ExecutionRowPresence rowPresence => [rowPresence.PresenceSource],
             ExecutionInCheck inCheck => [inCheck.Expression, .. inCheck.Values],
             ExecutionCollectionInCheck collectionInCheck => [collectionInCheck.Expression, collectionInCheck.Collection],
-            ExecutionPatternMatch patternMatch => [patternMatch.Expression, patternMatch.Pattern],
+            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or
+                ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot => PatternExpressionFacts.GetChildren(expression),
             ExecutionBetween between => [between.Expression, between.Low, between.High],
             ExecutionCaseWhen caseWhen => caseWhen.ElseExpression == null
                 ? caseWhen.Branches.SelectMany(static branch => new[] { branch.Condition, branch.Result })

@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
 using Musoq.Tests.Common;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Converter.Tests;
 
@@ -181,6 +182,53 @@ public class BuildTests
             ((IList<string>)tags).Clear());
 
         Assert.AreEqual("single", LoadDualArtifact(artifact).Run().Single().Dummy);
+    }
+
+    [TestMethod]
+    public void CompiledTypedQueryArtifact_ShouldSnapshotTypedPredicateApplications()
+    {
+        var sourceArtifact = CompileDualArtifact();
+        var match = new SourcePredicateStringMatch(
+            new SourceColumnRef("Name"),
+            SourceStringMatchKind.Contains,
+            "%item%",
+            "item");
+        var applications = new List<SourcePredicateApplication>
+        {
+            new(match, SourcePredicateEvaluationPhase.RowFiltering)
+        };
+        var sourceExecutionPlans = sourceArtifact.SourceExecutionPlans.ToDictionary(
+            static entry => entry.Key,
+            static entry => entry.Value,
+            StringComparer.Ordinal);
+        sourceExecutionPlans["typed"] = new SourceExecutionPlan
+        {
+            Identity = new SourceIdentity("#test", "entities", "typed", "s"),
+            AcceptedPredicate = match,
+            PredicateApplications = applications
+        };
+
+        var artifact = new CompiledTypedQueryArtifact(
+            sourceArtifact.DllFile,
+            sourceArtifact.PdbFile,
+            sourceArtifact.RunnableTypeName,
+            sourceArtifact.ResultMode,
+            sourceArtifact.OutputType,
+            sourceArtifact.SourceRuntimeSettingsBySourceContextId,
+            sourceArtifact.SourceRuntimeSettingDescriptionsBySourceContextId,
+            sourceExecutionPlans,
+            sourceArtifact.ParameterDefinitions);
+
+        applications.Clear();
+
+        var plan = artifact.SourceExecutionPlans["typed"];
+        Assert.HasCount(1, plan.PredicateApplications);
+        var copiedMatch = plan.PredicateApplications[0].Predicate;
+        Assert.AreEqual(SourceStringMatchKind.Contains, copiedMatch.Kind);
+        Assert.AreEqual("%item%", copiedMatch.OriginalPattern);
+        Assert.AreEqual("item", copiedMatch.Needle);
+        Assert.Throws<NotSupportedException>(() =>
+            ((IList<SourcePredicateApplication>)plan.PredicateApplications).Clear());
     }
 
     [TestMethod]

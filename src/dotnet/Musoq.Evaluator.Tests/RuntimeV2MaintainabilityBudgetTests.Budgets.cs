@@ -274,7 +274,9 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         new("src/dotnet/Musoq.Evaluator/IR/Planning", "*.cs", 8822),
         new("src/dotnet/Musoq.Evaluator/IR/Planning/SourcePlanning", "*.cs", 453),
         new("src/dotnet/Musoq.Evaluator/IR/Physical/SourcePlanning", "*.cs", 427),
-        new("src/dotnet/Musoq.Evaluator/IR/SourcePlanning", "*.cs", 355),
+        // The typed source-predicate capability contract intentionally adds a
+        // separately owned negotiation family to this source-planning boundary.
+        new("src/dotnet/Musoq.Evaluator/IR/SourcePlanning", "*.cs", 501),
         new("src/dotnet/Musoq.Parser", "Parser*.cs", 5465),
         new("src/dotnet/Musoq.Parser/Lexing", "*.cs", 2871),
         new("src/dotnet/Musoq.Evaluator/Helpers", "WindowFunctionHelpers*.cs", 2485),

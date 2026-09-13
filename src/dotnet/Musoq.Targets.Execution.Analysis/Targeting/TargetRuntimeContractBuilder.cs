@@ -17,6 +17,7 @@ internal static class TargetRuntimeContractBuilder
         ArgumentNullException.ThrowIfNull(compatibilityReport);
 
         var nodes = ExecutionIrAnalysis.FlattenNodes(plan.Body).ToArray();
+        var expressions = ExecutionIrAnalysis.FlattenExpressions(plan.Body).ToArray();
         var sourceAccess = CreateSourceAccess(nodes, sourceRuntimeMetadata);
         var queryRowSourceAccess = CreateQueryRowSourceAccess(nodes);
         var pluginInvocations = compatibilityReport.Requirements
@@ -53,7 +54,20 @@ internal static class TargetRuntimeContractBuilder
                 SupportsOperatorProfiling: nodes.Length > 0,
                 SourceBoundaryCount: sourceAccess.Count,
                 OperatorCount: nodes.Length),
-            queryRowSourceAccess);
+            queryRowSourceAccess,
+            CreateLikeMatcherContract(expressions));
+    }
+
+    private static TargetLikeMatcherContract? CreateLikeMatcherContract(
+        IReadOnlyList<ExecutionExpression> expressions)
+    {
+        return expressions.Any(static expression => expression is
+            ExecutionPrepareLikeMatcher or
+            ExecutionPreparedLikeMatch or
+            ExecutionDynamicLikeMatch or
+            ExecutionLikeMatcherCacheSlot)
+            ? new TargetLikeMatcherContract(2, nameof(ExecutionStringMatchComparison.LikeIgnoreCase), true)
+            : null;
     }
 
     private static IReadOnlyList<TargetSourceAccessContract> CreateSourceAccess(

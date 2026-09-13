@@ -209,7 +209,7 @@ internal sealed partial class PhysicalLoweringImplementation
             bindingsByIdentifier));
     }
 
-    private static bool CanFinalizeAggregateExpression(
+    internal static bool CanFinalizeAggregateExpression(
         IrExpression expression,
         AggregateFinalizationGroupKeys groupKeys,
         IReadOnlyList<AggregateBinding> bindings,
@@ -224,6 +224,7 @@ internal sealed partial class PhysicalLoweringImplementation
             BinaryOp binary => CanFinalizeAggregateExpression(binary.Left, groupKeys, bindings, bindingsByIdentifier) &&
                                CanFinalizeAggregateExpression(binary.Right, groupKeys, bindings, bindingsByIdentifier),
             UnaryOp unary => CanFinalizeAggregateExpression(unary.Operand, groupKeys, bindings, bindingsByIdentifier),
+            PatternMatch patternMatch => AggregateFinalPatternMatchConversion.CanConvert(patternMatch, groupKeys, bindings, bindingsByIdentifier),
             AggregateRef aggregateRef => TryResolveAggregateBinding(aggregateRef.Identifier, bindingsByIdentifier, out _),
             ColumnRef columnRef => TryResolveAggregateBinding(
                 string.IsNullOrWhiteSpace(columnRef.Alias)

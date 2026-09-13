@@ -11,6 +11,8 @@ public sealed record SourceExecutionPlan
 
     private IReadOnlyList<SourceColumnRef> _acceptedColumns = [];
     private IReadOnlyList<OrderByExpression> _acceptedOrderBy = [];
+    private IReadOnlyList<SourcePredicateApplication> _predicateApplications =
+        Array.AsReadOnly(Array.Empty<SourcePredicateApplication>());
     private IReadOnlyDictionary<string, object?> _properties =
         new ReadOnlyDictionary<string, object?>(new Dictionary<string, object?>(StringComparer.Ordinal));
 
@@ -31,6 +33,13 @@ public sealed record SourceExecutionPlan
     public RowStreamReplayability Replayability { get; init; } = RowStreamReplayability.Unknown;
 
     public SourcePredicateExpression? AcceptedPredicate { get; init; }
+
+    /// <summary>Typed predicates accepted by the source and their evaluation phases.</summary>
+    public IReadOnlyList<SourcePredicateApplication> PredicateApplications
+    {
+        get => _predicateApplications;
+        init => _predicateApplications = FreezeList(value);
+    }
 
     public IReadOnlyList<OrderByExpression> AcceptedOrderBy
     {

@@ -16,6 +16,9 @@ public sealed record SourceDescriptor
 
     public SourceTransferCapabilities TransferCapabilities { get; init; }
 
+    /// <summary>Optional typed predicates the source explicitly agrees to evaluate.</summary>
+    public SourcePredicateCapabilities PredicateCapabilities { get; init; } = SourcePredicateCapabilities.None;
+
     public static SourceDescriptor Empty(SourceIdentity identity)
     {
         return new SourceDescriptor { Identity = identity };

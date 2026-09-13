@@ -29,6 +29,11 @@ internal static class OuterApplyNullSubstitutionService
             ExecutionVariableRead => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionInCheck inCheck => SubstituteInCheck(inCheck, rightAlias),
             ExecutionPatternMatch patternMatch => SubstitutePatternMatch(patternMatch, rightAlias),
+            ExecutionStringMatch stringMatch => SubstituteStringMatch(stringMatch, rightAlias),
+            ExecutionPrepareLikeMatcher prepareLike => SubstitutePrepareLikeMatcher(prepareLike, rightAlias),
+            ExecutionPreparedLikeMatch preparedLike => SubstitutePreparedLikeMatch(preparedLike, rightAlias),
+            ExecutionDynamicLikeMatch dynamicLike => SubstituteDynamicLikeMatch(dynamicLike, rightAlias),
+            ExecutionLikeMatcherCacheSlot => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionBetween between => SubstituteBetween(between, rightAlias),
             ExecutionCaseWhen caseWhen => SubstituteCaseWhen(caseWhen, rightAlias),
             ExecutionCoalesce coalesce => SubstituteCoalesce(coalesce, rightAlias),
@@ -249,6 +254,76 @@ internal static class OuterApplyNullSubstitutionService
             {
                 Expression = expression.Expression,
                 Pattern = pattern.Expression
+            });
+    }
+
+    private static OuterApplyNullSubstitutionResult SubstituteStringMatch(
+        ExecutionStringMatch stringMatch,
+        string rightAlias)
+    {
+        var input = SubstituteRightAlias(stringMatch.Input, rightAlias);
+        if (!input.IsBuilt)
+            return input;
+
+        return input.IsUnknown
+            ? OuterApplyNullSubstitutionResult.Unknown()
+            : OuterApplyNullSubstitutionResult.Known(stringMatch with { Input = input.Expression });
+    }
+
+    private static OuterApplyNullSubstitutionResult SubstitutePrepareLikeMatcher(
+        ExecutionPrepareLikeMatcher prepareLike,
+        string rightAlias)
+    {
+        var pattern = SubstituteRightAlias(prepareLike.Pattern, rightAlias);
+        if (!pattern.IsBuilt)
+            return pattern;
+
+        return pattern.IsUnknown
+            ? OuterApplyNullSubstitutionResult.Unknown()
+            : OuterApplyNullSubstitutionResult.Known(prepareLike with { Pattern = pattern.Expression });
+    }
+
+    private static OuterApplyNullSubstitutionResult SubstitutePreparedLikeMatch(
+        ExecutionPreparedLikeMatch preparedLike,
+        string rightAlias)
+    {
+        var input = SubstituteRightAlias(preparedLike.Input, rightAlias);
+        if (!input.IsBuilt)
+            return input;
+        var matcher = SubstituteRightAlias(preparedLike.Matcher, rightAlias);
+        if (!matcher.IsBuilt)
+            return matcher;
+
+        return input.IsUnknown || matcher.IsUnknown
+            ? OuterApplyNullSubstitutionResult.Unknown()
+            : OuterApplyNullSubstitutionResult.Known(preparedLike with
+            {
+                Input = input.Expression,
+                Matcher = matcher.Expression
+            });
+    }
+
+    private static OuterApplyNullSubstitutionResult SubstituteDynamicLikeMatch(
+        ExecutionDynamicLikeMatch dynamicLike,
+        string rightAlias)
+    {
+        var input = SubstituteRightAlias(dynamicLike.Input, rightAlias);
+        if (!input.IsBuilt)
+            return input;
+        var pattern = SubstituteRightAlias(dynamicLike.Pattern, rightAlias);
+        if (!pattern.IsBuilt)
+            return pattern;
+        var cacheSlot = SubstituteRightAlias(dynamicLike.CacheSlot, rightAlias);
+        if (!cacheSlot.IsBuilt)
+            return cacheSlot;
+
+        return input.IsUnknown || pattern.IsUnknown || cacheSlot.IsUnknown
+            ? OuterApplyNullSubstitutionResult.Unknown()
+            : OuterApplyNullSubstitutionResult.Known(dynamicLike with
+            {
+                Input = input.Expression,
+                Pattern = pattern.Expression,
+                CacheSlot = cacheSlot.Expression
             });
     }
 

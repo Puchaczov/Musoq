@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Targets.CSharpClr.Optimization.Codegen;
 using ExecutionCSharpRenderer = Musoq.Targets.CSharpClr.ExecutionCSharpRenderer;
@@ -11,6 +12,42 @@ namespace Musoq.Evaluator.Tests.IR;
 
 public sealed partial class ExecutionCSharpRendererTests
 {
+    [TestMethod]
+    public void RenderMethod_WhenPreparedLikeUsesScriptParameter_ShouldBindParameterBeforeMatcher()
+    {
+        var renderer = new ExecutionCSharpRenderer(
+        [
+            new ScriptParameterDefinition("pattern", typeof(string), false, null)
+        ]);
+        var plan = CreatePlan();
+        var matcherType = ExecutionClrBindingFactory.FromClr(typeof(PreparedLikeMatcher));
+        var matcher = new ExecutionVariable("__likeMatcher0", matcherType);
+        plan = plan with
+        {
+            Body = plan.Body with
+            {
+                Nodes =
+                [
+                    new ExecutionLet(
+                        matcher,
+                        new ExecutionPrepareLikeMatcher(
+                            new ExecutionScriptParameterRead("pattern", typeof(string)),
+                            ExecutionStringMatchComparison.LikeIgnoreCase,
+                            matcherType),
+                        ExecutionLetCacheMode.SuppressMethodCache),
+                    .. plan.Body.Nodes
+                ]
+            }
+        };
+
+        var code = renderer.RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
+        var bindingIndex = code.IndexOf("var paramPattern = ScriptParameterBinder.GetRequired<string>", StringComparison.Ordinal);
+        var matcherIndex = code.IndexOf("PreparedLikeMatcher __likeMatcher0 = Operators.PrepareLike(paramPattern);", StringComparison.Ordinal);
+
+        Assert.IsGreaterThanOrEqualTo(0, bindingIndex, code);
+        Assert.IsGreaterThan(bindingIndex, matcherIndex, code);
+    }
+
     [TestMethod]
     public void RenderMethod_WhenScriptParametersDeclared_ShouldBindLocalsBeforeOpeningSources()
     {

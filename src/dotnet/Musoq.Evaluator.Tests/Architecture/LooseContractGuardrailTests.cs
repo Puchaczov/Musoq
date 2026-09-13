@@ -155,6 +155,7 @@ public sealed class LooseContractGuardrailTests
             "SingleUsePipelineFusionPass",
             "CteReadOnceFusionPass",
             "CteSidecarIndexLoweringPass",
+            "LikeStrategyLoweringPass",
             "MethodTargetReusePass",
             "LoopInvariantCodeMotionPass",
             "FieldExpressionHoistingPass",

@@ -30,6 +30,11 @@ internal static partial class ExecutionOperationCatalog
         yield return Operation<ExecutionInCheck>("expr.in");
         yield return Operation<ExecutionCollectionInCheck>("expr.collection-in");
         yield return Operation<ExecutionPatternMatch>("expr.pattern");
+        yield return Operation<ExecutionStringMatch>("expr.string-match");
+        yield return Operation<ExecutionPrepareLikeMatcher>("expr.like.prepare-matcher");
+        yield return Operation<ExecutionPreparedLikeMatch>("expr.like.prepared-match");
+        yield return Operation<ExecutionDynamicLikeMatch>("expr.like.dynamic-match");
+        yield return Operation<ExecutionLikeMatcherCacheSlot>("expr.like.cache-slot");
         yield return Operation<ExecutionBetween>("expr.between");
         yield return Operation<ExecutionCaseWhen>("expr.case");
         yield return Operation<ExecutionCoalesce>("expr.coalesce");

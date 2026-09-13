@@ -18,7 +18,10 @@ internal enum ExecutionTargetFeatureKind
     TypePortability,
     Container,
     DynamicValue,
-    QueryRowSourceAccess
+    QueryRowSourceAccess,
+    StringMatchKind,
+    StringMatchComparison,
+    LikeMatcherStrategy
 }
 
 internal sealed record ExecutionTargetFeature

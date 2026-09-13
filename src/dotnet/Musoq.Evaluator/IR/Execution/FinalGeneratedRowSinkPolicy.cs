@@ -12,6 +12,9 @@ internal static class FinalGeneratedRowSinkPolicy
             return false;
         }
 
+        if (CanUseSingleSerialDynamicLikeProjection(plan, finalTableName))
+            return true;
+
         var finalSetOperations = plan.Body.Nodes
             .OfType<ExecutionSetOperation>()
             .Where(operation => string.Equals(operation.Target.Name, finalTableName, StringComparison.Ordinal))
@@ -39,5 +42,80 @@ internal static class FinalGeneratedRowSinkPolicy
                 ExecutionSliceTable slice => string.Equals(slice.Target.Name, finalTableName, StringComparison.Ordinal),
                 _ => false
             });
+    }
+
+    private static bool CanUseSingleSerialDynamicLikeProjection(
+        ExecutionPlan plan,
+        string finalTableName)
+    {
+        var sourceLoopCount = 0;
+        foreach (var node in plan.Body.Nodes)
+        {
+            if (node is ExecutionSourceLoop)
+                sourceLoopCount++;
+
+            if (node switch
+                {
+                    ExecutionSetOperation operation => IsFinalTarget(operation.Target),
+                    ExecutionDistinctTable distinct => IsFinalTarget(distinct.Target),
+                    ExecutionSortTable sort => IsFinalTarget(sort.Target),
+                    ExecutionTopNTable topN => IsFinalTarget(topN.Target),
+                    ExecutionTopOffsetTable topOffset => IsFinalTarget(topOffset.Target),
+                    ExecutionSkipTable skip => IsFinalTarget(skip.Target),
+                    ExecutionTakeTable take => IsFinalTarget(take.Target),
+                    ExecutionSliceTable slice => IsFinalTarget(slice.Target),
+                    ExecutionProjectTable project => IsFinalTarget(project.Target),
+                    ExecutionMaterializeRecordListToTable materialize => IsFinalTarget(materialize.Target),
+                    _ => false
+                })
+            {
+                return false;
+            }
+        }
+
+        if (sourceLoopCount != 1)
+            return false;
+
+        ExecutionAppendRow? finalAppend = null;
+        var containsLikeMatch = false;
+        foreach (var node in ExecutionIrAnalysis.FlattenNodes(plan.Body))
+        {
+            if (node is ExecutionParallelFilterProjectLoop or ExecutionParallelBlock ||
+                node is ExecutionAppendExistingRow existing && IsFinalTarget(existing.Table))
+            {
+                return false;
+            }
+
+            if (node is ExecutionAppendRow append && IsFinalTarget(append.Table))
+            {
+                if (finalAppend != null)
+                    return false;
+
+                finalAppend = append;
+            }
+
+            if (containsLikeMatch)
+                continue;
+
+            foreach (var expression in ExecutionIrAnalysis.GetNodeExpressions(node))
+            {
+                if (ExecutionIrAnalysis.FlattenExpressions(expression).Any(static current =>
+                        current is ExecutionDynamicLikeMatch))
+                {
+                    containsLikeMatch = true;
+                    break;
+                }
+            }
+        }
+
+        return containsLikeMatch &&
+               finalAppend != null &&
+               string.Equals(
+                   finalAppend.RowShape.TypeName,
+                   plan.FinalResult!.Shape.TypeName,
+                   StringComparison.Ordinal);
+
+        bool IsFinalTarget(ExecutionVariable target) =>
+            string.Equals(target.Name, finalTableName, StringComparison.Ordinal);
     }
 }

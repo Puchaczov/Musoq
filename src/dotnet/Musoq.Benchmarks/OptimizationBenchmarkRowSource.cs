@@ -5,19 +5,23 @@ namespace Musoq.Benchmarks;
 
 public sealed class OptimizationBenchmarkRowSource(
     IReadOnlyList<OptimizationBenchmarkEntity> rows,
-    SourceExecutionPlan plan)
+    SourceExecutionPlan plan,
+    OptimizationBenchmarkRecorder recorder)
     : RowSource<OptimizationBenchmarkEntity>
 {
+    private static int _payloadHash;
+
     private const string StrategyProperty = "BenchmarkSourcePlanningStrategy";
     private const string ProjectionWorkProperty = "BenchmarkProjectionWork";
     private readonly IReadOnlyList<IReadOnlyList<OptimizationBenchmarkEntity>> _chunks =
-        BenchmarkSourceChunks.Create(ApplyPlan(rows, plan));
+        BenchmarkSourceChunks.Create(ApplyPlan(rows, plan, recorder));
 
     public override IEnumerable<IReadOnlyList<OptimizationBenchmarkEntity>> Chunks => _chunks;
 
     private static IEnumerable<OptimizationBenchmarkEntity> ApplyPlan(
         IEnumerable<OptimizationBenchmarkEntity> sourceRows,
-        SourceExecutionPlan executionPlan)
+        SourceExecutionPlan executionPlan,
+        OptimizationBenchmarkRecorder recorder)
     {
         return SourcePlanningRowExecution.ApplyPlan(
             sourceRows,
@@ -26,12 +30,13 @@ public sealed class OptimizationBenchmarkRowSource(
                 StrategyProperty,
                 CreateKeySelector,
                 static row => row.Id,
-                ApplyProjectionWork));
+                (rows, plan) => ApplyProjectionWork(rows, plan, recorder)));
     }
 
     private static IEnumerable<OptimizationBenchmarkEntity> ApplyProjectionWork(
         IEnumerable<OptimizationBenchmarkEntity> sourceRows,
-        SourceExecutionPlan executionPlan)
+        SourceExecutionPlan executionPlan,
+        OptimizationBenchmarkRecorder recorder)
     {
         if (!executionPlan.Properties.TryGetValue(ProjectionWorkProperty, out var enabled) ||
             enabled is not true)
@@ -43,9 +48,10 @@ public sealed class OptimizationBenchmarkRowSource(
             sourceRows,
             executionPlan,
             nameof(OptimizationBenchmarkEntity.Payload),
-            static row =>
+            row =>
             {
-                _ = SimulatePayloadRead(row.Payload);
+                recorder.RecordPayloadOpen();
+                Volatile.Write(ref _payloadHash, SimulatePayloadRead(row.Payload));
             });
     }
 

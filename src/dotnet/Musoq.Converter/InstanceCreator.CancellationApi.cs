@@ -179,10 +179,6 @@ public static partial class InstanceCreator
         {
             Build(items, chain);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
         catch (CompilationException ce)
         {
             compilationError = ce;

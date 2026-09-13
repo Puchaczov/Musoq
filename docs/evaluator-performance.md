@@ -2977,3 +2977,54 @@ hardware branch/misprediction counters are supporting evidence only. Raw JSON
 and profiler artifacts remain ignored; the benchmark source and committed
 report record the environment, commands, counters, allocation policy, and
 thresholds.
+
+## Constant LIKE rewrite and source pushdown
+
+The LIKE optimization is split across the query and source-method boundaries.
+The shared classifier recognizes only constant ASCII exact, prefix, suffix, and
+contains shapes. Interior or repeated `%`, `_`, non-ASCII patterns, and dynamic
+patterns remain on the general matcher. Execution IR v7 represents an eligible
+match explicitly as `expr.string-match`. The C# target evaluates the input once,
+uses direct ordinal operations only for a safe ASCII comparison span, and calls
+the legacy regex matcher for non-ASCII input so W00 query results are preserved.
+A source can additionally opt in to a typed match through
+`SourcePredicateCapabilities` and must report the exact application phase in
+`SourcePredicateApplication`.
+
+The following table is historical characterization from the original partial
+implementation. It used 10,000 and 100,000 rows on Windows 11, .NET 10.0.11,
+and an Intel Core Ultra 9 285K. It did not include the corrective Unicode
+fallback matrix, three independent historical-baseline reports, or candidate
+payload phase qualification, so it is not the completed activation receipt:
+
+| Rows | Shape | Baseline | Specialized | Time change | Allocation change |
+| ---: | --- | ---: | ---: | ---: | ---: |
+| 10k | exact | 207.0 us / 464.0 KB | 71.0 us / 229.5 KB | -65.7% | -50.5% |
+| 10k | prefix | 227.7 us / 527.0 KB | 85.2 us / 292.5 KB | -62.6% | -44.5% |
+| 10k | suffix | 291.2 us / 527.0 KB | 89.3 us / 292.5 KB | -69.3% | -44.5% |
+| 10k | contains | 247.7 us / 527.0 KB | 114.7 us / 292.5 KB | -53.7% | -44.5% |
+| 100k | exact | 1.596 ms / 2.578 MB | 390.6 us / 233.3 KB | -75.5% | -91.0% |
+| 100k | prefix | 3.002 ms / 3.303 MB | 1.249 ms / 958.6 KB | -58.4% | -71.0% |
+| 100k | suffix | 3.623 ms / 3.303 MB | 1.333 ms / 958.6 KB | -63.2% | -71.0% |
+| 100k | contains | 3.231 ms / 3.303 MB | 1.456 ms / 958.6 KB | -54.9% | -71.0% |
+
+The reproducible benchmark command is:
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj -c Release --no-build -- `
+  --filter "*LikePatternSpecializationBenchmark*" --job short --memory `
+  --exporters json --artifacts "BenchmarkDotNet.Artifacts/qms-optimized-shapes"
+```
+
+Source capability negotiation is conservative: unsupported or positive unknown
+contracts remain residual predicates, direct top-level `AND` string matches are
+negotiated independently, and any match nested in `OR` or another expression is
+deferred with its complete containing conjunct. Accepted matches must be echoed
+one-for-one in the execution plan with an advertised phase. `CandidateMetadata`
+means before payload open, decode, or row materialization; it does not claim
+filesystem traversal pruning. The normative provider contract is in
+[Source string-match specialization provider contract](source-string-match-specialization.md).
+The corrective three-cohort qualification, result hashes, payload counters, and
+threshold decisions are recorded in the
+[final campaign receipt](campaigns/qms-like-specialization-qualification.md).
+The historical table above must not be treated as the completed qualification.

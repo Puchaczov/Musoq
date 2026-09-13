@@ -89,15 +89,8 @@ internal sealed class CooperativeCompileTimeFixture : IDisposable
             return;
 
         _entered.TrySetResult(stage);
-        try
-        {
-            _release.Task.WaitAsync(token).GetAwaiter().GetResult();
-            StageCompleted = true;
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
+        _release.Task.WaitAsync(token).GetAwaiter().GetResult();
+        StageCompleted = true;
     }
 
     public void Release()

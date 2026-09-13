@@ -31,6 +31,7 @@ internal static class OptimizerClassificationRegistry
             ["SingleUsePipelineFusion"] = OptimizationEvaluationClassification.StabilityChecked,
             ["CteReadOnceFusion"] = OptimizationEvaluationClassification.StabilityChecked,
             ["CteSidecarIndexLowering"] = OptimizationEvaluationClassification.StabilityChecked,
+            ["LikeStrategyLowering"] = OptimizationEvaluationClassification.EvaluationPreserving,
             ["MethodTargetReuse"] = OptimizationEvaluationClassification.StabilityChecked,
             ["LoopInvariantCodeMotion"] = OptimizationEvaluationClassification.RegionChecked,
             ["FieldExpressionHoisting"] = OptimizationEvaluationClassification.StabilityChecked,

@@ -2,8 +2,11 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Planning;
+using Musoq.Evaluator.IR.Planning.SourcePlanning;
 using Musoq.Evaluator.IR.SourcePlanning;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.IR;
 
@@ -44,6 +47,118 @@ public sealed class SourcePredicatePlanningUtilityTests
         var converted = SourcePredicateExpressionConverter.TryConvertPredicate(predicate, "s", out _);
 
         Assert.IsFalse(converted);
+    }
+
+    [TestMethod]
+    public void Converter_ShouldConvertBoundaryLikeLiteralToTypedStringMatch()
+    {
+        var expression = new PatternMatch(
+            Column("s", "Name", typeof(string)),
+            Literal("item-0%"),
+            PatternKind.Like,
+            typeof(bool));
+
+        Assert.IsTrue(SourcePredicateExpressionConverter.TryConvertPredicate(expression, "s", out var predicate));
+
+        var stringMatch = Assert.IsInstanceOfType<SourcePredicateStringMatch>(predicate);
+        Assert.AreEqual("Name", stringMatch.Column.Name);
+        Assert.AreEqual(SourceStringMatchKind.Prefix, stringMatch.Kind);
+        Assert.AreEqual("item-0%", stringMatch.OriginalPattern);
+        Assert.AreEqual("item-0", stringMatch.Needle);
+        Assert.AreEqual(SourceStringComparison.LikeIgnoreCase, stringMatch.Comparison);
+        Assert.IsFalse(stringMatch.IsNegated);
+    }
+
+    [TestMethod]
+    public void Converter_ShouldConvertNotLikeToNegatedTypedStringMatch()
+    {
+        var expression = new UnaryOp(
+            UnaryOpKind.Not,
+            new PatternMatch(
+                Column("s", "Name", typeof(string)),
+                Literal("%item%"),
+                PatternKind.Like,
+                typeof(bool)),
+            typeof(bool));
+
+        Assert.IsTrue(SourcePredicateExpressionConverter.TryConvertPredicate(expression, "s", out var predicate));
+
+        var stringMatch = Assert.IsInstanceOfType<SourcePredicateStringMatch>(predicate);
+        Assert.AreEqual(SourceStringMatchKind.Contains, stringMatch.Kind);
+        Assert.AreEqual("%item%", stringMatch.OriginalPattern);
+        Assert.AreEqual("item", stringMatch.Needle);
+        Assert.IsTrue(stringMatch.IsNegated);
+    }
+
+    [TestMethod]
+    public void Converter_ShouldRejectLikePatternsWithInteriorOrSingleCharacterWildcards()
+    {
+        var interiorWildcard = new PatternMatch(
+            Column("s", "Name", typeof(string)),
+            Literal("item-%0%"),
+            PatternKind.Like,
+            typeof(bool));
+        var singleCharacterWildcard = new PatternMatch(
+            Column("s", "Name", typeof(string)),
+            Literal("item_0%"),
+            PatternKind.Like,
+            typeof(bool));
+
+        Assert.IsFalse(SourcePredicateExpressionConverter.TryConvertPredicate(interiorWildcard, "s", out _));
+        Assert.IsFalse(SourcePredicateExpressionConverter.TryConvertPredicate(singleCharacterWildcard, "s", out _));
+    }
+
+    [TestMethod]
+    public void Converter_ShouldKeepUnicodeLikePatternAsEvaluatorResidual()
+    {
+        var expression = new PatternMatch(
+            Column("s", "Name", typeof(string)),
+            Literal("Żółć%"),
+            PatternKind.Like,
+            typeof(bool));
+
+        Assert.IsFalse(SourcePredicateExpressionConverter.TryConvertPredicate(expression, "s", out _));
+    }
+
+    [TestMethod]
+    public void Negotiator_ShouldDeferTypedMatchNestedOutsideTopLevelAnd()
+    {
+        var match = new SourcePredicateStringMatch(
+            new SourceColumnRef("Name"), SourceStringMatchKind.Prefix, "item%", "item");
+        var nested = new SourcePredicateComparison(
+            SourcePredicateComparisonOperator.Equal,
+            match,
+            new SourcePredicateLiteral(true));
+        var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with { Predicate = nested };
+        var capabilities = new SourcePredicateCapabilities
+        {
+            StringMatches =
+            [new SourceStringMatchCapability(new SourceColumnRef("Name"), SourceStringMatchOperations.All)]
+        };
+
+        var negotiation = SourcePredicateCapabilityNegotiator.Negotiate(request, capabilities);
+
+        Assert.IsNull(negotiation.ProviderRequest.Predicate);
+        Assert.AreSame(nested, negotiation.DeferredPredicate);
+    }
+
+    [TestMethod]
+    public void ContractValidator_ShouldPreserveDuplicateTopLevelMatchMultiplicity()
+    {
+        var match = new SourcePredicateStringMatch(
+            new SourceColumnRef("Name"), SourceStringMatchKind.Prefix, "item%", "item");
+        var predicate = new SourcePredicateLogical(SourcePredicateLogicalOperator.And, match, match);
+        var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with { Predicate = predicate };
+        var result = SourcePlanResult.AcceptAll(request);
+        var capabilities = new SourcePredicateCapabilities
+        {
+            StringMatches =
+            [new SourceStringMatchCapability(new SourceColumnRef("Name"), SourceStringMatchOperations.All)]
+        };
+
+        SourcePredicatePlanContractValidator.Validate(request, result, capabilities, TextSpan.Empty);
+
+        Assert.HasCount(2, result.ExecutionPlan.PredicateApplications);
     }
 
     [TestMethod]

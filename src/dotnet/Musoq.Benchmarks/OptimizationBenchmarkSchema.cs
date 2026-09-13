@@ -9,7 +9,8 @@ namespace Musoq.Benchmarks;
 public sealed class OptimizationBenchmarkSchema(
     string schemaName,
     IReadOnlyList<OptimizationBenchmarkEntity> rows,
-    OptimizationBenchmarkPlanningMode mode)
+    OptimizationBenchmarkPlanningMode mode,
+    OptimizationBenchmarkRecorder recorder)
     : SchemaBase(schemaName, CreateLibrary())
 {
     public const string Items = "items";
@@ -26,6 +27,30 @@ public sealed class OptimizationBenchmarkSchema(
             return new OptimizationBenchmarkTable();
 
         return base.GetTableByName(name, metadataContext, parameters);
+    }
+
+    public override SourceDescriptor DescribeSource(
+        string name,
+        SourceDescribeContext context,
+        params object?[] parameters)
+    {
+        var descriptor = base.DescribeSource(name, context, parameters);
+        if (mode != OptimizationBenchmarkPlanningMode.AcceptCandidateStringPredicate)
+            return descriptor;
+
+        return descriptor with
+        {
+            PredicateCapabilities = new SourcePredicateCapabilities
+            {
+                StringMatches =
+                [
+                    new SourceStringMatchCapability(
+                        new SourceColumnRef(nameof(OptimizationBenchmarkEntity.Name)),
+                        SourceStringMatchOperations.All,
+                        phases: SourcePredicateEvaluationPhases.CandidateMetadata)
+                ]
+            }
+        };
     }
 
     public override SourcePlanResult TryPlanSource(
@@ -48,7 +73,7 @@ public sealed class OptimizationBenchmarkSchema(
         {
             return EnsureSourceType<T, OptimizationBenchmarkEntity>(
                 name,
-                new OptimizationBenchmarkRowSource(rows, executionContext.Plan));
+                new OptimizationBenchmarkRowSource(rows, executionContext.Plan, recorder));
         }
 
         return base.GetRowSource<T>(name, executionContext, parameters);
@@ -87,6 +112,20 @@ public sealed class OptimizationBenchmarkSchema(
                 residualTake: request.Take,
                 acceptedPredicate: request.Predicate,
                 predicateAccepted: true),
+            OptimizationBenchmarkPlanningMode.AcceptCandidateStringPredicate =>
+                SourcePlanningPlanResultBuilder.CreateAccepted(
+                    request,
+                    acceptedOrderBy: [],
+                    residualOrderBy: request.OrderBy,
+                    acceptedSkip: null,
+                    residualSkip: request.Skip,
+                    acceptedTake: null,
+                    residualTake: request.Take,
+                    acceptedPredicate: request.Predicate,
+                    predicateAccepted: request.Predicate != null,
+                    projectionWorkPropertyName: ProjectionWorkProperty,
+                    projectionWork: true,
+                    predicateApplicationPhase: SourcePredicateEvaluationPhase.CandidateMetadata),
             OptimizationBenchmarkPlanningMode.AcceptTake => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
                 acceptedOrderBy: [],

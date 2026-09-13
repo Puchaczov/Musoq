@@ -50,6 +50,11 @@ internal static partial class ExecutionExpressionFingerprint
                 inCheck.ReturnType,
                 parallelAggregate),
             ExecutionPatternMatch patternMatch => $"pattern:{patternMatch.Kind}:{ForParallelAggregate(patternMatch.Expression, parallelAggregate)}:{ForParallelAggregate(patternMatch.Pattern, parallelAggregate)}:{ForAggregateType(patternMatch.ReturnType)}",
+            ExecutionStringMatch stringMatch => $"string-match:{stringMatch.Kind}:{stringMatch.Comparison}:{stringMatch.OriginalPattern}:{stringMatch.Needle}:{ForParallelAggregate(stringMatch.Input, parallelAggregate)}:{ForAggregateType(stringMatch.ReturnType)}",
+            ExecutionPrepareLikeMatcher prepareLike => $"like-prepare:{prepareLike.Comparison}:{ForParallelAggregate(prepareLike.Pattern, parallelAggregate)}:{ForAggregateType(prepareLike.ReturnType)}",
+            ExecutionPreparedLikeMatch preparedLike => $"like-prepared:{ForParallelAggregate(preparedLike.Input, parallelAggregate)}:{ForParallelAggregate(preparedLike.Matcher, parallelAggregate)}:{ForAggregateType(preparedLike.ReturnType)}",
+            ExecutionDynamicLikeMatch dynamicLike => $"like-dynamic:{dynamicLike.Comparison}:{ForParallelAggregate(dynamicLike.Input, parallelAggregate)}:{ForParallelAggregate(dynamicLike.Pattern, parallelAggregate)}:{ForParallelAggregate(dynamicLike.CacheSlot, parallelAggregate)}:{ForAggregateType(dynamicLike.ReturnType)}",
+            ExecutionLikeMatcherCacheSlot cacheSlot => $"like-cache-slot:{ForAggregateType(cacheSlot.ReturnType)}",
             ExecutionBetween between => AggregateSequence(
                 "between",
                 [between.Expression, between.Low, between.High],

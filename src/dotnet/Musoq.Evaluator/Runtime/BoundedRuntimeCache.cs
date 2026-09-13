@@ -1,5 +1,5 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
 
 namespace Musoq.Evaluator.Runtime;
 
@@ -7,10 +7,9 @@ internal sealed class BoundedRuntimeCache<TKey, TValue>
     where TKey : notnull
 {
     private readonly object _gate = new();
-    private readonly Dictionary<TKey, TValue> _values;
+    private readonly ConcurrentDictionary<TKey, TValue> _values;
     private readonly Queue<TKey> _insertionOrder = new();
     private readonly int _maxSize;
-    private Dictionary<TKey, TValue> _readSnapshot;
 
     public BoundedRuntimeCache(int maxSize, IEqualityComparer<TKey>? comparer = null)
     {
@@ -18,8 +17,7 @@ internal sealed class BoundedRuntimeCache<TKey, TValue>
             throw new ArgumentOutOfRangeException(nameof(maxSize), "Cache size must be positive.");
 
         _maxSize = maxSize;
-        _values = new Dictionary<TKey, TValue>(comparer);
-        _readSnapshot = new Dictionary<TKey, TValue>(_values, _values.Comparer);
+        _values = new ConcurrentDictionary<TKey, TValue>(comparer ?? EqualityComparer<TKey>.Default);
     }
 
     public int Count
@@ -43,9 +41,12 @@ internal sealed class BoundedRuntimeCache<TKey, TValue>
         ArgumentNullException.ThrowIfNull(factory);
         ArgumentNullException.ThrowIfNull(isCurrent);
 
+        if (_values.TryGetValue(key, out var existing) && isCurrent(existing))
+            return existing;
+
         lock (_gate)
         {
-            if (_values.TryGetValue(key, out var existing) && isCurrent(existing))
+            if (_values.TryGetValue(key, out existing) && isCurrent(existing))
                 return existing;
 
             var value = factory(key);
@@ -56,19 +57,18 @@ internal sealed class BoundedRuntimeCache<TKey, TValue>
             else
             {
                 EvictOneIfFull();
-                _values.Add(key, value);
+                if (!_values.TryAdd(key, value))
+                    throw new InvalidOperationException("A cache key was added outside the serialized mutation path.");
                 _insertionOrder.Enqueue(key);
             }
 
-            PublishReadSnapshot();
             return value;
         }
     }
 
     public bool TryGetValue(TKey key, out TValue value)
     {
-        var snapshot = Volatile.Read(ref _readSnapshot);
-        return snapshot.TryGetValue(key, out value!);
+        return _values.TryGetValue(key, out value!);
     }
 
     public void Clear()
@@ -77,15 +77,7 @@ internal sealed class BoundedRuntimeCache<TKey, TValue>
         {
             _values.Clear();
             _insertionOrder.Clear();
-            PublishReadSnapshot();
         }
-    }
-
-    private void PublishReadSnapshot()
-    {
-        Volatile.Write(
-            ref _readSnapshot,
-            new Dictionary<TKey, TValue>(_values, _values.Comparer));
     }
 
     private void EvictOneIfFull()
@@ -96,7 +88,7 @@ internal sealed class BoundedRuntimeCache<TKey, TValue>
         while (_insertionOrder.Count > 0)
         {
             var oldestKey = _insertionOrder.Dequeue();
-            if (_values.Remove(oldestKey))
+            if (_values.TryRemove(oldestKey, out _))
                 return;
         }
     }

@@ -97,8 +97,7 @@ internal sealed partial class PhysicalLoweringImplementation
                                                 TryCollectExecutionExpressionAliases(rowPresence.PresenceSource, aliases),
             ExecutionInCheck inCheck => TryCollectExecutionExpressionAliases(inCheck.Expression, aliases) &&
                                         inCheck.Values.All(value => TryCollectExecutionExpressionAliases(value, aliases)),
-            ExecutionPatternMatch pattern => TryCollectExecutionExpressionAliases(pattern.Expression, aliases) &&
-                                             TryCollectExecutionExpressionAliases(pattern.Pattern, aliases),
+            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot => PatternExpressionFacts.AllChildren(expression, child => TryCollectExecutionExpressionAliases(child, aliases)),
             ExecutionBetween between => TryCollectExecutionExpressionAliases(between.Expression, aliases) &&
                                         TryCollectExecutionExpressionAliases(between.Low, aliases) &&
                                         TryCollectExecutionExpressionAliases(between.High, aliases),

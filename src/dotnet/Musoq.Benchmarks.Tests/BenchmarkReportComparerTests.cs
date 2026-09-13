@@ -99,6 +99,18 @@ public sealed class BenchmarkReportComparerTests
         StringAssert.Contains(exception.Message, "different method sets");
     }
 
+    [TestMethod]
+    public void Compare_WhenThresholdRequiresImprovement_ShouldApplyIt()
+    {
+        var baseline = WriteCohort("baseline", 100d, 100d);
+        var current = WriteCohort("current", 96d, 100d);
+
+        var result = BenchmarkReportComparer.Compare(baseline, current, 0.95d, 1.03d);
+
+        Assert.IsFalse(result.IsSuccess);
+        Assert.AreEqual(0.96d, result.Comparisons.Single().TimeRatio, 0.0001d);
+    }
+
     private string[] WriteCohort(string prefix, double mean, double allocated)
     {
         return Enumerable.Range(1, 3)

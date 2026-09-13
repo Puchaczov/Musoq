@@ -123,6 +123,80 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
             validation.FormatUnsupportedRequirements("PortableSubset"));
     }
 
+    [TestMethod]
+    public void Analyze_WhenPlanUsesStringMatch_ShouldReportKindAndComparison()
+    {
+        var match = new ExecutionStringMatch(
+            new ExecutionLiteral("Google", typeof(string)),
+            "Google%",
+            "Google",
+            ExecutionStringMatchKind.Prefix,
+            ExecutionStringMatchComparison.LikeIgnoreCase,
+            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+        var plan = new ExecutionPlan(
+            "Q_StringMatchFeatures",
+            [],
+            new ExecutionBlock([
+                new ExecutionLet(new ExecutionVariable("matched", typeof(bool)), match)
+            ]));
+
+        var report = ExecutionTargetFeatureAnalyzer.Analyze(plan);
+
+        AssertFeature(report, ExecutionTargetFeatureKind.StringMatchKind, "string-match-kind:prefix");
+        AssertFeature(
+            report,
+            ExecutionTargetFeatureKind.StringMatchComparison,
+            "string-match-comparison:like-ignore-case");
+        Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.Validate(report).IsSupported);
+    }
+
+    [TestMethod]
+    public void Analyze_WhenPlanUsesPreparedAndDynamicLike_ShouldReportEveryMatcherStrategy()
+    {
+        var matcherType = ExecutionClrBindingFactory.FromClr(typeof(PreparedLikeMatcher));
+        var cacheType = ExecutionClrBindingFactory.FromClr(typeof(LikeMatcherCacheSlot));
+        var matcher = new ExecutionVariable("matcher", matcherType);
+        var cache = new ExecutionVariable("cache", cacheType);
+        var plan = new ExecutionPlan(
+            "Q_LikeMatcherFeatures",
+            [],
+            new ExecutionBlock([
+                new ExecutionLet(cache, new ExecutionLikeMatcherCacheSlot(cacheType)),
+                new ExecutionLet(
+                    matcher,
+                    new ExecutionPrepareLikeMatcher(
+                        new ExecutionLiteral("a%", typeof(string)),
+                        ExecutionStringMatchComparison.LikeIgnoreCase,
+                        matcherType)),
+                new ExecutionLet(
+                    new ExecutionVariable("prepared", typeof(bool)),
+                    new ExecutionPreparedLikeMatch(
+                        new ExecutionLiteral("alpha", typeof(string)),
+                        new ExecutionVariableRead(matcher),
+                        ExecutionClrBindingFactory.FromClr(typeof(bool)))),
+                new ExecutionLet(
+                    new ExecutionVariable("dynamic", typeof(bool)),
+                    new ExecutionDynamicLikeMatch(
+                        new ExecutionLiteral("alpha", typeof(string)),
+                        new ExecutionLiteral("a%", typeof(string)),
+                        new ExecutionVariableRead(cache),
+                        ExecutionStringMatchComparison.LikeIgnoreCase,
+                        ExecutionClrBindingFactory.FromClr(typeof(bool))))
+            ]));
+
+        var report = ExecutionTargetFeatureAnalyzer.Analyze(plan);
+
+        AssertFeature(report, ExecutionTargetFeatureKind.LikeMatcherStrategy, "like-matcher-strategy:cache-slot");
+        AssertFeature(report, ExecutionTargetFeatureKind.LikeMatcherStrategy, "like-matcher-strategy:prepare");
+        AssertFeature(report, ExecutionTargetFeatureKind.LikeMatcherStrategy, "like-matcher-strategy:prepared-match");
+        AssertFeature(report, ExecutionTargetFeatureKind.LikeMatcherStrategy, "like-matcher-strategy:dynamic-match");
+        AssertFeature(
+            report,
+            ExecutionTargetFeatureKind.StringMatchComparison,
+            "string-match-comparison:like-ignore-case");
+        Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.Validate(report).IsSupported);
+    }
+
     private static void AssertFeature(
         ExecutionTargetFeatureReport report,
         ExecutionTargetFeatureKind kind,

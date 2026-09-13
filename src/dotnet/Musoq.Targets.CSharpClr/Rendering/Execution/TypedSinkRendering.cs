@@ -73,6 +73,7 @@ public sealed partial class ExecutionCSharpRenderer
             statements.AddRange(CreateScriptParameterBindingStatements());
             statements.AddRange(CreateScriptVariableBindingStatements());
         }
+        statements.AddRange(CreateLikeMatcherStateDeclarations(plan, context));
         statements.AddRange(CollectMethodCallCaches(plan.Body)
             .Select(cache => RenderCreateObject(new ExecutionCreateObject(cache))));
 

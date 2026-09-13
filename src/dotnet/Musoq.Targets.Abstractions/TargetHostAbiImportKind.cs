@@ -9,5 +9,6 @@ internal enum TargetHostAbiImportKind
     Cancellation = 4,
     Diagnostics = 5,
     Profiling = 6,
-    QueryRowSourceAccess = 7
+    QueryRowSourceAccess = 7,
+    LikeMatcher = 8
 }

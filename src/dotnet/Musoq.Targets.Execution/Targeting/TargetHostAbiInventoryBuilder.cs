@@ -18,6 +18,7 @@ internal static class TargetHostAbiInventoryBuilder
         AddCancellation(runtimeContract, imports);
         AddDiagnostics(runtimeContract, imports);
         AddProfiling(runtimeContract, imports);
+        AddLikeMatcher(runtimeContract, imports);
         return new TargetHostAbiInventory(imports);
     }
 
@@ -218,6 +219,24 @@ internal static class TargetHostAbiInventoryBuilder
                 profiling.SupportsOperatorProfiling,
                 profiling.SourceBoundaryCount,
                 profiling.OperatorCount)));
+    }
+
+    private static void AddLikeMatcher(
+        TargetRuntimeContract runtimeContract,
+        ICollection<TargetHostAbiImport> imports)
+    {
+        if (runtimeContract.LikeMatcher is not { } likeMatcher)
+            return;
+
+        imports.Add(new TargetHostAbiImport(
+            TargetHostAbiImportKind.LikeMatcher,
+            "prepared-and-dynamic-like",
+            "like-matcher-v1",
+            1,
+            new TargetLikeMatcherAbiDetails(
+                likeMatcher.CacheCapacity,
+                likeMatcher.Comparison,
+                likeMatcher.CultureAware)));
     }
 
     private static string Flag(string name, bool enabled)

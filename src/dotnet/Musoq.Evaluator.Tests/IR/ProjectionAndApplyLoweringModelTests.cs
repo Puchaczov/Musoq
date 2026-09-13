@@ -203,4 +203,54 @@ public sealed class ProjectionAndApplyLoweringModelTests
         Assert.IsFalse(result.IsBuilt);
         StringAssert.Contains(result.UnsupportedReason, nameof(ExecutionAggregateResultRef));
     }
+
+    [TestMethod]
+    public void OuterApplyNullSubstitutionService_WhenLikeMatcherReadsRightAlias_ShouldReturnUnknown()
+    {
+        var cacheSlot = new ExecutionLikeMatcherCacheSlot(
+            ExecutionClrBindingFactory.FromClr(typeof(LikeMatcherCacheSlot)));
+        var dynamicMatch = new ExecutionDynamicLikeMatch(
+            new ExecutionLiteral("alpha", typeof(string)),
+            new ExecutionFieldRead("orders", "Pattern", typeof(string)),
+            cacheSlot,
+            ExecutionStringMatchComparison.LikeIgnoreCase,
+            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+        var prepare = new ExecutionPrepareLikeMatcher(
+            new ExecutionFieldRead("orders", "Pattern", typeof(string)),
+            ExecutionStringMatchComparison.LikeIgnoreCase,
+            ExecutionClrBindingFactory.FromClr(typeof(PreparedLikeMatcher)));
+
+        var dynamicResult = OuterApplyNullSubstitutionService.SubstituteRightAlias(dynamicMatch, "orders");
+        var prepareResult = OuterApplyNullSubstitutionService.SubstituteRightAlias(prepare, "orders");
+
+        Assert.IsTrue(dynamicResult.IsBuilt);
+        Assert.IsTrue(dynamicResult.IsUnknown);
+        Assert.IsTrue(prepareResult.IsBuilt);
+        Assert.IsTrue(prepareResult.IsUnknown);
+    }
+
+    [TestMethod]
+    public void OuterApplyNullSubstitutionService_WhenLikeMatcherDoesNotReadRightAlias_ShouldPreserveExpression()
+    {
+        var cacheSlot = new ExecutionLikeMatcherCacheSlot(
+            ExecutionClrBindingFactory.FromClr(typeof(LikeMatcherCacheSlot)));
+        var prepare = new ExecutionPrepareLikeMatcher(
+            new ExecutionLiteral("a%", typeof(string)),
+            ExecutionStringMatchComparison.LikeIgnoreCase,
+            ExecutionClrBindingFactory.FromClr(typeof(PreparedLikeMatcher)));
+        var preparedMatch = new ExecutionPreparedLikeMatch(
+            new ExecutionFieldRead("customers", "Name", typeof(string)),
+            prepare,
+            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+
+        var cacheResult = OuterApplyNullSubstitutionService.SubstituteRightAlias(cacheSlot, "orders");
+        var preparedResult = OuterApplyNullSubstitutionService.SubstituteRightAlias(preparedMatch, "orders");
+
+        Assert.IsTrue(cacheResult.IsBuilt);
+        Assert.IsFalse(cacheResult.IsUnknown);
+        Assert.AreSame(cacheSlot, cacheResult.Expression);
+        Assert.IsTrue(preparedResult.IsBuilt);
+        Assert.IsFalse(preparedResult.IsUnknown);
+        Assert.IsInstanceOfType<ExecutionPreparedLikeMatch>(preparedResult.Expression);
+    }
 }

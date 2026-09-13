@@ -98,6 +98,29 @@ public sealed class DiagnosticRework077OperatorContractTests
     }
 
     [TestMethod]
+    [DataRow("left.Value like right.Pattern", "LikeNode")]
+    [DataRow("left.Value not like right.Pattern", "NotNode")]
+    [DataRow("left.Value rlike right.Pattern", "RLikeNode")]
+    [DataRow("left.Value not rlike right.Pattern", "NotNode")]
+    public void PatternPredicate_QualifiedRightOperand_ShouldPreserveColumnAccess(
+        string expression,
+        string expectedNodeType)
+    {
+        var parsed = ParseWhereExpression(expression);
+        Assert.AreEqual(expectedNodeType, parsed.GetType().Name);
+
+        var pattern = parsed is NotNode not ? not.Expression : parsed;
+        var right = pattern switch
+        {
+            LikeNode like => like.Right,
+            RLikeNode rlike => rlike.Right,
+            _ => throw new AssertFailedException($"Unexpected pattern node {pattern.GetType().Name}.")
+        };
+        var access = Assert.IsInstanceOfType<DotNode>(right);
+        Assert.AreEqual("right.Pattern", access.ToString());
+    }
+
+    [TestMethod]
     public void MembershipAndNullPredicateMatrix_ShouldPreserveOperandsAndNegation()
     {
         var notIn = Assert.IsInstanceOfType<NotNode>(ParseWhereExpression("1 not in (1, 2)"));

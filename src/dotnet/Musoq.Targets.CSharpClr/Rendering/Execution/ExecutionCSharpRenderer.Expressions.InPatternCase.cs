@@ -126,26 +126,9 @@ public sealed partial class ExecutionCSharpRenderer
     private InvocationExpressionSyntax RenderPatternMatch(
         ExecutionPatternMatch patternMatch,
         ExecutionRenderContext context)
-    {
-        var methodName = patternMatch.Kind switch
-        {
-            PatternKind.Like => nameof(Operators.Like),
-            PatternKind.RLike => nameof(Operators.RLike),
-            _ => throw UnsupportedShape.Of($"Pattern kind {patternMatch.Kind}")
-        };
-
-        var operatorsInstance = SyntaxFactory.ObjectCreationExpression(CreateTypeSyntax(typeof(Operators)))
-            .WithArgumentList(SyntaxFactory.ArgumentList());
-
-        return SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    operatorsInstance,
-                    SyntaxFactory.IdentifierName(methodName)))
-            .WithArgumentList(CreateArgumentList(
-                RenderExpression(patternMatch.Expression, context),
-                RenderExpression(patternMatch.Pattern, context)));
-    }
+        => ExecutionLikeSyntaxFactory.Render(
+            patternMatch,
+            expression => RenderExpression(expression, context));
 
     private ExpressionSyntax RenderCaseWhen(ExecutionCaseWhen caseWhen, ExecutionRenderContext context)
     {

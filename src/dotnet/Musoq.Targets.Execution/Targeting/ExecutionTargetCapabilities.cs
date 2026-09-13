@@ -68,7 +68,10 @@ internal sealed record ExecutionTargetCapabilities(
             ExecutionTargetFeatureKind.TypePortability,
             ExecutionTargetFeatureKind.Container,
             ExecutionTargetFeatureKind.DynamicValue,
-            ExecutionTargetFeatureKind.QueryRowSourceAccess
+            ExecutionTargetFeatureKind.QueryRowSourceAccess,
+            ExecutionTargetFeatureKind.StringMatchKind,
+            ExecutionTargetFeatureKind.StringMatchComparison,
+            ExecutionTargetFeatureKind.LikeMatcherStrategy
         ]);
 
     public static ExecutionTargetCapabilities Create(params ExecutionTargetRequirementKind[] supportedRequirementKinds)

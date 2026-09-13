@@ -43,6 +43,16 @@ public static partial class ExecutionPlanPrinter
             ExecutionInCheck inCheck => FormatInCheck(inCheck),
             ExecutionCollectionInCheck collectionInCheck => FormatCollectionInCheck(collectionInCheck),
             ExecutionPatternMatch patternMatch => FormatPatternMatch(patternMatch),
+            ExecutionStringMatch stringMatch => FormatStringMatch(stringMatch),
+            ExecutionPrepareLikeMatcher prepareLike =>
+                $"PREPARE_LIKE({FormatExpression(prepareLike.Pattern)}, comparison={prepareLike.Comparison})",
+            ExecutionPreparedLikeMatch preparedLike =>
+                $"PREPARED_LIKE({FormatExpression(preparedLike.Input)}, {FormatExpression(preparedLike.Matcher)})",
+            ExecutionDynamicLikeMatch dynamicLike =>
+                $"DYNAMIC_LIKE({FormatExpression(dynamicLike.Input)}, {FormatExpression(dynamicLike.Pattern)}, " +
+                $"cache={FormatExpression(dynamicLike.CacheSlot)}, comparison={dynamicLike.Comparison})",
+            ExecutionLikeMatcherCacheSlot cacheSlot =>
+                $"LIKE_MATCHER_CACHE_SLOT(capacity=2, scope={(cacheSlot.WorkerLocal ? "parallel-worker" : "serial")})",
             ExecutionBetween between => FormatBetween(between),
             ExecutionCaseWhen caseWhen => FormatCaseWhen(caseWhen),
             ExecutionCoalesce coalesce => FormatCoalesce(coalesce),
@@ -151,6 +161,12 @@ public static partial class ExecutionPlanPrinter
 
         return $"{FormatExpression(patternMatch.Expression)} {keyword} {FormatExpression(patternMatch.Pattern)}";
     }
+
+    private static string FormatStringMatch(ExecutionStringMatch stringMatch) =>
+        $"STRING_MATCH({FormatExpression(stringMatch.Input)}, " +
+        $"pattern={FormatLiteral(stringMatch.OriginalPattern)}, " +
+        $"needle={FormatLiteral(stringMatch.Needle)}, " +
+        $"kind={stringMatch.Kind}, comparison={stringMatch.Comparison})";
 
     private static string FormatBetween(ExecutionBetween between)
     {

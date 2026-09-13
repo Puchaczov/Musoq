@@ -135,6 +135,7 @@ public sealed partial class ExecutionCSharpRenderer
             tryStatements.AddRange(CreateExecutionStateDeclarations(plan, context));
             tryStatements.AddRange(CreateScriptParameterBindingStatements());
             tryStatements.AddRange(CreateScriptVariableBindingStatements());
+            tryStatements.AddRange(CreateLikeMatcherStateDeclarations(plan, context));
             tryStatements.AddRange(CollectMethodCallCaches(block)
                 .Select(cache => RenderCreateObject(new ExecutionCreateObject(cache))));
             if (finalShapeBufferName != null)

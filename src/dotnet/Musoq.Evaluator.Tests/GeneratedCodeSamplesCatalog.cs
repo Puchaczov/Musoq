@@ -45,6 +45,7 @@ internal static partial class GeneratedCodeSamplesCatalog
         samples.AddRange(CreateSpecificationTableCoupleSamples());
         samples.AddRange(CreateStructuredInputSamples());
         samples.AddRange(CreateStructuredInputRemediationSamples());
+        samples.AddRange(CreateLikeStrategySamples());
 
         return samples;
     }

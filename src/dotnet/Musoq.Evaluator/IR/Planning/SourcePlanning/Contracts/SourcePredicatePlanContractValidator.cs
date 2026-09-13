@@ -8,7 +8,7 @@ using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.IR.Planning.SourcePlanning;
 
-internal static class SourcePredicatePlanContractValidator
+internal static partial class SourcePredicatePlanContractValidator
 {
     public static void Validate(SourcePlanRequest request, SourcePlanResult result, TextSpan span)
     {
@@ -142,6 +142,8 @@ internal static class SourcePredicatePlanContractValidator
             case SourcePredicateNullCheck nullCheck:
                 CollectEnumFingerprints(nullCheck.Expression, fingerprints);
                 break;
+            case SourcePredicateStringMatch:
+                break;
             case SourcePredicateFlags flags:
                 CollectEnumFingerprints(flags.Expression, fingerprints);
                 CollectEnumFingerprints(flags.Mask, fingerprints);
@@ -158,6 +160,7 @@ internal static class SourcePredicatePlanContractValidator
             SourcePredicateLogical logical => FindFirstColumn(logical.Left) ?? FindFirstColumn(logical.Right),
             SourcePredicateIn sourceIn => FindFirstColumn(sourceIn.Expression),
             SourcePredicateNullCheck nullCheck => FindFirstColumn(nullCheck.Expression),
+            SourcePredicateStringMatch stringMatch => stringMatch.Column.Name,
             SourcePredicateFlags flags => FindFirstColumn(flags.Expression),
             _ => null
         };

@@ -1,13 +1,10 @@
 using System.Linq;
-
 namespace Musoq.Evaluator.IR.Execution;
-
 internal abstract partial class ExecutionIrRewriter
 {
     public virtual ExecutionExpression RewriteExpression(ExecutionExpression expression)
     {
         ArgumentNullException.ThrowIfNull(expression);
-
         return expression switch
         {
             ExecutionFieldRead fieldRead => RewriteFieldRead(fieldRead),
@@ -33,6 +30,8 @@ internal abstract partial class ExecutionIrRewriter
             ExecutionInCheck inCheck => RewriteInCheck(inCheck),
             ExecutionCollectionInCheck collectionInCheck => RewriteCollectionInCheck(collectionInCheck),
             ExecutionPatternMatch patternMatch => RewritePatternMatch(patternMatch),
+            ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or
+                ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot => PatternExpressionFacts.RewriteChildren(expression, RewriteExpression),
             ExecutionBetween between => RewriteBetween(between),
             ExecutionCaseWhen caseWhen => RewriteCaseWhen(caseWhen),
             ExecutionCoalesce coalesce => RewriteCoalesce(coalesce),
@@ -82,7 +81,6 @@ internal abstract partial class ExecutionIrRewriter
             : expression with { Rows = rows };
     }
     protected virtual ExecutionExpression RewriteFieldRead(ExecutionFieldRead expression) => expression;
-
     protected virtual ExecutionExpression RewriteMemberRead(ExecutionMemberRead expression)
     {
         var receiver = RewriteExpression(expression.Receiver);
@@ -90,9 +88,7 @@ internal abstract partial class ExecutionIrRewriter
     }
 
     protected virtual ExecutionExpression RewriteScriptParameterRead(ExecutionScriptParameterRead expression) => expression;
-
     protected virtual ExecutionExpression RewriteScriptVariableRead(ExecutionScriptVariableRead expression) => expression;
-
     protected virtual ExecutionExpression RewriteLiteral(ExecutionLiteral expression) => expression;
 
     protected virtual ExecutionExpression RewriteBinary(ExecutionBinary expression)

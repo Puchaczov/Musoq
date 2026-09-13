@@ -80,6 +80,7 @@ public sealed partial class ExecutionCSharpRenderer
                                         (inCheck.ConstantSet == null || CanRenderConstantInSet(inCheck.ConstantSet)),
             ExecutionCollectionInCheck collectionInCheck => CanRenderCollectionInCheck(collectionInCheck),
             ExecutionPatternMatch patternMatch => CanRenderPatternMatch(patternMatch),
+            ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot => ExecutionLikeMatcherSyntaxFactory.CanRender(expression, CanRenderExpression, CanReferenceType),
             ExecutionBetween between => CanRenderExpression(between.Expression) &&
                                         CanRenderExpression(between.Low) &&
                                         CanRenderExpression(between.High),
@@ -173,9 +174,14 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool CanRenderPatternMatch(ExecutionPatternMatch patternMatch)
     {
-        return patternMatch.Kind is PatternKind.Like or PatternKind.RLike &&
-               CanRenderExpression(patternMatch.Expression) &&
-               CanRenderExpression(patternMatch.Pattern);
+        if (patternMatch.Kind is not (PatternKind.Like or PatternKind.RLike) ||
+            !CanRenderExpression(patternMatch.Expression) ||
+            !CanRenderExpression(patternMatch.Pattern))
+        {
+            return false;
+        }
+
+        return ExecutionLikeSyntaxFactory.CanRender(patternMatch);
     }
 
     private static bool CanRenderConstantInSet(ExecutionConstantInSet constantSet)

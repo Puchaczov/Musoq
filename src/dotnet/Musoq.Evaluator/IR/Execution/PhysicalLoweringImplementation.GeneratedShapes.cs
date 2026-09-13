@@ -4,7 +4,6 @@ using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Evaluator.IR.Execution;
-
 internal sealed partial class PhysicalLoweringImplementation
 {
     private static GeneratedRowShape CreateGeneratedShape(string typeName, ProjectedField[] fields)
@@ -205,8 +204,7 @@ internal sealed partial class PhysicalLoweringImplementation
             ExecutionIsNullCheck isNull => ContainsNullablePositionalFieldRead(isNull.Expression),
             ExecutionInCheck inCheck => ContainsNullablePositionalFieldRead(inCheck.Expression) ||
                                         inCheck.Values.Any(ContainsNullablePositionalFieldRead),
-            ExecutionPatternMatch patternMatch => ContainsNullablePositionalFieldRead(patternMatch.Expression) ||
-                                                  ContainsNullablePositionalFieldRead(patternMatch.Pattern),
+            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot => PatternExpressionFacts.AnyChild(expression, ContainsNullablePositionalFieldRead),
             ExecutionBetween between => ContainsNullablePositionalFieldRead(between.Expression) ||
                                         ContainsNullablePositionalFieldRead(between.Low) ||
                                         ContainsNullablePositionalFieldRead(between.High),

@@ -170,8 +170,7 @@ internal sealed partial class PhysicalLoweringImplementation
                                                 ReferencesExecutionAlias(rowPresence.PresenceSource, alias),
             ExecutionInCheck inCheck => ReferencesExecutionAlias(inCheck.Expression, alias) ||
                                         inCheck.Values.Any(value => ReferencesExecutionAlias(value, alias)),
-            ExecutionPatternMatch patternMatch => ReferencesExecutionAlias(patternMatch.Expression, alias) ||
-                                                  ReferencesExecutionAlias(patternMatch.Pattern, alias),
+            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot => PatternExpressionFacts.AnyChild(expression, child => ReferencesExecutionAlias(child, alias)),
             ExecutionBetween between => ReferencesExecutionAlias(between.Expression, alias) ||
                                         ReferencesExecutionAlias(between.Low, alias) ||
                                         ReferencesExecutionAlias(between.High, alias),

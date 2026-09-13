@@ -87,7 +87,11 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionBlock block,
         ExecutionRenderContext context)
     {
-        foreach (var build in StoredTableBuildDiscovery.Collect(block))
+        var buildDiscoveryBlock = new ExecutionBlock(block.Nodes
+            .Where(static node => node is not ExecutionLet declaration ||
+                                  !ExecutionLikeMatcherSyntaxFactory.IsStateDeclaration(declaration))
+            .ToArray());
+        foreach (var build in StoredTableBuildDiscovery.Collect(buildDiscoveryBlock))
         {
             yield return build with
             {

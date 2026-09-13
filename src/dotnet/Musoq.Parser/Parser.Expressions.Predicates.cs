@@ -80,7 +80,7 @@ public partial class Parser
     {
         Consume(operatorType);
         ThrowIfMissingRightOperand(Previous!.Value);
-        var right = ComposeBaseTypes();
+        var right = ComposeArithmeticExpression(0);
         if (left is AccessMethodNode quantifier
             && string.IsNullOrEmpty(quantifier.Alias)
             && IsPredicateQuantifierName(quantifier.Name))

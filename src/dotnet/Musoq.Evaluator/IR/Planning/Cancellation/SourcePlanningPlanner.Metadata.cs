@@ -2,6 +2,7 @@ using System.Threading;
 using Microsoft.Extensions.Logging.Abstractions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Planning.OptimizationDiagnostics;
+using Musoq.Evaluator.IR.SourcePlanning;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
@@ -88,16 +89,48 @@ internal static partial class SourcePlanningPlanner
             throw CreateMetadataDefaultException(scan, semanticSource, exception);
         }
 
+        var sourceSpan = ResolveSourceSpan(sourceNode);
+        SourcePredicatePlanContractValidator.ValidateCapabilities(
+            descriptor.PredicateCapabilities,
+            sourceSpan);
+        var predicateNegotiation = SourcePredicateCapabilityNegotiator.Negotiate(
+            request,
+            descriptor.PredicateCapabilities);
+
         SourcePlanResult result;
         try
         {
-            result = SchemaProviderBoundary.Invoke(() => schema.TryPlanSource(scan.MethodName, request, parameters))
-                     ?? SourcePlanResult.RejectAll(request);
+            result = SchemaProviderBoundary.Invoke(() => schema.TryPlanSource(
+                         scan.MethodName,
+                         predicateNegotiation.ProviderRequest,
+                         parameters))
+                     ?? SourcePlanResult.RejectAll(predicateNegotiation.ProviderRequest);
             context.CancellationToken.ThrowIfCancellationRequested();
+            SourcePredicatePlanContractValidator.Validate(
+                predicateNegotiation.ProviderRequest,
+                result,
+                descriptor.PredicateCapabilities,
+                sourceSpan);
+            result = SourcePredicateCapabilityNegotiator.RestoreDeferredPredicates(result, predicateNegotiation);
+            if (predicateNegotiation.HasUnknownContractVersion)
+            {
+                result = result with
+                {
+                    Diagnostics =
+                    [
+                        .. result.Diagnostics,
+                        OptimizationDiagnostic.Warning(
+                                $"Source predicate capability contract version {descriptor.PredicateCapabilities.ContractVersion} is not understood; typed string predicates remain residual.")
+                            with { Origin = "SourcePredicateCapabilityNegotiation" }
+                    ]
+                };
+            }
+
             SourcePredicatePlanContractValidator.Validate(
                 request,
                 result,
-                ResolveSourceSpan(sourceNode));
+                descriptor.PredicateCapabilities,
+                sourceSpan);
         }
         catch (SchemaProviderFailureException exception) when (semanticSource?.HasRequiredRuntimeArguments == true)
         {

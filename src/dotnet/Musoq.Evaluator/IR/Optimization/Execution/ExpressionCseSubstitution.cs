@@ -225,6 +225,25 @@ internal static partial class ExpressionCseSubstitution
                 Expression = Replace(patternMatch.Expression, variablesBySignature),
                 Pattern = Replace(patternMatch.Pattern, variablesBySignature)
             },
+            ExecutionStringMatch stringMatch => stringMatch with
+            {
+                Input = Replace(stringMatch.Input, variablesBySignature)
+            },
+            ExecutionPrepareLikeMatcher prepareLike => prepareLike with
+            {
+                Pattern = Replace(prepareLike.Pattern, variablesBySignature)
+            },
+            ExecutionPreparedLikeMatch preparedLike => preparedLike with
+            {
+                Input = Replace(preparedLike.Input, variablesBySignature),
+                Matcher = Replace(preparedLike.Matcher, variablesBySignature)
+            },
+            ExecutionDynamicLikeMatch dynamicLike => dynamicLike with
+            {
+                Input = Replace(dynamicLike.Input, variablesBySignature),
+                Pattern = Replace(dynamicLike.Pattern, variablesBySignature),
+                CacheSlot = Replace(dynamicLike.CacheSlot, variablesBySignature)
+            },
             ExecutionBetween between => between with
             {
                 Expression = Replace(between.Expression, variablesBySignature),

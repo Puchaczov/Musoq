@@ -7,6 +7,7 @@ public enum OptimizationBenchmarkPlanningMode
     RejectProjection,
     AcceptProjection,
     AcceptPredicate,
+    AcceptCandidateStringPredicate,
     AcceptTake,
     AcceptSkipTake,
     AcceptOrder,

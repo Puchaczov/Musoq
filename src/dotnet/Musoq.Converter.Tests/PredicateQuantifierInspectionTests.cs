@@ -18,9 +18,13 @@ public class PredicateQuantifierInspectionTests
 
         Assert.Contains("Filter [(d.Dummy LIKE 'single%' OR 'fallback' LIKE 'single%')]", result.LogicalPlanText);
         Assert.Contains("PhysicalFilter [(d.Dummy LIKE 'single%' OR 'fallback' LIKE 'single%')]", result.PhysicalPlanText);
-        Assert.Contains("If [(dummy LIKE 'single%' OR 'fallback' LIKE 'single%')]", result.ExecutionPlanText);
+        Assert.Contains(
+            "If [(STRING_MATCH(dummy, pattern='single%', needle='single', kind=Prefix, comparison=LikeIgnoreCase) OR " +
+            "STRING_MATCH('fallback', pattern='single%', needle='single', kind=Prefix, comparison=LikeIgnoreCase))]",
+            result.ExecutionPlanText);
         AssertNoResidualQuantifier(result);
-        Assert.AreEqual(6, CountOccurrences(result.GeneratedCSharpCode, ".Like("));
+        Assert.AreEqual(6, CountOccurrences(result.GeneratedCSharpCode, ".StartsWith("));
+        Assert.Contains("STRING_MATCH", result.ExecutionPlanText);
     }
 
     [TestMethod]

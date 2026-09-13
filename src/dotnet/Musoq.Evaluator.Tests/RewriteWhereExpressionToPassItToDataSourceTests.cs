@@ -27,7 +27,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     }
 
     [TestMethod]
-    public void WhenLikeExpressionIsRewritten_ShouldPass()
+    public void WhenLikeExpressionIsPreservedForSourcePlanning_ShouldPass()
     {
         var query = "select 1 from #A.entities() a where a.City like '%abc%'";
 
@@ -42,7 +42,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
 
         var firstWhereNode = firstWhereNodePair.First().Value;
 
-        Assert.AreEqual("1 = 1", firstWhereNode.Expression.ToString());
+        Assert.AreEqual("a.City like '%abc%'", firstWhereNode.Expression.ToString());
     }
 
     [TestMethod]
