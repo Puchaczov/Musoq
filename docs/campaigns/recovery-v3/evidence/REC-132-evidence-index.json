@@ -1,0 +1,247 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-132",
+  "outcome": "passed",
+  "artifacts": [
+    {
+      "id": "case-contract",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-132-case-contract.json",
+      "sha256": "337c85639ff73764e64907f93ae375358de513d8152303d5befda036bf51011f",
+      "role": "Frozen 48-case typed, dynamic, metadata, provider-contract and original-versus-substitute expectation contract."
+    },
+    {
+      "id": "case-manifest",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-132-case-manifest.json",
+      "sha256": "e7c2f0a537fb82c909f70e7fef2f7be4b43a7ea7d8e239c4c41d4dd31c561822",
+      "role": "Frozen pre-observation authority and payload digest."
+    },
+    {
+      "id": "initial-r3-trx",
+      "path": ".campaign-artifacts/REC-132-initial-r3/REC-132-initial-r3.trx",
+      "sha256": "8831474082c184775b814bb472b38cd75aa41f492011a7dcf35b01433d5caa02",
+      "role": "Preserved first behavioral observation: 10 passed and 38 failed before final fixture calibration."
+    },
+    {
+      "id": "initial-r4-trx",
+      "path": ".campaign-artifacts/REC-132-initial-r4/REC-132-initial-r4.trx",
+      "sha256": "7e50861e0277712f4d8d634476846f9ed1c81dc74620d416c7e1ad46d8942d88",
+      "role": "Preserved calibrated observation: 28 passed and 20 failed, isolating the dynamic ASOF production boundary."
+    },
+    {
+      "id": "initial-r5-trx",
+      "path": ".campaign-artifacts/REC-132-initial-r5/REC-132-initial-r5.trx",
+      "sha256": "362e8f7dbb08a87d091ea08ea4b2f0537c9f48ac81d1a45d8827eaa32e2f701f",
+      "role": "First post-repair 48-case replay."
+    },
+    {
+      "id": "initial-r6-trx",
+      "path": ".campaign-artifacts/REC-132-initial-r6/REC-132-initial-r6.trx",
+      "sha256": "5f1ba1c2c7ec736ee5cfe737263e0a801d68caa7cde423b9503841a11a117885",
+      "role": "Preserved green replay after the IR adjacency assertion correction."
+    },
+    {
+      "id": "focused-final-trx",
+      "path": ".campaign-artifacts/REC-132-initial-r7/REC-132-initial-r7.trx",
+      "sha256": "10722a2fb9e0a18d552351ec1d26d3b62a6ceb44571eee22e620ab2474630920",
+      "role": "Final permanent 48-case matrix replay on the Release-built payload."
+    },
+    {
+      "id": "adjacent-ir-stale-filter-trx",
+      "path": ".campaign-artifacts/REC-132-adj-ir-r1/REC-132-adj-ir-r1.trx",
+      "sha256": "c6dabd2d4815f5ea290615717831ae8fa4f36e603750f3a06e083ab6507329b7",
+      "role": "Preserved zero-test stale-filter run; excluded from qualification totals."
+    },
+    {
+      "id": "adjacent-ir-initial-trx",
+      "path": ".campaign-artifacts/REC-132-adj-ir-r2/REC-132-adj-ir-r2.trx",
+      "sha256": "20007000d7efd579a10a72ed96a4b8c106919da62cd67c3838fb43f50ae041f6",
+      "role": "Preserved first IR replay: 1 pass and 1 assertion failure caused by an eager diagnostic-message accessor."
+    },
+    {
+      "id": "adjacent-ir-final-trx",
+      "path": ".campaign-artifacts/REC-132-adj-ir-r3/REC-132-adj-ir-r3.trx",
+      "sha256": "888366ea82f41feae17c60f18d4831158fe4de8e7861fffbe2be457cca5ad803",
+      "role": "Final ASOF lowering adjacency: 2 passed."
+    },
+    {
+      "id": "adjacent-couple039-trx",
+      "path": ".campaign-artifacts/REC-132-adj-couple039/REC-132-adj-couple039.trx",
+      "sha256": "f85c855bf01581df3d08eea99983480649385c7304aa4a10d925862f72480168",
+      "role": "COUPLE-039 composition adjacency: 7 passed."
+    },
+    {
+      "id": "adjacent-dynamiccte-trx",
+      "path": ".campaign-artifacts/REC-132-adj-dynamiccte/REC-132-adj-dynamiccte.trx",
+      "sha256": "3fdc05228b21e06f977ed67da8a044eb3f7c507c3a7818978cc59e14b68f8837",
+      "role": "Dynamic CTE-backed ASOF sample adjacency: 3 passed."
+    },
+    {
+      "id": "adjacent-asof-trx",
+      "path": ".campaign-artifacts/REC-132-adj-asof/REC-132-adj-asof.trx",
+      "sha256": "704df6ba8e5940e238e51032749b3d303367346340481a845cc7617c6779d0b3",
+      "role": "Existing ASOF regression adjacency: 51 passed."
+    },
+    {
+      "id": "full-gate-initial-failure-log",
+      "path": ".campaign-artifacts/REC-132-full-gate-final-r1/test.stdout.log",
+      "sha256": "9f37ac9261eb14f43173cd510506c8570d97b8459e58422ebac00b91df2ba2ff",
+      "role": "Preserved initial authoritative gate failure: two obsolete dynamic-ASOF expectations and one hotspot-budget offender."
+    },
+    {
+      "id": "full-gate-final-test-log",
+      "path": ".campaign-artifacts/REC-132-full-gate-final-r2/test.stdout.log",
+      "sha256": "9ad6e3174b7192e2f0eefebaf30cca442fbd843e4358cfc1c5a81bb6b55b784f",
+      "role": "Authoritative final Release test stdout."
+    },
+    {
+      "id": "behavior-results",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-132-behavior-results.json",
+      "sha256": "0d7797407aa8e6c8984fcbf1deef9e52d3f9b834b9b001c78fbc6947dae94a23",
+      "role": "Case observations, production finding, obligations and validation."
+    },
+    {
+      "id": "full-gate-final",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-132-full-gate-final-r2.json",
+      "sha256": "2adda43251d873fe5b51cbe89971ba4fc51ac0aceb0dcca7ce87d671863c79b6",
+      "role": "Authoritative final Release restore/build/test gate over 8/8 targets."
+    },
+    {
+      "id": "fixture-source",
+      "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-132TypedDynamicSourceShapeTests.cs",
+      "sha256": "090215d6970261dff64b10b04eea34b5e844d7103459f7d4742d3afc0c312d78",
+      "role": "Permanent 48-case typed/dynamic source-shape fixture and assertions."
+    },
+    {
+      "id": "converter-regression-source",
+      "path": "src/dotnet/Musoq.Converter.Tests/QueryInspectionTests.ExecutionBasics.cs",
+      "sha256": "31e5513bbc6cba9731f890328ddabd097c651a8fceaebb9bdeccb58a82f6d436",
+      "role": "Converter inspection and executable dynamic-ASOF compatibility regressions."
+    },
+    {
+      "id": "ir-regression-source",
+      "path": "src/dotnet/Musoq.Evaluator.Tests/IR/PhysicalToExecutionPlanBuilderTests.DynamicSourcesAndAsOf.cs",
+      "sha256": "c026b77497e37070759033e4b757fc3d504e22b9e7b83669df4f288edcff01b8",
+      "role": "Execution IR dynamic ASOF lowering regression assertions."
+    },
+    {
+      "id": "production-source-asof",
+      "path": "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.AsOfJoins.cs",
+      "sha256": "3489a1b6703bc8622109db6cc85568a2adfb4e840f030ff624e13913ce40a9c9",
+      "role": "ASOF join lowering integration and source preparation call site."
+    },
+    {
+      "id": "production-source-dynamic-helper",
+      "path": "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.AsOfDynamicSources.cs",
+      "sha256": "359f4af8f2ba8de634d3869f35da1ea0bd69f1a0fa0fca65718a5663cec3e5b3",
+      "role": "Dynamic ASOF adapter materialization helper split for source compatibility and hotspot budget."
+    },
+    {
+      "id": "production-source-aliases",
+      "path": "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.AsOfJoinAliases.cs",
+      "sha256": "255c3c15498734fada7dcf921bdc29716e0e40c8b438e439d8bcaba03d247050",
+      "role": "ASOF probe-source eligibility and generated-row type compatibility."
+    },
+    {
+      "id": "production-source-sort-merge",
+      "path": "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.SortMergeJoins.cs",
+      "sha256": "28b545969c8b97aeba8e4c8e9b6ce461f6bc6fa908b057ae93a8a9491478a4ff",
+      "role": "Updated ASOF eligibility call boundary."
+    },
+    {
+      "id": "report",
+      "path": "docs/campaigns/recovery-v3/reports/REC-132.md",
+      "sha256": "171599ca32a931460b7b362bd8b5f3e55942c728d065d3910477e57174cddeee",
+      "role": "REC-132 completion report."
+    }
+  ],
+  "validation": {
+    "contractVerification": {
+      "caseCount": 48,
+      "verified": true
+    },
+    "focusedMatrix": {
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "total": 48,
+      "candidateCount": 48
+    },
+    "initialFocusedReplay": {
+      "compileOnlyRevisions": [1, 2],
+      "revision3": {
+        "passed": 10,
+        "failed": 38,
+        "skipped": 0,
+        "total": 48
+      },
+      "revision4": {
+        "passed": 28,
+        "failed": 20,
+        "skipped": 0,
+        "total": 48
+      },
+      "revision5": {
+        "passed": 48,
+        "failed": 0,
+        "skipped": 0,
+        "total": 48
+      },
+      "revision6": {
+        "passed": 48,
+        "failed": 0,
+        "skipped": 0,
+        "total": 48
+      },
+      "revision7": {
+        "passed": 48,
+        "failed": 0,
+        "skipped": 0,
+        "total": 48
+      },
+      "failureSummary": "Fixture calibration was completed before the production finding was declared; the dynamic ASOF source-shape failure was repaired and three green replays followed."
+    },
+    "adjoiningSuites": {
+      "irAsOfLowering": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "total": 2
+      },
+      "couple039": {
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0,
+        "total": 7
+      },
+      "dynamicCte": {
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "total": 3
+      },
+      "asof": {
+        "passed": 51,
+        "failed": 0,
+        "skipped": 0,
+        "total": 51
+      },
+      "correctedTotal": {
+        "passed": 63,
+        "failed": 0,
+        "skipped": 0,
+        "total": 63
+      }
+    },
+    "fullReleaseGate": {
+      "status": "passed",
+      "runId": "REC-132-17aa61329e5c",
+      "targetCount": 8,
+      "passed": 21223,
+      "failed": 0,
+      "skipped": 3,
+      "total": 21226,
+      "testedPayloadSha256": "42cd7c8862aac708206eb5543a6f9ceaa1531635e88384305805a7a9a14303a1",
+      "testedPayloadFileCount": 5798
+    }
+  }
+}

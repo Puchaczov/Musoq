@@ -140,7 +140,8 @@ public partial class CloneQueryVisitor
         var expression = Nodes.Pop();
         var joinedTable = (FromNode)Nodes.Pop();
         var source = (FromNode)Nodes.Pop();
-        var joinedFrom = new Parser.JoinFromNode(source, joinedTable, expression, node.JoinType, tieBreak, node.WithOrdinality);
+        var joinedFrom = new Parser.JoinFromNode(source, joinedTable, expression, node.JoinType, tieBreak, node.WithOrdinality)
+            .CopySpansFrom(node);
         Nodes.Push(joinedFrom);
     }
 
@@ -149,17 +150,20 @@ public partial class CloneQueryVisitor
         ArgumentNullException.ThrowIfNull(node);
         var appliedTable = (FromNode)Nodes.Pop();
         var source = (FromNode)Nodes.Pop();
-        var appliedFrom = new Parser.ApplyFromNode(source, appliedTable, node.ApplyType, node.WithOrdinality);
+        var appliedFrom = new Parser.ApplyFromNode(source, appliedTable, node.ApplyType, node.WithOrdinality)
+            .CopySpansFrom(node);
         Nodes.Push(appliedFrom);
     }
 
-    public override void Visit(ExpressionFromNode node) => Nodes.Push(new Parser.ExpressionFromNode((FromNode)Nodes.Pop()));
+    public override void Visit(ExpressionFromNode node) => Nodes.Push(
+        new Parser.ExpressionFromNode((FromNode)Nodes.Pop()).CopySpansFrom(node));
 
     public override void Visit(InterpretFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var interpretCall = Nodes.Pop();
-        Nodes.Push(new Parser.InterpretFromNode(node.Alias, interpretCall, node.ApplyType, node.ReturnType ?? typeof(object)));
+        Nodes.Push(new Parser.InterpretFromNode(node.Alias, interpretCall, node.ApplyType, node.ReturnType ?? typeof(object))
+            .CopySpansFrom(node));
     }
 
     public override void Visit(AccessMethodFromNode node)
@@ -173,13 +177,6 @@ public partial class CloneQueryVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertiesChain).CopySpansFrom(node));
-    }
-
-    public override void Visit(AliasedFromNode node)
-    {
-        ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new Parser.AliasedFromNode(node.Identifier, (ArgsListNode)Nodes.Pop(), node.Alias,
-            node.InSourcePosition, node.TypeParameter));
     }
 
     public override void Visit(SchemaMethodFromNode node)

@@ -1,0 +1,99 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-110",
+  "kind": "oracle-correction",
+  "fromRevision": 3,
+  "toRevision": 4,
+  "independentReviewRequired": true,
+  "review": {
+    "status": "approved",
+    "reviewer": "Halley read-only campaign reviewer",
+    "independent": true,
+    "reviewerAgentIds": [
+      "01a07af0-05ab-7f31-9e08-c92f5d3d425a"
+    ],
+    "scope": "REC-110-F01 and REC-110-F02 nested shadowing candidates",
+    "findings": [
+      "The SELECT 1 correlated EXISTS seed is valid.",
+      "The revision-3 F01 result failed before binding because the replacement alias innerB was treated as clause-like; renamedB is an ordinary identifier and leaves stale b.Country as the sole fault.",
+      "The revision-3 F02 result must replace both the outer projection and source declaration with renamedA so only correlated inner a.Country remains stale.",
+      "The resulting candidates each have one MQ3015_UnknownAlias at the intended nested scope."
+    ],
+    "testsRunByReviewers": false
+  },
+  "sourceJustification": [
+    {
+      "caseIds": [
+        "REC-110-F01-v3"
+      ],
+      "revision3Observation": {
+        "outcome": "The strict revision-3 replay stopped at F01 with MQ2001_UnexpectedToken rather than the contracted MQ3015.",
+        "trxPath": ".campaign-artifacts/REC-110-focused-v3-repair1/REC-110-focused-v3-repair1.trx",
+        "trxSha256": "85d014a78ceb83d551dc4e364b4a2d933d68867fe4584faa02d7de1fc0ffa828",
+        "message": "Expected token is RightParenthesis but received Identifier. Did you mean 'INNER'?"
+      },
+      "correction": "Keep the valid SELECT 1 seed and replace only the inner declaration b with renamedB; stale b.Country remains the only invalid consumer.",
+      "reason": "The neutral alias avoids the parser's contextual-keyword misspelling heuristic while preserving the nested alias visibility boundary.",
+      "authority": {
+        "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+        "sections": [
+          "5.3 Column Aliasing",
+          "23.3 Root-cause classification"
+        ],
+        "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a"
+      }
+    },
+    {
+      "caseIds": [
+        "REC-110-F02-v3"
+      ],
+      "revision3Observation": {
+        "outcome": "The F02 candidate was not reached in the stopped revision-3 strict replay; its contextual-looking outer replacement alias required the same construction audit.",
+        "preservedExploratoryReplay": ".campaign-artifacts/REC-110-focused-alias-repair/REC-110-focused-alias-repair.trx",
+        "replaySha256": "e6a9d60aab70b08bdcff48f3860605b74eea5bc8982aef047b0f18db4483cb11"
+      },
+      "correction": "Replace the outer SELECT projection and source declaration a with renamedA; keep correlated inner a.Country stale.",
+      "reason": "This is the exact one-declaration/one-consumer mutation required by the nested shadowing obligation; leaving select a.City unchanged would create two stale a references.",
+      "authority": {
+        "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+        "sections": [
+          "5.3 Column Aliasing",
+          "23.3 Root-cause classification"
+        ],
+        "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a"
+      }
+    }
+  ],
+  "fixtureCorrections": [
+    "Revision 4 replaces only F01/F02 candidate identifiers, mutation aliases and result markers; the 48-case, eight-family matrix remains 39 invalid and 9 valid.",
+    "The final fixture adds independent production-regression tests outside CandidateCases; those tests do not change the frozen candidate population."
+  ],
+  "productionFindings": [
+    "REC-110-FINDING-001"
+  ],
+  "preservedEvidence": [
+    {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-110-case-contract-v3.json",
+      "sha256": "edea65f70aceda96aca0a5dc66093b845b4c7d01a89fff99f50f676c60efb364"
+    },
+    {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-110-pre-observation-manifest-v3.json",
+      "sha256": "9f24080eab20092271d8352ad2b020d7b4d69a5c300c72901edb7d25043824cf"
+    },
+    {
+      "path": ".campaign-artifacts/REC-110-focused-v3-repair1/REC-110-focused-v3-repair1.trx",
+      "sha256": "85d014a78ceb83d551dc4e364b4a2d933d68867fe4584faa02d7de1fc0ffa828"
+    },
+    {
+      "path": ".campaign-artifacts/REC-110-focused-alias-repair/REC-110-focused-alias-repair.trx",
+      "sha256": "e6a9d60aab70b08bdcff48f3860605b74eea5bc8982aef047b0f18db4483cb11"
+    }
+  ],
+  "newContract": {
+    "path": "docs/campaigns/recovery-v3/evidence/REC-110-case-contract-v4.json",
+    "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-110-pre-observation-manifest-v4.json",
+    "sha256": "4d15ac45ff4f6450cfdce8b34c224adf0a0fd027adaafb775ed772c9e758aa61",
+    "manifestSha256": "6f40af42b69fe691cd98190063c0f78cab4ac929a6217ef5cb3fe9b38faab3e1"
+  },
+  "nextCandidateVersion": "REC-110-case-contract-v4"
+}

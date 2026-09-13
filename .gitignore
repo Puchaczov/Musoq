@@ -47,6 +47,7 @@ dlldata.c
 project.lock.json
 project.fragment.lock.json
 artifacts/
+.campaign-artifacts/
 
 *_i.c
 *_p.c
@@ -278,3 +279,4 @@ merged-test-results.xml
 # Claude Code local overrides
 CLAUDE.local.md
 .claude/settings.local.json
+docs/campaigns/

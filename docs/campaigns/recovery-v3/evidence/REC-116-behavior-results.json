@@ -1,0 +1,134 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-116",
+  "matrixRevision": 2,
+  "outcome": "passed",
+  "registeredCases": 48,
+  "classificationCounts": {
+    "invalid": 0,
+    "validOrdinary": 19,
+    "validSuspicious": 29
+  },
+  "families": [
+    "PATH",
+    "REGEX",
+    "LIKE",
+    "SURFACES"
+  ],
+  "contract": {
+    "authoritySha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+    "revisions": [
+      {
+        "revision": 1,
+        "contractPath": "docs/campaigns/recovery-v3/evidence/REC-116-case-contract.json",
+                "contractSha256": "60b55ccedf4c366983c30415c0b0e7f0a509bacc9b5ea7b1263970e0f5fb25fb",
+        "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-116-pre-observation-manifest.json",
+        "manifestSha256": "34cd27de9861dc87b5b845bb214c1ed5ae26b6d477f7d918687de849d3aa4018",
+        "preObservationPayloadSha256": "af86e2f443fe3e6aa95f6d4faf263fa619601e0053a07507c7caec5d6485e382",
+        "observation": "Immutable initial valid-mutation contract; first replay exposed production diagnostic interactions and invalid dotted dynamic fixtures."
+      },
+      {
+        "revision": 2,
+        "contractPath": "docs/campaigns/recovery-v3/evidence/REC-116-case-contract-v2.json",
+                "contractSha256": "3597c6cb051edf0e2d13243a69c61b0676392048035ae9b87fcf6cc190fdece8",
+        "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-116-pre-observation-manifest-v2.json",
+        "manifestSha256": "d684d4539c98130d38092f501a8527248e19ca1318f229dc67ad4ab1f81dd0b3",
+        "preObservationPayloadSha256": "75c47b29d33529a2105f97aa260ca56e08c87f2ba19cf2cd2a17d11418e93f17",
+        "observation": "Final immutable contract after transparent fixture and phase metadata correction; no candidate or warning expectation removed."
+      }
+    ],
+    "oracleCorrectionPath": "docs/campaigns/recovery-v3/evidence/REC-116-oracle-correction.json"
+  },
+  "focusedReplay": {
+    "command": "dotnet test src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC116AdvisoryPrecisionTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-116-focused-v6.trx\" --results-directory .campaign-artifacts/REC-116-focused-v6",
+    "exitCode": 0,
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "total": 5,
+    "trxArtifact": {
+      "path": ".campaign-artifacts/REC-116-focused-v6/REC-116-focused-v6.trx",
+      "sha256": "55bded43530b436bdf77a78bbffbfbe34ae5d90460bf13becda943c0e7f67751"
+    },
+    "coverage": "The matrix executes all 48 final cases across four 12-case families. It checks exact diagnostics, spans, warning phase boundaries, syntax-only quietness, runnable compilation, cache-safe warning replay and authored ordinary-string values."
+  },
+  "adjacentSuites": [
+    {
+      "name": "evaluator-advisory-contextual",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~SemanticPatternAdvisoryTests|FullyQualifiedName~ContextualStringAdvisoryTests|FullyQualifiedName~AdvisoryWarningPropagationTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-116-adjacent-evaluator.trx\" --results-directory .campaign-artifacts/REC-116-adjacent-evaluator",
+      "exitCode": 0,
+      "passed": 27,
+      "failed": 0,
+      "skipped": 0,
+      "total": 27,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-116-adjacent-evaluator/REC-116-adjacent-evaluator.trx",
+        "sha256": "a6db2b3fdd1a76f1c28c9045d30960243e06e555bd4be027583031ba7d39d990"
+      }
+    },
+    {
+      "name": "converter-advisory-propagation",
+      "command": "dotnet test src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~AdvisoryWarningPropagationTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-116-adjacent-converter.trx\" --results-directory .campaign-artifacts/REC-116-adjacent-converter",
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "total": 9,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-116-adjacent-converter/REC-116-adjacent-converter.trx",
+        "sha256": "bc7be1123e17daacbe4c6ec2e48e22c0c261853a06e8b007ea52f0bb641afb32"
+      }
+    },
+    {
+      "name": "converter-full-cache-replay",
+      "command": "dotnet test src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj -c Release --no-build --no-restore --nologo --verbosity minimal --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-116-converter-full-replay.trx\" --results-directory .campaign-artifacts/REC-116-converter-full-replay",
+      "exitCode": 0,
+      "passed": 1127,
+      "failed": 0,
+      "skipped": 0,
+      "total": 1127,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-116-converter-full-replay/REC-116-converter-full-replay.trx",
+        "sha256": "aab5b105354b2f300536a1ed05d86cdcc798fcdfa604dc567493c89739a807d7"
+      }
+    }
+  ],
+  "semanticChecks": {
+    "pathControls": "Rooted and relative path triggers warn; raw, doubled, standalone and unknown escape controls remain quiet where the contract requires.",
+    "regexControls": "Ordinary word-boundary escapes warn once at the first boundary; raw, doubled, character-class, dynamic and preserved regex escapes remain quiet.",
+    "likeControls": "Glob-like constant patterns warn; SQL wildcards, mixed patterns, prose with whitespace and dynamic patterns remain quiet.",
+    "phaseAndLocation": "Syntax-only analysis remains quiet for binding-dependent advisories; Parse MQ5014 locations and Bind MQ5015/MQ5016 locations are exact and distinct per literal.",
+    "runtimeValue": "Warning compilation remains runnable and the authored ordinary path value is preserved."
+  },
+  "productionFindings": [
+    {
+      "id": "REC-116-F01",
+      "finding": "A leading ordinary regex boundary escape was also reported as a rooted-path MQ5014 warning.",
+      "resolution": "Regex-context suppression removes only the lexical false positive, including syntax-only and semantic-cache replay paths, while retaining MQ5015."
+    },
+    {
+      "id": "REC-116-F02",
+      "finding": "LIKE glob detection warned for whitespace-containing prose with a star.",
+      "resolution": "Whitespace is treated as a quiet control before wildcard classification."
+    }
+  ],
+  "fullReleaseGate": {
+    "command": "python docs/campaigns/recovery-v3/tools/full_gate.py run --scope-id REC-116 --solution src/dotnet/Musoq.sln --configuration Release --output .campaign-artifacts/REC-116-full-gate-final --evidence docs/campaigns/recovery-v3/evidence/REC-116-full-gate.json --expected-inventory docs/campaigns/recovery-v3/evidence/REC-085-expected-inventory.json --skip-allowlist docs/campaigns/recovery-v3/evidence/REC-085-skip-allowlist.json",
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-116-full-gate.json",
+    "evidenceSha256": "8912db297d489d800401312efd9fdbb8bb09639feab8783dd2aeef74df415098",
+    "runId": "REC-116-b8be229777d1",
+    "targetCount": 8,
+    "passed": 20494,
+    "failed": 0,
+    "skipped": 3,
+    "total": 20497,
+    "testedPayloadSha256": "7a8163bd97e560ab6a2f991258af4206dfe4c5e1af759ab16bccb58f30d4fabb",
+    "testedPayloadFileCount": 5777
+  },
+  "notes": [
+    "Revision 1 and its manifest remain immutable; revision 2 records every observed fixture and authority-permitted metadata correction before the final replay.",
+    "The first full gate exposed a semantic-cache replay of the regex/path false positive; the cache-aware suppression was added and the final all-target gate passed.",
+    "The final source/test payload was unchanged after the full gate; administrative evidence, report, ledger and progress updates are outside the tested payload boundary.",
+    "Product and empirical lanes remain not run under the selected engine-lane stopping contract."
+  ]
+}

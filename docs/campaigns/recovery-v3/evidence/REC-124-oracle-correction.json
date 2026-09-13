@@ -1,0 +1,98 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-124",
+  "kind": "oracle-correction",
+  "outcome": "revision-2-required",
+  "fromRevision": 1,
+  "toRevision": 2,
+  "independentReviewRequired": false,
+  "review": {
+    "status": "main-session-reviewed",
+    "reviewer": "campaign execution session",
+    "independent": false,
+    "reviewerAgentIds": [],
+    "scope": "REC-124-C02, REC-124-C04, REC-124-C06, REC-124-D04, REC-124-D06 and REC-124-H05 fixture corrections",
+    "findings": [
+      "Revision 1 was frozen before observation and remains immutable.",
+      "C02 introduced two stale consumers when the inner CityOut declaration changed, so its first revision produced two roots and its second revision was quiet; the corrected fixture retains one CityOut consumer and one NameOut consumer.",
+      "C04 and D04 mutated an unused inner CityOut declaration, so the first revision was quiet; each corrected fixture consumes both exported outputs exactly once.",
+      "C06 and D06 mutated nested inner declarations that produced multiple downstream roots and, in revision 1, an additional invalid-expression diagnostic; revision 2 mutates one outer consumer at a time while retaining nested CTE/derived structure.",
+      "H05 revision 1 had an unrelated non-aggregate warning in its valid seed; revision 2 uses an aggregate plus predicate trajectory with no unrelated diagnostic."
+    ],
+    "testsRunByReviewers": false
+  },
+  "sourceJustification": [
+    {
+      "caseIds": ["REC-124-C02"],
+      "revision1Observation": "Changing the inner CityOut export left both p.CityOut references unresolved, while repairing it and changing NameOut did not leave the declared single-root shape.",
+      "correction": "Keep the same CTE output-renaming trajectory but use p.CityOut as the sole CityOut consumer and p.NameOut as the sole NameOut consumer.",
+      "reason": "The correction makes each successive revision observe exactly one current root without suppressing either stale diagnostic."
+    },
+    {
+      "caseIds": ["REC-124-C04", "REC-124-D04"],
+      "revision1Observation": "The first mutation renamed an output that was not consumed by the query, so no diagnostic was produced.",
+      "correction": "Use a single CityOut consumer and a distinct NameOut predicate consumer in each fixture.",
+      "reason": "Both declared output edits are now observable at their owning consumer boundary."
+    },
+    {
+      "caseIds": ["REC-124-C06", "REC-124-D06"],
+      "revision1Observation": "Renaming nested inner declarations produced multiple downstream roots and MQ3027_InvalidExpressionType in addition to the declared unknown-column root.",
+      "correction": "Retain nested CTE/derived structure and mutate the unique outer q/x consumer references one at a time.",
+      "reason": "The fixture continues to exercise nested output scope while isolating the declared successive correction boundary."
+    },
+    {
+      "caseIds": ["REC-124-H05"],
+      "revision1Observation": "The valid seed select Sum(a.Population), a.City had the unrelated MQ3012_NonAggregateInSelect warning.",
+      "correction": "Use select Sum(a.Population) with a.City as the independent predicate root.",
+      "reason": "The valid seed is now warning-free while preserving two independently corrected roots."
+    }
+  ],
+  "fixtureCorrections": [
+    "All 48 case identifiers and eight six-case families remain present.",
+    "The final test retains exact step diagnostics, phases, source domains, spans, same-token shift checks and stale-error removal checks."
+  ],
+  "productionFindings": [
+    {
+      "id": "REC-124-F01",
+      "status": "fixed",
+      "title": "Lexer trimmed the analyzed document before assigning token spans",
+      "observation": "A two-space document prefix left the retained diagnostic at its old offset instead of shifting it by two UTF-16 code units.",
+      "rootCause": "Musoq.Parser.Lexer assigned input.Trim() to Input while QueryAnalyzer retained the original query in SourceText.",
+      "fix": "Lexer now retains the exact input string; its existing whitespace-token skipping preserves parsing behavior while keeping token and diagnostic offsets in the original document coordinate system.",
+      "evidence": [
+        "src/dotnet/Musoq.Parser/Lexing/Lexer.cs",
+        "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-124EditingTrajectoryTests.cs",
+        ".campaign-artifacts/REC-124-focused-production-fix/REC-124-focused-production-fix.trx"
+      ]
+    }
+  ],
+  "preservedEvidence": [
+    {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-124-case-contract.json",
+      "sha256": "825f008789256d88f3d1766b59db6c8129d0550379777e933c2f4443af2bb643"
+    },
+    {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-124-pre-observation-manifest.json",
+      "sha256": "42de29e86ee7af148d7b26b26c4791e20a3c50187098b1396217337192a02af8"
+    },
+    {
+      "path": ".campaign-artifacts/REC-124-observation/REC-124-observation.trx",
+      "sha256": "d2b7beca2ef2d5acad9a8a2b239f045bd8ec19f63e200b8d7aec57c3059c76f3"
+    }
+  ],
+  "finalContract": [
+    {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-124-case-contract-v2.json",
+      "sha256": "dd38405bd6583ee4540f8c8686756c2b3f4aebf0d403601281b0eeb416d2e385"
+    },
+    {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-124-pre-observation-manifest-v2.json",
+      "sha256": "c00cfecb765c58d0a3859bb2f3aea170fc3b73b1699022da6bee2947da942940"
+    },
+    {
+      "path": ".campaign-artifacts/REC-124-observation-v2/REC-124-observation-v2.trx",
+      "sha256": "72f0aac2cc9ea556adf0429fa6423fc696dd550f50f7f493aeccbb007dca0669"
+    }
+  ],
+  "nextCandidateVersion": "REC-124-case-contract-v2"
+}

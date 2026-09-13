@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pre-observation candidate contract v1",
+  "type": "object",
+  "required": [
+    "formatVersion",
+    "caseId",
+    "scopeId",
+    "task",
+    "seedQuery",
+    "fixtureRef",
+    "mutation",
+    "expectedClassification",
+    "expectedRootCause",
+    "authority",
+    "repairPolicy"
+  ],
+  "properties": {
+    "formatVersion": {
+      "const": 1
+    },
+    "caseId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scopeId": {
+      "type": "string",
+      "pattern": "^REC-[0-9]{3}$"
+    },
+    "task": {
+      "type": "string"
+    },
+    "seedQuery": {
+      "type": "string"
+    },
+    "fixtureRef": {
+      "type": "object"
+    },
+    "mutation": {
+      "type": "object"
+    },
+    "expectedClassification": {
+      "enum": [
+        "invalid",
+        "valid_suspicious",
+        "valid_ordinary",
+        "unspecified"
+      ]
+    },
+    "expectedRootCause": {
+      "type": "string"
+    },
+    "authority": {
+      "type": "array"
+    },
+    "repairPolicy": {
+      "enum": [
+        "unique_safe_edit",
+        "bounded_alternatives",
+        "request_observation",
+        "no_change",
+        "no_safe_fix"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

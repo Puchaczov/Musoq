@@ -220,8 +220,8 @@ public partial class UserMistakesTests : BasicEntityTestBase
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Parser returns MQ2030_UnsupportedSyntax for unexpected EOF
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "unclosed parenthesis in method");
+        // Assert - Parser returns MQ2021_UnclosedFunctionCall for unexpected EOF
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2021_UnclosedFunctionCall, "unclosed parenthesis in method");
     }
 
     [TestMethod]

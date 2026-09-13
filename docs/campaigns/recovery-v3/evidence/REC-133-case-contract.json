@@ -1,0 +1,2645 @@
+{
+  "formatVersion": 1,
+  "cases": [
+    {
+      "formatVersion": 1,
+      "caseId": "CC-01",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation compile variant 01 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CC-01-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CC-01 seed marker with the controlled cancellation compile marker.",
+        "before": "CC-01-seed",
+        "after": "CC-01-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CC-01-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through compilation boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The compilation termination class, boundary and cleanup facts are frozen before the authoritative observation for CC-01."
+      },
+      "fingerprint": {
+        "domain": "COMPILATION",
+        "rootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+        "context": "REC-133/CC-01/compilation"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CC-01-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CC-02",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation compile variant 02 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CC-02-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CC-02 seed marker with the controlled cancellation compile marker.",
+        "before": "CC-02-seed",
+        "after": "CC-02-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CC-02-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through compilation boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The compilation termination class, boundary and cleanup facts are frozen before the authoritative observation for CC-02."
+      },
+      "fingerprint": {
+        "domain": "COMPILATION",
+        "rootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+        "context": "REC-133/CC-02/compilation"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CC-02-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CC-03",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation compile variant 03 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CC-03-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CC-03 seed marker with the controlled cancellation compile marker.",
+        "before": "CC-03-seed",
+        "after": "CC-03-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CC-03-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through compilation boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The compilation termination class, boundary and cleanup facts are frozen before the authoritative observation for CC-03."
+      },
+      "fingerprint": {
+        "domain": "COMPILATION",
+        "rootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+        "context": "REC-133/CC-03/compilation"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CC-03-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CC-04",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation compile variant 04 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CC-04-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CC-04 seed marker with the controlled cancellation compile marker.",
+        "before": "CC-04-seed",
+        "after": "CC-04-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CC-04-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through compilation boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The compilation termination class, boundary and cleanup facts are frozen before the authoritative observation for CC-04."
+      },
+      "fingerprint": {
+        "domain": "COMPILATION",
+        "rootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+        "context": "REC-133/CC-04/compilation"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CC-04-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CC-05",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation compile variant 05 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CC-05-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CC-05 seed marker with the controlled cancellation compile marker.",
+        "before": "CC-05-seed",
+        "after": "CC-05-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CC-05-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through compilation boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The compilation termination class, boundary and cleanup facts are frozen before the authoritative observation for CC-05."
+      },
+      "fingerprint": {
+        "domain": "COMPILATION",
+        "rootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+        "context": "REC-133/CC-05/compilation"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CC-05-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CC-06",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation compile variant 06 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CC-06-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CC-06 seed marker with the controlled cancellation compile marker.",
+        "before": "CC-06-seed",
+        "after": "CC-06-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CC-06-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through compilation boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The compilation termination class, boundary and cleanup facts are frozen before the authoritative observation for CC-06."
+      },
+      "fingerprint": {
+        "domain": "COMPILATION",
+        "rootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+        "context": "REC-133/CC-06/compilation"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CC-06-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CC-07",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation compile variant 07 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CC-07-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CC-07 seed marker with the controlled cancellation compile marker.",
+        "before": "CC-07-seed",
+        "after": "CC-07-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CC-07-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through compilation boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The compilation termination class, boundary and cleanup facts are frozen before the authoritative observation for CC-07."
+      },
+      "fingerprint": {
+        "domain": "COMPILATION",
+        "rootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+        "context": "REC-133/CC-07/compilation"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CC-07-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CC-08",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation compile variant 08 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CC-08-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CC-08 seed marker with the controlled cancellation compile marker.",
+        "before": "CC-08-seed",
+        "after": "CC-08-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CC-08-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through compilation boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The compilation termination class, boundary and cleanup facts are frozen before the authoritative observation for CC-08."
+      },
+      "fingerprint": {
+        "domain": "COMPILATION",
+        "rootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+        "context": "REC-133/CC-08/compilation"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CC-08-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CC-09",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation compile variant 09 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CC-09-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CC-09 seed marker with the controlled cancellation compile marker.",
+        "before": "CC-09-seed",
+        "after": "CC-09-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CC-09-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through compilation boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The compilation termination class, boundary and cleanup facts are frozen before the authoritative observation for CC-09."
+      },
+      "fingerprint": {
+        "domain": "COMPILATION",
+        "rootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+        "context": "REC-133/CC-09/compilation"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CC-09-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CC-10",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation compile variant 10 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CC-10-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CC-10 seed marker with the controlled cancellation compile marker.",
+        "before": "CC-10-seed",
+        "after": "CC-10-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CC-10-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through compilation boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The compilation termination class, boundary and cleanup facts are frozen before the authoritative observation for CC-10."
+      },
+      "fingerprint": {
+        "domain": "COMPILATION",
+        "rootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+        "context": "REC-133/CC-10/compilation"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CC-10-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CC-11",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation compile variant 11 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CC-11-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CC-11 seed marker with the controlled cancellation compile marker.",
+        "before": "CC-11-seed",
+        "after": "CC-11-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CC-11-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through compilation boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The compilation termination class, boundary and cleanup facts are frozen before the authoritative observation for CC-11."
+      },
+      "fingerprint": {
+        "domain": "COMPILATION",
+        "rootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+        "context": "REC-133/CC-11/compilation"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CC-11-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CC-12",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation compile variant 12 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CC-12-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CC-12 seed marker with the controlled cancellation compile marker.",
+        "before": "CC-12-seed",
+        "after": "CC-12-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CC-12-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through compilation boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The compilation termination class, boundary and cleanup facts are frozen before the authoritative observation for CC-12."
+      },
+      "fingerprint": {
+        "domain": "COMPILATION",
+        "rootCause": "Compilation cancellation must remain an OperationCanceledException and must not enter the provider.",
+        "context": "REC-133/CC-12/compilation"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CC-12-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "EX-01",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation execution variant 01 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* EX-01-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid EX-01 seed marker with the controlled cancellation execution marker.",
+        "before": "EX-01-seed",
+        "after": "EX-01-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* EX-01-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through datasource and runtime boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The execution termination class, boundary and cleanup facts are frozen before the authoritative observation for EX-01."
+      },
+      "fingerprint": {
+        "domain": "EXECUTION",
+        "rootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+        "context": "REC-133/EX-01/execution"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* EX-01-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "EX-02",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation execution variant 02 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* EX-02-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid EX-02 seed marker with the controlled cancellation execution marker.",
+        "before": "EX-02-seed",
+        "after": "EX-02-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* EX-02-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through datasource and runtime boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The execution termination class, boundary and cleanup facts are frozen before the authoritative observation for EX-02."
+      },
+      "fingerprint": {
+        "domain": "EXECUTION",
+        "rootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+        "context": "REC-133/EX-02/execution"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* EX-02-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "EX-03",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation execution variant 03 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* EX-03-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid EX-03 seed marker with the controlled cancellation execution marker.",
+        "before": "EX-03-seed",
+        "after": "EX-03-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* EX-03-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through datasource and runtime boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The execution termination class, boundary and cleanup facts are frozen before the authoritative observation for EX-03."
+      },
+      "fingerprint": {
+        "domain": "EXECUTION",
+        "rootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+        "context": "REC-133/EX-03/execution"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* EX-03-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "EX-04",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation execution variant 04 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* EX-04-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid EX-04 seed marker with the controlled cancellation execution marker.",
+        "before": "EX-04-seed",
+        "after": "EX-04-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* EX-04-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through datasource and runtime boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The execution termination class, boundary and cleanup facts are frozen before the authoritative observation for EX-04."
+      },
+      "fingerprint": {
+        "domain": "EXECUTION",
+        "rootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+        "context": "REC-133/EX-04/execution"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* EX-04-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "EX-05",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation execution variant 05 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* EX-05-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid EX-05 seed marker with the controlled cancellation execution marker.",
+        "before": "EX-05-seed",
+        "after": "EX-05-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* EX-05-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through datasource and runtime boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The execution termination class, boundary and cleanup facts are frozen before the authoritative observation for EX-05."
+      },
+      "fingerprint": {
+        "domain": "EXECUTION",
+        "rootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+        "context": "REC-133/EX-05/execution"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* EX-05-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "EX-06",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation execution variant 06 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* EX-06-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid EX-06 seed marker with the controlled cancellation execution marker.",
+        "before": "EX-06-seed",
+        "after": "EX-06-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* EX-06-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through datasource and runtime boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The execution termination class, boundary and cleanup facts are frozen before the authoritative observation for EX-06."
+      },
+      "fingerprint": {
+        "domain": "EXECUTION",
+        "rootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+        "context": "REC-133/EX-06/execution"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* EX-06-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "EX-07",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation execution variant 07 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* EX-07-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid EX-07 seed marker with the controlled cancellation execution marker.",
+        "before": "EX-07-seed",
+        "after": "EX-07-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* EX-07-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through datasource and runtime boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The execution termination class, boundary and cleanup facts are frozen before the authoritative observation for EX-07."
+      },
+      "fingerprint": {
+        "domain": "EXECUTION",
+        "rootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+        "context": "REC-133/EX-07/execution"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* EX-07-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "EX-08",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation execution variant 08 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* EX-08-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid EX-08 seed marker with the controlled cancellation execution marker.",
+        "before": "EX-08-seed",
+        "after": "EX-08-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* EX-08-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through datasource and runtime boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The execution termination class, boundary and cleanup facts are frozen before the authoritative observation for EX-08."
+      },
+      "fingerprint": {
+        "domain": "EXECUTION",
+        "rootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+        "context": "REC-133/EX-08/execution"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* EX-08-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "EX-09",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation execution variant 09 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* EX-09-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid EX-09 seed marker with the controlled cancellation execution marker.",
+        "before": "EX-09-seed",
+        "after": "EX-09-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* EX-09-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through datasource and runtime boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The execution termination class, boundary and cleanup facts are frozen before the authoritative observation for EX-09."
+      },
+      "fingerprint": {
+        "domain": "EXECUTION",
+        "rootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+        "context": "REC-133/EX-09/execution"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* EX-09-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "EX-10",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation execution variant 10 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* EX-10-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid EX-10 seed marker with the controlled cancellation execution marker.",
+        "before": "EX-10-seed",
+        "after": "EX-10-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* EX-10-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through datasource and runtime boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The execution termination class, boundary and cleanup facts are frozen before the authoritative observation for EX-10."
+      },
+      "fingerprint": {
+        "domain": "EXECUTION",
+        "rootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+        "context": "REC-133/EX-10/execution"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* EX-10-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "EX-11",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation execution variant 11 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* EX-11-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid EX-11 seed marker with the controlled cancellation execution marker.",
+        "before": "EX-11-seed",
+        "after": "EX-11-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* EX-11-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through datasource and runtime boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The execution termination class, boundary and cleanup facts are frozen before the authoritative observation for EX-11."
+      },
+      "fingerprint": {
+        "domain": "EXECUTION",
+        "rootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+        "context": "REC-133/EX-11/execution"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* EX-11-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "EX-12",
+      "scopeId": "REC-133",
+      "task": "Exercise cancellation execution variant 12 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* EX-12-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid EX-12 seed marker with the controlled cancellation execution marker.",
+        "before": "EX-12-seed",
+        "after": "EX-12-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* EX-12-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Cancellation is propagated unchanged through datasource and runtime boundaries.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The execution termination class, boundary and cleanup facts are frozen before the authoritative observation for EX-12."
+      },
+      "fingerprint": {
+        "domain": "EXECUTION",
+        "rootCause": "Execution cancellation after a produced row must remain cancellation and release the producer.",
+        "context": "REC-133/EX-12/execution"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* EX-12-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ZP-01",
+      "scopeId": "REC-133",
+      "task": "Exercise zero-progress repetition variant 01 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* ZP-01-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ZP-01 seed marker with the controlled zero-progress repetition marker.",
+        "before": "ZP-01-seed",
+        "after": "ZP-01-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* ZP-01-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition / 9.2 Error Categories",
+          "passage": "Repeat-until parsing must consume input or raise the bounded repeat error.",
+        "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The interpreter termination class, boundary and cleanup facts are frozen before the authoritative observation for ZP-01."
+      },
+      "fingerprint": {
+        "domain": "INTERPRETER",
+        "rootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+        "context": "REC-133/ZP-01/interpreter"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* ZP-01-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ZP-02",
+      "scopeId": "REC-133",
+      "task": "Exercise zero-progress repetition variant 02 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* ZP-02-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ZP-02 seed marker with the controlled zero-progress repetition marker.",
+        "before": "ZP-02-seed",
+        "after": "ZP-02-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* ZP-02-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition / 9.2 Error Categories",
+          "passage": "Repeat-until parsing must consume input or raise the bounded repeat error.",
+        "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The interpreter termination class, boundary and cleanup facts are frozen before the authoritative observation for ZP-02."
+      },
+      "fingerprint": {
+        "domain": "INTERPRETER",
+        "rootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+        "context": "REC-133/ZP-02/interpreter"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* ZP-02-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ZP-03",
+      "scopeId": "REC-133",
+      "task": "Exercise zero-progress repetition variant 03 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* ZP-03-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ZP-03 seed marker with the controlled zero-progress repetition marker.",
+        "before": "ZP-03-seed",
+        "after": "ZP-03-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* ZP-03-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition / 9.2 Error Categories",
+          "passage": "Repeat-until parsing must consume input or raise the bounded repeat error.",
+        "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The interpreter termination class, boundary and cleanup facts are frozen before the authoritative observation for ZP-03."
+      },
+      "fingerprint": {
+        "domain": "INTERPRETER",
+        "rootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+        "context": "REC-133/ZP-03/interpreter"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* ZP-03-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ZP-04",
+      "scopeId": "REC-133",
+      "task": "Exercise zero-progress repetition variant 04 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* ZP-04-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ZP-04 seed marker with the controlled zero-progress repetition marker.",
+        "before": "ZP-04-seed",
+        "after": "ZP-04-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* ZP-04-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition / 9.2 Error Categories",
+          "passage": "Repeat-until parsing must consume input or raise the bounded repeat error.",
+        "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The interpreter termination class, boundary and cleanup facts are frozen before the authoritative observation for ZP-04."
+      },
+      "fingerprint": {
+        "domain": "INTERPRETER",
+        "rootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+        "context": "REC-133/ZP-04/interpreter"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* ZP-04-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ZP-05",
+      "scopeId": "REC-133",
+      "task": "Exercise zero-progress repetition variant 05 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* ZP-05-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ZP-05 seed marker with the controlled zero-progress repetition marker.",
+        "before": "ZP-05-seed",
+        "after": "ZP-05-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* ZP-05-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition / 9.2 Error Categories",
+          "passage": "Repeat-until parsing must consume input or raise the bounded repeat error.",
+        "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The interpreter termination class, boundary and cleanup facts are frozen before the authoritative observation for ZP-05."
+      },
+      "fingerprint": {
+        "domain": "INTERPRETER",
+        "rootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+        "context": "REC-133/ZP-05/interpreter"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* ZP-05-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ZP-06",
+      "scopeId": "REC-133",
+      "task": "Exercise zero-progress repetition variant 06 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* ZP-06-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ZP-06 seed marker with the controlled zero-progress repetition marker.",
+        "before": "ZP-06-seed",
+        "after": "ZP-06-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* ZP-06-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition / 9.2 Error Categories",
+          "passage": "Repeat-until parsing must consume input or raise the bounded repeat error.",
+        "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The interpreter termination class, boundary and cleanup facts are frozen before the authoritative observation for ZP-06."
+      },
+      "fingerprint": {
+        "domain": "INTERPRETER",
+        "rootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+        "context": "REC-133/ZP-06/interpreter"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* ZP-06-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ZP-07",
+      "scopeId": "REC-133",
+      "task": "Exercise zero-progress repetition variant 07 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* ZP-07-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ZP-07 seed marker with the controlled zero-progress repetition marker.",
+        "before": "ZP-07-seed",
+        "after": "ZP-07-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* ZP-07-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition / 9.2 Error Categories",
+          "passage": "Repeat-until parsing must consume input or raise the bounded repeat error.",
+        "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The interpreter termination class, boundary and cleanup facts are frozen before the authoritative observation for ZP-07."
+      },
+      "fingerprint": {
+        "domain": "INTERPRETER",
+        "rootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+        "context": "REC-133/ZP-07/interpreter"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* ZP-07-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ZP-08",
+      "scopeId": "REC-133",
+      "task": "Exercise zero-progress repetition variant 08 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* ZP-08-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ZP-08 seed marker with the controlled zero-progress repetition marker.",
+        "before": "ZP-08-seed",
+        "after": "ZP-08-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* ZP-08-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition / 9.2 Error Categories",
+          "passage": "Repeat-until parsing must consume input or raise the bounded repeat error.",
+        "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The interpreter termination class, boundary and cleanup facts are frozen before the authoritative observation for ZP-08."
+      },
+      "fingerprint": {
+        "domain": "INTERPRETER",
+        "rootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+        "context": "REC-133/ZP-08/interpreter"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* ZP-08-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ZP-09",
+      "scopeId": "REC-133",
+      "task": "Exercise zero-progress repetition variant 09 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* ZP-09-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ZP-09 seed marker with the controlled zero-progress repetition marker.",
+        "before": "ZP-09-seed",
+        "after": "ZP-09-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* ZP-09-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition / 9.2 Error Categories",
+          "passage": "Repeat-until parsing must consume input or raise the bounded repeat error.",
+        "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The interpreter termination class, boundary and cleanup facts are frozen before the authoritative observation for ZP-09."
+      },
+      "fingerprint": {
+        "domain": "INTERPRETER",
+        "rootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+        "context": "REC-133/ZP-09/interpreter"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* ZP-09-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ZP-10",
+      "scopeId": "REC-133",
+      "task": "Exercise zero-progress repetition variant 10 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* ZP-10-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ZP-10 seed marker with the controlled zero-progress repetition marker.",
+        "before": "ZP-10-seed",
+        "after": "ZP-10-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* ZP-10-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition / 9.2 Error Categories",
+          "passage": "Repeat-until parsing must consume input or raise the bounded repeat error.",
+        "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The interpreter termination class, boundary and cleanup facts are frozen before the authoritative observation for ZP-10."
+      },
+      "fingerprint": {
+        "domain": "INTERPRETER",
+        "rootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+        "context": "REC-133/ZP-10/interpreter"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* ZP-10-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ZP-11",
+      "scopeId": "REC-133",
+      "task": "Exercise zero-progress repetition variant 11 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* ZP-11-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ZP-11 seed marker with the controlled zero-progress repetition marker.",
+        "before": "ZP-11-seed",
+        "after": "ZP-11-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* ZP-11-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition / 9.2 Error Categories",
+          "passage": "Repeat-until parsing must consume input or raise the bounded repeat error.",
+        "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The interpreter termination class, boundary and cleanup facts are frozen before the authoritative observation for ZP-11."
+      },
+      "fingerprint": {
+        "domain": "INTERPRETER",
+        "rootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+        "context": "REC-133/ZP-11/interpreter"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* ZP-11-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ZP-12",
+      "scopeId": "REC-133",
+      "task": "Exercise zero-progress repetition variant 12 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* ZP-12-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ZP-12 seed marker with the controlled zero-progress repetition marker.",
+        "before": "ZP-12-seed",
+        "after": "ZP-12-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* ZP-12-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition / 9.2 Error Categories",
+          "passage": "Repeat-until parsing must consume input or raise the bounded repeat error.",
+        "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The interpreter termination class, boundary and cleanup facts are frozen before the authoritative observation for ZP-12."
+      },
+      "fingerprint": {
+        "domain": "INTERPRETER",
+        "rootCause": "A non-progressing or over-limit interpreter repetition must raise ISE0009 rather than loop.",
+        "context": "REC-133/ZP-12/interpreter"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* ZP-12-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CL-01",
+      "scopeId": "REC-133",
+      "task": "Exercise cleanup and timeout variant 01 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CL-01-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CL-01 seed marker with the controlled cleanup and timeout marker.",
+        "before": "CL-01-seed",
+        "after": "CL-01-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CL-01-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Timeouts and resource limits are explicit harness controls and do not change correctness or cancellation.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cleanup termination class, boundary and cleanup facts are frozen before the authoritative observation for CL-01."
+      },
+      "fingerprint": {
+        "domain": "CLEANUP",
+        "rootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+        "context": "REC-133/CL-01/cleanup"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CL-01-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CL-02",
+      "scopeId": "REC-133",
+      "task": "Exercise cleanup and timeout variant 02 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CL-02-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CL-02 seed marker with the controlled cleanup and timeout marker.",
+        "before": "CL-02-seed",
+        "after": "CL-02-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CL-02-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Timeouts and resource limits are explicit harness controls and do not change correctness or cancellation.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cleanup termination class, boundary and cleanup facts are frozen before the authoritative observation for CL-02."
+      },
+      "fingerprint": {
+        "domain": "CLEANUP",
+        "rootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+        "context": "REC-133/CL-02/cleanup"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CL-02-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CL-03",
+      "scopeId": "REC-133",
+      "task": "Exercise cleanup and timeout variant 03 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CL-03-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CL-03 seed marker with the controlled cleanup and timeout marker.",
+        "before": "CL-03-seed",
+        "after": "CL-03-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CL-03-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Timeouts and resource limits are explicit harness controls and do not change correctness or cancellation.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cleanup termination class, boundary and cleanup facts are frozen before the authoritative observation for CL-03."
+      },
+      "fingerprint": {
+        "domain": "CLEANUP",
+        "rootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+        "context": "REC-133/CL-03/cleanup"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CL-03-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CL-04",
+      "scopeId": "REC-133",
+      "task": "Exercise cleanup and timeout variant 04 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CL-04-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CL-04 seed marker with the controlled cleanup and timeout marker.",
+        "before": "CL-04-seed",
+        "after": "CL-04-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CL-04-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Timeouts and resource limits are explicit harness controls and do not change correctness or cancellation.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cleanup termination class, boundary and cleanup facts are frozen before the authoritative observation for CL-04."
+      },
+      "fingerprint": {
+        "domain": "CLEANUP",
+        "rootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+        "context": "REC-133/CL-04/cleanup"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CL-04-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CL-05",
+      "scopeId": "REC-133",
+      "task": "Exercise cleanup and timeout variant 05 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CL-05-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CL-05 seed marker with the controlled cleanup and timeout marker.",
+        "before": "CL-05-seed",
+        "after": "CL-05-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CL-05-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Timeouts and resource limits are explicit harness controls and do not change correctness or cancellation.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cleanup termination class, boundary and cleanup facts are frozen before the authoritative observation for CL-05."
+      },
+      "fingerprint": {
+        "domain": "CLEANUP",
+        "rootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+        "context": "REC-133/CL-05/cleanup"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CL-05-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CL-06",
+      "scopeId": "REC-133",
+      "task": "Exercise cleanup and timeout variant 06 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CL-06-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CL-06 seed marker with the controlled cleanup and timeout marker.",
+        "before": "CL-06-seed",
+        "after": "CL-06-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CL-06-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Timeouts and resource limits are explicit harness controls and do not change correctness or cancellation.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cleanup termination class, boundary and cleanup facts are frozen before the authoritative observation for CL-06."
+      },
+      "fingerprint": {
+        "domain": "CLEANUP",
+        "rootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+        "context": "REC-133/CL-06/cleanup"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CL-06-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CL-07",
+      "scopeId": "REC-133",
+      "task": "Exercise cleanup and timeout variant 07 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CL-07-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CL-07 seed marker with the controlled cleanup and timeout marker.",
+        "before": "CL-07-seed",
+        "after": "CL-07-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CL-07-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Timeouts and resource limits are explicit harness controls and do not change correctness or cancellation.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cleanup termination class, boundary and cleanup facts are frozen before the authoritative observation for CL-07."
+      },
+      "fingerprint": {
+        "domain": "CLEANUP",
+        "rootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+        "context": "REC-133/CL-07/cleanup"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CL-07-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CL-08",
+      "scopeId": "REC-133",
+      "task": "Exercise cleanup and timeout variant 08 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CL-08-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CL-08 seed marker with the controlled cleanup and timeout marker.",
+        "before": "CL-08-seed",
+        "after": "CL-08-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CL-08-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Timeouts and resource limits are explicit harness controls and do not change correctness or cancellation.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cleanup termination class, boundary and cleanup facts are frozen before the authoritative observation for CL-08."
+      },
+      "fingerprint": {
+        "domain": "CLEANUP",
+        "rootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+        "context": "REC-133/CL-08/cleanup"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CL-08-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CL-09",
+      "scopeId": "REC-133",
+      "task": "Exercise cleanup and timeout variant 09 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CL-09-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CL-09 seed marker with the controlled cleanup and timeout marker.",
+        "before": "CL-09-seed",
+        "after": "CL-09-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CL-09-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Timeouts and resource limits are explicit harness controls and do not change correctness or cancellation.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cleanup termination class, boundary and cleanup facts are frozen before the authoritative observation for CL-09."
+      },
+      "fingerprint": {
+        "domain": "CLEANUP",
+        "rootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+        "context": "REC-133/CL-09/cleanup"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CL-09-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CL-10",
+      "scopeId": "REC-133",
+      "task": "Exercise cleanup and timeout variant 10 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CL-10-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CL-10 seed marker with the controlled cleanup and timeout marker.",
+        "before": "CL-10-seed",
+        "after": "CL-10-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CL-10-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Timeouts and resource limits are explicit harness controls and do not change correctness or cancellation.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cleanup termination class, boundary and cleanup facts are frozen before the authoritative observation for CL-10."
+      },
+      "fingerprint": {
+        "domain": "CLEANUP",
+        "rootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+        "context": "REC-133/CL-10/cleanup"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CL-10-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CL-11",
+      "scopeId": "REC-133",
+      "task": "Exercise cleanup and timeout variant 11 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CL-11-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CL-11 seed marker with the controlled cleanup and timeout marker.",
+        "before": "CL-11-seed",
+        "after": "CL-11-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CL-11-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Timeouts and resource limits are explicit harness controls and do not change correctness or cancellation.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cleanup termination class, boundary and cleanup facts are frozen before the authoritative observation for CL-11."
+      },
+      "fingerprint": {
+        "domain": "CLEANUP",
+        "rootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+        "context": "REC-133/CL-11/cleanup"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CL-11-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CL-12",
+      "scopeId": "REC-133",
+      "task": "Exercise cleanup and timeout variant 12 through the permanent REC-133 matrix.",
+      "seedQuery": "select 1 from #rec133.items() r /* CL-12-seed */",
+      "fixtureRef": {
+        "id": "REC-133-cancellation-and-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-133CancellationAndBoundsTests.cs",
+        "testName": "CancellationAndBoundsMatrix_ShouldUseContractedTermination",
+        "proof": "The permanent 48-case MSTest matrix drives real compilation, execution, interpreter and chunk-pipeline boundaries with explicit harness budgets."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid CL-12 seed marker with the controlled cleanup and timeout marker.",
+        "before": "CL-12-seed",
+        "after": "CL-12-fault",
+        "resultQuery": "select 1 from #rec133.items() r /* CL-12-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Timeouts and resource limits are explicit harness controls and do not change correctness or cancellation.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cleanup termination class, boundary and cleanup facts are frozen before the authoritative observation for CL-12."
+      },
+      "fingerprint": {
+        "domain": "CLEANUP",
+        "rootCause": "Partial-work cleanup must be bounded and a harness timeout must remain a failed harness result.",
+        "context": "REC-133/CL-12/cleanup"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec133.items() r /* CL-12-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cancellation, progress or cleanup boundary remains exercised.",
+          "The contracted error or cancellation classification remains unchanged."
+        ]
+      }
+    }
+  ]
+}

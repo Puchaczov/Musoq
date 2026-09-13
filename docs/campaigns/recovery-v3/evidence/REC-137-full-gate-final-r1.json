@@ -1,0 +1,494 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-137",
+  "runId": "REC-137-3d0d17471c5c",
+  "repositoryIdentity": {
+    "root": "D:\\repos\\Musoq",
+    "commit": "c437b37b072a9e34a23a831a5784d9f402ee1666",
+    "branch": "feature/runtime_v2_final",
+    "configuration": "Release",
+    "dotnet": "dotnet",
+    "sdkObserved": "10.0.303"
+  },
+  "testedPayloadSha256": "9e2308beaa6fade18edd14ccb90c4529180482430ffc86a6b2a942bbe7331d19",
+  "testedPayloadFileCount": 5804,
+  "startedAt": "2026-09-08T06:48:26.337Z",
+  "finishedAt": "2026-09-08T06:51:17.512Z",
+  "commands": [
+    {
+      "executable": "dotnet",
+      "argv": [
+        "restore",
+        "src/dotnet/Musoq.sln",
+        "--nologo",
+        "--verbosity",
+        "quiet"
+      ],
+      "exitCode": 0,
+      "startedAt": "2026-09-08T06:48:26.337Z",
+      "finishedAt": "2026-09-08T06:48:29.216Z",
+      "stdoutArtifact": {
+        "path": ".campaign-artifacts/REC-137-full-gate-final-r1/restore.stdout.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderrArtifact": {
+        "path": ".campaign-artifacts/REC-137-full-gate-final-r1/restore.stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "executable": "dotnet",
+      "argv": [
+        "build",
+        "src/dotnet/Musoq.sln",
+        "-c",
+        "Release",
+        "--no-restore",
+        "--no-incremental",
+        "--nologo",
+        "--verbosity",
+        "quiet"
+      ],
+      "exitCode": 0,
+      "startedAt": "2026-09-08T06:48:29.218Z",
+      "finishedAt": "2026-09-08T06:48:39.498Z",
+      "stdoutArtifact": {
+        "path": ".campaign-artifacts/REC-137-full-gate-final-r1/build.stdout.log",
+        "sha256": "f52fdbf81690c22ba9eedc798fd84dfd2c332fb6b7109b48d248a99d53e689a9"
+      },
+      "stderrArtifact": {
+        "path": ".campaign-artifacts/REC-137-full-gate-final-r1/build.stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "executable": "dotnet",
+      "argv": [
+        "test",
+        "src/dotnet/Musoq.sln",
+        "-c",
+        "Release",
+        "--no-build",
+        "--no-restore",
+        "--nologo",
+        "--verbosity",
+        "quiet",
+        "--logger",
+        "console;verbosity=minimal",
+        "--logger",
+        "trx",
+        "--results-directory",
+        ".campaign-artifacts/REC-137-full-gate-final-r1/trx"
+      ],
+      "exitCode": 0,
+      "startedAt": "2026-09-08T06:48:39.517Z",
+      "finishedAt": "2026-09-08T06:51:17.512Z",
+      "stdoutArtifact": {
+        "path": ".campaign-artifacts/REC-137-full-gate-final-r1/test.stdout.log",
+        "sha256": "0eafd3fa598619f6a20219fc1ea842cd6f718f729f2e9fa50a7b1906ecfee994"
+      },
+      "stderrArtifact": {
+        "path": ".campaign-artifacts/REC-137-full-gate-final-r1/test.stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "expectedTargets": [
+    "Musoq.Benchmarks.Tests/net10.0",
+    "Musoq.Converter.Tests/net10.0",
+    "Musoq.Evaluator.Tests/net10.0",
+    "Musoq.Examples.DataSources.Csv.Tests/net10.0",
+    "Musoq.Examples.DataSources.Git.Tests/net10.0",
+    "Musoq.Parser.Tests/net10.0",
+    "Musoq.Plugins.Tests/net10.0",
+    "Musoq.Schema.Tests/net10.0"
+  ],
+  "results": [
+    {
+      "targetId": "Musoq.Benchmarks.Tests/net10.0",
+      "projectPath": "src/dotnet/Musoq.Benchmarks.Tests/Musoq.Benchmarks.Tests.csproj",
+      "targetFramework": "net10.0",
+      "passed": 98,
+      "failed": 0,
+      "skipped": 0,
+      "total": 98,
+      "discovered": 98,
+      "executed": 98,
+      "runnerNotExecutedCounter": 0,
+      "skippedCountSource": "UnitTestResult outcome count; VSTest notExecuted counter is retained for comparison",
+      "aborted": false,
+      "skippedTests": [],
+      "artifact": {
+        "path": ".campaign-artifacts/REC-137-full-gate-final-r1/trx/Jakub_DESKTOP-I52018A_2026-09-08_08_48_42_net10.0.trx",
+        "sha256": "2c7f791f67a44c46fabaf46dad5f9ebb1fb42e273146f52a612f1d81ec76f016",
+        "testAssembly": "src/dotnet/Musoq.Benchmarks.Tests/bin/Release/net10.0/Musoq.Benchmarks.Tests.dll",
+        "testAssemblySha256": "dfccca8baadb71e4744d530da8b3039900e4a36c494f19549009a120c5b19926"
+      }
+    },
+    {
+      "targetId": "Musoq.Converter.Tests/net10.0",
+      "projectPath": "src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj",
+      "targetFramework": "net10.0",
+      "passed": 1151,
+      "failed": 0,
+      "skipped": 0,
+      "total": 1151,
+      "discovered": 1151,
+      "executed": 1151,
+      "runnerNotExecutedCounter": 0,
+      "skippedCountSource": "UnitTestResult outcome count; VSTest notExecuted counter is retained for comparison",
+      "aborted": false,
+      "skippedTests": [],
+      "artifact": {
+        "path": ".campaign-artifacts/REC-137-full-gate-final-r1/trx/Jakub_DESKTOP-I52018A_2026-09-08_08_48_41_net10.0.trx",
+        "sha256": "9a6bb626f60783505c62f33e95b2d2430b50eff0bb91d861ca119735a5718926",
+        "testAssembly": "src/dotnet/Musoq.Converter.Tests/bin/Release/net10.0/Musoq.Converter.Tests.dll",
+        "testAssemblySha256": "1319985643b9f8a6c64b6c1d00c66023abcd47482af4b68dcfbf30e80cd509b7"
+      }
+    },
+    {
+      "targetId": "Musoq.Evaluator.Tests/net10.0",
+      "projectPath": "src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj",
+      "targetFramework": "net10.0",
+      "passed": 11736,
+      "failed": 0,
+      "skipped": 3,
+      "total": 11739,
+      "discovered": 11739,
+      "executed": 11736,
+      "runnerNotExecutedCounter": 0,
+      "skippedCountSource": "UnitTestResult outcome count; VSTest notExecuted counter is retained for comparison",
+      "aborted": false,
+      "skippedTests": [
+        {
+          "testId": "Musoq.Evaluator.Tests.GeneratedCodeSamplesSnapshotTests.Refresh_All_Local_Generated_Samples",
+          "reason": "Local snapshot refresh utility. Run intentionally when generated-code changes are expected."
+        },
+        {
+          "testId": "Musoq.Evaluator.Tests.GeneratedCodeSamplesManifestTests.Refresh_Tracked_Generated_Code_Sample_Manifest",
+          "reason": "Local snapshot refresh utility. Run intentionally when generated-code changes are expected."
+        },
+        {
+          "testId": "Musoq.Evaluator.Tests.GeneratedInterpretationCodeDumpTests.Refresh_Local_Interpretation_Samples",
+          "reason": "Local snapshot refresh utility. Run intentionally when interpretation generated-code changes are expected."
+        }
+      ],
+      "artifact": {
+        "path": ".campaign-artifacts/REC-137-full-gate-final-r1/trx/Jakub_DESKTOP-I52018A_2026-09-08_08_48_44_net10.0.trx",
+        "sha256": "358ce1f76a5a9b4a52cf99cb1d037c9c510263f9cae9c368c5d749bb0fc79244",
+        "testAssembly": "src/dotnet/Musoq.Evaluator.Tests/bin/Release/net10.0/Musoq.Evaluator.Tests.dll",
+        "testAssemblySha256": "5ff366634278647c490ab7275b359a139e59ebcd0cfe5a6043f120f1fd7c75b9"
+      }
+    },
+    {
+      "targetId": "Musoq.Examples.DataSources.Csv.Tests/net10.0",
+      "projectPath": "src/dotnet/examples/data-sources/csv/tests/Musoq.Examples.DataSources.Csv.Tests.csproj",
+      "targetFramework": "net10.0",
+      "passed": 49,
+      "failed": 0,
+      "skipped": 0,
+      "total": 49,
+      "discovered": 49,
+      "executed": 49,
+      "runnerNotExecutedCounter": 0,
+      "skippedCountSource": "UnitTestResult outcome count; VSTest notExecuted counter is retained for comparison",
+      "aborted": false,
+      "skippedTests": [],
+      "artifact": {
+        "path": ".campaign-artifacts/REC-137-full-gate-final-r1/trx/Jakub_DESKTOP-I52018A_2026-09-08_08_48_43_net10.0[1].trx",
+        "sha256": "417d24b8c0d6149a4566f81dc4995d5034c95cd71a59a90e066156366f8307a1",
+        "testAssembly": "src/dotnet/examples/data-sources/csv/tests/bin/Release/net10.0/Musoq.Examples.DataSources.Csv.Tests.dll",
+        "testAssemblySha256": "8dac42f2f8878f4551dbb92ad84f194a2fb77ef10c4fd6e28db202dda207422e"
+      }
+    },
+    {
+      "targetId": "Musoq.Examples.DataSources.Git.Tests/net10.0",
+      "projectPath": "src/dotnet/examples/data-sources/git/tests/Musoq.Examples.DataSources.Git.Tests.csproj",
+      "targetFramework": "net10.0",
+      "passed": 45,
+      "failed": 0,
+      "skipped": 0,
+      "total": 45,
+      "discovered": 45,
+      "executed": 45,
+      "runnerNotExecutedCounter": 0,
+      "skippedCountSource": "UnitTestResult outcome count; VSTest notExecuted counter is retained for comparison",
+      "aborted": false,
+      "skippedTests": [],
+      "artifact": {
+        "path": ".campaign-artifacts/REC-137-full-gate-final-r1/trx/Jakub_DESKTOP-I52018A_2026-09-08_08_48_43_net10.0.trx",
+        "sha256": "cd0834c43bd4dc3556e00535bf58bcfb3805ef9fcb0ae1a15fe8ba1a5c62042b",
+        "testAssembly": "src/dotnet/examples/data-sources/git/tests/bin/Release/net10.0/Musoq.Examples.DataSources.Git.Tests.dll",
+        "testAssemblySha256": "583eca00b7002d559424bd9d3a37b81018746d96db985883cd3f03e424fb6988"
+      }
+    },
+    {
+      "targetId": "Musoq.Parser.Tests/net10.0",
+      "projectPath": "src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj",
+      "targetFramework": "net10.0",
+      "passed": 2667,
+      "failed": 0,
+      "skipped": 0,
+      "total": 2667,
+      "discovered": 2667,
+      "executed": 2667,
+      "runnerNotExecutedCounter": 0,
+      "skippedCountSource": "UnitTestResult outcome count; VSTest notExecuted counter is retained for comparison",
+      "aborted": false,
+      "skippedTests": [],
+      "artifact": {
+        "path": ".campaign-artifacts/REC-137-full-gate-final-r1/trx/Jakub_DESKTOP-I52018A_2026-09-08_08_48_40_net10.0[1].trx",
+        "sha256": "2b967cacd363bbbf47a3c16b87b47b57319ae97fd7a4632d7ce4e1df0279185c",
+        "testAssembly": "src/dotnet/Musoq.Parser.Tests/bin/Release/net10.0/Musoq.Parser.Tests.dll",
+        "testAssemblySha256": "f40c89f8d254661bc4cc574ba3f8c5621cf3451594b53a7540082c3f6c90fb2e"
+      }
+    },
+    {
+      "targetId": "Musoq.Plugins.Tests/net10.0",
+      "projectPath": "src/dotnet/Musoq.Plugins.Tests/Musoq.Plugins.Tests.csproj",
+      "targetFramework": "net10.0",
+      "passed": 4743,
+      "failed": 0,
+      "skipped": 0,
+      "total": 4743,
+      "discovered": 4743,
+      "executed": 4743,
+      "runnerNotExecutedCounter": 0,
+      "skippedCountSource": "UnitTestResult outcome count; VSTest notExecuted counter is retained for comparison",
+      "aborted": false,
+      "skippedTests": [],
+      "artifact": {
+        "path": ".campaign-artifacts/REC-137-full-gate-final-r1/trx/Jakub_DESKTOP-I52018A_2026-09-08_08_48_40_net10.0[2].trx",
+        "sha256": "01a4e9fa3518df4b785c64ae7aa869c392fb5c40e9f885ba8d399b8a35fcce68",
+        "testAssembly": "src/dotnet/Musoq.Plugins.Tests/bin/Release/net10.0/Musoq.Plugins.Tests.dll",
+        "testAssemblySha256": "0492c68cfe69352628b46598b4725ca90b8817d898d44b498f95d9e3af331f43"
+      }
+    },
+    {
+      "targetId": "Musoq.Schema.Tests/net10.0",
+      "projectPath": "src/dotnet/Musoq.Schema.Tests/Musoq.Schema.Tests.csproj",
+      "targetFramework": "net10.0",
+      "passed": 536,
+      "failed": 0,
+      "skipped": 0,
+      "total": 536,
+      "discovered": 536,
+      "executed": 536,
+      "runnerNotExecutedCounter": 0,
+      "skippedCountSource": "UnitTestResult outcome count; VSTest notExecuted counter is retained for comparison",
+      "aborted": false,
+      "skippedTests": [],
+      "artifact": {
+        "path": ".campaign-artifacts/REC-137-full-gate-final-r1/trx/Jakub_DESKTOP-I52018A_2026-09-08_08_48_40_net10.0.trx",
+        "sha256": "01c687e67b5fcdd9449b620a8eedd13d4fea6f38ab4751904fbfefaf1c5ae297",
+        "testAssembly": "src/dotnet/Musoq.Schema.Tests/bin/Release/net10.0/Musoq.Schema.Tests.dll",
+        "testAssemblySha256": "de6406ba060903b43f2918372eb0a50a3af9e5e8650e16022e68f46ed640cc03"
+      }
+    }
+  ],
+  "skipAllowlist": [
+    {
+      "testId": "Musoq.Evaluator.Tests.GeneratedCodeSamplesManifestTests.Refresh_Tracked_Generated_Code_Sample_Manifest",
+      "reason": "Existing [Ignore] refresh utility writes the tracked generated-code manifest and runs only when generated code is intentionally refreshed."
+    },
+    {
+      "testId": "Musoq.Evaluator.Tests.GeneratedCodeSamplesSnapshotTests.Refresh_All_Local_Generated_Samples",
+      "reason": "Existing [Ignore] refresh utility writes local generated snapshots and runs only when generated samples are intentionally refreshed."
+    },
+    {
+      "testId": "Musoq.Evaluator.Tests.GeneratedInterpretationCodeDumpTests.Refresh_Local_Interpretation_Samples",
+      "reason": "Existing [Ignore] refresh utility writes local interpretation samples and runs only when generated samples are intentionally refreshed."
+    }
+  ],
+  "outcome": "passed",
+  "inventory": {
+    "expected": [
+      "Musoq.Benchmarks.Tests/net10.0",
+      "Musoq.Converter.Tests/net10.0",
+      "Musoq.Evaluator.Tests/net10.0",
+      "Musoq.Examples.DataSources.Csv.Tests/net10.0",
+      "Musoq.Examples.DataSources.Git.Tests/net10.0",
+      "Musoq.Parser.Tests/net10.0",
+      "Musoq.Plugins.Tests/net10.0",
+      "Musoq.Schema.Tests/net10.0"
+    ],
+    "discovered": [
+      "Musoq.Benchmarks.Tests/net10.0",
+      "Musoq.Converter.Tests/net10.0",
+      "Musoq.Evaluator.Tests/net10.0",
+      "Musoq.Examples.DataSources.Csv.Tests/net10.0",
+      "Musoq.Examples.DataSources.Git.Tests/net10.0",
+      "Musoq.Parser.Tests/net10.0",
+      "Musoq.Plugins.Tests/net10.0",
+      "Musoq.Schema.Tests/net10.0"
+    ]
+  },
+  "buildArtifacts": {
+    "Musoq.Examples.DataSources.Csv.Tests/net10.0": {
+      "path": "src/dotnet/examples/data-sources/csv/tests/bin/Release/net10.0/Musoq.Examples.DataSources.Csv.Tests.dll",
+      "sha256": "8dac42f2f8878f4551dbb92ad84f194a2fb77ef10c4fd6e28db202dda207422e",
+      "modifiedAt": "2026-09-08T06:48:36.609555Z",
+      "configuration": "Release",
+      "targetFramework": "net10.0"
+    },
+    "Musoq.Examples.DataSources.Git.Tests/net10.0": {
+      "path": "src/dotnet/examples/data-sources/git/tests/bin/Release/net10.0/Musoq.Examples.DataSources.Git.Tests.dll",
+      "sha256": "583eca00b7002d559424bd9d3a37b81018746d96db985883cd3f03e424fb6988",
+      "modifiedAt": "2026-09-08T06:48:36.622565Z",
+      "configuration": "Release",
+      "targetFramework": "net10.0"
+    },
+    "Musoq.Benchmarks.Tests/net10.0": {
+      "path": "src/dotnet/Musoq.Benchmarks.Tests/bin/Release/net10.0/Musoq.Benchmarks.Tests.dll",
+      "sha256": "dfccca8baadb71e4744d530da8b3039900e4a36c494f19549009a120c5b19926",
+      "modifiedAt": "2026-09-08T06:48:38.659800Z",
+      "configuration": "Release",
+      "targetFramework": "net10.0"
+    },
+    "Musoq.Converter.Tests/net10.0": {
+      "path": "src/dotnet/Musoq.Converter.Tests/bin/Release/net10.0/Musoq.Converter.Tests.dll",
+      "sha256": "1319985643b9f8a6c64b6c1d00c66023abcd47482af4b68dcfbf30e80cd509b7",
+      "modifiedAt": "2026-09-08T06:48:37.308122Z",
+      "configuration": "Release",
+      "targetFramework": "net10.0"
+    },
+    "Musoq.Evaluator.Tests/net10.0": {
+      "path": "src/dotnet/Musoq.Evaluator.Tests/bin/Release/net10.0/Musoq.Evaluator.Tests.dll",
+      "sha256": "5ff366634278647c490ab7275b359a139e59ebcd0cfe5a6043f120f1fd7c75b9",
+      "modifiedAt": "2026-09-08T06:48:39.247503Z",
+      "configuration": "Release",
+      "targetFramework": "net10.0"
+    },
+    "Musoq.Parser.Tests/net10.0": {
+      "path": "src/dotnet/Musoq.Parser.Tests/bin/Release/net10.0/Musoq.Parser.Tests.dll",
+      "sha256": "f40c89f8d254661bc4cc574ba3f8c5621cf3451594b53a7540082c3f6c90fb2e",
+      "modifiedAt": "2026-09-08T06:48:31.498597Z",
+      "configuration": "Release",
+      "targetFramework": "net10.0"
+    },
+    "Musoq.Plugins.Tests/net10.0": {
+      "path": "src/dotnet/Musoq.Plugins.Tests/bin/Release/net10.0/Musoq.Plugins.Tests.dll",
+      "sha256": "0492c68cfe69352628b46598b4725ca90b8817d898d44b498f95d9e3af331f43",
+      "modifiedAt": "2026-09-08T06:48:32.925422Z",
+      "configuration": "Release",
+      "targetFramework": "net10.0"
+    },
+    "Musoq.Schema.Tests/net10.0": {
+      "path": "src/dotnet/Musoq.Schema.Tests/bin/Release/net10.0/Musoq.Schema.Tests.dll",
+      "sha256": "de6406ba060903b43f2918372eb0a50a3af9e5e8650e16022e68f46ed640cc03",
+      "modifiedAt": "2026-09-08T06:48:34.500385Z",
+      "configuration": "Release",
+      "targetFramework": "net10.0"
+    }
+  },
+  "payloadExclusions": [
+    ".campaign-artifacts/",
+    "TestResults/",
+    "musoq-recovery-campaign.json",
+    "docs/campaigns/recovery-v3/evidence/",
+    "docs/campaigns/recovery-v3/reports/",
+    "docs/campaigns/recovery-v3/PROGRESS.md",
+    "docs/campaigns/recovery-v3/source-bindings.json"
+  ],
+  "discovery": {
+    "command": {
+      "executable": "dotnet",
+      "argv": [
+        "sln",
+        "src/dotnet/Musoq.sln",
+        "list"
+      ],
+      "exitCode": 0,
+      "startedAt": "2026-09-08T06:48:18.516Z",
+      "finishedAt": "2026-09-08T06:48:18.668Z"
+    },
+    "solutionProjects": [
+      "src/dotnet/examples/data-sources/csv/Musoq.Examples.DataSources.Csv.csproj",
+      "src/dotnet/examples/data-sources/csv/tests/Musoq.Examples.DataSources.Csv.Tests.csproj",
+      "src/dotnet/examples/data-sources/git/Musoq.Examples.DataSources.Git.csproj",
+      "src/dotnet/examples/data-sources/git/tests/Musoq.Examples.DataSources.Git.Tests.csproj",
+      "src/dotnet/Musoq.Benchmarks.Tests/Musoq.Benchmarks.Tests.csproj",
+      "src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj",
+      "src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj",
+      "src/dotnet/Musoq.Converter/Musoq.Converter.csproj",
+      "src/dotnet/Musoq.Evaluator.Tests/Fixtures/ExternalContracts/Musoq.Evaluator.Tests.External.Contracts.csproj",
+      "src/dotnet/Musoq.Evaluator.Tests/Fixtures/ExternalRows/Musoq.Evaluator.Tests.External.Rows.csproj",
+      "src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj",
+      "src/dotnet/Musoq.Evaluator/Musoq.Evaluator.csproj",
+      "src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj",
+      "src/dotnet/Musoq.Parser/Musoq.Parser.csproj",
+      "src/dotnet/Musoq.Playground/Musoq.Playground.csproj",
+      "src/dotnet/Musoq.Plugins.Tests/Musoq.Plugins.Tests.csproj",
+      "src/dotnet/Musoq.Plugins/Musoq.Plugins.csproj",
+      "src/dotnet/Musoq.Schema.Tests/Musoq.Schema.Tests.csproj",
+      "src/dotnet/Musoq.Schema/Musoq.Schema.csproj",
+      "src/dotnet/Musoq.Targets.Abstractions/Musoq.Targets.Abstractions.csproj",
+      "src/dotnet/Musoq.Targets.CSharpClr/Musoq.Targets.CSharpClr.csproj",
+      "src/dotnet/Musoq.Targets.Execution.Analysis/Musoq.Targets.Execution.Analysis.csproj",
+      "src/dotnet/Musoq.Targets.Execution/Musoq.Targets.Execution.csproj",
+      "src/dotnet/Musoq.Targets.TestPortable/Musoq.Targets.TestPortable.csproj",
+      "src/dotnet/Musoq.Tests.Common/Musoq.Tests.Common.csproj"
+    ],
+    "testTargets": [
+      {
+        "targetId": "Musoq.Examples.DataSources.Csv.Tests/net10.0",
+        "projectPath": "src/dotnet/examples/data-sources/csv/tests/Musoq.Examples.DataSources.Csv.Tests.csproj",
+        "targetFramework": "net10.0",
+        "assemblyPath": "src/dotnet/examples/data-sources/csv/tests/bin/Release/net10.0/Musoq.Examples.DataSources.Csv.Tests.dll"
+      },
+      {
+        "targetId": "Musoq.Examples.DataSources.Git.Tests/net10.0",
+        "projectPath": "src/dotnet/examples/data-sources/git/tests/Musoq.Examples.DataSources.Git.Tests.csproj",
+        "targetFramework": "net10.0",
+        "assemblyPath": "src/dotnet/examples/data-sources/git/tests/bin/Release/net10.0/Musoq.Examples.DataSources.Git.Tests.dll"
+      },
+      {
+        "targetId": "Musoq.Benchmarks.Tests/net10.0",
+        "projectPath": "src/dotnet/Musoq.Benchmarks.Tests/Musoq.Benchmarks.Tests.csproj",
+        "targetFramework": "net10.0",
+        "assemblyPath": "src/dotnet/Musoq.Benchmarks.Tests/bin/Release/net10.0/Musoq.Benchmarks.Tests.dll"
+      },
+      {
+        "targetId": "Musoq.Converter.Tests/net10.0",
+        "projectPath": "src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj",
+        "targetFramework": "net10.0",
+        "assemblyPath": "src/dotnet/Musoq.Converter.Tests/bin/Release/net10.0/Musoq.Converter.Tests.dll"
+      },
+      {
+        "targetId": "Musoq.Evaluator.Tests/net10.0",
+        "projectPath": "src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj",
+        "targetFramework": "net10.0",
+        "assemblyPath": "src/dotnet/Musoq.Evaluator.Tests/bin/Release/net10.0/Musoq.Evaluator.Tests.dll"
+      },
+      {
+        "targetId": "Musoq.Parser.Tests/net10.0",
+        "projectPath": "src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj",
+        "targetFramework": "net10.0",
+        "assemblyPath": "src/dotnet/Musoq.Parser.Tests/bin/Release/net10.0/Musoq.Parser.Tests.dll"
+      },
+      {
+        "targetId": "Musoq.Plugins.Tests/net10.0",
+        "projectPath": "src/dotnet/Musoq.Plugins.Tests/Musoq.Plugins.Tests.csproj",
+        "targetFramework": "net10.0",
+        "assemblyPath": "src/dotnet/Musoq.Plugins.Tests/bin/Release/net10.0/Musoq.Plugins.Tests.dll"
+      },
+      {
+        "targetId": "Musoq.Schema.Tests/net10.0",
+        "projectPath": "src/dotnet/Musoq.Schema.Tests/Musoq.Schema.Tests.csproj",
+        "targetFramework": "net10.0",
+        "assemblyPath": "src/dotnet/Musoq.Schema.Tests/bin/Release/net10.0/Musoq.Schema.Tests.dll"
+      }
+    ],
+    "stdoutSha256": "38b2fb8b12928f431e00fc3b646cb53836cc6de98cfb4cb37e50320c188ce378",
+    "stdoutArtifact": {
+      "path": ".campaign-artifacts/REC-137-full-gate-final-r1/discovery.stdout.log",
+      "sha256": "8c206d35f1f994a935788e484736f47b967fc7530c0afcb06fb15e64f271f655"
+    }
+  },
+  "fullGateDefinition": {
+    "solution": "src/dotnet/Musoq.sln",
+    "configuration": "Release",
+    "inventorySource": "docs/campaigns/recovery-v3/evidence/REC-085-expected-inventory.json",
+    "resultDirectory": ".campaign-artifacts/REC-137-full-gate-final-r1/trx"
+  }
+}

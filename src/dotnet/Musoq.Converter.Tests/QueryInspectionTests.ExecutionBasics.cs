@@ -135,33 +135,34 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenDefaultExecutionIrRoutingSeesDynamicAsOfRightSource_ShouldFailWithoutOldRenderer()
+    public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderDynamicAsOfJoin_ShouldUseExecutionBackend()
     {
-        var exception = Assert.Throws<InternalDiagnosticException>(() =>
-            Inspect(CreateDynamicAsOfJoinQuery(),
-                CreateDynamicRowsSchemaProvider()));
+        var result = Inspect(CreateDynamicAsOfJoinQuery(), CreateDynamicRowsSchemaProvider());
 
-        var envelope = MusoqErrorEnvelope.FromException(exception);
-        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, envelope.Code);
-        Assert.Contains("internal failure", exception.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain(
-            "Execution IR ASOF join lowering requires a non-dynamic source-entity or table-row right source. Found ExpandoAdapterShape with row type IReadOnlyDictionary`2.",
-            exception.Message);
-        var verbose = MusoqErrorEnvelope.FromExceptionVerbose(exception);
-        Assert.Contains("Execution IR ASOF join lowering", verbose.Details ?? string.Empty);
+        AssertUsesExecutionBackend(result);
+        Assert.Contains("ExpandoAdapter [l: lDynamicRow0]", result.ExecutionPlanText);
+        Assert.Contains("ExpandoAdapter [r: rDynamicRow0]", result.ExecutionPlanText);
+        Assert.Contains("AsOfProbe [r <- rAsOfRows", result.ExecutionPlanText);
+        Assert.Contains("EvaluationHelper.CreateAsOfIndex<", result.GeneratedCSharpCode);
+        Assert.Contains("resultAsOfIndex.Find", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpDoesNotContain("EvaluationHelper.GetColumnValue", result.GeneratedCSharpCode);
     }
 
     [TestMethod]
-    public void CompileForExecution_WhenDefaultExecutionIrRoutingSeesDynamicAsOfRightSource_ShouldFailWithoutOldRenderer()
+    public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderDynamicAsOfJoin_ShouldRunExecutableQuery()
     {
-        var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileForExecution(CreateDynamicAsOfJoinQuery(),
-                CreateDynamicRowsSchemaProvider()));
+        var compiled = CompileForExecution(CreateDynamicAsOfJoinQuery(), CreateDynamicRowsSchemaProvider());
 
-        Assert.AreEqual(DiagnosticCode.MQ9001_InternalCompilerError, exception.PrimaryEnvelope.Code);
-        Assert.DoesNotContain(
-            "Execution IR ASOF join lowering requires a non-dynamic source-entity or table-row right source. Found ExpandoAdapterShape with row type IReadOnlyDictionary`2.",
-            exception.Message);
+        var table = compiled.Run();
+
+        Assert.AreEqual(3, table.Count);
+        Assert.AreEqual("ada", table[0][0]);
+        Assert.AreEqual("ada", table[0][1]);
+        Assert.AreEqual("bea", table[1][0]);
+        Assert.AreEqual("bea", table[1][1]);
+        Assert.AreEqual("cid", table[2][0]);
+        Assert.AreEqual("cid", table[2][1]);
     }
 
     [TestMethod]

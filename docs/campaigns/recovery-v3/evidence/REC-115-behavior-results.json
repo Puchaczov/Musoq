@@ -1,0 +1,90 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-115",
+  "matrixRevision": 5,
+  "outcome": "passed",
+  "registeredCases": 48,
+  "classificationCounts": {
+    "invalid": 0,
+    "validOrdinary": 44,
+    "validSuspicious": 4
+  },
+  "families": [
+    "SEMICOLONS",
+    "ALIASES",
+    "CONTEXTUAL",
+    "ESCAPES",
+    "BINDING",
+    "FORMATTING",
+    "LITERAL_IDENTIFIER",
+    "BINARY_SCHEMA"
+  ],
+  "contract": {
+    "authoritySha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+    "revisions": [
+      { "revision": 1, "contractPath": "docs/campaigns/recovery-v3/evidence/REC-115-case-contract.json", "contractSha256": "d9f57c67f0bd006083e05909c87004de5264d6659abeffeeacc4ebd2f96cdf90", "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-115-pre-observation-manifest.json", "manifestSha256": "df01141a521e21ca1f40ff7e496dd8ee50371450d850ca9a34b7839f19ef96a2", "preObservationPayloadSha256": "42094e71c19264ad8d3d85f83e5b0a4d9ee9683e48071dea8bc381ecc1fb874b", "observation": "immutable initial valid-mutation contract; first replay exposed fixture/oracle mismatches" },
+      { "revision": 2, "contractPath": "docs/campaigns/recovery-v3/evidence/REC-115-case-contract-v2.json", "contractSha256": "39080c71f8e62eb8e4001fb6d58c3a2ccdef67768afa8ce00e6c79796954afd9", "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-115-pre-observation-manifest-v2.json", "manifestSha256": "6474273cb15b5d1fc2e535e5314b4a31d93c906066eddd63138ba2a4ffa90f03", "preObservationPayloadSha256": "c25fc1201a70889ac9b64b3d830930b10524b7fa86e72b127ee3017b764e1948", "observation": "corrected A02, escape classifications, equivalence flags and E04 projection" },
+      { "revision": 3, "contractPath": "docs/campaigns/recovery-v3/evidence/REC-115-case-contract-v3.json", "contractSha256": "e02030a5efc084b597cd4031783f3e4a10d6048fa361978244f5e2fff320750e", "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-115-pre-observation-manifest-v3.json", "manifestSha256": "e0e1ab23860c51d281ee4f148799e80669de58785fbb741bb67c922eff7a297d", "preObservationPayloadSha256": "10b88372a14ca207ace3e81ae1ff83a4147fbdffcd2ef5e4aa1712490036fce3", "observation": "corrected A02 seed-row value and F04 identifier casing" },
+      { "revision": 4, "contractPath": "docs/campaigns/recovery-v3/evidence/REC-115-case-contract-v4.json", "contractSha256": "9566b75d3a5df7b06e6cc6a3efce04bd2103b80bd5f9fababcd14d239d66ea1d", "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-115-pre-observation-manifest-v4.json", "manifestSha256": "c8ef2ae6d9afba140d019b87ded9cf7630148d68c65e370efd4903ffa727d9d6", "preObservationPayloadSha256": "f36d9f7429553edcda9e21bc0308c16b8beb880c2ec2500f013211bf035e032d", "observation": "corrected G01 projection shape and D01-D02 equivalence metadata" },
+      { "revision": 5, "contractPath": "docs/campaigns/recovery-v3/evidence/REC-115-case-contract-v5.json", "contractSha256": "5e75de35d6aecbde37fa1ac4f8a1393bd4193a04fafbdfacc05f77e3959a16c6", "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-115-pre-observation-manifest-v5.json", "manifestSha256": "1a2e84e2c130dd9437aeaf874ba08ae6ce768d8f3b66c30e15007a9cd2dcade8", "preObservationPayloadSha256": "ce2637b1ed2d4702a81d4f21e653efcf11400c9da281b760cad7174025d92e83", "observation": "immutable final contract used for the passing replay" }
+    ],
+    "oracleCorrectionPath": "docs/campaigns/recovery-v3/evidence/REC-115-oracle-correction.json"
+  },
+  "focusedReplay": {
+    "command": "dotnet test src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj -c Release --no-build --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC115ValidMutationTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-115-focused-v5-final.trx\" --results-directory .campaign-artifacts/REC-115-focused-v5-final",
+    "exitCode": 0,
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "total": 5,
+    "trxArtifact": { "path": ".campaign-artifacts/REC-115-focused-v5-final/REC-115-focused-v5-final.trx", "sha256": "6bb355b8415071b287fbb07814a5c8869cfd80a12248e0a16385716cd50519ab" },
+    "coverage": "The matrix executes all 48 final cases: 44 valid ordinary controls and 4 valid suspicious advisory controls. It checks analyzer errors, warning phase/location, runnable warning compilation, equivalent runtime values, changed real-column binding and formatting coordinate independence."
+  },
+  "adjacentSuites": [
+    {
+      "name": "parser-lexical-script-enum-binary-raw",
+      "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj -c Release --no-build --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticCore001LexicalTests|FullyQualifiedName~ParserScriptVariablesTests|FullyQualifiedName~DiagnosticREC099RepresentabilityBoundaryTests|FullyQualifiedName~DiagnosticBinary040BinaryDeclarationTests|FullyQualifiedName~DiagnosticBinary046SchemaCompositionTests|FullyQualifiedName~RawStringLiteralTests|FullyQualifiedName~RawStringLiteralDiagnosticsTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-115-parser-adjacent.trx\" --results-directory .campaign-artifacts/REC-115-parser-adjacent",
+      "exitCode": 0,
+      "passed": 110,
+      "failed": 0,
+      "skipped": 0,
+      "total": 110,
+      "trxArtifact": { "path": ".campaign-artifacts/REC-115-parser-adjacent/REC-115-parser-adjacent.trx", "sha256": "5fe510455013f22ee9a9e021379b0684821cb97661987c73c5954074616d45df" }
+    },
+    {
+      "name": "converter-warning-raw-query-inspection",
+      "command": "dotnet test src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj -c Release --no-build --nologo --verbosity minimal --filter \"FullyQualifiedName~AdvisoryWarningPropagationTests|FullyQualifiedName~RawStringLiteralPipelineTests|FullyQualifiedName~RawStringLiteralPipelineGapTests|FullyQualifiedName~QueryInspectionTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-115-converter-adjacent.trx\" --results-directory .campaign-artifacts/REC-115-converter-adjacent",
+      "exitCode": 0,
+      "passed": 575,
+      "failed": 0,
+      "skipped": 0,
+      "total": 575,
+      "trxArtifact": { "path": ".campaign-artifacts/REC-115-converter-adjacent/REC-115-converter-adjacent.trx", "sha256": "622f801e9fe064c5851d4e9fafff5f08f993697de5622d317deb9ec8246b3d79" }
+    }
+  ],
+  "semanticChecks": {
+    "ordinaryAndSuspicious": "Permitted syntax, aliases, contextual bracket identifiers, raw/ordinary strings and valid binary declarations remain error-free; only the two documented suspicious ordinary escape literals emit MQ5014.",
+    "bindingMutation": "All six BINDING cases resolve real values. The changed projection cases return Right='b' and are treated as valid semantic changes, not invalid SQL.",
+    "coordinateNormalization": "Whitespace, comments and keyword-case changes keep the same empty semantic diagnostic set; warning coordinates are checked as located spans without requiring source offsets to remain unchanged.",
+    "identifierAndLiteralBoundary": "Identifier case is preserved where the language is case-sensitive, while literal spelling changes are not incorrectly treated as runtime-equivalent mutations."
+  },
+  "productionFinding": null,
+  "fullReleaseGate": {
+    "command": "python docs/campaigns/recovery-v3/tools/full_gate.py run --scope-id REC-115 --solution src/dotnet/Musoq.sln --configuration Release --output .campaign-artifacts/REC-115-full-gate --evidence docs/campaigns/recovery-v3/evidence/REC-115-full-gate.json --expected-inventory docs/campaigns/recovery-v3/evidence/REC-085-expected-inventory.json --skip-allowlist docs/campaigns/recovery-v3/evidence/REC-085-skip-allowlist.json",
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-115-full-gate.json",
+    "evidenceSha256": "2788702dc414ddfede7e114eff18cb92cac8510256ba8bf11d0b8ff1f9377d14",
+    "runId": "REC-115-3cf4b2138118",
+    "targetCount": 8,
+    "passed": 20489,
+    "failed": 0,
+    "skipped": 3,
+    "total": 20492,
+    "testedPayloadSha256": "dabf55240bf3810802fe141bd5d35bbe91d7f502dcb6f9cb1a0d5c7f4a417729",
+    "testedPayloadFileCount": 5776
+  },
+  "notes": [
+    "Revision 1 through revision 4 and their manifests remain immutable; the correction history records every observed fixture/oracle mismatch before the next frozen replay.",
+    "The final revision-5 replay passed all 48 cases with no candidate removed and no production finding. Product and empirical lanes remain not run under the selected engine-lane stopping contract.",
+    "The final source/test payload was unchanged after the full gate; administrative evidence, report, ledger and progress updates are outside the tested payload boundary."
+  ]
+}

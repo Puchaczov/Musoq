@@ -1,0 +1,58 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-145",
+  "outcome": "passed_pending_completion_commit",
+  "artifacts": [
+    {
+      "id": "behavior-results",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-145-behavior-results.json",
+      "sha256": "62b5131d2e61cc79dd769e03d6c0cd68ea729c86e6e1d0f2cca4bd18d4728c8a",
+      "role": "Final mutation matrix, isolation/restoration observations and full-gate qualification result."
+    },
+    {
+      "id": "mutation-receipt",
+      "path": ".campaign-artifacts/REC-145-mutation-results-r2.json",
+      "sha256": "f6ef6a73727e0b8a8894e486b1d4bdd6259364bcead68ec5915237e2d03f6627",
+      "role": "Raw isolated mutation receipt: 11 critical mutants killed, with equivalent, compilation-invalid and timeout classifications retained."
+    },
+    {
+      "id": "mutation-gate-source",
+      "path": "docs/campaigns/recovery-v3/tools/diagnostic_assertion_mutation_gate.ps1",
+      "sha256": "1a62963763804bbb55030d239da0a08bdcbdc0e8ee43e6ef6f05241ca2caef0b",
+      "role": "Mutation runner with REC-145 challengers, reset-per-mutant isolation and finally cleanup."
+    },
+    {
+      "id": "campaign-self-tests",
+      "path": "docs/campaigns/recovery-v3/tools",
+      "role": "Full campaign tool self-test replay: 67 passed."
+    },
+    {
+      "id": "full-gate-evidence",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-145-full-gate-final-r1.json",
+      "sha256": "1b541cbc528691f5f45a8bdb47a16d8e3eae75391b75ec262abca508261578ae",
+      "role": "Fresh complete eight-target Release gate: 21,065 passed, 0 failed, 3 established skips, 21,068 total."
+    },
+    {
+      "id": "core-authority",
+      "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+      "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "role": "Diagnostic envelope, catalog, root-cause and failure-classification authority."
+    },
+    {
+      "id": "report",
+      "path": "docs/campaigns/recovery-v3/reports/REC-145.md",
+      "sha256": "e54dfb35f9f3a578280980f9c515034d270625f3f97816c21b2f9b78f35ca192",
+      "role": "Human-readable REC-145 execution and qualification report."
+    }
+  ],
+  "sourceAuthority": {
+    "coreSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+  },
+  "completion": {
+    "status": "pending_completion_commit",
+    "reportPath": "docs/campaigns/recovery-v3/reports/REC-145.md",
+    "fullGateEvidencePath": "docs/campaigns/recovery-v3/evidence/REC-145-full-gate-final-r1.json",
+    "fullGateRequired": true,
+    "exactlyOneCompletionCommitRequired": true
+  }
+}

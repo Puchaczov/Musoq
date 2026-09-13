@@ -1,0 +1,251 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-086",
+  "validatedFromCommit": "b35896572671673080bd6781adc51ca2358acf5a",
+  "affectedProfile": "v18/current target checkout",
+  "sourceDigests": {
+    "core": {
+      "path": "specs/musoq-core-language-spec.md",
+      "sha256": "f3ab89e6806334d05be0e32d14e294897d2a6cd0867b10ca30d9759823d8f833"
+    },
+    "binary": {
+      "path": "specs/musoq-binary-text-spec.md",
+      "sha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+    },
+    "catalog": {
+      "path": "specs/diagnostic-catalog.json",
+      "sha256": "6bcec5e94d51905fead0b99875c18fe350f679743cd5ce9dbc969d0ab6cdb670"
+    },
+    "history": {
+      "path": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+      "sha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+    }
+  },
+  "dispositionRule": "Inventory scope records drift and assigns closure ownership. It does not edit normative language, infer a diagnostic contract from implementation behavior, or mark an unresolved conflict as fixed.",
+  "findings": [
+    {
+      "id": "REC-086-CASE-001",
+      "linksToExistingFindings": ["DRIFT-001"],
+      "kind": "same-domain-documentation-drift",
+      "historicalObservation": "CORE-033 recorded that legacy MQ2026 metadata described searched CASE only although the specification and parser supported simple CASE.",
+      "currentVerification": "confirmed-conflict",
+      "sourcePassages": [
+        {"source": "specs/musoq-core-language-spec.md", "location": "line 78", "passage": "Simple CASE form ... Supported (desugared to searched CASE internally)"},
+        {"source": "specs/musoq-core-language-spec.md", "location": "lines 5625-5630", "passage": "case_expression ::= searched_case_expression | simple_case_expression"},
+        {"source": "specs/diagnostic-catalog.json", "location": "lines 481-496", "passage": "MQ2026_InvalidCaseExpression ... supports searched CASE only ... not simple CASE"},
+        {"source": "src/dotnet/Musoq.Parser/Diagnostics/ErrorMetadataCatalog.Parser.cs", "location": "lines 255-257", "passage": "The generated registry metadata repeats the searched-only explanation."}
+      ],
+      "ownerScope": "REC-089",
+      "severity": "major",
+      "affectedVersion": "v18/current target checkout",
+      "disposition": "open-confirmed-drift",
+      "closureEvidenceRequirements": ["Normative owner decision for simple CASE", "Updated catalog/registry and exact valid/invalid parser regressions", "Independent review of repair wording and source spans"]
+    },
+    {
+      "id": "REC-086-CASE-002",
+      "linksToExistingFindings": ["DRIFT-001"],
+      "kind": "historical-diagnostic-behavior-caveat",
+      "historicalObservation": "CORE-033 recorded MQ2028/MQ2029 catalog entries while generic Consume had historically reported MQ2001 for missing THEN, ELSE, or END components.",
+      "currentVerification": "not-replayed-in-this-inventory",
+      "sourcePassages": [
+        {"source": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json", "location": "CORE-033 completion.notes", "passage": "MQ2028/MQ2029 remain catalog entries while generic Consume reports MQ2001 for missing THEN/ELSE/END"},
+        {"source": "specs/diagnostic-catalog.json", "location": "lines 508-535", "passage": "MQ2028_MissingThenClause and MQ2029_MissingEndKeyword are active catalog entries"},
+        {"source": "specs/musoq-core-language-spec.md", "location": "lines 77 and 5914", "passage": "ELSE is mandatory in all CASE expressions"}
+      ],
+      "ownerScope": "REC-089",
+      "severity": "minor",
+      "affectedVersion": "v18/current target checkout",
+      "disposition": "open-replay-required",
+      "closureEvidenceRequirements": ["Replay missing WHEN/THEN/ELSE/END cases through the real parser API", "Compare exact code/phase/span against catalog and registry", "Retain a regression or record a justified compatibility disposition"]
+    },
+    {
+      "id": "REC-086-CASE-003",
+      "linksToExistingFindings": ["DRIFT-001", "DRIFT-002"],
+      "kind": "same-domain-documentation-drift",
+      "historicalObservation": "CORE-032 and CORE-033 recorded conflicting function/window casing guidance.",
+      "currentVerification": "confirmed-conflict",
+      "sourcePassages": [
+        {"source": "specs/musoq-core-language-spec.md", "location": "line 4696", "passage": "Function names are case-sensitive."},
+        {"source": "specs/musoq-core-language-spec.md", "location": "line 5755", "passage": "Supported function names (case-insensitive, underscores ignored)"}
+      ],
+      "ownerScope": "REC-089",
+      "severity": "minor",
+      "affectedVersion": "v18/current target checkout",
+      "disposition": "open-confirmed-drift",
+      "closureEvidenceRequirements": ["Decide whether the sections describe built-ins versus window names", "Run exact casing/underscore tests for both callable families", "Align the affected prose and generated guidance with reviewed compatibility notes"]
+    },
+    {
+      "id": "REC-086-WARN-001",
+      "linksToExistingFindings": ["DRIFT-001", "DRIFT-002"],
+      "kind": "retired-compatibility-identifiers",
+      "historicalObservation": "CORE-033 recorded MQ5009 and MQ5020/MQ5026 as retained compatibility identifiers rather than active warnings.",
+      "currentVerification": "confirmed-retained-compatibility",
+      "sourcePassages": [
+        {"source": "specs/musoq-core-language-spec.md", "location": "lines 433-446", "passage": "MQ5020 and MQ5026 are never emitted; MQ5009 is compatibility documentation only"},
+        {"source": "specs/musoq-core-language-spec.md", "location": "lines 5254-5261", "passage": "The current language version does not emit MQ5020 or MQ5026"},
+        {"source": "specs/diagnostic-catalog.json", "location": "lines 2626-2740", "passage": "MQ5020 and MQ5026 remain catalog records marked compatibility only"}
+      ],
+      "ownerScope": "REC-089",
+      "severity": "informational",
+      "affectedVersion": "v18/current target checkout",
+      "disposition": "retained-open-compatibility-note",
+      "closureEvidenceRequirements": ["Verify no active warning path emits the retired identifiers", "Document consumer handling for historical reports", "Keep active enum/catalog synchronization distinct from semantic approval"]
+    },
+    {
+      "id": "REC-086-ASOF-001",
+      "linksToExistingFindings": ["CAVEAT-001"],
+      "kind": "diagnostic-specificity-caveat",
+      "historicalObservation": "CORE-018 recorded a generic MQ2001 boundary for unsupported ASOF RIGHT JOIN.",
+      "currentVerification": "current-specification-lacks-exact-code",
+      "sourcePassages": [
+        {"source": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json", "location": "CORE-018 completion.notes", "passage": "existing generic MQ2001 unsupported ASOF RIGHT boundary"},
+        {"source": "specs/musoq-core-language-spec.md", "location": "lines 2391-2394", "passage": "ASOF RIGHT JOIN — Not Supported; if attempted, the parser raises an error"}
+      ],
+      "ownerScope": "REC-109",
+      "severity": "minor",
+      "affectedVersion": "v18/current target checkout",
+      "disposition": "open-replay-required",
+      "closureEvidenceRequirements": ["Run the unsupported form through the real parser/diagnostic API", "Record exact code, phase, source span, explanation, guidance, and safe repair", "Preserve generic behavior only if the reviewed contract explicitly permits it"]
+    },
+    {
+      "id": "REC-086-COUPLE-001",
+      "linksToExistingFindings": ["CAVEAT-002"],
+      "kind": "coverage-boundary",
+      "historicalObservation": "COUPLE-039 used typed coupled sources for ASOF because execution-IR lowering required a non-dynamic row entity; other coupled cases retained dynamic coverage.",
+      "currentVerification": "historical-boundary-retained",
+      "sourcePassages": [
+        {"source": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json", "location": "COUPLE-039 completion.notes", "passage": "The ASOF case uses typed coupled sources because the execution-IR ASOF lowering requires a non-dynamic row entity"}
+      ],
+      "ownerScope": "REC-132",
+      "severity": "major",
+      "affectedVersion": "v18/current target checkout",
+      "disposition": "open-dynamic-path-required",
+      "closureEvidenceRequirements": ["Reproduce typed and dynamic coupled ASOF forms separately", "Capture result shape and diagnostic behavior on both paths", "Do not use the typed pass as evidence for dynamic support"]
+    },
+    {
+      "id": "REC-086-SET-001",
+      "linksToExistingFindings": ["DRIFT-002"],
+      "kind": "historical-wording-caveat",
+      "historicalObservation": "CORE-027 described per-query ORDER BY behavior after set operators; later documentation describes trailing ORDER BY as result-level and retains migration identifiers.",
+      "currentVerification": "current-target-wording-confirmed",
+      "sourcePassages": [
+        {"source": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json", "location": "CORE-027 objective", "passage": "per-query ORDER BY behavior after set operators"},
+        {"source": "specs/musoq-core-language-spec.md", "location": "lines 4093-4094", "passage": "Trailing ORDER BY applies to the complete combined result"},
+        {"source": "specs/musoq-core-language-spec.md", "location": "lines 433 and 439", "passage": "Set-ordering and set-slicing migration identifiers are never emitted"}
+      ],
+      "ownerScope": "REC-089",
+      "severity": "informational",
+      "affectedVersion": "v18/current target checkout",
+      "disposition": "historical-wording-retained",
+      "closureEvidenceRequirements": ["Separate historical objective wording from normative current semantics", "Keep branch-local ordering tests distinct from trailing result ordering", "Record any consumer compatibility mapping without rewriting history"]
+    },
+    {
+      "id": "REC-086-BINARY-001",
+      "linksToExistingFindings": ["DOC-001"],
+      "kind": "same-domain-documentation-conflict",
+      "historicalObservation": "The supplied audit identified an until-delimiter example that appears to consume the same delimiter twice.",
+      "currentVerification": "confirmed-conflict-in-target",
+      "sourcePassages": [
+        {"source": "specs/musoq-binary-text-spec.md", "location": "line 1057", "passage": "Delimiter is consumed but not included."},
+        {"source": "specs/musoq-binary-text-spec.md", "location": "lines 1061-1063", "passage": "Key: until ':', followed by _: literal ': '"},
+        {"source": "specs/musoq-binary-text-spec.md", "location": "lines 1067-1071", "passage": "Cursor advances PAST the delimiter; delimiter not found raises parse error"}
+      ],
+      "ownerScope": "REC-140",
+      "severity": "major",
+      "affectedVersion": "interpretation schema specification v1.0.0 in current checkout",
+      "disposition": "open-normative-review-required",
+      "closureEvidenceRequirements": ["Decide whether the example or delimiter semantics is normative", "Run a minimal text interpretation fixture for both intended readings", "Update only the reviewed source/example and retain a regression for the chosen contract"]
+    },
+    {
+      "id": "REC-086-BINARY-002",
+      "linksToExistingFindings": ["DOC-002"],
+      "kind": "same-domain-documentation-conflict",
+      "historicalObservation": "The validation example references Data from a later declaration.",
+      "currentVerification": "confirmed-conflict-in-target",
+      "sourcePassages": [
+        {"source": "specs/musoq-binary-text-spec.md", "location": "lines 673-674", "passage": "Checksum: int le check Checksum = Crc32(Data), followed by Data: byte[Length]"},
+        {"source": "specs/musoq-binary-text-spec.md", "location": "line 681", "passage": "Validation may reference the current field AND any previously declared field"},
+        {"source": "specs/musoq-binary-text-spec.md", "location": "line 1463", "passage": "Forward references MUST NOT occur."}
+      ],
+      "ownerScope": "REC-140",
+      "severity": "major",
+      "affectedVersion": "interpretation schema specification v1.0.0 in current checkout",
+      "disposition": "open-normative-review-required",
+      "closureEvidenceRequirements": ["Decide whether computed validation may see later fields or the example is wrong", "Run compile and interpretation cases for both declaration orders", "Align §4.9, §6.4, grammar, and diagnostics under one reviewed rule"]
+    },
+    {
+      "id": "REC-086-CLASSIFY-001",
+      "linksToExistingFindings": ["CLASSIFY-001"],
+      "kind": "historical-classification-caveat",
+      "historicalObservation": "Dynamic invalid-regex and scalar-cardinality behavior was recorded as an internal classification question, not a public diagnostic contract.",
+      "currentVerification": "not-in-scope-for-current-source-reconciliation",
+      "sourcePassages": [],
+      "ownerScope": "REC-129",
+      "severity": "minor",
+      "affectedVersion": "v18/current target checkout",
+      "disposition": "carried-forward-open",
+      "closureEvidenceRequirements": ["Reproduce dynamic and constant cases separately", "Classify by the bound catalog and runtime contract", "Do not promote an internal exception into a public code without authority"]
+    },
+    {
+      "id": "REC-086-COVERAGE-001",
+      "linksToExistingFindings": ["COVERAGE-001"],
+      "kind": "coverage-inventory-caveat",
+      "historicalObservation": "Enum feature coverage was absent from historical scope wording; that absence was not proof that implementation tests were absent.",
+      "currentVerification": "carried-forward-open",
+      "sourcePassages": [],
+      "ownerScope": "REC-105",
+      "severity": "minor",
+      "affectedVersion": "v18/current target checkout",
+      "disposition": "carried-forward-open",
+      "closureEvidenceRequirements": ["Inventory actual enum tests and implementation paths", "Add valid/boundary/invalid diagnostic cases where missing", "Keep language authority separate from test-count claims"]
+    },
+    {
+      "id": "REC-086-ISOLATION-001",
+      "linksToExistingFindings": ["ISOLATION-001"],
+      "kind": "test-isolation-caveat",
+      "historicalObservation": "Historical compilation tests used non-parallel execution around shared global compilation state; this was not evidence of a production concurrency limit.",
+      "currentVerification": "carried-forward-open",
+      "sourcePassages": [],
+      "ownerScope": "REC-136",
+      "severity": "minor",
+      "affectedVersion": "v18/current target checkout",
+      "disposition": "carried-forward-open",
+      "closureEvidenceRequirements": ["Separate test fixture serialization from supported engine concurrency", "Reproduce any concurrent production issue with an isolated fixture", "Do not weaken parallelism globally to hide a test-only race"]
+    },
+    {
+      "id": "REC-086-HIST-001",
+      "linksToExistingFindings": ["HIST-001"],
+      "kind": "historical-evidence-gap",
+      "historicalObservation": "The 83-scope historical test totals have no contemporaneous raw result files in the campaign window.",
+      "currentVerification": "resolved-as-unverified-by-REC-084",
+      "sourcePassages": [],
+      "ownerScope": "REC-084",
+      "severity": "minor",
+      "affectedVersion": "2026-08-30 through 2026-08-31 historical window",
+      "disposition": "closed-unverified",
+      "closureEvidenceRequirements": ["Do not relabel the historical totals as failed or authenticated", "Use fresh REC-084/REC-085 result evidence for current gates", "Retain the raw-log absence in release reporting"]
+    },
+    {
+      "id": "REC-086-BUNDLE-001",
+      "linksToExistingFindings": ["BUNDLE-001"],
+      "kind": "bundle-provenance-caveat",
+      "historicalObservation": "The supplied starter README is unavailable and its path manifest uses a stale root layout.",
+      "currentVerification": "resolved-as-preserved-caveat-by-REC-084",
+      "sourcePassages": [],
+      "ownerScope": "REC-084",
+      "severity": "minor",
+      "affectedVersion": "recovery-v3 starter bundle",
+      "disposition": "closed-preserved-caveat",
+      "closureEvidenceRequirements": ["Never reconstruct missing README authority", "Retain supplied snapshots byte-for-byte", "Keep path/hash drift visible in campaign evidence"]
+    }
+  ],
+  "summary": {
+    "findingCount": 14,
+    "confirmedCurrentConflicts": 3,
+    "openReplayOrNormativeReview": 6,
+    "carriedForwardOpen": 2,
+    "retainedCompatibilityNotes": 1,
+    "closedUnverifiedOrPreserved": 2,
+    "newUnresolvedSameDomainConflicts": ["REC-086-CASE-001", "REC-086-BINARY-001", "REC-086-BINARY-002"]
+  }
+}

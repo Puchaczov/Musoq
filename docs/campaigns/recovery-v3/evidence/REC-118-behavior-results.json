@@ -1,0 +1,144 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-118",
+  "matrixRevision": 2,
+  "outcome": "passed",
+  "registeredCases": 48,
+  "classificationCounts": {
+    "invalid": 0,
+    "validOrdinary": 23,
+    "validSuspicious": 25
+  },
+  "families": [
+    {
+      "name": "TAUTOLOGY",
+      "cases": 12,
+      "invalid": 0,
+      "validOrdinary": 6,
+      "validSuspicious": 6
+    },
+    {
+      "name": "CONTRADICTION",
+      "cases": 12,
+      "invalid": 0,
+      "validOrdinary": 6,
+      "validSuspicious": 6
+    },
+    {
+      "name": "TEMPORAL_AMBIGUITY",
+      "cases": 12,
+      "invalid": 0,
+      "validOrdinary": 5,
+      "validSuspicious": 7
+    },
+    {
+      "name": "TEMPORAL_IMPOSSIBLE",
+      "cases": 12,
+      "invalid": 0,
+      "validOrdinary": 6,
+      "validSuspicious": 6
+    }
+  ],
+  "contract": {
+    "authoritySha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+    "revisions": [
+      {
+        "revision": 1,
+        "contractPath": "docs/campaigns/recovery-v3/evidence/REC-118-case-contract.json",
+        "contractSha256": "0a9af18d10c975d1d1ffdecebe7dd66f7ec641fa048f5b0e836747f7edc03d92",
+        "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-118-pre-observation-manifest.json",
+        "manifestSha256": "492ebbe72caf52c466aee0fa72ee5655a599230104067aa198570388d91b0ea4",
+        "preObservationPayloadSha256": "7ee090045be6331e514ae6cc44ee2b4f16172fcea26a974a35d6b7dd0d9bef7c",
+        "observation": "Immutable initial matrix; first replay exposed a harness namespace error, then a null-sensitive proof mismatch, an invalid dynamic fixture and a specific impossible-conversion diagnostic boundary."
+      },
+      {
+        "revision": 2,
+        "contractPath": "docs/campaigns/recovery-v3/evidence/REC-118-case-contract-v2.json",
+        "contractSha256": "bb4b7dbdf6f3d920893f9ebf8b8b74468f23c4700866abc1791c15aadcd98742",
+        "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-118-pre-observation-manifest-v2.json",
+        "manifestSha256": "488df583d2b2bb344be9f5179c68e72f3929c85797e1491979bf701e42c2e6cb",
+        "preObservationPayloadSha256": "c0ee6002b9c69cf26512cd1aaa146c698470f26d1b585d91ad4b593f6e18c250",
+        "observation": "Final immutable valid matrix; the T12 fixture is runnable and A08 records MQ5025 as the specific invariant-conversion diagnostic while preserving the MQ5003 ambiguity boundary."
+      }
+    ],
+    "oracleCorrectionPath": "docs/campaigns/recovery-v3/evidence/REC-118-contract-corrections.json"
+  },
+  "focusedReplay": {
+    "command": "dotnet test src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC118ProofAndTemporalTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-118-focused-v4.trx\" --results-directory .campaign-artifacts/REC-118-focused-v4",
+    "exitCode": 0,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "total": 3,
+    "trxArtifact": {
+      "path": ".campaign-artifacts/REC-118-focused-v4/REC-118-focused-v4.trx",
+      "sha256": "fdaf591528303e492c61352bf3556498e74605c7ac18510e0cf76f97f032144d"
+    },
+    "coverage": "The permanent matrix executes all 48 final cases across four 12-case families; it checks exact diagnostic codes, warning phase/source/severity/location, syntax-only quietness, runnable compilation, and warning-only runtime value and parameter preservation."
+  },
+  "adjacentSuites": [
+    {
+      "name": "evaluator-proof-and-temporal-advisories",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~PredicateAdvisoryTests|FullyQualifiedName~ConstantFoldingTests|FullyQualifiedName~ContextualStringAdvisoryTests|FullyQualifiedName~SpecExplorationCoreLanguageTests|FullyQualifiedName~DiagnosticContractOracleTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-118-adjacent-evaluator.trx\" --results-directory .campaign-artifacts/REC-118-adjacent-evaluator",
+      "exitCode": 0,
+      "passed": 220,
+      "failed": 0,
+      "skipped": 0,
+      "total": 220,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-118-adjacent-evaluator/REC-118-adjacent-evaluator.trx",
+        "sha256": "cd489d5718c56b0b42018e31c204daae1459100706a3c0858041990be0dc8e0f"
+      }
+    },
+    {
+      "name": "converter-warning-propagation-and-diagnostic-regressions",
+      "command": "dotnet test src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~AdvisoryWarningPropagationTests|FullyQualifiedName~CrossJoinDiagnosticRegressionTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-118-adjacent-converter.trx\" --results-directory .campaign-artifacts/REC-118-adjacent-converter",
+      "exitCode": 0,
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "total": 12,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-118-adjacent-converter/REC-118-adjacent-converter.trx",
+        "sha256": "7ba5bb4f54f8837ca4334f4b4223fc2f2f266977b546b75dc8f2235005cebfc1"
+      }
+    }
+  ],
+  "semanticChecks": {
+    "proofBoundaries": "MQ5010 and MQ5011 remain available for deterministic constants and compatible direct-column facts, while floating-point, method-call, dynamic and null-sensitive facts remain quiet.",
+    "temporalConversions": "MQ5003 is emitted for ambiguous numeric date strings; ISO, month-name, unambiguous-component, TimeSpan and explicit-format controls remain quiet, while unparseable invariant implicit constants receive MQ5025.",
+    "runtimePreservation": "The diagnostic-aware warning-only compilation preserves the convenience compilation parameter value, parameter argument and result rows exactly."
+  },
+  "productionFindings": [
+    {
+      "id": "REC-118-F01",
+      "area": "null-sensitive predicate proof",
+      "status": "fixed",
+      "observation": "The generic AND/OR proof paths treated IS NULL and IS NOT NULL facts as ordinary deterministic identities, advertising MQ5010 or MQ5011 for nullable predicates.",
+      "rootCause": "ReportProvenAnd and ReportProvenOr did not exclude null-sensitive fact kinds before applying the deterministic column proof rules.",
+      "resolution": "The proof paths now exclude IsNull and IsNotNull facts from generic tautology and contradiction reporting; the adjacent predicate regression asserts both nullable forms remain quiet.",
+      "regressionTests": [
+        "src/dotnet/Musoq.Evaluator.Tests/PredicateAdvisoryTests.cs",
+        "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-118ProofAndTemporalTests.cs"
+      ]
+    }
+  ],
+  "fullReleaseGate": {
+    "command": "python docs/campaigns/recovery-v3/tools/full_gate.py run --scope-id REC-118 --solution src/dotnet/Musoq.sln --configuration Release --output .campaign-artifacts/REC-118-full-gate-final --evidence docs/campaigns/recovery-v3/evidence/REC-118-full-gate.json --expected-inventory docs/campaigns/recovery-v3/evidence/REC-085-expected-inventory.json --skip-allowlist docs/campaigns/recovery-v3/evidence/REC-085-skip-allowlist.json",
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-118-full-gate.json",
+    "evidenceSha256": "816eb96018027919c0c7ae55b381b14503a02c8f0b01bdc4067dfa07e587c98c",
+    "runId": "REC-118-dec42ef547c9",
+    "targetCount": 8,
+    "passed": 20500,
+    "failed": 0,
+    "skipped": 3,
+    "total": 20503,
+    "testedPayloadSha256": "31b4d4c782ecd7f7faaffda9d6d29df0a53c7eeac4140bf67d698d4cfca39efc",
+    "testedPayloadFileCount": 5779
+  },
+  "notes": [
+    "Revision 1 remains immutable; revision 2 records the observed runnable-fixture correction and the authority-backed MQ5025 oracle clarification without removing a candidate or obligation.",
+    "The production correction is limited to proof soundness and does not add type or culture coercion.",
+    "The final source and test payload remained unchanged after the full gate; administrative evidence, report, ledger and progress updates are outside the tested payload boundary."
+  ]
+}

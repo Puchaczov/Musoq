@@ -16,7 +16,7 @@ public sealed partial class PhysicalPlanBuilder
     {
         var left = Lower(node.Left, strategyPlan);
         var right = Lower(node.Right, strategyPlan);
-        var columns = left.OutputSchema.Columns;
+        var columns = node.OutputSchema.Columns;
         var keys = node.Keys;
 
         if (keys.Length == 0)

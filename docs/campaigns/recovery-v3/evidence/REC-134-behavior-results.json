@@ -1,0 +1,227 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-134",
+  "outcome": "passed",
+  "registeredCases": 48,
+  "classificationCounts": {
+    "invalid": 48
+  },
+  "families": [
+    {
+      "name": "PROVIDER_PARAMETER_SUBSTRATE",
+      "cases": 12,
+      "coverage": "Provider failures, parameter binding failures, inner exceptions and substrate failures are inspected through public safe and trusted verbose sinks."
+    },
+    {
+      "name": "SETTINGS_DESCRIPTIONS",
+      "cases": 12,
+      "coverage": "Actual runtime settings can reach execution while DESC SETTINGS and its serialized descriptions omit the secret sentinel."
+    },
+    {
+      "name": "SPAN_SELECTED_LITERAL",
+      "cases": 12,
+      "coverage": "An unterminated query string selected by a diagnostic span is redacted in parser, formatter and envelope presentations."
+    },
+    {
+      "name": "LOGGING_SUBSTRATE",
+      "cases": 12,
+      "coverage": "Actual binary interpretation logs and substrate row values are inspected for public leakage."
+    }
+  ],
+  "contract": {
+    "authoritySha256": [
+      "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+    ],
+    "contractPath": "docs/campaigns/recovery-v3/evidence/REC-134-case-contract.json",
+    "contractSha256": "fb4e10aab0d59610097aa30124f8ee18fdeb5dcec8253a59285a195e8295ff92",
+    "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-134-case-manifest.json",
+    "manifestSha256": "b3881aa077ba503f07a9265e9fedf63c2390383a40abf2a0e5d7436e91179d4d",
+    "preObservationPayloadSha256": "63fcba739187fa2ce6999571718511a0e78cf184be1caa119b85e08a2047c2b9",
+    "verificationCommand": "python docs/campaigns/recovery-v3/tools/case_contract.py verify --root . --scope-id REC-134 --cases docs/campaigns/recovery-v3/evidence/REC-134-case-contract.json --manifest docs/campaigns/recovery-v3/evidence/REC-134-case-manifest.json",
+    "verificationResult": "48/48 frozen cases verified before the authoritative replay and again after it; no frozen expectation was replaced."
+  },
+  "initialObservations": [
+    {
+      "revision": 1,
+      "outcome": "failed-compilation",
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "total": 0,
+      "finding": "The new fixture used Parser as an ambiguous namespace/type reference and did not reach test execution."
+    },
+    {
+      "revision": 2,
+      "outcome": "failed-behavioral-replay",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-134-focused-r2/REC-134-focused-r2.trx",
+        "sha256": "7e34ae90c04c548b593dfd18a88f026e8646118c9b919ce30beb109572bcd007"
+      },
+      "passed": 24,
+      "failed": 24,
+      "skipped": 0,
+      "total": 48,
+      "finding": "Structured provider/parameter/substrate envelopes and parser presentations leaked synthetic sentinels; settings and logging paths passed."
+    },
+    {
+      "revision": 3,
+      "outcome": "failed-compilation",
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "total": 0,
+      "finding": "The first sanitizer implementation had nullable-flow compile errors and did not reach test execution."
+    },
+    {
+      "revision": 4,
+      "outcome": "failed-behavioral-replay",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-134-focused-r4/REC-134-focused-r4.trx",
+        "sha256": "8f18128b2f984573a92ac63419d759d2b7e64898fffb90f22e5aa25128e8f283"
+      },
+      "passed": 36,
+      "failed": 12,
+      "skipped": 0,
+      "total": 48,
+      "finding": "Redaction passed for structured payloads and span-selected literals; 12 failures were fixture/expectation calibration issues in trusted-verbose casing and provider row shape."
+    },
+    {
+      "revision": 5,
+      "outcome": "failed-behavioral-replay",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-134-focused-r5/REC-134-focused-r5.trx",
+        "sha256": "90c44cdfa693818c8173646e5211c1244c2f2de8cf2fa984fe236dc039662ccb"
+      },
+      "passed": 36,
+      "failed": 12,
+      "skipped": 0,
+      "total": 48,
+      "finding": "The explicit verbose envelope check exposed that a top-level exception with no inner exception lost its message in trusted details."
+    },
+    {
+      "revision": 6,
+      "outcome": "failed-behavioral-replay",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-134-focused-r6/REC-134-focused-r6.trx",
+        "sha256": "b5ff800ae52c23930aeacfc4a41a088293eb4d82486873c8e61ed195bd521d55"
+      },
+      "passed": 36,
+      "failed": 12,
+      "skipped": 0,
+      "total": 48,
+      "finding": "The formatter labeled trusted verbose details with lowercase text while the explicit policy contract required the retained artifact to be visibly labeled."
+    },
+    {
+      "revision": 7,
+      "outcome": "passed-calibrated-replay",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-134-focused-r7/REC-134-focused-r7.trx",
+        "sha256": "9f77c2b9c4f86344d43ab9232c2f6bf07fc08cdb18f64d3c493e4540145fb6eb"
+      },
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "total": 48,
+      "finding": "The calibrated fixture passed all cases after the trusted verbose fallback and label repairs."
+    },
+    {
+      "revision": 8,
+      "outcome": "passed-authoritative-pre-gate",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-134-authoritative-r8/REC-134-authoritative-r8.trx",
+        "sha256": "d011c8b38f5c96fb7f02eb38287981ad09675aac78c3e8818884c72b879d791d"
+      },
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "total": 48,
+      "finding": "The frozen matrix passed before the full gate; the gate then exposed an unrelated numeric diagnostic regression in the sanitizer."
+    },
+    {
+      "revision": 9,
+      "outcome": "passed-authoritative-replay",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-134-authoritative-r9/REC-134-authoritative-r9.trx",
+        "sha256": "2a308de05e2722bdd5af08ce976d15588531477cdbd71740d975ce1bb5edcaec"
+      },
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "total": 48,
+      "finding": "The final frozen matrix passed after narrowing span redaction to quoted/raw string literals; no frozen expectation changed."
+    }
+  ],
+  "repairAttempts": [
+    {
+      "revisions": [1, 2, 3, 4, 5, 6],
+      "outcome": "production-and-fixture-repair",
+      "note": "The public presentation sinks were repaired to redact structured/source-selected secret values, trusted verbose details were explicitly labeled, and fixture calibration issues were corrected without replacing frozen expectations."
+    },
+    {
+      "revisions": [7, 8],
+      "outcome": "passed-focused-replays",
+      "note": "Two green 48-case replays were retained before the full Release gate."
+    },
+    {
+      "revisions": [9],
+      "outcome": "passed-final-replay",
+      "note": "The numeric literal regression found by the first full gate was repaired by limiting span redaction to quoted/raw string literals."
+    }
+  ],
+  "focusedReplay": {
+    "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --no-build --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticRec134SecretSafeDiagnosticsTests\" --logger \"trx;LogFileName=REC-134-authoritative-r9.trx\" --results-directory .campaign-artifacts/REC-134-authoritative-r9",
+    "exitCode": 0,
+    "passed": 48,
+    "failed": 0,
+    "skipped": 0,
+    "total": 48,
+    "registeredCaseCount": 48,
+    "trxArtifact": {
+      "path": ".campaign-artifacts/REC-134-authoritative-r9/REC-134-authoritative-r9.trx",
+      "sha256": "2a308de05e2722bdd5af08ce976d15588531477cdbd71740d975ce1bb5edcaec"
+    },
+    "coverage": "All 48 frozen identifiers execute through actual parser, evaluator, settings, binary interpretation, logging and serialized diagnostic paths."
+  },
+  "harnessContract": {
+    "budget": "All cases are synchronous or bounded by the test runner; no real credentials, complete process environments or external providers are used.",
+    "secretConstruction": "Each case creates a unique synthetic sentinel with a REC-134 family/case identifier and never persists a real credential.",
+    "sinkPolicy": "Public diagnostic messages, arguments, snippets, related locations, actions, envelope serialization and captured logs must omit the sentinel; explicitly requested trusted verbose details may retain it and must carry the trusted-verbose label.",
+    "resourceBoundary": "Provider, settings, binary substrate and logger implementations are repository-owned test doubles or existing in-repository lifecycle fixtures."
+  },
+  "productionFindings": [
+    "REC-134-F01"
+  ],
+  "obligations": {
+    "REC-134-O01": "PR cases inject synthetic sentinels through provider exceptions, parameters, inner exceptions and substrate failures; SET cases use actual runtime settings and LG cases place a sentinel in interpreted substrate data.",
+    "REC-134-O02": "The permanent matrix checks exception messages, formatted text/JSON, structured arguments, snippets, related locations, actions, envelope text/JSON and captured logs.",
+    "REC-134-O03": "Safe FromDiagnostic/FromException paths omit sentinels, while explicit FromExceptionVerbose and QueryExecutionException.FormatVerboseText retain the sentinel only under an explicit Trusted verbose label.",
+    "REC-134-O04": "SN-01..SN-12 select an unterminated string literal by diagnostic span and verify that parser, formatter and envelope snippets remain redacted.",
+    "acceptance": "All 48 frozen cases passed, no sentinel appeared in a sink promising redaction, and every retained sensitive trusted-verbose artifact was labeled."
+  },
+  "fullReleaseGate": {
+    "failedCalibration": {
+      "output": ".campaign-artifacts/REC-134-full-gate-final-r1",
+      "evaluatorTrx": ".campaign-artifacts/REC-134-full-gate-final-r1/trx/Jakub_DESKTOP-I52018A_2026-09-08_06_47_05_net10.0.trx",
+      "evaluatorTrxSha256": "a378498d53379856658bc8a44a00a80feeef9967bc491fac763c308a634b2f5d",
+      "testLog": ".campaign-artifacts/REC-134-full-gate-final-r1/test.stdout.log",
+      "testLogSha256": "57cc65656babe5757175bb578ddb8662ffe5fcc1e8a5e8d4150eb966ac9e1c9a",
+      "finding": "ValuesSource_WithUnsafeNumericLiteralPairMatrix_ShouldThrow observed ulong as [redacted]ong; the failed gate was retained and the sanitizer was narrowed before the final gate."
+    },
+    "command": "python docs/campaigns/recovery-v3/tools/full_gate.py run --scope-id REC-134 --solution src/dotnet/Musoq.sln --configuration Release --output .campaign-artifacts/REC-134-full-gate-final-r2 --evidence docs/campaigns/recovery-v3/evidence/REC-134-full-gate-final-r2.json --expected-inventory docs/campaigns/recovery-v3/evidence/REC-085-expected-inventory.json --skip-allowlist docs/campaigns/recovery-v3/evidence/REC-085-skip-allowlist.json",
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-134-full-gate-final-r2.json",
+    "evidenceSha256": "190410eef3f95851bbd2c6af71a2c503bb4b31e3bd2ed4a864dd07e6fc66f003",
+    "runId": "REC-134-2a29732ba3eb",
+    "targetCount": 8,
+    "passed": 20967,
+    "failed": 0,
+    "skipped": 3,
+    "total": 20970,
+    "testedPayloadSha256": "3d954a19af268a5aa3b1f3fd2db086ba3ffdd983ad4ad1ddb0ce5987b2049ac1",
+    "testedPayloadFileCount": 5801,
+    "testLog": {
+      "path": ".campaign-artifacts/REC-134-full-gate-final-r2/test.stdout.log",
+      "sha256": "218a5aac344b1c6b3604a745b6e86c45bc398887482d596a9740eca618cc8008"
+    }
+  }
+}

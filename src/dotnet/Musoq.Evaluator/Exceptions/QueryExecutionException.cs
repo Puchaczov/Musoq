@@ -116,7 +116,9 @@ public class QueryExecutionException : InvalidOperationException
 
     public string FormatVerboseText()
     {
-        return FormatText() + Environment.NewLine + InnerException;
+        return FormatText() + Environment.NewLine +
+               "Trusted verbose details (may contain sensitive data):" + Environment.NewLine +
+               InnerException;
     }
 
     public static QueryExecutionException ForCancellationFailure(string phase, Exception innerException)

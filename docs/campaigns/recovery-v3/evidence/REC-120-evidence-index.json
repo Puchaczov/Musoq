@@ -1,0 +1,138 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-120",
+  "outcome": "passed",
+  "artifacts": [
+    {
+      "id": "case-contract-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-120-case-contract.json",
+      "sha256": "fa474722cf21475266a3b1e0e9dd7520484acc702221c5e36d272ed0d98fb87a",
+      "role": "Immutable initial pre-observation warning-aware API contract."
+    },
+    {
+      "id": "pre-observation-manifest-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-120-pre-observation-manifest.json",
+      "sha256": "931ffbf72c6a1df57bb9601a2b1521db8b8cc8f17a2eb485c8ffb8354bb967fc",
+      "role": "Initial frozen pre-observation manifest."
+    },
+    {
+      "id": "behavior-results",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-120-behavior-results.json",
+      "sha256": "894040bfc361a93704c40ed1438a4ef71fb21cf39889c824d004b8351ee7acc5",
+      "role": "Final classifications, semantic checks and replay results."
+    },
+    {
+      "id": "focused-matrix-trx",
+      "path": ".campaign-artifacts/REC-120-focused-v4/REC-120-focused-v4.trx",
+      "sha256": "972fa75cce00b49740faaf5b4518ff1a7810965ee8cbefd115d671c867034057",
+      "role": "Final focused matrix replay, 4/4 methods passed over 48 cases."
+    },
+    {
+      "id": "converter-adjacent-trx",
+      "path": ".campaign-artifacts/REC-120-adjacent-converter/REC-120-adjacent-converter.trx",
+      "sha256": "c7e028b4977e432acac393279c2680eecb45aaa5dadb57d9b87e2db7965280f6",
+      "role": "Adjacent converter warning-propagation and artifact regression suite, 58/58 passed."
+    },
+    {
+      "id": "evaluator-adjacent-trx",
+      "path": ".campaign-artifacts/REC-120-adjacent-evaluator/REC-120-adjacent-evaluator.trx",
+      "sha256": "fb950176b8e7d250ce5821e39502b2d6e6d4e474cab2d3591221b0ebf65cc88e",
+      "role": "Adjacent evaluator diagnostic-contract suite, 40/40 passed."
+    },
+    {
+      "id": "parser-adjacent-trx",
+      "path": ".campaign-artifacts/REC-120-adjacent-parser/REC-120-adjacent-parser.trx",
+      "sha256": "974fe902b3301883e5950199a955cc6b6a9a5bb7e006fd9076c67f0cd0d7dbfe",
+      "role": "Adjacent parser diagnostic-contract suite, 104/104 passed."
+    },
+    {
+      "id": "cache-cold-marker-replay-trx",
+      "path": ".campaign-artifacts/REC-120-cache-cold-marker/REC-120-cache-cold-marker.trx",
+      "sha256": "5aee9de6306809e967f25d59a4f045140020971492296270f6dded08e79aaaca",
+      "role": "Isolated replay of the corrected cache-cold test, 1/1 passed."
+    },
+    {
+      "id": "converter-full-replay-trx",
+      "path": ".campaign-artifacts/REC-120-converter-marker-replay/REC-120-converter-marker-replay.trx",
+      "sha256": "0f19de8eac1c615a8022f97b90ae8e108c93062cf5e4f1eaaaa49b3d0a0df542",
+      "role": "Complete converter replay after cache-cold correction, 1,141/1,141 passed."
+    },
+    {
+      "id": "matrix-tests",
+      "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+      "sha256": "8b918e064aca996ebeb76ba2399a8e87ef2f1d6827ac6cd538facc65d2bce936",
+      "role": "Permanent four-family warning-aware API, envelope and preservation matrix."
+    },
+    {
+      "id": "cache-isolation-test-fix",
+      "path": "src/dotnet/Musoq.Converter.Tests/QueryInspectionTests.SourcePlanning.cs",
+      "sha256": "78855688eb2c7c5879357563169be7e3305b3fd101d5c50b609c2735211cf856",
+      "role": "Test-only semantic marker correction for the cache-cold precondition."
+    },
+    {
+      "id": "full-gate",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-120-full-gate.json",
+      "sha256": "74903ddcf164a11146d3bde434dd98aac0d354efcec918481855d3fa8c1a69b8",
+      "role": "Authoritative Release restore/build/test gate, 20,508 passed, 3 established skips, 0 failed across 8/8 targets."
+    },
+    {
+      "id": "report",
+      "path": "docs/campaigns/recovery-v3/reports/REC-120.md",
+      "sha256": "449fd26b7fb39040fba3934881e7de342d5bb657926487e20991949095cbf8d2",
+      "role": "REC-120 completion report."
+    }
+  ],
+  "validation": {
+    "focusedMatrix": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "total": 4,
+      "candidateCount": 48,
+      "invalidCandidates": 0,
+      "validOrdinaryControls": 5,
+      "validSuspiciousControls": 43
+    },
+    "evaluatorAdjacent": {
+      "passed": 40,
+      "failed": 0,
+      "skipped": 0,
+      "total": 40
+    },
+    "converterAdjacent": {
+      "passed": 58,
+      "failed": 0,
+      "skipped": 0,
+      "total": 58
+    },
+    "parserAdjacent": {
+      "passed": 104,
+      "failed": 0,
+      "skipped": 0,
+      "total": 104
+    },
+    "cacheColdReplay": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "total": 1
+    },
+    "converterFullReplay": {
+      "passed": 1141,
+      "failed": 0,
+      "skipped": 0,
+      "total": 1141
+    },
+    "fullReleaseGate": {
+      "status": "passed",
+      "runId": "REC-120-8b6eea55dafa",
+      "targetCount": 8,
+      "passed": 20508,
+      "failed": 0,
+      "skipped": 3,
+      "total": 20511,
+      "testedPayloadSha256": "6a87c02f027314d4ba2e40e7247dae0ea1b31188c13338915763f55b099cb6e2",
+      "testedPayloadFileCount": 5781
+    }
+  }
+}

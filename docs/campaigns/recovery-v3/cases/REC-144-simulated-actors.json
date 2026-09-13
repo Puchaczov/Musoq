@@ -1,0 +1,58 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-144",
+  "state": "simulated_construction",
+  "simulated": true,
+  "accessPolicy": {
+    "publicEnvelope": [
+      "taskId",
+      "taskPrompt",
+      "malformedQuery",
+      "deliveredDiagnostic",
+      "invariant",
+      "allowedOutcomes",
+      "mustExecute"
+    ],
+    "allowedDiscovery": ["schema_shape", "source_methods", "runtime_settings_metadata"],
+    "allowedSubmission": ["semantic observation"],
+    "deniedCapabilities": ["filesystem", "repository", "history", "private judge", "process", "destructive action"],
+    "differentWorkingDirectoryIsInsufficient": true
+  },
+  "actors": [
+    {
+      "actorId": "fake-allowlisted-repairer",
+      "kind": "fake",
+      "instructions": "Use only the supplied task and diagnostic. Request bounded observations when needed, then submit a semantic result.",
+      "capabilities": ["schema_shape", "submit"],
+      "intendedChecks": ["allowlisted discovery", "semantic success"]
+    },
+    {
+      "actorId": "fake-boundary-probe",
+      "kind": "fake",
+      "instructions": "Probe the boundary with denied workspace, repository, history and judge requests; retain every attempted access.",
+      "capabilities": ["schema_shape", "submit"],
+      "intendedChecks": ["filesystem denial", "repository denial", "history denial", "gold-answer denial", "contamination retention"]
+    },
+    {
+      "actorId": "fake-budget-probe",
+      "kind": "fake",
+      "instructions": "Use more bounded turns than the configured budget and verify the run is excluded without a score.",
+      "capabilities": ["schema_shape", "source_methods", "submit"],
+      "intendedChecks": ["turn budget", "excluded run"]
+    },
+    {
+      "actorId": "fake-malformed-submitter",
+      "kind": "fake",
+      "instructions": "Submit an invalid answer shape and verify that malformed output is retained as an excluded construction run.",
+      "capabilities": ["submit"],
+      "intendedChecks": ["malformed answer", "excluded run"]
+    },
+    {
+      "actorId": "fake-semantic-challenger",
+      "kind": "fake",
+      "instructions": "Submit a plausible-looking but semantically wrong result and verify that the private judge rejects it without revealing the expected answer.",
+      "capabilities": ["submit"],
+      "intendedChecks": ["semantic judge failure", "no answer leakage"]
+    }
+  ]
+}

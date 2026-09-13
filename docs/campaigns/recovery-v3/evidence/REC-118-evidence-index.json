@@ -1,0 +1,126 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-118",
+  "outcome": "passed",
+  "artifacts": [
+    {
+      "id": "case-contract-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-118-case-contract.json",
+      "sha256": "0a9af18d10c975d1d1ffdecebe7dd66f7ec641fa048f5b0e836747f7edc03d92",
+      "role": "Immutable initial pre-observation contract."
+    },
+    {
+      "id": "pre-observation-manifest-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-118-pre-observation-manifest.json",
+      "sha256": "492ebbe72caf52c466aee0fa72ee5655a599230104067aa198570388d91b0ea4",
+      "role": "Initial pre-observation manifest."
+    },
+    {
+      "id": "case-contract-revision-2",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-118-case-contract-v2.json",
+      "sha256": "bb4b7dbdf6f3d920893f9ebf8b8b74468f23c4700866abc1791c15aadcd98742",
+      "role": "Final immutable 48-case contract after the fixture and diagnostic-boundary corrections."
+    },
+    {
+      "id": "pre-observation-manifest-revision-2",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-118-pre-observation-manifest-v2.json",
+      "sha256": "488df583d2b2bb344be9f5179c68e72f3929c85797e1491979bf701e42c2e6cb",
+      "role": "Final verified pre-observation manifest."
+    },
+    {
+      "id": "oracle-corrections",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-118-contract-corrections.json",
+      "sha256": "713afd2878c42e5bcabcacda8d7d887ccbba98bb1afc82f8ea0ca7f9ea5132d8",
+      "role": "Transparent revision-1 to revision-2 fixture-validity and oracle-clarification history."
+    },
+    {
+      "id": "behavior-results",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-118-behavior-results.json",
+      "sha256": "d7b5977bb7009580b1637801e333262ca3101e80c4aa92d6ae10cb684c63a8e4",
+      "role": "Final classifications and focused/adjacent replay results; full gate passed."
+    },
+    {
+      "id": "focused-matrix-trx",
+      "path": ".campaign-artifacts/REC-118-focused-v4/REC-118-focused-v4.trx",
+      "sha256": "fdaf591528303e492c61352bf3556498e74605c7ac18510e0cf76f97f032144d",
+      "role": "Final focused replay, 3/3 methods passed over 48 cases."
+    },
+    {
+      "id": "evaluator-adjacent-trx",
+      "path": ".campaign-artifacts/REC-118-adjacent-evaluator/REC-118-adjacent-evaluator.trx",
+      "sha256": "cd489d5718c56b0b42018e31c204daae1459100706a3c0858041990be0dc8e0f",
+      "role": "Adjacent evaluator proof and temporal advisory suite, 220/220 passed."
+    },
+    {
+      "id": "converter-adjacent-trx",
+      "path": ".campaign-artifacts/REC-118-adjacent-converter/REC-118-adjacent-converter.trx",
+      "sha256": "7ba5bb4f54f8837ca4334f4b4223fc2f2f266977b546b75dc8f2235005cebfc1",
+      "role": "Adjacent converter warning-propagation and diagnostic regression suite, 12/12 passed."
+    },
+    {
+      "id": "matrix-tests",
+      "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-118ProofAndTemporalTests.cs",
+      "sha256": "994bc2ac73ef584e12c1f4835b383ba95c0f1594b919b4bfcf15e82c745b4abc",
+      "role": "Permanent four-family proof and temporal advisory precision matrix."
+    },
+    {
+      "id": "production-fix",
+      "path": "src/dotnet/Musoq.Evaluator/Visitors/PredicateAdvisoryAnalyzer.Proofs.cs",
+      "sha256": "b350bed65687677703b198242a79fe9742b0f098282e9b3a43cf5ab71f4e7d6f",
+      "role": "Null-sensitive proof boundary correction."
+    },
+    {
+      "id": "production-fix-regression",
+      "path": "src/dotnet/Musoq.Evaluator.Tests/PredicateAdvisoryTests.cs",
+      "sha256": "e031238985248f505dc8a706b9a8da9de37fcc25740e87cbccb4f3469d73e016",
+      "role": "Adjacent regression coverage for nullable proof exclusions."
+    },
+    {
+      "id": "full-gate",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-118-full-gate.json",
+      "sha256": "816eb96018027919c0c7ae55b381b14503a02c8f0b01bdc4067dfa07e587c98c",
+      "role": "Authoritative Release restore/build/test gate, 20,500 passed, 3 established skips, 0 failed across 8/8 targets."
+    },
+    {
+      "id": "report",
+      "path": "docs/campaigns/recovery-v3/reports/REC-118.md",
+      "sha256": "a3f56d31dbc2ccfe71cc501e5e03078701bacc86a1e68abda346cf17e78905f1",
+      "role": "REC-118 completion report."
+    }
+  ],
+  "validation": {
+    "focusedMatrix": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "total": 3,
+      "candidateCount": 48,
+      "invalidCandidates": 0,
+      "validOrdinaryControls": 23,
+      "validSuspiciousControls": 25
+    },
+    "evaluatorAdjacent": {
+      "passed": 220,
+      "failed": 0,
+      "skipped": 0,
+      "total": 220
+    },
+    "converterAdjacent": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "total": 12
+    },
+    "fullReleaseGate": {
+      "status": "passed",
+      "runId": "REC-118-dec42ef547c9",
+      "targetCount": 8,
+      "passed": 20500,
+      "failed": 0,
+      "skipped": 3,
+      "total": 20503,
+      "testedPayloadSha256": "31b4d4c782ecd7f7faaffda9d6d29df0a53c7eeac4140bf67d698d4cfca39efc",
+      "testedPayloadFileCount": 5779
+    }
+  }
+}

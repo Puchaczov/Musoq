@@ -1,0 +1,192 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-142",
+  "outcome": "passed",
+  "scopeKind": "audit",
+  "baseline": {
+    "commit": "f45e7876661cb3a18433f8c01100cce323b1c0ea",
+    "branch": "feature/runtime_v2_final",
+    "fixturePath": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-142MissingEnvironmentGuidanceTests.cs",
+    "fixtureSha256": "4e6d027794e379743ce328a46311e96e043b46d182262f81a420344f5ca6a8b0"
+  },
+  "authority": {
+    "core": {
+      "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+      "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "sections": ["23. Diagnostic Contract and Catalog", "23.1 Diagnostic envelope contract"]
+    },
+    "table": {
+      "path": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+      "sha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca",
+      "sections": ["7.4 Runtime Adapter Diagnostics [Informative]"]
+    },
+    "manual": {
+      "path": "docs/campaigns/recovery-v3/authority/manual.md",
+      "sha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe",
+      "sections": [
+        "21. Discover installed capabilities and source shape",
+        "79. Diagnostics and common failures",
+        "81. Report issues and documentation drift"
+      ],
+      "boundary": "Product-bundle authority only; no engine-local manual execution was claimed."
+    },
+    "commands": {
+      "path": "docs/campaigns/recovery-v3/authority/commands.json",
+      "sha256": "455adfa21b37ea6b410f07b96a52251d1b8fef4211453b9e73446f4e99acda85",
+      "boundary": "Product-bundle command contract only; no installed CLI was executed in the engine lane."
+    },
+    "diagnosticCatalog": {
+      "path": "specs/diagnostic-catalog.json",
+      "sha256": "6bcec5e94d51905fead0b99875c18fe350f679743cd5ce9dbc969d0ab6cdb670"
+    }
+  },
+  "finiteMatrix": {
+    "missingSourceMetadata": {
+      "count": 2,
+      "cases": [
+        {
+          "case": "unknown schema",
+          "code": "MQ3010_UnknownSchema",
+          "phase": "Bind",
+          "sourceKind": "Query",
+          "guidance": "Names provider registration as the missing observation."
+        },
+        {
+          "case": "unknown source",
+          "code": "MQ3085_UnknownSource",
+          "phase": "Bind",
+          "sourceKind": "Query",
+          "guidance": "Names the missing source and requests DESC observation."
+        }
+      ]
+    },
+    "missingRuntimeSettings": {
+      "count": 1,
+      "case": "required secret setting absent",
+      "code": "MQ3067_MissingSourceRuntimeSetting",
+      "phase": "Bind",
+      "sourceKind": "Query",
+      "observed": "TOKEN is named while prod-token and secret values remain absent from the envelope."
+    },
+    "syntaxConfigurationCompatibility": {
+      "count": 2,
+      "cases": [
+        {
+          "case": "malformed CASE",
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceKind": "Query"
+        },
+        {
+          "case": "provider open failure",
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceKind": "DataSource",
+          "observed": "The provider/runtime boundary is preserved; the inner cause is retained for trusted local debugging but no unique compatibility repair is promised."
+        }
+      ]
+    },
+    "commandContract": {
+      "count": 4,
+      "validatedRoutes": [
+        "describe error",
+        "describe schema",
+        "describe settings",
+        "describe source"
+      ],
+      "emittedCliAction": false,
+      "boundary": "Routes were checked in the bound product snapshot only; the engine tests did not invoke a CLI or invent a recovery route."
+    },
+    "safeRecovery": {
+      "selectedCatalogCodes": [
+        "MQ3010_UnknownSchema",
+        "MQ3085_UnknownSource",
+        "MQ3067_MissingSourceRuntimeSetting",
+        "MQ3071_SourceContractError",
+        "MQ5013_SourceContractWarning",
+        "MQ7010_DataSourceOpenFailed",
+        "MQ7011_DataSourceReadFailed"
+      ],
+      "destructiveWordsObserved": [],
+      "automaticTextEditsObserved": false
+    }
+  },
+  "observations": [
+    "Unknown schema/source diagnostics remain query-origin Bind observations instead of datasource/runtime claims.",
+    "Missing runtime settings identify the configuration gap and expose only the setting name, not resolved secret values.",
+    "Malformed syntax remains Parse; provider construction remains DataSource; the recovery categories are not collapsed.",
+    "Datasource guidance requests safe inspection or trusted-local verbose detail and keeps provider-specific arguments out of the user envelope.",
+    "The product command snapshot contains the four bounded observation routes; no engine-local CLI behavior or installed capability was inferred."
+  ],
+  "qualification": {
+    "focusedReplay": {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC142MissingEnvironmentGuidanceTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-142-focused-r1.trx\" --results-directory .campaign-artifacts/REC-142-focused-r1",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "total": 5,
+      "trxPath": ".campaign-artifacts/REC-142-focused-r1/REC-142-focused-r1.trx",
+      "trxSha256": "0a64953a7e04bf140c310fa952fc1cd983fb36b7ec554ce077bd570da4d99dc2"
+    },
+    "evaluatorAdjacent": {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC142MissingEnvironmentGuidanceTests|FullyQualifiedName~DiagnosticCouple038SourceRuntimeSettingsTests|FullyQualifiedName~DiagnosticTable035TableSourceContractTests|FullyQualifiedName~DataSourceLifecycleDiagnosticTests|FullyQualifiedName~DiagnosticExceptionTaxonomyTests|FullyQualifiedName~DiagnosticREC141\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-142-evaluator-adjacent-r1.trx\" --results-directory .campaign-artifacts/REC-142-evaluator-adjacent-r1",
+      "passed": 49,
+      "failed": 0,
+      "skipped": 0,
+      "total": 49,
+      "trxPath": ".campaign-artifacts/REC-142-evaluator-adjacent-r1/REC-142-evaluator-adjacent-r1.trx",
+      "trxSha256": "5288617661e86299359cad26cdca2bdc72427619c7552acc42e33be319a526cd"
+    },
+    "campaignSelfTests": {
+      "command": "python -m unittest discover -s docs/campaigns/recovery-v3/tools -p \"test_*.py\"",
+      "passed": 46,
+      "failed": 0,
+      "skipped": 0,
+      "total": 46
+    },
+    "fullGate": {
+      "status": "passed",
+      "runId": "REC-142-2ff8e6e4b19f",
+      "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-142-full-gate-final-r1.json",
+      "evidenceSha256": "2f6fecd5e3be4180d8cbe7a46384b19acf64dbeddc5fa37cc86893cecaf1d51e",
+      "repositoryCommit": "f45e7876661cb3a18433f8c01100cce323b1c0ea",
+      "sdkObserved": "10.0.303",
+      "testedPayloadSha256": "6f20fc8804c7bc1d1cc9dcf7516cbedb3d3774b09ef407d312ec757133497c74",
+      "testedPayloadFileCount": 5809,
+      "targets": 8,
+      "passed": 21065,
+      "failed": 0,
+      "skipped": 3,
+      "total": 21068,
+      "establishedSkips": [
+        "Musoq.Evaluator.Tests.GeneratedCodeSamplesManifestTests.Refresh_Tracked_Generated_Code_Sample_Manifest",
+        "Musoq.Evaluator.Tests.GeneratedCodeSamplesSnapshotTests.Refresh_All_Local_Generated_Samples",
+        "Musoq.Evaluator.Tests.GeneratedInterpretationCodeDumpTests.Refresh_Local_Interpretation_Samples"
+      ]
+    }
+  },
+  "obligations": [
+    {
+      "id": "REC-142-O01",
+      "result": "The focused matrix and adjacent permanent suites cover unavailable schema/source metadata, missing runtime settings, table/source contract failures, and provider/runtime datasource lifecycle failures."
+    },
+    {
+      "id": "REC-142-O02",
+      "result": "Observed guidance names the missing observation and keeps Parse, Bind configuration, and DataSource compatibility boundaries distinct."
+    },
+    {
+      "id": "REC-142-O03",
+      "result": "The four emitted-observation routes are checked against the bound commands snapshot; no undocumented CLI route is emitted or executed by the engine tests."
+    },
+    {
+      "id": "REC-142-O04",
+      "result": "Selected catalog guidance contains no reset, reinstall, or force instruction and all observed environment actions are non-editing suggestions."
+    }
+  ],
+  "boundaries": [
+    "No destructive recovery action was executed against a user profile.",
+    "No installed provider, package, profile, credential, service, or CLI capability was assumed or executed.",
+    "The provider exception is a repository-owned test double; its preserved inner exception is evidence of the diagnostic boundary, not proof of a specific external compatibility cause.",
+    "The commands snapshot is product-bundle authority and remains outside the engine implementation boundary."
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-093",
+  "state": "pre_observation",
+  "caseCount": 48,
+  "sourceFiles": [
+    {
+      "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-093AmbiguityAbstentionTests.cs",
+      "sha256": "0f5aa93cd38fa30fa3c21605d892d7d77fb690a3b921c666e6fac6247bff8279",
+      "role": "frozen query, provider-profile, and expected diagnostic corpus"
+    },
+    {
+      "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+      "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "role": "diagnostic contract authority"
+    }
+  ],
+  "expectation": {
+    "uniqueJustifiedSpelling": "A single visible close spelling may receive one TextEdit, and applying that emitted edit must make the query analyze successfully.",
+    "equallyPlausibleVisible": "Tied visible candidates must be listed in stable bounded facts and must not receive a TextEdit.",
+    "outOfScope": "Names from another provider or unrelated visible symbols must not be treated as guaranteed intent; no out-of-scope candidate may leak into the candidate facts.",
+    "missingOrUnsupported": "Missing metadata remains a Bind diagnostic with explanation and no edit; unsupported syntax remains a Parse diagnostic with explanation and no edit."
+  },
+  "cases": [
+    { "caseId": "REC-093-U01", "family": "unique-justified-spelling", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3001_UnknownColumn", "expectedPhase": "Bind", "candidateArgument": "candidateColumns", "expectedCandidates": "Name", "expectedReplacement": "Name", "faultText": "Naem", "preObservation": "registered" },
+    { "caseId": "REC-093-U02", "family": "unique-justified-spelling", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3001_UnknownColumn", "expectedPhase": "Bind", "candidateArgument": "candidateColumns", "expectedCandidates": "Name", "expectedReplacement": "Name", "faultText": "Naem", "preObservation": "registered" },
+    { "caseId": "REC-093-U03", "family": "unique-justified-spelling", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3001_UnknownColumn", "expectedPhase": "Bind", "candidateArgument": "candidateColumns", "expectedCandidates": "Name", "expectedReplacement": "Name", "faultText": "Naem", "preObservation": "registered" },
+    { "caseId": "REC-093-U04", "family": "unique-justified-spelling", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3015_UnknownAlias", "expectedPhase": "Bind", "candidateArgument": "availableAliases", "expectedCandidates": "people", "expectedReplacement": "people", "faultText": "peple", "preObservation": "registered" },
+    { "caseId": "REC-093-U05", "family": "unique-justified-spelling", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3015_UnknownAlias", "expectedPhase": "Bind", "candidateArgument": "availableAliases", "expectedCandidates": "people", "expectedReplacement": "people", "faultText": "peple", "preObservation": "registered" },
+    { "caseId": "REC-093-U06", "family": "unique-justified-spelling", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3015_UnknownAlias", "expectedPhase": "Bind", "candidateArgument": "availableAliases", "expectedCandidates": "people", "expectedReplacement": "people", "faultText": "peple", "preObservation": "registered" },
+    { "caseId": "REC-093-U07", "family": "unique-justified-spelling", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3028_UnknownProperty", "expectedPhase": "Bind", "candidateArgument": "candidateProperties", "expectedCandidates": "Name", "expectedReplacement": "Name", "faultText": "Naem", "preObservation": "registered" },
+    { "caseId": "REC-093-U08", "family": "unique-justified-spelling", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3028_UnknownProperty", "expectedPhase": "Bind", "candidateArgument": "candidateProperties", "expectedCandidates": "Name", "expectedReplacement": "Name", "faultText": "Naem", "preObservation": "registered" },
+    { "caseId": "REC-093-U09", "family": "unique-justified-spelling", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3028_UnknownProperty", "expectedPhase": "Bind", "candidateArgument": "candidateProperties", "expectedCandidates": "Name", "expectedReplacement": "Name", "faultText": "Naem", "preObservation": "registered" },
+    { "caseId": "REC-093-U10", "family": "unique-justified-spelling", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3086_UnknownCallable", "expectedPhase": "Bind", "candidateArgument": "candidateCallables", "expectedCandidates": "Substring", "expectedReplacement": "Substring", "faultText": "Substrng", "preObservation": "registered" },
+    { "caseId": "REC-093-U11", "family": "unique-justified-spelling", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3086_UnknownCallable", "expectedPhase": "Bind", "candidateArgument": "candidateCallables", "expectedCandidates": "Substring", "expectedReplacement": "Substring", "faultText": "Substrng", "preObservation": "registered" },
+    { "caseId": "REC-093-U12", "family": "unique-justified-spelling", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3086_UnknownCallable", "expectedPhase": "Bind", "candidateArgument": "candidateCallables", "expectedCandidates": "Substring", "expectedReplacement": "Substring", "faultText": "Substrng", "preObservation": "registered" },
+
+    { "caseId": "REC-093-A01", "family": "equally-plausible-visible", "boundary": "Semantic", "provider": "Ambiguous", "expectedCode": "MQ3001_UnknownColumn", "expectedPhase": "Bind", "candidateArgument": "candidateColumns", "expectedCandidates": "Name, Nime", "expectedReplacement": null, "faultText": "Nme", "preObservation": "registered" },
+    { "caseId": "REC-093-A02", "family": "equally-plausible-visible", "boundary": "Semantic", "provider": "Ambiguous", "expectedCode": "MQ3001_UnknownColumn", "expectedPhase": "Bind", "candidateArgument": "candidateColumns", "expectedCandidates": "Name, Nime", "expectedReplacement": null, "faultText": "Nme", "preObservation": "registered" },
+    { "caseId": "REC-093-A03", "family": "equally-plausible-visible", "boundary": "Semantic", "provider": "Ambiguous", "expectedCode": "MQ3001_UnknownColumn", "expectedPhase": "Bind", "candidateArgument": "candidateColumns", "expectedCandidates": "Name, Nime", "expectedReplacement": null, "faultText": "Nme", "preObservation": "registered" },
+    { "caseId": "REC-093-A04", "family": "equally-plausible-visible", "boundary": "Semantic", "provider": "Ambiguous", "expectedCode": "MQ3015_UnknownAlias", "expectedPhase": "Bind", "candidateArgument": "availableAliases", "expectedCandidates": "left, lest", "expectedReplacement": null, "faultText": "let", "preObservation": "registered" },
+    { "caseId": "REC-093-A05", "family": "equally-plausible-visible", "boundary": "Semantic", "provider": "Ambiguous", "expectedCode": "MQ3015_UnknownAlias", "expectedPhase": "Bind", "candidateArgument": "availableAliases", "expectedCandidates": "left, lest", "expectedReplacement": null, "faultText": "let", "preObservation": "registered" },
+    { "caseId": "REC-093-A06", "family": "equally-plausible-visible", "boundary": "Semantic", "provider": "Ambiguous", "expectedCode": "MQ3015_UnknownAlias", "expectedPhase": "Bind", "candidateArgument": "availableAliases", "expectedCandidates": "left, lest", "expectedReplacement": null, "faultText": "let", "preObservation": "registered" },
+    { "caseId": "REC-093-A07", "family": "equally-plausible-visible", "boundary": "Semantic", "provider": "Ambiguous", "expectedCode": "MQ3086_UnknownCallable", "expectedPhase": "Bind", "candidateArgument": "candidateCallables", "expectedCandidates": "ZZQAlpah, ZZQAlpha", "expectedReplacement": null, "faultText": "ZZQAlpa", "preObservation": "registered" },
+    { "caseId": "REC-093-A08", "family": "equally-plausible-visible", "boundary": "Semantic", "provider": "Ambiguous", "expectedCode": "MQ3086_UnknownCallable", "expectedPhase": "Bind", "candidateArgument": "candidateCallables", "expectedCandidates": "ZZQAlpah, ZZQAlpha", "expectedReplacement": null, "faultText": "ZZQAlpa", "preObservation": "registered" },
+    { "caseId": "REC-093-A09", "family": "equally-plausible-visible", "boundary": "Semantic", "provider": "Ambiguous", "expectedCode": "MQ3086_UnknownCallable", "expectedPhase": "Bind", "candidateArgument": "candidateCallables", "expectedCandidates": "ZZQAlpah, ZZQAlpha", "expectedReplacement": null, "faultText": "ZZQAlpa", "preObservation": "registered" },
+    { "caseId": "REC-093-A10", "family": "equally-plausible-visible", "boundary": "Semantic", "provider": "Ambiguous", "expectedCode": "MQ3028_UnknownProperty", "expectedPhase": "Bind", "candidateArgument": "candidateProperties", "expectedCandidates": "Name, Nime", "expectedReplacement": null, "faultText": "Nme", "preObservation": "registered" },
+    { "caseId": "REC-093-A11", "family": "equally-plausible-visible", "boundary": "Semantic", "provider": "Ambiguous", "expectedCode": "MQ3028_UnknownProperty", "expectedPhase": "Bind", "candidateArgument": "candidateProperties", "expectedCandidates": "Name, Nime", "expectedReplacement": null, "faultText": "Nme", "preObservation": "registered" },
+    { "caseId": "REC-093-A12", "family": "equally-plausible-visible", "boundary": "Semantic", "provider": "Ambiguous", "expectedCode": "MQ3028_UnknownProperty", "expectedPhase": "Bind", "candidateArgument": "candidateProperties", "expectedCandidates": "Name, Nime", "expectedReplacement": null, "faultText": "Nme", "preObservation": "registered" },
+
+    { "caseId": "REC-093-O01", "family": "out-of-scope", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3001_UnknownColumn", "expectedPhase": "Bind", "candidateArgument": "candidateColumns", "expectedCandidates": "Name", "expectedReplacement": "Name", "faultText": "Nami", "preObservation": "registered" },
+    { "caseId": "REC-093-O02", "family": "out-of-scope", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3001_UnknownColumn", "expectedPhase": "Bind", "candidateArgument": "candidateColumns", "expectedCandidates": "Name", "expectedReplacement": "Name", "faultText": "Nami", "preObservation": "registered" },
+    { "caseId": "REC-093-O03", "family": "out-of-scope", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3001_UnknownColumn", "expectedPhase": "Bind", "candidateArgument": "candidateColumns", "expectedCandidates": "Name", "expectedReplacement": "Name", "faultText": "Nami", "preObservation": "registered" },
+    { "caseId": "REC-093-O04", "family": "out-of-scope", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3086_UnknownCallable", "expectedPhase": "Bind", "candidateArgument": "candidateCallables", "expectedCandidates": "", "expectedReplacement": null, "faultText": "ZZQAlpa", "preObservation": "registered" },
+    { "caseId": "REC-093-O05", "family": "out-of-scope", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3086_UnknownCallable", "expectedPhase": "Bind", "candidateArgument": "candidateCallables", "expectedCandidates": "", "expectedReplacement": null, "faultText": "ZZQAlpa", "preObservation": "registered" },
+    { "caseId": "REC-093-O06", "family": "out-of-scope", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3086_UnknownCallable", "expectedPhase": "Bind", "candidateArgument": "candidateCallables", "expectedCandidates": "", "expectedReplacement": null, "faultText": "ZZQAlpa", "preObservation": "registered" },
+    { "caseId": "REC-093-O07", "family": "out-of-scope", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3085_UnknownSource", "expectedPhase": "Bind", "candidateArgument": null, "expectedCandidates": null, "expectedReplacement": null, "faultText": "Rows", "preObservation": "registered" },
+    { "caseId": "REC-093-O08", "family": "out-of-scope", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3085_UnknownSource", "expectedPhase": "Bind", "candidateArgument": null, "expectedCandidates": null, "expectedReplacement": null, "faultText": "Events", "preObservation": "registered" },
+    { "caseId": "REC-093-O09", "family": "out-of-scope", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3085_UnknownSource", "expectedPhase": "Bind", "candidateArgument": null, "expectedCandidates": null, "expectedReplacement": null, "faultText": "Lookup", "preObservation": "registered" },
+    { "caseId": "REC-093-O10", "family": "out-of-scope", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3015_UnknownAlias", "expectedPhase": "Bind", "candidateArgument": "availableAliases", "expectedCandidates": "people", "expectedReplacement": null, "faultText": "zzzz", "preObservation": "registered" },
+    { "caseId": "REC-093-O11", "family": "out-of-scope", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3015_UnknownAlias", "expectedPhase": "Bind", "candidateArgument": "availableAliases", "expectedCandidates": "people", "expectedReplacement": null, "faultText": "zzzz", "preObservation": "registered" },
+    { "caseId": "REC-093-O12", "family": "out-of-scope", "boundary": "Semantic", "provider": "Basic", "expectedCode": "MQ3015_UnknownAlias", "expectedPhase": "Bind", "candidateArgument": "availableAliases", "expectedCandidates": "people", "expectedReplacement": null, "faultText": "zzzz", "preObservation": "registered" },
+
+    { "caseId": "REC-093-M01", "family": "missing-or-unsupported", "boundary": "Semantic", "provider": "MissingMetadata", "expectedCode": "MQ3001_UnknownColumn", "expectedPhase": "Bind", "candidateArgument": "candidateColumns", "expectedCandidates": "", "expectedReplacement": null, "faultText": "Name", "preObservation": "registered" },
+    { "caseId": "REC-093-M02", "family": "missing-or-unsupported", "boundary": "Semantic", "provider": "MissingMetadata", "expectedCode": "MQ3001_UnknownColumn", "expectedPhase": "Bind", "candidateArgument": "candidateColumns", "expectedCandidates": "", "expectedReplacement": null, "faultText": "Name", "preObservation": "registered" },
+    { "caseId": "REC-093-M03", "family": "missing-or-unsupported", "boundary": "Semantic", "provider": "MissingMetadata", "expectedCode": "MQ3001_UnknownColumn", "expectedPhase": "Bind", "candidateArgument": "candidateColumns", "expectedCandidates": "", "expectedReplacement": null, "faultText": "Name", "preObservation": "registered" },
+    { "caseId": "REC-093-M04", "family": "missing-or-unsupported", "boundary": "Semantic", "provider": "MissingMetadata", "expectedCode": "MQ3001_UnknownColumn", "expectedPhase": "Bind", "candidateArgument": "candidateColumns", "expectedCandidates": "", "expectedReplacement": null, "faultText": "Name", "preObservation": "registered" },
+    { "caseId": "REC-093-M05", "family": "missing-or-unsupported", "boundary": "Semantic", "provider": "MissingMetadata", "expectedCode": "MQ3001_UnknownColumn", "expectedPhase": "Bind", "candidateArgument": "candidateColumns", "expectedCandidates": "", "expectedReplacement": null, "faultText": "Name", "preObservation": "registered" },
+    { "caseId": "REC-093-M06", "family": "missing-or-unsupported", "boundary": "Semantic", "provider": "MissingMetadata", "expectedCode": "MQ3001_UnknownColumn", "expectedPhase": "Bind", "candidateArgument": "candidateColumns", "expectedCandidates": "", "expectedReplacement": null, "faultText": "Name", "preObservation": "registered" },
+    { "caseId": "REC-093-M07", "family": "missing-or-unsupported", "boundary": "Syntax", "provider": "Basic", "expectedCode": "MQ1001_UnknownToken", "expectedPhase": "Parse", "candidateArgument": null, "expectedCandidates": null, "expectedReplacement": null, "faultText": "@", "preObservation": "registered" },
+    { "caseId": "REC-093-M08", "family": "missing-or-unsupported", "boundary": "Syntax", "provider": "Basic", "expectedCode": "MQ1001_UnknownToken", "expectedPhase": "Parse", "candidateArgument": null, "expectedCandidates": null, "expectedReplacement": null, "faultText": "@", "preObservation": "registered" },
+    { "caseId": "REC-093-M09", "family": "missing-or-unsupported", "boundary": "Syntax", "provider": "Basic", "expectedCode": "MQ1001_UnknownToken", "expectedPhase": "Parse", "candidateArgument": null, "expectedCandidates": null, "expectedReplacement": null, "faultText": "@", "preObservation": "registered" },
+    { "caseId": "REC-093-M10", "family": "missing-or-unsupported", "boundary": "Syntax", "provider": "Basic", "expectedCode": "MQ2020_MissingOperand", "expectedPhase": "Parse", "candidateArgument": null, "expectedCandidates": null, "expectedReplacement": null, "faultText": "^", "preObservation": "registered" },
+    { "caseId": "REC-093-M11", "family": "missing-or-unsupported", "boundary": "Syntax", "provider": "Basic", "expectedCode": "MQ2020_MissingOperand", "expectedPhase": "Parse", "candidateArgument": null, "expectedCandidates": null, "expectedReplacement": null, "faultText": "^", "preObservation": "registered" },
+    { "caseId": "REC-093-M12", "family": "missing-or-unsupported", "boundary": "Syntax", "provider": "Basic", "expectedCode": "MQ2020_MissingOperand", "expectedPhase": "Parse", "candidateArgument": null, "expectedCandidates": null, "expectedReplacement": null, "faultText": "^", "preObservation": "registered" }
+  ],
+  "preObservation": {
+    "state": "frozen_before_final_replay",
+    "registeredBeforeCandidate": true,
+    "observedCandidateBehavior": false,
+    "matrixRevision": 5,
+    "initialObservedIteration": {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC093AmbiguityAbstentionTests\" --logger \"console;verbosity=minimal\"",
+      "exitCode": 1,
+      "passed": 38,
+      "failed": 15,
+      "total": 53,
+      "countedAsCandidateEvidence": false,
+      "failureCases": [
+        "ForeignProviderNames_ShouldNotEnterBasicCandidateSets",
+        "REC-093-U12",
+        "REC-093-A07",
+        "REC-093-A08",
+        "REC-093-A09",
+        "REC-093-O04",
+        "REC-093-O05",
+        "REC-093-O06",
+        "REC-093-M02",
+        "REC-093-M03",
+        "REC-093-M04",
+        "REC-093-M06",
+        "REC-093-M10",
+        "REC-093-M11",
+        "REC-093-M12"
+      ],
+      "reason": "The initial executable replay exposed the real Basic-library IsAlpha candidate, deterministic callable ordering, one repeated callable typo, repeated missing-metadata references, and MQ2020 classification for the unsupported ^ operator. The run is retained for auditability and excluded from candidate evidence."
+    },
+    "revision4Replay": {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC093AmbiguityAbstentionTests\" --logger \"console;verbosity=minimal\"",
+      "exitCode": 1,
+      "passed": 50,
+      "failed": 3,
+      "total": 53,
+      "countedAsCandidateEvidence": false,
+      "failureCases": ["REC-093-M10", "REC-093-M11", "REC-093-M12"],
+      "reason": "The revised replay confirmed all classifications and edit policies; only the message-fragment assertion for MQ2020 expected the unsupported ^ token, while the catalog message intentionally describes the missing left operand without echoing the token."
+    },
+    "revisionHistory": [
+      {
+        "revision": 1,
+        "state": "superseded_before_observation",
+        "sourceCorpusSha256": "2acaed06adfdec37ebadcab0ed580c64f520b0bfd4d8f604cc8cad4cd8f4f8e75",
+        "reason": "Compile-only correction to the public MSTest entry-point parameter; the registered candidate corpus was unchanged."
+      },
+      {
+        "revision": 2,
+        "state": "superseded_before_observation",
+        "sourceCorpusSha256": "9e6886dd7cb14778b5ae8de39ff73373522a9904dbf7285d1e861671a1d3511f",
+        "reason": "Compile-only correction to provider typing and test exception namespace; the registered candidate corpus was unchanged."
+      },
+      {
+        "revision": 3,
+        "state": "superseded_after_initial_observation",
+        "sourceCorpusSha256": "9109c35d618880e9183c80a4205955a5d79076f9137108602595b513eece8695",
+        "reason": "The initial observation was excluded after exposing concrete candidate expectation and one-fault corrections; revision 4 changes only registered names, expected ordering, query multiplicity, and observed parser code."
+      },
+      {
+        "revision": 4,
+        "state": "superseded_after_replay",
+        "sourceCorpusSha256": "69cba4d36306d6596fa72b5f0c7b84a20661203f34117164f7fbbc2f6523f93e",
+        "replayObservation": {
+          "passed": 50,
+          "failed": 3,
+          "total": 53,
+          "countedAsCandidateEvidence": false
+        },
+        "reason": "The replay exposed only an over-specific message assertion for the already-correct MQ2020 unsupported-operator classification."
+      },
+      {
+        "revision": 5,
+        "state": "frozen_before_final_replay",
+        "sourceCorpusSha256": "0f5aa93cd38fa30fa3c21605d892d7d77fb690a3b921c666e6fac6247bff8279"
+      }
+    ]
+  }
+}

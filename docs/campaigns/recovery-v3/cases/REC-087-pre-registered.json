@@ -1,0 +1,262 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-087",
+  "state": "pre_observation",
+  "cases": [
+    {
+      "formatVersion": 1,
+      "caseId": "REC-087-A01",
+      "scopeId": "REC-087",
+      "task": "Preserve a scalar projection while removing only the optional AS spelling from its output alias.",
+      "seedQuery": "select 1 as Value from system.dual()",
+      "fixtureRef": {
+        "id": "parser-core-009-select-aliases",
+        "path": "src/dotnet/Musoq.Parser.Tests/Diagnostic.CORE-009SelectTests.cs",
+        "testName": "SelectAliases_ShouldPreserveExplicitAndImplicitOutputNames",
+        "proof": "Repository-owned parser regression fixture covers explicit and implicit output aliases."
+      },
+      "seedValidation": {
+        "status": "valid",
+        "basis": "The seed uses the documented explicit alias form.",
+        "testName": "SelectAliases_ShouldPreserveExplicitAndImplicitOutputNames"
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Remove the optional AS keyword from the scalar output alias.",
+        "before": "1 as Value",
+        "after": "1 Value",
+        "resultQuery": "select 1 Value from system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "No syntax fault: an implicit SELECT alias remains valid and preserves the output name.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "specs/musoq-core-language-spec.md",
+          "section": "5.3 Column Aliasing",
+          "passage": "select Name FullName from A.entities() -- implicit (space-separated)",
+          "sourceSha256": "f3ab89e6806334d05be0e32d14e294897d2a6cd0867b10ca30d9759823d8f833"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The mutation is expected to remain ordinary valid syntax; no engine observation may replace this classification."
+      },
+      "fingerprint": {
+        "domain": "parser",
+        "rootCause": "valid implicit alias",
+        "context": "select output alias boundary"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 Value from system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "retain the implicit alias boundary",
+          "retain the valid scalar projection"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-087-A02",
+      "scopeId": "REC-087",
+      "task": "Preserve an enum declaration while adding the documented optional trailing comma.",
+      "seedQuery": "enum JobStatus : int { Queued = 10, Running = 20i, Finished = 0x1e };",
+      "fixtureRef": {
+        "id": "parser-enum-declaration",
+        "path": "src/dotnet/Musoq.Parser.Tests/EnumDeclarationParserTests.cs",
+        "testName": "EnumDeclaration_ShouldPreserveNominalShapeValuesAndSpans",
+        "proof": "Repository-owned parser fixture covers enum members and declaration boundaries."
+      },
+      "seedValidation": {
+        "status": "valid",
+        "basis": "The seed uses explicit representable enum member values.",
+        "testName": "EnumDeclaration_ShouldPreserveNominalShapeValuesAndSpans"
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Insert one trailing comma before the enum closing brace.",
+        "before": "Finished = 0x1e }",
+        "after": "Finished = 0x1e, }",
+        "resultQuery": "enum JobStatus : int { Queued = 10, Running = 20i, Finished = 0x1e, };"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "No syntax fault: enum member lists accept a trailing comma.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "specs/musoq-core-language-spec.md",
+          "section": "3.8 Enum Types",
+          "passage": "Empty declarations, auto-numbering, and forward references are not supported; a trailing comma is accepted.",
+          "sourceSha256": "f3ab89e6806334d05be0e32d14e294897d2a6cd0867b10ca30d9759823d8f833"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The mutation is expected to remain ordinary valid syntax; a parser result cannot rewrite the expectation."
+      },
+      "fingerprint": {
+        "domain": "parser",
+        "rootCause": "valid trailing comma",
+        "context": "enum member list boundary"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "enum JobStatus : int { Queued = 10, Running = 20i, Finished = 0x1e, };",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "retain the enum declaration",
+          "retain exactly one trailing comma"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-087-A03",
+      "scopeId": "REC-087",
+      "task": "Preserve an ordinary string value when an unknown escape is introduced.",
+      "seedQuery": "select 'value' from system.dual()",
+      "fixtureRef": {
+        "id": "parser-rework-075-string-contract",
+        "path": "src/dotnet/Musoq.Parser.Tests/Diagnostic.REWORK-075StringLiteralContractTests.cs",
+        "testName": "UnknownOrdinaryEscapes_ShouldRemainLiteralWithoutDiagnostics",
+        "proof": "Repository-owned lexer fixture covers unknown ordinary escapes and diagnostic absence."
+      },
+      "seedValidation": {
+        "status": "valid",
+        "basis": "The seed is a scalar string projection with no malformed escape.",
+        "testName": "UnknownOrdinaryEscapes_ShouldRemainLiteralWithoutDiagnostics"
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the string content with one unknown ordinary escape.",
+        "before": "value",
+        "after": "\\q",
+        "resultQuery": "select '\\q' from system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "No syntax fault: unknown ordinary escapes remain literal and warning-free.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "specs/musoq-core-language-spec.md",
+          "section": "2.5 String Literals",
+          "passage": "Unknown escape sequences are preserved literally.",
+          "sourceSha256": "f3ab89e6806334d05be0e32d14e294897d2a6cd0867b10ca30d9759823d8f833"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The candidate is intentionally a valid ordinary string, not an invalid escape repair case."
+      },
+      "fingerprint": {
+        "domain": "lexer",
+        "rootCause": "preserved unknown escape",
+        "context": "ordinary string literal"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select '\\q' from system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "retain the unknown escape spelling",
+          "retain warning-free ordinary string context"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-087-A04",
+      "scopeId": "REC-087",
+      "task": "Report a malformed fixed-length escape with the contracted parse diagnostic while preserving the source fact.",
+      "seedQuery": "select '\\q' from system.dual()",
+      "fixtureRef": {
+        "id": "parser-core-002-malformed-escape",
+        "path": "src/dotnet/Musoq.Parser.Tests/Diagnostic.CORE-002StringLiteralTests.cs",
+        "testName": "MalformedFixedLengthEscape_ShouldPreserveTextAndExposeStructuredDiagnostic",
+        "proof": "Repository-owned lexer fixture covers MQ1004, source span and preserved malformed text."
+      },
+      "seedValidation": {
+        "status": "valid",
+        "basis": "Unknown ordinary escape is valid, making this a valid seed for the malformed-escape mutation.",
+        "testName": "MalformedFixedLengthEscape_ShouldPreserveTextAndExposeStructuredDiagnostic"
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid unknown escape with a too-short fixed-length unicode escape.",
+        "before": "\\q",
+        "after": "\\u12",
+        "resultQuery": "select '\\u12' from system.dual()"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "The fixed-length unicode escape is malformed; it must produce MQ1004 at parse phase while retaining the source text.",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ1004_InvalidEscapeSequence",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error",
+          "spanPolicy": "the malformed escape source span",
+          "messageFacts": [
+            "the malformed source text is retained",
+            "the diagnostic is parse-level"
+          ]
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "specs/musoq-core-language-spec.md",
+          "section": "2.5 String Literals",
+          "passage": "Malformed fixed-length \\u and \\x escapes produce MQ1004.",
+          "sourceSha256": "f3ab89e6806334d05be0e32d14e294897d2a6cd0867b10ca30d9759823d8f833"
+        },
+        {
+          "sourcePath": "specs/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Code, phase, source domain, location and arguments are contracted diagnostic fields.",
+          "sourceSha256": "f3ab89e6806334d05be0e32d14e294897d2a6cd0867b10ca30d9759823d8f833"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The exact diagnostic and repair policy are frozen from the specification and fixture contract before candidate execution."
+      },
+      "fingerprint": {
+        "domain": "lexer",
+        "rootCause": "malformed fixed-length escape",
+        "context": "ordinary string literal"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select '\\u12' from system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "retain the too-short unicode escape",
+          "retain the same parse source domain",
+          "retain the expected MQ1004 boundary"
+        ]
+      }
+    }
+  ]
+}

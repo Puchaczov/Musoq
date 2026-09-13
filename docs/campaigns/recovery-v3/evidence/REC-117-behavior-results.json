@@ -1,0 +1,142 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-117",
+  "matrixRevision": 3,
+  "outcome": "passed",
+  "registeredCases": 48,
+  "classificationCounts": {
+    "invalid": 0,
+    "validOrdinary": 16,
+    "validSuspicious": 32
+  },
+  "families": [
+    {
+      "name": "NULL_COMPARISON",
+      "cases": 12,
+      "invalid": 0,
+      "validOrdinary": 2,
+      "validSuspicious": 10
+    },
+    {
+      "name": "OUTER_PRESENCE",
+      "cases": 12,
+      "invalid": 0,
+      "validOrdinary": 5,
+      "validSuspicious": 7
+    },
+    {
+      "name": "OUTER_FILTER",
+      "cases": 12,
+      "invalid": 0,
+      "validOrdinary": 6,
+      "validSuspicious": 6
+    },
+    {
+      "name": "NOT_IN",
+      "cases": 12,
+      "invalid": 0,
+      "validOrdinary": 3,
+      "validSuspicious": 9
+    }
+  ],
+  "contract": {
+    "authoritySha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+    "revisions": [
+      {
+        "revision": 1,
+        "contractPath": "docs/campaigns/recovery-v3/evidence/REC-117-case-contract.json",
+        "contractSha256": "e76f6d0e72d4222ead3832dcaa9ac7f05328de54e184a7c92343a3dd3cb7b6cb",
+        "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-117-pre-observation-manifest.json",
+        "manifestSha256": "b398fb91aedad79cfc9ba94f9ba439d7a5ecd8c095e2aa83823b6e74567dbb9f",
+        "preObservationPayloadSha256": "ff4aa8d448ff18203ba26e42fef90cce6c63045c8b1828a8138be229890517d7",
+        "observation": "Immutable initial matrix; first replay exposed an invalid QUALIFY fixture because the window function was projected but absent from QUALIFY."
+      },
+      {
+        "revision": 2,
+        "contractPath": "docs/campaigns/recovery-v3/evidence/REC-117-case-contract-v2.json",
+        "contractSha256": "b881f92de5d328eab29128a59e77a4113799529b86205335e729509f17c64a65",
+        "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-117-pre-observation-manifest-v2.json",
+        "manifestSha256": "309b531e1e045e4b9dbb9fab3690f75e9bc5d294da94a8c1faea998381f4fc77",
+        "preObservationPayloadSha256": "0e033630dc5523c3164e8ff7c80779f25f83d565cf56c0c55060a74af58e5422",
+        "observation": "Immutable second matrix; replay exposed an invalid nullable-reference script-variable fixture that produced an internal diagnostic."
+      },
+      {
+        "revision": 3,
+        "contractPath": "docs/campaigns/recovery-v3/evidence/REC-117-case-contract-v3.json",
+        "contractSha256": "7e6fb70c308c0e45ba784dd43ce9df6fe1921f8fc684e36f23e37b86b95b9d1e",
+        "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-117-pre-observation-manifest-v3.json",
+        "manifestSha256": "92f78302a472773b2b05af577363952b273ea34a2552c402c148d6c9c7b965b8",
+        "preObservationPayloadSha256": "2e53fa3fc0a1ef988b4716ea9dacb809984d272e284d5c50c6383304ffc81627",
+        "observation": "Final immutable valid matrix; no candidate, warning expectation or required obligation was removed."
+      }
+    ],
+    "oracleCorrectionPath": "docs/campaigns/recovery-v3/evidence/REC-117-contract-corrections.json"
+  },
+  "focusedReplay": {
+    "command": "dotnet test src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC117NullPrecisionTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-117-focused-v3.trx\" --results-directory .campaign-artifacts/REC-117-focused-v3",
+    "exitCode": 0,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "total": 3,
+    "trxArtifact": {
+      "path": ".campaign-artifacts/REC-117-focused-v3/REC-117-focused-v3.trx",
+      "sha256": "f1cb24518f50c393d3e93337541d651d16dcd5a53b848dacd146abde946d72ea"
+    },
+    "coverage": "The permanent matrix executes all 48 final cases across four 12-case families; it checks exact diagnostic codes, warning phases, syntax-only quietness, runnable compilation, row-retention behavior and meaning-changing repair guidance."
+  },
+  "adjacentSuites": [
+    {
+      "name": "evaluator-null-and-outer-join-advisories",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~PredicateAdvisoryTests|FullyQualifiedName~OuterJoinAdvisoryTests|FullyQualifiedName~Core013NullComparisonSemanticsTests|FullyQualifiedName~Core016JoinSemanticsTests|FullyQualifiedName~DiagnosticContractOracleTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-117-adjacent-evaluator.trx\" --results-directory .campaign-artifacts/REC-117-adjacent-evaluator",
+      "exitCode": 0,
+      "passed": 47,
+      "failed": 0,
+      "skipped": 0,
+      "total": 47,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-117-adjacent-evaluator/REC-117-adjacent-evaluator.trx",
+        "sha256": "82da2509037f41df0cf809a6d7c33d7edfb873c21c43bab3896e0c943c2b4811"
+      }
+    },
+    {
+      "name": "converter-warning-propagation-and-apply",
+      "command": "dotnet test src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~AdvisoryWarningPropagationTests|FullyQualifiedName~QueryInspectionTests.ExecutionApplyInterpreters.SchemaSources\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-117-adjacent-converter.trx\" --results-directory .campaign-artifacts/REC-117-adjacent-converter",
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "total": 9,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-117-adjacent-converter/REC-117-adjacent-converter.trx",
+        "sha256": "d19335df5cb2f7488da3b220b7e7c3cbfe0c5028139a2f206eefec58f9544b3a"
+      }
+    }
+  ],
+  "semanticChecks": {
+    "nullComparison": "MQ5017 is emitted in WHERE, HAVING, QUALIFY, JOIN ON and aggregate FILTER contexts; projection and ORDER BY ordinary comparisons, IS NULL, IS NOT NULL and null-safe distinctness remain quiet.",
+    "outerPresence": "MQ5018 distinguishes nullable optional-side columns from non-nullable value sources; explicit PRESENT/MISSING predicates and always-present/unknown-derived controls remain quiet.",
+    "outerFilter": "MQ5019 identifies null-rejecting WHERE predicates while preserving ON restrictions, inner joins, OR branches, uncertain method semantics and explicit row-presence intent.",
+    "notIn": "MQ5024 is emitted for literal and proven-NULL NOT IN members across predicate surfaces; positive IN, null-free NOT IN and projection controls remain quiet.",
+    "repairSafety": "Suggested alternatives remain suggestions without automatic text edits; the authored WHERE filter retains its row-retention semantics at runtime."
+  },
+  "productionFindings": [],
+  "fullReleaseGate": {
+    "command": "python docs/campaigns/recovery-v3/tools/full_gate.py run --scope-id REC-117 --solution src/dotnet/Musoq.sln --configuration Release --output .campaign-artifacts/REC-117-full-gate-final --evidence docs/campaigns/recovery-v3/evidence/REC-117-full-gate.json --expected-inventory docs/campaigns/recovery-v3/evidence/REC-085-expected-inventory.json --skip-allowlist docs/campaigns/recovery-v3/evidence/REC-085-skip-allowlist.json",
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-117-full-gate.json",
+    "evidenceSha256": "fdc375ae0503a783e816f58f56c3219a25ef7d1584e585cc074d9d67668a649d",
+    "runId": "REC-117-7478e4b607f8",
+    "targetCount": 8,
+    "passed": 20497,
+    "failed": 0,
+    "skipped": 3,
+    "total": 20500,
+    "testedPayloadSha256": "71f8be1751a2b869110bde3ee793882822fb20dc1f974cc6c1a40104f90831f5",
+    "testedPayloadFileCount": 5778
+  },
+  "notes": [
+    "Revisions 1 and 2 remain immutable; revision 3 records both observed fixture-validity corrections before the final replay.",
+    "No production code change was required; all final candidates matched the frozen advisory contract.",
+    "The final source/test payload remained unchanged after the full gate; administrative evidence, report, ledger and progress updates are outside the tested payload boundary."
+  ]
+}

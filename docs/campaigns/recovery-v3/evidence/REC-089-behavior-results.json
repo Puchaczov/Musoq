@@ -1,0 +1,76 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-089",
+  "outcome": "passed",
+  "repositoryIdentity": {
+    "root": "D:\\repos\\Musoq",
+    "commit": "c1a0b55f0f0341224c89c169271d01de3c710415",
+    "configuration": "Release",
+    "sdkObserved": "10.0.303"
+  },
+  "commands": [
+    {
+      "project": "src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj",
+      "filter": "FullyQualifiedName~DiagnosticTaxonomyMigrationTests|FullyQualifiedName~AdvisoryWarningDocumentationTests",
+      "exitCode": 0,
+      "passed": 5,
+      "skipped": 0,
+      "failed": 0,
+      "total": 5,
+      "representativeChecks": [
+        "retired numeric values remain unavailable",
+        "callable/internal root classifications remain active",
+        "MQ5014 formatter output includes code, correction, and span",
+        "specification and README retain the diagnostic contract"
+      ]
+    },
+    {
+      "project": "src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj",
+      "filter": "FullyQualifiedName~OrderingSlicingAdvisoryTests|FullyQualifiedName~SymbolResolutionDiagnosticsTests|FullyQualifiedName~TypeErrorTests.TE031|FullyQualifiedName~TypeErrorTests.TE033|FullyQualifiedName~TypeErrorTests.TE038|FullyQualifiedName~MalformedQueryErrorTests.WhenSimpleCase",
+      "exitCode": 0,
+      "passed": 26,
+      "skipped": 0,
+      "failed": 0,
+      "total": 26,
+      "representativeChecks": [
+        "MQ5020 and MQ5026 are not emitted for set-operation result modifiers",
+        "unknown source and dependent-column poisoning preserve one structured root",
+        "unknown alias exposes a targeted text edit and the repaired query compiles",
+        "callable unknown-name, arity, and overload type errors retain guidance",
+        "simple CASE executes with representative rows"
+      ]
+    },
+    {
+      "project": "src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj",
+      "filter": "FullyQualifiedName~DiagnosticContractOracleTests.UnknownCallable_HasOneStructuredBindRoot|FullyQualifiedName~DiagnosticContractOracleTests.WarningAndErrorCollectionsRemainDisjoint|FullyQualifiedName~MalformedQueryErrorTests.WhenCaseWhenWithoutElse_ShouldThrowParseError|FullyQualifiedName~MalformedQueryErrorTests.WhenSimpleCaseWithoutElse_ShouldThrowParseError",
+      "exitCode": 0,
+      "passed": 4,
+      "skipped": 0,
+      "failed": 0,
+      "total": 4,
+      "representativeChecks": [
+        "unknown callable has one structured Bind root with callable argument",
+        "warning and error collections remain disjoint",
+        "missing ELSE remains the documented generic parser diagnostic"
+      ]
+    }
+  ],
+  "totals": {
+    "commands": 3,
+    "passed": 35,
+    "skipped": 0,
+    "failed": 0,
+    "total": 35
+  },
+  "coverageBoundary": {
+    "renderedDiagnostics": "AdvisoryWarningDocumentationTests formats MQ5014 and checks correction text and span.",
+    "structuredCorrections": "SymbolResolutionDiagnosticsTests repairs an unknown alias using the emitted TextEdit.",
+    "retiredBehavior": "OrderingSlicingAdvisoryTests and DiagnosticTaxonomyMigrationTests verify retired identifiers are not emitted or repurposed.",
+    "legacyCodes": "No artificial trigger was created for documentation-only MQ5009 or dormant MQ5020/MQ5026 identifiers."
+  },
+  "auditEvidence": {
+    "path": "evidence/REC-089-catalog-audit.json",
+    "sha256": "f019cded8f489119589401904ea3e09e858221886c4284bd96dcf65547cbf755"
+  },
+  "observedAt": "2026-09-06T22:16:58.330Z"
+}

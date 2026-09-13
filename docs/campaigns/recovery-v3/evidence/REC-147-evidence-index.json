@@ -1,0 +1,96 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-147",
+  "outcome": "passed_pending_completion_commit",
+  "artifacts": [
+    {
+      "id": "behavior-results",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-147-behavior-results.json",
+      "sha256": "8392a6d7846e849ebc36b9c8352aabee4aced8cced1cb3ae7ab4775628670415",
+      "role": "Final engine-lane transaction verification, gate reconciliation, artifact hashes, corpus/prompt digests and lane boundaries."
+    },
+    {
+      "id": "full-gate-evidence",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-147-full-gate-final-r1.json",
+      "sha256": "91686f842a33f484ac0e334cfeb9f5ac33a25457467eba2dfffee956604a45a9",
+      "role": "Fresh complete eight-target Release gate: 21,065 passed, 0 failed, 3 established skips, 21,068 total."
+    },
+    {
+      "id": "historical-and-current-transaction-check",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-146-behavior-results.json",
+      "sha256": "d340b20d36a3a5520226b83b8405ba8a52186ac997e637a41166aea79c2bfb1d",
+      "role": "Prior whole-corpus audit proving 63 preceding current-scope completion transactions and historical caveat handling."
+    },
+    {
+      "id": "task-corpus",
+      "path": "docs/campaigns/recovery-v3/cases/REC-143-task-corpus.json",
+      "sha256": "ac2a9ab6e9493fb897f9a15149e27fbd94f8a12a3d789a15959fad52619ff659",
+      "role": "Frozen 16-task, 8-family development corpus with 8 reserved holdout groups."
+    },
+    {
+      "id": "simulated-actor-manifest",
+      "path": "docs/campaigns/recovery-v3/cases/REC-144-simulated-actors.json",
+      "sha256": "37a097cea30b7d2580a25861a445bde7114ef182cdea595d4caace9d322848e3",
+      "role": "Five simulated actor identities and construction-only capability definitions."
+    },
+    {
+      "id": "blind-repair-prompt",
+      "path": "docs/campaigns/recovery-v3/prompts/blind-repairer.md",
+      "sha256": "6e5a021d9a48576565f96556d97da6aac8427bf9070fd329344fabe96f529737",
+      "role": "Frozen blind-repair study prompt digest."
+    },
+    {
+      "id": "review-prompt",
+      "path": "docs/campaigns/recovery-v3/prompts/review-scope.md",
+      "sha256": "a7c6d69f264d96ada9985f8a44594dd50023c36341a7ee1e491fb7e5739d7e72",
+      "role": "Frozen review prompt digest."
+    },
+    {
+      "id": "goal-prompt",
+      "path": "musoq-recovery-campaign.goal.md",
+      "sha256": "196dacc31bc1cbab31e74f2d1238b9296dbcb591852f3d71d33ab67507406610",
+      "role": "Standalone authoritative campaign execution contract; embedded digest is recorded in behavior evidence."
+    },
+    {
+      "id": "source-bindings",
+      "path": "docs/campaigns/recovery-v3/source-bindings.json",
+      "sha256": "a691c3d6337fea30b940927c11a8e206506e6147ea2eac0785bb69dc825b6768",
+      "role": "Version-matched engine/source authority binding and compatibility decisions."
+    },
+    {
+      "id": "test-inventory",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-085-expected-inventory.json",
+      "sha256": "45e34347c899395f3290dfd71b943565bf463c6992934ba35c4a69f358eafda4",
+      "role": "Expected eight-target complete engine test inventory."
+    },
+    {
+      "id": "skip-allowlist",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-085-skip-allowlist.json",
+      "sha256": "054211aa190f4a3eea6acc604e2bf5aeff1a24f4c167177340f44e789caf75da",
+      "role": "Established three generated-refresh skip identities and reasons."
+    },
+    {
+      "id": "campaign-self-tests",
+      "path": "docs/campaigns/recovery-v3/tools",
+      "role": "Campaign-tool self-test replay passed 67/67."
+    },
+    {
+      "id": "report",
+      "path": "docs/campaigns/recovery-v3/reports/REC-147.md",
+      "sha256": "b5744d254857d0a4dcc0ab86c987e0c2f414f2d9d501c832b9fe10280df5b023",
+      "role": "Human-readable engine-lane certification and explicit NOT RUN lane conclusion."
+    }
+  ],
+  "sourceAuthority": {
+    "coreSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+    "standaloneGoalSha256": "196dacc31bc1cbab31e74f2d1238b9296dbcb591852f3d71d33ab67507406610",
+    "embeddedGoalSha256": "d8cf2347fd29093e44d54f770caa85592c9a4461a98ccb899ac50242c2726caf"
+  },
+  "completion": {
+    "status": "pending_completion_commit",
+    "reportPath": "docs/campaigns/recovery-v3/reports/REC-147.md",
+    "fullGateEvidencePath": "docs/campaigns/recovery-v3/evidence/REC-147-full-gate-final-r1.json",
+    "fullGateRequired": true,
+    "exactlyOneCompletionCommitRequired": true
+  }
+}

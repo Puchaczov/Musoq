@@ -1,0 +1,44 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-118",
+  "corrections": [
+    {
+      "id": "REC-118-C01",
+      "revisionFrom": 1,
+      "revisionTo": 2,
+      "caseId": "T12",
+      "kind": "fixture-validity",
+      "observedAt": "2026-09-07T17:52:43.973Z",
+      "observation": "The first valid replay reached T12 and the double parameter was compared with the string-typed #system.dual Dummy column, producing MQ9001 instead of a runnable ordinary control.",
+      "authorityBasis": "REC-118 O02 requires dynamic/floating values as exclusions, but the original cross-type fixture was not a valid runnable query.",
+      "originalQuery": "param (value: double); select d.Dummy from #system.dual() d where $value = 1.5",
+      "correctedQuery": "param (value: double); select $value from #system.dual() d where $value = $value",
+      "preserved": "The dynamic floating-point exclusion remains in the frozen matrix; no candidate or obligation was removed."
+    },
+    {
+      "id": "REC-118-C02",
+      "revisionFrom": 1,
+      "revisionTo": 2,
+      "caseId": "A08",
+      "kind": "oracle-clarification",
+      "observedAt": "2026-09-07T17:52:43.973Z",
+      "observation": "The unambiguous 13/02/2026 text did not receive MQ5003, but the invariant implicit DateTime conversion was proven unable to parse it and emitted MQ5025.",
+      "authorityBasis": "The authority separates MQ5003 ambiguity quietness from MQ5025 impossible implicit conversion; the final expectation records the specific MQ5025 diagnostic rather than weakening the conversion contract.",
+      "originalExpectedDiagnostics": [],
+      "correctedExpectedDiagnostics": [
+        {
+          "code": "MQ5025_ImpossibleImplicitConversion",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "preserved": "The candidate remains registered and the MQ5003-versus-MQ5025 boundary is made explicit."
+    }
+  ],
+  "rules": {
+    "immutablePriorRevisions": true,
+    "correctionsReviewedBeforeReplay": true,
+    "finalRevisionRequiresReplay": true
+  }
+}

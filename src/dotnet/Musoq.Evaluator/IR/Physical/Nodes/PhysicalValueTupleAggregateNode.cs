@@ -12,6 +12,7 @@ public sealed record PhysicalValueTupleAggregateNode(
     PhysicalNode Input) : PhysicalNode(OutputSchemaFactory.ForGroupedAggregate(
         GroupKeyNames,
         GroupKeyTypes,
+        GroupKeys,
         Bindings,
         AggregateOutputName.Identifier))
 {

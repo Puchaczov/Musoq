@@ -1,0 +1,199 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-098",
+  "outcome": "passed",
+  "repositoryIdentity": {
+    "root": "D:\\repos\\Musoq",
+    "baselineCommit": "e420364695e16ded3359cc2485f324920f4ff7ba",
+    "configuration": "Release",
+    "sdkObserved": "10.0.303"
+  },
+  "observationSequence": {
+    "compileOnlyCorrections": [
+      {
+        "command": "dotnet build src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj --configuration Release --no-restore --no-incremental --nologo --verbosity minimal",
+        "exitCode": 1,
+        "errors": 1,
+        "countedAsCandidateEvidence": false,
+        "reason": "The DynamicData case record was private while the public test method accepted it; no candidate query executed."
+      },
+      {
+        "command": "dotnet build src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj --configuration Release --no-restore --no-incremental --nologo --verbosity minimal",
+        "exitCode": 1,
+        "errors": 5,
+        "countedAsCandidateEvidence": false,
+        "reason": "After making the record public, nullable root assertions and current MSTest analyzer requirements were corrected; no candidate query executed."
+      }
+    ],
+    "initialExecutableReplay": {
+      "buildCommand": "dotnet build src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj --configuration Release --no-restore --no-incremental --nologo --verbosity minimal",
+      "buildExitCode": 0,
+      "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC098EnumDeclarationRecoveryTests\" --logger \"console;verbosity=minimal\"",
+      "exitCode": 1,
+      "passed": 27,
+      "skipped": 0,
+      "failed": 1,
+      "total": 28,
+      "countedAsCandidateEvidence": false,
+      "failures": [
+        "REC-098-M04 emitted MQ2042_InvalidEnumDeclaration at the zero-length EOF span, while revision 1 expected MQ2017_UnexpectedEndOfFile."
+      ],
+      "reason": "The parser source branch and core diagnostic contract justified the MQ2042 expectation; revision 2 was frozen and the complete matrix was replayed."
+    },
+    "frozenManifest": {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-098-pre-observation-manifest.json",
+      "sha256": "520df9f62996e2279a19c2fa38b5b048794c21ae4ecb0e1f6ea8a7ee2c0eba93",
+      "caseContractPath": "docs/campaigns/recovery-v3/evidence/REC-098-case-contract.json",
+      "caseContractSha256": "b80f916a90733effabb692a77dc70ce01e191ffe4c3bf27e1d11e1e845fb57f0",
+      "sourceCorpusSha256": "fca3bc87f6e70b12dcecbc740cd7253743e46be365f270595065f820b9fadf56",
+      "matrixRevision": 2,
+      "registeredCandidateCases": 24,
+      "registeredValidationControls": 4,
+      "postObservationCorrections": [
+        "REC-098-M04 was corrected from MQ2017 to the observed and source-justified MQ2042 structural diagnostic at the EOF insertion span."
+      ]
+    },
+    "finalReplay": {
+      "buildCommand": "dotnet build src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj --configuration Release --no-restore --no-incremental --nologo --verbosity minimal",
+      "buildExitCode": 0,
+      "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC098EnumDeclarationRecoveryTests\" --logger \"console;verbosity=minimal\"",
+      "exitCode": 0,
+      "passed": 28,
+      "skipped": 0,
+      "failed": 0,
+      "total": 28,
+      "candidateCases": 24,
+      "validationControls": 4,
+      "matrixChecks": 1
+    }
+  },
+  "focusedEvidence": {
+    "adjacentParserSuites": {
+      "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC098EnumDeclarationRecoveryTests|FullyQualifiedName~EnumDeclarationDiagnosticTests|FullyQualifiedName~EnumDeclarationParserTests|FullyQualifiedName~DiagnosticCore001LexicalTests|FullyQualifiedName~DiagnosticCore002StringLiteralTests|FullyQualifiedName~DiagnosticREC096UnicodeCultureRenderingTests|FullyQualifiedName~DiagnosticREC091MissingTokenTargetingTests|FullyQualifiedName~DiagnosticUx064DiagnosticContractTests|FullyQualifiedName~DiagnosticRuntime060EnvelopeSafetyTests|FullyQualifiedName~DiagnosticCoreTypesTests|FullyQualifiedName~DiagnosticMetadataAndPhasesTests\" --logger \"console;verbosity=minimal\"",
+      "exitCode": 0,
+      "passed": 222,
+      "skipped": 0,
+      "failed": 0,
+      "total": 222
+    },
+    "campaignToolTests": {
+      "command": "python -m unittest discover -s docs/campaigns/recovery-v3/tools -p \"test_*.py\" -v",
+      "exitCode": 0,
+      "passed": 46,
+      "skipped": 0,
+      "failed": 0,
+      "total": 46
+    }
+  },
+  "candidateResults": {
+    "caseCount": 24,
+    "novelCandidates": 24,
+    "duplicateCandidates": 0,
+    "metamorphicVariants": 0,
+    "cleanStreak": 24,
+    "families": {
+      "structure": {
+        "cases": 4,
+        "passed": 4,
+        "rootCode": "MQ2042",
+        "exactFaultSpans": 4
+      },
+      "backingAndValue": {
+        "cases": 4,
+        "passed": 4,
+        "rootCodes": ["MQ2043", "MQ2044", "MQ2046"],
+        "exactFaultSpans": 4
+      },
+      "duplicateAndEmpty": {
+        "cases": 4,
+        "passed": 4,
+        "rootCodes": ["MQ2042", "MQ2045", "MQ2047"],
+        "caseOnlyDuplicateRejected": true
+      },
+      "memberGrammar": {
+        "cases": 4,
+        "passed": 4,
+        "missingValueAndSeparatorFacts": true,
+        "eofInsertionSpanVerified": true
+      },
+      "borrowedDialectForms": {
+        "cases": 4,
+        "passed": 4,
+        "mysqlAndPostgresqlRejectedWithMQ2048": true,
+        "csharpImplicitValuesRejectedWithMQ2044": true,
+        "accessModifiedFormRejectedAtPublic": true
+      },
+      "contextualBoundaries": {
+        "cases": 4,
+        "passed": 4,
+        "overflowCases": 2,
+        "flagsWithoutEnumRejected": true,
+        "stringMemberRejected": true
+      }
+    },
+    "diagnosticCodeCounts": {
+      "MQ2001": 1,
+      "MQ2042": 9,
+      "MQ2043": 1,
+      "MQ2044": 5,
+      "MQ2045": 2,
+      "MQ2046": 3,
+      "MQ2047": 1,
+      "MQ2048": 2
+    },
+    "validNeighborControls": {
+      "canonicalAndFlags": true,
+      "allEightIntegralBackingsAndBoundaries": true,
+      "trailingCommaAndDuplicateValueAliases": true,
+      "contextualIdentifiersAndFollowingStatement": true
+    },
+    "diagnosticPolicy": {
+      "oneRootDiagnosticPerCandidate": true,
+      "exactSmallestSpans": true,
+      "validLocations": 24,
+      "catalogExplanationsAndFixesPresent": 24,
+      "unexpectedSecondaryDiagnostics": 0
+    }
+  },
+  "productionChange": {
+    "changed": false,
+    "productionFixes": 0,
+    "judgment": "REC-098 found no reproducible production defect after the enum declaration matrix and valid-neighbor controls passed. The committed scope is parser test and evidence coverage only."
+  },
+  "fullGate": {
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-098-full-gate.json",
+    "evidenceSha256": "8f9f90f2ecea7a2494fcf3403927ad293ffba9cac8d180a620d428e2f7aa01c3",
+    "runId": "REC-098-13f22542ad88",
+    "testedPayloadSha256": "57fd88e6fe87995ca61e1e650022de08c318152492b750fa9ea30585274039db",
+    "testedPayloadFileCount": 5747,
+    "targetCount": 8,
+    "passed": 20180,
+    "skipped": 3,
+    "failed": 0,
+    "total": 20183,
+    "allowlistedSkips": [
+      "Musoq.Evaluator.Tests.GeneratedInterpretationCodeDumpTests.Refresh_Local_Interpretation_Samples",
+      "Musoq.Evaluator.Tests.GeneratedCodeSamplesSnapshotTests.Refresh_All_Local_Generated_Samples",
+      "Musoq.Evaluator.Tests.GeneratedCodeSamplesManifestTests.Refresh_Tracked_Generated_Code_Sample_Manifest"
+    ]
+  },
+  "obligations": {
+    "REC-098-O01": "The 24 candidate declarations cover missing name, colon, backing type, braces, commas, member names, equals signs, explicit values, duplicates, emptiness, and representable integral boundaries; valid-neighbor controls cover the accepted forms.",
+    "REC-098-O02": "The final matrix covers all eight integral backing types and validates the seven active enum declaration diagnostic codes, exact code identity, one-root diagnostics, and precise spans.",
+    "REC-098-O03": "MySQL, PostgreSQL, and C#-like borrowed forms are registered only as explicitly invalid near-misses, with dialect-specific rejection or the contracted missing-value/access-token diagnostic.",
+    "REC-098-O04": "MQ2042-MQ2048 expectations are bound to the current catalog and the smallest declaration fault; the one EOF branch correction is recorded in revision history and replayed successfully."
+  },
+  "selfReview": {
+    "scopeAuthorityAndDependencyReviewed": true,
+    "preObservationMatrixAndRevisionHistoryReviewed": true,
+    "compileOnlyCorrectionsReviewed": true,
+    "enumGrammarAndBackingRangeReviewed": true,
+    "borrowedDialectBoundaryReviewed": true,
+    "catalogCodeAndSpanContractReviewed": true,
+    "validNeighborProtectionReviewed": true,
+    "focusedBehaviorEvidenceReviewed": true,
+    "fullGateEvidenceReviewed": true,
+    "productionChangeReviewed": true
+  },
+  "observedAt": "2026-09-07T01:00:00Z"
+}

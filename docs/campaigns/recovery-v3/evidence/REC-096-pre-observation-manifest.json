@@ -1,0 +1,90 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-096",
+  "state": "pre_observation",
+  "caseCount": 24,
+  "sourceFiles": [
+    {
+      "path": "src/dotnet/Musoq.Parser.Tests/Diagnostic.REC-096UnicodeCultureRenderingTests.cs",
+      "sha256": "833191311540f47be2409ad07fea2f48c6ad785176fe178a812e41867bd671da",
+      "role": "frozen Unicode, culture, source-coordinate, and structured-value correction matrix"
+    },
+    {
+      "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+      "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "role": "language identity, literal, and diagnostic envelope authority"
+    }
+  ],
+  "expectation": {
+    "supplementary": "Surrogate-pair and supplementary-symbol values remain exact candidate and replacement strings.",
+    "combining": "Canonical-looking decomposed values remain distinct strings and are not silently normalized.",
+    "caseAndHomograph": "Case variants and Latin/Cyrillic near-homographs remain distinct, stable, and ordinally ordered; ties do not create an arbitrary edit.",
+    "culture": "Invariant, Polish, and Turkish fixtures produce the same candidate and edit payload for the same base case.",
+    "formatting": "LF, CRLF, and tabbed source preserve UTF-16 source spans while terminal columns are calculated separately.",
+    "quotedAndControl": "Spaces, apostrophes, backslashes, tabs, and newlines survive in structured NewText without display-string substitution."
+  },
+  "cases": [
+    { "caseId": "REC-096-S01", "family": "supplementary", "shape": "Deseret supplementary candidate with transposed spelling", "preObservation": "registered" },
+    { "caseId": "REC-096-S02", "family": "supplementary", "shape": "emoji-containing structured candidate", "preObservation": "registered" },
+    { "caseId": "REC-096-S03", "family": "supplementary", "shape": "musical-symbol supplementary candidate", "preObservation": "registered" },
+    { "caseId": "REC-096-S04", "family": "supplementary", "shape": "supplementary letter candidate", "preObservation": "registered" },
+
+    { "caseId": "REC-096-C01", "family": "combining", "shape": "decomposed acute accent", "preObservation": "registered" },
+    { "caseId": "REC-096-C02", "family": "combining", "shape": "decomposed name accent", "preObservation": "registered" },
+    { "caseId": "REC-096-C03", "family": "combining", "shape": "multiple decomposed accents", "preObservation": "registered" },
+    { "caseId": "REC-096-C04", "family": "combining", "shape": "decomposed umlaut and accent", "preObservation": "registered" },
+
+    { "caseId": "REC-096-H01", "family": "case-and-homograph", "shape": "Name/name/Cyrillic-a tie", "preObservation": "registered" },
+    { "caseId": "REC-096-H02", "family": "case-and-homograph", "shape": "Latin-o/Cyrillic-o tie", "preObservation": "registered" },
+    { "caseId": "REC-096-H03", "family": "case-and-homograph", "shape": "Latin-O/digit-zero/Cyrillic-O tie", "preObservation": "registered" },
+    { "caseId": "REC-096-H04", "family": "case-and-homograph", "shape": "Latin-A/Cyrillic-A/digit-four tie", "preObservation": "registered" },
+
+    { "caseId": "REC-096-T01", "family": "culture", "shape": "Istanbul under three culture fixtures", "preObservation": "registered" },
+    { "caseId": "REC-096-T02", "family": "culture", "shape": "Turkish dotted-I candidate under three fixtures", "preObservation": "registered" },
+    { "caseId": "REC-096-T03", "family": "culture", "shape": "dotless-I candidate under three fixtures", "preObservation": "registered" },
+    { "caseId": "REC-096-T04", "family": "culture", "shape": "Turkish uppercase candidate under three fixtures", "preObservation": "registered" },
+
+    { "caseId": "REC-096-F01", "family": "formatting", "shape": "LF source line", "preObservation": "registered" },
+    { "caseId": "REC-096-F02", "family": "formatting", "shape": "CRLF source line with City misspelling", "preObservation": "registered" },
+    { "caseId": "REC-096-F03", "family": "formatting", "shape": "tab at line start with Country misspelling", "preObservation": "registered" },
+    { "caseId": "REC-096-F04", "family": "formatting", "shape": "tab after a preceding character with Population misspelling", "preObservation": "registered" },
+
+    { "caseId": "REC-096-Q01", "family": "quoted-and-control", "shape": "space-containing value", "preObservation": "registered" },
+    { "caseId": "REC-096-Q02", "family": "quoted-and-control", "shape": "apostrophe-containing value", "preObservation": "registered" },
+    { "caseId": "REC-096-Q03", "family": "quoted-and-control", "shape": "backslash-containing value", "preObservation": "registered" },
+    { "caseId": "REC-096-Q04", "family": "quoted-and-control", "shape": "newline-and-tab-containing value", "preObservation": "registered" }
+  ],
+  "preObservation": {
+    "state": "frozen_before_candidate_observation",
+    "registeredBeforeCandidate": true,
+    "observedCandidateBehavior": false,
+    "matrixRevision": 4,
+    "matrixRevisionHistory": [
+      {
+        "revision": 1,
+        "state": "superseded_before_observation",
+        "sourceCorpusSha256": "b2f65d9c7d9c1e70f63eb07219ae68ec486e1136c85f69ee04313058032ca242",
+        "reason": "Compile-only correction; candidate cases and expectations were unchanged."
+      },
+      {
+        "revision": 2,
+        "state": "superseded_after_initial_observation",
+        "sourceCorpusSha256": "20f32b4f5166ca01f74e71868a7217f50531fc4ca54fc11aa8bea89dbe4ac1dc",
+        "reason": "Initial replay exposed one production identity defect and one standalone coordinate-control fixture defect; candidate cases and expectations were unchanged."
+      },
+      {
+        "revision": 3,
+        "state": "superseded_before_final_replay",
+        "sourceCorpusSha256": "7f4588e3ee2ae178197ad136897f365d820a34b021a4f34e61db017d56525036",
+        "reason": "Integrity correction removed repeated formatting-only candidate strings; semantic candidate count remains 24."
+      },
+      {
+        "revision": 4,
+        "state": "frozen_for_final_replay",
+        "sourceCorpusSha256": "833191311540f47be2409ad07fea2f48c6ad785176fe178a812e41867bd671da"
+      }
+    ],
+    "cultureVariantsAreNotAdditionalNovelCases": true,
+    "formattingVariantsAreNotAdditionalNovelCases": true
+  }
+}

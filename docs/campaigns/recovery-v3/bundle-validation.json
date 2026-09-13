@@ -1,0 +1,35 @@
+{
+  "artifactValidationOnly": true,
+  "campaignExecuted": false,
+  "manifestSchemaValidation": "passed",
+  "schemaDocumentsValidated": 3,
+  "scopeCount": 82,
+  "uniqueScopeIds": 82,
+  "firstScope": "REC-084",
+  "lastScope": "REC-165",
+  "lanes": {
+    "engine": 64,
+    "product": 12,
+    "empirical": 6
+  },
+  "obligationCount": 344,
+  "uniqueObligationIds": 344,
+  "sourceSnapshotHashesVerified": 11,
+  "allSourceHeadingAndJsonPointerReferencesResolve": true,
+  "allScopesInitiallyPending": true,
+  "allCompletedFlagsInitiallyFalse": true,
+  "allTestsPassedFlagsInitiallyFalse": true,
+  "standaloneAndEmbeddedGoalMatch": true,
+  "checkerSelfTests": {
+    "passed": 21,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "synthetic ledger/evidence and temporary Git fixtures only; NOT Musoq tests"
+  },
+  "notPerformed": [
+    "Musoq restore/build/test",
+    "Live CLI/service/MCP/REST execution",
+    "Model recovery study",
+    "Human pilot"
+  ]
+}

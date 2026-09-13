@@ -10,14 +10,14 @@ namespace Musoq.Evaluator.Tests;
 public sealed class UnreachableBranchAdvisoryTests : BasicEntityTestBase
 {
     [TestMethod]
-    public void CaseFalseAndNullConditions_ReportUnreachableBranches()
+    public void CaseFalseAndLiteralNullConditions_ReportOnlyFalseBranch()
     {
         var result = Analyze(
             "select case when false then 'false' when null then 'null' else 'live' end from #A.Entities()");
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
         Assert.AreEqual(
-            2,
+            1,
             result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5008_UnreachableCode),
             string.Join(" | ", result.Warnings.Select(static warning => warning.ToDetailedString())));
         Assert.IsTrue(result.Warnings.All(static warning => warning.Phase == DiagnosticPhase.Bind));

@@ -1,0 +1,91 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-099",
+  "state": "pre_observation",
+  "caseCount": 24,
+  "sourceFiles": [
+    {
+      "path": "src/dotnet/Musoq.Parser.Tests/Diagnostic.REC-099RepresentabilityBoundaryTests.cs",
+      "sha256": "8816e527b93261aa6bf950b41cb58734bd6feaf883a0e89abf343efed3a7989c",
+      "role": "frozen parser representability, malformed literal, and boundary matrix"
+    },
+    {
+      "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-099RepresentabilityRuntimeTests.cs",
+      "sha256": "903c13d38fae58b59fc6188b57166c1a88e752bd5b233dc471506453e5ae1bdc",
+      "role": "frozen unknown representable native enum runtime-carrier control"
+    },
+    {
+      "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+      "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "role": "enum representability and numeric literal authority"
+    },
+    {
+      "path": "docs/enums.md",
+      "sha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494",
+      "role": "first-class enum backing and unknown-value contract"
+    },
+    {
+      "path": "specs/diagnostic-catalog.json",
+      "sha256": "6bcec5e94d51905fead0b99875c18fe350f679743cd5ce9dbc969d0ab6cdb670",
+      "role": "active numeric and enum diagnostic metadata"
+    }
+  ],
+  "caseContractPath": "docs/campaigns/recovery-v3/evidence/REC-099-case-contract.json",
+  "caseContractSha256": "2d9ef2642111f247665b74eaa1025c916a7a97f06055af516be5e745f0bfeff7",
+  "matrixRevision": 2,
+  "revisionHistory": [
+    {
+      "revision": 1,
+      "state": "superseded_after_initial_observation",
+      "reason": "The valid sbyte zero control used ambiguous 0b, and REC-099-LIT07 emitted MQ1006 over the complete 0x10ui literal."
+    },
+    {
+      "revision": 2,
+      "state": "frozen_for_final_replay",
+      "reason": "The control uses unsuffixed zero and REC-099-LIT07 is registered as a lexer MQ1006 complete-literal case."
+    }
+  ],
+  "expectation": {
+    "maxOverflow": "Each of the eight backing types rejects exactly maximum plus one with MQ2046.",
+    "minUnderflow": "Each signed type rejects minimum minus one and each unsigned type rejects negative one with MQ2046.",
+    "literalForms": "Malformed bases retain lexer-specific diagnostics; decimal/non-integral and suffix mismatch forms follow the current enum literal parser contract; unsupported decimal backing uses MQ2043.",
+    "validValues": "Minimum, maximum and zero values remain valid for all eight backing types, and fitting suffix/base values remain valid.",
+    "runtimeUnknown": "Native enum backing value 99, undeclared but representable by short, remains a short carrier with EnumName NULL and IsDefined false."
+  },
+  "cases": [
+    { "caseId": "REC-099-MAX01", "family": "max-overflow", "shape": "byte maximum plus one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "256", "preObservation": "registered" },
+    { "caseId": "REC-099-MAX02", "family": "max-overflow", "shape": "sbyte maximum plus one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "128", "preObservation": "registered" },
+    { "caseId": "REC-099-MAX03", "family": "max-overflow", "shape": "short maximum plus one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "32768", "preObservation": "registered" },
+    { "caseId": "REC-099-MAX04", "family": "max-overflow", "shape": "ushort maximum plus one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "65536", "preObservation": "registered" },
+    { "caseId": "REC-099-MAX05", "family": "max-overflow", "shape": "int maximum plus one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "2147483648", "preObservation": "registered" },
+    { "caseId": "REC-099-MAX06", "family": "max-overflow", "shape": "uint maximum plus one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "4294967296", "preObservation": "registered" },
+    { "caseId": "REC-099-MAX07", "family": "max-overflow", "shape": "long maximum plus one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "9223372036854775808", "preObservation": "registered" },
+    { "caseId": "REC-099-MAX08", "family": "max-overflow", "shape": "ulong maximum plus one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "18446744073709551616", "preObservation": "registered" },
+    { "caseId": "REC-099-MIN01", "family": "min-underflow", "shape": "byte negative one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "-1", "preObservation": "registered" },
+    { "caseId": "REC-099-MIN02", "family": "min-underflow", "shape": "sbyte minimum minus one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "-129", "preObservation": "registered" },
+    { "caseId": "REC-099-MIN03", "family": "min-underflow", "shape": "short minimum minus one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "-32769", "preObservation": "registered" },
+    { "caseId": "REC-099-MIN04", "family": "min-underflow", "shape": "ushort negative one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "-1", "preObservation": "registered" },
+    { "caseId": "REC-099-MIN05", "family": "min-underflow", "shape": "int minimum minus one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "-2147483649", "preObservation": "registered" },
+    { "caseId": "REC-099-MIN06", "family": "min-underflow", "shape": "uint negative one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "-1", "preObservation": "registered" },
+    { "caseId": "REC-099-MIN07", "family": "min-underflow", "shape": "long minimum minus one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "-9223372036854775809", "preObservation": "registered" },
+    { "caseId": "REC-099-MIN08", "family": "min-underflow", "shape": "ulong negative one", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "-1", "preObservation": "registered" },
+    { "caseId": "REC-099-LIT01", "family": "literal-forms", "shape": "decimal backing type", "expectedCode": "MQ2043_InvalidEnumBackingType", "expectedSpan": "decimal", "preObservation": "registered" },
+    { "caseId": "REC-099-LIT02", "family": "literal-forms", "shape": "missing explicit value", "expectedCode": "MQ2044_MissingEnumMemberValue", "expectedSpan": "Value", "preObservation": "registered" },
+    { "caseId": "REC-099-LIT03", "family": "literal-forms", "shape": "decimal member literal", "expectedCode": "MQ2044_MissingEnumMemberValue", "expectedSpan": "1.5", "preObservation": "registered" },
+    { "caseId": "REC-099-LIT04", "family": "literal-forms", "shape": "invalid hexadecimal digit", "expectedCode": "MQ1006_InvalidHexNumber", "expectedSpan": "0x1G", "observation": "lexer", "preObservation": "registered" },
+    { "caseId": "REC-099-LIT05", "family": "literal-forms", "shape": "invalid binary digit", "expectedCode": "MQ1007_InvalidBinaryNumber", "expectedSpan": "0b102", "observation": "lexer", "preObservation": "registered" },
+    { "caseId": "REC-099-LIT06", "family": "literal-forms", "shape": "invalid octal digit", "expectedCode": "MQ1008_InvalidOctalNumber", "expectedSpan": "0o78", "observation": "lexer", "preObservation": "registered" },
+    { "caseId": "REC-099-LIT07", "family": "literal-forms", "shape": "alternate base with forbidden suffix", "expectedCode": "MQ1006_InvalidHexNumber", "expectedSpan": "0x10ui", "observation": "lexer", "preObservation": "registered" },
+    { "caseId": "REC-099-LIT08", "family": "literal-forms", "shape": "decimal suffix in enum member", "expectedCode": "MQ2044_MissingEnumMemberValue", "expectedSpan": "1d", "preObservation": "registered" }
+  ],
+  "harnessCorrections": [
+    "The valid sbyte zero control was corrected from 0b to 0 after its first execution confirmed that 0b is an incomplete binary prefix and therefore a lexer MQ1007 case.",
+    "The runtime control received explicit output aliases after its first execution showed that unaliased projected enum expressions do not guarantee a Status output column name; value, primitive-carrier, and enum metadata assertions were unchanged."
+  ],
+  "preObservation": {
+    "registeredBeforeCandidate": true,
+    "observedCandidateBehavior": false,
+    "matrixRevision": 2,
+    "oracleCorrection": "Base-prefixed numeric literals do not accept suffixes in the current contract; 0x10ui is therefore a complete-literal MQ1006 lexer diagnostic. The sbyte zero valid control uses 0 rather than ambiguous 0b."
+  }
+}

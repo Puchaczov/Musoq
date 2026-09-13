@@ -1,0 +1,85 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-115",
+  "outcome": "passed",
+  "initialRevision": {
+    "revision": 1,
+    "contractPath": "docs/campaigns/recovery-v3/evidence/REC-115-case-contract.json",
+    "contractSha256": "d9f57c67f0bd006083e05909c87004de5264d6659abeffeeacc4ebd2f96cdf90",
+    "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-115-pre-observation-manifest.json",
+    "manifestSha256": "df01141a521e21ca1f40ff7e496dd8ee50371450d850ca9a34b7839f19ef96a2",
+    "preObservationPayloadSha256": "42094e71c19264ad8d3d85f83e5b0a4d9ee9683e48071dea8bc381ecc1fb874b",
+    "focusedReplayPath": ".campaign-artifacts/REC-115-focused-v1/REC-115-focused-v1.trx",
+    "focusedReplaySha256": "d1d212c7b71e0b0803864dfd1571b237f4089b86ff655a50453326990a284683",
+    "passed": 0,
+    "failed": 5,
+    "total": 5,
+    "observation": "The initial 48-case contract was frozen before replay. The first replay exposed fixture/oracle mismatches in A02, D03-D04, E04 and execution-equivalence metadata."
+  },
+  "revisions": [
+    {
+      "revision": 2,
+      "contractPath": "docs/campaigns/recovery-v3/evidence/REC-115-case-contract-v2.json",
+      "contractSha256": "39080c71f8e62eb8e4001fb6d58c3a2ccdef67768afa8ce00e6c79796954afd9",
+      "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-115-pre-observation-manifest-v2.json",
+      "manifestSha256": "6474273cb15b5d1fc2e535e5314b4a31d93c906066eddd63138ba2a4ffa90f03",
+      "preObservationPayloadSha256": "c25fc1201a70889ac9b64b3d830930b10524b7fa86e72b127ee3017b764e1948",
+      "focusedReplayPath": ".campaign-artifacts/REC-115-focused-final/REC-115-focused-final.trx",
+      "focusedReplaySha256": "bf366aedc4e608a392a69c8f8f0c63755a6559ecee315844b1fbda7faeade12f",
+      "passed": 3,
+      "failed": 2,
+      "total": 5,
+      "correction": "A02 was changed to reference the declared script variable in a predicate; D03-D04 were classified as quiet unknown ordinary escapes; D01-D06 and G01-G05 were marked non-equivalent for value comparison; E04 selected Right first."
+    },
+    {
+      "revision": 3,
+      "contractPath": "docs/campaigns/recovery-v3/evidence/REC-115-case-contract-v3.json",
+      "contractSha256": "e02030a5efc084b597cd4031783f3e4a10d6048fa361978244f5e2fff320750e",
+      "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-115-pre-observation-manifest-v3.json",
+      "manifestSha256": "e0e1ab23860c51d281ee4f148799e80669de58785fbb741bb67c922eff7a297d",
+      "preObservationPayloadSha256": "10b88372a14ca207ace3e81ae1ff83a4147fbdffcd2ef5e4aa1712490036fce3",
+      "focusedReplayPath": ".campaign-artifacts/REC-115-focused-v3-final/REC-115-focused-v3-final.trx",
+      "focusedReplaySha256": "62b582edea022ebb0029f8802b60fb6f72cc559a9192d42bc764285f3098dfa8",
+      "passed": 3,
+      "failed": 2,
+      "total": 5,
+      "correction": "A02 was changed from an initializer value of ok to single so its predicate retained the seed row. F04 was changed to uppercase keywords while preserving case-sensitive identifiers."
+    },
+    {
+      "revision": 4,
+      "contractPath": "docs/campaigns/recovery-v3/evidence/REC-115-case-contract-v4.json",
+      "contractSha256": "9566b75d3a5df7b06e6cc6a3efce04bd2103b80bd5f9fababcd14d239d66ea1d",
+      "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-115-pre-observation-manifest-v4.json",
+      "manifestSha256": "c8ef2ae6d9afba140d019b87ded9cf7630148d68c65e370efd4903ffa727d9d6",
+      "preObservationPayloadSha256": "f36d9f7429553edcda9e21bc0308c16b8beb880c2ec2500f013211bf035e032d",
+      "focusedReplayPath": ".campaign-artifacts/REC-115-focused-v4-final/REC-115-focused-v4-final.trx",
+      "focusedReplaySha256": "2a97c799ad659e0b0b02aa1aa649460d5d884d499385442deec8b50084f76344",
+      "passed": 3,
+      "failed": 2,
+      "total": 5,
+      "correction": "G01 was changed to a literal-only projection because its bracket alias was parsed as an invalid constant-query shape. D01-D02 were marked non-equivalent for runtime-value comparison while retaining their warning expectations."
+    },
+    {
+      "revision": 5,
+      "contractPath": "docs/campaigns/recovery-v3/evidence/REC-115-case-contract-v5.json",
+      "contractSha256": "5e75de35d6aecbde37fa1ac4f8a1393bd4193a04fafbdfacc05f77e3959a16c6",
+      "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-115-pre-observation-manifest-v5.json",
+      "manifestSha256": "1a2e84e2c130dd9437aeaf874ba08ae6ce768d8f3b66c30e15007a9cd2dcade8",
+      "preObservationPayloadSha256": "ce2637b1ed2d4702a81d4f21e653efcf11400c9da281b760cad7174025d92e83",
+      "focusedReplayPath": ".campaign-artifacts/REC-115-focused-v5-final/REC-115-focused-v5-final.trx",
+      "focusedReplaySha256": "6bb355b8415071b287fbb07814a5c8869cfd80a12248e0a16385716cd50519ab",
+      "passed": 5,
+      "failed": 0,
+      "total": 5,
+      "correction": "Final verified matrix; no candidates were removed. All corrections preserve the valid-mutation scope and make the fixture assertions match the documented parser, binding and execution boundaries."
+    }
+  ],
+  "invariants": {
+    "candidateCount": 48,
+    "invalidCandidates": 0,
+    "validOrdinaryControls": 44,
+    "validSuspiciousControls": 4,
+    "candidatesRemoved": 0,
+    "candidateFamiliesChanged": 0
+  }
+}

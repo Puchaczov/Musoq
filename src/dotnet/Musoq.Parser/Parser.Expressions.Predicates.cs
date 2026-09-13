@@ -253,9 +253,9 @@ public partial class Parser
                 args.Add(ComposeEqualityOperators());
             } while (Current.TokenType == TokenType.Comma);
 
-        Consume(TokenType.RightParenthesis);
+        var closingValueListParenthesis = ConsumeAndGetToken(TokenType.RightParenthesis);
 
-        return new InNode(left, new ArgsListNode(args.ToArray()));
+        return new InNode(left, new ArgsListNode(args.ToArray())).WithSpan(left.Span.Through(closingValueListParenthesis.Span));
     }
 
     private Node ComposeExistsPredicateOrIdentifier()

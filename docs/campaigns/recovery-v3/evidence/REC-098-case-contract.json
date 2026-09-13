@@ -1,0 +1,126 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-098",
+  "outcome": "pre_candidate_observation_frozen",
+  "casesPath": "docs/campaigns/recovery-v3/evidence/REC-098-pre-observation-manifest.json",
+  "caseCount": 24,
+  "validationControlCount": 4,
+  "testSource": "src/dotnet/Musoq.Parser.Tests/Diagnostic.REC-098EnumDeclarationRecoveryTests.cs",
+  "candidateTestMethod": "EnumDeclarationDiagnostics_ShouldPinContractedCodeAndSpan",
+  "matrixTestMethod": "CandidateMatrix_ShouldContainFourCasesPerFamily",
+  "controlTestMethods": [
+    "ValidCanonicalAndFlagsDeclarations_ShouldRemainValid",
+    "EveryIntegralBackingTypeAndBoundary_ShouldRemainValid",
+    "TrailingCommaAliasesAndContextualIdentifiers_ShouldRemainValid"
+  ],
+  "authority": {
+    "coreSpecPath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+    "coreSpecSections": [
+      "3.8 Enum Types",
+      "18.4 Enum Intrinsics",
+      "19.10 NULL in Enum Intrinsics",
+      "22.5 Enum Non-Coercion",
+      "23.4 Exact parser diagnostics",
+      "2.2 Keywords"
+    ],
+    "enumContractPath": "docs/enums.md",
+    "catalogPath": "specs/diagnostic-catalog.json",
+    "catalogCodes": [
+      "MQ2042_InvalidEnumDeclaration",
+      "MQ2043_InvalidEnumBackingType",
+      "MQ2044_MissingEnumMemberValue",
+      "MQ2045_DuplicateEnumMember",
+      "MQ2046_EnumMemberValueOutOfRange",
+      "MQ2047_EmptyEnumDeclaration",
+      "MQ2048_UnsupportedEnumSyntax"
+    ]
+  },
+  "coverage": {
+    "structure": 4,
+    "backingAndValue": 4,
+    "duplicateAndEmpty": 4,
+    "memberGrammar": 4,
+    "borrowedDialectForms": 4,
+    "contextualBoundaries": 4,
+    "validNeighborControls": 4,
+    "allIntegralBackingTypes": 8,
+    "currentEnumDiagnosticCodes": 7
+  },
+  "diagnosticContract": {
+    "phase": "Parse",
+    "sourceKind": "Query",
+    "severity": "Error",
+    "oneRootDiagnosticPerCandidate": true,
+    "spanPolicy": "smallest useful declaration fault; EOF uses a zero-length insertion span at query length",
+    "locationPolicy": "line/column and end line/column are valid for every emitted diagnostic",
+    "catalogPolicy": "code, explanation, docs reference, suggested fixes, and context snippet are present",
+    "validNeighborPolicy": "canonical enum, flags enum, all eight integral backings, trailing comma, aliases, contextual identifiers, and following statement boundaries remain valid"
+  },
+  "fingerprintRules": {
+    "caseIdsRegisteredBeforeObservation": true,
+    "familyCountsAreExact": true,
+    "codeAndSpanAreExact": true,
+    "noUnexpectedSecondaryDiagnostics": true,
+    "borrowedFormsRemainExplicitlyInvalid": true,
+    "enumTypeNamesCaseInsensitive": true,
+    "enumMemberNamesCaseSensitiveButDuplicateCaseRejected": true,
+    "explicitIntegralValuesRequired": true,
+    "trailingCommaAndDuplicateValueAliasesRemainValid": true
+  },
+  "matrixRevision": {
+    "current": 2,
+    "state": "frozen_for_final_replay",
+    "revisionHistory": [
+      {
+        "revision": 1,
+        "state": "superseded_after_initial_observation",
+        "reason": "The unclosed member-body candidate reached the parser's existing MQ2042 structural-separator branch at a zero-length EOF span rather than the initially expected MQ2017 EOF diagnostic."
+      },
+      {
+        "revision": 2,
+        "state": "frozen_for_final_replay",
+        "reason": "REC-098-M04 now records the observed and source-justified MQ2042 structural diagnostic at the EOF insertion span; no candidate query or production code was changed."
+      }
+    ]
+  },
+  "cases": [
+    { "caseId": "REC-098-S01", "family": "structure", "expectedCode": "MQ2042_InvalidEnumDeclaration", "expectedSpan": ":" },
+    { "caseId": "REC-098-S02", "family": "structure", "expectedCode": "MQ2042_InvalidEnumDeclaration", "expectedSpan": "int" },
+    { "caseId": "REC-098-S03", "family": "structure", "expectedCode": "MQ2042_InvalidEnumDeclaration", "expectedSpan": "A" },
+    { "caseId": "REC-098-S04", "family": "structure", "expectedCode": "MQ2042_InvalidEnumDeclaration", "expectedSpan": "B" },
+    { "caseId": "REC-098-V01", "family": "backing-and-value", "expectedCode": "MQ2043_InvalidEnumBackingType", "expectedSpan": "string" },
+    { "caseId": "REC-098-V02", "family": "backing-and-value", "expectedCode": "MQ2044_MissingEnumMemberValue", "expectedSpan": "A" },
+    { "caseId": "REC-098-V03", "family": "backing-and-value", "expectedCode": "MQ2044_MissingEnumMemberValue", "expectedSpan": "1.5" },
+    { "caseId": "REC-098-V04", "family": "backing-and-value", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "256" },
+    { "caseId": "REC-098-D01", "family": "duplicate-and-empty", "expectedCode": "MQ2047_EmptyEnumDeclaration", "expectedSpan": "}" },
+    { "caseId": "REC-098-D02", "family": "duplicate-and-empty", "expectedCode": "MQ2045_DuplicateEnumMember", "expectedSpan": "Ready", "occurrence": 1 },
+    { "caseId": "REC-098-D03", "family": "duplicate-and-empty", "expectedCode": "MQ2045_DuplicateEnumMember", "expectedSpan": "READY" },
+    { "caseId": "REC-098-D04", "family": "duplicate-and-empty", "expectedCode": "MQ2042_InvalidEnumDeclaration", "expectedSpan": "STATE" },
+    { "caseId": "REC-098-M01", "family": "member-grammar", "expectedCode": "MQ2044_MissingEnumMemberValue", "expectedSpan": "Ready" },
+    { "caseId": "REC-098-M02", "family": "member-grammar", "expectedCode": "MQ2042_InvalidEnumDeclaration", "expectedSpan": "1" },
+    { "caseId": "REC-098-M03", "family": "member-grammar", "expectedCode": "MQ2042_InvalidEnumDeclaration", "expectedSpan": ",", "occurrence": 1 },
+    { "caseId": "REC-098-M04", "family": "member-grammar", "expectedCode": "MQ2042_InvalidEnumDeclaration", "expectedSpan": "<eof>" },
+    { "caseId": "REC-098-B01", "family": "borrowed-dialect-forms", "expectedCode": "MQ2048_UnsupportedEnumSyntax", "expectedSpan": "ENUM" },
+    { "caseId": "REC-098-B02", "family": "borrowed-dialect-forms", "expectedCode": "MQ2048_UnsupportedEnumSyntax", "expectedSpan": "CREATE" },
+    { "caseId": "REC-098-B03", "family": "borrowed-dialect-forms", "expectedCode": "MQ2044_MissingEnumMemberValue", "expectedSpan": "Ready" },
+    { "caseId": "REC-098-B04", "family": "borrowed-dialect-forms", "expectedCode": "MQ2001_UnexpectedToken", "expectedSpan": "public" },
+    { "caseId": "REC-098-C01", "family": "contextual-boundaries", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "-1" },
+    { "caseId": "REC-098-C02", "family": "contextual-boundaries", "expectedCode": "MQ2046_EnumMemberValueOutOfRange", "expectedSpan": "9223372036854775808" },
+    { "caseId": "REC-098-C03", "family": "contextual-boundaries", "expectedCode": "MQ2042_InvalidEnumDeclaration", "expectedSpan": "FileAccess" },
+    { "caseId": "REC-098-C04", "family": "contextual-boundaries", "expectedCode": "MQ2044_MissingEnumMemberValue", "expectedSpan": "'one'" }
+  ],
+  "preObservation": {
+    "state": "frozen_before_candidate_observation",
+    "registeredBeforeCandidate": true,
+    "observedCandidateBehavior": false,
+    "matrixRevision": 2,
+    "oracleCorrection": "The final expectation for REC-098-M04 follows the parser source branch that reports missing member separators as MQ2042 even when Current is EOF; the source span remains a zero-length insertion point at query length.",
+    "review": {
+      "kind": "self-review",
+      "reviewer": "main session",
+      "independent": false,
+      "sourceBranchReviewed": true,
+      "coreSpecAndCatalogReviewed": true
+    }
+  }
+}

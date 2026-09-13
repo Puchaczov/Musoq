@@ -1,0 +1,2885 @@
+{
+  "formatVersion": 1,
+  "cases": [
+    {
+      "formatVersion": 1,
+      "caseId": "COLD-01",
+      "scopeId": "REC-137",
+      "task": "Compare cold and warm schema-contract diagnostics in case COLD-01.",
+      "seedQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-01-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "ColdWarmSchemaChanges_ShouldUseCurrentSchemaForDiagnostics",
+        "proof": "The permanent 12-case family compares cold, warm, changed-schema and restored-schema outcomes while preserving the provider contract identity."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid COLD-01 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "COLD-01-seed",
+        "after": "COLD-01-candidate",
+        "resultQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-01-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for COLD-01 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_COLD",
+        "rootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+        "context": "COLD/COLD-01/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-01-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "COLD-02",
+      "scopeId": "REC-137",
+      "task": "Compare cold and warm schema-contract diagnostics in case COLD-02.",
+      "seedQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-02-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "ColdWarmSchemaChanges_ShouldUseCurrentSchemaForDiagnostics",
+        "proof": "The permanent 12-case family compares cold, warm, changed-schema and restored-schema outcomes while preserving the provider contract identity."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid COLD-02 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "COLD-02-seed",
+        "after": "COLD-02-candidate",
+        "resultQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-02-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for COLD-02 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_COLD",
+        "rootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+        "context": "COLD/COLD-02/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-02-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "COLD-03",
+      "scopeId": "REC-137",
+      "task": "Compare cold and warm schema-contract diagnostics in case COLD-03.",
+      "seedQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-03-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "ColdWarmSchemaChanges_ShouldUseCurrentSchemaForDiagnostics",
+        "proof": "The permanent 12-case family compares cold, warm, changed-schema and restored-schema outcomes while preserving the provider contract identity."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid COLD-03 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "COLD-03-seed",
+        "after": "COLD-03-candidate",
+        "resultQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-03-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for COLD-03 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_COLD",
+        "rootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+        "context": "COLD/COLD-03/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-03-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "COLD-04",
+      "scopeId": "REC-137",
+      "task": "Compare cold and warm schema-contract diagnostics in case COLD-04.",
+      "seedQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-04-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "ColdWarmSchemaChanges_ShouldUseCurrentSchemaForDiagnostics",
+        "proof": "The permanent 12-case family compares cold, warm, changed-schema and restored-schema outcomes while preserving the provider contract identity."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid COLD-04 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "COLD-04-seed",
+        "after": "COLD-04-candidate",
+        "resultQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-04-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for COLD-04 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_COLD",
+        "rootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+        "context": "COLD/COLD-04/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-04-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "COLD-05",
+      "scopeId": "REC-137",
+      "task": "Compare cold and warm schema-contract diagnostics in case COLD-05.",
+      "seedQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-05-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "ColdWarmSchemaChanges_ShouldUseCurrentSchemaForDiagnostics",
+        "proof": "The permanent 12-case family compares cold, warm, changed-schema and restored-schema outcomes while preserving the provider contract identity."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid COLD-05 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "COLD-05-seed",
+        "after": "COLD-05-candidate",
+        "resultQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-05-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for COLD-05 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_COLD",
+        "rootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+        "context": "COLD/COLD-05/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-05-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "COLD-06",
+      "scopeId": "REC-137",
+      "task": "Compare cold and warm schema-contract diagnostics in case COLD-06.",
+      "seedQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-06-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "ColdWarmSchemaChanges_ShouldUseCurrentSchemaForDiagnostics",
+        "proof": "The permanent 12-case family compares cold, warm, changed-schema and restored-schema outcomes while preserving the provider contract identity."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid COLD-06 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "COLD-06-seed",
+        "after": "COLD-06-candidate",
+        "resultQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-06-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for COLD-06 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_COLD",
+        "rootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+        "context": "COLD/COLD-06/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-06-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "COLD-07",
+      "scopeId": "REC-137",
+      "task": "Compare cold and warm schema-contract diagnostics in case COLD-07.",
+      "seedQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-07-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "ColdWarmSchemaChanges_ShouldUseCurrentSchemaForDiagnostics",
+        "proof": "The permanent 12-case family compares cold, warm, changed-schema and restored-schema outcomes while preserving the provider contract identity."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid COLD-07 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "COLD-07-seed",
+        "after": "COLD-07-candidate",
+        "resultQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-07-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for COLD-07 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_COLD",
+        "rootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+        "context": "COLD/COLD-07/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-07-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "COLD-08",
+      "scopeId": "REC-137",
+      "task": "Compare cold and warm schema-contract diagnostics in case COLD-08.",
+      "seedQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-08-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "ColdWarmSchemaChanges_ShouldUseCurrentSchemaForDiagnostics",
+        "proof": "The permanent 12-case family compares cold, warm, changed-schema and restored-schema outcomes while preserving the provider contract identity."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid COLD-08 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "COLD-08-seed",
+        "after": "COLD-08-candidate",
+        "resultQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-08-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for COLD-08 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_COLD",
+        "rootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+        "context": "COLD/COLD-08/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-08-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "COLD-09",
+      "scopeId": "REC-137",
+      "task": "Compare cold and warm schema-contract diagnostics in case COLD-09.",
+      "seedQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-09-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "ColdWarmSchemaChanges_ShouldUseCurrentSchemaForDiagnostics",
+        "proof": "The permanent 12-case family compares cold, warm, changed-schema and restored-schema outcomes while preserving the provider contract identity."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid COLD-09 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "COLD-09-seed",
+        "after": "COLD-09-candidate",
+        "resultQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-09-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for COLD-09 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_COLD",
+        "rootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+        "context": "COLD/COLD-09/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-09-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "COLD-10",
+      "scopeId": "REC-137",
+      "task": "Compare cold and warm schema-contract diagnostics in case COLD-10.",
+      "seedQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-10-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "ColdWarmSchemaChanges_ShouldUseCurrentSchemaForDiagnostics",
+        "proof": "The permanent 12-case family compares cold, warm, changed-schema and restored-schema outcomes while preserving the provider contract identity."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid COLD-10 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "COLD-10-seed",
+        "after": "COLD-10-candidate",
+        "resultQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-10-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for COLD-10 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_COLD",
+        "rootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+        "context": "COLD/COLD-10/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-10-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "COLD-11",
+      "scopeId": "REC-137",
+      "task": "Compare cold and warm schema-contract diagnostics in case COLD-11.",
+      "seedQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-11-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "ColdWarmSchemaChanges_ShouldUseCurrentSchemaForDiagnostics",
+        "proof": "The permanent 12-case family compares cold, warm, changed-schema and restored-schema outcomes while preserving the provider contract identity."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid COLD-11 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "COLD-11-seed",
+        "after": "COLD-11-candidate",
+        "resultQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-11-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for COLD-11 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_COLD",
+        "rootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+        "context": "COLD/COLD-11/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-11-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "COLD-12",
+      "scopeId": "REC-137",
+      "task": "Compare cold and warm schema-contract diagnostics in case COLD-12.",
+      "seedQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-12-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "ColdWarmSchemaChanges_ShouldUseCurrentSchemaForDiagnostics",
+        "proof": "The permanent 12-case family compares cold, warm, changed-schema and restored-schema outcomes while preserving the provider contract identity."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid COLD-12 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "COLD-12-seed",
+        "after": "COLD-12-candidate",
+        "resultQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-12-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for COLD-12 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_COLD",
+        "rootCause": "Warm execution must use the current schema contract and never replay a diagnostic or artifact from an incompatible schema.",
+        "context": "COLD/COLD-12/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #rec137.items() e /* REC-137-COLD-12-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SEQUENCE-01",
+      "scopeId": "REC-137",
+      "task": "Recompute invalid-to-valid-to-invalid schema diagnostics in case SEQUENCE-01.",
+      "seedQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-01-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "InvalidValidInvalidSequences_ShouldRecomputeAgainstCurrentSchema",
+        "proof": "The permanent 12-case family executes the same query through invalid, valid and invalid schema states with distinct provider signatures."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SEQUENCE-01 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SEQUENCE-01-seed",
+        "after": "SEQUENCE-01-candidate",
+        "resultQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-01-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SEQUENCE-01 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SEQUENCE",
+        "rootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+        "context": "SEQUENCE/SEQUENCE-01/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-01-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SEQUENCE-02",
+      "scopeId": "REC-137",
+      "task": "Recompute invalid-to-valid-to-invalid schema diagnostics in case SEQUENCE-02.",
+      "seedQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-02-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "InvalidValidInvalidSequences_ShouldRecomputeAgainstCurrentSchema",
+        "proof": "The permanent 12-case family executes the same query through invalid, valid and invalid schema states with distinct provider signatures."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SEQUENCE-02 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SEQUENCE-02-seed",
+        "after": "SEQUENCE-02-candidate",
+        "resultQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-02-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SEQUENCE-02 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SEQUENCE",
+        "rootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+        "context": "SEQUENCE/SEQUENCE-02/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-02-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SEQUENCE-03",
+      "scopeId": "REC-137",
+      "task": "Recompute invalid-to-valid-to-invalid schema diagnostics in case SEQUENCE-03.",
+      "seedQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-03-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "InvalidValidInvalidSequences_ShouldRecomputeAgainstCurrentSchema",
+        "proof": "The permanent 12-case family executes the same query through invalid, valid and invalid schema states with distinct provider signatures."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SEQUENCE-03 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SEQUENCE-03-seed",
+        "after": "SEQUENCE-03-candidate",
+        "resultQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-03-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SEQUENCE-03 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SEQUENCE",
+        "rootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+        "context": "SEQUENCE/SEQUENCE-03/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-03-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SEQUENCE-04",
+      "scopeId": "REC-137",
+      "task": "Recompute invalid-to-valid-to-invalid schema diagnostics in case SEQUENCE-04.",
+      "seedQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-04-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "InvalidValidInvalidSequences_ShouldRecomputeAgainstCurrentSchema",
+        "proof": "The permanent 12-case family executes the same query through invalid, valid and invalid schema states with distinct provider signatures."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SEQUENCE-04 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SEQUENCE-04-seed",
+        "after": "SEQUENCE-04-candidate",
+        "resultQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-04-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SEQUENCE-04 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SEQUENCE",
+        "rootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+        "context": "SEQUENCE/SEQUENCE-04/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-04-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SEQUENCE-05",
+      "scopeId": "REC-137",
+      "task": "Recompute invalid-to-valid-to-invalid schema diagnostics in case SEQUENCE-05.",
+      "seedQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-05-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "InvalidValidInvalidSequences_ShouldRecomputeAgainstCurrentSchema",
+        "proof": "The permanent 12-case family executes the same query through invalid, valid and invalid schema states with distinct provider signatures."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SEQUENCE-05 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SEQUENCE-05-seed",
+        "after": "SEQUENCE-05-candidate",
+        "resultQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-05-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SEQUENCE-05 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SEQUENCE",
+        "rootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+        "context": "SEQUENCE/SEQUENCE-05/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-05-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SEQUENCE-06",
+      "scopeId": "REC-137",
+      "task": "Recompute invalid-to-valid-to-invalid schema diagnostics in case SEQUENCE-06.",
+      "seedQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-06-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "InvalidValidInvalidSequences_ShouldRecomputeAgainstCurrentSchema",
+        "proof": "The permanent 12-case family executes the same query through invalid, valid and invalid schema states with distinct provider signatures."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SEQUENCE-06 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SEQUENCE-06-seed",
+        "after": "SEQUENCE-06-candidate",
+        "resultQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-06-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SEQUENCE-06 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SEQUENCE",
+        "rootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+        "context": "SEQUENCE/SEQUENCE-06/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-06-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SEQUENCE-07",
+      "scopeId": "REC-137",
+      "task": "Recompute invalid-to-valid-to-invalid schema diagnostics in case SEQUENCE-07.",
+      "seedQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-07-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "InvalidValidInvalidSequences_ShouldRecomputeAgainstCurrentSchema",
+        "proof": "The permanent 12-case family executes the same query through invalid, valid and invalid schema states with distinct provider signatures."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SEQUENCE-07 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SEQUENCE-07-seed",
+        "after": "SEQUENCE-07-candidate",
+        "resultQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-07-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SEQUENCE-07 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SEQUENCE",
+        "rootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+        "context": "SEQUENCE/SEQUENCE-07/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-07-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SEQUENCE-08",
+      "scopeId": "REC-137",
+      "task": "Recompute invalid-to-valid-to-invalid schema diagnostics in case SEQUENCE-08.",
+      "seedQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-08-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "InvalidValidInvalidSequences_ShouldRecomputeAgainstCurrentSchema",
+        "proof": "The permanent 12-case family executes the same query through invalid, valid and invalid schema states with distinct provider signatures."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SEQUENCE-08 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SEQUENCE-08-seed",
+        "after": "SEQUENCE-08-candidate",
+        "resultQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-08-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SEQUENCE-08 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SEQUENCE",
+        "rootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+        "context": "SEQUENCE/SEQUENCE-08/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-08-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SEQUENCE-09",
+      "scopeId": "REC-137",
+      "task": "Recompute invalid-to-valid-to-invalid schema diagnostics in case SEQUENCE-09.",
+      "seedQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-09-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "InvalidValidInvalidSequences_ShouldRecomputeAgainstCurrentSchema",
+        "proof": "The permanent 12-case family executes the same query through invalid, valid and invalid schema states with distinct provider signatures."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SEQUENCE-09 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SEQUENCE-09-seed",
+        "after": "SEQUENCE-09-candidate",
+        "resultQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-09-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SEQUENCE-09 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SEQUENCE",
+        "rootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+        "context": "SEQUENCE/SEQUENCE-09/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-09-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SEQUENCE-10",
+      "scopeId": "REC-137",
+      "task": "Recompute invalid-to-valid-to-invalid schema diagnostics in case SEQUENCE-10.",
+      "seedQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-10-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "InvalidValidInvalidSequences_ShouldRecomputeAgainstCurrentSchema",
+        "proof": "The permanent 12-case family executes the same query through invalid, valid and invalid schema states with distinct provider signatures."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SEQUENCE-10 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SEQUENCE-10-seed",
+        "after": "SEQUENCE-10-candidate",
+        "resultQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-10-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SEQUENCE-10 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SEQUENCE",
+        "rootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+        "context": "SEQUENCE/SEQUENCE-10/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-10-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SEQUENCE-11",
+      "scopeId": "REC-137",
+      "task": "Recompute invalid-to-valid-to-invalid schema diagnostics in case SEQUENCE-11.",
+      "seedQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-11-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "InvalidValidInvalidSequences_ShouldRecomputeAgainstCurrentSchema",
+        "proof": "The permanent 12-case family executes the same query through invalid, valid and invalid schema states with distinct provider signatures."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SEQUENCE-11 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SEQUENCE-11-seed",
+        "after": "SEQUENCE-11-candidate",
+        "resultQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-11-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SEQUENCE-11 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SEQUENCE",
+        "rootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+        "context": "SEQUENCE/SEQUENCE-11/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-11-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SEQUENCE-12",
+      "scopeId": "REC-137",
+      "task": "Recompute invalid-to-valid-to-invalid schema diagnostics in case SEQUENCE-12.",
+      "seedQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-12-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "InvalidValidInvalidSequences_ShouldRecomputeAgainstCurrentSchema",
+        "proof": "The permanent 12-case family executes the same query through invalid, valid and invalid schema states with distinct provider signatures."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SEQUENCE-12 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SEQUENCE-12-seed",
+        "after": "SEQUENCE-12-candidate",
+        "resultQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-12-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SEQUENCE-12 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SEQUENCE",
+        "rootCause": "Invalid diagnostics must not poison a later valid compilation or suppress a later invalid diagnostic under changed source metadata.",
+        "context": "SEQUENCE/SEQUENCE-12/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Extra from #rec137.items() e /* REC-137-SEQUENCE-12-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ENUM-01",
+      "scopeId": "REC-137",
+      "task": "Invalidate changed enum descriptors and classify stale execution in case ENUM-01.",
+      "seedQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-01-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "EnumDescriptorChanges_ShouldInvalidateWarmArtifactAndRejectStaleExecution",
+        "proof": "The permanent 12-case family compares descriptor fingerprints and exercises a deliberate descriptor drift at execution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ENUM-01 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "ENUM-01-seed",
+        "after": "ENUM-01-candidate",
+        "resultQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-01-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for ENUM-01 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_ENUM",
+        "rootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+        "context": "ENUM/ENUM-01/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-01-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ENUM-02",
+      "scopeId": "REC-137",
+      "task": "Invalidate changed enum descriptors and classify stale execution in case ENUM-02.",
+      "seedQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-02-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "EnumDescriptorChanges_ShouldInvalidateWarmArtifactAndRejectStaleExecution",
+        "proof": "The permanent 12-case family compares descriptor fingerprints and exercises a deliberate descriptor drift at execution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ENUM-02 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "ENUM-02-seed",
+        "after": "ENUM-02-candidate",
+        "resultQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-02-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for ENUM-02 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_ENUM",
+        "rootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+        "context": "ENUM/ENUM-02/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-02-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ENUM-03",
+      "scopeId": "REC-137",
+      "task": "Invalidate changed enum descriptors and classify stale execution in case ENUM-03.",
+      "seedQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-03-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "EnumDescriptorChanges_ShouldInvalidateWarmArtifactAndRejectStaleExecution",
+        "proof": "The permanent 12-case family compares descriptor fingerprints and exercises a deliberate descriptor drift at execution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ENUM-03 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "ENUM-03-seed",
+        "after": "ENUM-03-candidate",
+        "resultQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-03-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for ENUM-03 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_ENUM",
+        "rootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+        "context": "ENUM/ENUM-03/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-03-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ENUM-04",
+      "scopeId": "REC-137",
+      "task": "Invalidate changed enum descriptors and classify stale execution in case ENUM-04.",
+      "seedQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-04-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "EnumDescriptorChanges_ShouldInvalidateWarmArtifactAndRejectStaleExecution",
+        "proof": "The permanent 12-case family compares descriptor fingerprints and exercises a deliberate descriptor drift at execution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ENUM-04 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "ENUM-04-seed",
+        "after": "ENUM-04-candidate",
+        "resultQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-04-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for ENUM-04 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_ENUM",
+        "rootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+        "context": "ENUM/ENUM-04/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-04-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ENUM-05",
+      "scopeId": "REC-137",
+      "task": "Invalidate changed enum descriptors and classify stale execution in case ENUM-05.",
+      "seedQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-05-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "EnumDescriptorChanges_ShouldInvalidateWarmArtifactAndRejectStaleExecution",
+        "proof": "The permanent 12-case family compares descriptor fingerprints and exercises a deliberate descriptor drift at execution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ENUM-05 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "ENUM-05-seed",
+        "after": "ENUM-05-candidate",
+        "resultQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-05-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for ENUM-05 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_ENUM",
+        "rootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+        "context": "ENUM/ENUM-05/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-05-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ENUM-06",
+      "scopeId": "REC-137",
+      "task": "Invalidate changed enum descriptors and classify stale execution in case ENUM-06.",
+      "seedQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-06-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "EnumDescriptorChanges_ShouldInvalidateWarmArtifactAndRejectStaleExecution",
+        "proof": "The permanent 12-case family compares descriptor fingerprints and exercises a deliberate descriptor drift at execution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ENUM-06 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "ENUM-06-seed",
+        "after": "ENUM-06-candidate",
+        "resultQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-06-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for ENUM-06 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_ENUM",
+        "rootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+        "context": "ENUM/ENUM-06/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-06-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ENUM-07",
+      "scopeId": "REC-137",
+      "task": "Invalidate changed enum descriptors and classify stale execution in case ENUM-07.",
+      "seedQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-07-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "EnumDescriptorChanges_ShouldInvalidateWarmArtifactAndRejectStaleExecution",
+        "proof": "The permanent 12-case family compares descriptor fingerprints and exercises a deliberate descriptor drift at execution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ENUM-07 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "ENUM-07-seed",
+        "after": "ENUM-07-candidate",
+        "resultQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-07-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for ENUM-07 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_ENUM",
+        "rootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+        "context": "ENUM/ENUM-07/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-07-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ENUM-08",
+      "scopeId": "REC-137",
+      "task": "Invalidate changed enum descriptors and classify stale execution in case ENUM-08.",
+      "seedQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-08-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "EnumDescriptorChanges_ShouldInvalidateWarmArtifactAndRejectStaleExecution",
+        "proof": "The permanent 12-case family compares descriptor fingerprints and exercises a deliberate descriptor drift at execution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ENUM-08 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "ENUM-08-seed",
+        "after": "ENUM-08-candidate",
+        "resultQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-08-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for ENUM-08 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_ENUM",
+        "rootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+        "context": "ENUM/ENUM-08/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-08-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ENUM-09",
+      "scopeId": "REC-137",
+      "task": "Invalidate changed enum descriptors and classify stale execution in case ENUM-09.",
+      "seedQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-09-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "EnumDescriptorChanges_ShouldInvalidateWarmArtifactAndRejectStaleExecution",
+        "proof": "The permanent 12-case family compares descriptor fingerprints and exercises a deliberate descriptor drift at execution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ENUM-09 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "ENUM-09-seed",
+        "after": "ENUM-09-candidate",
+        "resultQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-09-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for ENUM-09 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_ENUM",
+        "rootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+        "context": "ENUM/ENUM-09/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-09-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ENUM-10",
+      "scopeId": "REC-137",
+      "task": "Invalidate changed enum descriptors and classify stale execution in case ENUM-10.",
+      "seedQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-10-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "EnumDescriptorChanges_ShouldInvalidateWarmArtifactAndRejectStaleExecution",
+        "proof": "The permanent 12-case family compares descriptor fingerprints and exercises a deliberate descriptor drift at execution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ENUM-10 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "ENUM-10-seed",
+        "after": "ENUM-10-candidate",
+        "resultQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-10-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for ENUM-10 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_ENUM",
+        "rootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+        "context": "ENUM/ENUM-10/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-10-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ENUM-11",
+      "scopeId": "REC-137",
+      "task": "Invalidate changed enum descriptors and classify stale execution in case ENUM-11.",
+      "seedQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-11-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "EnumDescriptorChanges_ShouldInvalidateWarmArtifactAndRejectStaleExecution",
+        "proof": "The permanent 12-case family compares descriptor fingerprints and exercises a deliberate descriptor drift at execution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ENUM-11 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "ENUM-11-seed",
+        "after": "ENUM-11-candidate",
+        "resultQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-11-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for ENUM-11 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_ENUM",
+        "rootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+        "context": "ENUM/ENUM-11/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-11-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "ENUM-12",
+      "scopeId": "REC-137",
+      "task": "Invalidate changed enum descriptors and classify stale execution in case ENUM-12.",
+      "seedQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-12-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "EnumDescriptorChanges_ShouldInvalidateWarmArtifactAndRejectStaleExecution",
+        "proof": "The permanent 12-case family compares descriptor fingerprints and exercises a deliberate descriptor drift at execution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid ENUM-12 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "ENUM-12-seed",
+        "after": "ENUM-12-candidate",
+        "resultQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-12-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for ENUM-12 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_ENUM",
+        "rootCause": "Changed enum descriptors must invalidate reusable artifacts and stale compiled execution must request recompilation rather than fabricate a syntax diagnostic.",
+        "context": "ENUM/ENUM-12/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #rec137.items() e /* REC-137-ENUM-12-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SETTINGS-01",
+      "scopeId": "REC-137",
+      "task": "Refresh source-runtime settings and metadata in case SETTINGS-01.",
+      "seedQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-01-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "SourceSettingsAndMetadataChanges_ShouldNotReuseAStaleCompilation",
+        "proof": "The permanent 12-case family changes both a resolver token and source metadata version while requiring fresh settings resolution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SETTINGS-01 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SETTINGS-01-seed",
+        "after": "SETTINGS-01-candidate",
+        "resultQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-01-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SETTINGS-01 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SETTINGS",
+        "rootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+        "context": "SETTINGS/SETTINGS-01/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-01-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SETTINGS-02",
+      "scopeId": "REC-137",
+      "task": "Refresh source-runtime settings and metadata in case SETTINGS-02.",
+      "seedQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-02-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "SourceSettingsAndMetadataChanges_ShouldNotReuseAStaleCompilation",
+        "proof": "The permanent 12-case family changes both a resolver token and source metadata version while requiring fresh settings resolution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SETTINGS-02 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SETTINGS-02-seed",
+        "after": "SETTINGS-02-candidate",
+        "resultQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-02-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SETTINGS-02 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SETTINGS",
+        "rootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+        "context": "SETTINGS/SETTINGS-02/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-02-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SETTINGS-03",
+      "scopeId": "REC-137",
+      "task": "Refresh source-runtime settings and metadata in case SETTINGS-03.",
+      "seedQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-03-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "SourceSettingsAndMetadataChanges_ShouldNotReuseAStaleCompilation",
+        "proof": "The permanent 12-case family changes both a resolver token and source metadata version while requiring fresh settings resolution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SETTINGS-03 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SETTINGS-03-seed",
+        "after": "SETTINGS-03-candidate",
+        "resultQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-03-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SETTINGS-03 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SETTINGS",
+        "rootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+        "context": "SETTINGS/SETTINGS-03/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-03-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SETTINGS-04",
+      "scopeId": "REC-137",
+      "task": "Refresh source-runtime settings and metadata in case SETTINGS-04.",
+      "seedQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-04-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "SourceSettingsAndMetadataChanges_ShouldNotReuseAStaleCompilation",
+        "proof": "The permanent 12-case family changes both a resolver token and source metadata version while requiring fresh settings resolution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SETTINGS-04 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SETTINGS-04-seed",
+        "after": "SETTINGS-04-candidate",
+        "resultQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-04-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SETTINGS-04 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SETTINGS",
+        "rootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+        "context": "SETTINGS/SETTINGS-04/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-04-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SETTINGS-05",
+      "scopeId": "REC-137",
+      "task": "Refresh source-runtime settings and metadata in case SETTINGS-05.",
+      "seedQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-05-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "SourceSettingsAndMetadataChanges_ShouldNotReuseAStaleCompilation",
+        "proof": "The permanent 12-case family changes both a resolver token and source metadata version while requiring fresh settings resolution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SETTINGS-05 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SETTINGS-05-seed",
+        "after": "SETTINGS-05-candidate",
+        "resultQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-05-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SETTINGS-05 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SETTINGS",
+        "rootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+        "context": "SETTINGS/SETTINGS-05/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-05-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SETTINGS-06",
+      "scopeId": "REC-137",
+      "task": "Refresh source-runtime settings and metadata in case SETTINGS-06.",
+      "seedQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-06-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "SourceSettingsAndMetadataChanges_ShouldNotReuseAStaleCompilation",
+        "proof": "The permanent 12-case family changes both a resolver token and source metadata version while requiring fresh settings resolution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SETTINGS-06 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SETTINGS-06-seed",
+        "after": "SETTINGS-06-candidate",
+        "resultQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-06-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SETTINGS-06 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SETTINGS",
+        "rootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+        "context": "SETTINGS/SETTINGS-06/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-06-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SETTINGS-07",
+      "scopeId": "REC-137",
+      "task": "Refresh source-runtime settings and metadata in case SETTINGS-07.",
+      "seedQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-07-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "SourceSettingsAndMetadataChanges_ShouldNotReuseAStaleCompilation",
+        "proof": "The permanent 12-case family changes both a resolver token and source metadata version while requiring fresh settings resolution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SETTINGS-07 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SETTINGS-07-seed",
+        "after": "SETTINGS-07-candidate",
+        "resultQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-07-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SETTINGS-07 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SETTINGS",
+        "rootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+        "context": "SETTINGS/SETTINGS-07/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-07-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SETTINGS-08",
+      "scopeId": "REC-137",
+      "task": "Refresh source-runtime settings and metadata in case SETTINGS-08.",
+      "seedQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-08-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "SourceSettingsAndMetadataChanges_ShouldNotReuseAStaleCompilation",
+        "proof": "The permanent 12-case family changes both a resolver token and source metadata version while requiring fresh settings resolution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SETTINGS-08 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SETTINGS-08-seed",
+        "after": "SETTINGS-08-candidate",
+        "resultQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-08-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SETTINGS-08 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SETTINGS",
+        "rootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+        "context": "SETTINGS/SETTINGS-08/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-08-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SETTINGS-09",
+      "scopeId": "REC-137",
+      "task": "Refresh source-runtime settings and metadata in case SETTINGS-09.",
+      "seedQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-09-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "SourceSettingsAndMetadataChanges_ShouldNotReuseAStaleCompilation",
+        "proof": "The permanent 12-case family changes both a resolver token and source metadata version while requiring fresh settings resolution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SETTINGS-09 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SETTINGS-09-seed",
+        "after": "SETTINGS-09-candidate",
+        "resultQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-09-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SETTINGS-09 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SETTINGS",
+        "rootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+        "context": "SETTINGS/SETTINGS-09/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-09-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SETTINGS-10",
+      "scopeId": "REC-137",
+      "task": "Refresh source-runtime settings and metadata in case SETTINGS-10.",
+      "seedQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-10-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "SourceSettingsAndMetadataChanges_ShouldNotReuseAStaleCompilation",
+        "proof": "The permanent 12-case family changes both a resolver token and source metadata version while requiring fresh settings resolution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SETTINGS-10 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SETTINGS-10-seed",
+        "after": "SETTINGS-10-candidate",
+        "resultQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-10-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SETTINGS-10 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SETTINGS",
+        "rootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+        "context": "SETTINGS/SETTINGS-10/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-10-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SETTINGS-11",
+      "scopeId": "REC-137",
+      "task": "Refresh source-runtime settings and metadata in case SETTINGS-11.",
+      "seedQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-11-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "SourceSettingsAndMetadataChanges_ShouldNotReuseAStaleCompilation",
+        "proof": "The permanent 12-case family changes both a resolver token and source metadata version while requiring fresh settings resolution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SETTINGS-11 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SETTINGS-11-seed",
+        "after": "SETTINGS-11-candidate",
+        "resultQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-11-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SETTINGS-11 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SETTINGS",
+        "rootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+        "context": "SETTINGS/SETTINGS-11/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-11-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SETTINGS-12",
+      "scopeId": "REC-137",
+      "task": "Refresh source-runtime settings and metadata in case SETTINGS-12.",
+      "seedQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-12-seed */",
+      "fixtureRef": {
+        "id": "REC-137-cold-warm-cache-diagnostics",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-137ColdWarmCacheDiagnosticsTests.cs",
+        "testName": "SourceSettingsAndMetadataChanges_ShouldNotReuseAStaleCompilation",
+        "proof": "The permanent 12-case family changes both a resolver token and source metadata version while requiring fresh settings resolution."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SETTINGS-12 seed marker with the controlled cache-diagnostic candidate marker.",
+        "before": "SETTINGS-12-seed",
+        "after": "SETTINGS-12-candidate",
+        "resultQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-12-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic results are bound to the current query source, schema and runtime contract; cached or replayed diagnostics must remain machine-readable and truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+          "section": "/scopes",
+          "passage": "Prior recovery scopes require cold and warm observations to preserve current source facts and record compatibility or recompile outcomes for stale artifacts.",
+          "sourceSha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The cold/warm, changed-contract and stale-artifact outcome for SETTINGS-12 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC137_SETTINGS",
+        "rootCause": "Declared source-runtime settings and changed source metadata must remain invocation-specific and must not reuse a stale execution compilation.",
+        "context": "SETTINGS/SETTINGS-12/cold-warm-cache-diagnostics"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Token from #rec137settings.items() e /* REC-137-SETTINGS-12-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same cold/warm or changed-contract cache family remains exercised.",
+          "The same current-diagnostic, descriptor or recompile observation remains asserted."
+        ]
+      }
+    }
+  ]
+}

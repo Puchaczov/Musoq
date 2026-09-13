@@ -1,0 +1,65 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-119",
+  "state": "correction_history",
+  "corrections": [
+    {
+      "id": "REC-119-C01",
+      "caseId": "V05",
+      "fromContract": "docs/campaigns/recovery-v3/evidence/REC-119-case-contract.json",
+      "toContract": "docs/campaigns/recovery-v3/evidence/REC-119-case-contract-v2.json",
+      "observation": "The first focused replay reached V05 and emitted MQ5023_UnusedScriptVariable before MQ5022_UnusedCte, while the frozen expectation listed the two warnings in the opposite order.",
+      "rootCause": "The initial oracle captured warning membership but not the candidate's stable advisory traversal order for a dead let whose initializer is referenced only by a dead CTE.",
+      "correctiveChange": "V05 preserves both warnings and changes only expectedDiagnostics ordering to MQ5023_UnusedScriptVariable followed by MQ5022_UnusedCte.",
+      "sourceJustification": "The authority requires both the unused let and the unreachable authored CTE to be reported; the correction records the observed order without removing either diagnostic or changing the reachability obligation.",
+      "review": "Self-review of the focused replay output and the active warning contract; no independent reviewer was available.",
+      "v1Immutable": true,
+      "replayRequired": true
+    },
+    {
+      "id": "REC-119-C02",
+      "caseId": "C07",
+      "fromContract": "docs/campaigns/recovery-v3/evidence/REC-119-case-contract.json",
+      "toContract": "docs/campaigns/recovery-v3/evidence/REC-119-case-contract-v2.json",
+      "observation": "The first focused replay rejected C07 with MQ2036_MultipleExecutableStatements because the fixture contained two executable SELECT statements, although the permanent compilation test requires every candidate to be runnable as one compilation entry point.",
+      "rootCause": "The initial fixture incorrectly modeled two query statements instead of two dead CTE declarations in one executable query.",
+      "correctiveChange": "C07 now declares first_dead and second_dead in one WITH clause and retains both expected MQ5022_UnusedCte warnings.",
+      "sourceJustification": "The authority's CTE reachability obligation is unchanged, and the compiler's one-entry-point contract requires a single executable statement.",
+      "review": "Self-review of the focused replay output against the compiler entry-point diagnostic; no independent reviewer was available.",
+      "v1Immutable": true,
+      "replayRequired": true
+    },
+    {
+      "id": "REC-119-C03",
+      "caseId": "V10",
+      "fromContract": "docs/campaigns/recovery-v3/evidence/REC-119-case-contract.json",
+      "toContract": "docs/campaigns/recovery-v3/evidence/REC-119-case-contract-v2.json",
+      "observation": "C07 established during the first focused replay that the permanent warning-compilation gate rejects multiple executable statements with MQ2036_MultipleExecutableStatements; V10 used the same two-SELECT fixture shape and therefore could not satisfy the declared runnable-candidate gate.",
+      "rootCause": "The initial V10 fixture placed the live SELECT and dead declaration after a second executable SELECT, exceeding the compilation entry-point contract.",
+      "correctiveChange": "V10 now keeps both let declarations before one SELECT, preserving a live first variable and one unused second variable.",
+      "sourceJustification": "The let reachability obligation is unchanged, and the corrected fixture remains a single executable query with the same one-warning expectation.",
+      "review": "Self-review of the C07 replay failure and the shared one-entry-point contract; V10 had not been separately observed before this preventive fixture correction.",
+      "v1Immutable": true,
+      "replayRequired": true
+    },
+    {
+      "id": "REC-119-C04",
+      "caseId": "P07",
+      "fromContract": "docs/campaigns/recovery-v3/evidence/REC-119-case-contract-v2.json",
+      "toContract": "docs/campaigns/recovery-v3/evidence/REC-119-case-contract-v3.json",
+      "observation": "Both required full-gate attempts failed the existing cache-reuse test because REC-119 P07 compiled the exact same query text concurrently; the isolated cache-reuse replay passed 1/1.",
+      "rootCause": "The P07 fixture shared the script-text execution-cache key with an unrelated test whose first compilation must be a cache miss, making the full suite order-dependent under method-level parallelism.",
+      "correctiveChange": "P07 now uses an equivalent source alias for the same ordered TAKE-1 query, preserving the inactive set-modifier boundary and zero-warning expectation while removing the exact cache-key collision.",
+      "sourceJustification": "The authority states that trailing ORDER BY and slicing are result-level and MQ5026 remains inactive; aliasing the source does not change that obligation.",
+      "review": "Self-review of both full-gate failures, the isolated passing replay, and the script-text execution-cache key; no independent reviewer was available.",
+      "v1Immutable": true,
+      "v2Immutable": true,
+      "replayRequired": true
+    }
+  ],
+  "rules": {
+    "immutablePriorRevisions": true,
+    "correctionsReviewedBeforeReplay": true,
+    "finalRevisionRequiresReplay": true
+  }
+}

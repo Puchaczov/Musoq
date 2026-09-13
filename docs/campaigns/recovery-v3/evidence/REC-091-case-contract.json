@@ -1,0 +1,64 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-091",
+  "outcome": "pre_final_replay_frozen",
+  "casesPath": "docs/campaigns/recovery-v3/evidence/REC-091-pre-observation-manifest.json",
+  "caseCount": 48,
+  "validationControlCount": 4,
+  "testSource": "src/dotnet/Musoq.Parser.Tests/Diagnostic.REC-091MissingTokenTargetingTests.cs",
+  "candidateTestMethod": "MissingTokenRecovery_ShouldPreserveBoundariesAndApplyOnlyEmittedEdits",
+  "controlTestMethod": "BracketedIdentifierControls_ShouldReparseReservedAndSpaceContainingNames",
+  "authority": {
+    "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+    "sections": [
+      "2.3 Identifiers",
+      "2.4 Comments",
+      "5.3 Aliases",
+      "6.2 Table and Source Aliasing",
+      "23.1 Diagnostic envelope contract",
+      "23.4 Exact parser diagnostics"
+    ]
+  },
+  "coverage": {
+    "missingAliases": 12,
+    "missingSeparators": 10,
+    "missingClosingDelimiters": 10,
+    "missingCaseComponents": 9,
+    "misspelledKeywordsWithEmittedQuickFix": 7,
+    "reservedAndSpaceContainingIdentifierControls": 4,
+    "eofInsertionPoints": 8,
+    "commentOrMultilineTriviaCases": 8
+  },
+  "actionContract": {
+    "safeEdits": "Only keyword quick-fix TextEdit actions may be applied. The test uses the returned TextEdit span and replacement.",
+    "unsafeEdits": "Missing expressions, missing separators, and missing aliases have no test-authored replacement because syntax alone cannot infer user intent.",
+    "keywordSuggestionGuard": "Non-word pseudo-keywords and identifier labels immediately before ':' must not receive a keyword TextEdit.",
+    "reparse": "Every safe emitted edit must produce the exact registered repaired query and parse without diagnostics.",
+    "boundary": "The diagnostic span must end at or before the registered next clause token; no case may consume that token.",
+    "literalsAndTrivia": "Comments, CRLF trivia, bracketed identifiers, and literal text must remain in the repaired document."
+  },
+  "fingerprintRules": {
+    "identifierSpellingAloneIsNotNovelFingerprint": true,
+    "repeatedTextIsNonExecutable": true,
+    "oneFaultPerCase": true,
+    "controlsAreNotCandidateCounts": true
+  },
+  "matrixRevision": {
+    "current": 2,
+    "history": [
+      {
+        "revision": 1,
+        "state": "superseded_after_observation",
+        "caseIds": [
+          "REC-091-K06"
+        ],
+        "reason": "The initial K06 candidate omitted GROUP BY, making the repaired HAVING query invalid for a one-fault candidate."
+      },
+      {
+        "revision": 2,
+        "state": "frozen_before_final_replay",
+        "sourceCorpusSha256": "AAEB63093876100B6F057A32BB6CD9A5DE3EC3CEBFE384F6E11D324D15D1A1F8"
+      }
+    ]
+  }
+}

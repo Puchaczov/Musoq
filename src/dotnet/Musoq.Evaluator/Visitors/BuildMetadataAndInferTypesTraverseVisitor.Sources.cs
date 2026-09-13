@@ -210,7 +210,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
                 nameof(ApplyOrdinalityIfNeeded),
                 $"WITH ORDINALITY cannot be used because apply alias '{rightAlias}' already exposes an Ordinal column.",
                 DiagnosticCode.MQ2030_UnsupportedSyntax,
-                sourceNode.SpanOrEmpty());
+                TextSpan.Empty);
         }
 
         var ordinalColumn = new SchemaColumn(

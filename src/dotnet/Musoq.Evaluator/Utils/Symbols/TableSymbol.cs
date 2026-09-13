@@ -273,6 +273,8 @@ public class TableSymbol : Symbol
             column.ColumnName,
             column.ColumnIndex,
             ConvertToNullable(column.ColumnType),
+            ConvertToNullable(column.SourceReadType),
+            column.EnumType,
             column.IntendedTypeName,
             column.ReadModifiers,
             column.Stability);

@@ -1,0 +1,110 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-107",
+  "outcome": "passed",
+  "artifacts": [
+    {
+      "id": "case-contract-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-107-case-contract.json",
+      "sha256": "5ec691ab11ee2c7f1e11c6d5f9470726ad0d31a8237ade6fd085a345954046c7",
+      "role": "Immutable revision-1 frozen prefix expectation matrix."
+    },
+    {
+      "id": "pre-observation-manifest-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-107-pre-observation-manifest.json",
+      "sha256": "592886d7e5c6424d7ca6419ba33027a91b871a8e811552ebb2f0ec3284c7c736",
+      "role": "Revision-1 authority hashes and pre-observation payload digest."
+    },
+    {
+      "id": "behavior-results-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-107-behavior-results.json",
+      "sha256": "e3d0fc855c7326e277b84c5b7f0963b72e5030ac6495f0fc63e17ceb8f540d0b",
+      "role": "Complete revision-1 observation, including three oracle mismatches."
+    },
+    {
+      "id": "oracle-correction",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-107-oracle-correction.json",
+      "sha256": "659a0f3a69d52b862a45294e5d59548f696add1fc0bb1d8ba7caea767a11374c",
+      "role": "Source-justified revision-2 correction with independent read-only approvals."
+    },
+    {
+      "id": "case-contract-revision-2",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-107-case-contract-v2.json",
+      "sha256": "8268285ee5707e1f9ee0e1f6904720246afe232626ecbc7b511d5cc71d1a4250",
+      "role": "Revision-2 frozen matrix with corrected candidate-version mutations."
+    },
+    {
+      "id": "pre-observation-manifest-revision-2",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-107-pre-observation-manifest-v2.json",
+      "sha256": "529872098b7d75391be7a45e974aebf9138e73b3ef5f4acf9487be721b526e13",
+      "role": "Revision-2 authority hashes and pre-observation payload digest."
+    },
+    {
+      "id": "behavior-results-revision-2",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-107-behavior-results-v2.json",
+      "sha256": "22455dd78018cdf9899b096efceda9478c5b86a115ca8847aee33968ccacfcc4",
+      "role": "Revision-2 complete focused replay and per-case outcome record."
+    },
+    {
+      "id": "focused-trx",
+      "path": ".campaign-artifacts/REC-107-focused-final-all/REC-107-focused-final-all.trx",
+      "sha256": "a4bd2f194c6d14a3a1f385bb3b10fa958640dfa42415cf31d2782a8c2b9f0ec8",
+      "role": "Machine-readable final focused replay result in ignored campaign artifacts."
+    },
+    {
+      "id": "parser-tests",
+      "path": "src/dotnet/Musoq.Parser.Tests/Diagnostic.REC-107TruncationPrefixTests.cs",
+      "sha256": "c269938205cdc58dd91262ae1b4445045ad2ef9d7916b2f9c048e5b0243969e7",
+      "role": "Permanent revision-2 48-case prefix matrix and diagnostic assertions."
+    },
+    {
+      "id": "report",
+      "path": "docs/campaigns/recovery-v3/reports/REC-107.md",
+      "sha256": "427f53239ea2973f1b235984d74eff3d4b65183b47539fe827d28200e54bdc99",
+      "role": "Human-readable REC-107 completion report."
+    },
+    {
+      "id": "full-gate",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-107-full-gate.json",
+      "sha256": "e7c11bab7a8fbbbbc992b18a0cfa1769e790d48f089ed52c4220aeed90fcd01e",
+      "role": "Fresh all-target Release restore/build/test gate."
+    }
+  ],
+  "validation": {
+    "revision1": {
+      "frozenContractVerified": true,
+      "caseCount": 48,
+      "matchingCases": 45,
+      "oracleMismatches": 3
+    },
+    "revision2": {
+      "frozenContractVerified": true,
+      "caseCount": 48,
+      "passed": 3,
+      "skipped": 0,
+      "failed": 0,
+      "total": 3,
+      "candidateCases": 48,
+      "invalidCandidates": 40,
+      "validationControls": 8
+    },
+    "adjacentParser": {"passed": 112,"skipped": 0,"failed": 0,"total": 112},
+    "evaluatorAndMaintainability": {"passed": 6,"skipped": 0,"failed": 0,"total": 6},
+    "campaignTools": {"passed": 46,"skipped": 0,"failed": 0,"total": 46},
+    "fullReleaseGate": {
+      "runId": "REC-107-d2df499062c9",
+      "passed": 20448,
+      "skipped": 3,
+      "failed": 0,
+      "total": 20451,
+      "targetCount": 8,
+      "testedPayloadSha256": "e3ab9d48214053a4ac7a9e074f65034c4a36d47331c96ceb1f4a6a9580fff045",
+      "testedPayloadFileCount": 5766
+    }
+  },
+  "notes": [
+    "Revision 1 remains unchanged after observation.",
+    "Revision 2 is a new candidate version, not a post-hoc replacement of revision-1 expectations.",
+    "No production source change was made for REC-107."
+  ]
+}

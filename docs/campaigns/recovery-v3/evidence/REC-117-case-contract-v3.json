@@ -1,0 +1,3158 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-117",
+  "cases": [
+    {
+      "formatVersion": 1,
+      "caseId": "N01",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy = null",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy = null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "null-comparison",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5017_NullComparison",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5017 predicate contexts and projection/order quiet controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "null-comparison",
+        "context": "NULL_COMPARISON/predicate/where/equality"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy = null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "N02",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy <> null",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy <> null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "null-comparison",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5017_NullComparison",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5017 predicate contexts and projection/order quiet controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "null-comparison",
+        "context": "NULL_COMPARISON/predicate/where/diff"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy <> null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "N03",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy != null",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy != null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "null-comparison",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5017_NullComparison",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5017 predicate contexts and projection/order quiet controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "null-comparison",
+        "context": "NULL_COMPARISON/predicate/where/bang-diff"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy != null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "N04",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy < null",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy < null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "null-comparison",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5017_NullComparison",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5017 predicate contexts and projection/order quiet controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "null-comparison",
+        "context": "NULL_COMPARISON/predicate/where/less"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy < null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "N05",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy <= null",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy <= null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "null-comparison",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5017_NullComparison",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5017 predicate contexts and projection/order quiet controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "null-comparison",
+        "context": "NULL_COMPARISON/predicate/where/less-equal"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy <= null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "N06",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy > null",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy > null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "null-comparison",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5017_NullComparison",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5017 predicate contexts and projection/order quiet controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "null-comparison",
+        "context": "NULL_COMPARISON/predicate/where/greater"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy > null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "N07",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy >= null",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy >= null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "null-comparison",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5017_NullComparison",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5017 predicate contexts and projection/order quiet controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "null-comparison",
+        "context": "NULL_COMPARISON/predicate/where/greater-equal"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy >= null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "N08",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy, Count(*) from #system.dual() d group by d.Dummy having d.Dummy = null",
+        "resultQuery": "select d.Dummy, Count(*) from #system.dual() d group by d.Dummy having d.Dummy = null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "null-comparison",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5017_NullComparison",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5017 predicate contexts and projection/order quiet controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "null-comparison",
+        "context": "NULL_COMPARISON/predicate/having/grouped"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy, Count(*) from #system.dual() d group by d.Dummy having d.Dummy = null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "N09",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select Count(*) filter (where d.Dummy <= null) from #system.dual() d",
+        "resultQuery": "select Count(*) filter (where d.Dummy <= null) from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "null-comparison",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5017_NullComparison",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5017 predicate contexts and projection/order quiet controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "null-comparison",
+        "context": "NULL_COMPARISON/predicate/filter/aggregate"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select Count(*) filter (where d.Dummy <= null) from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "N10",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy, RowNumber() over (order by d.Dummy) as rn from #system.dual() d qualify RowNumber() over (order by d.Dummy) = 1 and d.Dummy > null",
+        "resultQuery": "select d.Dummy, RowNumber() over (order by d.Dummy) as rn from #system.dual() d qualify RowNumber() over (order by d.Dummy) = 1 and d.Dummy > null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "null-comparison",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5017_NullComparison",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5017 predicate contexts and projection/order quiet controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "null-comparison",
+        "context": "NULL_COMPARISON/predicate/qualify/window"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy, RowNumber() over (order by d.Dummy) as rn from #system.dual() d qualify RowNumber() over (order by d.Dummy) = 1 and d.Dummy > null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "N11",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy = null as IsUnknown from #system.dual() d",
+        "resultQuery": "select d.Dummy = null as IsUnknown from #system.dual() d"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "null-comparison",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5017 predicate contexts and projection/order quiet controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "null-comparison",
+        "context": "NULL_COMPARISON/quiet/projection"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy = null as IsUnknown from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "N12",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d order by d.Dummy = null",
+        "resultQuery": "select d.Dummy from #system.dual() d order by d.Dummy = null"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "null-comparison",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5017 predicate contexts and projection/order quiet controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "null-comparison",
+        "context": "NULL_COMPARISON/quiet/order"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d order by d.Dummy = null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "O01",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy is null",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy is null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "outer-presence",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5018_AmbiguousOuterJoinNullCheck",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5018 optional-side null ambiguity and explicit row-presence controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-presence",
+        "context": "OUTER_PRESENCE/left/nullable-column"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy is null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "O02",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Id from values { { Id: 1 } } a left join values { { Id: 2 } } b on a.Id = b.Id",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Id from values { { Id: 1 } } a left join values { { Id: 2 } } b on a.Id = b.Id",
+        "after": "select a.Id, b.Id from values { { Id: 1 } } a left join values { { Id: 2 } } b on a.Id = b.Id where b.Id is null",
+        "resultQuery": "select a.Id, b.Id from values { { Id: 1 } } a left join values { { Id: 2 } } b on a.Id = b.Id where b.Id is null"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "outer-presence",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5018 optional-side null ambiguity and explicit row-presence controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-presence",
+        "context": "OUTER_PRESENCE/left/nonnullable-column"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Id, b.Id from values { { Id: 1 } } a left join values { { Id: 2 } } b on a.Id = b.Id where b.Id is null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "O03",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a right join #join.items() b on a.Dummy = b.Dummy where a.Dummy is null",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a right join #join.items() b on a.Dummy = b.Dummy where a.Dummy is null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "outer-presence",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5018_AmbiguousOuterJoinNullCheck",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5018 optional-side null ambiguity and explicit row-presence controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-presence",
+        "context": "OUTER_PRESENCE/right/optional-left"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a right join #join.items() b on a.Dummy = b.Dummy where a.Dummy is null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "O04",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a full outer join #join.items() b on a.Dummy = b.Dummy where a.Dummy is null",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a full outer join #join.items() b on a.Dummy = b.Dummy where a.Dummy is null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "outer-presence",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5018_AmbiguousOuterJoinNullCheck",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5018 optional-side null ambiguity and explicit row-presence controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-presence",
+        "context": "OUTER_PRESENCE/full/left-side"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a full outer join #join.items() b on a.Dummy = b.Dummy where a.Dummy is null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "O05",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a full outer join #join.items() b on a.Dummy = b.Dummy where b.Dummy is null",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a full outer join #join.items() b on a.Dummy = b.Dummy where b.Dummy is null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "outer-presence",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5018_AmbiguousOuterJoinNullCheck",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5018 optional-side null ambiguity and explicit row-presence controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-presence",
+        "context": "OUTER_PRESENCE/full/right-side"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a full outer join #join.items() b on a.Dummy = b.Dummy where b.Dummy is null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "O06",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a outer apply #join.items() b where b.Dummy is null",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a outer apply #join.items() b where b.Dummy is null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "outer-presence",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5018_AmbiguousOuterJoinNullCheck",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5018 optional-side null ambiguity and explicit row-presence controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-presence",
+        "context": "OUTER_PRESENCE/outer-apply/nullable-column"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a outer apply #join.items() b where b.Dummy is null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "O07",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b is missing",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b is missing"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "outer-presence",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5018 optional-side null ambiguity and explicit row-presence controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-presence",
+        "context": "OUTER_PRESENCE/left/explicit-missing"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b is missing",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "O08",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b is present",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b is present"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "outer-presence",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5018 optional-side null ambiguity and explicit row-presence controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-presence",
+        "context": "OUTER_PRESENCE/left/explicit-present"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b is present",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "O09",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy is null or a.Dummy is distinct from null",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy is null or a.Dummy is distinct from null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "outer-presence",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5018_AmbiguousOuterJoinNullCheck",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5018 optional-side null ambiguity and explicit row-presence controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-presence",
+        "context": "OUTER_PRESENCE/left/or-null-safe-sibling"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy is null or a.Dummy is distinct from null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "O10",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy is null and a.Dummy is distinct from null",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy is null and a.Dummy is distinct from null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "outer-presence",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5018_AmbiguousOuterJoinNullCheck",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5018 optional-side null ambiguity and explicit row-presence controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-presence",
+        "context": "OUTER_PRESENCE/left/and-null-safe-sibling"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy is null and a.Dummy is distinct from null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "O11",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a cross join #join.items() b where b.Dummy is null",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a cross join #join.items() b where b.Dummy is null"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "outer-presence",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5018 optional-side null ambiguity and explicit row-presence controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-presence",
+        "context": "OUTER_PRESENCE/cross/always-present"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a cross join #join.items() b where b.Dummy is null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "O12",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a left join (select source.Dummy from #join.items() source) b on a.Dummy = b.Dummy where b.Dummy is null",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a left join (select source.Dummy from #join.items() source) b on a.Dummy = b.Dummy where b.Dummy is null"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "outer-presence",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5018 optional-side null ambiguity and explicit row-presence controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-presence",
+        "context": "OUTER_PRESENCE/left/derived-unknown"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a left join (select source.Dummy from #join.items() source) b on a.Dummy = b.Dummy where b.Dummy is null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "F01",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match'",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match'"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "outer-filter",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5019_NullRejectingOuterJoinFilter",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5019 null-rejecting WHERE filters, ON restrictions and preserving OR branches.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-filter",
+        "context": "OUTER_FILTER/left/where/right-equality"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match'",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "F02",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a right join #join.items() b on a.Dummy = b.Dummy where a.Dummy = 'match'",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a right join #join.items() b on a.Dummy = b.Dummy where a.Dummy = 'match'"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "outer-filter",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5019_NullRejectingOuterJoinFilter",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5019 null-rejecting WHERE filters, ON restrictions and preserving OR branches.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-filter",
+        "context": "OUTER_FILTER/right/where/left-equality"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a right join #join.items() b on a.Dummy = b.Dummy where a.Dummy = 'match'",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "F03",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a full outer join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match'",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a full outer join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match'"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "outer-filter",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5019_NullRejectingOuterJoinFilter",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5019 null-rejecting WHERE filters, ON restrictions and preserving OR branches.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-filter",
+        "context": "OUTER_FILTER/full/where/right-equality"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a full outer join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match'",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "F04",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a outer apply #join.items() b where b.Dummy = 'match'",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a outer apply #join.items() b where b.Dummy = 'match'"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "outer-filter",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5019_NullRejectingOuterJoinFilter",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5019 null-rejecting WHERE filters, ON restrictions and preserving OR branches.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-filter",
+        "context": "OUTER_FILTER/outer-apply/where/right-equality"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a outer apply #join.items() b where b.Dummy = 'match'",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "F05",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy and b.Dummy = 'match'",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy and b.Dummy = 'match'"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "outer-filter",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5019 null-rejecting WHERE filters, ON restrictions and preserving OR branches.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-filter",
+        "context": "OUTER_FILTER/left/on-restriction"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy and b.Dummy = 'match'",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "F06",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a inner join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match'",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a inner join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match'"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "outer-filter",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5019 null-rejecting WHERE filters, ON restrictions and preserving OR branches.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-filter",
+        "context": "OUTER_FILTER/inner/where-right-equality"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a inner join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match'",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "F07",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match' or a.Dummy = 'keep'",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match' or a.Dummy = 'keep'"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "outer-filter",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5019 null-rejecting WHERE filters, ON restrictions and preserving OR branches.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-filter",
+        "context": "OUTER_FILTER/left/or-preserving-left"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match' or a.Dummy = 'keep'",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "F08",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match' and a.Dummy = 'keep'",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match' and a.Dummy = 'keep'"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "outer-filter",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5019_NullRejectingOuterJoinFilter",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5019 null-rejecting WHERE filters, ON restrictions and preserving OR branches.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-filter",
+        "context": "OUTER_FILTER/left/and-left"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match' and a.Dummy = 'keep'",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "F09",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b is present and b.Dummy = 'match'",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b is present and b.Dummy = 'match'"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "outer-filter",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5019 null-rejecting WHERE filters, ON restrictions and preserving OR branches.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-filter",
+        "context": "OUTER_FILTER/left/presence-present"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b is present and b.Dummy = 'match'",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "F10",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b is missing or b.Dummy = 'match'",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b is missing or b.Dummy = 'match'"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "outer-filter",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5019 null-rejecting WHERE filters, ON restrictions and preserving OR branches.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-filter",
+        "context": "OUTER_FILTER/left/presence-missing-or"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b is missing or b.Dummy = 'match'",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "F11",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy is not null",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy is not null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "outer-filter",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5019_NullRejectingOuterJoinFilter",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5019 null-rejecting WHERE filters, ON restrictions and preserving OR branches.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-filter",
+        "context": "OUTER_FILTER/left/where/not-null"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy is not null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "F12",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy",
+        "after": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy contains ('match')",
+        "resultQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy contains ('match')"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "outer-filter",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5019 null-rejecting WHERE filters, ON restrictions and preserving OR branches.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "outer-filter",
+        "context": "OUTER_FILTER/left/where/uncertain-method"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy contains ('match')",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "M01",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy not in ('Alice', null)",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('Alice', null)"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "not-in-null",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5024_NullSensitiveNotIn",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5024 NULL-sensitive NOT IN and positive/null-free controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "not-in-null",
+        "context": "NOT_IN/where/literal-null"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('Alice', null)",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "M02",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy not in (null)",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy not in (null)"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "not-in-null",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5024_NullSensitiveNotIn",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5024 NULL-sensitive NOT IN and positive/null-free controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "not-in-null",
+        "context": "NOT_IN/where/only-null"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy not in (null)",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "M03",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy not in ('Alice', null, 'Bob')",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('Alice', null, 'Bob')"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "not-in-null",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5024_NullSensitiveNotIn",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5024 NULL-sensitive NOT IN and positive/null-free controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "not-in-null",
+        "context": "NOT_IN/where/middle-null"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('Alice', null, 'Bob')",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "M04",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "let missing: string = null; select d.Dummy from #system.dual() d where d.Dummy not in ('Alice', $missing)",
+        "resultQuery": "let missing: string = null; select d.Dummy from #system.dual() d where d.Dummy not in ('Alice', $missing)"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "not-in-null",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5024_NullSensitiveNotIn",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5024 NULL-sensitive NOT IN and positive/null-free controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "not-in-null",
+        "context": "NOT_IN/where/constant-let"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "let missing: string = null; select d.Dummy from #system.dual() d where d.Dummy not in ('Alice', $missing)",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "M05",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "let missing: string = null; select d.Dummy from #system.dual() d where d.Dummy not in ($missing, 'Alice')",
+        "resultQuery": "let missing: string = null; select d.Dummy from #system.dual() d where d.Dummy not in ($missing, 'Alice')"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "not-in-null",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5024_NullSensitiveNotIn",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5024 NULL-sensitive NOT IN and positive/null-free controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "not-in-null",
+        "context": "NOT_IN/where/nullable-let"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "let missing: string = null; select d.Dummy from #system.dual() d where d.Dummy not in ($missing, 'Alice')",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "M06",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy not in ('Alice', null) or d.Dummy = 'single'",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('Alice', null) or d.Dummy = 'single'"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "not-in-null",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5024_NullSensitiveNotIn",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5024 NULL-sensitive NOT IN and positive/null-free controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "not-in-null",
+        "context": "NOT_IN/where/or-sibling"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('Alice', null) or d.Dummy = 'single'",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "M07",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy not in ('Alice', null)",
+        "resultQuery": "select d.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy not in ('Alice', null)"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "not-in-null",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5024_NullSensitiveNotIn",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5024 NULL-sensitive NOT IN and positive/null-free controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "not-in-null",
+        "context": "NOT_IN/join/on"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy not in ('Alice', null)",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "M08",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy, Count(*) from #system.dual() d group by d.Dummy having d.Dummy not in ('Alice', null)",
+        "resultQuery": "select d.Dummy, Count(*) from #system.dual() d group by d.Dummy having d.Dummy not in ('Alice', null)"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "not-in-null",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5024_NullSensitiveNotIn",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5024 NULL-sensitive NOT IN and positive/null-free controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "not-in-null",
+        "context": "NOT_IN/having/grouped"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy, Count(*) from #system.dual() d group by d.Dummy having d.Dummy not in ('Alice', null)",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "M09",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select Count(*) filter (where d.Dummy not in ('Alice', null)) from #system.dual() d",
+        "resultQuery": "select Count(*) filter (where d.Dummy not in ('Alice', null)) from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "not-in-null",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5024_NullSensitiveNotIn",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5024 NULL-sensitive NOT IN and positive/null-free controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "not-in-null",
+        "context": "NOT_IN/filter/aggregate"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select Count(*) filter (where d.Dummy not in ('Alice', null)) from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "M10",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy in ('Alice', null)",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy in ('Alice', null)"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "not-in-null",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5024 NULL-sensitive NOT IN and positive/null-free controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "not-in-null",
+        "context": "NOT_IN/quiet/positive-in"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy in ('Alice', null)",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "M11",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy not in ('Alice', 'Bob')",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('Alice', 'Bob')"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "not-in-null",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5024 NULL-sensitive NOT IN and positive/null-free controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "not-in-null",
+        "context": "NOT_IN/quiet/null-free-not-in"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('Alice', 'Bob')",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "M12",
+      "scopeId": "REC-117",
+      "task": "Exercise the exact NULL-related advisory trigger and quiet-control boundary before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-117-null-precision-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-117NullPrecisionTests.cs",
+        "testName": "AdvisoryMatrix_ShouldHonorFrozenContract",
+        "proof": "The permanent matrix analyzes each declared query with its bound provider, checks exact diagnostics and phases, then compiles and runs the warning-aware query."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen NULL advisory precision fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy not in ('Alice', null) as Excluded from #system.dual() d",
+        "resultQuery": "select d.Dummy not in ('Alice', null) as Excluded from #system.dual() d"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "not-in-null",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Advisory warning contract / 23.5 Active advisory warnings",
+          "passage": "MQ5024 NULL-sensitive NOT IN and positive/null-free controls.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "19. NULL Semantics",
+          "passage": "NULL propagation, outer-row presence and three-valued membership semantics for the REC-117 matrix.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected advisory outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "bind-advisory",
+        "rootCause": "not-in-null",
+        "context": "NOT_IN/quiet/projection"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy not in ('Alice', null) as Excluded from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "diagnostic code, phase and warning multiplicity remain exact",
+          "quiet controls remain quiet and triggering controls remain advisory",
+          "warning compilation remains runnable without rewriting authored NULL, join or membership semantics"
+        ]
+      }
+    }
+  ]
+}

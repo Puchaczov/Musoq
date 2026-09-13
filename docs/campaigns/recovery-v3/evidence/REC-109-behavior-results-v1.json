@@ -1,0 +1,44 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-109",
+  "matrixRevision": 1,
+  "outcome": "seed_contract_blocked_before_candidate_observation",
+  "registeredCases": 48,
+  "observationSequence": [
+    {
+      "stage": "initial-focused-replay",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC109MisplacementDialectTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-109-focused-v1.trx\" --results-directory .campaign-artifacts/REC-109-focused-v1",
+      "exitCode": 1,
+      "passed": 2,
+      "failed": 1,
+      "total": 3,
+      "failure": "Initial fixture compilation failed before candidate execution: R05/S06 helper shape and Parser namespace/type ambiguity."
+    },
+    {
+      "stage": "seed-audit",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~FrozenSeedAudit\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-109-seed-audit-v1.trx\" --results-directory .campaign-artifacts/REC-109-seed-audit-v1",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "total": 1,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-109-seed-audit-v1/REC-109-seed-audit-v1.trx",
+        "sha256": "b332042a0a018cab366120ad3dde356be77eb54c7e2566bd7e4638333c3b7471"
+      },
+      "seedFailure": {
+        "caseId": "REC-109-M03",
+        "diagnostic": "MQ2001_UnexpectedToken at HAVING",
+        "reason": "The v1 seed omitted GROUP BY; the candidate mutation was not observed."
+      }
+    }
+  ],
+  "preservedContract": {
+    "path": "docs/campaigns/recovery-v3/evidence/REC-109-case-contract.json",
+    "sha256": "1f5f8fbd4006fbe932179c86a7cb69b84374044bfd46fea8889a6cb1e51d54ad"
+  },
+  "preservedManifest": {
+    "path": "docs/campaigns/recovery-v3/evidence/REC-109-pre-observation-manifest.json",
+    "sha256": "5854d7b11ef0e13801cc52337944fbe794cde8ac8e391101bb9e57ffa0cc0d48"
+  },
+  "correction": "REC-109-M03-v2 was registered only after the v1 seed failure was recorded and independently reviewed."
+}

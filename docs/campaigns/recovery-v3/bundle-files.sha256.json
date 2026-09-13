@@ -1,0 +1,146 @@
+{
+  "formatVersion": 1,
+  "purpose": "initial distribution integrity only; campaign files are expected to change during execution",
+  "files": [
+    {
+      "path": "campaigns/recovery-v3/BUNDLE-VALIDATION.md",
+      "bytes": 1123,
+      "sha256": "cd11f083e0c4fb436f253eae8a339a21fde1821bf0b86bcc24668226ee5da01f"
+    },
+    {
+      "path": "campaigns/recovery-v3/PROGRESS.md",
+      "bytes": 630,
+      "sha256": "85ebe4614192cce999ebc96c531e069a67aeba046829ca691519938cfd5834b0"
+    },
+    {
+      "path": "campaigns/recovery-v3/SCOPES.md",
+      "bytes": 84635,
+      "sha256": "41ddb6743e69f3053e4bbf6bb7335f1014581178e596ed5905f57faa71c368d6"
+    },
+    {
+      "path": "campaigns/recovery-v3/authority/00-project-guide.md",
+      "bytes": 6664,
+      "sha256": "87695db0bb53a076f77c454ed3b7644ed188b6735bbf3372dc0934629dde47c6"
+    },
+    {
+      "path": "campaigns/recovery-v3/authority/commands.json",
+      "bytes": 424761,
+      "sha256": "455adfa21b37ea6b410f07b96a52251d1b8fef4211453b9e73446f4e99acda85"
+    },
+    {
+      "path": "campaigns/recovery-v3/authority/describe-response.v1.schema.json",
+      "bytes": 4804,
+      "sha256": "69df029ee94248372c9afa83c8b92c7fad123c8cc8bb14640e9a2ed57e486b8b"
+    },
+    {
+      "path": "campaigns/recovery-v3/authority/installer.json",
+      "bytes": 926,
+      "sha256": "166323c116d040259ae45901e84e20911b259c09cfe7c3b2bfc9268e8b4264f2"
+    },
+    {
+      "path": "campaigns/recovery-v3/authority/manual.md",
+      "bytes": 205498,
+      "sha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+    },
+    {
+      "path": "campaigns/recovery-v3/authority/mcp.json",
+      "bytes": 4033,
+      "sha256": "1482c2040a317d38a41d42e7bb95128938ad0fef86a00042db09dd4fefceda1a"
+    },
+    {
+      "path": "campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+      "bytes": 66932,
+      "sha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+    },
+    {
+      "path": "campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+      "bytes": 239774,
+      "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+    },
+    {
+      "path": "campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+      "bytes": 34223,
+      "sha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+    },
+    {
+      "path": "campaigns/recovery-v3/authority/tools-openapi.json",
+      "bytes": 4859,
+      "sha256": "b1ba66ce41ef7b58a68b45c188f08b492d789cc019d9c5355fbaab09930e39ea"
+    },
+    {
+      "path": "campaigns/recovery-v3/bundle-validation.json",
+      "bytes": 948,
+      "sha256": "2a141c824d1db069a9de4fe9b45397857d5b2f1e4f727e089430e6960896f511"
+    },
+    {
+      "path": "campaigns/recovery-v3/checker-self-tests.log",
+      "bytes": 2680,
+      "sha256": "1cb4d904a82d0ffa65e735f303340de8e75e576d00d1b057df3a66879ad2412e"
+    },
+    {
+      "path": "campaigns/recovery-v3/findings.json",
+      "bytes": 4677,
+      "sha256": "672fc8e962bc2a314e76d3d6b8749f4d88b24fe04b856cfbe2f060ee28ca312e"
+    },
+    {
+      "path": "campaigns/recovery-v3/history/completed-diagnostic-campaign-83.json",
+      "bytes": 169616,
+      "sha256": "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+    },
+    {
+      "path": "campaigns/recovery-v3/prompts/blind-repairer.md",
+      "bytes": 1290,
+      "sha256": "6e5a021d9a48576565f96556d97da6aac8427bf9070fd329344fabe96f529737"
+    },
+    {
+      "path": "campaigns/recovery-v3/prompts/review-scope.md",
+      "bytes": 1114,
+      "sha256": "a7c6d69f264d96ada9985f8a44594dd50023c36341a7ee1e491fb7e5739d7e72"
+    },
+    {
+      "path": "campaigns/recovery-v3/schemas/campaign.schema.json",
+      "bytes": 9244,
+      "sha256": "c80531cd5345331286c10db9391db60793ae8e291b3a0a4b8890584e170a0aa5"
+    },
+    {
+      "path": "campaigns/recovery-v3/schemas/case-expectation.schema.json",
+      "bytes": 1253,
+      "sha256": "893fcae540fa23ca11e35ea2ab22a8c5460ff6af8a6c71d4e17a399708787cee"
+    },
+    {
+      "path": "campaigns/recovery-v3/schemas/full-gate-evidence.schema.json",
+      "bytes": 3239,
+      "sha256": "c80d3ab09c20316dad465e9412c75919fd3e0b1649e46cb443511d4ba736e658"
+    },
+    {
+      "path": "campaigns/recovery-v3/source-bindings.json",
+      "bytes": 252,
+      "sha256": "e7dfb9b2776842989e349848ddeaeb15c007087282ca53fb3e2cafa562eba65b"
+    },
+    {
+      "path": "campaigns/recovery-v3/tools/check_campaign.py",
+      "bytes": 16127,
+      "sha256": "9b49fe03dcdefc71dc671f4365e05a5ab7698553546948e07e0fe3c2b4579703"
+    },
+    {
+      "path": "campaigns/recovery-v3/tools/test_check_campaign.py",
+      "bytes": 9753,
+      "sha256": "bc28c03523657a3682f72c570b92ddd46ce98acd1f638cebc6f8fece0b80c282"
+    },
+    {
+      "path": "musoq-recovery-campaign.README.md",
+      "bytes": 16743,
+      "sha256": "d22b57046cf5b2e80a4d35f000cf0cea27ebb6ac00b187b2bd1844425715ebdf"
+    },
+    {
+      "path": "musoq-recovery-campaign.goal.md",
+      "bytes": 21717,
+      "sha256": "119ab0f6df5045615fb59afa15e91973ae0c8a7cfe634621bda8d791f1cd1323"
+    },
+    {
+      "path": "musoq-recovery-campaign.json",
+      "bytes": 326601,
+      "sha256": "a048ab3480b670cf344889200e5c4b22a97df8828fc92b6a378a4c9cf7391706"
+    }
+  ]
+}

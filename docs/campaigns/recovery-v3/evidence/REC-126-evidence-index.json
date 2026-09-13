@@ -1,0 +1,148 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-126",
+  "outcome": "passed",
+  "artifacts": [
+    {
+      "id": "case-contract",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-126-case-contract.json",
+      "sha256": "83599ea2f43b0ecbc67a2f75a63d2ef9dc18fc0984ba15c1cfdfd8587d54687d",
+      "role": "Frozen 24-case expectation contract."
+    },
+    {
+      "id": "pre-observation-manifest",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-126-pre-observation-manifest.json",
+      "sha256": "19863b75991564cf939259e2a63275af5c967bab6bac7bce4c098e78cac0f02d",
+      "role": "Frozen pre-observation digests and authority hashes."
+    },
+    {
+      "id": "source-conflict",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-126-source-conflict.json",
+      "sha256": "c3535bd55937308d31907327d35a511340ee0bc4587b0d701b4bdfe800558f93",
+      "role": "Authority conflict and explicit reporter-boundary resolution."
+    },
+    {
+      "id": "initial-focused-trx",
+      "path": ".campaign-artifacts/REC-126-focused-initial/REC-126-focused-initial.trx",
+      "sha256": "896ddca01f5a19356101620faebd97e6896f65f8c546451e9774bc92de3743c5",
+      "role": "Preserved pre-fix replay: 550 passed, D05 failed."
+    },
+    {
+      "id": "focused-final-trx",
+      "path": ".campaign-artifacts/REC-126-focused-final/REC-126-focused-final.trx",
+      "sha256": "20a40007753be576fd81da3431e688e9854db575533de192ed78c18828981bfc",
+      "role": "Final permanent matrix and QueryInspectionTests replay: 551 passed."
+    },
+    {
+      "id": "parser-adjacent-trx",
+      "path": ".campaign-artifacts/REC-126-parser-adjacent/REC-126-parser-adjacent.trx",
+      "sha256": "12a82120b26f202c218c868a8a8e973de9da5be8a01fc0fe4a63523bb1ee399a",
+      "role": "Parser diagnostic adjacency, 103/103 passed."
+    },
+    {
+      "id": "evaluator-adjacent-trx",
+      "path": ".campaign-artifacts/REC-126-evaluator-adjacent/REC-126-evaluator-adjacent.trx",
+      "sha256": "6bb15e71d7a7fe35133c410c4a1a9e43b74462213a14c0eb2142470715801dba",
+      "role": "Evaluator/source-contract adjacency, 89/89 passed."
+    },
+    {
+      "id": "target-adjacent-trx",
+      "path": ".campaign-artifacts/REC-126-target-adjacent/REC-126-target-adjacent.trx",
+      "sha256": "35a7878304ef48f9867ee5aa9c9fd9ff14b78bba539f0b65b8e885ae1fba09b0",
+      "role": "Target diagnostic adjacency, 2/2 passed."
+    },
+    {
+      "id": "behavior-results",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-126-behavior-results.json",
+      "sha256": "9a0d89764ffd3c3045e770dba1b6428602565626b32cfa42b58c239c1d9c9401",
+      "role": "Case classification, observations, finding, obligations and validation."
+    },
+    {
+      "id": "diagnostic-context-source",
+      "path": "src/dotnet/Musoq.Evaluator/DiagnosticContext.cs",
+      "sha256": "3d3e4869fc61cb838a6a510bbe124a8d2ae36118d69685a48471b8b9b27a06ba",
+      "role": "No-location error and warning reporting overloads."
+    },
+    {
+      "id": "source-contract-reporter-source",
+      "path": "src/dotnet/Musoq.Converter/Diagnostics/SourceContractDiagnosticReporter.cs",
+      "sha256": "0ca55f871155c8d433fa0d4a90d25eaa401c51a1d79292ee46759f60c012b583",
+      "role": "Nullable provider-origin span resolution and boundary routing."
+    },
+    {
+      "id": "source-contract-fixture-source",
+      "path": "src/dotnet/Musoq.Converter.Tests/QueryInspectionTests.SourceContractDiagnostics.cs",
+      "sha256": "17c4636afa7369016b81381bfef5dda14fea4889f67d732b18f6614d70c7fde9",
+      "role": "Existing source-contract fixture and unknown-location regression."
+    },
+    {
+      "id": "matrix-source",
+      "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-126LocationOriginTests.cs",
+      "sha256": "f746c887406a32043b2ffd8bdb8c0c6bf9c00b1f154bf8de32041bcc39425c94",
+      "role": "Permanent four-family, 24-case location and origin matrix."
+    },
+    {
+      "id": "full-gate",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-126-full-gate.json",
+      "sha256": "e3f42938c512aa340b2760c5d7d18df2d0b876023448850ad0fa7f348ee8efc1",
+      "role": "Authoritative Release restore/build/test gate over 8/8 targets."
+    },
+    {
+      "id": "report",
+      "path": "docs/campaigns/recovery-v3/reports/REC-126.md",
+      "sha256": "f63336a698de4e62708d6f74c03836422c1dfc0b1168caaf9681df90e79dcca0",
+      "role": "REC-126 completion report."
+    }
+  ],
+  "validation": {
+    "contractVerification": {
+      "caseCount": 24,
+      "verified": true
+    },
+    "focusedMatrix": {
+      "passed": 551,
+      "failed": 0,
+      "skipped": 0,
+      "total": 551,
+      "candidateCount": 24
+    },
+    "initialFocusedReplay": {
+      "passed": 550,
+      "failed": 1,
+      "skipped": 0,
+      "total": 551,
+      "failureCase": "D05"
+    },
+    "adjoiningSuites": {
+      "parser": {
+        "passed": 103,
+        "failed": 0,
+        "skipped": 0,
+        "total": 103
+      },
+      "evaluator": {
+        "passed": 89,
+        "failed": 0,
+        "skipped": 0,
+        "total": 89
+      },
+      "target": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "total": 2
+      }
+    },
+    "fullReleaseGate": {
+      "status": "passed",
+      "runId": "REC-126-7974b35ea6c5",
+      "targetCount": 8,
+      "passed": 20581,
+      "failed": 0,
+      "skipped": 3,
+      "total": 20584,
+      "testedPayloadSha256": "286797b2f8407a30fbba00f826ca132202534a0e44cdab9ea401a47ee3826fa1",
+      "testedPayloadFileCount": 5791
+    }
+  }
+}

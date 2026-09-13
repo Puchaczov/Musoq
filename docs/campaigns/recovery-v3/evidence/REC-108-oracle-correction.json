@@ -1,0 +1,88 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-108",
+  "kind": "oracle-correction",
+  "fromRevision": 1,
+  "toRevision": 2,
+  "independentReviewRequired": true,
+  "review": {
+    "status": "approved",
+    "reviewer": "Gauss and Zeno read-only campaign reviewers",
+    "independent": true,
+    "scope": "REC-108-I06, REC-108-P01",
+    "reviewerAgentIds": [
+      "01a07a7a-d32c-7883-a5b2-1f0385952af7",
+      "01a07a7d-635e-7693-9431-3bdc3ebc179d"
+    ],
+    "findings": [
+      "Revision 1 I06 remained invalid, but the parser's specific duplicate ORDER BY recovery path emitted MQ2009_InvalidOrderByExpression rather than the generic MQ2001_UnexpectedToken.",
+      "Revision 1 P01 was parser-valid because the formal root grammar permits semicolon-separated script items; MQ2036 is a narrower single-query compilation entry-point restriction.",
+      "Revision 2 preserves all other frozen cases, uses new candidate-version IDs, and introduces no production change."
+    ]
+  },
+  "sourceJustification": [
+    {
+      "caseId": "REC-108-I06",
+      "revision1Mutation": "insert a second ORDER BY clause after 'order by 1'",
+      "observed": "MQ2009_InvalidOrderByExpression",
+      "correction": "use candidate REC-108-I06-v2 with expected code MQ2009_InvalidOrderByExpression",
+      "reason": "The bound formal grammar permits at most one ORDER BY clause, and the observed parser path reports the specific invalid-ordering diagnostic at the second ORDER BY token rather than the generic unexpected-token fallback.",
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "24. Formal Grammar",
+          "passage": "A regular query has at most one optional ORDER BY clause in its clause sequence.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "src/dotnet/Musoq.Parser/Parser.OrderingParsing.cs",
+          "section": "ComposeOrder",
+          "passage": "The parser's duplicate ORDER BY path emits MQ2009_InvalidOrderByExpression.",
+          "sourceSha256": "77fcf60a64b600ff239d45f66494b90e5b80ce4282d036c50b3ecd81422bc1c7"
+        },
+        {
+          "sourcePath": "src/dotnet/Musoq.Parser/Diagnostics/ErrorMetadataCatalog.Parser.cs",
+          "section": "MQ2009_InvalidOrderByExpression",
+          "passage": "The catalog defines MQ2009 for an invalid ORDER BY expression.",
+          "sourceSha256": "d490c42d1cb9972c8b00f00530c64b18daff4c55e9a1c9298b17328350178b68"
+        }
+      ]
+    },
+    {
+      "caseId": "REC-108-P01",
+      "revision1Mutation": "paste a second semicolon-separated SELECT after the first query",
+      "observed": "valid_suspicious with no diagnostics",
+      "correction": "use candidate REC-108-P01-v2 with expectedClassification valid_suspicious and expectedDiagnostics []",
+      "reason": "The bound root grammar explicitly permits semicolon-separated script items. MQ2036 applies to the single-query compilation entry point, not to the parser root exercised by this candidate.",
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "24.2 Statement-Level Grammar",
+          "passage": "A script may contain semicolon-separated script items.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.4 Exact parser diagnostics",
+          "passage": "MQ2036 is an entry-point restriction for multiple executable statements, not a parser-root diagnostic.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ]
+    }
+  ],
+  "preservedEvidence": [
+    {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-108-case-contract.json",
+      "sha256": "1be1c745778c00ba8124d2338fdac2a644582fbb5c09d5f6c8d3ebaf4182bb9a"
+    },
+    {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-108-pre-observation-manifest.json",
+      "sha256": "d5cb2ada55900f91e3799e204185c75b447ef18d82dc65c8492de3ba34e6e0d2"
+    },
+    {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-108-behavior-results.json",
+      "sha256": "1301eeeaf0f084c71d294eee67bd4912bc0b9e14e032b64340f1fe846d768289"
+    }
+  ],
+  "nextCandidateVersion": "docs/campaigns/recovery-v3/evidence/REC-108-case-contract-v2.json"
+}

@@ -1,0 +1,322 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-138",
+  "outcome": "passed",
+  "registeredCases": 48,
+  "classificationCounts": {
+    "valid_ordinary": 48
+  },
+  "families": [
+    {
+      "name": "NESTED_MALFORMED_DEPTH",
+      "cases": 12,
+      "coverage": "Depths 2, 4, 8, 16, 24, 32, 48, 64, 96, 128, 160 and 192 returned parser errors with at most 100 diagnostics and no MQ9001 internal compiler diagnostic."
+    },
+    {
+      "name": "LONG_MALFORMED_LITERALS",
+      "cases": 12,
+      "coverage": "Malformed hexadecimal lengths 8 through 16,384 returned MQ1006 with rendered messages bounded by DiagnosticSafety.MaxDisplayLength (512); pre-canceled Analyze calls preserved OperationCanceledException."
+    },
+    {
+      "name": "REPEATED_DIAGNOSTIC_VOLUME",
+      "cases": 12,
+      "coverage": "Repeated malformed-statement workloads of 16 through 768 statements respected explicit MaxErrors values 3 through 14 and returned bounded parse errors without MQ9001."
+    },
+    {
+      "name": "NEAR_MATCHING_DESCRIPTOR_CANDIDATES",
+      "cases": 12,
+      "coverage": "Candidate sets of 16 through 4,096 near-matching names retained deterministic top-five ranking in forward and reverse enumeration, bounded structured facts, and no arbitrary text-edit action."
+    }
+  ],
+  "contract": {
+    "authoritySha256": [
+      "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe",
+      "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+    ],
+    "contractPath": "docs/campaigns/recovery-v3/evidence/REC-138-case-contract.json",
+    "contractSha256": "dd93b0b5affaa454d041899919dc57f8a96dc703149c978121ab2c5890c12736",
+    "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-138-case-manifest.json",
+    "manifestSha256": "48bc891905013855bc1dc65e10e1aed9bdfb6a81d0497c315fc79c4a639678c0",
+    "preObservationPayloadSha256": "4ea435db469638508604df8ea3b7efa9813c05bdfac5e360fd602bf25459c52a",
+    "verificationCommand": "python docs/campaigns/recovery-v3/tools/case_contract.py verify --scope-id REC-138 --cases docs/campaigns/recovery-v3/evidence/REC-138-case-contract.json --manifest docs/campaigns/recovery-v3/evidence/REC-138-case-manifest.json --root .",
+    "verificationResult": "48/48 frozen cases verified before and after the authoritative replay; no frozen expectation was replaced."
+  },
+  "initialObservations": [
+    {
+      "revision": 1,
+      "outcome": "failed-before-results",
+      "observationTrx": null,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "total": 0,
+      "finding": "The first focused calibration stopped at compilation because Parser resolved as a namespace in the fixture; no test result artifact or behavioral observation was published."
+    },
+    {
+      "revision": 2,
+      "outcome": "failed-fixture-assertion",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-138-calibration-r2/REC-138-calibration-r2.trx",
+        "sha256": "d854179b733fa4fef09c1ef64fcd28b8180aacd5a48923662329c40caab8d2d7"
+      },
+      "passed": 3,
+      "failed": 1,
+      "skipped": 0,
+      "total": 4,
+      "finding": "The candidate family correctly retained two catalog guidance suggestions but the fixture expected an empty suggestion collection; the assertion was corrected to require no arbitrary text-edit action."
+    },
+    {
+      "revision": 3,
+      "outcome": "passed-calibration",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-138-calibration-r3/REC-138-calibration-r3.trx",
+        "sha256": "caaeeb4f42dbf9410e3013daf5df1f72578e358b1b0e7d2fd447c04160fd120f"
+      },
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "total": 4,
+      "finding": "All four fixture families passed after the assertion correction; no production fix was indicated."
+    },
+    {
+      "revision": 4,
+      "outcome": "passed-authoritative",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-138-authoritative-r1/REC-138-authoritative-r1.trx",
+        "sha256": "8966466de0631acc1b0bd5f58d2d2caa408ead50e5c32d8fff8133396de5e98e"
+      },
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "total": 4,
+      "finding": "The frozen 48-case workload replay passed after contract freeze."
+    }
+  ],
+  "workloadLimits": {
+    "depth": {
+      "caseCount": 12,
+      "depths": [
+        2,
+        4,
+        8,
+        16,
+        24,
+        32,
+        48,
+        64,
+        96,
+        128,
+        160,
+        192
+      ],
+      "maximumDiagnosticCount": 100
+    },
+    "literal": {
+      "caseCount": 12,
+      "lengths": [
+        8,
+        16,
+        32,
+        64,
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384
+      ],
+      "maximumRenderedMessageLength": 512
+    },
+    "volume": {
+      "caseCount": 12,
+      "statementCounts": [
+        16,
+        24,
+        32,
+        48,
+        64,
+        96,
+        128,
+        192,
+        256,
+        384,
+        512,
+        768
+      ],
+      "maxErrors": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ]
+    },
+    "candidates": {
+      "caseCount": 12,
+      "candidateCounts": [
+        16,
+        32,
+        64,
+        128,
+        256,
+        512,
+        768,
+        1024,
+        1536,
+        2048,
+        3072,
+        4096
+      ],
+      "maximumDisplayedCandidates": 5
+    }
+  },
+  "observations": {
+    "depth": "Each declared depth produced at least one parser error, no more than 100 diagnostics, and no internal compiler diagnostic.",
+    "literal": "Each declared malformed-hex length produced MQ1006; sanitized display was at most 512 characters. Cancellation was checked before analysis and OperationCanceledException was preserved.",
+    "volume": "Each declared statement count reached the declared MaxErrors boundary without exceeding it; the parse result remained an ordinary diagnostic result.",
+    "candidates": "Each candidate count produced the same five lexicographically first distance-one matches in forward and reverse order; availableColumns and candidateColumns remained at most five and no TextEdit was created for the tie."
+  },
+  "fixtureIdentity": {
+    "fixtureId": "REC-138-local-bounds-fixture",
+    "sourcePath": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+    "sourceSha256": "bf9258aa407ff27db3230209986ee965330c0ea27e218359550a75001d534288",
+    "testNames": [
+      "NestedMalformedQueries_ShouldReturnBoundedDiagnosticsWithoutStackOverflow",
+      "LongMalformedLiterals_ShouldKeepRenderedDiagnosticsBoundedAndHonorCancellation",
+      "RepeatedMalformedStatements_ShouldRespectDeclaredDiagnosticLimit",
+      "NearMatchingDescriptorNames_ShouldRankDeterministicallyAndBoundRenderedCandidates"
+    ]
+  },
+  "adjacentQualification": [
+    {
+      "name": "parser-regressions",
+      "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj -c Release --no-build --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC096UnicodeCultureRenderingTests|FullyQualifiedName~DiagnosticCoreTypesTests|FullyQualifiedName~DiagnosticMetadataAndPhasesTests|FullyQualifiedName~DiagnosticREC107TruncationPrefixTests|FullyQualifiedName~DiagnosticMetadataTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-138-parser-regressions-r1.trx\" --results-directory .campaign-artifacts/REC-138-parser-regressions-r1",
+      "passed": 135,
+      "failed": 0,
+      "skipped": 0,
+      "total": 135,
+      "trxPath": ".campaign-artifacts/REC-138-parser-regressions-r1/REC-138-parser-regressions-r1.trx",
+      "trxSha256": "649e6a72826d02796476b91cd646eb4dbfa45af2a09d8a21013988677dc3d8e5"
+    },
+    {
+      "name": "evaluator-regressions",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-build --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC125StateReuseTests|FullyQualifiedName~DiagnosticExceptionTaxonomyTests|FullyQualifiedName~QueryAnalyzerTests|FullyQualifiedName~BranchCoverageImprovementTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-138-evaluator-regressions-r1.trx\" --results-directory .campaign-artifacts/REC-138-evaluator-regressions-r1",
+      "passed": 346,
+      "failed": 0,
+      "skipped": 0,
+      "total": 346,
+      "trxPath": ".campaign-artifacts/REC-138-evaluator-regressions-r1/REC-138-evaluator-regressions-r1.trx",
+      "trxSha256": "7b54d3e8f0ec1fa233ec5caae0a441710322498db97ec5fd59ff8a4431919458"
+    }
+  ],
+  "selfTests": {
+    "command": "python -m unittest discover -s docs/campaigns/recovery-v3/tools -p \"test_*.py\"",
+    "passed": 46,
+    "failed": 0,
+    "skipped": 0,
+    "total": 46
+  },
+  "fullGate": {
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-138-full-gate-final-r1.json",
+    "evidenceSha256": "9b069d0e6bd9208620548dd49ae3495410f4fa44a23337714fbcedf472be83a7",
+    "runId": "REC-138-d0c12d936889",
+    "repositoryCommit": "02614588c6828478c15f16a0e3ba142cf6b3ce1d",
+    "branch": "feature/runtime_v2_final",
+    "sdkObserved": "10.0.303",
+    "testedPayloadSha256": "cfe1967a6256b1b448aefd27b1d3f3f59eed3d5266f8c41bfa12fedebb38d6ab",
+    "testedPayloadFileCount": 5805,
+    "targets": 8,
+    "passed": 21029,
+    "failed": 0,
+    "skipped": 3,
+    "total": 21032,
+    "buildStdoutSha256": "1ea5e9976fd149f56f60e1e52c0d0623b2f21806d561854ca4831695a94834ac",
+    "testStdoutSha256": "ec794e475a8e9bbc8bf798a5a472aa809b52af315f2c9fa53066d1dbf6c7f65f",
+    "establishedSkips": [
+      "Musoq.Evaluator.Tests.GeneratedCodeSamplesManifestTests.Refresh_Tracked_Generated_Code_Sample_Manifest",
+      "Musoq.Evaluator.Tests.GeneratedCodeSamplesSnapshotTests.Refresh_All_Local_Generated_Samples",
+      "Musoq.Evaluator.Tests.GeneratedInterpretationCodeDumpTests.Refresh_Local_Interpretation_Samples"
+    ]
+  },
+  "obligations": [
+    {
+      "id": "REC-138-O01",
+      "evidence": [
+        "case-contract",
+        "case-manifest",
+        "focused-authoritative-trx",
+        "behavior-results"
+      ]
+    },
+    {
+      "id": "REC-138-O02",
+      "evidence": [
+        "case-contract",
+        "case-manifest",
+        "focused-authoritative-trx",
+        "behavior-results"
+      ]
+    },
+    {
+      "id": "REC-138-O03",
+      "evidence": [
+        "focused-authoritative-trx",
+        "parser-regressions-trx",
+        "evaluator-regressions-trx",
+        "full-gate-evidence",
+        "behavior-results"
+      ]
+    },
+    {
+      "id": "REC-138-O04",
+      "evidence": [
+        "case-manifest",
+        "focused-authoritative-trx",
+        "full-gate-evidence",
+        "behavior-results"
+      ]
+    }
+  ],
+  "progress": {
+    "attempt": 1,
+    "novelCandidates": 48,
+    "duplicateCandidates": 0,
+    "metamorphicVariants": 0,
+    "productionFixes": 0,
+    "cleanStreak": 48,
+    "findingIds": []
+  },
+  "productionFindings": [],
+  "repairAttempts": [
+    {
+      "revision": 1,
+      "kind": "fixture-calibration",
+      "result": "corrected",
+      "productionChange": false,
+      "description": "Added the Parser type alias after the initial fixture compilation failure; no production code changed."
+    },
+    {
+      "revision": 2,
+      "kind": "fixture-calibration",
+      "result": "corrected",
+      "productionChange": false,
+      "description": "Adjusted the candidate-family assertion to distinguish catalog guidance suggestions from arbitrary text edits; no production code changed."
+    }
+  ],
+  "harnessBoundary": [
+    "All workloads are local, finite and explicitly declared in the frozen contract.",
+    "No unbounded fuzzing, memory exhaustion, timing threshold or external provider scan was performed.",
+    "The cancellation assertion uses a pre-canceled token and verifies the QueryAnalyzer contract; it does not claim mid-lexer cancellation.",
+    "The result is engine/parser diagnostic evidence only and makes no product, CLI, installed executable, human workflow, AI-agent or universal conformance claim."
+  ]
+}

@@ -670,8 +670,8 @@ binary ValidatedHeader {
     Magic:    int le check Magic = 0xDEADBEEF,
     Version:  short le check Version >= 1 AND Version <= 5,
     Length:   int le check Length <= 1048576,
-    Checksum: int le check Checksum = Crc32(Data),
-    Data:     byte[Length]
+    Data:     byte[Length],
+    Checksum: int le check Checksum = Crc32(Data)
 }
 ```
 
@@ -1059,7 +1059,7 @@ Captures everything until delimiter (exclusive). Delimiter is consumed but not i
 ```sql
 text Example {
     Key:   until ':',
-    _:     literal ': ',
+    _:     literal ' ',
     Value: until '\n'
 }
 ```
@@ -2022,7 +2022,7 @@ TextModifier
 
 ```sql
 binary PngSignature {
-    Signature: byte[8] check Signature = [0x89, 0x50, 0x4E, 0x47,
+    Signature: byte[8] magic [0x89, 0x50, 0x4E, 0x47,
                                           0x0D, 0x0A, 0x1A, 0x0A]
 }
 
@@ -2061,19 +2061,14 @@ WHERE chunk.ChunkType = 'IHDR'
 ```sql
 text ApacheLog {
     RemoteHost:    until ' ',
-    _:             literal ' ',
     Identity:      until ' ',
-    _:             literal ' ',
     User:          until ' ',
-    _:             literal ' ',
     Timestamp:     between '[' ']',
     _:             literal ' "',
     Method:        until ' ',
-    _:             literal ' ',
     Path:          until ' ',
-    _:             literal ' ',
     Protocol:      until '"',
-    _:             literal '" ',
+    _:             literal ' ',
     Status:        pattern '\d{3}',
     _:             literal ' ',
     Size:          pattern '\d+|-',
@@ -2086,7 +2081,7 @@ text ApacheLog {
 SELECT
     log.Path,
     Count(*) AS ErrorCount,
-    Max(log.Timestamp) AS LastSeen
+    MaxDateTime(ToDateTimeWithFormat(log.Timestamp, 'dd/MMM/yyyy:HH:mm:ss zzz')) AS LastSeen
 FROM os.file('/var/log/apache2/access.log') f
 CROSS APPLY Lines(f.GetContent()) line
 CROSS APPLY Parse<ApacheLog>(line.Value) log
@@ -2100,7 +2095,7 @@ TAKE 20
 
 ```sql
 binary MessageFrame {
-    Sync:        short le check Sync = 0xAA55,
+    Sync:        ushort le check Sync = 0xAA55,
     MsgType:     byte,
     PayloadLen:  short le,
     Payload:     byte[PayloadLen],
@@ -2155,7 +2150,7 @@ SELECT
     r.CustomerName,
     Concat(r.AddressLine1, ', ', r.City, ', ', r.State, ' ', r.ZipCode) AS Address,
     ToDecimal(r.Balance) / 100.0 AS Balance,
-    ParseDate(r.LastUpdate, 'yyyyMMdd') AS LastUpdated
+    ToDateTimeWithFormat(r.LastUpdate, 'yyyyMMdd') AS LastUpdated
 FROM os.file('/mainframe/CUSTMAST.DAT') f
 CROSS APPLY Lines(f.GetContent()) line
 CROSS APPLY Parse<CobolCustomerRecord>(line.Value) r
@@ -2178,6 +2173,11 @@ binary StorageHeader {
     DataOffset:     long le
 }
 
+binary SubRecord {
+    Key:    string[32] utf8 nullterm,
+    Value:  string[64] utf8 nullterm
+}
+
 binary StorageRecord {
     RecordType:     byte,
     RecordLength:   int le,
@@ -2189,11 +2189,6 @@ binary StorageRecord {
 
     NestedCount:    int le when RecordType = 3,
     Nested:         SubRecord[NestedCount] when RecordType = 3
-}
-
-binary SubRecord {
-    Key:    string[32] utf8 nullterm,
-    Value:  string[64] utf8 nullterm
 }
 
 SELECT
@@ -2208,7 +2203,7 @@ SELECT
     END AS Content
 FROM os.file('/data/storage.dat') f
 CROSS APPLY Interpret<StorageHeader>(f.GetBytes()) h
-CROSS APPLY InterpretAt<StorageRecord>(f.GetBytes(), h.DataOffset) r
+CROSS APPLY InterpretAt<StorageRecord>(f.GetBytes(), ToInt32(h.DataOffset) ?? 0) r
 ```
 
 ---

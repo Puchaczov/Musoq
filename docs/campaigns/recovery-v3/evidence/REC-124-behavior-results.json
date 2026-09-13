@@ -1,0 +1,155 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-124",
+  "matrixRevision": 2,
+  "outcome": "passed",
+  "registeredCases": 48,
+  "classificationCounts": {
+    "invalid": 48,
+    "validOrdinary": 0,
+    "validSuspicious": 0
+  },
+  "families": [
+    { "name": "SOURCE_ALIAS_TRAJECTORY", "cases": 6, "coverage": "Source aliases across projection, predicate, grouping and ordering edits." },
+    { "name": "PROJECTION_ALIAS_TRAJECTORY", "cases": 6, "coverage": "Projection aliases consumed by WHERE, GROUP BY, HAVING and ORDER BY." },
+    { "name": "CTE_OUTPUT_TRAJECTORY", "cases": 6, "coverage": "CTE output declarations and consumers, including nested CTE exports." },
+    { "name": "DERIVED_OUTPUT_TRAJECTORY", "cases": 6, "coverage": "Derived-table output declarations and consumers, including nested derived scopes." },
+    { "name": "NESTED_SHADOWING_TRAJECTORY", "cases": 6, "coverage": "Nested aliases, correlated references and shadowed scopes." },
+    { "name": "JOIN_SCOPE_TRAJECTORY", "cases": 6, "coverage": "Join-side aliases in projections, predicates, keys and ordering." },
+    { "name": "CALLABLE_TRAJECTORY", "cases": 6, "coverage": "Callable names and independent callable argument roots." },
+    { "name": "INDEPENDENT_SIBLING_TRAJECTORY", "cases": 6, "coverage": "Independent projection, property, aggregate and window roots." }
+  ],
+  "contract": {
+    "authoritySha256": [
+      "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+    ],
+    "contractPath": "docs/campaigns/recovery-v3/evidence/REC-124-case-contract-v2.json",
+    "contractSha256": "dd38405bd6583ee4540f8c8686756c2b3f4aebf0d403601281b0eeb416d2e385",
+    "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-124-pre-observation-manifest-v2.json",
+    "manifestSha256": "c00cfecb765c58d0a3859bb2f3aea170fc3b73b1699022da6bee2947da942940",
+    "preObservationPayloadSha256": "f16c2712a31a33672659bb6b025d8e3672392a3b06cab6d003d1dbac2a4fef06",
+    "observation": "Revision 2 was frozen before the corrected replay. Revision 1 remains physically preserved and is linked by the oracle-correction evidence."
+  },
+  "oracleCorrection": {
+    "path": "docs/campaigns/recovery-v3/evidence/REC-124-oracle-correction.json",
+    "sha256": "97cfb1134c957f0087110ad7755d0eca684ab478549a52270f4d7697903cd842",
+    "fromRevision": 1,
+    "toRevision": 2,
+    "independentReview": "main-session-reviewed"
+  },
+  "initialObservations": [
+    {
+      "revision": 1,
+      "outcome": "candidate-construction-defects-observed",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-124-observation/REC-124-observation.trx",
+        "sha256": "d2b7beca2ef2d5acad9a8a2b239f045bd8ec19f63e200b8d7aec57c3059c76f3"
+      },
+      "finding": "C02, C04, C06, D04, D06 and H05 did not isolate the intended successive observable root or valid seed; all 48 identifiers and eight families were retained in the corrected revision."
+    },
+    {
+      "revision": 2,
+      "outcome": "passed",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-124-observation-v2/REC-124-observation-v2.trx",
+        "sha256": "72f0aac2cc9ea556adf0429fa6423fc696dd550f50f7f493aeccbb007dca0669"
+      },
+      "registeredCases": 48
+    }
+  ],
+  "focusedReplay": {
+    "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter FullyQualifiedName~DiagnosticREC124EditingTrajectoryTests --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-124-focused-production-fix.trx\" --results-directory .campaign-artifacts/REC-124-focused-production-fix",
+    "exitCode": 0,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "total": 4,
+    "registeredCaseCount": 48,
+    "trxArtifact": {
+      "path": ".campaign-artifacts/REC-124-focused-production-fix/REC-124-focused-production-fix.trx",
+      "sha256": "45dab1de92b787e7c0b6bc6c83b05e0351c94090fa7d5e9040d86305888013bf"
+    },
+    "coverage": "The permanent matrix runs 48 frozen invalid candidates across eight six-case families, verifies exact diagnostic sequences and current locations at all five revisions, removes stale roots after repair, and checks a two-UTF-16-unit coordinate shift under repeated full analysis."
+  },
+  "adjoiningSuites": [
+    {
+      "name": "parser-adjacent",
+      "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-124-parser-adjacent.trx\" --results-directory .campaign-artifacts/REC-124-parser-adjacent",
+      "exitCode": 0,
+      "passed": 2667,
+      "failed": 0,
+      "skipped": 0,
+      "total": 2667,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-124-parser-adjacent/REC-124-parser-adjacent.trx",
+        "sha256": "8da0eab1b90bd4be43084bb3f6dbd5f00e950f9c5fe91efdbe5863af47e90e95"
+      }
+    },
+    {
+      "name": "evaluator-diagnostic-adjacency",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC110IncrementalRenameTests|FullyQualifiedName~DiagnosticREC111CompetingFailureTests|FullyQualifiedName~DiagnosticREC113SemanticMutationTests|FullyQualifiedName~DiagnosticREC093AmbiguityAbstentionTests|FullyQualifiedName~DiagnosticREC094DocumentIdentityTests|FullyQualifiedName~DiagnosticREC095MultipleActionsTests|FullyQualifiedName~DiagnosticREC123IndependentRootsTests|FullyQualifiedName~RuntimeV2MaintainabilityBudgetTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-124-adjacent.trx\" --results-directory .campaign-artifacts/REC-124-adjacent",
+      "exitCode": 0,
+      "passed": 198,
+      "failed": 0,
+      "skipped": 0,
+      "total": 198,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-124-adjacent/REC-124-adjacent.trx",
+        "sha256": "0e5f86ca817b5bf6b615510df07b1807a66ad64adfc7b91fe071afd0fefadbe0"
+      }
+    },
+    {
+      "name": "original-document-coordinate-regression",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter FullyQualifiedName~Analyze_CteDefinitionReferencingConsumerAlias_ShouldReportIllegalOuterConsumingReference --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-124-cte-location-fix.trx\" --results-directory .campaign-artifacts/REC-124-cte-location-fix",
+      "exitCode": 0,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "total": 1,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-124-cte-location-fix/REC-124-cte-location-fix.trx",
+        "sha256": "d7286bbaa336fbb95b2819dc3d8a5d5ed177328861a80d3e824229b7b8150ba2"
+      }
+    }
+  ],
+  "productionFindings": [
+    {
+      "id": "REC-124-F01",
+      "classification": "confirmed-production-defect",
+      "paths": [
+        "src/dotnet/Musoq.Parser/Lexing/Lexer.cs",
+        "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-124EditingTrajectoryTests.cs"
+      ],
+      "description": "A two-space edit prefix retained the current diagnostic but reported its old span because the lexer trimmed the analyzed document before token spans were assigned.",
+      "repair": "Lexer now retains the exact input string; its existing whitespace-token skipping keeps parsing behavior while token and diagnostic offsets remain in original document coordinates.",
+      "productionFixes": 1,
+      "repairAttempts": 1,
+      "oracleCorrection": false
+    }
+  ],
+  "obligations": {
+    "REC-124-O01": "The 48 trajectories replay a valid seed, a first incomplete fault, a repaired seed with a different fault, a shifted reanalysis and a final repaired query.",
+    "REC-124-O02": "The source-alias, projection-alias, CTE-output, derived-output, nested-scope and join families rename aliases or exported outputs one reference at a time.",
+    "REC-124-O03": "Exact code and token assertions remove stale roots; the repeated-analysis method requires the retained root to shift by exactly two UTF-16 code units and remain stable on repetition.",
+    "REC-124-O04": "The matrix uses repeated QueryAnalyzer.Analyze(string) calls; no editor or LSP integration is claimed because no incremental API is part of this target scope.",
+    "acceptance": "All 48 frozen five-step trajectories pass with their expected outcomes and current source spans."
+  },
+  "fullReleaseGate": {
+    "command": "python docs/campaigns/recovery-v3/tools/full_gate.py run --scope-id REC-124 --solution src/dotnet/Musoq.sln --configuration Release --output .campaign-artifacts/REC-124-full-gate-final-v2 --evidence docs/campaigns/recovery-v3/evidence/REC-124-full-gate-v2.json --expected-inventory docs/campaigns/recovery-v3/evidence/REC-085-expected-inventory.json --skip-allowlist docs/campaigns/recovery-v3/evidence/REC-085-skip-allowlist.json",
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-124-full-gate-v2.json",
+    "evidenceSha256": "62b7af12ab9a82ea706d20f5065e775a997dc35c5db81913b41a8e26afab8e12",
+    "runId": "REC-124-6a0272f516a9",
+    "targetCount": 8,
+    "passed": 20570,
+    "failed": 0,
+    "skipped": 3,
+    "total": 20573,
+    "testedPayloadSha256": "abba147fb5287e976d84cab8ff950a1226ba72ddea51c0e03b2653c837240ab3",
+    "testedPayloadFileCount": 5789
+  },
+  "notes": [
+    "Revision 1 contract, manifest and observation artifacts remain preserved; revision 2 corrected only observed candidate-construction defects before the final replay.",
+    "The first full-gate attempt is preserved under .campaign-artifacts/REC-124-full-gate-final and exposed one stale hard-coded evaluator span expectation after the lexer coordinate fix; the final gate passed after the fixture was updated to compute the consumer reference from the original query text.",
+    "The source and test payload was unchanged after the authoritative final gate; only evidence, report, ledger and progress administration follows it."
+  ]
+}

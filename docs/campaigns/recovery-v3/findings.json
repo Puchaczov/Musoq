@@ -1,0 +1,205 @@
+{
+  "formatVersion": 1,
+  "findings": [
+    {
+      "id": "HIST-001",
+      "status": "resolved-as-unverified",
+      "ownerScope": "REC-084",
+      "title": "Discrepant full-solution test totals",
+      "requiredFollowUp": "Reconcile CORE-010 and REWORK-080 recorded totals with project results if available; otherwise mark unverified, not failed or passed by assumption.",
+      "severity": "minor",
+      "resolution": "REC-084 found no contemporaneous raw result files, so all 83 historical test-summary claims remain explicitly unverified; current baseline evidence is separate.",
+      "evidence": ["REC-084-baseline.json", "REC-084-history-map.json", "REC-084-full-gate.json"]
+    },
+    {
+      "id": "HIST-002",
+      "status": "resolved-as-preserved-history",
+      "ownerScope": "REC-146",
+      "title": "Original audit covered 73 scopes before ten reworks",
+      "requiredFollowUp": "Replay and reconcile all 83 historical scope records plus new evidence.",
+      "severity": "informational",
+      "resolution": "The archived goal and ledger were preserved unchanged; recovery-v3 uses its own embedded and standalone prompt as the active contract.",
+      "evidence": ["REC-084-baseline.json"]
+    },
+    {
+      "id": "DRIFT-001",
+      "status": "confirmed-current-drift",
+      "ownerScope": "REC-089",
+      "title": "CASE guidance and retained legacy codes",
+      "requiredFollowUp": "CORE-033 recorded searched-only CASE wording and missing-component code caveats; verify current catalog before asserting a defect.",
+      "severity": "minor",
+      "resolution": "REC-089 independently confirmed that the authority supports simple CASE while MQ2026 metadata still says searched CASE only. MQ2028 and MQ2029 remain catalog entries, while focused current behavior uses the generic MQ2001 parser root for missing ELSE and related recovery cases. The drift is retained explicitly for a future documentation/catalog decision.",
+      "evidence": ["REC-089-catalog-audit.json", "REC-089-behavior-results.json", "REC-089.md"]
+    },
+    {
+      "id": "DRIFT-002",
+      "status": "confirmed-current-drift",
+      "ownerScope": "REC-089",
+      "title": "Function/window casing and set-order objective wording",
+      "requiredFollowUp": "Reconcile authority; annotate rather than rewrite historical objectives.",
+      "severity": "minor",
+      "resolution": "REC-089 independently confirmed the contradiction between section 18's case-sensitive function wording and section 11/Appendix F's case-insensitive window/function rules. The same audit confirmed MQ5020 and MQ5026 are explainable catalog compatibility identifiers and the focused set-operation tests emit neither. The historical drift remains explicit without forcing retired identifiers into trigger tests.",
+      "evidence": ["REC-089-catalog-audit.json", "REC-089-behavior-results.json", "REC-089.md"]
+    },
+    {
+      "id": "CAVEAT-001",
+      "status": "resolved-with-explicit-generic-boundary",
+      "ownerScope": "REC-109",
+      "title": "ASOF RIGHT generic diagnostics and maintainability budget",
+      "requiredFollowUp": "Require direct diagnostic/repair evidence; line-count budget is not evidence of adequacy.",
+      "severity": "minor",
+      "resolution": "REC-109 directly replayed the unsupported ASOF RIGHT and ASOF RIGHT OUTER forms, retained the generic MQ2001 boundary, removed the misleading ASC repair, and verified bounded ASOF alternatives plus ordinary ASC, quoted-text and comment controls. The maintainability budget was checked separately.",
+      "evidence": ["REC-109-behavior-results.json", "REC-109.md", "REC-146-behavior-results.json"]
+    },
+    {
+      "id": "CAVEAT-002",
+      "status": "resolved-with-dynamic-path-regression",
+      "ownerScope": "REC-132",
+      "title": "Typed fixture used for dynamic coupled ASOF",
+      "requiredFollowUp": "Preserve original dynamic path and test it explicitly.",
+      "severity": "major",
+      "resolution": "REC-132 replayed typed and dynamic coupled ASOF forms separately, confirmed the dynamic Execution IR boundary, repaired dynamic right-source materialization, and retained executable dynamic-path regressions. The typed pass is not used as proof of dynamic support.",
+      "evidence": ["REC-132-behavior-results.json", "REC-132.md", "REC-146-behavior-results.json"]
+    },
+    {
+      "id": "CLASSIFY-001",
+      "status": "resolved-as-classified-boundary",
+      "ownerScope": "REC-129",
+      "title": "Dynamic regex and scalar cardinality internal classification",
+      "requiredFollowUp": "Compare recorded behavior to version-matched catalog and runtime invariant contract before changing code meaning.",
+      "severity": "minor",
+      "resolution": "REC-129 reproduced dynamic and constant cases under the bound catalog and runtime contract. Static scalar-cardinality cases remain MQ3095 at Bind, data-dependent scalar and arithmetic failures remain MQ9002 at Runtime, and no internal exception was promoted to a public syntax diagnostic.",
+      "evidence": ["REC-129-behavior-results.json", "REC-129.md", "REC-146-behavior-results.json"]
+    },
+    {
+      "id": "DOC-001",
+      "status": "resolved-as-approved-documentation-correction",
+      "ownerScope": "REC-140",
+      "title": "until consumes delimiter but examples consume it again",
+      "requiredFollowUp": "Compare Binary/Text 5.4.1 prose and examples; target checkout may already contain a correction.",
+      "severity": "major",
+      "resolution": "REC-140 reproduced the redundant-literal failure, recorded user approval, and changed only the target-local example so the following literal no longer repeats the delimiter consumed by until. The normative delimiter-consumption rule and permanent negative control remain intact.",
+      "evidence": ["REC-140-source-conflict.json", "REC-140-behavior-results.json", "REC-140.md", "REC-146-behavior-results.json"]
+    },
+    {
+      "id": "DOC-002",
+      "status": "resolved-as-approved-documentation-correction",
+      "ownerScope": "REC-140",
+      "title": "CHECK example references later Data field",
+      "requiredFollowUp": "Compare Binary/Text 4.9 example with 4.9/6.4 scoping rules; do not silently choose.",
+      "severity": "major",
+      "resolution": "REC-140 reproduced the forward-reference rejection, recorded user approval, and moved Data before Checksum in the target-local example while retaining the definition-before-use rule and its negative control.",
+      "evidence": ["REC-140-source-conflict.json", "REC-140-behavior-results.json", "REC-140.md", "REC-146-behavior-results.json"]
+    },
+    {
+      "id": "COVERAGE-001",
+      "status": "resolved-by-enum-inventory",
+      "ownerScope": "REC-105",
+      "title": "Enum feature family absent from historical scope wording",
+      "requiredFollowUp": "Inventory actual enum tests before generating new cases; absence in ledger is not proof tests do not exist.",
+      "severity": "minor",
+      "resolution": "REC-105 inventoried and froze the repository-owned enum matrix: 16 enum-name, 12 enum-member and 20 enum-operator/output candidates, plus 8 interpretation-boundary controls. The historical wording remains unchanged and the language authority remains separate from test-count evidence.",
+      "evidence": ["REC-105-behavior-results.json", "REC-105-case-contract.json", "REC-105.md", "REC-146-behavior-results.json"]
+    },
+    {
+      "id": "ISOLATION-001",
+      "status": "resolved-as-test-harness-boundary",
+      "ownerScope": "REC-136",
+      "title": "Historical non-parallel compilation test fixture",
+      "requiredFollowUp": "Distinguish shared test state from supported production concurrency.",
+      "severity": "minor",
+      "resolution": "REC-136 separated the MSTest DoNotParallelize boundary around shared test culture/compilation coordination from supported production behavior. Independent production sessions executed concurrently with isolated state, and the harness serialization was not reported as a production concurrency limit.",
+      "evidence": ["REC-136-behavior-results.json", "REC-136-case-contract.json", "REC-136.md", "REC-146-behavior-results.json"]
+    },
+    {
+      "id": "INSTRUCTION-001",
+      "status": "resolved-as-preserved-historical-gap",
+      "ownerScope": "REC-084",
+      "title": "Archived goal lacks earlier dedicated repairability emphasis",
+      "requiredFollowUp": "Preserve old prompt; use the new full embedded prompt and hash going forward.",
+      "severity": "informational",
+      "resolution": "The archived goal remains preserved unchanged. REC-084 bound and validated the new recovery-v3 embedded/standalone prompt, and REC-146 revalidated the active contract without rewriting historical completion facts.",
+      "evidence": ["REC-084-baseline.json", "REC-084.md", "REC-146-behavior-results.json"]
+    }
+    ,{
+      "id": "BUNDLE-001",
+      "status": "accepted-evidence-caveat",
+      "ownerScope": "REC-084",
+      "title": "Recovery bundle README and root-layout metadata are unavailable or stale",
+      "requiredFollowUp": "Do not infer missing README content; keep the layout and missing-file caveat visible in REC-084 evidence.",
+      "severity": "minor",
+      "resolution": "No README exists in the inspected workspace or reachable Git objects. The starter path manifest uses a different root layout; no normative source was substituted.",
+      "evidence": ["REC-084-baseline.json", "REC-084.md"]
+    },
+    {
+      "id": "GATE-001",
+      "status": "resolved-as-derived-counter",
+      "ownerScope": "REC-085",
+      "title": "VSTest TRX notExecuted counter does not include existing ignored tests",
+      "requiredFollowUp": "Retain raw runner counters and reconcile skipped tests from explicit UnitTestResult outcomes and total minus executed.",
+      "severity": "informational",
+      "resolution": "The fresh Evaluator TRX recorded three NotExecuted outcomes while its notExecuted attribute was zero. The gate retains the raw attribute and derives the reconciled skipped count from result outcomes; all three identities are allowlisted with reasons.",
+      "evidence": ["REC-085-full-gate.json", "REC-085-skip-allowlist.json", "REC-085.md"]
+    },
+    {
+      "id": "DRIFT-LEDGER-086",
+      "status": "completed-with-retained-minor-drifts",
+      "ownerScope": "REC-086",
+      "title": "Documentation drift closure ledger",
+      "requiredFollowUp": "Resolve or explicitly close each ledger item in its assigned owner scope; preserve the cited passages and evidence requirements.",
+      "severity": "informational",
+      "resolution": "All known caveats were assigned stable IDs, dispositions, owners, severities, affected versions and closure evidence requirements. REC-146 reconciled the owner-scope evidence: REC-140 documentation conflicts are resolved with approval, while DRIFT-001 and DRIFT-002 remain explicit minor current drifts pending a normative source decision. The ledger remains inventory evidence, not a normative resolution.",
+      "evidence": ["REC-086-drift-ledger.json", "REC-086.md", "REC-146-behavior-results.json"]
+    },
+    {
+      "id": "EXPECTATION-087",
+      "status": "completed",
+      "ownerScope": "REC-087",
+      "title": "Pre-observation candidate expectation contract",
+      "requiredFollowUp": "Use freeze/verify and preserve the pre-registered case manifest when later scopes observe or minimize candidates.",
+      "severity": "informational",
+      "resolution": "Four cases were frozen before focused parser replay with valid seeds, exact mutations, independent classifications, root-cause/context fingerprints, raw source hashes and minimization preservation rules. Contract tests reject invalid seeds, post-hoc expected-diagnostic replacement, identifier-only duplicate coverage, source drift, observation injection and manifest replacement.",
+      "evidence": ["REC-087-case-contract.json", "REC-087-pre-observation-manifest.json", "REC-087.md"]
+    },
+    {
+      "id": "MUTATION-088",
+      "status": "completed",
+      "ownerScope": "REC-088",
+      "title": "Diagnostic assertion mutation gate",
+      "requiredFollowUp": "Keep the critical mutation map and rerun the final diagnostic mutation campaign in REC-145.",
+      "severity": "informational",
+      "resolution": "Five focused baseline targets passed. Seven critical diagnostic mutations were killed by their intended assertions; one equivalent control remained equivalent, one invalid assertion API was compilation-invalid, and a separate timeout probe was excluded from effectiveness.",
+      "evidence": ["REC-088-mutation-results.json", "REC-088.md"]
+    },
+    {
+      "id": "CATALOG-089",
+      "status": "completed-with-retained-drifts",
+      "ownerScope": "REC-089",
+      "title": "Independent diagnostic catalog and retirement oracle",
+      "requiredFollowUp": "Keep the oracle independent from the descriptor registry and revisit DRIFT-001/DRIFT-002 only with a normative source decision.",
+      "severity": "informational",
+      "resolution": "The active enum/catalog inventory passed at 210 entries without a fixed count. All 25 retired numeric values were absent, compatibility-only identifiers were classified without artificial trigger tests, five callable root-cause facts were checked against the authority, and the intentionally wrong MQ3086 explanation was rejected by the independent oracle.",
+      "evidence": ["REC-089-catalog-audit.json", "REC-089-behavior-results.json", "REC-089.md", "REC-146-behavior-results.json"]
+    },
+    {
+      "id": "REC-110-FINDING-001",
+      "status": "resolved",
+      "ownerScope": "REC-110",
+      "title": "Dependent GROUP BY cascade obscured the unresolved rename root",
+      "requiredFollowUp": "Retain the exact B02 regression and qualified/multi-root neighbors in the evaluator suite.",
+      "severity": "major",
+      "resolution": "Semantic group validation now suppresses MQ3012 only when the current nonaggregate projection is tied to the unresolved GROUP BY root by its terminal expression or structured column suggestion. It reconstructs qualified GROUP BY spans and preserves independent MQ3001 and MQ3012 sibling roots.",
+      "evidence": ["REC-110-production-fix.json", "REC-110-behavior-results.json", "REC-110.md"]
+    },
+    {
+      "id": "REC-130-F01",
+      "status": "resolved",
+      "ownerScope": "REC-130",
+      "title": "Bounded nested interpretation did not rebase failure progress or position",
+      "requiredFollowUp": "Retain the 48-case nested-position matrix and BINARY-045 original-substrate regression.",
+      "severity": "major",
+      "resolution": "InterpretNestedAt now transfers partial child progress to the parent cursor and rebases child-relative ParseException positions while preserving the qualified nested field path. The focused matrix passed 48/48, BINARY-045 passed 8/8, and the Release gate passed 20,775 tests with 0 failures.",
+      "evidence": ["REC-130-behavior-results.json", "REC-130-evidence-index.json", "REC-130.md"]
+    }
+  ]
+}

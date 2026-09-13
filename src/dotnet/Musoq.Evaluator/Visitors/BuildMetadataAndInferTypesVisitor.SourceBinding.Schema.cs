@@ -39,9 +39,19 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             throw;
         }
+        catch (DataSourceLifecycleException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            throw new SchemaProviderFailureException(ex);
+            throw DataSourceLifecycleException.ForProviderOperation(
+                node.Schema,
+                node.Method,
+                node.Alias,
+                node.QueryId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                "construct",
+                ex);
         }
 
         const bool hasExternallyProvidedTypes = false;

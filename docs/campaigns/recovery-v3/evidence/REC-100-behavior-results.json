@@ -1,0 +1,221 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-100",
+  "outcome": "passed",
+  "repositoryIdentity": {
+    "root": "D:\\repos\\Musoq",
+    "baselineCommit": "1469ebece68ae3139706767be3e4111e3aa8b34f",
+    "branch": "feature/runtime_v2_final",
+    "configuration": "Release",
+    "sdkObserved": "10.0.303"
+  },
+  "observationSequence": {
+    "compileOnlyCorrections": [
+      {
+        "command": "dotnet build src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj --configuration Release --no-restore --no-incremental --nologo --verbosity minimal",
+        "exitCode": 1,
+        "errors": 1,
+        "countedAsCandidateEvidence": false,
+        "reason": "The matrix assertion initially used an unavailable MSTest HasCount overload; it was changed to the existing Assert.AreEqual API. No candidate query executed."
+      }
+    ],
+    "initialExecutableReplay": {
+      "evaluator": {
+        "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC100EnumSemanticsTests|FullyQualifiedName~DiagnosticREC100_QueryLocal\" --logger \"console;verbosity=minimal\"",
+        "exitCode": 1,
+        "passed": 10,
+        "skipped": 0,
+        "failed": 12,
+        "total": 22,
+        "countedAsCandidateEvidence": false,
+        "failures": [
+          "The semantic binder reports alias-free field spans for several operands; the initial helper assumed the source alias was part of each span.",
+          "The initial cross-source case used the reserved alias other and stopped at MQ2035_MissingRequiredAlias instead of reaching the intended enum identity diagnostic."
+        ],
+        "reason": "Revision 2 corrected only the test span oracle and changed ID06 to the non-reserved alias peer. No production code changed."
+      },
+      "parser": {
+        "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC100EnumDeclarationTests\" --logger \"console;verbosity=minimal\"",
+        "exitCode": 0,
+        "passed": 8,
+        "skipped": 0,
+        "failed": 0,
+        "total": 8,
+        "countedAsCandidateEvidence": false,
+        "reason": "This parser replay was retained as the compile-and-matrix check while the evaluator replay was corrected; final candidate evidence is recorded below."
+      }
+    },
+    "frozenManifest": {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-100-pre-observation-manifest.json",
+      "sha256": "3af36c205d84d2691243891fe9679fc5f7ed2ad1685d9a9a87a53884308e8235",
+      "caseContractPath": "docs/campaigns/recovery-v3/evidence/REC-100-case-contract.json",
+      "caseContractSha256": "ba8a2d002535bf86440f9d92e08e962504e94a00cf0f555c5e6b3c7be5653078",
+      "matrixRevision": 2,
+      "registeredCandidateCases": 24,
+      "registeredValidationControls": 4,
+      "postObservationCorrections": [
+        "Semantic expected spans were changed to the binder's exact alias-free field or expression spans.",
+        "REC-100-ID06 changed its source alias from reserved other to peer so the intended cross-enum identity diagnostic could be observed.",
+        "The revision-2 manifest was regenerated after those contract corrections and verified before final replay."
+      ]
+    },
+    "finalReplay": {
+      "parser": {
+        "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC100EnumDeclarationTests\" --logger \"console;verbosity=minimal\"",
+        "exitCode": 0,
+        "passed": 8,
+        "skipped": 0,
+        "failed": 0,
+        "total": 8
+      },
+      "evaluator": {
+        "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC100EnumSemanticsTests|FullyQualifiedName~DiagnosticREC100_QueryLocal\" --logger \"console;verbosity=minimal\"",
+        "exitCode": 0,
+        "passed": 22,
+        "skipped": 0,
+        "failed": 0,
+        "total": 22
+      },
+      "candidateCases": 24,
+      "validationControls": 4,
+      "matrixChecks": 1,
+      "total": 29
+    }
+  },
+  "focusedEvidence": {
+    "adjacentParserSuites": {
+      "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC100EnumDeclarationTests|FullyQualifiedName~DiagnosticREC099RepresentabilityBoundaryTests|FullyQualifiedName~EnumDeclarationDiagnosticTests|FullyQualifiedName~EnumDeclarationParserTests|FullyQualifiedName~DiagnosticREC098EnumDeclarationRecoveryTests|FullyQualifiedName~DiagnosticREC096UnicodeCultureRenderingTests|FullyQualifiedName~DiagnosticCore001LexicalTests|FullyQualifiedName~DiagnosticCore002StringLiteralTests|FullyQualifiedName~DiagnosticCoreTypesTests|FullyQualifiedName~DiagnosticMetadataAndPhasesTests\" --logger \"console;verbosity=minimal\"",
+      "exitCode": 0,
+      "passed": 238,
+      "skipped": 0,
+      "failed": 0,
+      "total": 238
+    },
+    "adjacentEvaluatorSuites": {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC100EnumSemanticsTests|FullyQualifiedName~DiagnosticREC100_QueryLocal|FullyQualifiedName~DiagnosticREC099RepresentabilityRuntimeTests|FullyQualifiedName~FirstClassEnumExecutionTests|FullyQualifiedName~BuildMetadataAndInferTypesVisitorTests|FullyQualifiedName~ExpressionIRTests\" --logger \"console;verbosity=minimal\"",
+      "exitCode": 0,
+      "passed": 194,
+      "skipped": 0,
+      "failed": 0,
+      "total": 194
+    },
+    "campaignToolTests": {
+      "command": "python -m unittest discover -s docs/campaigns/recovery-v3/tools -p \"test_*.py\" -v",
+      "exitCode": 0,
+      "passed": 46,
+      "skipped": 0,
+      "failed": 0,
+      "total": 46
+    }
+  },
+  "candidateResults": {
+    "caseCount": 24,
+    "novelCandidates": 24,
+    "duplicateCandidates": 0,
+    "metamorphicVariants": 0,
+    "cleanStreak": 24,
+    "families": {
+      "memberCasing": {
+        "cases": 6,
+        "passed": 6,
+        "rootCode": "MQ3108_UnknownEnumMember",
+        "exactFaultSpans": 6
+      },
+      "nominalIdentity": {
+        "cases": 6,
+        "passed": 6,
+        "rootCode": "MQ3109_EnumIdentityMismatch",
+        "exactFaultSpans": 6
+      },
+      "unsupportedOperators": {
+        "cases": 6,
+        "passed": 6,
+        "rootCode": "MQ3110_UnsupportedEnumOperator",
+        "exactFaultSpans": 6
+      },
+      "duplicateMembers": {
+        "cases": 6,
+        "passed": 6,
+        "rootCode": "MQ2045_DuplicateEnumMember",
+        "exactFaultSpans": 6
+      }
+    },
+    "diagnosticCodeCounts": {
+      "MQ2045": 6,
+      "MQ3108": 6,
+      "MQ3109": 6,
+      "MQ3110": 6
+    },
+    "controls": {
+      "queryLocalTypeCaseInsensitive": true,
+      "numericAliasesKeepFirstDeclaredCanonicalName": true,
+      "nativeAliasUsesFirstDeclaredCanonicalName": true,
+      "namedCompositeRemainsExactFlagsMember": true
+    },
+    "diagnosticPolicy": {
+      "oneRootDiagnosticPerCandidate": true,
+      "exactFaultSpans": 24,
+      "validLocations": 24,
+      "catalogExplanationsAndFixesPresent": 24,
+      "unexpectedSecondaryDiagnostics": 0,
+      "crossIdentityNeverPrimitiveCompared": true
+    }
+  },
+  "productionChange": {
+    "changed": false,
+    "productionFixes": 0,
+    "judgment": "REC-100 found no reproducible production defect. Existing enum type-name binding, exact member binding, duplicate-name validation, alias canonicalization, nominal identity checks and unsupported-operator diagnostics satisfied the contract; the committed scope contains regression tests and evidence only."
+  },
+  "sourceBindings": {
+    "parserTestSourceSha256": "b9b43c96456cae63ef365b9723877466d1f9f280b24fb2eed3c042f4bb997d92",
+    "evaluatorTestSourceSha256": "000aedf8d2168569dca4064869c3adb9b787c8db3a4bea13673a01002645db06",
+    "queryLocalControlSourceSha256": "5432e01f5568e79ec469fc098c7e2813e3020fdc6684179b3755055190cdab2a",
+    "coreSpecSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+    "enumContractSha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494",
+    "catalogSha256": "6bcec5e94d51905fead0b99875c18fe350f679743cd5ce9dbc969d0ab6cdb670"
+  },
+  "fullGate": {
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-100-full-gate.json",
+    "evidenceSha256": "90db20ab937ed6f06ae00cb583c3c922bb6d2bf789ed26330115307fd82504eb",
+    "runId": "REC-100-e3cdbdbb801e",
+    "testedPayloadSha256": "ae95835f9c4f652b95e11545dead981a58d7beeaa411baef3663a510c73ddd5b",
+    "testedPayloadFileCount": 5752,
+    "targetCount": 8,
+    "passed": 20239,
+    "skipped": 3,
+    "failed": 0,
+    "total": 20242,
+    "allowlistedSkips": [
+      "Musoq.Evaluator.Tests.GeneratedInterpretationCodeDumpTests.Refresh_Local_Interpretation_Samples",
+      "Musoq.Evaluator.Tests.GeneratedCodeSamplesSnapshotTests.Refresh_All_Local_Generated_Samples",
+      "Musoq.Evaluator.Tests.GeneratedCodeSamplesManifestTests.Refresh_Tracked_Generated_Code_Sample_Manifest"
+    ],
+    "commands": [
+      "dotnet restore src/dotnet/Musoq.sln --nologo --verbosity quiet",
+      "dotnet build src/dotnet/Musoq.sln -c Release --no-restore --no-incremental --nologo --verbosity quiet",
+      "dotnet test src/dotnet/Musoq.sln -c Release --no-build --no-restore --nologo --verbosity quiet --logger console;verbosity=minimal --logger trx --results-directory .campaign-artifacts/REC-100-full-gate/trx"
+    ]
+  },
+  "obligations": {
+    "REC-100-O01": "The six member-casing candidates require exact case-sensitive member references, while the parser and evaluator controls resolve local enum type names without case sensitivity.",
+    "REC-100-O02": "Six duplicate-name candidates reject exact and case-only duplicate names with MQ2045, while the numeric-alias control preserves the first-declared canonical name.",
+    "REC-100-O03": "The native alias control returns the first-declared canonical member name and the named-composite control retains an exact flags member rather than decomposing it.",
+    "REC-100-O04": "Six candidates compare distinct enum identities with equal backing values and all reject the operation with MQ3109; no candidate is accepted as primitive integral equality."
+  },
+  "selfReview": {
+    "scopeAuthorityAndDependencyReviewed": true,
+    "preObservationMatrixAndRevisionHistoryReviewed": true,
+    "compileOnlyCorrectionsReviewed": true,
+    "enumTypeNameAndMemberCaseReviewed": true,
+    "duplicateNameAndAliasReviewed": true,
+    "nominalIdentityAndOperatorContractReviewed": true,
+    "catalogCodeAndSpanContractReviewed": true,
+    "validAliasAndCompositeControlsReviewed": true,
+    "focusedBehaviorEvidenceReviewed": true,
+    "fullGateEvidenceReviewed": true,
+    "productionChangeReviewed": true,
+    "reviewKind": "self-review",
+    "independentReview": false
+  },
+  "observedAt": "2026-09-07T02:04:01.684Z"
+}

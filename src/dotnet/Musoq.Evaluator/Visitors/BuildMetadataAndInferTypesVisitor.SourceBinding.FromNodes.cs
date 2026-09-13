@@ -46,7 +46,6 @@ public partial class BuildMetadataAndInferTypesVisitor
             return;
 
         _resultShape.GeneratedAliases.Add(_sourceBinding.QueryAlias);
-
         TableSymbol? tableSymbol;
 
         var parentScope = _sourceBinding.CurrentScope.Parent ??
@@ -79,9 +78,12 @@ public partial class BuildMetadataAndInferTypesVisitor
             new TableSymbol(_sourceBinding.QueryAlias, tableSchemaPair.Schema, tableSchemaPair.Table, hasExplicitAlias));
         _sourceBinding.CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(_sourceBinding.QueryAlias);
         _sourceBinding.CurrentScope[node.Id] = _sourceBinding.QueryAlias;
+        if (Array.Exists(tableSchemaPair.Table.Columns, static column => column.EnumType != null))
+            _sourceBinding.InferredColumnsByAlias.TryAdd(_sourceBinding.QueryAlias, tableSchemaPair.Table.Columns);
 
         _sourceBinding.AliasMapToInMemoryTableMap.Add(_sourceBinding.QueryAlias, node.VariableName);
         _sourceBinding.UsedSchemasQuantity += 1;
+        if (_diagnosticRecoveryCteNames.Contains(node.VariableName)) _diagnosticRecoveryAliases.Add(_sourceBinding.QueryAlias);
 
         PushSemanticNode(new Parser.InMemoryTableFromNode(node.VariableName, _sourceBinding.QueryAlias));
     }
@@ -91,7 +93,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var appliedTable = (FromNode)PopSemanticNode();
         var source = (FromNode)PopSemanticNode();
-        var appliedFrom = new Parser.ApplyFromNode(source, appliedTable, node.ApplyType, node.WithOrdinality);
+        var appliedFrom = new Parser.ApplyFromNode(source, appliedTable, node.ApplyType, node.WithOrdinality)
+            .CopySpansFrom(node);
         _sourceBinding.Identifier = appliedFrom.Alias;
         PushSemanticNode(appliedFrom);
     }
@@ -100,7 +103,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         var from = (FromNode)PopSemanticNode();
         _sourceBinding.Identifier = from.Alias;
-        PushSemanticNode(new Parser.ExpressionFromNode(from));
+        PushSemanticNode(new Parser.ExpressionFromNode(from).CopySpansFrom(node));
 
         var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_sourceBinding.Identifier);
 
@@ -161,14 +164,14 @@ public partial class BuildMetadataAndInferTypesVisitor
             _sourceBinding.CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
 
             var newInterpretFromNode = new Parser.InterpretFromNode(node.Alias, interpretCall, node.ApplyType,
-                returnType ?? node.ReturnType);
+                returnType ?? node.ReturnType).CopySpansFrom(node);
             _sourceBinding.CurrentScope[newInterpretFromNode.Id] = node.Alias;
             PushSemanticNode(newInterpretFromNode);
         }
         else
         {
             var newInterpretFromNode =
-                new Parser.InterpretFromNode(node.Alias, interpretCall, node.ApplyType, node.ReturnType);
+                new Parser.InterpretFromNode(node.Alias, interpretCall, node.ApplyType, node.ReturnType).CopySpansFrom(node);
             _sourceBinding.CurrentScope[newInterpretFromNode.Id] = node.Alias;
             PushSemanticNode(newInterpretFromNode);
         }

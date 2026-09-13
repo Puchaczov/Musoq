@@ -1,0 +1,220 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-103",
+  "outcome": "passed",
+  "repositoryIdentity": {
+    "root": "D:\\repos\\Musoq",
+    "baselineCommit": "800dbeda0bfd2e1c4aeaf183cf39845dcf34ea5c",
+    "branch": "feature/runtime_v2_final",
+    "configuration": "Release",
+    "sdkObserved": "10.0.303"
+  },
+  "observationSequence": {
+    "initialExecutableReplay": {
+      "evaluator": {
+        "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC103NativeEnumSourcePlanningTests\" --logger \"console;verbosity=minimal\"",
+        "exitCode": 1,
+        "passed": 21,
+        "skipped": 0,
+        "failed": 8,
+        "total": 29,
+        "terminated": false,
+        "countedAsCandidateEvidence": false,
+        "reason": "The first post-freeze replay exposed that the semantic pipeline's TransitionSchemaProvider wrapper hid the inner provider assembly from exact native enum lookup. It also exposed metadata-fixture carrier/capability assertions and the parser-level phase of duplicate modifier validation. The aggregate was excluded; frozen candidate IDs and queries were unchanged."
+      }
+    },
+    "finalReplay": {
+      "evaluator": {
+        "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC103NativeEnumSourcePlanningTests\" --logger \"console;verbosity=minimal\"",
+        "exitCode": 0,
+        "passed": 29,
+        "skipped": 0,
+        "failed": 0,
+        "total": 29,
+        "candidateCases": 24,
+        "validationControls": 4,
+        "matrixChecks": 1,
+        "allValidCandidatesExecuted": true
+      }
+    },
+    "frozenManifest": {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-103-pre-observation-manifest.json",
+      "sha256": "5bb677c364b73a22ee02e0576da77aefdab6fdcddc84885e6c75e93efcd2a24c",
+      "caseContractPath": "docs/campaigns/recovery-v3/evidence/REC-103-case-contract.json",
+      "caseContractSha256": "9e194e4aab2a4b0e6e50822dbcbfc07415c3fb9b434095484c915cef878d2eb6",
+      "preObservationPayloadSha256": "f7689709fd9f6e1cdcc50d75d0689807dbafc715d23b9e44ca23fcdf75d90779",
+      "matrixRevision": 1,
+      "registeredCandidateCases": 24,
+      "registeredValidationControls": 4,
+      "postObservationCorrections": [
+        "The controlled metadata table now exposes its typed REC103NativeEntity contract and QueryScopedRows|LogicalScalarReads transfer capabilities; no candidate identity or query changed.",
+        "The semantic provider-wrapper defect was fixed by preserving the inner provider assembly for exact fully qualified native enum discovery.",
+        "REC-103-T07 emitted MQ2012_InvalidSchemaDefinition at Parse. This is retained as an observed parser-phase exception because the bound TABLE specification's §7.1 classifies duplicate read modifiers as parse-time and the existing parser regression test covers that behavior; the frozen case identity, query, code and authority snapshots were not changed."
+      ]
+    }
+  },
+  "focusedEvidence": {
+    "adjacentEvaluatorSuites": {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC103NativeEnumSourcePlanningTests|FullyQualifiedName~DiagnosticREC102EnumIntrinsicTests|FullyQualifiedName~DiagnosticREC101EnumContextTests|FullyQualifiedName~DiagnosticREC100EnumSemanticsTests|FullyQualifiedName~DiagnosticREC099RepresentabilityRuntimeTests|FullyQualifiedName~FirstClassEnumExecutionTests|FullyQualifiedName~BuildMetadataAndInferTypesVisitorTests|FullyQualifiedName~ExpressionIRTests\" --logger \"console;verbosity=minimal\"",
+      "exitCode": 0,
+      "passed": 281,
+      "skipped": 0,
+      "failed": 0,
+      "total": 281
+    },
+    "campaignToolTests": {
+      "command": "python -m unittest discover -s docs/campaigns/recovery-v3/tools -p \"test_*.py\" -v",
+      "exitCode": 0,
+      "passed": 46,
+      "skipped": 0,
+      "failed": 0,
+      "total": 46
+    },
+    "caseContractVerification": {
+      "command": "python docs/campaigns/recovery-v3/tools/case_contract.py verify --root . --scope-id REC-103 --cases docs/campaigns/recovery-v3/evidence/REC-103-case-contract.json --manifest docs/campaigns/recovery-v3/evidence/REC-103-pre-observation-manifest.json",
+      "exitCode": 0,
+      "verified": true,
+      "caseCount": 24,
+      "preObservationPayloadSha256": "f7689709fd9f6e1cdcc50d75d0689807dbafc715d23b9e44ca23fcdf75d90779"
+    }
+  },
+  "candidateResults": {
+    "caseCount": 24,
+    "novelCandidates": 24,
+    "duplicateCandidates": 0,
+    "metamorphicVariants": 0,
+    "cleanStreak": 24,
+    "families": {
+      "nativeExecutionBoundary": {
+        "cases": 8,
+        "passed": 8,
+        "typedRowsExecuted": true,
+        "primitiveCarriers": ["Int16", "UInt32"],
+        "nullableAndUnknownValuesObserved": true,
+        "nativeDescriptorIdentityObserved": true
+      },
+      "tableTypeResolutionAndMetadata": {
+        "cases": 8,
+        "passed": 8,
+        "validCases": 5,
+        "invalidCases": 3,
+        "nativeAndQueryLocalDescriptorsObserved": true,
+        "metadataRowSourceRequested": false,
+        "diagnostics": {
+          "MQ3005_TypeMismatch": 2,
+          "MQ2012_InvalidSchemaDefinition": 1
+        },
+        "phaseObservations": {
+          "REC-103-T05": "Bind",
+          "REC-103-T06": "Bind",
+          "REC-103-T07": "Parse"
+        }
+      },
+      "dynamicQueryScopedRows": {
+        "cases": 8,
+        "passed": 8,
+        "validCases": 7,
+        "invalidCases": 1,
+        "primitiveRowsExecuted": true,
+        "primitiveCarriers": ["Int16", "UInt32"],
+        "queryLocalDescriptorsFrozen": true,
+        "diagnostics": {
+          "MQ3114_EnumSourceCapabilityRequired": 1
+        }
+      }
+    },
+    "diagnosticCodeCounts": {
+      "MQ3005_TypeMismatch": 2,
+      "MQ2012_InvalidSchemaDefinition": 1,
+      "MQ3114_EnumSourceCapabilityRequired": 1
+    },
+    "controls": {
+      "nativePrimitiveCarrierAndDescriptor": true,
+      "dynamicPrimitiveRowsAndQueryLocalDescriptor": true,
+      "unsupportedCapabilityRejectedActionably": true,
+      "metadataDoesNotInspectRowsAndModifiersStaySeparate": true
+    },
+    "diagnosticPolicy": {
+      "oneRootDiagnosticPerInvalidCandidate": true,
+      "invalidCandidates": 4,
+      "validRuntimeCandidates": 20,
+      "unexpectedSecondaryDiagnostics": 0,
+      "qualifiedNativeTypeRequiresExactReachability": true,
+      "capabilityMessageNamesSourceAndEnumColumn": true,
+      "duplicateModifierPhase": "Parse per TABLE specification §7.1 and parser regression path"
+    }
+  },
+  "productionChange": {
+    "changed": true,
+    "productionFixes": 1,
+    "files": [
+      "src/dotnet/Musoq.Evaluator/TemporarySchemas/TransitionSchemaProvider.cs",
+      "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.TableContractMetadataBinding.cs"
+    ],
+    "judgment": "REC-103 reproduced a production defect in exact native enum discovery: the semantic pipeline wrapped the supplied provider in TransitionSchemaProvider, so lookup searched only the wrapper assembly and rejected reachable test/provider enum types. The fix exposes the inner provider for traversal and searches the reachable provider assemblies before the method-resolution assemblies, while retaining exact fully qualified, enum-only matching. It does not inspect object rows or introduce an object-valued fallback."
+  },
+  "sourceBindings": {
+    "evaluatorTestSourceSha256": "c924da33d85bf0b037bb223a58f799148299ae7f6716457152380654145b17f6",
+    "transitionSchemaProviderSourceSha256": "7cf480af6eff65802f848cca5d9cb232df1c3cf9cc850484445df65990013ac9",
+    "nativeTypeResolutionSourceSha256": "f007e95566549f0929cade056ed41be75e7319779624df461da121fe5180b2ef",
+    "caseContractSha256": "9e194e4aab2a4b0e6e50822dbcbfc07415c3fb9b434095484c915cef878d2eb6",
+    "preObservationManifestSha256": "5bb677c364b73a22ee02e0576da77aefdab6fdcddc84885e6c75e93efcd2a24c",
+    "coreSpecSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+    "tableSpecSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca",
+    "catalogSha256": "6bcec5e94d51905fead0b99875c18fe350f679743cd5ce9dbc969d0ab6cdb670"
+  },
+  "fullGate": {
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-103-full-gate.json",
+    "evidenceSha256": "e172a6705969b31dd25c646c8331bb1749a5a4abca62eb7cb993fe406eafba90",
+    "runId": "REC-103-c6d8d54aba17",
+    "testedPayloadSha256": "76af4110c0447bf4e6cb43a68b9ff440fbca93ff712a83a421df7ed658c5e84b",
+    "testedPayloadFileCount": 5755,
+    "targetCount": 8,
+    "passed": 20326,
+    "skipped": 3,
+    "failed": 0,
+    "total": 20329,
+    "targetSummaries": [
+      {"targetId": "Musoq.Benchmarks.Tests/net10.0", "passed": 98, "skipped": 0, "failed": 0, "total": 98},
+      {"targetId": "Musoq.Converter.Tests/net10.0", "passed": 1117, "skipped": 0, "failed": 0, "total": 1117},
+      {"targetId": "Musoq.Evaluator.Tests/net10.0", "passed": 11130, "skipped": 3, "failed": 0, "total": 11133},
+      {"targetId": "Musoq.Examples.DataSources.Csv.Tests/net10.0", "passed": 49, "skipped": 0, "failed": 0, "total": 49},
+      {"targetId": "Musoq.Examples.DataSources.Git.Tests/net10.0", "passed": 45, "skipped": 0, "failed": 0, "total": 45},
+      {"targetId": "Musoq.Parser.Tests/net10.0", "passed": 2608, "skipped": 0, "failed": 0, "total": 2608},
+      {"targetId": "Musoq.Plugins.Tests/net10.0", "passed": 4743, "skipped": 0, "failed": 0, "total": 4743},
+      {"targetId": "Musoq.Schema.Tests/net10.0", "passed": 536, "skipped": 0, "failed": 0, "total": 536}
+    ],
+    "allowlistedSkips": [
+      "Musoq.Evaluator.Tests.GeneratedCodeSamplesManifestTests.Refresh_Tracked_Generated_Code_Sample_Manifest",
+      "Musoq.Evaluator.Tests.GeneratedCodeSamplesSnapshotTests.Refresh_All_Local_Generated_Samples",
+      "Musoq.Evaluator.Tests.GeneratedInterpretationCodeDumpTests.Refresh_Local_Interpretation_Samples"
+    ],
+    "commands": [
+      "dotnet restore src/dotnet/Musoq.sln --nologo --verbosity quiet",
+      "dotnet build src/dotnet/Musoq.sln -c Release --no-restore --no-incremental --nologo --verbosity quiet",
+      "dotnet test src/dotnet/Musoq.sln -c Release --no-build --no-restore --nologo --verbosity quiet --logger console;verbosity=minimal --logger trx --results-directory .campaign-artifacts/REC-103-full-gate/trx"
+    ]
+  },
+  "obligations": {
+    "REC-103-O01": "Eight native typed execution and TABLE reference candidates verified exact fully qualified reachability through the provider wrapper chain; simple and missing qualified names failed with MQ3005_TypeMismatch.",
+    "REC-103-O02": "Native short and uint enum carriers, source-facing enum read types, nullable lifting, native/query-local descriptor identity, unknown values and composed native paths were verified.",
+    "REC-103-O03": "The dynamic capability negative control and REC-103-D08 rejected a source without logical scalar reads at Bind with MQ3114_EnumSourceCapabilityRequired and actionable source/column guidance.",
+    "REC-103-O04": "Metadata fixtures captured descriptors and modifiers without requesting rows; duplicate modifier validation retained one MQ2012 diagnostic at the parser-owned Parse phase, while modifier separation preserved native enum identity."
+  },
+  "selfReview": {
+    "scopeAuthorityAndDependencyReviewed": true,
+    "preObservationMatrixAndRevisionHistoryReviewed": true,
+    "initialFixtureMismatchRecorded": true,
+    "nativeProviderReachabilityReviewed": true,
+    "primitiveCarrierAndDescriptorReviewed": true,
+    "capabilityFailureReviewed": true,
+    "metadataNoRowInferenceReviewed": true,
+    "parserPhaseAuthorityDiscrepancyRecorded": true,
+    "focusedBehaviorEvidenceReviewed": true,
+    "fullGateEvidenceReviewed": true,
+    "productionChangeReviewed": true,
+    "reviewKind": "self-review",
+    "independentReview": false
+  },
+  "observedAt": "2026-09-07T03:28:21.1129268Z"
+}

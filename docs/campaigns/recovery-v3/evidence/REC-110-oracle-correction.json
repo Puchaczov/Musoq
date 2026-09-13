@@ -1,0 +1,82 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-110",
+  "kind": "oracle-correction",
+  "fromRevision": 1,
+  "toRevision": 2,
+  "independentReviewRequired": true,
+  "review": {
+    "status": "approved",
+    "reviewer": "Gauss and Zeno read-only campaign reviewers",
+    "independent": true,
+    "reviewerAgentIds": [
+      "01a07add-cb4d-78a1-b4e7-8632138b2f4f",
+      "01a07add-e490-7b52-99c9-827c7f4a3484"
+    ],
+    "scope": "REC-110 matrix counts and REC-110-A03",
+    "findings": [
+      "Both reviewers approved correcting the registered matrix counts to 39 invalid and 9 valid while retaining 48 cases across eight six-case families.",
+      "Both reviewers approved REC-110-A03-v2: an aggregate-only grouped valid seed retains exactly one stale GROUP BY source-alias consumer after the declaration rename, so MQ3015_UnknownAlias is the bounded primary diagnostic.",
+      "The reviewers required the v1 contract and manifest to remain immutable and the replacement to be a versioned v2 contract, not an appended 49th case."
+    ],
+    "testsRunByReviewers": false
+  },
+  "sourceJustification": [
+    {
+      "caseId": "REC-110-A03",
+      "revision1Observation": "The valid v1 seed 'select a.Country, Count(*) from #A.entities() a group by a.Country' passed, but its mutated result emitted two Bind diagnostics: MQ3012_NonAggregateInSelect for Country and MQ3015_UnknownAlias for a.",
+      "correction": "Replace the v1 candidate with REC-110-A03-v2 using 'select Count(*) from #A.entities() a group by a.Country' and the same source-declaration rename to 'renamed', leaving 'group by a.Country' stale.",
+      "reason": "The aggregate-only projection removes the independent nonaggregate grouping condition without removing the required stale source-qualified consumer. The corrected query remains a valid grouped seed and the mutation has one declared fault at the GROUP BY boundary.",
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sections": [
+            "5.3 Column Aliasing",
+            "14. Common Table Expressions (CTEs)",
+            "23.3 Root-cause classification"
+          ],
+          "passage": "Aliases are query-block scoped; a renamed declaration leaves a stale source-qualified consumer unresolved as an unknown alias, while an aggregate-only grouped projection avoids an independent nonaggregate grouping error and dependent cascades.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ]
+    },
+    {
+      "caseId": "REC-110-matrix-counts",
+      "revision1Observation": "The frozen v1 contract declared validationControlCount 12, invalidCandidates 36 and validOrdinaryCases 12, but the registered fixture contained 39 invalid and 9 valid candidates; the matrix assertion failed at the first incorrect count.",
+      "correction": "Revision 2 records validationControlCount 9, invalidCandidates 39 and validOrdinaryCases 9, retaining all 48 registered cases and all eight six-case families.",
+      "reason": "The correction reconciles the pre-registered contract with the existing fixture classifications. No candidate is deleted, weakened or reclassified to hide an engine result."
+    }
+  ],
+  "fixtureCorrections": [
+    "Before candidate observation, corrected the test harness to treat SuggestedFixes as strings and to pass the nullable expected token only after the invalid-candidate branch.",
+    "After the v1 observation, replaced only the A03 candidate version with the reviewed aggregate-only seed and corrected the matrix count assertions to match the existing 39/9 registrations."
+  ],
+  "productionFindings": [],
+  "preservedEvidence": [
+    {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-110-case-contract.json",
+      "sha256": "74248901e72f99bab59bc14eaaffb0a4292ee928d67646727d4394e1dc06e767"
+    },
+    {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-110-pre-observation-manifest.json",
+      "sha256": "380c483d01d5f86228e973224a5f9320713e41fa16e117b3c730d2474ec6ef89"
+    },
+    {
+      "path": ".campaign-artifacts/REC-110-focused-v1-replay/REC-110-focused-v1-replay.trx",
+      "sha256": "b03d0f6cf86f1289cfc6251cf0e50d1f8f493c21463191693b0d002d85cbb38f"
+    },
+    {
+      "path": ".campaign-artifacts/REC-110-focused-v1/REC-110-focused-v1.trx",
+      "sha256": null,
+      "status": "not produced",
+      "reason": "The initial run stopped at test-host compilation before a TRX result file was emitted."
+    }
+  ],
+  "newContract": {
+    "path": "docs/campaigns/recovery-v3/evidence/REC-110-case-contract-v2.json",
+    "sha256": "18720e493f4d3de2e594385fd799442afd30cd9d568a71b94f31662913e2f5a6",
+    "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-110-pre-observation-manifest-v2.json",
+    "manifestSha256": "5e65fa6546bafedabcc596da543679537c8371ef8f4349192a7dc5211957a14c"
+  },
+  "nextCandidateVersion": "REC-110-case-contract-v2"
+}

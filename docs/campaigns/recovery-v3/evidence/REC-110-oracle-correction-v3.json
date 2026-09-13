@@ -1,0 +1,120 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-110",
+  "kind": "oracle-correction",
+  "fromRevision": 2,
+  "toRevision": 3,
+  "independentReviewRequired": true,
+  "review": {
+    "status": "approved_with_condition_resolved",
+    "reviewer": "Volta and McClintock read-only campaign reviewers",
+    "independent": true,
+    "reviewerAgentIds": [
+      "01a07ae5-5a42-7173-948b-b52d6f1d2034",
+      "01a07ae5-5aca-7513-a9cd-f4eb8ef45eb5"
+    ],
+    "scope": "REC-110-B02, REC-110-C04, REC-110-D04, REC-110-E04, REC-110-F01, REC-110-F02 and REC-110-G01",
+    "findings": [
+      "Volta approved all seven replacements as valid single-fault candidates.",
+      "McClintock conditionally approved the set, requiring C04-v2 and E04-v2 to retain only one stale GROUP BY consumer and requiring F01-v2 to update its mutation anchor for SELECT 1.",
+      "Those conditions are resolved in revision 3 by aggregate-only C04-v2/E04-v2 outer queries and the exact SELECT 1 F01-v2 mutation anchor. Both reviewers approved the 48-case, 39-invalid/9-valid totals."
+    ],
+    "testsRunByReviewers": false
+  },
+  "sourceJustification": [
+    {
+      "caseIds": [
+        "REC-110-B02",
+        "REC-110-C04",
+        "REC-110-D04",
+        "REC-110-E04"
+      ],
+      "revision2Observation": "The complete v2 audit found MQ3012 plus the expected MQ3001 or MQ3015 because a renamed nonaggregate projection or output was also required by the stale GROUP BY consumer.",
+      "correction": "Revision 3 uses aggregate-only projections for the grouped CTE/reference/derived cases, leaving exactly one stale GROUP BY consumer after the declaration or exported-output rename.",
+      "reason": "The correction isolates the declared visibility fault without deleting the relevant query-block boundary or adding an unrelated nonaggregate grouping condition. The resulting seed remains valid and the expected one-error contract is truthful.",
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sections": [
+            "5.3 Column Aliasing",
+            "6.3 CTE References",
+            "6.4 Derived Tables",
+            "23.3 Root-cause classification"
+          ],
+          "passage": "Exported names and aliases are visible only in their declared query block; a stale grouped consumer must resolve against the current visible output without an independent nonaggregate projection fault.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a"
+        }
+      ]
+    },
+    {
+      "caseIds": [
+        "REC-110-F01",
+        "REC-110-F02"
+      ],
+      "revision2Observation": "The v2 audit showed MQ2001_UnexpectedToken before mutation because the nested EXISTS seed projected b.City in a grammar context requiring the scalar existence form.",
+      "correction": "Revision 3 uses SELECT 1 in the nested EXISTS seed. F01-v2 changes only the inner alias declaration while retaining stale b.Country; F02-v2 changes only the outer alias declaration while retaining the correlated inner a.Country.",
+      "reason": "The corrected seed is a valid correlated EXISTS baseline; each mutation retains exactly one stale alias in its intended nested scope and expects MQ3015_UnknownAlias.",
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sections": [
+            "5.3 Column Aliasing",
+            "23.3 Root-cause classification"
+          ],
+          "passage": "Nested query blocks may shadow same-spelled aliases while retaining explicitly correlated outer aliases; stale aliases are diagnosed in the failing block.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a"
+        }
+      ]
+    },
+    {
+      "caseId": "REC-110-G01",
+      "revision2Observation": "The v2 audit showed the G01 seed itself emitted MQ3001 because it already selected the non-exported source-qualified name [a.City], so no valid baseline existed.",
+      "correction": "Revision 3 uses a valid CTE consumer selecting City and mutates only that outer consumer to [a.City].",
+      "reason": "The mutation now isolates the source-qualified export boundary while preserving the original CTE declaration and a valid seed.",
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sections": [
+            "5.3 Column Aliasing",
+            "14. Common Table Expressions (CTEs)",
+            "23.3 Root-cause classification"
+          ],
+          "passage": "A CTE exports its simple projection name unless a dotted output is explicitly declared; source qualifiers from the inner block are not implicitly exported.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a"
+        }
+      ]
+    }
+  ],
+  "fixtureCorrections": [
+    "Removed the temporary all-candidate observation and G01 envelope audit methods after preserving their TRX evidence.",
+    "Replaced the seven v2 candidate constructions with the reviewed v3 versions; no production source was changed."
+  ],
+  "productionFindings": [],
+  "preservedEvidence": [
+    {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-110-case-contract-v2.json",
+      "sha256": "18720e493f4d3de2e594385fd799442afd30cd9d568a71b94f31662913e2f5a6"
+    },
+    {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-110-pre-observation-manifest-v2.json",
+      "sha256": "5e65fa6546bafedabcc596da543679537c8371ef8f4349192a7dc5211957a14c"
+    },
+    {
+      "path": ".campaign-artifacts/REC-110-focused-v2/REC-110-focused-v2.trx",
+      "sha256": "12f24f8ebc6603066fb76806014c4afedf08b997822f5b6e87414ba02fe74e57"
+    },
+    {
+      "path": ".campaign-artifacts/REC-110-audit-v2/REC-110-audit-v2.trx",
+      "sha256": "de1d508f005ac5cb6dbd9f1e9d3c419aa62da1af894abcd7ad535ad505d2bc4f"
+    },
+    {
+      "path": ".campaign-artifacts/REC-110-g01-audit-v2/REC-110-g01-audit-v2.trx",
+      "sha256": "04695bae750b26837ebec7af2bc43de3580560372893d07c260ce1220afeee21"
+    }
+  ],
+  "newContract": {
+    "path": "docs/campaigns/recovery-v3/evidence/REC-110-case-contract-v3.json",
+    "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-110-pre-observation-manifest-v3.json"
+  },
+  "nextCandidateVersion": "REC-110-case-contract-v3"
+}

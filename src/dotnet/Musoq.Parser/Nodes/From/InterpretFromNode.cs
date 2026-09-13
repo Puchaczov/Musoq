@@ -17,6 +17,8 @@ public class InterpretFromNode : FromNode
     {
         InterpretCall = interpretCall ?? throw new ArgumentNullException(nameof(interpretCall));
         ApplyType = applyType;
+        Span = interpretCall.Span;
+        FullSpan = Span;
 
         ValidateInterpretCall(interpretCall);
     }
@@ -33,6 +35,8 @@ public class InterpretFromNode : FromNode
     {
         InterpretCall = interpretCall ?? throw new ArgumentNullException(nameof(interpretCall));
         ApplyType = applyType;
+        Span = interpretCall.Span;
+        FullSpan = Span;
 
         ValidateInterpretCall(interpretCall);
     }

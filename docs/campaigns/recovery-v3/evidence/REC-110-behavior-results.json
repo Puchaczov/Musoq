@@ -1,0 +1,144 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-110",
+  "matrixRevision": 5,
+  "outcome": "passed",
+  "registeredCases": 48,
+  "classificationCounts": {
+    "invalid": 39,
+    "validOrdinary": 9,
+    "validSuspicious": 0
+  },
+  "contract": {
+    "authoritySha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+    "revisions": [
+      {
+        "revision": 1,
+        "contractPath": "docs/campaigns/recovery-v3/evidence/REC-110-case-contract.json",
+        "contractSha256": "74248901e72f99bab59bc14eaaffb0a4292ee928d67646727d4394e1dc06e767",
+        "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-110-pre-observation-manifest.json",
+        "manifestSha256": "380c483d01d5f86228e973224a5f9320713e41fa16e117b3c730d2474ec6ef89",
+        "observation": "immutable initial matrix; replay mismatch retained"
+      },
+      {
+        "revision": 2,
+        "contractPath": "docs/campaigns/recovery-v3/evidence/REC-110-case-contract-v2.json",
+        "contractSha256": "18720e493f4d3de2e594385fd799442afd30cd9d568a71b94f31662913e2f5a6",
+        "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-110-pre-observation-manifest-v2.json",
+        "manifestSha256": "5e65fa6546bafedabcc596da543679537c8371ef8f4349192a7dc5211957a14c",
+        "observation": "immutable corrected oracle for the first replay"
+      },
+      {
+        "revision": 3,
+        "contractPath": "docs/campaigns/recovery-v3/evidence/REC-110-case-contract-v3.json",
+        "contractSha256": "edea65f70aceda96aca0a5dc66093b845b4c7d01a89fff99f50f676c60efb364",
+        "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-110-pre-observation-manifest-v3.json",
+        "manifestSha256": "9f24080eab20092271d8352ad2b020d7b4d69a5c300c72901edb7d25043824cf",
+        "observation": "immutable repaired candidate oracle before the production fix"
+      },
+      {
+        "revision": 4,
+        "contractPath": "docs/campaigns/recovery-v3/evidence/REC-110-case-contract-v4.json",
+        "contractSha256": "4d15ac45ff4f6450cfdce8b34c224adf0a0fd027adaafb775ed772c9e758aa61",
+        "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-110-pre-observation-manifest-v4.json",
+        "manifestSha256": "6f40af42b69fe691cd98190063c0f78cab4ac929a6217ef5cb3fe9b38faab3e1",
+        "observation": "immutable neutral-alias correction and production finding record"
+      },
+      {
+        "revision": 5,
+        "contractPath": "docs/campaigns/recovery-v3/evidence/REC-110-case-contract-v5.json",
+        "contractSha256": "00c2497aa7065bf3af19899b4abd1af46eea5a672aaebbbbbe6db589965ae46e",
+        "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-110-pre-observation-manifest-v5.json",
+        "manifestSha256": "6f40af42b69fe691cd98190063c0f78cab4ac929a6217ef5cb3fe9b38faab3e1",
+        "preObservationPayloadSha256": "d949a823e5e9b8d9a6050bbfc33b5ced287519d74c1e6fb63a1f69bc2bef976d",
+        "caseCount": 48,
+        "invalidCandidates": 39,
+        "validOrdinaryControls": 9,
+        "verified": true,
+        "observation": "final re-freeze adds permanent grouped regression controls outside the candidate matrix"
+      }
+    ],
+    "contractValidation": {
+      "command": "python docs/campaigns/recovery-v3/tools/case_contract.py validate --root . --scope-id REC-110 --cases docs/campaigns/recovery-v3/evidence/REC-110-case-contract-v5.json",
+      "result": "validated",
+      "caseCount": 48,
+      "sourceFileCount": 1
+    },
+    "contractVerification": {
+      "command": "python docs/campaigns/recovery-v3/tools/case_contract.py verify --root . --scope-id REC-110 --cases docs/campaigns/recovery-v3/evidence/REC-110-case-contract-v5.json --manifest docs/campaigns/recovery-v3/evidence/REC-110-pre-observation-manifest-v5.json",
+      "result": "verified"
+    }
+  },
+  "focusedReplay": {
+    "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC110IncrementalRenameTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-110-focused-cross-source-fix.trx\" --results-directory .campaign-artifacts/REC-110-focused-cross-source-fix",
+    "exitCode": 0,
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0,
+    "total": 9,
+    "trxArtifact": {
+      "path": ".campaign-artifacts/REC-110-focused-cross-source-fix/REC-110-focused-cross-source-fix.trx",
+      "sha256": "93b63bdd3b182b55f3f9cd35858aa72f5a76ac11dfd06b305be8594863f81b16"
+    },
+    "coverage": "The strict candidate method exercises all 48 frozen cases: 39 invalid cases each require one Bind diagnostic and 9 ordinary controls execute unchanged. Permanent controls retain independent roots for unknown aliases, unknown columns, grouped keys, and cross-source qualified names."
+  },
+  "adjacentSuites": [
+    {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-build --no-restore --nologo --verbosity minimal --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-110-evaluator-after-fix.trx\" --results-directory .campaign-artifacts/REC-110-evaluator-after-fix",
+      "exitCode": 0,
+      "passed": 11261,
+      "failed": 0,
+      "skipped": 3,
+      "total": 11264,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-110-evaluator-after-fix/REC-110-evaluator-after-fix.trx",
+        "sha256": "6ed833fd15c17c0dc003768e94cc88a3c79c6a88067b451039607e64fb055dad"
+      }
+    },
+    {
+      "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj -c Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~ContextualKeyword\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-110-parser-contextual-after-fix.trx\" --results-directory .campaign-artifacts/REC-110-parser-contextual-after-fix",
+      "exitCode": 0,
+      "passed": 38,
+      "failed": 0,
+      "skipped": 0,
+      "total": 38,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-110-parser-contextual-after-fix/REC-110-parser-contextual-after-fix.trx",
+        "sha256": "f72703b8a9fccc44a183ea9a1948b7b890da30b26d80bbc2b609192c920738b0"
+      }
+    }
+  ],
+  "productionFinding": {
+    "id": "REC-110-FINDING-001",
+    "status": "resolved",
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-110-production-fix.json",
+    "repairAttempts": 1,
+    "cleanStreakAfterRepair": 48,
+    "finding": "A broad GROUP BY overlap suppression hid independent nonaggregate projections after a stale rename.",
+    "repair": "The final repair reconstructs qualified GROUP BY spans, matches terminal/candidate names per projection, and requires compatible source-qualifier sets for known-column repairs. It does not synthesize aliases or cross query-block candidates.",
+    "finalReviewer": {
+      "agentId": "01a07afd-c453-7403-af7b-de85870ae735",
+      "verdict": "approved",
+      "symmetricProbes": "a.Country with b.Countr and b.Country with a.Countr both retain MQ3012 plus MQ3001"
+    }
+  },
+  "fullReleaseGate": {
+    "command": "python docs/campaigns/recovery-v3/tools/full_gate.py run --scope-id REC-110 --solution src/dotnet/Musoq.sln --configuration Release --output .campaign-artifacts/REC-110-full-gate-final --evidence docs/campaigns/recovery-v3/evidence/REC-110-full-gate-final.json --expected-inventory docs/campaigns/recovery-v3/evidence/REC-085-expected-inventory.json --skip-allowlist docs/campaigns/recovery-v3/evidence/REC-085-skip-allowlist.json",
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-110-full-gate-final.json",
+    "evidenceSha256": "00a8ad27a225323fffd91d2a9290d5c4618fac5560e1f2c6600fc689f8d4cc6c",
+    "runId": "REC-110-cafc68eb70de",
+    "targetCount": 8,
+    "passed": 20467,
+    "failed": 0,
+    "skipped": 3,
+    "total": 20470,
+    "testedPayloadSha256": "257414bd5e016e8757bc3c5a4e525f4109fc3c0c618713aa353a41553e1c73cd",
+    "testedPayloadFileCount": 5770
+  },
+  "notes": [
+    "Revision 1 through revision 4 contracts, manifests and observations remain immutable; revision 5 is the final contract used for completion.",
+    "The v5 matrix contains eight families with six cases each, 39 invalid cases and 9 valid ordinary controls.",
+    "The final source payload was unchanged after the final full gate; report, evidence and ledger files are administrative and outside the tested payload boundary.",
+    "Product and empirical lanes remain not run under the selected engine-lane stopping contract."
+  ]
+}

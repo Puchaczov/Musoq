@@ -102,7 +102,15 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (!typeName.Contains('.', StringComparison.Ordinal))
             return false;
 
-        var assemblies = new List<System.Reflection.Assembly> { _provider.GetType().Assembly };
+        var assemblies = new List<System.Reflection.Assembly>();
+        for (var provider = _provider; provider != null; provider = provider is TransitionSchemaProvider transition
+                 ? transition.InnerProvider
+                 : null)
+        {
+            if (!assemblies.Contains(provider.GetType().Assembly))
+                assemblies.Add(provider.GetType().Assembly);
+        }
+
         foreach (var assembly in _methodResolution.Assemblies)
             if (!assemblies.Contains(assembly))
                 assemblies.Add(assembly);

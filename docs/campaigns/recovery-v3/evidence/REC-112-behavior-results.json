@@ -1,0 +1,33 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-112",
+  "state": "observed",
+  "candidateMatrix": {
+    "caseCount": 48,
+    "invalidCases": 25,
+    "validOrdinaryCases": 23,
+    "familyCount": 8,
+    "casesPerFamily": 6,
+    "allCasesPassed": true,
+    "cleanStreak": 48
+  },
+  "obligations": {
+    "REC-112-O01": "wrong name, arity, type, overload and owner precedence exercised with exact primary-code assertions",
+    "REC-112-O02": "hidden SourceExecutionContext, missing metadata, duplicate assignments and unusable reflected default exercised",
+    "REC-112-O03": "forward/reverse overload and source-owner enumeration produce stable outcomes and candidate messages",
+    "REC-112-O04": "MQ3089 overload ambiguity is asserted separately from MQ3035 owner ambiguity and MQ3083 metadata failure"
+  },
+  "phaseCorrections": {
+    "A05": "Parse",
+    "C04": "Parse",
+    "B05": "valid positional seed corrected before named metadata mutation"
+  },
+  "focusedTest": {
+    "path": ".campaign-artifacts/REC-112-focused-final/REC-112-focused-final.trx",
+    "sha256": "45745d37ce77a91446b767531d031103855151ae158a50d40ee4313c2b30c19d",
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "total": 6
+  }
+}

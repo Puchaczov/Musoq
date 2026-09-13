@@ -76,7 +76,7 @@ public partial class RewriteQueryTraverseVisitor : InterpretationSchemaDefinitio
                 throw new InvalidOperationException(
                     "InterpretAt<SchemaName> requires 2 arguments: data and offset");
 
-            return new InterpretAtCallNode(args[0], args[1], schemaName);
+            return new InterpretAtCallNode(args[0], args[1], schemaName).CopySpansFrom(accessMethod);
         }
 
         if (args.Length < 1)
@@ -86,21 +86,21 @@ public partial class RewriteQueryTraverseVisitor : InterpretationSchemaDefinitio
         var dataArg = args[0];
 
         if (accessMethod.Name.Equals("Parse", StringComparison.OrdinalIgnoreCase))
-            return new ParseCallNode(dataArg, schemaName);
+            return new ParseCallNode(dataArg, schemaName).CopySpansFrom(accessMethod);
 
         if (accessMethod.Name.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase))
-            return new TryInterpretCallNode(dataArg, schemaName);
+            return new TryInterpretCallNode(dataArg, schemaName).CopySpansFrom(accessMethod);
 
         if (accessMethod.Name.Equals("TryParse", StringComparison.OrdinalIgnoreCase))
-            return new TryParseCallNode(dataArg, schemaName);
+            return new TryParseCallNode(dataArg, schemaName).CopySpansFrom(accessMethod);
 
         if (accessMethod.Name.Equals("PartialInterpret", StringComparison.OrdinalIgnoreCase))
-            return new PartialInterpretCallNode(dataArg, schemaName);
+            return new PartialInterpretCallNode(dataArg, schemaName).CopySpansFrom(accessMethod);
 
         if (accessMethod.Name.Equals("PartialParse", StringComparison.OrdinalIgnoreCase))
-            return new PartialParseCallNode(dataArg, schemaName);
+            return new PartialParseCallNode(dataArg, schemaName).CopySpansFrom(accessMethod);
 
-        return new InterpretCallNode(dataArg, schemaName);
+        return new InterpretCallNode(dataArg, schemaName).CopySpansFrom(accessMethod);
     }
 
     private static Node CreateInterpretCallNodeFromAliasedFrom(AliasedFromNode node)
@@ -123,7 +123,7 @@ public partial class RewriteQueryTraverseVisitor : InterpretationSchemaDefinitio
                     $"InterpretAt<SchemaName> requires 2 arguments: data and offset, got {node.Args.Args.Length}");
 
             var offset = node.Args.Args[1];
-            return new InterpretAtCallNode(dataSource, offset, schemaName, node.ReturnType);
+            return new InterpretAtCallNode(dataSource, offset, schemaName, node.ReturnType).CopySpansFrom(node);
         }
 
         if (node.Args.Args.Length < 1)
@@ -131,21 +131,32 @@ public partial class RewriteQueryTraverseVisitor : InterpretationSchemaDefinitio
                 $"{node.Identifier}<SchemaName> requires 1 argument: data, got {node.Args.Args.Length}");
 
         if (node.Identifier.Equals("Parse", StringComparison.OrdinalIgnoreCase))
-            return new ParseCallNode(dataSource, schemaName, node.ReturnType);
+            return CopyInterpretationMethodSpan(new ParseCallNode(dataSource, schemaName, node.ReturnType), node);
 
         if (node.Identifier.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase))
-            return new TryInterpretCallNode(dataSource, schemaName, node.ReturnType);
+            return CopyInterpretationMethodSpan(new TryInterpretCallNode(dataSource, schemaName, node.ReturnType), node);
 
         if (node.Identifier.Equals("TryParse", StringComparison.OrdinalIgnoreCase))
-            return new TryParseCallNode(dataSource, schemaName, node.ReturnType);
+            return CopyInterpretationMethodSpan(new TryParseCallNode(dataSource, schemaName, node.ReturnType), node);
 
         if (node.Identifier.Equals("PartialInterpret", StringComparison.OrdinalIgnoreCase))
-            return new PartialInterpretCallNode(dataSource, schemaName, node.ReturnType);
+            return CopyInterpretationMethodSpan(new PartialInterpretCallNode(dataSource, schemaName, node.ReturnType), node);
 
         if (node.Identifier.Equals("PartialParse", StringComparison.OrdinalIgnoreCase))
-            return new PartialParseCallNode(dataSource, schemaName, node.ReturnType);
+            return CopyInterpretationMethodSpan(new PartialParseCallNode(dataSource, schemaName, node.ReturnType), node);
 
-        return new InterpretCallNode(dataSource, schemaName, node.ReturnType);
+        return CopyInterpretationMethodSpan(new InterpretCallNode(dataSource, schemaName, node.ReturnType), node);
+    }
+
+    private static T CopyInterpretationMethodSpan<T>(T target, AliasedFromNode source)
+        where T : Node
+    {
+        if (source.MethodSpan is { } methodSpan)
+            target.WithSpan(methodSpan);
+        else
+            target.CopySpansFrom(source);
+
+        return target;
     }
 
     private static void ThrowIfOldInterpretSyntax(string functionName, Node[] args)

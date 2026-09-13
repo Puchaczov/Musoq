@@ -1,0 +1,999 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-107",
+  "matrixRevision": 2,
+  "outcome": "passed",
+  "repositoryIdentity": {
+    "root": "D:\\\\repos\\\\Musoq",
+    "baselineCommit": "15a0df888ff299401ebfb1c0c24feaac2b3f3016",
+    "branch": "feature/runtime_v2_final",
+    "configuration": "Release",
+    "sdkObserved": "10.0.303"
+  },
+  "observationSequence": {
+    "frozenManifest": {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-107-pre-observation-manifest-v2.json",
+      "sha256": "529872098b7d75391be7a45e974aebf9138e73b3ef5f4acf9487be721b526e13",
+      "caseContractPath": "docs/campaigns/recovery-v3/evidence/REC-107-case-contract-v2.json",
+      "caseContractSha256": "5dbf039861dd3ea201f1c980a5a685228b15421b928989f95c752233331deb59",
+      "preObservationPayloadSha256": "9560b27945823b6d077bc845f15ced1182fa68338e4ef6d7fe199bcb74d7678f",
+      "registeredCandidateCases": 48,
+      "registeredValidationControls": 8
+    },
+    "finalReplay": {
+      "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj -c Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC107TruncationPrefixTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-107-focused-final-all.trx\" --results-directory .campaign-artifacts/REC-107-focused-final-all",
+      "exitCode": 0,
+      "passed": 3,
+      "skipped": 0,
+      "failed": 0,
+      "total": 3,
+      "testMethods": 3,
+      "candidateCases": 48,
+      "invalidCandidates": 40,
+      "validationControls": 8,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-107-focused-final-all/REC-107-focused-final-all.trx",
+        "sha256": "a4bd2f194c6d14a3a1f385bb3b10fa958640dfa42415cf31d2782a8c2b9f0ec8"
+      }
+    }
+  },
+  "summary": {
+    "candidateCases": 48,
+    "invalidCandidates": 40,
+    "validationControls": 8,
+    "actualMatches": 48,
+    "actualMismatches": 0,
+    "allSeedsValid": true,
+    "allCandidatesExecuted": true,
+    "parseRootOnly": true
+  },
+  "cases": [
+    {
+      "caseId": "REC-107-S01",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2004_MissingFromClause",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2004_MissingFromClause",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-S02",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-S03",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2021_UnclosedFunctionCall",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2021_UnclosedFunctionCall",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-S04",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2022_InvalidAlias",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2022_InvalidAlias",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-S05",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-S06",
+      "expectedClassification": "valid_ordinary",
+      "expectedDiagnostics": [],
+      "actualClassification": "valid_ordinary",
+      "actualDiagnostics": [],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-F01",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2004_MissingFromClause",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2004_MissingFromClause",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-F02",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-F03",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-F04",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2021_UnclosedFunctionCall",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2021_UnclosedFunctionCall",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-F05",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2035_MissingRequiredAlias",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2035_MissingRequiredAlias",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-F06",
+      "expectedClassification": "valid_ordinary",
+      "expectedDiagnostics": [],
+      "actualClassification": "valid_ordinary",
+      "actualDiagnostics": [],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-P01",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2017_UnexpectedEndOfFile",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2017_UnexpectedEndOfFile",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-P02-v2",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2020_MissingOperand",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2020_MissingOperand",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-P03",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2020_MissingOperand",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2020_MissingOperand",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-P04",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2002_MissingToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2002_MissingToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-P05",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2002_MissingToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2002_MissingToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-P06",
+      "expectedClassification": "valid_ordinary",
+      "expectedDiagnostics": [],
+      "actualClassification": "valid_ordinary",
+      "actualDiagnostics": [],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-J01",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-J02",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2007_InvalidJoinCondition",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2007_InvalidJoinCondition",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-J03",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2007_InvalidJoinCondition",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2007_InvalidJoinCondition",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-J04",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2035_MissingRequiredAlias",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2035_MissingRequiredAlias",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-J05",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2035_MissingRequiredAlias",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2035_MissingRequiredAlias",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-J06",
+      "expectedClassification": "valid_ordinary",
+      "expectedDiagnostics": [],
+      "actualClassification": "valid_ordinary",
+      "actualDiagnostics": [],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-G01",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2006_MissingGroupByColumn",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2006_MissingGroupByColumn",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-G02",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-G03",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-G04",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2020_MissingOperand",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2020_MissingOperand",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-G05",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2006_MissingGroupByColumn",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2006_MissingGroupByColumn",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-G06",
+      "expectedClassification": "valid_ordinary",
+      "expectedDiagnostics": [],
+      "actualClassification": "valid_ordinary",
+      "actualDiagnostics": [],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-O01",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-O02",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2014_TrailingComma",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2014_TrailingComma",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-O03",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2009_InvalidOrderByExpression",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2009_InvalidOrderByExpression",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-O04-v2",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2038_InvalidSliceCount",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2038_InvalidSliceCount",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-O05-v2",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2038_InvalidSliceCount",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2038_InvalidSliceCount",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-O06",
+      "expectedClassification": "valid_ordinary",
+      "expectedDiagnostics": [],
+      "actualClassification": "valid_ordinary",
+      "actualDiagnostics": [],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-C01",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-C02",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-C03",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-C04",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-C05",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2030_UnsupportedSyntax",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2030_UnsupportedSyntax",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-C06",
+      "expectedClassification": "valid_ordinary",
+      "expectedDiagnostics": [],
+      "actualClassification": "valid_ordinary",
+      "actualDiagnostics": [],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-D01",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-D02",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-D03",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-D04",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-D05",
+      "expectedClassification": "invalid",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "actualClassification": "invalid",
+      "actualDiagnostics": [
+        {
+          "code": "MQ2001_UnexpectedToken",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "match": true
+    },
+    {
+      "caseId": "REC-107-D06",
+      "expectedClassification": "valid_ordinary",
+      "expectedDiagnostics": [],
+      "actualClassification": "valid_ordinary",
+      "actualDiagnostics": [],
+      "match": true
+    }
+  ],
+  "notes": [
+    "Revision 2 replays all 48 cases after the three explicit oracle corrections; no production parser change was required."
+  ]
+}

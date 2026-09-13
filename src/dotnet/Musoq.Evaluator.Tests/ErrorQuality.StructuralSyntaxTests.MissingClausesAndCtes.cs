@@ -247,7 +247,7 @@ CROSS APPLY #B.Entities()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate unclosed parenthesis
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "missing closing parenthesis in schema method");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2021_UnclosedFunctionCall, "missing closing parenthesis in schema method");
     }
 
     [TestMethod]

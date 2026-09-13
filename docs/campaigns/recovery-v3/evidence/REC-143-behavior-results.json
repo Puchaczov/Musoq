@@ -1,0 +1,189 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-143",
+  "outcome": "passed",
+  "scopeKind": "harness",
+  "baseline": {
+    "commit": "147eb59502f2087bfd9be961d70dccd780a2b47d",
+    "branch": "feature/runtime_v2_final",
+    "payloadPath": "docs/campaigns/recovery-v3/cases/REC-143-task-corpus.json",
+    "payloadSha256": "ac2a9ab6e9493fb897f9a15149e27fbd94f8a12a3d789a15959fad52619ff659",
+    "validatorPath": "docs/campaigns/recovery-v3/tools/task_corpus.py",
+    "validatorSha256": "92a6856bbd80c1d2dcd72e9d96e52e430725792cecc76cf132613bf8ab0efbbe",
+    "testPath": "docs/campaigns/recovery-v3/tools/test_task_corpus.py",
+    "testSha256": "88d75f8accb574a5db982c26ceac4ab31ac2bb1f5f44afeb8ed4d5f07f803956"
+  },
+  "authority": {
+    "core": {
+      "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+      "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "sections": [
+        "23. Diagnostic Contract and Catalog",
+        "23.1 Diagnostic envelope contract",
+        "3.8 Enum Types",
+        "18.4 Enum Intrinsics",
+        "19.10 NULL in Enum Intrinsics",
+        "22.5 Enum Non-Coercion"
+      ]
+    },
+    "binary": {
+      "path": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+      "sha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+      "sections": ["9. Error Handling"]
+    }
+  },
+  "corpus": {
+    "state": "development_payload",
+    "taskCount": 16,
+    "families": [
+      "binary_text",
+      "enum",
+      "grouping_windows",
+      "lexical",
+      "names",
+      "omissions",
+      "table_couple",
+      "types"
+    ],
+    "tasksPerFamily": 2,
+    "developmentGroupCount": 8,
+    "reservedHoldoutGroupCount": 8,
+    "split": {
+      "algorithm": "sha256-group-v1",
+      "seed": "REC-143-task-invariants-v1",
+      "groupIdentity": ["seedGroup", "semanticFamily", "providerFixtureId"],
+      "repairPayloadPartition": "development",
+      "reservedPartition": "holdout_reserved",
+      "finalHoldoutCreated": false,
+      "holdoutState": "reserved_until_freeze",
+      "crossPartitionLeakage": false
+    },
+    "fixtureReferences": {
+      "taskReferencesChecked": 16,
+      "existingFixturePaths": 16,
+      "testNamesFoundInFixtureFiles": 16,
+      "uniqueFixtureFiles": [
+        {"path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.COUPLE-038SourceRuntimeSettingsTests.cs", "sha256": "b5e412324c6743cbbf2e82302142a777ad39fc1a0ec5874382bf0dc3913ef3ae"},
+        {"path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-141ExecutableExamplesTests.cs", "sha256": "7cfff73ad86d1b3ca9d140400dcddc72bf222f3ee5593d87802875f92f0467c8"},
+        {"path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.TABLE-035TableSourceContractTests.cs", "sha256": "e956a08e132527678b363babc2e2bf374ff620148b6e3954286d02ce4a24feab"},
+        {"path": "src/dotnet/Musoq.Evaluator.Tests/SourceRuntimeSettingsLifecycleTests.cs", "sha256": "29c713ed78bd69a3dd0a8f7539e95fa0e35a6793fda1aabc94a8097e67996edf"},
+        {"path": "src/dotnet/Musoq.Evaluator.Tests/TypeErrorTests.cs", "sha256": "8ef1833d54faf238d5144a26331e057263e318bce5efcd62cd9c2e3149296115"},
+        {"path": "src/dotnet/Musoq.Evaluator.Tests/UserMistakesTests.cs", "sha256": "d2a8b4a08eea4fb2f76aa566ca83b11bcafd6ca11de5313f95fa9cfee9bf4571"},
+        {"path": "src/dotnet/Musoq.Parser.Tests/Diagnostic.CORE-009SelectTests.cs", "sha256": "1b5b72de312c2747736ccfc76c7debb9ea67fa5272a58aa5c1e2f6bce82504a3"},
+        {"path": "src/dotnet/Musoq.Parser.Tests/Diagnostic.REWORK-075StringLiteralContractTests.cs", "sha256": "7866dccb8a3ed38f538edc197448a72559317651e1126fa2b6120c453c2b0cfd"},
+        {"path": "src/dotnet/Musoq.Parser.Tests/EnumDeclarationParserTests.cs", "sha256": "e55afbeaef342d695eaf0faf7579044dea90aae1a9456bcb689e287d0107065e"}
+      ]
+    }
+  },
+  "invariantContract": {
+    "requiredFields": [
+      "columns",
+      "minimumRows",
+      "ordering",
+      "nullPolicy",
+      "failurePolicy",
+      "clarification"
+    ],
+    "allowedOutcomes": ["executed", "clarification"],
+    "allTasksMustExecute": true,
+    "compileOnlyOrEmptyResultPasses": false,
+    "semanticSuccessDoesNotCompareRepairedSqlSpelling": true
+  },
+  "judgeBoundary": {
+    "repairPayloadForbiddenKeys": [
+      "answer",
+      "expectedRows",
+      "expectedResult",
+      "expectedQuery",
+      "goldSql",
+      "privateJudge",
+      "repairedQuery"
+    ],
+    "privateJudgeBuilder": "build_private_judge",
+    "privateJudgeState": "private_judge",
+    "privateJudgeIsSeparateFromRepairPayload": true,
+    "answersExposedBeforeFreeze": false,
+    "finalHoldoutCreated": false,
+    "verifiedBy": "test_private_judge_is_separate_and_semantic_execution_is_accepted"
+  },
+  "observations": [
+    "The development payload contains two tasks in each of the eight required semantic families and each task carries a repository-owned fixture path plus an existing test name.",
+    "The invariant contract requires result shape, minimum multiplicity, ordering, NULL policy, failure policy and bounded clarification policy; compile-only and empty outcomes are rejected before semantic judging.",
+    "The split identity includes seed group, semantic family and provider fixture identity, so superficial query spelling does not create a new partition group.",
+    "The private judge is constructed as a separate judge-only object and forbidden answer keys are rejected from repair payloads; no judge answers are stored in the development corpus.",
+    "Eight held-out groups are reserved but not materialized; materialization requires compared build identities and a frozen repair-prompt SHA-256, and the test suite verifies that answers are not exposed before that freeze."
+  ],
+  "qualification": {
+    "corpusValidator": {
+      "command": "python docs/campaigns/recovery-v3/tools/task_corpus.py validate --root D:\\repos\\Musoq --payload docs/campaigns/recovery-v3/cases/REC-143-task-corpus.json",
+      "outcome": "validated",
+      "taskCount": 16,
+      "familyCount": 8,
+      "developmentGroupCount": 8,
+      "reservedHoldoutGroupCount": 8,
+      "payloadSha256": "76915f4174d8cc1720b131e3d59bd5a6f6c9271d6e1c19920db19c4ab3e8dfc"
+    },
+    "focusedCorpusTests": {
+      "command": "python -m unittest discover -s docs/campaigns/recovery-v3/tools -p \"test_task_corpus.py\" -v",
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "total": 10
+    },
+    "campaignSelfTests": {
+      "command": "python -m unittest discover -s docs/campaigns/recovery-v3/tools -p \"test_*.py\"",
+      "passed": 56,
+      "failed": 0,
+      "skipped": 0,
+      "total": 56
+    },
+    "fullGate": {
+      "status": "passed",
+      "runId": "REC-143-1a5afaca1ed5",
+      "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-143-full-gate-final-r2.json",
+      "evidenceSha256": "746f1fb886bfbc13d5c3071707f4d11643da4f652abd2699448e5826cb1ec553",
+      "repositoryCommit": "147eb59502f2087bfd9be961d70dccd780a2b47d",
+      "sdkObserved": "10.0.303",
+      "testedPayloadSha256": "8e4acc47205bc6b910b6e11c74cdb74d6326bcd05f2bce3c7446a6d552a8e47d",
+      "testedPayloadFileCount": 5811,
+      "targets": 8,
+      "passed": 21065,
+      "failed": 0,
+      "skipped": 3,
+      "total": 21068,
+      "establishedSkips": [
+        "Musoq.Evaluator.Tests.GeneratedCodeSamplesManifestTests.Refresh_Tracked_Generated_Code_Sample_Manifest",
+        "Musoq.Evaluator.Tests.GeneratedCodeSamplesSnapshotTests.Refresh_All_Local_Generated_Samples",
+        "Musoq.Evaluator.Tests.GeneratedInterpretationCodeDumpTests.Refresh_Local_Interpretation_Samples"
+      ]
+    }
+  },
+  "obligations": [
+    {
+      "id": "REC-143-O01",
+      "result": "The committed development corpus has 16 task fixtures, two per family, covering lexical, omissions, names, types, grouping/windows, enum, TABLE/COUPLE and binary/text semantics."
+    },
+    {
+      "id": "REC-143-O02",
+      "result": "Every task declares columns, minimum rows, ordering, NULL policy, failure policy and a bounded clarification contract; the semantic judge accepts execution invariants rather than one SQL spelling."
+    },
+    {
+      "id": "REC-143-O03",
+      "result": "The split algorithm hashes seedGroup, semanticFamily and providerFixtureId; the superficial-spelling test preserves group identity and the payload has no cross-partition leakage."
+    },
+    {
+      "id": "REC-143-O04",
+      "result": "The repair payload rejects private-answer fields and the private-judge test constructs judge observations separately, while development_payload and holdout_reserved states are explicit."
+    },
+    {
+      "id": "REC-143-O05",
+      "result": "Eight holdout groups remain reserved_until_freeze with finalHoldoutCreated false; the materialization contract requires compared builds and a frozen repair-prompt digest."
+    }
+  ],
+  "boundaries": [
+    "No final holdout answers were materialized or exposed.",
+    "No live repair actor, model score, human result or empirical accuracy claim was made.",
+    "The referenced fixtures are repository-owned source/test identities; this scope validates corpus and judge contracts, not execution of every malformed task.",
+    "No production engine code, installed provider, CLI, profile, credential or user state was changed or executed."
+  ]
+}

@@ -1,0 +1,164 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-123",
+  "matrixRevision": 2,
+  "outcome": "passed",
+  "registeredCases": 48,
+  "classificationCounts": {
+    "invalid": 48,
+    "validOrdinary": 0,
+    "validSuspicious": 0
+  },
+  "families": [
+    { "name": "PROJECTION_POISON", "cases": 6, "coverage": "Projection roots, dependent members and independent projection siblings." },
+    { "name": "AGGREGATE_POISON", "cases": 6, "coverage": "Aggregate arguments, HAVING roots and aggregate/projection siblings." },
+    { "name": "WINDOW_POISON", "cases": 6, "coverage": "Window partition/order/frame roots and independent window siblings." },
+    { "name": "CAST_POISON", "cases": 6, "coverage": "Unknown columns, invalid operands, nested casts and cast siblings." },
+    { "name": "SET_OUTPUT_POISON", "cases": 6, "coverage": "UNION/EXCEPT output roots, dependent members and set shape/type roots." },
+    { "name": "RECURSIVE_MEMBER_POISON", "cases": 6, "coverage": "Recursive member roots, output shape and prohibited operators." },
+    { "name": "INTERPRETATION_FIELD_POISON", "cases": 6, "coverage": "Interpret, Parse and PartialInterpret output-field roots." },
+    { "name": "INDEPENDENT_SIBLINGS", "cases": 6, "coverage": "Stable source order across qualified, aggregate, window and cast siblings." }
+  ],
+  "contract": {
+    "authoritySha256": [
+      "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+    ],
+    "contractPath": "docs/campaigns/recovery-v3/evidence/REC-123-case-contract-v2.json",
+    "contractSha256": "30a6b06d019ad888023b698ea0b61e14594ff5b816334d71501c3c9cdfbd8d03",
+    "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-123-pre-observation-manifest-v2.json",
+    "manifestSha256": "5416ddc2ad846e095661263d12c87835cd59d900d3af51b1c4337f634a6f1584",
+    "preObservationPayloadSha256": "e8e853722c16a9ae8468e29d64867b75f9b5217ef02179e6ed8a7a2a6e6df259",
+    "observation": "Revision 2 was frozen before the corrected replay. Revision 1 remains physically preserved and is linked by the oracle-correction evidence."
+  },
+  "oracleCorrection": {
+    "path": "docs/campaigns/recovery-v3/evidence/REC-123-oracle-correction.json",
+    "sha256": "1577384707e408bf66f3ae6107c86d45e8aa4ccd9ba00241825a60e432542eb8",
+    "fromRevision": 1,
+    "toRevision": 2,
+    "independentReview": "approved"
+  },
+  "initialObservations": [
+    {
+      "revision": 1,
+      "outcome": "candidate-construction-defects-observed",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-123-observation/REC-123-observation.trx",
+        "sha256": "10e4d9b790659c7ee78f382d4889d8d629aeb15139e08b0e5d5f2b1a92f41fc6"
+      },
+      "finding": "G05 was malformed before semantic binding and G06 used an unknown seed field; both were corrected under the independent oracle-review record."
+    },
+    {
+      "revision": 2,
+      "outcome": "passed",
+      "focusedTrx": {
+        "path": ".campaign-artifacts/REC-123-v2-focused/REC-123-v2-focused.trx",
+        "sha256": "756d7aa84da413203afa99f465eba11f87358bfccb99155827c5298825e61a4a"
+      },
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-123-v2-observation/REC-123-v2-observation.trx",
+        "sha256": "779377039ac976dded4dcf9588d6519981b53b5ac95a5dd7e03a054b9ad74e2d"
+      },
+      "focusedMethods": 5,
+      "focusedPassed": 5,
+      "registeredCases": 48
+    }
+  ],
+  "focusedReplay": {
+    "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter FullyQualifiedName~DiagnosticREC123IndependentRootsTests --logger \"trx;LogFileName=REC-123-focused-final.trx\" --results-directory .campaign-artifacts/REC-123-focused-final",
+    "exitCode": 0,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "total": 4,
+    "registeredCaseCount": 48,
+    "trxArtifact": {
+      "path": ".campaign-artifacts/REC-123-focused-final/REC-123-focused-final.trx",
+      "sha256": "0bc7c940b166d576cbe9a18140cb4c1b4b149d293dc370b085b76f1687a7b9d2"
+    },
+    "coverage": "The permanent matrix runs 48 frozen invalid candidates across eight six-case families, verifies exact diagnostic sequences and locations, repeats multi-root analysis for stable source order, and checks that repairing one root leaves exactly the next genuine root."
+  },
+  "adjacentSuites": [
+    {
+      "name": "diagnostic-recovery-and-recursive-regressions",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC110IncrementalRenameTests|FullyQualifiedName~DiagnosticREC111CompetingFailureTests|FullyQualifiedName~DiagnosticREC113SemanticMutationTests|FullyQualifiedName~Core027SetOperationTests|FullyQualifiedName~Core030RecursiveCteTests|FullyQualifiedName~CallableResolutionDiagnosticsTests\" --logger \"trx;LogFileName=REC-123-adjacent-v2.trx\" --results-directory .campaign-artifacts/REC-123-adjacent-v2",
+      "exitCode": 0,
+      "passed": 35,
+      "failed": 0,
+      "skipped": 0,
+      "total": 35,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-123-adjacent-v2/REC-123-adjacent-v2.trx",
+        "sha256": "e98cf6fbfa120f3018c71d5a8d578ff05390cddc4def8480c17c0441f71b4f04"
+      }
+    },
+    {
+      "name": "REC-093-ambiguity-abstention-regression",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter FullyQualifiedName~DiagnosticREC093AmbiguityAbstentionTests --logger \"trx;LogFileName=REC-123-rec093-v2.trx\" --results-directory .campaign-artifacts/REC-123-rec093-v2",
+      "exitCode": 0,
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "total": 53,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-123-rec093-v2/REC-123-rec093-v2.trx",
+        "sha256": "06cd0fed991b0ced858ad552b8570185d9aef3f868ab3a6acead3d54513c3abd"
+      }
+    },
+    {
+      "name": "runtime-v2-maintainability-budgets",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter FullyQualifiedName~RuntimeV2MaintainabilityBudgetTests --logger \"trx;LogFileName=REC-123-maintainability-v2.trx\" --results-directory .campaign-artifacts/REC-123-maintainability-v2",
+      "exitCode": 0,
+      "passed": 66,
+      "failed": 0,
+      "skipped": 0,
+      "total": 66,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-123-maintainability-v2/REC-123-maintainability-v2.trx",
+        "sha256": "3b23545cac38fed8758577f0920828fffc2f1c077cd8fa4a72e5c1034634c22d"
+      }
+    }
+  ],
+  "productionFindings": [
+    {
+      "id": "REC-123-F01",
+      "classification": "confirmed-production-defect",
+      "paths": [
+        "src/dotnet/Musoq.Evaluator/Visitors/DiagnosticRecoveryCallable.cs",
+        "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.SetOperators.cs",
+        "src/dotnet/Musoq.Evaluator/Visitors/RecursiveCteValidation.cs",
+        "src/dotnet/Musoq.Evaluator/Visitors/Semantics/SemanticDiagnosticReporter.cs"
+      ],
+      "description": "Diagnostic recovery either stopped independent siblings or allowed derivative callable, set-output, recursive-shape and aggregate semantic noise to obscure the genuine root.",
+      "repair": "Keep the semantic stack balanced after an unresolved callable, suppress only dependent callable failures, carry poisoned set and recursive outputs through their owning root, and suppress non-aggregated projection noise for poisoned expressions while retaining independent roots.",
+      "productionFixes": 1,
+      "repairAttempts": 1,
+      "oracleCorrection": false
+    }
+  ],
+  "obligations": {
+    "REC-123-O01": "The 48-case matrix covers projections, aggregates, windows, casts, set outputs, recursive members and interpretation fields.",
+    "REC-123-O02": "Exact diagnostic-code assertions reject derivative member, cast, callable and type noise after the root failure.",
+    "REC-123-O03": "Repeated analysis compares code, span and message tuples and requires nondecreasing source offsets for every multi-root case.",
+    "REC-123-O04": "The repair trajectory changes missing.Name to a valid Name and asserts that only the remaining Unknown column root survives.",
+    "acceptance": "The matrix detects both over-reporting and over-suppression without accepting an intended code anywhere in an unbounded cascade."
+  },
+  "fullReleaseGate": {
+    "command": "python docs/campaigns/recovery-v3/tools/full_gate.py run --scope-id REC-123 --solution src/dotnet/Musoq.sln --configuration Release --output .campaign-artifacts/REC-123-full-gate-final-v2 --evidence docs/campaigns/recovery-v3/evidence/REC-123-full-gate.json --expected-inventory docs/campaigns/recovery-v3/evidence/REC-085-expected-inventory.json --skip-allowlist docs/campaigns/recovery-v3/evidence/REC-085-skip-allowlist.json",
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-123-full-gate.json",
+    "evidenceSha256": "d7d0b30c29bd52dde87f7a3e07799718d969f6026091d59bcf24820766ab1692",
+    "runId": "REC-123-73255d2f87fa",
+    "targetCount": 8,
+    "passed": 20566,
+    "failed": 0,
+    "skipped": 3,
+    "total": 20569,
+    "testedPayloadSha256": "e5bb52d3420d184fb8e891c83ad53625418bac4718202bfbc6d1aa2e41806052",
+    "testedPayloadFileCount": 5788,
+    "sdkObserved": "10.0.303"
+  },
+  "notes": [
+    "The revision-1 contract, manifest and replay artifacts remain preserved; the corrected revision-2 contract was independently reviewed before replay.",
+    "The first full-gate attempt is preserved under .campaign-artifacts/REC-123-full-gate-final and exposed one duplicate-callable regression plus three maintainability budget failures; the corrected final gate passed.",
+    "The source and test payload was unchanged after the authoritative final gate; only evidence, report, ledger and progress administration follows it."
+  ]
+}

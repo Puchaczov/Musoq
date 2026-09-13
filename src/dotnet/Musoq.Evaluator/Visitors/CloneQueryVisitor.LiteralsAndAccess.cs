@@ -115,7 +115,7 @@ public partial class CloneQueryVisitor
     public override void Visit(IsNullNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new IsNullNode(Nodes.Pop(), node.IsNegated));
+        Nodes.Push(new IsNullNode(Nodes.Pop(), node.IsNegated).CopySpansFrom(node));
     }
 
     public override void Visit(AccessRefreshAggregationScoreNode node)
@@ -148,7 +148,7 @@ public partial class CloneQueryVisitor
             node.IsNotLike,
             node.ExcludeColumns,
             clonedReplaceItems ?? node.ReplaceItems,
-            node.RenameItems).WithSpan(node.Span));
+            node.RenameItems).CopySpansFrom(node));
     }
 
     public override void Visit(IdentifierNode node)

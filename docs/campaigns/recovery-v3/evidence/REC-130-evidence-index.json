@@ -1,0 +1,246 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-130",
+  "outcome": "passed",
+  "artifacts": [
+    {
+      "id": "case-contract",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-130-case-contract.json",
+      "sha256": "8a35ab45af70898fec6d829aa4b4fae0fe5d374cd485080066003590274ade0a",
+      "role": "Frozen 48-case nested-interpretation expectation contract."
+    },
+    {
+      "id": "case-manifest",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-130-case-manifest.json",
+      "sha256": "d6665676b00e655181913d749c1a2a93d634a07c42f243a92be4aaa531c3f2a4",
+      "role": "Frozen pre-observation payload and authority digest."
+    },
+    {
+      "id": "initial-focused-r2-trx",
+      "path": ".campaign-artifacts/REC-130-focused-initial-r2/REC-130-focused-initial-r2.trx",
+      "sha256": "362f880e6c59d565cd3a21534844cad5d39ebef8c9b5bd724eab102c4ec92acc",
+      "role": "Preserved pre-final-calibration replay: 41 passed and 7 failed."
+    },
+    {
+      "id": "initial-focused-r4-trx",
+      "path": ".campaign-artifacts/REC-130-focused-initial-r4/REC-130-focused-initial-r4.trx",
+      "sha256": "194174c12bc28a471061ceccf74248bb28bf546229e4676cc5fc4dc9cbba456e",
+      "role": "Preserved calibrated replay: 43 passed and 5 failed."
+    },
+    {
+      "id": "initial-focused-r5-trx",
+      "path": ".campaign-artifacts/REC-130-focused-initial-r5/REC-130-focused-initial-r5.trx",
+      "sha256": "e630bb0dd9351a2ae8a52788ea064f436bd49352d1a155a58eebb16617414840",
+      "role": "Preserved stale-binary replay: 43 passed and 5 failed."
+    },
+    {
+      "id": "initial-focused-r6-trx",
+      "path": ".campaign-artifacts/REC-130-focused-initial-r6/REC-130-focused-initial-r6.trx",
+      "sha256": "9433788671edfaebd2592ed20f1d232ef04fd57a7e2a250f6ce2c110ee128684",
+      "role": "Preserved production-boundary replay: 45 passed and 3 failed."
+    },
+    {
+      "id": "focused-after-fix-r1-trx",
+      "path": ".campaign-artifacts/REC-130-focused-after-fix-r1/REC-130-focused-after-fix-r1.trx",
+      "sha256": "a3f66499fb0c42a08a390b5025d0f668d9a571ac76448a494cf9b1cdd79688be",
+      "role": "Preserved first post-repair replay: 45 passed and 3 failed while the regression oracles still used pre-repair cursor expectations."
+    },
+    {
+      "id": "focused-final-trx",
+      "path": ".campaign-artifacts/REC-130-focused-after-fix-r2/REC-130-focused-after-fix-r2.trx",
+      "sha256": "ccf07e7d62d6aebd506259636776c9b95adb8a4ee2fb5d2bb4bdea8e39bef51f",
+      "role": "Final permanent 48-case matrix replay."
+    },
+    {
+      "id": "initial-adjacent-binary045-trx",
+      "path": ".campaign-artifacts/REC-130-adjacent-binary045/REC-130-adjacent-binary045.trx",
+      "sha256": "431ea04e082d087d0de90f15003f3c5b946ece356747e7634943d36a2b0b4993",
+      "role": "Preserved BINARY-045 regression replay: 7 passed and 1 failed on the old bounded-relative position oracle."
+    },
+    {
+      "id": "adjacent-substream-trx",
+      "path": ".campaign-artifacts/REC-130-adjacent-substream/REC-130-adjacent-substream.trx",
+      "sha256": "9ba2bef6d776097511a1f3c7fa996fc3311f133091d2a279c38f998dc6a0d099",
+      "role": "Substream regression adjacency: 8 passed."
+    },
+    {
+      "id": "adjacent-integration-trx",
+      "path": ".campaign-artifacts/REC-130-adjacent-integration/REC-130-adjacent-integration.trx",
+      "sha256": "25bc046c1431fe14443c1f79526844b60502fa4787eca4604c9dd4033e72f697",
+      "role": "Substream integration adjacency: 3 passed."
+    },
+    {
+      "id": "adjacent-binary045-trx",
+      "path": ".campaign-artifacts/REC-130-adjacent-binary045-r2/REC-130-adjacent-binary045-r2.trx",
+      "sha256": "6d1e9b46059c31598a012414e180c55e6bbc9488bf1353807e00c312d48f600c",
+      "role": "BINARY-045 regression adjacency after original-substrate oracle correction: 8 passed."
+    },
+    {
+      "id": "adjacent-runtime057-trx",
+      "path": ".campaign-artifacts/REC-130-adjacent-runtime057/REC-130-adjacent-runtime057.trx",
+      "sha256": "1febf6b79544a7d8da70d0fdb7eeb69cd79247d724edd7b1598151f1ab93df40",
+      "role": "Runtime-057 interpretation taxonomy adjacency: 5 passed."
+    },
+    {
+      "id": "adjacent-schema-features-trx",
+      "path": ".campaign-artifacts/REC-130-adjacent-schema-features/REC-130-adjacent-schema-features.trx",
+      "sha256": "78bc4ae3e244c168b9cd864700eb20824e9cfd2104bb2b5db7d479df69b9c6ad",
+      "role": "Schema-features partial and composition adjacency: 52 passed."
+    },
+    {
+      "id": "adjacent-advanced-trx",
+      "path": ".campaign-artifacts/REC-130-adjacent-advanced/REC-130-adjacent-advanced.trx",
+      "sha256": "c22efd12fafbda2911f9d83f95715cda24cebb8cdd374626b60888cde884256d",
+      "role": "Advanced binary interpretation adjacency: 9 passed."
+    },
+    {
+      "id": "full-gate-test-log",
+      "path": ".campaign-artifacts/REC-130-full-gate-final/test.stdout.log",
+      "sha256": "0d0de0378c1c663ca33658d9df097881042c9612a44e4a06a003b6843da7fb62",
+      "role": "Initial Release test stdout before the final findings-ledger payload replay."
+    },
+    {
+      "id": "full-gate-final-test-log",
+      "path": ".campaign-artifacts/REC-130-full-gate-final-r2/test.stdout.log",
+      "sha256": "eb27c13df9366f0e2cc633f1a6d00d07ddb170988f3c57a2f56f7fdf2e0428da",
+      "role": "Authoritative final Release test stdout."
+    },
+    {
+      "id": "behavior-results",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-130-behavior-results.json",
+      "sha256": "fbb01335796753cfd4fdcd8bcc5bf2cff7a0a7db742466de9b860f1422359be0",
+      "role": "Case observations, production finding, obligations and validation."
+    },
+    {
+      "id": "full-gate",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-130-full-gate.json",
+      "sha256": "cb3577e71b1971541ec9dc105fca0f1cce08c318844aa6601cf73a6ef17b9d2e",
+      "role": "Initial Release restore/build/test gate over 8/8 targets before the final findings-ledger payload replay."
+    },
+    {
+      "id": "full-gate-final",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-130-full-gate-final-r2.json",
+      "sha256": "3848db7a11b7b5619c14cad628315e02b987e7c5e758c26e2d463c74fcadbc85",
+      "role": "Authoritative final Release restore/build/test gate over 8/8 targets."
+    },
+    {
+      "id": "fixture-source",
+      "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-130NestedInterpretationTests.cs",
+      "sha256": "3df6e0db46104850e5b2afba60df60260dba45335a870754be678b8d488d4eb8",
+      "role": "Permanent 48-case nested interpretation fixture and assertions."
+    },
+    {
+      "id": "binary045-regression-source",
+      "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.BINARY-045SubstreamTests.cs",
+      "sha256": "3543795af1445733aa3268ba9c5a29ba81208be4cd5197da2c1f8d23522091cf",
+      "role": "Existing bounded-substream regression oracle corrected to original-substrate position."
+    },
+    {
+      "id": "production-source",
+      "path": "src/dotnet/Musoq.Schema/Interpreters/BytesInterpreterBase.PartialResults.cs",
+      "sha256": "31392119cdaa0ba3ae748a8cb0522c4ae910e5aa6e0050633b6e6a8582f2386e",
+      "role": "Nested binary interpretation repair."
+    },
+    {
+      "id": "report",
+      "path": "docs/campaigns/recovery-v3/reports/REC-130.md",
+      "sha256": "070ecfd50ead0aca3b450011a1c40c20ba2d9e8bbdd1288fb18dbf4daba5cde0",
+      "role": "REC-130 completion report."
+    }
+  ],
+  "validation": {
+    "contractVerification": {
+      "caseCount": 48,
+      "verified": true
+    },
+    "focusedMatrix": {
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "total": 48,
+      "candidateCount": 48
+    },
+    "initialFocusedReplay": {
+      "calibrationRevision2": {
+        "passed": 41,
+        "failed": 7,
+        "skipped": 0,
+        "total": 48
+      },
+      "calibrationRevision4": {
+        "passed": 43,
+        "failed": 5,
+        "skipped": 0,
+        "total": 48
+      },
+      "staleBinaryRevision5": {
+        "passed": 43,
+        "failed": 5,
+        "skipped": 0,
+        "total": 48
+      },
+      "productionBoundaryRevision6": {
+        "passed": 45,
+        "failed": 3,
+        "skipped": 0,
+        "total": 48
+      },
+      "postRepairOracleRevision1": {
+        "passed": 45,
+        "failed": 3,
+        "skipped": 0,
+        "total": 48
+      },
+      "failureSummary": "Fixture calibration failures were corrected before completion; r6 isolated one production boundary, and the first post-repair replay exposed three stale cursor oracles before the final matrix passed 48/48."
+    },
+    "adjoiningSuites": {
+      "substream": {
+        "passed": 8,
+        "failed": 0,
+        "skipped": 0,
+        "total": 8
+      },
+      "integration": {
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "total": 3
+      },
+      "binary045": {
+        "passed": 8,
+        "failed": 0,
+        "skipped": 0,
+        "total": 8
+      },
+      "runtime057": {
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "total": 5
+      },
+      "schemaFeatures": {
+        "passed": 52,
+        "failed": 0,
+        "skipped": 0,
+        "total": 52
+      },
+      "advanced": {
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "total": 9
+      }
+    },
+    "fullReleaseGate": {
+      "status": "passed",
+      "runId": "REC-130-0bbb03743ada",
+      "targetCount": 8,
+      "passed": 20775,
+      "failed": 0,
+      "skipped": 3,
+      "total": 20778,
+      "testedPayloadSha256": "9f3b5d2804b63ef5dff1d925ae0a596979b97f1f393510f80ed0314fce34e254",
+      "testedPayloadFileCount": 5795
+    }
+  }
+}

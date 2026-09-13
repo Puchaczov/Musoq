@@ -39,7 +39,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         var dataSource = PopSemanticNode(VisitorOperationNames.VisitInterpretCallNode);
 
 
-        PushSemanticNode(new InterpretCallNode(dataSource, node.SchemaName, node.ReturnType));
+        PushSemanticNode(new InterpretCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
 
     public override void Visit(ParseCallNode node)
@@ -48,7 +48,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         var dataSource = PopSemanticNode(VisitorOperationNames.VisitParseCallNode);
 
 
-        PushSemanticNode(new ParseCallNode(dataSource, node.SchemaName, node.ReturnType));
+        PushSemanticNode(new ParseCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
 
     public override void Visit(TryInterpretCallNode node)
@@ -57,7 +57,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         var dataSource = PopSemanticNode(VisitorOperationNames.VisitTryInterpretCallNode);
 
 
-        PushSemanticNode(new TryInterpretCallNode(dataSource, node.SchemaName, node.ReturnType));
+        PushSemanticNode(new TryInterpretCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
 
     public override void Visit(TryParseCallNode node)
@@ -66,7 +66,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         var dataSource = PopSemanticNode(VisitorOperationNames.VisitTryParseCallNode);
 
 
-        PushSemanticNode(new TryParseCallNode(dataSource, node.SchemaName, node.ReturnType));
+        PushSemanticNode(new TryParseCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
 
     public override void Visit(PartialInterpretCallNode node)
@@ -75,7 +75,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         var dataSource = PopSemanticNode(VisitorOperationNames.VisitPartialInterpretCallNode);
 
 
-        PushSemanticNode(new PartialInterpretCallNode(dataSource, node.SchemaName, node.ReturnType));
+        PushSemanticNode(new PartialInterpretCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
 
     public override void Visit(InterpretAtCallNode node)
@@ -85,7 +85,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         var dataSource = PopSemanticNode(VisitorOperationNames.VisitInterpretAtCallNodeDataSource);
 
 
-        PushSemanticNode(new InterpretAtCallNode(dataSource, offset, node.SchemaName, node.ReturnType));
+        PushSemanticNode(new InterpretAtCallNode(dataSource, offset, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
 
     public override void Visit(AccessRefreshAggregationScoreNode node)

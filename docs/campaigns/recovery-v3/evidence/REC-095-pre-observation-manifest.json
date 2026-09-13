@@ -1,0 +1,76 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-095",
+  "state": "pre_observation",
+  "caseCount": 24,
+  "sourceFiles": [
+    {
+      "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-095MultipleActionsTests.cs",
+      "sha256": "1ce7dd2a1e32c19eb0d2feb39cc48fb1406a4f9ab629b53a6a2d6bc952ee65b5",
+      "role": "frozen native-action composition matrix and consumer harness"
+    },
+    {
+      "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+      "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "role": "diagnostic action and envelope contract authority"
+    }
+  ],
+  "expectation": {
+    "nonOverlapping": "Two independent native edits can be applied against one original document coordinate system.",
+    "overlapping": "Any overlapping spans are rejected as a conflict without destructive ordering.",
+    "alternative": "Two actions targeting one span are mutually exclusive and are rejected as a conflict.",
+    "originalCoordinate": "A length-changing first replacement does not corrupt a later edit because the batch is applied from original coordinates in descending order.",
+    "reanalyzeEach": "After the first action, the old second action is stale; a fresh diagnostic action from reanalysis is required.",
+    "repeated": "The old captured action is rejected after successful correction rather than silently reapplied."
+  },
+  "cases": [
+    { "caseId": "REC-095-N01", "family": "non-overlapping", "diagnosticShape": "two unknown columns in projection", "preObservation": "registered" },
+    { "caseId": "REC-095-N02", "family": "non-overlapping", "diagnosticShape": "two unknown columns in predicate", "preObservation": "registered" },
+    { "caseId": "REC-095-N03", "family": "non-overlapping", "diagnosticShape": "unknown projection and order column", "preObservation": "registered" },
+    { "caseId": "REC-095-N04", "family": "non-overlapping", "diagnosticShape": "two unknown columns across CRLF lines", "preObservation": "registered" },
+
+    { "caseId": "REC-095-D01", "family": "original-coordinate", "diagnosticShape": "two native edits with length-changing Country first replacement", "preObservation": "registered" },
+    { "caseId": "REC-095-D02", "family": "original-coordinate", "diagnosticShape": "predicate batch with length-changing Country first replacement", "preObservation": "registered" },
+    { "caseId": "REC-095-D03", "family": "original-coordinate", "diagnosticShape": "projection and order batch with length-changing first replacement", "preObservation": "registered" },
+    { "caseId": "REC-095-D04", "family": "original-coordinate", "diagnosticShape": "CRLF batch with length-changing first replacement", "preObservation": "registered" },
+
+    { "caseId": "REC-095-O01", "family": "overlapping", "diagnosticShape": "nested span around a native edit", "preObservation": "registered" },
+    { "caseId": "REC-095-O02", "family": "overlapping", "diagnosticShape": "partial overlap at the native edit end", "preObservation": "registered" },
+    { "caseId": "REC-095-O03", "family": "overlapping", "diagnosticShape": "partial overlap at the native edit start", "preObservation": "registered" },
+    { "caseId": "REC-095-O04", "family": "overlapping", "diagnosticShape": "crossing overlap in an emoji-prefixed query", "preObservation": "registered" },
+
+    { "caseId": "REC-095-X01", "family": "alternative", "diagnosticShape": "Name versus City alternatives", "preObservation": "registered" },
+    { "caseId": "REC-095-X02", "family": "alternative", "diagnosticShape": "Name versus Country alternatives", "preObservation": "registered" },
+    { "caseId": "REC-095-X03", "family": "alternative", "diagnosticShape": "Name versus deletion alternatives", "preObservation": "registered" },
+    { "caseId": "REC-095-X04", "family": "alternative", "diagnosticShape": "emoji-prefixed Name versus City alternatives", "preObservation": "registered" },
+
+    { "caseId": "REC-095-P01", "family": "repeated", "diagnosticShape": "reapply old edit to corrected text", "preObservation": "registered" },
+    { "caseId": "REC-095-P02", "family": "repeated", "diagnosticShape": "reapply old edit after trailing whitespace", "preObservation": "registered" },
+    { "caseId": "REC-095-P03", "family": "repeated", "diagnosticShape": "reapply old edit after equal-length valid replacement", "preObservation": "registered" },
+    { "caseId": "REC-095-P04", "family": "repeated", "diagnosticShape": "reapply old edit after alias text change", "preObservation": "registered" },
+
+    { "caseId": "REC-095-R01", "family": "reanalyze-each", "diagnosticShape": "fresh second projection action", "preObservation": "registered" },
+    { "caseId": "REC-095-R02", "family": "reanalyze-each", "diagnosticShape": "fresh second predicate action", "preObservation": "registered" },
+    { "caseId": "REC-095-R03", "family": "reanalyze-each", "diagnosticShape": "fresh order action", "preObservation": "registered" },
+    { "caseId": "REC-095-R04", "family": "reanalyze-each", "diagnosticShape": "fresh CRLF-line action", "preObservation": "registered" }
+  ],
+  "preObservation": {
+    "state": "frozen_before_candidate_observation",
+    "registeredBeforeCandidate": true,
+    "observedCandidateBehavior": false,
+    "matrixRevision": 2,
+    "revisionHistory": [
+      {
+        "revision": 1,
+        "state": "superseded_before_observation",
+        "sourceCorpusSha256": "6dbea7ab3d207d12beb5b971f7854d0740b6c9d227bfe9eaf84240bfa4eca3d9",
+        "reason": "Compile-only correction to import Musoq.Parser for TextSpan construction; candidate cases and expectations were unchanged."
+      },
+      {
+        "revision": 2,
+        "state": "frozen_before_candidate_observation",
+        "sourceCorpusSha256": "1ce7dd2a1e32c19eb0d2feb39cc48fb1406a4f9ab629b53a6a2d6bc952ee65b5"
+      }
+    ]
+  }
+}

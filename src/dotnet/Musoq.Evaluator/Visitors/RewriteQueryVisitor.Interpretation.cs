@@ -57,43 +57,43 @@ public sealed partial class RewriteQueryVisitor
 
         if (IsInterpretFunctionCall(functionName, typeParameter, args, out var schemaName, out var dataSource))
         {
-            Nodes.Push(new InterpretCallNode(dataSource, schemaName, null));
+            Nodes.Push(new InterpretCallNode(dataSource, schemaName, null).CopySpansFrom(node));
             return;
         }
 
         if (IsParseFunctionCall(functionName, typeParameter, args, out schemaName, out dataSource))
         {
-            Nodes.Push(new ParseCallNode(dataSource, schemaName, null));
+            Nodes.Push(new ParseCallNode(dataSource, schemaName, null).CopySpansFrom(node));
             return;
         }
 
         if (IsInterpretAtFunctionCall(functionName, typeParameter, args, out schemaName, out dataSource, out var offset))
         {
-            Nodes.Push(new InterpretAtCallNode(dataSource, offset, schemaName, null));
+            Nodes.Push(new InterpretAtCallNode(dataSource, offset, schemaName, null).CopySpansFrom(node));
             return;
         }
 
         if (IsTryInterpretFunctionCall(functionName, typeParameter, args, out schemaName, out dataSource))
         {
-            Nodes.Push(new TryInterpretCallNode(dataSource, schemaName, null));
+            Nodes.Push(new TryInterpretCallNode(dataSource, schemaName, null).CopySpansFrom(node));
             return;
         }
 
         if (IsTryParseFunctionCall(functionName, typeParameter, args, out schemaName, out dataSource))
         {
-            Nodes.Push(new TryParseCallNode(dataSource, schemaName, null));
+            Nodes.Push(new TryParseCallNode(dataSource, schemaName, null).CopySpansFrom(node));
             return;
         }
 
         if (IsPartialInterpretFunctionCall(functionName, typeParameter, args, out schemaName, out dataSource))
         {
-            Nodes.Push(new PartialInterpretCallNode(dataSource, schemaName, null));
+            Nodes.Push(new PartialInterpretCallNode(dataSource, schemaName, null).CopySpansFrom(node));
             return;
         }
 
         if (IsPartialParseFunctionCall(functionName, typeParameter, args, out schemaName, out dataSource))
         {
-            Nodes.Push(new PartialParseCallNode(dataSource, schemaName, null));
+            Nodes.Push(new PartialParseCallNode(dataSource, schemaName, null).CopySpansFrom(node));
             return;
         }
 

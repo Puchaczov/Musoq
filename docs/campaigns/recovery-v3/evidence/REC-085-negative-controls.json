@@ -1,0 +1,59 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-085",
+  "harness": "docs/campaigns/recovery-v3/tools/full_gate.py",
+  "testCommand": "python -m unittest discover -s docs/campaigns/recovery-v3/tools -p \"test_*.py\" -v",
+  "rawLog": {
+    "path": ".campaign-artifacts/recovery-v3/REC-085/negative-controls.log",
+    "sha256": "c691bf0eeaa5ff00f2f184175825db69406cb60ab52480eb988738251418d07b"
+  },
+  "exitCode": 0,
+  "testsRun": 31,
+  "testsPassed": 31,
+  "testsFailed": 0,
+  "controls": [
+    {
+      "id": "REC-085-N01",
+      "fixture": "missing expected project target",
+      "test": "FullGateTests.test_missing_project_inventory_fails",
+      "expectedFailure": "Test inventory shrinkage/mismatch",
+      "observedFailure": "Test inventory shrinkage/mismatch"
+    },
+    {
+      "id": "REC-085-N02",
+      "fixture": "zero-test filter",
+      "test": "FullGateTests.test_zero_test_filter_fails",
+      "expectedFailure": "Test gate must not use a filter",
+      "observedFailure": "Test gate must not use a filter"
+    },
+    {
+      "id": "REC-085-N03",
+      "fixture": "failed child process",
+      "test": "FullGateTests.test_failed_child_process_fails",
+      "expectedFailure": "Child process failed",
+      "observedFailure": "Child process failed"
+    },
+    {
+      "id": "REC-085-N04",
+      "fixture": "stale TRX result/log",
+      "test": "FullGateTests.test_stale_result_fails",
+      "expectedFailure": "TRX result is stale",
+      "observedFailure": "TRX result is stale"
+    },
+    {
+      "id": "REC-085-N05",
+      "fixture": "duplicate result for one target",
+      "test": "FullGateTests.test_duplicate_result_fails",
+      "expectedFailure": "Duplicate result for test target",
+      "observedFailure": "Duplicate result for test target"
+    },
+    {
+      "id": "REC-085-N06",
+      "fixture": "source changed after build",
+      "test": "FullGateTests.test_source_modified_after_build_fails",
+      "expectedFailure": "Source payload changed after build",
+      "observedFailure": "Source payload changed after build"
+    }
+  ],
+  "outcome": "passed"
+}

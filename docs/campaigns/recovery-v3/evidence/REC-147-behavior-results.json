@@ -1,0 +1,144 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-147",
+  "outcome": "passed",
+  "scopeKind": "release",
+  "baseline": {
+    "commit": "74fbc9f385a9afcb6e10d1b7f32651a808d89930",
+    "branch": "feature/runtime_v2_final",
+    "sdkObserved": "10.0.303",
+    "solution": "src/dotnet/Musoq.sln",
+    "engineLane": {
+      "completedBeforeThisScope": 63,
+      "total": 64,
+      "nextScope": "REC-147"
+    }
+  },
+  "completionTransactionVerification": {
+    "priorScopeRange": "REC-084..REC-146",
+    "priorScopeCount": 63,
+    "priorCompletionCommitsVerified": 63,
+    "priorReportsAndEvidenceHashesVerified": 63,
+    "priorDependenciesVerified": true,
+    "checkerCommand": "python docs/campaigns/recovery-v3/tools/check_campaign.py --status --verify-evidence --verify-commits --format json",
+    "checkerOutcome": "valid",
+    "checkerCompletedScopes": 63,
+    "checkerNextIncomplete": "REC-147"
+  },
+  "fullGate": {
+    "command": "python docs/campaigns/recovery-v3/tools/full_gate.py --root D:\\repos\\Musoq run --scope-id REC-147 --solution src/dotnet/Musoq.sln --configuration Release --output .campaign-artifacts/REC-147-full-gate-final-r1 --evidence docs/campaigns/recovery-v3/evidence/REC-147-full-gate-final-r1.json --expected-inventory docs/campaigns/recovery-v3/evidence/REC-085-expected-inventory.json --skip-allowlist docs/campaigns/recovery-v3/evidence/REC-085-skip-allowlist.json",
+    "outcome": "passed",
+    "runId": "REC-147-ca3a98bcec61",
+    "repositoryCommit": "74fbc9f385a9afcb6e10d1b7f32651a808d89930",
+    "sdkObserved": "10.0.303",
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-147-full-gate-final-r1.json",
+    "evidenceSha256": "91686f842a33f484ac0e334cfeb9f5ac33a25457467eba2dfffee956604a45a9",
+    "testedPayloadSha256": "cfff2b1924cd5b6dd704d0a0d87ca670eeb649d7fa4a8dc411377cb8eb39f6c9",
+    "testedPayloadFileCount": 5815,
+    "targetCount": 8,
+    "passed": 21065,
+    "failed": 0,
+    "skipped": 3,
+    "total": 21068,
+    "establishedSkips": [
+      "Musoq.Evaluator.Tests.GeneratedCodeSamplesManifestTests.Refresh_Tracked_Generated_Code_Sample_Manifest",
+      "Musoq.Evaluator.Tests.GeneratedCodeSamplesSnapshotTests.Refresh_All_Local_Generated_Samples",
+      "Musoq.Evaluator.Tests.GeneratedInterpretationCodeDumpTests.Refresh_Local_Interpretation_Samples"
+    ],
+    "targets": [
+      {"targetId": "Musoq.Benchmarks.Tests/net10.0", "passed": 98, "failed": 0, "skipped": 0, "total": 98, "discovered": 98, "executed": 98, "testAssemblySha256": "99bf7f47091ae9eb8658acc219a6e3ee796ed850328eb92031dfa756fd7ab98a"},
+      {"targetId": "Musoq.Converter.Tests/net10.0", "passed": 1155, "failed": 0, "skipped": 0, "total": 1155, "discovered": 1155, "executed": 1155, "testAssemblySha256": "b1c44aad8877029593dfb90b6cba6d07b7daa1f509e62c350e4165110f9fe489"},
+      {"targetId": "Musoq.Evaluator.Tests/net10.0", "passed": 11772, "failed": 0, "skipped": 3, "total": 11775, "discovered": 11775, "executed": 11772, "testAssemblySha256": "7cd761144b86a8a8cc7c5ff0632bf2b6126243f21798639e58b7658c539cb3db"},
+      {"targetId": "Musoq.Examples.DataSources.Csv.Tests/net10.0", "passed": 49, "failed": 0, "skipped": 0, "total": 49, "discovered": 49, "executed": 49, "testAssemblySha256": "e61b4bf9d6ea5d86ddadab5e98bbf2b20bb5c6a3dc604a8ab5469b73dfd8b8a3"},
+      {"targetId": "Musoq.Examples.DataSources.Git.Tests/net10.0", "passed": 45, "failed": 0, "skipped": 0, "total": 45, "discovered": 45, "executed": 45, "testAssemblySha256": "89e4a7fc44ab4286436a0a325d292fba4febe45f397f7d1f2c8315e3761b9fb4"},
+      {"targetId": "Musoq.Parser.Tests/net10.0", "passed": 2667, "failed": 0, "skipped": 0, "total": 2667, "discovered": 2667, "executed": 2667, "testAssemblySha256": "d7713a9698e8920288aaf920da99ca09e9447ca5a304a1c260495ecbc3c4fbf1"},
+      {"targetId": "Musoq.Plugins.Tests/net10.0", "passed": 4743, "failed": 0, "skipped": 0, "total": 4743, "discovered": 4743, "executed": 4743, "testAssemblySha256": "53873eafdcc05a96edf68275b4e1232b06d269bc2747c366e089da081557dad4"},
+      {"targetId": "Musoq.Schema.Tests/net10.0", "passed": 536, "failed": 0, "skipped": 0, "total": 536, "discovered": 536, "executed": 536, "testAssemblySha256": "e6ffdaf3c7d70cb2964ceec3ea49f5a6c19402a3748c5ca03b25a52ed0c4f264"}
+    ]
+  },
+  "campaignSelfTests": {
+    "command": "python -m unittest discover -s docs/campaigns/recovery-v3/tools -p \"test_*.py\" -q",
+    "passed": 67,
+    "failed": 0,
+    "skipped": 0,
+    "total": 67
+  },
+  "engineArtifactHashes": [
+    {"path": "src/dotnet/Musoq.Parser/bin/Release/net10.0/Musoq.Parser.dll", "sha256": "406e5d039be617655afbac1cbaa447bb6b717937659f6d6eaab9ffe19161db8d", "bytes": 669696},
+    {"path": "src/dotnet/Musoq.Evaluator/bin/Release/net10.0/Musoq.Evaluator.dll", "sha256": "34164579736852e73c8e31c76be85b0a25aabc78f54fe8045df9d7c918d104b1", "bytes": 4262400},
+    {"path": "src/dotnet/Musoq.Converter/bin/Release/net10.0/Musoq.Converter.dll", "sha256": "42b5f73ac54a7c7bfbe514014559c6704816c7fafa2fb311c491db60ec64ed39", "bytes": 472576},
+    {"path": "src/dotnet/Musoq.Schema/bin/Release/net10.0/Musoq.Schema.dll", "sha256": "7f4ed4d8e0877849c02c903fcfe3c3d2fcf90eed3d08138fe433acd14e21cdf3", "bytes": 236544},
+    {"path": "src/dotnet/Musoq.Targets.CSharpClr/bin/Release/net10.0/Musoq.Targets.CSharpClr.dll", "sha256": "0ed4dd2496f2e331a88343f1f777622fce9d44fa956b6dff9b7389cf91e34286", "bytes": 953856},
+    {"path": "src/dotnet/Musoq.Targets.Execution/bin/Release/net10.0/Musoq.Targets.Execution.dll", "sha256": "55ff49819bcff04cf3e5a38b5e677ce3ac3701a664108b05c3fee7b9870cd9ef", "bytes": 120832},
+    {"path": "src/dotnet/Musoq.Targets.Execution.Analysis/bin/Release/net10.0/Musoq.Targets.Execution.Analysis.dll", "sha256": "95b594a94b4415c40f755152cf138201286fbfc89d8f4b303b9776f9d92a7c76", "bytes": 49664},
+    {"path": "src/dotnet/Musoq.Targets.Abstractions/bin/Release/net10.0/Musoq.Targets.Abstractions.dll", "sha256": "607a2376e5f571f99729327969e9c0ec44bf11ede2e7ae8568a1ed7cf891bd66", "bytes": 131584}
+  ],
+  "studyInputs": {
+    "taskCorpus": {
+      "path": "docs/campaigns/recovery-v3/cases/REC-143-task-corpus.json",
+      "fileSha256": "ac2a9ab6e9493fb897f9a15149e27fbd94f8a12a3d789a15959fad52619ff659",
+      "canonicalPayloadSha256": "76915f4174d8cc1720b131e3d59bd5a6f6c9271d6e1c19920db19c4ab3e8dfc8",
+      "taskCount": 16,
+      "familyCount": 8,
+      "developmentGroupCount": 8,
+      "reservedHoldoutGroupCount": 8,
+      "holdoutState": "reserved_until_freeze",
+      "finalHoldoutCreated": false
+    },
+    "simulatedActorManifest": {
+      "path": "docs/campaigns/recovery-v3/cases/REC-144-simulated-actors.json",
+      "sha256": "37a097cea30b7d2580a25861a445bde7114ef182cdea595d4caace9d322848e3",
+      "actorCount": 5,
+      "allSimulated": true
+    },
+    "blindRepairPrompt": {
+      "path": "docs/campaigns/recovery-v3/prompts/blind-repairer.md",
+      "sha256": "6e5a021d9a48576565f96556d97da6aac8427bf9070fd329344fabe96f529737"
+    },
+    "reviewPrompt": {
+      "path": "docs/campaigns/recovery-v3/prompts/review-scope.md",
+      "sha256": "a7c6d69f264d96ada9985f8a44594dd50023c36341a7ee1e491fb7e5739d7e72"
+    },
+    "standaloneGoalPrompt": {
+      "path": "musoq-recovery-campaign.goal.md",
+      "fileSha256": "196dacc31bc1cbab31e74f2d1238b9296dbcb591852f3d71d33ab67507406610",
+      "embeddedPromptSha256": "d8cf2347fd29093e44d54f770caa85592c9a4461a98ccb899ac50242c2726caf",
+      "embeddedEqualsStandaloneAfterTrailingWhitespaceNormalization": true
+    }
+  },
+  "laneConclusion": {
+    "engine": {"completed": 64, "total": 64, "status": "complete"},
+    "product": {"completed": 0, "total": 12, "status": "NOT_RUN", "reason": "Engine lane stopping condition reached; no product prerequisites or lane selection was authorized."},
+    "empirical": {"completed": 0, "total": 6, "status": "NOT_RUN", "reason": "Engine lane stopping condition reached; no empirical actor study was authorized or executed."},
+    "humanRepairabilityClaim": false,
+    "packagedInterfaceConformanceClaim": false,
+    "installedProviderConformanceClaim": false
+  },
+  "obligations": [
+    {
+      "id": "REC-147-O01",
+      "result": "All 63 prior engine completion commits, reports, evidence hashes and sequential dependencies passed the structural/evidence/commit checker before this scope."
+    },
+    {
+      "id": "REC-147-O02",
+      "result": "The fresh complete Release restore/build/test gate passed every expected project target with reconciled counters: 21,065 passed, 0 failed, 3 established skips, 21,068 total across 8/8 targets."
+    },
+    {
+      "id": "REC-147-O03",
+      "result": "The final tested source payload is recorded as 5,815 files with SHA-256 cfff2b1924cd5b6dd704d0a0d87ca670eeb649d7fa4a8dc411377cb8eb39f6c9. This scope's ledger, report and evidence administration is outside the payload by the gate definition and is validated before the completion commit."
+    },
+    {
+      "id": "REC-147-O04",
+      "result": "Core engine DLL hashes, all eight test-assembly hashes, the 16-task corpus and canonical corpus digest, simulated actor manifest, blind-repair/review prompt digests and normalized standalone/embedded goal-prompt digests are recorded."
+    },
+    {
+      "id": "REC-147-O05",
+      "result": "Product 0/12 and empirical 0/6 are explicitly NOT RUN. No packaged CLI/MCP conformance, installed-provider behavior, human repairability or empirical recovery score is inferred from the engine gate."
+    }
+  ],
+  "boundaries": [
+    "This is the engine-lane conclusion only; the campaign's product and empirical lanes remain unrun.",
+    "The corpus holdout remains reserved and no live actor or human score was generated.",
+    "Engine test and artifact hashes do not certify an installed executable, packaged interface, provider or host workflow."
+  ]
+}

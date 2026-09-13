@@ -1,0 +1,133 @@
+{
+  "formatVersion": 1,
+  "brand": "Musoq CLI",
+  "transport": "MCP Streamable HTTP",
+  "endpoints": [
+    {
+      "path": "/mcp",
+      "scope": "Tools registered with the default MCP server"
+    },
+    {
+      "path": "/mcp/context/{contextName}",
+      "scope": "Only tools assigned to the named context"
+    }
+  ],
+  "initialization": {
+    "instructions": "Start with musoq_describe using operation 'bootstrap'. Search or read the smallest relevant Musoq capability, then use musoq_execute_query to run SQL. Runtime descriptions are optional, and inspect is an expert-only CLI path rather than a preflight.",
+    "workflow": [
+      "musoq_describe:bootstrap",
+      "musoq_describe:search-or-resource",
+      "musoq_execute_query"
+    ]
+  },
+  "methods": [
+    "initialize",
+    "notifications/initialized",
+    "ping",
+    "tools/list",
+    "tools/call",
+    "resources/list",
+    "resources/read"
+  ],
+  "discoveryTool": {
+    "name": "musoq_describe",
+    "availability": "Every MCP context and the default server",
+    "operations": [
+      "bootstrap",
+      "search",
+      "resource",
+      "error",
+      "schema",
+      "source",
+      "functions",
+      "settings"
+    ],
+    "searchKinds": [
+      "command",
+      "manual",
+      "spec",
+      "recipe",
+      "error"
+    ],
+    "output": {
+      "content": "Readable text/markdown",
+      "structuredContentSchema": "describe-response.v1.schema.json",
+      "formatVersion": "1"
+    },
+    "runtime": {
+      "requiresHost": true,
+      "sourceDataAccess": "providerControlled",
+      "disclosure": "Resolving source metadata may read source data. Musoq Cloud cannot determine or bound provider discovery."
+    }
+  },
+  "compatibility": {
+    "preservedSystemTools": [
+      "musoq_list_datasources",
+      "musoq_list_schemas",
+      "musoq_list_tools",
+      "musoq_list_scripts",
+      "musoq_describe_table",
+      "musoq_execute_query"
+    ],
+    "userDefinedTools": "Remain context-scoped and are listed alongside system tools."
+  },
+  "resources": [
+    {
+      "uriPattern": "musoq://bootstrap",
+      "mimeType": "text/markdown",
+      "description": "Bounded start document for describe to run",
+      "listed": true
+    },
+    {
+      "uriPattern": "musoq://catalog",
+      "mimeType": "text/markdown",
+      "description": "Deterministic static capability index",
+      "listed": true
+    },
+    {
+      "uriPattern": "musoq://manual/index",
+      "mimeType": "text/markdown",
+      "description": "Manual table of contents",
+      "listed": true
+    },
+    {
+      "uriPattern": "musoq://manual/{topic}",
+      "mimeType": "text/markdown",
+      "description": "One versioned manual chapter",
+      "listed": true
+    },
+    {
+      "uriPattern": "musoq://manual/{topic}#{section}",
+      "mimeType": "text/markdown",
+      "description": "One canonical manual heading and its smallest subtree",
+      "listed": false
+    },
+    {
+      "uriPattern": "musoq://spec/{slug}",
+      "mimeType": "text/markdown",
+      "description": "One versioned Musoq language or plugin specification",
+      "listed": true
+    },
+    {
+      "uriPattern": "musoq://spec/{slug}#{section}",
+      "mimeType": "text/markdown",
+      "description": "One canonical specification heading and its smallest subtree",
+      "listed": false
+    }
+  ],
+  "toolFailures": {
+    "transport": "A tool failure is returned as a successful JSON-RPC result with isError true.",
+    "recoveryFields": [
+      "code",
+      "helpUri",
+      "nextAction.argv"
+    ]
+  },
+  "notes": [
+    "MCP can be disabled through configuration; disabled endpoints return HTTP 503.",
+    "Tool availability is context-specific and must be discovered with tools/list.",
+    "Heading fragments are resolved by resources/read but are not individually emitted by resources/list.",
+    "The musoq_describe content block is Markdown and structuredContent carries the same format-version 1 semantic envelope.",
+    "Clients must not infer support for service routes that are absent from this contract."
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-122",
+  "outcome": "passed",
+  "artifacts": [
+    {
+      "id": "case-contract-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-122-case-contract.json",
+      "sha256": "2da5147b26d1ce83431431b5561b3878a17f89d090e4bd7b2d7dece3c1e71349",
+      "role": "Immutable initial source-provenance contract."
+    },
+    {
+      "id": "pre-observation-manifest-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-122-pre-observation-manifest.json",
+      "sha256": "13f265a1f78e7a52146fd3b47f31e36b33e66ae129d4e077249c73bb5f633285",
+      "role": "Frozen pre-observation manifest for all 48 cases."
+    },
+    {
+      "id": "behavior-results",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-122-behavior-results.json",
+      "sha256": "d9af53a2c7d26e069aa99163bda9ea0846ab1c3f785806611a73d73b88d61d33",
+      "role": "Classifications, initial finding, focused replay, mutation control and obligation mapping."
+    },
+    {
+      "id": "initial-focused-trx",
+      "path": ".campaign-artifacts/REC-122-initial/REC-122-initial.trx",
+      "sha256": "29ad3763c5c8e230d296b4dbd3c0f290ebc03c7168e67220d229a96ceaea53a",
+      "role": "Initial frozen replay before repair; 3 failed methods and 11 assertion failures."
+    },
+    {
+      "id": "initial-full-gate-test-log",
+      "path": ".campaign-artifacts/REC-122-full-gate/test.stdout.log",
+      "sha256": "ac8f46f98236fca581f1340c9b9a6767cf565acff01d4a7742fdb9ed53f834bd",
+      "role": "Preserved failed first full-gate test log; excluded from final gate evidence."
+    },
+    {
+      "id": "focused-matrix-trx",
+      "path": ".campaign-artifacts/REC-122-focused-final/REC-122-focused.trx",
+      "sha256": "cfca2f4b7d27e96e3b516f696def9a98f511663fc2b7f1fad940bb35dc58c3b5",
+      "role": "Final five-method REC-122 matrix replay over 48 cases plus the mutation control."
+    },
+    {
+      "id": "evaluator-adjacent-trx",
+      "path": ".campaign-artifacts/REC-122-adjacent-evaluator-final/REC-122-adjacent-evaluator.trx",
+      "sha256": "b49836e262e4cb5e24f4606f964b4d46d5a5da378a4b483c9826f70c91a26a37",
+      "role": "Scalar-subquery and ordinality regression suite, 22/22 passed."
+    },
+    {
+      "id": "maintainability-trx",
+      "path": ".campaign-artifacts/REC-122-maintainability-final/REC-122-maintainability.trx",
+      "sha256": "9b62e838ca9a037f7a9854645cad54b0448a38634c7dc2362277e21e169b311e",
+      "role": "Runtime V2 maintainability and architecture budget suite, 66/66 passed."
+    },
+    {
+      "id": "matrix-tests",
+      "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-122OriginalSourceLocationTests.cs",
+      "sha256": "5e994048415362d763b8ccb009810f90605aecf82efa674ce84263b19fcf51ee",
+      "role": "Permanent four-family, 48-case original-source location matrix and mutation control."
+    },
+    {
+      "id": "parser-provenance-repair",
+      "path": "src/dotnet/Musoq.Parser/Parser.NullSafeComparisonParsing.cs",
+      "sha256": "c56e29e096a165141a315b63906b2310a171875c739abfefe836d5953e82eaf7",
+      "role": "Token-derived NULL predicate span repair; related parser and FROM-node repairs are in the same completion commit."
+    },
+    {
+      "id": "clone-provenance-repair",
+      "path": "src/dotnet/Musoq.Evaluator/Visitors/CloneQueryVisitor.AliasedFrom.cs",
+      "sha256": "8885cbb8dc4e01852352398a3fbd95d9f90b56caf84596de77eb2ff0b8bbc528",
+      "role": "Aliased source clone preserves structural and callable-name spans."
+    },
+    {
+      "id": "rewrite-provenance-repair",
+      "path": "src/dotnet/Musoq.Evaluator/Visitors/RewriteQueryTraverseVisitor.InterpretationSchemas.cs",
+      "sha256": "2d4fe99ff5d93c42ac7d54b00a5d1053d26adcea1c049884886c96e523efead8",
+      "role": "Interpretation rewrite factories preserve exact callable source mappings."
+    },
+    {
+      "id": "full-gate",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-122-full-gate.json",
+      "sha256": "6c6f2a698eedef2ac67f111ed5e143e329b4b1dbd6e118ac7912315683b6670c",
+      "role": "Authoritative Release restore/build/test gate, 20,559 passed, 3 established skips, 0 failed across 8/8 targets."
+    },
+    {
+      "id": "report",
+      "path": "docs/campaigns/recovery-v3/reports/REC-122.md",
+      "sha256": "73d6d1b0e0e8fac6f0c30e193b63b37eb7baef1c9f1e29d659335348735955a7",
+      "role": "REC-122 completion report."
+    }
+  ],
+  "validation": {
+    "focusedMatrix": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "total": 5,
+      "candidateCount": 48,
+      "mutationControls": 1,
+      "invalidCandidates": 0,
+      "validOrdinaryControls": 48,
+      "validSuspiciousControls": 0
+    },
+    "evaluatorAdjacent": {
+      "passed": 22,
+      "failed": 0,
+      "skipped": 0,
+      "total": 22
+    },
+    "maintainability": {
+      "passed": 66,
+      "failed": 0,
+      "skipped": 0,
+      "total": 66
+    },
+    "fullReleaseGate": {
+      "status": "passed",
+      "runId": "REC-122-1244339c9572",
+      "targetCount": 8,
+      "passed": 20559,
+      "failed": 0,
+      "skipped": 3,
+      "total": 20562,
+      "testedPayloadSha256": "17a5ce98405698536a4af5101ee6fa9e4c85916c9971887266ef5e277188eab0",
+      "testedPayloadFileCount": 5785
+    }
+  },
+  "findings": [
+    {
+      "id": "REC-122-F01",
+      "status": "repaired-and-replayed",
+      "paths": [
+        "src/dotnet/Musoq.Parser",
+        "src/dotnet/Musoq.Evaluator/Visitors"
+      ],
+      "initialFailedAssertions": 11,
+      "finalFailedCases": [],
+      "productionFixes": 1,
+      "oracleCorrection": false
+    }
+  ]
+}

@@ -230,16 +230,17 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
         AssertParserDiagnosticContract(
             query,
             DiagnosticCode.MQ2001_UnexpectedToken,
-            "Cannot compose statement, Identifier is not expected here. Did you mean 'ASC'?",
+            "Cannot compose statement, Identifier is not expected here. Musoq supports ASOF JOIN and ASOF LEFT JOIN, but not ASOF RIGHT JOIN.",
             "asof",
-            "'asof' is not recognized here. The query likely contains a mistyped Musoq keyword.",
-            "Core Spec - Statement Structure",
+            "Musoq supports ASOF JOIN and ASOF LEFT JOIN, but not ASOF RIGHT JOIN.",
+            "Core Spec - ASOF JOIN",
             [
-                "Replace 'asof' with 'ASC'",
+                "Use ASOF LEFT JOIN when left-preserving semantics match the intended query.",
+                "Otherwise reverse the sources and inequality explicitly, then verify the result.",
                 "Check for missing keywords, commas, or parentheses near this location.",
                 "Verify the query follows Musoq SQL syntax."
             ],
-            expectKeywordQuickFix: true);
+            expectKeywordQuickFix: false);
     }
 
     private Table Run(string query, IDictionary<string, IEnumerable<BasicEntity>> sources)

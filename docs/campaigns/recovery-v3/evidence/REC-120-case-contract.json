@@ -1,0 +1,2977 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-120",
+  "cases": [
+    {
+      "formatVersion": 1,
+      "caseId": "P01",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select 'C:\\new\\test' from #system.dual() d",
+        "resultQuery": "select 'C:\\new\\test' from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "phase-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5014_SuspiciousOrdinaryStringEscape",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "phase-surfaces",
+        "context": "PHASE_SURFACES/P01"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'C:\\new\\test' from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "P02",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy rlike '\\\\bword\\\\b'",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy rlike '\\\\bword\\\\b'"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "phase-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5015_SuspiciousRegexEscape",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "phase-surfaces",
+        "context": "PHASE_SURFACES/P02"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy rlike '\\\\bword\\\\b'",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "P03",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy like '*.log'",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy like '*.log'"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "phase-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5016_GlobWildcardInLike",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "phase-surfaces",
+        "context": "PHASE_SURFACES/P03"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy like '*.log'",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "P04",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy = null",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy = null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "phase-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5017_NullComparison",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "phase-surfaces",
+        "context": "PHASE_SURFACES/P04"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy = null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "P05",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d skip 1",
+        "resultQuery": "select d.Dummy from #system.dual() d skip 1"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "phase-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5021_UnorderedSkip",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "phase-surfaces",
+        "context": "PHASE_SURFACES/P05"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d skip 1",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "P06",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "with dead as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d",
+        "resultQuery": "with dead as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "phase-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5022_UnusedCte",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "phase-surfaces",
+        "context": "PHASE_SURFACES/P06"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "with dead as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "P07",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "let dead: int = 1; select d.Dummy from #system.dual() d",
+        "resultQuery": "let dead: int = 1; select d.Dummy from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "phase-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5023_UnusedScriptVariable",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "phase-surfaces",
+        "context": "PHASE_SURFACES/P07"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "let dead: int = 1; select d.Dummy from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "P08",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select case when false then 'dead' else 'live' end from #system.dual() d",
+        "resultQuery": "select case when false then 'dead' else 'live' end from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "phase-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5008_UnreachableCode",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "phase-surfaces",
+        "context": "PHASE_SURFACES/P08"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select case when false then 'dead' else 'live' end from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "P09",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where true",
+        "resultQuery": "select d.Dummy from #system.dual() d where true"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "phase-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5010_TautologicalCondition",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "phase-surfaces",
+        "context": "PHASE_SURFACES/P09"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where true",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "P10",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where false",
+        "resultQuery": "select d.Dummy from #system.dual() d where false"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "phase-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5011_ContradictoryCondition",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "phase-surfaces",
+        "context": "PHASE_SURFACES/P10"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where false",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "P11",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy not in ('x', null)",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('x', null)"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "phase-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5024_NullSensitiveNotIn",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "phase-surfaces",
+        "context": "PHASE_SURFACES/P11"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('x', null)",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "P12",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d",
+        "resultQuery": "select d.Dummy from #system.dual() d"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "phase-surfaces",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "phase-surfaces",
+        "context": "PHASE_SURFACES/P12"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C01",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select 'C:\\new\\test' from #system.dual() d",
+        "resultQuery": "select 'C:\\new\\test' from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "compilation-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5014_SuspiciousOrdinaryStringEscape",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "compilation-surfaces",
+        "context": "COMPILATION_SURFACES/C01"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'C:\\new\\test' from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C02",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy rlike '\\\\bword\\\\b'",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy rlike '\\\\bword\\\\b'"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "compilation-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5015_SuspiciousRegexEscape",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "compilation-surfaces",
+        "context": "COMPILATION_SURFACES/C02"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy rlike '\\\\bword\\\\b'",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C03",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy like '*.log'",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy like '*.log'"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "compilation-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5016_GlobWildcardInLike",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "compilation-surfaces",
+        "context": "COMPILATION_SURFACES/C03"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy like '*.log'",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C04",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy = null",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy = null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "compilation-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5017_NullComparison",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "compilation-surfaces",
+        "context": "COMPILATION_SURFACES/C04"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy = null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C05",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d skip 1",
+        "resultQuery": "select d.Dummy from #system.dual() d skip 1"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "compilation-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5021_UnorderedSkip",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "compilation-surfaces",
+        "context": "COMPILATION_SURFACES/C05"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d skip 1",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C06",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "with dead as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d",
+        "resultQuery": "with dead as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "compilation-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5022_UnusedCte",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "compilation-surfaces",
+        "context": "COMPILATION_SURFACES/C06"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "with dead as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C07",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "let dead: int = 1; select d.Dummy from #system.dual() d",
+        "resultQuery": "let dead: int = 1; select d.Dummy from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "compilation-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5023_UnusedScriptVariable",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "compilation-surfaces",
+        "context": "COMPILATION_SURFACES/C07"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "let dead: int = 1; select d.Dummy from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C08",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select case when false then 'dead' else 'live' end from #system.dual() d",
+        "resultQuery": "select case when false then 'dead' else 'live' end from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "compilation-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5008_UnreachableCode",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "compilation-surfaces",
+        "context": "COMPILATION_SURFACES/C08"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select case when false then 'dead' else 'live' end from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C09",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where true",
+        "resultQuery": "select d.Dummy from #system.dual() d where true"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "compilation-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5010_TautologicalCondition",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "compilation-surfaces",
+        "context": "COMPILATION_SURFACES/C09"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where true",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C10",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where false",
+        "resultQuery": "select d.Dummy from #system.dual() d where false"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "compilation-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5011_ContradictoryCondition",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "compilation-surfaces",
+        "context": "COMPILATION_SURFACES/C10"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where false",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C11",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy not in ('x', null)",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('x', null)"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "compilation-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5024_NullSensitiveNotIn",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "compilation-surfaces",
+        "context": "COMPILATION_SURFACES/C11"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('x', null)",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C12",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d ",
+        "resultQuery": "select d.Dummy from #system.dual() d "
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "compilation-surfaces",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "compilation-surfaces",
+        "context": "COMPILATION_SURFACES/C12"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d ",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "E01",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select 'C:\\new\\test' from #system.dual() d",
+        "resultQuery": "select 'C:\\new\\test' from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "envelope-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5014_SuspiciousOrdinaryStringEscape",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "envelope-surfaces",
+        "context": "ENVELOPE_SURFACES/E01"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'C:\\new\\test' from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "E02",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select 'C:\\new\\test' from #system.dual() d where true",
+        "resultQuery": "select 'C:\\new\\test' from #system.dual() d where true"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "envelope-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5014_SuspiciousOrdinaryStringEscape",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        },
+        {
+          "code": "MQ5010_TautologicalCondition",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "envelope-surfaces",
+        "context": "ENVELOPE_SURFACES/E02"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'C:\\new\\test' from #system.dual() d where true",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "E03",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy rlike '\\\\bword\\\\b' skip 1",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy rlike '\\\\bword\\\\b' skip 1"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "envelope-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5015_SuspiciousRegexEscape",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        },
+        {
+          "code": "MQ5021_UnorderedSkip",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "envelope-surfaces",
+        "context": "ENVELOPE_SURFACES/E03"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy rlike '\\\\bword\\\\b' skip 1",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "E04",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "let dead: int = 1; with dead_cte as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d",
+        "resultQuery": "let dead: int = 1; with dead_cte as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "envelope-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5023_UnusedScriptVariable",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        },
+        {
+          "code": "MQ5022_UnusedCte",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "envelope-surfaces",
+        "context": "ENVELOPE_SURFACES/E04"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "let dead: int = 1; with dead_cte as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "E05",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select case when false then 'dead' else 'live' end from #system.dual() d where true",
+        "resultQuery": "select case when false then 'dead' else 'live' end from #system.dual() d where true"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "envelope-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5008_UnreachableCode",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        },
+        {
+          "code": "MQ5010_TautologicalCondition",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "envelope-surfaces",
+        "context": "ENVELOPE_SURFACES/E05"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select case when false then 'dead' else 'live' end from #system.dual() d where true",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "E06",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy = null skip 1",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy = null skip 1"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "envelope-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5017_NullComparison",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        },
+        {
+          "code": "MQ5021_UnorderedSkip",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "envelope-surfaces",
+        "context": "ENVELOPE_SURFACES/E06"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy = null skip 1",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "E07",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy not in ('x', null)",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('x', null)"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "envelope-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5024_NullSensitiveNotIn",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "envelope-surfaces",
+        "context": "ENVELOPE_SURFACES/E07"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('x', null)",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "E08",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select case when 1 = 1 then 'live' else 'dead' end from #system.dual() d",
+        "resultQuery": "select case when 1 = 1 then 'live' else 'dead' end from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "envelope-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5008_UnreachableCode",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "envelope-surfaces",
+        "context": "ENVELOPE_SURFACES/E08"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select case when 1 = 1 then 'live' else 'dead' end from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "E09",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where 1 = 2",
+        "resultQuery": "select d.Dummy from #system.dual() d where 1 = 2"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "envelope-surfaces",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5011_ContradictoryCondition",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "envelope-surfaces",
+        "context": "ENVELOPE_SURFACES/E09"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where 1 = 2",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "E10",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d order by d.Dummy skip 1",
+        "resultQuery": "select d.Dummy from #system.dual() d order by d.Dummy skip 1"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "envelope-surfaces",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "envelope-surfaces",
+        "context": "ENVELOPE_SURFACES/E10"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d order by d.Dummy skip 1",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "E11",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d order by d.Dummy take 1",
+        "resultQuery": "select d.Dummy from #system.dual() d order by d.Dummy take 1"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "envelope-surfaces",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "envelope-surfaces",
+        "context": "ENVELOPE_SURFACES/E11"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d order by d.Dummy take 1",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "E12",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d ",
+        "resultQuery": "select d.Dummy from #system.dual() d "
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "envelope-surfaces",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "envelope-surfaces",
+        "context": "ENVELOPE_SURFACES/E12"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d ",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "R01",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where true",
+        "resultQuery": "select d.Dummy from #system.dual() d where true"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "preservation",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5010_TautologicalCondition",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "preservation",
+        "context": "PRESERVATION/R01"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where true",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "R02",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where false",
+        "resultQuery": "select d.Dummy from #system.dual() d where false"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "preservation",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5011_ContradictoryCondition",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "preservation",
+        "context": "PRESERVATION/R02"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where false",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "R03",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "with dead as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d",
+        "resultQuery": "with dead as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "preservation",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5022_UnusedCte",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "preservation",
+        "context": "PRESERVATION/R03"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "with dead as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "R04",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "let dead: int = 1; select d.Dummy from #system.dual() d",
+        "resultQuery": "let dead: int = 1; select d.Dummy from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "preservation",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5023_UnusedScriptVariable",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "preservation",
+        "context": "PRESERVATION/R04"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "let dead: int = 1; select d.Dummy from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "R05",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select case when false then 'dead' else 'live' end from #system.dual() d",
+        "resultQuery": "select case when false then 'dead' else 'live' end from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "preservation",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5008_UnreachableCode",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "preservation",
+        "context": "PRESERVATION/R05"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select case when false then 'dead' else 'live' end from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "R06",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d skip 1",
+        "resultQuery": "select d.Dummy from #system.dual() d skip 1"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "preservation",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5021_UnorderedSkip",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "preservation",
+        "context": "PRESERVATION/R06"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d skip 1",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "R07",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy = null",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy = null"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "preservation",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5017_NullComparison",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "preservation",
+        "context": "PRESERVATION/R07"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy = null",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "R08",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select d.Dummy from #system.dual() d where d.Dummy not in ('x', null)",
+        "resultQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('x', null)"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "preservation",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5024_NullSensitiveNotIn",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "preservation",
+        "context": "PRESERVATION/R08"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select d.Dummy from #system.dual() d where d.Dummy not in ('x', null)",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "R09",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "with dead as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d",
+        "resultQuery": "with dead as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "preservation",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5022_UnusedCte",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "preservation",
+        "context": "PRESERVATION/R09"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "with dead as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "R10",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select 1 ?? 'fallback' from #system.dual() d",
+        "resultQuery": "select 1 ?? 'fallback' from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "preservation",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5008_UnreachableCode",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "preservation",
+        "context": "PRESERVATION/R10"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 ?? 'fallback' from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "R11",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "let dead: int = 1; select d.Dummy from #system.dual() d",
+        "resultQuery": "let dead: int = 1; select d.Dummy from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "preservation",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5023_UnusedScriptVariable",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "preservation",
+        "context": "PRESERVATION/R11"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "let dead: int = 1; select d.Dummy from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "R12",
+      "scopeId": "REC-120",
+      "task": "Exercise warning-aware API, diagnostic-envelope and execution-preservation boundaries before any diagnostic observation.",
+      "seedQuery": "select d.Dummy from #system.dual() d",
+      "fixtureRef": {
+        "id": "REC-120-warning-aware-api-fixture",
+        "path": "src/dotnet/Musoq.Converter.Tests/Diagnostic.REC-120WarningAwareApiTests.cs",
+        "testName": "ApiSurfaceMatrix_ShouldKeepWarningsWithinTheirDocumentedPhases",
+        "proof": "The permanent matrix checks documented parser, analysis, build, inspection and envelope surfaces, warning-aware versus convenience compilation, and generated/cache/runtime preservation."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid seed with the frozen warning-aware API boundary fixture.",
+        "before": "select d.Dummy from #system.dual() d",
+        "after": "select 'C:\\new\\test' from #system.dual() d",
+        "resultQuery": "select 'C:\\new\\test' from #system.dual() d"
+      },
+      "expectedClassification": "valid_suspicious",
+      "expectedRootCause": "preservation",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ5014_SuspiciousOrdinaryStringEscape",
+          "phase": "Parse",
+          "sourceDomain": "Query",
+          "severity": "Warning"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "Diagnostic Contract and Catalog / 23.1 Diagnostic envelope contract",
+          "passage": "The diagnostic envelope preserves documented phase and warning surfaces; warning-aware compilation exposes warnings, error-only envelopes exclude them, all-diagnostics envelopes retain them, and warnings do not alter execution, cache identity, datasource arguments or results.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The expected warning surface, phase and envelope outcome is frozen before observing the candidate."
+      },
+      "fingerprint": {
+        "domain": "diagnostic-api",
+        "rootCause": "preservation",
+        "context": "PRESERVATION/R12"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'C:\\new\\test' from #system.dual() d",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "warning codes, severity and documented phase remain exact across promised API surfaces",
+          "error-only and all-diagnostics envelope membership remains exact",
+          "warning-aware and convenience compilation remain runnable and preserve generated execution, cache identity, source arguments and result values"
+        ]
+      }
+    }
+  ]
+}

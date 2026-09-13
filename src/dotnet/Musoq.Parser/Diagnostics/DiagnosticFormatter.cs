@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Linq;
 using System.Text;
 
 namespace Musoq.Parser.Diagnostics;
@@ -7,6 +9,8 @@ namespace Musoq.Parser.Diagnostics;
 /// </summary>
 public sealed class DiagnosticFormatter
 {
+    private const int TerminalTabWidth = 4;
+
     /// <summary>
     ///     Gets or sets whether to include context snippets.
     /// </summary>
@@ -37,7 +41,7 @@ public sealed class DiagnosticFormatter
         }
         else if (!string.IsNullOrEmpty(diagnostic.Location.FilePath))
         {
-            sb.Append(diagnostic.Location.FilePath);
+            sb.Append(DiagnosticSafety.SanitizeForDisplay(diagnostic.Location.FilePath));
             sb.Append('(');
             sb.Append(diagnostic.Location.Line);
             sb.Append(',');
@@ -68,14 +72,15 @@ public sealed class DiagnosticFormatter
 
 
         sb.Append(": ");
-        sb.Append(diagnostic.Message);
+        sb.Append(DiagnosticSafety.SanitizeMessage(diagnostic));
 
 
-        if (IncludeContextSnippet && !string.IsNullOrEmpty(diagnostic.ContextSnippet))
+        var safeSnippet = DiagnosticSafety.GetSafeSnippet(diagnostic);
+        if (IncludeContextSnippet && !string.IsNullOrEmpty(safeSnippet))
         {
             sb.AppendLine();
             sb.AppendLine();
-            sb.Append(FormatContextSnippet(diagnostic));
+            sb.Append(FormatContextSnippet(diagnostic, safeSnippet));
         }
 
 
@@ -86,26 +91,33 @@ public sealed class DiagnosticFormatter
             foreach (var fix in diagnostic.SuggestedFixes)
             {
                 sb.Append("  - ");
-                sb.AppendLine(fix.Title);
+                sb.AppendLine(DiagnosticSafety.SanitizeForDisplay(
+                    DiagnosticSafety.SanitizeText(fix.Title, diagnostic)));
             }
         }
 
         return sb.ToString();
     }
 
-    private string FormatContextSnippet(Diagnostic diagnostic)
+    private string FormatContextSnippet(Diagnostic diagnostic, string safeSnippet)
     {
         var sb = new StringBuilder();
-        var lines = diagnostic.ContextSnippet?.Split('\n') ?? Array.Empty<string>();
+        var lines = safeSnippet.Split('\n');
 
 
         var errorLine = diagnostic.Location.Line;
         var startLine = Math.Max(1, errorLine - ContextLines);
+        var renderedLineIndex = 0;
 
         for (var i = 0; i < lines.Length; i++)
         {
-            var lineNum = startLine + i;
+            if (IsContextPointerLine(lines[i]))
+                continue;
+
+            var lineNum = startLine + renderedLineIndex++;
             var isErrorLine = lineNum == errorLine;
+            var sourceLine = ExtractSourceLine(lines[i]);
+            var displayLine = DiagnosticSafety.SanitizeForDisplay(ToDisplaySafeLine(sourceLine));
 
 
             var lineNumStr = lineNum.ToString(System.Globalization.CultureInfo.InvariantCulture).PadLeft(5);
@@ -114,7 +126,7 @@ public sealed class DiagnosticFormatter
             sb.Append(isErrorLine ? " --> " : "     ");
             sb.Append(lineNumStr);
             sb.Append(" | ");
-            sb.Append(lines[i].TrimEnd('\r'));
+            sb.Append(displayLine);
 
             if (UseColor && isErrorLine) sb.Append("\u001b[0m");
 
@@ -125,10 +137,14 @@ public sealed class DiagnosticFormatter
             {
                 var column = diagnostic.Location.Column;
                 var endColumn = diagnostic.EndLocation.Column > 0 ? diagnostic.EndLocation.Column : column + 1;
-                var length = Math.Max(1, endColumn - column);
+                var startIndex = Math.Max(0, Math.Min(sourceLine.Length, column - 1));
+                var endIndex = Math.Max(startIndex, Math.Min(sourceLine.Length, endColumn - 1));
+                var displayColumn = GetDisplayWidth(sourceLine, startIndex) + 1;
+                var displayEndColumn = GetDisplayWidth(sourceLine, endIndex) + 1;
+                var length = Math.Max(1, displayEndColumn - displayColumn);
 
                 sb.Append("           | ");
-                sb.Append(new string(' ', Math.Max(0, column - 1)));
+                sb.Append(new string(' ', displayColumn - 1));
 
                 if (UseColor) sb.Append(GetColorCode(diagnostic.Severity));
 
@@ -141,6 +157,129 @@ public sealed class DiagnosticFormatter
         }
 
         return sb.ToString();
+    }
+
+    private static bool IsContextPointerLine(string line)
+    {
+        if (line.Contains(" | ", StringComparison.Ordinal))
+            return false;
+
+        var trimmed = line.Trim();
+        return trimmed.Length > 0 && trimmed.All(static character => character is ' ' or '^');
+    }
+
+    private static string ExtractSourceLine(string line)
+    {
+        var separator = line.IndexOf(" | ", StringComparison.Ordinal);
+        if (separator > 0 && int.TryParse(line[..separator].Trim(), NumberStyles.None,
+                CultureInfo.InvariantCulture, out _))
+            return line[(separator + 3)..].TrimEnd('\r');
+
+        return line.TrimEnd('\r');
+    }
+
+    private static string ToDisplaySafeLine(string sourceLine)
+    {
+        var builder = new StringBuilder(sourceLine.Length);
+        var index = 0;
+        var displayWidth = 0;
+
+        while (index < sourceLine.Length)
+        {
+            var character = sourceLine[index];
+            if (character == '\t')
+            {
+                var spaces = TerminalTabWidth - displayWidth % TerminalTabWidth;
+                builder.Append(' ', spaces);
+                displayWidth += spaces;
+                index++;
+                continue;
+            }
+
+            if (DiagnosticSafety.IsUnsafeDisplayCharacter(character))
+            {
+                var escape = DiagnosticSafety.EscapeUnsafeCharacter(character);
+                builder.Append(escape);
+                displayWidth += escape.Length;
+                index++;
+                continue;
+            }
+
+            var consumed = GetScalarLength(sourceLine, index);
+            builder.Append(sourceLine, index, consumed);
+            displayWidth += GetScalarDisplayWidth(sourceLine, index);
+            index += consumed;
+        }
+
+        return builder.ToString();
+    }
+
+    private static int GetDisplayWidth(string sourceLine, int sourceLength)
+    {
+        var index = 0;
+        var displayWidth = 0;
+
+        while (index < sourceLength)
+        {
+            var character = sourceLine[index];
+            if (character == '\t')
+            {
+                displayWidth += TerminalTabWidth - displayWidth % TerminalTabWidth;
+                index++;
+                continue;
+            }
+
+            if (DiagnosticSafety.IsUnsafeDisplayCharacter(character))
+            {
+                displayWidth += DiagnosticSafety.EscapeUnsafeCharacter(character).Length;
+                index++;
+                continue;
+            }
+
+            displayWidth += GetScalarDisplayWidth(sourceLine, index);
+            index += GetScalarLength(sourceLine, index);
+        }
+
+        return displayWidth;
+    }
+
+    private static int GetScalarLength(string text, int index)
+    {
+        return index + 1 < text.Length && char.IsHighSurrogate(text[index]) &&
+               char.IsLowSurrogate(text[index + 1])
+            ? 2
+            : 1;
+    }
+
+    private static int GetScalarDisplayWidth(string text, int index)
+    {
+        var category = CharUnicodeInfo.GetUnicodeCategory(text, index);
+        if (category is UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark or
+            UnicodeCategory.EnclosingMark)
+            return 0;
+
+        var scalar = (int)text[index];
+        if (index + 1 < text.Length && char.IsHighSurrogate(text[index]) &&
+            char.IsLowSurrogate(text[index + 1]))
+            scalar = char.ConvertToUtf32(text[index], text[index + 1]);
+
+        return IsWideScalar(scalar) ? 2 : 1;
+    }
+
+    private static bool IsWideScalar(int scalar)
+    {
+        return scalar is >= 0x1100 and <= 0x115F or
+            >= 0x2329 and <= 0x232A or
+            >= 0x2E80 and <= 0x303E or
+            >= 0x3040 and <= 0xA4CF or
+            >= 0xAC00 and <= 0xD7A3 or
+            >= 0xF900 and <= 0xFAFF or
+            >= 0xFE10 and <= 0xFE19 or
+            >= 0xFE30 and <= 0xFE6F or
+            >= 0xFF00 and <= 0xFF60 or
+            >= 0xFFE0 and <= 0xFFE6 or
+            >= 0x1F300 and <= 0x1FAFF or
+            >= 0x20000 and <= 0x3FFFD;
     }
 
     private static string FormatSeverity(DiagnosticSeverity severity)
@@ -190,7 +329,8 @@ public sealed class DiagnosticFormatter
 
         sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"severity\":{(int)diagnostic.Severity},");
         sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"code\":\"{diagnostic.Code}\",");
-        sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"message\":\"{EscapeJson(diagnostic.Message)}\"");
+        sb.Append(System.Globalization.CultureInfo.InvariantCulture,
+            $"\"message\":\"{EscapeJson(DiagnosticSafety.SanitizeMessageForJson(diagnostic))}\"");
         sb.Append('}');
 
         return sb.ToString();
@@ -225,10 +365,9 @@ public sealed class DiagnosticFormatter
                     builder.Append("\\t");
                     break;
                 default:
-                    if (character < ' ')
+                    if (DiagnosticSafety.IsUnsafeDisplayCharacter(character))
                     {
-                        builder.Append("\\u");
-                        builder.Append(((int)character).ToString("x4", System.Globalization.CultureInfo.InvariantCulture));
+                        builder.Append(DiagnosticSafety.EscapeUnsafeCharacter(character));
                     }
                     else
                     {

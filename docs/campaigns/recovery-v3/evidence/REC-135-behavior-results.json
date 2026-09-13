@@ -1,0 +1,264 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-135",
+  "outcome": "passed",
+  "registeredCases": 48,
+  "classificationCounts": {
+    "invalid": 48
+  },
+  "families": [
+    {
+      "name": "ADVERSARIAL_METADATA",
+      "cases": 12,
+      "coverage": "Terminal escapes, newlines, bidi controls, long provider text and instruction-like descriptions are injected into diagnostic metadata."
+    },
+    {
+      "name": "DIRECT_JSON_ENVELOPE",
+      "cases": 12,
+      "coverage": "Direct datasource envelopes are serialized as text and machine JSON while hostile metadata remains bounded data."
+    },
+    {
+      "name": "BOUNDED_IDENTIFIERS",
+      "cases": 12,
+      "coverage": "Unknown-column candidate names exercise quoting, control characters, bidi text, long values, candidate visibility and automatic-edit rejection."
+    },
+    {
+      "name": "RENDERER_ONLY_AGENT_FIXTURES",
+      "cases": 12,
+      "coverage": "Instruction-like metadata is retained as literal text for later live-agent fixtures; this family does not invoke or qualify an AI agent."
+    }
+  ],
+  "contract": {
+    "authoritySha256": [
+      "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+    ],
+    "contractPath": "docs/campaigns/recovery-v3/evidence/REC-135-case-contract.json",
+    "contractSha256": "d15cabe541de0107b00792333b50bb25d9456273a4baf8d7a8abe1833b11a496",
+    "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-135-case-manifest.json",
+    "manifestSha256": "a398c6e773cfad731f6eb3ca0c89cc0ff22f93c8634719a26a10be8ec0c37500",
+    "preObservationPayloadSha256": "1ac49b583dcc5083f8df9a7585a0f42f33c0744648eaeb58a6df5c5b06a92f9a",
+    "verificationCommand": "python docs/campaigns/recovery-v3/tools/case_contract.py verify --scope-id REC-135 --cases docs/campaigns/recovery-v3/evidence/REC-135-case-contract.json --manifest docs/campaigns/recovery-v3/evidence/REC-135-case-manifest.json",
+    "verificationResult": "48/48 frozen cases verified before observation and again after the final replay; no frozen expectation was replaced."
+  },
+  "initialObservations": [
+    {
+      "revision": 1,
+      "outcome": "failed-before-results",
+      "exitCode": 1,
+      "resultArtifact": null,
+      "finding": "The first focused invocation terminated before publishing a result directory; it is retained as a failed execution attempt, not as an observation."
+    },
+    {
+      "revision": 2,
+      "outcome": "failed-compilation",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "total": 0,
+      "resultArtifact": null,
+      "finding": "The first fixture calibration exposed MSTest collection/assertion API mismatches and an invalid range expression before test execution."
+    },
+    {
+      "revision": 3,
+      "outcome": "failed-behavioral-replay",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-135-focused-r3/REC-135-focused-r3.trx",
+        "sha256": "5f9f961dd2aacbb8b7d0c0a61f90827d39066960ee2bbf7f8fd7d9c53a1b48a3"
+      },
+      "passed": 22,
+      "failed": 28,
+      "skipped": 0,
+      "total": 50,
+      "finding": "Public envelope data retained raw terminal escapes, status-forging newlines or unbounded metadata in the first production pass."
+    },
+    {
+      "revision": 4,
+      "outcome": "failed-behavioral-replay",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-135-focused-r4/REC-135-focused-r4.trx",
+        "sha256": "84fc6268ec4b4252a4c17b49fa6ae87f6f832934c29fcec229167fe19dbf0c0d"
+      },
+      "passed": 46,
+      "failed": 4,
+      "skipped": 0,
+      "total": 50,
+      "finding": "Identifier candidate facts still exposed raw bidi or long values through the untrusted semantic metadata path."
+    },
+    {
+      "revision": 5,
+      "outcome": "passed-calibrated-replay",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-135-focused-r5/REC-135-focused-r5.trx",
+        "sha256": "033ce33a2e4640a4f9d7d4e3a8d980a70f54f03b5cc5cb6f675fc00d0d721d6a"
+      },
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "total": 50,
+      "finding": "The renderer and identifier matrix passed before the full gate exposed optional-envelope null preservation regressions."
+    },
+    {
+      "revision": 6,
+      "outcome": "passed-authoritative-replay",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-135-authoritative-r8/REC-135-authoritative-r8.trx",
+        "sha256": "1a1e97f9eb0f6ad6426a3387ac89f04ddf3fd23a8f59dacaa50e7ed1f0516b5b"
+      },
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "total": 50,
+      "finding": "The final frozen matrix passed after the full-gate compatibility repair and the explicit literal-instruction assertion."
+    }
+  ],
+  "repairAttempts": [
+    {
+      "revisions": [1, 2],
+      "outcome": "fixture-calibration",
+      "note": "The fixture was brought to a compiling, strict MSTest matrix without changing the frozen case contract."
+    },
+    {
+      "revisions": [3, 4],
+      "outcome": "production-repair",
+      "note": "Shared display/JSON safety, datasource envelope isolation, detailed/context rendering bounds, identifier edit guards and semantic candidate fact sanitization repaired the observed sinks."
+    },
+    {
+      "revisions": [5],
+      "outcome": "focused-pass-before-gate",
+      "note": "The matrix passed, then the first full gate exposed a null-versus-empty compatibility regression in optional datasource envelope fields."
+    },
+    {
+      "revisions": [6],
+      "outcome": "compatibility-repair-and-authoritative-pass",
+      "note": "Optional provider text now preserves null, the strengthened literal-instruction assertion passes, and the final matrix is green against the final Release binaries."
+    }
+  ],
+  "focusedReplay": {
+    "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --no-build --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticRec135AdversarialMetadataRenderingTests\" --logger \"trx;LogFileName=REC-135-authoritative-r8.trx\" --results-directory .campaign-artifacts/REC-135-authoritative-r8",
+    "exitCode": 0,
+    "passed": 50,
+    "failed": 0,
+    "skipped": 0,
+    "total": 50,
+    "registeredCaseCount": 48,
+    "trxArtifact": {
+      "path": ".campaign-artifacts/REC-135-authoritative-r8/REC-135-authoritative-r8.trx",
+      "sha256": "1a1e97f9eb0f6ad6426a3387ac89f04ddf3fd23a8f59dacaa50e7ed1f0516b5b"
+    },
+    "coverage": "All 48 frozen renderer-only cases execute through diagnostic text, detailed text, machine JSON, direct envelopes and bounded identifier paths; no AI agent or shell actor is invoked."
+  },
+  "regressionReplays": [
+    {
+      "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticRuntime060EnvelopeSafetyTests|FullyQualifiedName~DiagnosticMetadataTests|FullyQualifiedName~DiagnosticErrorEnvelopeTests|FullyQualifiedName~ParseResultFormattingTests\" --logger \"trx;LogFileName=REC-135-regression-parser-r1.trx\" --results-directory .campaign-artifacts/REC-135-regression-parser-r1",
+      "exitCode": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "total": 83,
+      "trxSha256": "2428ddd63a4b7cfd815a488f30b01dfdf9e51e9b6106401a9d3ca67781f89285"
+    },
+    {
+      "command": "dotnet test src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticAudit071PayloadConsistencyTests|FullyQualifiedName~QueryInspectionTests\" --logger \"trx;LogFileName=REC-135-regression-converter-r2.trx\" --results-directory .campaign-artifacts/REC-135-regression-converter-r2",
+      "exitCode": 0,
+      "passed": 555,
+      "failed": 0,
+      "skipped": 0,
+      "total": 555,
+      "trxSha256": "010dbebc22c9db853ca8d2150f84c2d9b05de3afc6650020460acc7e967dde33"
+    },
+    {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DataSourceLifecycleDiagnosticTests|FullyQualifiedName~DiagnosticRec135AdversarialMetadataRenderingTests\" --logger \"trx;LogFileName=REC-135-regression-evaluator-r2.trx\" --results-directory .campaign-artifacts/REC-135-regression-evaluator-r2",
+      "exitCode": 0,
+      "passed": 59,
+      "failed": 0,
+      "skipped": 0,
+      "total": 59,
+      "trxSha256": "fca805f0422597cf7bfc8c2f1cc29bd3f6af9086f043b198f4aa730b648622a2"
+    },
+    {
+      "command": "python -m unittest discover -s docs/campaigns/recovery-v3/tools -p \"test_*.py\" -v",
+      "exitCode": 0,
+      "passed": 46,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "harnessContract": {
+    "budget": "48 frozen cases; no real credentials, external providers, live services, shell commands or AI calls; all hostile values are synthetic fixture data.",
+    "rendererBoundary": "The permanent test class is categorized RendererOnlyNonAgentEvidence and explicitly asserts that it cannot be used as prompt-injection or AI-agent resistance evidence.",
+    "sinkPolicy": "Public text and structured envelope views must not expose raw terminal or bidi controls, forged trusted-status lines or unbounded long metadata; JSON must parse; provider suggestions must remain bounded and must not become unsafe text edits.",
+    "acceptanceBoundary": "Instruction-like strings are asserted to remain literal data on every renderer surface. This demonstrates renderer data handling only; it does not certify shell, agent or authority-boundary behavior outside these engine renderers."
+  },
+  "productionFindings": [
+    {
+      "id": "REC-135-F01",
+      "severity": "major",
+      "description": "Diagnostic and envelope presentation paths did not uniformly escape terminal/bidi controls or bound long provider-controlled metadata, allowing raw data to forge visible status structure or overwhelm output.",
+      "resolution": "Added shared display and JSON-boundary handling, datasource envelope isolation, safe detailed/context rendering and bounded formatter fields."
+    },
+    {
+      "id": "REC-135-F02",
+      "severity": "major",
+      "description": "Semantic candidate facts could retain raw provider-controlled identifier values even when prose was quoted and unsafe automatic edits were rejected.",
+      "resolution": "Sanitized identifier fact values and bounded candidate visibility at DiagnosticContext construction while retaining native edits only for safe identifiers."
+    },
+    {
+      "id": "REC-135-F03",
+      "severity": "minor",
+      "description": "The first datasource envelope hardening pass converted absent optional text to empty strings, violating existing unknown-location contracts.",
+      "resolution": "Preserved null optional provider text with a dedicated nullable sanitizer and requalified Converter and Evaluator location tests."
+    }
+  ],
+  "obligations": {
+    "REC-135-O01": "The frozen META, JSON, ID and renderer-only families inject terminal escapes, CR/LF newlines, bidi controls, long strings and instruction-like metadata.",
+    "REC-135-O02": "Every JSON surface is parsed by the matrix; all checked text surfaces reject raw ESC/bidi controls, forged TRUSTED_STATUS lines and unbounded payloads.",
+    "REC-135-O03": "Unknown-column diagnostics quote hostile identifiers, cap visible candidates at five, bound display values at 512 characters and emit no automatic edit for unsafe suggestions.",
+    "REC-135-O04": "The permanent fixture is explicitly categorized RendererOnlyNonAgentEvidence; the report and test class state that no AI-agent or prompt-injection claim follows from these renderer checks.",
+    "acceptance": "The authoritative 48-case matrix passed 50/50 MSTest rows, machine JSON remained valid, instruction-like content remained literal data and unsafe provider values did not become trusted status lines or native text edits."
+  },
+  "fullReleaseGate": {
+    "failedCalibration": {
+      "output": ".campaign-artifacts/REC-135-full-gate-final-r1",
+      "testLog": ".campaign-artifacts/REC-135-full-gate-final-r1/test.stdout.log",
+      "testLogSha256": "f7952e40d18413f24d53c128ce83f75957c7348be2068fb207fd6f7673534b47",
+      "failedTargets": [
+        {
+          "targetId": "Musoq.Converter.Tests/net10.0",
+          "passed": 1149,
+          "failed": 2,
+          "skipped": 0,
+          "total": 1151,
+          "trx": ".campaign-artifacts/REC-135-full-gate-final-r1/trx/Jakub_DESKTOP-I52018A_2026-09-08_07_37_09_net10.0[3].trx",
+          "trxSha256": "e6c07f83a8245e2302684fc804d3c0592fc61ac6ea9febe1b70126c537774be6"
+        },
+        {
+          "targetId": "Musoq.Evaluator.Tests/net10.0",
+          "passed": 11727,
+          "failed": 1,
+          "skipped": 3,
+          "total": 11731,
+          "trx": ".campaign-artifacts/REC-135-full-gate-final-r1/trx/Jakub_DESKTOP-I52018A_2026-09-08_07_37_09_net10.0[1].trx",
+          "trxSha256": "ac1cab3ba3c4b96b5af53a0864f354ab226b97e50739e46a89875d6174435d7a"
+        }
+      ],
+      "finding": "The new datasource envelope sanitization converted null snippets to empty strings; the failed gate was retained and optional-field null preservation was repaired."
+    },
+    "command": "python docs/campaigns/recovery-v3/tools/full_gate.py run --scope-id REC-135 --solution src/dotnet/Musoq.sln --configuration Release --output .campaign-artifacts/REC-135-full-gate-final-r3 --evidence docs/campaigns/recovery-v3/evidence/REC-135-full-gate-final-r3.json --expected-inventory docs/campaigns/recovery-v3/evidence/REC-085-expected-inventory.json --skip-allowlist docs/campaigns/recovery-v3/evidence/REC-085-skip-allowlist.json",
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-135-full-gate-final-r3.json",
+    "evidenceSha256": "7f3237c8a34f41f8e2f5631a146a0ae56a174aca6b54054a17bcd64dfab613e0",
+    "runId": "REC-135-2c0a8f7a61e9",
+    "targetCount": 8,
+    "passed": 21017,
+    "failed": 0,
+    "skipped": 3,
+    "total": 21020,
+    "testedPayloadSha256": "0d96c72ec2a689348a7e31afb857d03fe0d35ba0ea5b72d1a0ead71a9f2ebf3f",
+    "testedPayloadFileCount": 5802,
+    "testLog": {
+      "path": ".campaign-artifacts/REC-135-full-gate-final-r3/test.stdout.log",
+      "sha256": "afd8c81bcfa69cfe2b45613e4b36a182a985c3e4ae64e39765116e8b71e7a5ad"
+    }
+  }
+}

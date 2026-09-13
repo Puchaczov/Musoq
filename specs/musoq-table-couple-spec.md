@@ -804,7 +804,10 @@ table AllTypes {
     ObjectCol: object
 };
 couple data.source with table AllTypes as TypedData;
-select * from TypedData();
+select ByteCol, SByteCol, ShortCol, IntCol, LongCol, UShortCol, UIntCol, ULongCol,
+       FloatCol, DoubleCol, DecimalCol, MoneyCol, BoolCol, CharCol, StringCol,
+       DateTimeCol, DateTimeOffsetCol, TimeSpanCol, GuidCol, ObjectCol
+from TypedData();
 ```
 
 ### 9.6 Nullable with Trailing Comma

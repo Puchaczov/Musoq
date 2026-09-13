@@ -1,0 +1,147 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-106",
+  "outcome": "passed",
+  "artifacts": [
+    {
+      "id": "case-contract",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-106-case-contract.json",
+      "sha256": "900b46f5dfa463e711add2eda75c6c3ac41c47cf6fa825c1f20eccca46c8d2cb",
+      "role": "Frozen 48-case expectation matrix covering eight syntax families."
+    },
+    {
+      "id": "pre-observation-manifest",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-106-pre-observation-manifest.json",
+      "sha256": "12f98c76937fdc168c537ba7c841083e71410ad425a04c6112b2475fd3436f63",
+      "role": "Pre-observation authority hashes and payload digest."
+    },
+    {
+      "id": "behavior-results",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-106-behavior-results.json",
+      "sha256": "73abebfb9bc522385df0b905f7247e72407531ca72afe5502c4efb051bb1a954",
+      "role": "Focused matrix, diagnostic distribution, findings, repairs and adjacent-suite results."
+    },
+    {
+      "id": "full-gate",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-106-full-gate.json",
+      "sha256": "b7f163f08ebf96a6c3515ff6e16183ea5d5a9d67251e4b789468b2eb8ae69ca5",
+      "role": "Fresh all-target Release restore/build/test gate."
+    },
+    {
+      "id": "focused-trx",
+      "path": ".campaign-artifacts/REC-106-focused-final/REC-106-focused.trx",
+      "sha256": "df60cf411ea7f088cca472757cfb931a2ca88640cc1bfd49198f395f3878da53",
+      "role": "Machine-readable final focused replay result; retained in ignored campaign artifacts."
+    },
+    {
+      "id": "parser-tests",
+      "path": "src/dotnet/Musoq.Parser.Tests/Diagnostic.REC-106SystematicOmissionTests.cs",
+      "sha256": "84806b8442a9855c9e18905a6a6e0c8a8e86958cf7d3711980f5deb7915e2582",
+      "role": "Permanent 48-case omission matrix and parser diagnostic contract assertions."
+    },
+    {
+      "id": "parser-production",
+      "path": "src/dotnet/Musoq.Parser/Parser.Expressions.Arguments.cs",
+      "sha256": "2596235bc05830e24c1777585dcb2427a701885ec911c5d4e920229a2ee5e514",
+      "role": "EOF boundary fix for unclosed source-method calls."
+    },
+    {
+      "id": "parser-production-base-types",
+      "path": "src/dotnet/Musoq.Parser/Parser.Expressions.BaseTypes.cs",
+      "sha256": "b269990dbe8335a8f396a8f0d8e4982a2ccfa85267c38564c404f67f0612744a",
+      "role": "Equality missing-left-operand classification."
+    },
+    {
+      "id": "parser-production-clauses",
+      "path": "src/dotnet/Musoq.Parser/Parser.QueryClauses.cs",
+      "sha256": "5fc559ae8f6934912fd746d359cfea32db01e568ac68cbb617b270f3b2c28a5f",
+      "role": "GROUP BY missing-column classification."
+    },
+    {
+      "id": "parser-diagnostic-factory",
+      "path": "src/dotnet/Musoq.Parser/Diagnostics/ParserDiagnosticFacts.cs",
+      "sha256": "c7a50b17ea8d2d160c9b03e834365c4cb3eecfa74dd4ea2d66a8461d8be6a1d2",
+      "role": "Shared catalog-specific parser diagnostic factories."
+    },
+    {
+      "id": "evaluator-regressions-structural",
+      "path": "src/dotnet/Musoq.Evaluator.Tests/ErrorQuality.StructuralSyntaxTests.MissingClausesAndCtes.cs",
+      "sha256": "84d402f9302693928ecfea265d69a2370238924b4dfc0804c5ebc83a3adc6511",
+      "role": "Established unclosed source-method expectation."
+    },
+    {
+      "id": "evaluator-regressions-parse",
+      "path": "src/dotnet/Musoq.Evaluator.Tests/ParseErrorTests.cs",
+      "sha256": "54ff7b0a1369a47971c028eceb5de2553fa236cbb7c2a011340c7144779f8af3",
+      "role": "Established unclosed source-method envelope expectation."
+    },
+    {
+      "id": "evaluator-regressions-user-mistakes",
+      "path": "src/dotnet/Musoq.Evaluator.Tests/UserMistakesTests.cs",
+      "sha256": "d2a8b4a08eea4fb2f76aa566ca83b11bcafd6ca11de5313f95fa9cfee9bf4571",
+      "role": "Established unclosed source-method user-facing expectation."
+    },
+    {
+      "id": "report",
+      "path": "docs/campaigns/recovery-v3/reports/REC-106.md",
+      "sha256": "d6b5166c93f2b3f99267eb1ba30416b78e38c0d72918db1dba18894e0b4480ac",
+      "role": "Human-readable REC-106 completion report."
+    }
+  ],
+  "validation": {
+    "frozenContract": {
+      "verified": true,
+      "caseCount": 48,
+      "preObservationPayloadSha256": "42ef37208dba87f0d342b16439b2ec708112c25acd1f6f9f85b808fa0a0f29d4"
+    },
+    "focusedReplay": {
+      "passed": 4,
+      "skipped": 0,
+      "failed": 0,
+      "total": 4,
+      "candidateCases": 48,
+      "invalidCandidates": 40,
+      "validationControls": 8
+    },
+    "adjacentParser": {
+      "passed": 108,
+      "skipped": 0,
+      "failed": 0,
+      "total": 108
+    },
+    "evaluatorRegressions": {
+      "passed": 4,
+      "skipped": 0,
+      "failed": 0,
+      "total": 4
+    },
+    "maintainabilityBudgets": {
+      "passed": 2,
+      "skipped": 0,
+      "failed": 0,
+      "total": 2
+    },
+    "campaignTools": {
+      "passed": 46,
+      "skipped": 0,
+      "failed": 0,
+      "total": 46
+    },
+    "fullReleaseGate": {
+      "runId": "REC-106-8b3881bb7cf7",
+      "passed": 20445,
+      "skipped": 3,
+      "failed": 0,
+      "total": 20448,
+      "targetCount": 8,
+      "testedPayloadSha256": "48c985aa63f634ecc8ebb58b0bd1fd3c3c459803610d54904a21fcf1e947d832",
+      "testedPayloadFileCount": 5765
+    }
+  },
+  "notes": [
+    "The revision-1 matrix and pre-observation manifest were unchanged after candidate observation.",
+    "The first fresh full-gate attempt was excluded after an Evaluator test-host Roslyn AccessViolationException; the unchanged source passed the exact retry recorded in REC-106-full-gate.json.",
+    "Three parser classification defects were repaired and retained by strict regression coverage. Equality handling is limited to the literal equality token; keyword predicate compatibility behavior remains covered by adjacent tests.",
+    "The three allowlisted skips are the established generated-code refresh utilities from REC-085; no new skip or filter was introduced."
+  ]
+}

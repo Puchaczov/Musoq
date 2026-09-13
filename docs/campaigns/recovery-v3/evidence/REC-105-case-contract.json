@@ -1,0 +1,2993 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-105",
+  "outcome": "pre_candidate_observation_frozen",
+  "caseCount": 48,
+  "validationControlCount": 8,
+  "testSource": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+  "candidateTestMethod": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+  "matrixTestMethod": "CandidateMatrix_ShouldContainFortyEightRegisteredCasesAcrossRecoveryFamilies",
+  "controlTestMethods": [
+    "LocalEnumNameControl_ShouldAcceptCaseInsensitiveTypesAndPreserveMetadata",
+    "NativeEnumNameControl_ShouldRequireExactQualifiedNames",
+    "ExactEnumMemberControl_ShouldBindEqualityMembershipAndFlags",
+    "EnumRulesControl_ShouldKeepExplicitBridgesAndPermittedPartitionKeys",
+    "DirectEnumAnnotations_ShouldRemainInterpretationSchemaReferencesOrSyntaxErrors",
+    "InterpretationEnumBoundary_Control_ShouldNotCreateALogicalEnumDescriptor",
+    "InterpretationEnumBoundary_Control_ShouldKeepTableEnumSyntaxSeparate",
+    "DirectEnumAnnotationMatrix_ShouldContainEightRegisteredCases"
+  ],
+  "authority": {
+    "coreSpecPath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+    "coreSpecSections": [
+      "3.8 Enum Types",
+      "18.4 Enum Intrinsics",
+      "19.10 NULL in Enum Intrinsics",
+      "22.5 Enum Non-Coercion"
+    ],
+    "tableSpecPath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+    "tableSpecSections": [
+      "3.7 Enum Columns",
+      "6.5 Enum Type References"
+    ],
+    "binaryTextSpecPath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+    "binaryTextSpecSections": [
+      "12.1 Potential Extensions"
+    ],
+    "enumGuidePath": "docs/enums.md",
+    "enumGuideSections": [
+      "Operators and output rules"
+    ],
+    "catalogPath": "specs/diagnostic-catalog.json",
+    "catalogCodes": [
+      "MQ3005_TypeMismatch",
+      "MQ3107_UnknownEnumType",
+      "MQ3108_UnknownEnumMember",
+      "MQ3110_UnsupportedEnumOperator",
+      "MQ3112_UnsupportedEnumScriptParameter"
+    ]
+  },
+  "coverage": {
+    "enumNameRecovery": 16,
+    "enumMemberRecovery": 12,
+    "enumOperatorAndOutputRules": 20,
+    "interpretationBoundaryControls": 8,
+    "directEnumFieldAnnotationsRemainUnsupported": true,
+    "noTableToInterpretationInference": true
+  },
+  "diagnosticContract": {
+    "semanticPhase": "Bind",
+    "sourceKind": "Query",
+    "severity": "Error",
+    "oneRootDiagnosticPerInvalidCandidate": true,
+    "metadataNameCode": "MQ3005_TypeMismatch",
+    "visibilityCode": "MQ3107_UnknownEnumType",
+    "memberCode": "MQ3108_UnknownEnumMember",
+    "unsupportedOperatorCode": "MQ3110_UnsupportedEnumOperator",
+    "scriptParameterCode": "MQ3112_UnsupportedEnumScriptParameter",
+    "interpretationReferenceCode": "MQ4003_UndefinedSchemaReference",
+    "interpretationSyntaxCode": "MQ2001_UnexpectedToken",
+    "spanPolicy": "Enum mistakes retain one bind diagnostic anchored to the name, member, or unsupported operator; interpretation boundaries retain parser or schema-reference spans.",
+    "suggestionPolicy": "High-confidence spelling repairs are safe only when the declared nominal identity is unique; unsupported enum operations require explicit bridges or no repair."
+  },
+  "fingerprintRules": {
+    "caseIdsRegisteredBeforeObservation": true,
+    "familyCountsAreExact": true,
+    "nominalIdentityNotCarrierInference": true,
+    "nativeQualifiedNamesRequireExactSpelling": true,
+    "localEnumNamesAreCaseInsensitive": true,
+    "interpretationEnumAnnotationsAreNotInferred": true,
+    "noGeneratedCodeErrors": true
+  },
+  "matrixRevision": {
+    "current": 1,
+    "state": "frozen_for_candidate_observation",
+    "revisionHistory": [
+      {
+        "revision": 1,
+        "state": "frozen_for_candidate_observation",
+        "reason": "Initial pre-observation matrix registered 16 enum-name, 12 enum-member, and 20 operator/output candidates before candidate execution."
+      }
+    ]
+  },
+  "preObservation": {
+    "state": "frozen_before_candidate_observation",
+    "registeredBeforeCandidate": true,
+    "observedCandidateBehavior": false,
+    "review": {
+      "kind": "self-review",
+      "reviewer": "main session",
+      "independent": false,
+      "enumAuthorityReviewed": true,
+      "interpretationBoundaryReviewed": true,
+      "priorEnumScopesReviewed": [
+        "REC-100",
+        "REC-101",
+        "REC-102",
+        "REC-103",
+        "REC-104"
+      ]
+    }
+  },
+  "cases": [
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N01",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N01 through the REC-105 enum recovery fixture.",
+      "seedQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatus, Access: FileAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N01 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N01 candidate.",
+        "before": "Status: JobStatus",
+        "after": "Status: JobStatu",
+        "resultQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatu, Access: FileAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N01 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-local-name-typo",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3005_TypeMismatch",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "3.7 Enum Columns",
+          "passage": "TABLE enum columns freeze identity and metadata; local names are case-insensitive and native names require the exact qualified type name.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N01 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-local-name-typo",
+        "context": "REC-105-N01 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatu, Access: FileAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N01 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N02",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N02 through the REC-105 enum recovery fixture.",
+      "seedQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };table Jobs { Status: JobStatus };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N02 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N02 candidate.",
+        "before": "enum JobStatus",
+        "after": "enum JobStates",
+        "resultQuery": "enum JobStates : short { Queued = 10s, Running = 20s, Finished = 30s };table Jobs { Status: JobStatus };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N02 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-missing-local-declaration",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3005_TypeMismatch",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "3.8 Enum Types",
+          "passage": "Enum names and members follow the declared nominal identity, backing carrier, casing, and contextual-literal rules.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N02 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-missing-local-declaration",
+        "context": "REC-105-N02 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "enum JobStates : short { Queued = 10s, Running = 20s, Finished = 30s };table Jobs { Status: JobStatus };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N02 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N03",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N03 through the REC-105 enum recovery fixture.",
+      "seedQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatus };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N03 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N03 candidate.",
+        "before": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatus };",
+        "after": "table Jobs { Status: JobStatus };enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };",
+        "resultQuery": "table Jobs { Status: JobStatus };enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N03 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-forward-reference-visibility",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3107_UnknownEnumType",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "3.7 Enum Columns",
+          "passage": "TABLE enum columns freeze identity and metadata; local names are case-insensitive and native names require the exact qualified type name.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N03 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-forward-reference-visibility",
+        "context": "REC-105-N03 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "table Jobs { Status: JobStatus };enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N03 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N04",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N04 through the REC-105 enum recovery fixture.",
+      "seedQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatus, Access: FileAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N04 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N04 candidate.",
+        "before": "Status: JobStatus",
+        "after": "Status: jobstatus",
+        "resultQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: jobstatus, Access: FileAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N04 */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "enum-local-name-case-insensitive",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "3.7 Enum Columns",
+          "passage": "TABLE enum columns freeze identity and metadata; local names are case-insensitive and native names require the exact qualified type name.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N04 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-local-name-case-insensitive",
+        "context": "REC-105-N04 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: jobstatus, Access: FileAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N04 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N05",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N05 through the REC-105 enum recovery fixture.",
+      "seedQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatus, Access: FILEACCESS };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N05 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N05 candidate.",
+        "before": "Status: JobStatus",
+        "after": "Status: JOBSTATUS",
+        "resultQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JOBSTATUS, Access: FILEACCESS };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N05 */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "enum-local-name-case-insensitive",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "3.7 Enum Columns",
+          "passage": "TABLE enum columns freeze identity and metadata; local names are case-insensitive and native names require the exact qualified type name.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N05 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-local-name-case-insensitive",
+        "context": "REC-105-N05 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JOBSTATUS, Access: FILEACCESS };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N05 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N06",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N06 through the REC-105 enum recovery fixture.",
+      "seedQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatus?, Access: FileAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N06 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N06 candidate.",
+        "before": "Status: JobStatus?",
+        "after": "Status: JobStatu?",
+        "resultQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatu?, Access: FileAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N06 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-local-nullable-name-typo",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3005_TypeMismatch",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "3.7 Enum Columns",
+          "passage": "TABLE enum columns freeze identity and metadata; local names are case-insensitive and native names require the exact qualified type name.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N06 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-local-nullable-name-typo",
+        "context": "REC-105-N06 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatu?, Access: FileAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N06 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N07",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N07 through the REC-105 enum recovery fixture.",
+      "seedQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatus, Access: FileAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N07 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N07 candidate.",
+        "before": "Access: FileAccess",
+        "after": "Access: FileAcces",
+        "resultQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatus, Access: FileAcces };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N07 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-flags-name-typo",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3005_TypeMismatch",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "3.7 Enum Columns",
+          "passage": "TABLE enum columns freeze identity and metadata; local names are case-insensitive and native names require the exact qualified type name.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N07 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-flags-name-typo",
+        "context": "REC-105-N07 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatus, Access: FileAcces };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N07 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N08",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N08 through the REC-105 enum recovery fixture.",
+      "seedQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatus, Access: FileAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N08 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N08 candidate.",
+        "before": "Access: FileAccess",
+        "after": "Access: fileaccess",
+        "resultQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatus, Access: fileaccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N08 */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "enum-flags-name-case-insensitive",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "3.7 Enum Columns",
+          "passage": "TABLE enum columns freeze identity and metadata; local names are case-insensitive and native names require the exact qualified type name.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N08 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-flags-name-case-insensitive",
+        "context": "REC-105-N08 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatus, Access: fileaccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N08 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N09",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N09 through the REC-105 enum recovery fixture.",
+      "seedQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeStatus };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N09 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N09 candidate.",
+        "before": "Status: Musoq.Evaluator.Tests.REC103NativeStatus",
+        "after": "Status: REC103NativeStatus",
+        "resultQuery": "table Jobs { Status: REC103NativeStatus };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N09 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-native-simple-name",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3005_TypeMismatch",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "3.7 Enum Columns",
+          "passage": "TABLE enum columns freeze identity and metadata; local names are case-insensitive and native names require the exact qualified type name.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N09 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-native-simple-name",
+        "context": "REC-105-N09 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "table Jobs { Status: REC103NativeStatus };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N09 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N10",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N10 through the REC-105 enum recovery fixture.",
+      "seedQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeStatus };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N10 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N10 candidate.",
+        "before": "Status: Musoq.Evaluator.Tests.REC103NativeStatus",
+        "after": "Status: Musoq.Evaluator.Tests.REC103NativeStatu",
+        "resultQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeStatu };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N10 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-native-qualified-name-typo",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3005_TypeMismatch",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "3.7 Enum Columns",
+          "passage": "TABLE enum columns freeze identity and metadata; local names are case-insensitive and native names require the exact qualified type name.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N10 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-native-qualified-name-typo",
+        "context": "REC-105-N10 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeStatu };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N10 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N11",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N11 through the REC-105 enum recovery fixture.",
+      "seedQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeStatus };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N11 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N11 candidate.",
+        "before": "Status: Musoq.Evaluator.Tests.REC103NativeStatus",
+        "after": "Status: musoq.Evaluator.Tests.REC103NativeStatus",
+        "resultQuery": "table Jobs { Status: musoq.Evaluator.Tests.REC103NativeStatus };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N11 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-native-qualified-name-casing",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3005_TypeMismatch",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "3.7 Enum Columns",
+          "passage": "TABLE enum columns freeze identity and metadata; local names are case-insensitive and native names require the exact qualified type name.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "bounded_alternatives",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N11 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-native-qualified-name-casing",
+        "context": "REC-105-N11 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "table Jobs { Status: musoq.Evaluator.Tests.REC103NativeStatus };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N11 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N12",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N12 through the REC-105 enum recovery fixture.",
+      "seedQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeStatus };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N12 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N12 candidate.",
+        "before": "#rec103.native",
+        "after": "#rec103.NATIVE",
+        "resultQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeStatus };couple #rec103.NATIVE with table Jobs as Jobs;select Status from Jobs() /* REC-105-N12 */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "enum-native-qualified-name-exact",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "3.7 Enum Columns",
+          "passage": "TABLE enum columns freeze identity and metadata; local names are case-insensitive and native names require the exact qualified type name.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N12 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-native-qualified-name-exact",
+        "context": "REC-105-N12 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeStatus };couple #rec103.NATIVE with table Jobs as Jobs;select Status from Jobs() /* REC-105-N12 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N13",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N13 through the REC-105 enum recovery fixture.",
+      "seedQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeStatus };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N13 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N13 candidate.",
+        "before": "Status: Musoq.Evaluator.Tests.REC103NativeStatus",
+        "after": "Status: Musoq.Evaluator.Tests.REC103NativeStatus?",
+        "resultQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeStatus? };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N13 */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "enum-native-qualified-nullable-name-exact",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "3.7 Enum Columns",
+          "passage": "TABLE enum columns freeze identity and metadata; local names are case-insensitive and native names require the exact qualified type name.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N13 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-native-qualified-nullable-name-exact",
+        "context": "REC-105-N13 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeStatus? };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N13 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N14",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N14 through the REC-105 enum recovery fixture.",
+      "seedQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N14 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N14 candidate.",
+        "before": "Status: Musoq.Evaluator.Tests.REC103NativeAccess",
+        "after": "Status: Musoq.Evaluator.Tests.REC103NativeAcces",
+        "resultQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeAcces };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N14 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-native-flags-qualified-name-typo",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3005_TypeMismatch",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "3.7 Enum Columns",
+          "passage": "TABLE enum columns freeze identity and metadata; local names are case-insensitive and native names require the exact qualified type name.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N14 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-native-flags-qualified-name-typo",
+        "context": "REC-105-N14 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeAcces };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N14 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N15",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N15 through the REC-105 enum recovery fixture.",
+      "seedQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N15 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N15 candidate.",
+        "before": "#rec103.native",
+        "after": "#rec103.NATIVE",
+        "resultQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeAccess };couple #rec103.NATIVE with table Jobs as Jobs;select Status from Jobs() /* REC-105-N15 */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "enum-native-flags-qualified-name-exact",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "3.7 Enum Columns",
+          "passage": "TABLE enum columns freeze identity and metadata; local names are case-insensitive and native names require the exact qualified type name.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N15 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-native-flags-qualified-name-exact",
+        "context": "REC-105-N15 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "table Jobs { Status: Musoq.Evaluator.Tests.REC103NativeAccess };couple #rec103.NATIVE with table Jobs as Jobs;select Status from Jobs() /* REC-105-N15 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-N16",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-N16 through the REC-105 enum recovery fixture.",
+      "seedQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: JobStatus?, Access: FileAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N16 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-N16 candidate.",
+        "before": "Status: JobStatus?",
+        "after": "Status: jobstatus?",
+        "resultQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: jobstatus?, Access: FileAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N16 */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "enum-local-nullable-name-case-insensitive",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "3.7 Enum Columns",
+          "passage": "TABLE enum columns freeze identity and metadata; local names are case-insensitive and native names require the exact qualified type name.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-N16 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-local-nullable-name-case-insensitive",
+        "context": "REC-105-N16 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table Jobs { Status: jobstatus?, Access: FileAccess };couple #rec103.native with table Jobs as Jobs;select Status from Jobs() /* REC-105-N16 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-M01",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-M01 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Status from #schema.first() e where e.Status = 'Running' /* REC-105-M01 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-M01 candidate.",
+        "before": "'Running'",
+        "after": "'Runnning'",
+        "resultQuery": "select e.Status from #schema.first() e where e.Status = 'Runnning' /* REC-105-M01 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-member-spelling-or-casing",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3108_UnknownEnumMember",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "3.8 Enum Types",
+          "passage": "Enum names and members follow the declared nominal identity, backing carrier, casing, and contextual-literal rules.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-M01 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-member-spelling-or-casing",
+        "context": "REC-105-M01 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #schema.first() e where e.Status = 'Runnning' /* REC-105-M01 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-M02",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-M02 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Status from #schema.first() e where e.Status <> 'Running' /* REC-105-M02 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-M02 candidate.",
+        "before": "'Running'",
+        "after": "'running'",
+        "resultQuery": "select e.Status from #schema.first() e where e.Status <> 'running' /* REC-105-M02 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-member-spelling-or-casing",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3108_UnknownEnumMember",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "3.8 Enum Types",
+          "passage": "Enum names and members follow the declared nominal identity, backing carrier, casing, and contextual-literal rules.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-M02 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-member-spelling-or-casing",
+        "context": "REC-105-M02 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #schema.first() e where e.Status <> 'running' /* REC-105-M02 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-M03",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-M03 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Status from #schema.first() e where 'Running' = e.Status /* REC-105-M03 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-M03 candidate.",
+        "before": "'Running'",
+        "after": "'RUNNING'",
+        "resultQuery": "select e.Status from #schema.first() e where 'RUNNING' = e.Status /* REC-105-M03 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-member-spelling-or-casing",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3108_UnknownEnumMember",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "3.8 Enum Types",
+          "passage": "Enum names and members follow the declared nominal identity, backing carrier, casing, and contextual-literal rules.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-M03 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-member-spelling-or-casing",
+        "context": "REC-105-M03 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #schema.first() e where 'RUNNING' = e.Status /* REC-105-M03 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-M04",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-M04 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Status from #schema.first() e where e.Status is distinct from 'Queued' /* REC-105-M04 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-M04 candidate.",
+        "before": "'Queued'",
+        "after": "'queued'",
+        "resultQuery": "select e.Status from #schema.first() e where e.Status is distinct from 'queued' /* REC-105-M04 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-member-spelling-or-casing",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3108_UnknownEnumMember",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "3.8 Enum Types",
+          "passage": "Enum names and members follow the declared nominal identity, backing carrier, casing, and contextual-literal rules.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-M04 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-member-spelling-or-casing",
+        "context": "REC-105-M04 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #schema.first() e where e.Status is distinct from 'queued' /* REC-105-M04 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-M05",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-M05 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Status from #schema.first() e where e.Status is not distinct from 'Finished' /* REC-105-M05 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-M05 candidate.",
+        "before": "'Finished'",
+        "after": "'FINISHED'",
+        "resultQuery": "select e.Status from #schema.first() e where e.Status is not distinct from 'FINISHED' /* REC-105-M05 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-member-spelling-or-casing",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3108_UnknownEnumMember",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "3.8 Enum Types",
+          "passage": "Enum names and members follow the declared nominal identity, backing carrier, casing, and contextual-literal rules.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-M05 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-member-spelling-or-casing",
+        "context": "REC-105-M05 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #schema.first() e where e.Status is not distinct from 'FINISHED' /* REC-105-M05 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-M06",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-M06 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Status from #schema.first() e where e.Status in ('Queued', 'Finished') /* REC-105-M06 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-M06 candidate.",
+        "before": "'Finished'",
+        "after": "'Missing'",
+        "resultQuery": "select e.Status from #schema.first() e where e.Status in ('Queued', 'Missing') /* REC-105-M06 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-member-spelling-or-casing",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3108_UnknownEnumMember",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "3.8 Enum Types",
+          "passage": "Enum names and members follow the declared nominal identity, backing carrier, casing, and contextual-literal rules.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-M06 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-member-spelling-or-casing",
+        "context": "REC-105-M06 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #schema.first() e where e.Status in ('Queued', 'Missing') /* REC-105-M06 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-M07",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-M07 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Status from #schema.first() e where e.Status not in ('Queued', 'Finished') /* REC-105-M07 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-M07 candidate.",
+        "before": "'Finished'",
+        "after": "'finishd'",
+        "resultQuery": "select e.Status from #schema.first() e where e.Status not in ('Queued', 'finishd') /* REC-105-M07 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-member-spelling-or-casing",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3108_UnknownEnumMember",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "3.8 Enum Types",
+          "passage": "Enum names and members follow the declared nominal identity, backing carrier, casing, and contextual-literal rules.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-M07 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-member-spelling-or-casing",
+        "context": "REC-105-M07 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status from #schema.first() e where e.Status not in ('Queued', 'finishd') /* REC-105-M07 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-M08",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-M08 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select case when true then e.Status else 'Queued' end as Value from #schema.first() e /* REC-105-M08 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-M08 candidate.",
+        "before": "'Queued'",
+        "after": "'queueD'",
+        "resultQuery": "select case when true then e.Status else 'queueD' end as Value from #schema.first() e /* REC-105-M08 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-member-spelling-or-casing",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3108_UnknownEnumMember",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "3.8 Enum Types",
+          "passage": "Enum names and members follow the declared nominal identity, backing carrier, casing, and contextual-literal rules.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-M08 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-member-spelling-or-casing",
+        "context": "REC-105-M08 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select case when true then e.Status else 'queueD' end as Value from #schema.first() e /* REC-105-M08 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-M09",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-M09 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Access from #schema.first() e where e.Access = 'Read' /* REC-105-M09 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-M09 candidate.",
+        "before": "'Read'",
+        "after": "'Readwrite'",
+        "resultQuery": "select e.Access from #schema.first() e where e.Access = 'Readwrite' /* REC-105-M09 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-member-spelling-or-casing",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3108_UnknownEnumMember",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "3.8 Enum Types",
+          "passage": "Enum names and members follow the declared nominal identity, backing carrier, casing, and contextual-literal rules.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-M09 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-member-spelling-or-casing",
+        "context": "REC-105-M09 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Access from #schema.first() e where e.Access = 'Readwrite' /* REC-105-M09 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-M10",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-M10 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Access from #schema.first() e where e.Access <> 'Write' /* REC-105-M10 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-M10 candidate.",
+        "before": "'Write'",
+        "after": "'write'",
+        "resultQuery": "select e.Access from #schema.first() e where e.Access <> 'write' /* REC-105-M10 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-member-spelling-or-casing",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3108_UnknownEnumMember",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "3.8 Enum Types",
+          "passage": "Enum names and members follow the declared nominal identity, backing carrier, casing, and contextual-literal rules.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-M10 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-member-spelling-or-casing",
+        "context": "REC-105-M10 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Access from #schema.first() e where e.Access <> 'write' /* REC-105-M10 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-M11",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-M11 through the REC-105 enum recovery fixture.",
+      "seedQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table EnumRows { Id: int, Status: JobStatus, Access: FileAccess };couple #queryrowsample.rows with table EnumRows as Rows;select Status from Rows() where Status = 'Running' /* REC-105-M11 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-M11 candidate.",
+        "before": "'Running'",
+        "after": "'running'",
+        "resultQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table EnumRows { Id: int, Status: JobStatus, Access: FileAccess };couple #queryrowsample.rows with table EnumRows as Rows;select Status from Rows() where Status = 'running' /* REC-105-M11 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-member-spelling-or-casing",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3108_UnknownEnumMember",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "3.8 Enum Types",
+          "passage": "Enum names and members follow the declared nominal identity, backing carrier, casing, and contextual-literal rules.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-M11 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-member-spelling-or-casing",
+        "context": "REC-105-M11 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table EnumRows { Id: int, Status: JobStatus, Access: FileAccess };couple #queryrowsample.rows with table EnumRows as Rows;select Status from Rows() where Status = 'running' /* REC-105-M11 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-M12",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-M12 through the REC-105 enum recovery fixture.",
+      "seedQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table EnumRows { Id: int, Status: JobStatus, Access: FileAccess };couple #queryrowsample.rows with table EnumRows as Rows;select Status from Rows() where Status in ('Queued', 'Running') /* REC-105-M12 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-M12 candidate.",
+        "before": "'Running'",
+        "after": "'Paused'",
+        "resultQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table EnumRows { Id: int, Status: JobStatus, Access: FileAccess };couple #queryrowsample.rows with table EnumRows as Rows;select Status from Rows() where Status in ('Queued', 'Paused') /* REC-105-M12 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-member-spelling-or-casing",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3108_UnknownEnumMember",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "3.8 Enum Types",
+          "passage": "Enum names and members follow the declared nominal identity, backing carrier, casing, and contextual-literal rules.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "unique_safe_edit",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-M12 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-member-spelling-or-casing",
+        "context": "REC-105-M12 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "enum JobStatus : short { Queued = 10s, Running = 20s, Finished = 30s };flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };table EnumRows { Id: int, Status: JobStatus, Access: FileAccess };couple #queryrowsample.rows with table EnumRows as Rows;select Status from Rows() where Status in ('Queued', 'Paused') /* REC-105-M12 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R01",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R01 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select 1 from #schema.first() e where e.Number >= 7 /* REC-105-R01 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R01 candidate.",
+        "before": "e.Number >= 7",
+        "after": "e.Status >= 'Running'",
+        "resultQuery": "select 1 from #schema.first() e where e.Status >= 'Running' /* REC-105-R01 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-relational-ordering",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R01 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-relational-ordering",
+        "context": "REC-105-R01 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #schema.first() e where e.Status >= 'Running' /* REC-105-R01 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R02",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R02 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select 1 from #schema.first() e where e.Number < 7 /* REC-105-R02 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R02 candidate.",
+        "before": "e.Number < 7",
+        "after": "e.Status < 'Running'",
+        "resultQuery": "select 1 from #schema.first() e where e.Status < 'Running' /* REC-105-R02 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-relational-ordering",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R02 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-relational-ordering",
+        "context": "REC-105-R02 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #schema.first() e where e.Status < 'Running' /* REC-105-R02 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R03",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R03 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select 1 from #schema.first() e where e.Number <= 7 /* REC-105-R03 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R03 candidate.",
+        "before": "e.Number <= 7",
+        "after": "e.Status <= 'Running'",
+        "resultQuery": "select 1 from #schema.first() e where e.Status <= 'Running' /* REC-105-R03 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-relational-ordering",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R03 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-relational-ordering",
+        "context": "REC-105-R03 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #schema.first() e where e.Status <= 'Running' /* REC-105-R03 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R04",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R04 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Number - 1 as Value from #schema.first() e /* REC-105-R04 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R04 candidate.",
+        "before": "e.Number - 1",
+        "after": "e.Status - 1",
+        "resultQuery": "select e.Status - 1 as Value from #schema.first() e /* REC-105-R04 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-arithmetic",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R04 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-arithmetic",
+        "context": "REC-105-R04 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status - 1 as Value from #schema.first() e /* REC-105-R04 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R05",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R05 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Number * 2 as Value from #schema.first() e /* REC-105-R05 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R05 candidate.",
+        "before": "e.Number * 2",
+        "after": "e.Status * 2",
+        "resultQuery": "select e.Status * 2 as Value from #schema.first() e /* REC-105-R05 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-arithmetic",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R05 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-arithmetic",
+        "context": "REC-105-R05 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status * 2 as Value from #schema.first() e /* REC-105-R05 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R06",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R06 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Number / 2 as Value from #schema.first() e /* REC-105-R06 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R06 candidate.",
+        "before": "e.Number / 2",
+        "after": "e.Status / 2",
+        "resultQuery": "select e.Status / 2 as Value from #schema.first() e /* REC-105-R06 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-arithmetic",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R06 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-arithmetic",
+        "context": "REC-105-R06 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status / 2 as Value from #schema.first() e /* REC-105-R06 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R07",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R07 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Number % 2 as Value from #schema.first() e /* REC-105-R07 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R07 candidate.",
+        "before": "e.Number % 2",
+        "after": "e.Status % 2",
+        "resultQuery": "select e.Status % 2 as Value from #schema.first() e /* REC-105-R07 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-arithmetic",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R07 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-arithmetic",
+        "context": "REC-105-R07 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Status % 2 as Value from #schema.first() e /* REC-105-R07 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R08",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R08 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Number & 1 as Value from #schema.first() e /* REC-105-R08 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R08 candidate.",
+        "before": "e.Number & 1",
+        "after": "e.Access & 1",
+        "resultQuery": "select e.Access & 1 as Value from #schema.first() e /* REC-105-R08 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-bitwise",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R08 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-bitwise",
+        "context": "REC-105-R08 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Access & 1 as Value from #schema.first() e /* REC-105-R08 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R09",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R09 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Number | 1 as Value from #schema.first() e /* REC-105-R09 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R09 candidate.",
+        "before": "e.Number | 1",
+        "after": "e.Access | 1",
+        "resultQuery": "select e.Access | 1 as Value from #schema.first() e /* REC-105-R09 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-bitwise",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R09 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-0",
+        "rootCause": "enum-bitwise",
+        "context": "REC-105-R09 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Access | 1 as Value from #schema.first() e /* REC-105-R09 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R10",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R10 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Number ^ 1 as Value from #schema.first() e /* REC-105-R10 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R10 candidate.",
+        "before": "e.Number ^ 1",
+        "after": "e.Access ^ 1",
+        "resultQuery": "select e.Access ^ 1 as Value from #schema.first() e /* REC-105-R10 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-bitwise",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R10 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-bitwise",
+        "context": "REC-105-R10 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Access ^ 1 as Value from #schema.first() e /* REC-105-R10 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R11",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R11 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Number << 1 as Value from #schema.first() e /* REC-105-R11 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R11 candidate.",
+        "before": "e.Number << 1",
+        "after": "e.Access << 1",
+        "resultQuery": "select e.Access << 1 as Value from #schema.first() e /* REC-105-R11 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-bitwise",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R11 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-bitwise",
+        "context": "REC-105-R11 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Access << 1 as Value from #schema.first() e /* REC-105-R11 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R12",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R12 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select e.Number >> 1 as Value from #schema.first() e /* REC-105-R12 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R12 candidate.",
+        "before": "e.Number >> 1",
+        "after": "e.Access >> 1",
+        "resultQuery": "select e.Access >> 1 as Value from #schema.first() e /* REC-105-R12 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-bitwise",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R12 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-bitwise",
+        "context": "REC-105-R12 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Access >> 1 as Value from #schema.first() e /* REC-105-R12 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R13",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R13 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select Sum(e.Number) as Value from #schema.first() e /* REC-105-R13 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R13 candidate.",
+        "before": "Sum(e.Number)",
+        "after": "Sum(e.Status)",
+        "resultQuery": "select Sum(e.Status) as Value from #schema.first() e /* REC-105-R13 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-aggregate",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/enums.md",
+          "section": "Enum operators and output rules",
+          "passage": "Enum output exposes a primitive carrier and descriptor; explicit EnumValue and EnumName bridges are required for numeric and text projections.",
+          "sourceSha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R13 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-aggregate",
+        "context": "REC-105-R13 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select Sum(e.Status) as Value from #schema.first() e /* REC-105-R13 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R14",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R14 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select Avg(e.Number) as Value from #schema.first() e /* REC-105-R14 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R14 candidate.",
+        "before": "Avg(e.Number)",
+        "after": "Avg(e.Status)",
+        "resultQuery": "select Avg(e.Status) as Value from #schema.first() e /* REC-105-R14 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-aggregate",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/enums.md",
+          "section": "Enum operators and output rules",
+          "passage": "Enum output exposes a primitive carrier and descriptor; explicit EnumValue and EnumName bridges are required for numeric and text projections.",
+          "sourceSha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R14 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-aggregate",
+        "context": "REC-105-R14 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select Avg(e.Status) as Value from #schema.first() e /* REC-105-R14 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R15",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R15 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select Min(e.Number) as Value from #schema.first() e /* REC-105-R15 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R15 candidate.",
+        "before": "Min(e.Number)",
+        "after": "Min(e.Status)",
+        "resultQuery": "select Min(e.Status) as Value from #schema.first() e /* REC-105-R15 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-aggregate",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/enums.md",
+          "section": "Enum operators and output rules",
+          "passage": "Enum output exposes a primitive carrier and descriptor; explicit EnumValue and EnumName bridges are required for numeric and text projections.",
+          "sourceSha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R15 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-aggregate",
+        "context": "REC-105-R15 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select Min(e.Status) as Value from #schema.first() e /* REC-105-R15 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R16",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R16 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select Max(e.Number) as Value from #schema.first() e /* REC-105-R16 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R16 candidate.",
+        "before": "Max(e.Number)",
+        "after": "Max(e.Status)",
+        "resultQuery": "select Max(e.Status) as Value from #schema.first() e /* REC-105-R16 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-aggregate",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/enums.md",
+          "section": "Enum operators and output rules",
+          "passage": "Enum output exposes a primitive carrier and descriptor; explicit EnumValue and EnumName bridges are required for numeric and text projections.",
+          "sourceSha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R16 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-aggregate",
+        "context": "REC-105-R16 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select Max(e.Status) as Value from #schema.first() e /* REC-105-R16 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R17",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R17 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select 1 from #schema.first() e where e.Label rlike 'R.*' /* REC-105-R17 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R17 candidate.",
+        "before": "e.Label rlike 'R.*'",
+        "after": "e.Status rlike 'R.*'",
+        "resultQuery": "select 1 from #schema.first() e where e.Status rlike 'R.*' /* REC-105-R17 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-pattern-operator",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R17 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-pattern-operator",
+        "context": "REC-105-R17 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #schema.first() e where e.Status rlike 'R.*' /* REC-105-R17 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R18",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R18 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select Lag(e.Number) over (order by e.Number) from #schema.first() e /* REC-105-R18 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R18 candidate.",
+        "before": "Lag(e.Number)",
+        "after": "Lag(e.Status)",
+        "resultQuery": "select Lag(e.Status) over (order by e.Number) from #schema.first() e /* REC-105-R18 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-window-value",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R18 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-window-value",
+        "context": "REC-105-R18 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select Lag(e.Status) over (order by e.Number) from #schema.first() e /* REC-105-R18 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R19",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R19 through the REC-105 enum recovery fixture.",
+      "seedQuery": "select RowNumber() over (order by e.Number) from #schema.first() e /* REC-105-R19 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R19 candidate.",
+        "before": "order by e.Number",
+        "after": "order by e.Status",
+        "resultQuery": "select RowNumber() over (order by e.Status) from #schema.first() e /* REC-105-R19 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-window-ordering",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3110_UnsupportedEnumOperator",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R19 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-1",
+        "rootCause": "enum-window-ordering",
+        "context": "REC-105-R19 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select RowNumber() over (order by e.Status) from #schema.first() e /* REC-105-R19 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "REC-105-R20",
+      "scopeId": "REC-105",
+      "task": "Exercise REC-105-R20 through the REC-105 enum recovery fixture.",
+      "seedQuery": "param(states: int[]) select e.Status from #schema.first() e where e.Number in $states /* REC-105-R20 */",
+      "fixtureRef": {
+        "id": "REC-105-enum-mistake-recovery-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-105EnumMistakeRecoveryTests.cs",
+        "testName": "EnumMistakeCandidates_ShouldHonorFrozenContract",
+        "proof": "The candidate is executed through the real compiler, metadata planner, diagnostics, and runtime path."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid enum spelling or permitted carrier expression with the REC-105 REC-105-R20 candidate.",
+        "before": "where e.Number in $states",
+        "after": "where e.Status in $states",
+        "resultQuery": "param(states: int[]) select e.Status from #schema.first() e where e.Status in $states /* REC-105-R20 */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "enum-script-parameter",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ3112_UnsupportedEnumScriptParameter",
+          "phase": "Bind",
+          "sourceDomain": "Query",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "22.5 Enum Non-Coercion",
+          "passage": "Enum operands do not enter generic coercion or unsupported relational, arithmetic, pattern, aggregate, or window ordering operations.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "no_safe_fix",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "Before observation, REC-105-R20 is registered as a bounded enum recovery candidate; runtime behavior must be established by the bound compiler or interpretation-schema parser."
+      },
+      "fingerprint": {
+        "domain": "rec105-enum-2",
+        "rootCause": "enum-script-parameter",
+        "context": "REC-105-R20 frozen enum recovery path"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "param(states: int[]) select e.Status from #schema.first() e where e.Status in $states /* REC-105-R20 */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "Retain the enum name, member, operator, output, or interpretation boundary named by the case.",
+          "Retain the expected diagnostic or nominal enum metadata contract."
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-138",
+  "outcome": "passed",
+  "artifacts": [
+    {
+      "id": "case-contract",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-138-case-contract.json",
+      "sha256": "dd93b0b5affaa454d041899919dc57f8a96dc703149c978121ab2c5890c12736",
+      "role": "Frozen 48-case bounded diagnostic workload contract."
+    },
+    {
+      "id": "case-manifest",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-138-case-manifest.json",
+      "sha256": "48bc891905013855bc1dc65e10e1aed9bdfb6a81d0497c315fc79c4a639678c0",
+      "role": "Frozen pre-observation authority and payload digest."
+    },
+    {
+      "id": "fixture-source",
+      "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+      "sha256": "bf9258aa407ff27db3230209986ee965330c0ea27e218359550a75001d534288",
+      "role": "Permanent four-family local bounded-workload fixture."
+    },
+    {
+      "id": "calibration-r2-trx",
+      "path": ".campaign-artifacts/REC-138-calibration-r2/REC-138-calibration-r2.trx",
+      "sha256": "d854179b733fa4fef09c1ef64fcd28b8180aacd5a48923662329c40caab8d2d7",
+      "role": "Preserved failed fixture assertion: catalog guidance suggestions were mistaken for arbitrary text edits."
+    },
+    {
+      "id": "calibration-r3-trx",
+      "path": ".campaign-artifacts/REC-138-calibration-r3/REC-138-calibration-r3.trx",
+      "sha256": "caaeeb4f42dbf9410e3013daf5df1f72578e358b1b0e7d2fd447c04160fd120f",
+      "role": "Passed calibrated replay: four focused test methods."
+    },
+    {
+      "id": "focused-authoritative-trx",
+      "path": ".campaign-artifacts/REC-138-authoritative-r1/REC-138-authoritative-r1.trx",
+      "sha256": "8966466de0631acc1b0bd5f58d2d2caa408ead50e5c32d8fff8133396de5e98e",
+      "role": "Final authoritative replay after manifest freeze: four methods passed."
+    },
+    {
+      "id": "parser-regressions-trx",
+      "path": ".campaign-artifacts/REC-138-parser-regressions-r1/REC-138-parser-regressions-r1.trx",
+      "sha256": "649e6a72826d02796476b91cd646eb4dbfa45af2a09d8a21013988677dc3d8e5",
+      "role": "Adjacent parser diagnostic regressions: 135 passed."
+    },
+    {
+      "id": "evaluator-regressions-trx",
+      "path": ".campaign-artifacts/REC-138-evaluator-regressions-r1/REC-138-evaluator-regressions-r1.trx",
+      "sha256": "7b54d3e8f0ec1fa233ec5caae0a441710322498db97ec5fd59ff8a4431919458",
+      "role": "Adjacent evaluator diagnostic, analyzer and cancellation regressions: 346 passed."
+    },
+    {
+      "id": "full-gate-evidence",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-138-full-gate-final-r1.json",
+      "sha256": "9b069d0e6bd9208620548dd49ae3495410f4fa44a23337714fbcedf472be83a7",
+      "role": "Passed eight-target Release gate evidence for the REC-138 tested payload."
+    },
+    {
+      "id": "full-gate-build-log",
+      "path": ".campaign-artifacts/REC-138-full-gate-final-r1/build.stdout.log",
+      "sha256": "1ea5e9976fd149f56f60e1e52c0d0623b2f21806d561854ca4831695a94834ac",
+      "role": "Authoritative Release build stdout."
+    },
+    {
+      "id": "full-gate-test-log",
+      "path": ".campaign-artifacts/REC-138-full-gate-final-r1/test.stdout.log",
+      "sha256": "ec794e475a8e9bbc8bf798a5a472aa809b52af315f2c9fa53066d1dbf6c7f65f",
+      "role": "Authoritative full-gate test stdout."
+    },
+    {
+      "id": "behavior-results",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-138-behavior-results.json",
+      "sha256": "79fc292f944a7e03ec9a8766518fe3faf5e27f7a1ebc1e254eab0a7969055ae5",
+      "role": "Structured case, calibration, obligation and gate results."
+    }
+  ]
+}

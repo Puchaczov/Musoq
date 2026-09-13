@@ -4,8 +4,12 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private static bool CanUseAsOfProbeSource(RowShape sourceShape, Type rowType)
+    private static bool CanUseAsOfProbeSource(RowShape sourceShape, ExecutionVariable sourceVariable)
     {
+        if (sourceShape is ExpandoAdapterShape)
+            return !string.IsNullOrWhiteSpace(sourceVariable.GeneratedRowTypeName);
+
+        var rowType = sourceVariable.Type.ResolveClrType();
         return sourceShape is SourceEntityShape or TableRowShape &&
                !rowType.IsValueType &&
                !DynamicEntityBoundary.IsDynamicMetaObjectProvider(rowType);

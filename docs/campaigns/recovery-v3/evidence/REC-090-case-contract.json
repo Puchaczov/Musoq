@@ -1,0 +1,39 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-090",
+  "validatedFromCommit": "8ca5535ea8a382048f65eeef1f53c2f358afc781",
+  "casesPath": "docs/campaigns/recovery-v3/evidence/REC-090-pre-observation-manifest.json",
+  "casesSha256": "43fe711659c05d0b3abf2f8e240066e7f1c9012fdd66112e5bb4aee80d8af641",
+  "caseCount": 48,
+  "expectedClassifications": {
+    "invalid": 48,
+    "valid_suspicious": 0,
+    "valid_ordinary": 0,
+    "unspecified": 0
+  },
+  "authoritySourceFiles": [
+    {
+      "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+      "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "rawBytes": true
+    }
+  ],
+  "fixture": {
+    "path": "src/dotnet/Musoq.Evaluator.Tests/Schema/NegativeTests/NegativeTestsBase.cs",
+    "source": "#test.people()",
+    "controlledRows": "DefaultPeople"
+  },
+  "replay": {
+    "testSource": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-090ExactQuickFixTargetingTests.cs",
+    "testMethod": "QuickFixTargetsOnlyTheFaultyOccurrence",
+    "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC090ExactQuickFixTargetingTests\" --logger \"console;verbosity=minimal\""
+  },
+  "rulesVerified": [
+    "The matrix is source-backed and frozen before the final candidate replay.",
+    "Every candidate has one misspelled qualified alias binding and a valid repaired seed.",
+    "Repeated spellings in strings and comments are non-executable and must remain unchanged.",
+    "The test applies the emitted TextEdit span and replacement rather than a test-authored edit.",
+    "The repaired document is recompiled and executed on controlled repository-owned rows."
+  ],
+  "outcome": "pre_observation_frozen"
+}

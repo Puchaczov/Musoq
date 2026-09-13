@@ -187,6 +187,7 @@ public static class DataSourceLifecycle
     {
         IEnumerator<IReadOnlyList<T>>? enumerator = null;
         Exception? primaryFailure = null;
+        DataSourceLifecycleException? primaryLifecycleFailure = null;
         try
         {
             try
@@ -200,12 +201,13 @@ public static class DataSourceLifecycle
             catch (Exception exception)
             {
                 primaryFailure = exception;
-                throw DataSourceLifecycleException.ForRead(
+                primaryLifecycleFailure = DataSourceLifecycleException.ForRead(
                     schemaName,
                     sourceName,
                     alias,
                     sourceContextId,
                     exception);
+                throw primaryLifecycleFailure;
             }
 
             while (true)
@@ -223,12 +225,13 @@ public static class DataSourceLifecycle
                 catch (Exception exception)
                 {
                     primaryFailure = exception;
-                    throw DataSourceLifecycleException.ForRead(
+                    primaryLifecycleFailure = DataSourceLifecycleException.ForRead(
                         schemaName,
                         sourceName,
                         alias,
                         sourceContextId,
                         exception);
+                    throw primaryLifecycleFailure;
                 }
 
                 if (!hasNext)
@@ -247,12 +250,13 @@ public static class DataSourceLifecycle
                 catch (Exception exception)
                 {
                     primaryFailure = exception;
-                    throw DataSourceLifecycleException.ForRead(
+                    primaryLifecycleFailure = DataSourceLifecycleException.ForRead(
                         schemaName,
                         sourceName,
                         alias,
                         sourceContextId,
                         exception);
+                    throw primaryLifecycleFailure;
                 }
 
                 yield return current;
@@ -266,10 +270,13 @@ public static class DataSourceLifecycle
                 {
                     enumerator.Dispose();
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException exception)
                 {
                     if (primaryFailure == null)
                         throw;
+
+                    if (primaryLifecycleFailure != null)
+                        primaryLifecycleFailure.AttachRelatedFailure(exception);
                 }
                 catch (Exception exception)
                 {
@@ -282,6 +289,8 @@ public static class DataSourceLifecycle
                             sourceContextId,
                             exception);
                     }
+
+                    primaryLifecycleFailure?.AttachRelatedFailure(exception);
                 }
             }
         }
@@ -295,10 +304,31 @@ public static class DataSourceLifecycle
         string sourceContextId,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var enumerator = chunks.GetAsyncEnumerator(cancellationToken);
+        IAsyncEnumerator<IReadOnlyList<T>>? enumerator = null;
         Exception? primaryFailure = null;
+        DataSourceLifecycleException? primaryLifecycleFailure = null;
         try
         {
+            try
+            {
+                enumerator = chunks.GetAsyncEnumerator(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                primaryFailure = exception;
+                primaryLifecycleFailure = DataSourceLifecycleException.ForRead(
+                    schemaName,
+                    sourceName,
+                    alias,
+                    sourceContextId,
+                    exception);
+                throw primaryLifecycleFailure;
+            }
+
             while (true)
             {
                 bool hasNext;
@@ -314,12 +344,13 @@ public static class DataSourceLifecycle
                 catch (Exception exception)
                 {
                     primaryFailure = exception;
-                    throw DataSourceLifecycleException.ForRead(
+                    primaryLifecycleFailure = DataSourceLifecycleException.ForRead(
                         schemaName,
                         sourceName,
                         alias,
                         sourceContextId,
                         exception);
+                    throw primaryLifecycleFailure;
                 }
 
                 if (!hasNext)
@@ -338,12 +369,13 @@ public static class DataSourceLifecycle
                 catch (Exception exception)
                 {
                     primaryFailure = exception;
-                    throw DataSourceLifecycleException.ForRead(
+                    primaryLifecycleFailure = DataSourceLifecycleException.ForRead(
                         schemaName,
                         sourceName,
                         alias,
                         sourceContextId,
                         exception);
+                    throw primaryLifecycleFailure;
                 }
 
                 yield return current;
@@ -351,25 +383,35 @@ public static class DataSourceLifecycle
         }
         finally
         {
-            try
+            if (enumerator != null)
             {
-                await enumerator.DisposeAsync().ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                if (primaryFailure == null)
-                    throw;
-            }
-            catch (Exception exception)
-            {
-                if (primaryFailure == null)
+                try
                 {
-                    throw DataSourceLifecycleException.ForCleanup(
-                        schemaName,
-                        sourceName,
-                        alias,
-                        sourceContextId,
-                        exception);
+                    await enumerator.DisposeAsync().ConfigureAwait(false);
+                }
+                catch (OperationCanceledException exception)
+                {
+                    if (primaryFailure == null)
+                        throw;
+
+                    primaryLifecycleFailure?.AttachRelatedFailure(exception);
+                }
+                catch (Exception exception)
+                {
+                    if (primaryFailure == null)
+                    {
+                        if (cancellationToken.IsCancellationRequested)
+                            throw new OperationCanceledException(cancellationToken);
+
+                        throw DataSourceLifecycleException.ForCleanup(
+                            schemaName,
+                            sourceName,
+                            alias,
+                            sourceContextId,
+                            exception);
+                    }
+
+                    primaryLifecycleFailure?.AttachRelatedFailure(exception);
                 }
             }
         }

@@ -1,0 +1,191 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-140",
+  "outcome": "passed",
+  "scopeKind": "documentation",
+  "baseline": {
+    "commit": "788974d4f30a062d8d9695c5afec70e4de7c75e0",
+    "branch": "feature/runtime_v2_final",
+    "authorityPath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+    "authoritySha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+    "targetPath": "specs/musoq-binary-text-spec.md",
+    "targetPreCorrectionSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+    "targetPostCorrectionSha256": "7e4c0f0c93ead6414ad6a13d9383cec42f900aee794adfc34f17f699b7f2d08b",
+    "fixturePath": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-140DocumentationConflictTests.cs",
+    "fixtureSha256": "3e768ebe880dd058140779cae6103fe86785915094897e022bab038c0892b99c"
+  },
+  "approval": {
+    "status": "recorded",
+    "approvedBy": "user",
+    "approvalId": "explicit-user-message-2026-09-08",
+    "approvalText": "approved",
+    "decisions": [
+      {
+        "conflictId": "REC-140-C01",
+        "decision": "Change the following literal from ': ' to ' ' after until ':' in the target-local example.",
+        "semanticBoundary": "Retain until delimiter consumption; documentation only."
+      },
+      {
+        "conflictId": "REC-140-C02",
+        "decision": "Move Data before Checksum in the target-local CHECK example.",
+        "semanticBoundary": "Retain definition-before-use and no-forward-reference rules; documentation only."
+      }
+    ]
+  },
+  "finiteMatrix": [
+    {
+      "caseId": "REC-140-C01-NEGATIVE",
+      "conflictId": "REC-140-C01",
+      "classification": "valid_suspicious",
+      "sourceLocation": "5.4.1 Until Delimiter, authority lines 1057-1070",
+      "fixture": "UntilExample_ShouldProveDelimiterIsConsumedBeforeFollowingLiteral",
+      "preObservationExpectation": "The documented ': ' literal requires a second colon after until consumes the first delimiter; key:: value\\n succeeds and key: value\\n fails at field _.",
+      "observed": "Passed: key:: value\\n returns Key=key and Value=value; key: value\\n raises LiteralMismatch for field _.",
+      "diagnosticBoundary": "Runtime parse failure, not a language-rule change."
+    },
+    {
+      "caseId": "REC-140-C01-POSITIVE",
+      "conflictId": "REC-140-C01",
+      "classification": "valid_ordinary",
+      "sourceLocation": "target-local corrected 5.4.1 example",
+      "fixture": "UntilCorrectedExample_ShouldParseSingleDelimiterAndSpace",
+      "preObservationExpectation": "After the approved documentation correction, key: value\\n parses with one consumed colon and one following space.",
+      "observed": "Passed: corrected example returns Key=key and Value=value.",
+      "diagnosticBoundary": "The fixture proves the example correction without changing delimiter consumption."
+    },
+    {
+      "caseId": "REC-140-C02-NEGATIVE",
+      "conflictId": "REC-140-C02",
+      "classification": "invalid",
+      "sourceLocation": "4.9 Validation Constraints lines 669-674 and 6.4 Field Reference Scoping lines 1457-1463",
+      "fixture": "CheckExample_ShouldRejectForwardFieldReferenceBeforeCodeGeneration",
+      "preObservationExpectation": "The original example references Data from Checksum before Data is declared and must be rejected at Parse with MQ2030_UnsupportedSyntax.",
+      "observed": "Passed: QueryAnalyzer returns MQ2030_UnsupportedSyntax at Parse over Data; code generation is not reached.",
+      "diagnosticBoundary": "Parser/query-origin diagnostic; no implementation acceptance is treated as authority."
+    },
+    {
+      "caseId": "REC-140-C02-POSITIVE",
+      "conflictId": "REC-140-C02",
+      "classification": "valid_ordinary",
+      "sourceLocation": "target-local corrected 4.9 example",
+      "fixture": "CorrectedCheckExample_ShouldRemainValidWhenDataPrecedesChecksum",
+      "preObservationExpectation": "After the approved ordering correction, the CHECK example must analyze without errors while retaining the definition-before-use rule.",
+      "observed": "Passed: corrected ValidatedHeader example has no diagnostics.",
+      "diagnosticBoundary": "The fixture proves documentation order correction without permitting forward references."
+    },
+    {
+      "caseId": "REC-140-C03-NEGATIVE",
+      "conflictId": "REC-140-C03",
+      "classification": "invalid",
+      "sourceLocation": "8.1 Schema References lines 1641-1649",
+      "fixture": "SchemaReferenceExample_ShouldRejectUseBeforeDefinition",
+      "preObservationExpectation": "Triangle referencing Point before Point is declared must be rejected with MQ2030_UnsupportedSyntax at Parse.",
+      "observed": "Passed: forward Triangle to Point use returns MQ2030_UnsupportedSyntax at Point.",
+      "diagnosticBoundary": "Schema declaration order control; no forward-reference relaxation."
+    },
+    {
+      "caseId": "REC-140-C03-POSITIVE",
+      "conflictId": "REC-140-C03",
+      "classification": "valid_ordinary",
+      "sourceLocation": "target-local 8.1 schema reference example",
+      "fixture": "CorrectedSchemaReferenceExample_ShouldRemainValidWhenDefinitionPrecedesUse",
+      "preObservationExpectation": "Point declared before Triangle must remain valid.",
+      "observed": "Passed: definition-before-use schema reference has no diagnostics.",
+      "diagnosticBoundary": "Positive control for the unchanged schema-reference rule."
+    }
+  ],
+  "qualification": {
+    "focusedReplay": {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC140DocumentationConflictTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-140-conflict-replay-r2.trx\" --results-directory .campaign-artifacts/REC-140-conflict-replay-r2",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "total": 6,
+      "trxPath": ".campaign-artifacts/REC-140-conflict-replay-r2/REC-140-conflict-replay-r2.trx",
+      "trxSha256": "3e59d360442a450dffccf7ec4bcf46dd327fac44cce31e05d99649250106fce4"
+    },
+    "parserAdjacent": {
+      "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj -c Release --no-build --nologo --verbosity minimal --filter \"FullyQualifiedName~SchemaParserTextTests|FullyQualifiedName~SchemaParserFieldValidationTests|FullyQualifiedName~SchemaParserBinaryTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-140-parser-adjacent-r1.trx\" --results-directory .campaign-artifacts/REC-140-parser-adjacent-r1",
+      "passed": 86,
+      "failed": 0,
+      "skipped": 0,
+      "total": 86,
+      "trxPath": ".campaign-artifacts/REC-140-parser-adjacent-r1/REC-140-parser-adjacent-r1.trx",
+      "trxSha256": "619c0d23e8556b1afa0a4254c781daa64d30ce23cbe483526608396bb0aba26b"
+    },
+    "evaluatorAdjacent": {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-build --nologo --verbosity minimal --filter \"FullyQualifiedName~BinaryOrTextualAdvancedFormatsTests|FullyQualifiedName~DiagnosticBinary041NestedArrayComputedTests|FullyQualifiedName~DiagnosticBinary042BitAlignmentValidationTests|FullyQualifiedName~DiagnosticBinary046SchemaCompositionTests|FullyQualifiedName~DiagnosticREC140DocumentationConflictTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-140-evaluator-adjacent-r1.trx\" --results-directory .campaign-artifacts/REC-140-evaluator-adjacent-r1",
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "total": 50,
+      "trxPath": ".campaign-artifacts/REC-140-evaluator-adjacent-r1/REC-140-evaluator-adjacent-r1.trx",
+      "trxSha256": "3d70a35e5af90a94ccaafe0bb888c4a7c962206d0b36a5ecb908b4deb3279d78"
+    },
+    "campaignSelfTests": {
+      "command": "python -m unittest discover -s docs/campaigns/recovery-v3/tools -p \"test_*.py\"",
+      "passed": 46,
+      "failed": 0,
+      "skipped": 0,
+      "total": 46
+    }
+  },
+  "fullGate": {
+    "status": "passed",
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-140-full-gate-final-r1.json",
+    "evidenceSha256": "3305981018a7f5a6ef53afe6fc92b5d60ea44113bd998f17d9daa6f0a5ea6bf7",
+    "runId": "REC-140-31d385964ab3",
+    "repositoryCommit": "788974d4f30a062d8d9695c5afec70e4de7c75e0",
+    "sdkObserved": "10.0.303",
+    "testedPayloadSha256": "b4364e787cceb073127bf99a618c22bfd051a23e2e94d0456af86b5d81695e35",
+    "testedPayloadFileCount": 5807,
+    "targets": 8,
+    "passed": 21039,
+    "failed": 0,
+    "skipped": 3,
+    "total": 21042,
+    "establishedSkips": [
+      "Musoq.Evaluator.Tests.GeneratedCodeSamplesManifestTests.Refresh_Tracked_Generated_Code_Sample_Manifest",
+      "Musoq.Evaluator.Tests.GeneratedCodeSamplesSnapshotTests.Refresh_All_Local_Generated_Samples",
+      "Musoq.Evaluator.Tests.GeneratedInterpretationCodeDumpTests.Refresh_Local_Interpretation_Samples"
+    ],
+    "discoveryLogSha256": "df9f713acad17fb350f80d63d60c43b7d8491d75084818fb27aea856e566e557",
+    "buildLogSha256": "d94dc86f0950024287bef04e79863479dd02a4edbc06bf58c809a6eea6ebcd5b",
+    "testLogSha256": "de939a43c4d08720012dd30a34de4bf9af2d49fa62a74ca3470e505a8e1846ed"
+  },
+  "obligations": [
+    {
+      "id": "REC-140-O01",
+      "evidence": ["source-conflict", "focused-replay", "behavior-results"]
+    },
+    {
+      "id": "REC-140-O02",
+      "evidence": ["source-conflict", "focused-replay", "behavior-results"]
+    },
+    {
+      "id": "REC-140-O03",
+      "evidence": ["source-conflict", "focused-replay", "behavior-results"]
+    },
+    {
+      "id": "REC-140-O04",
+      "evidence": ["approval", "source-conflict", "focused-replay", "behavior-results"]
+    },
+    {
+      "id": "REC-140-O05",
+      "evidence": ["source-conflict", "behavior-results", "evidence-index"]
+    }
+  ],
+  "productionFindings": [],
+  "repairAttempts": [],
+  "review": {
+    "type": "self_review_main_session",
+    "independentReviewAvailable": false,
+    "summary": "Reviewed source excerpts, immutable authority hash, target correction, fixture strictness, retained negative controls, and documentation-only semantic boundary. No production code changed."
+  },
+  "boundary": [
+    "The supplied authority snapshot remains immutable and its original hash is retained.",
+    "The target-local specification differs only by the two approved documentation corrections recorded here.",
+    "The fixtures use repository-owned parser/evaluator helpers and make no installed-provider or product-lane claim.",
+    "Full Release gate and committed evidence mapping are still required before outcome can change to passed."
+  ]
+}

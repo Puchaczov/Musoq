@@ -1,0 +1,154 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-094",
+  "outcome": "passed",
+  "repositoryIdentity": {
+    "root": "D:\\repos\\Musoq",
+    "baselineCommit": "4120931385610543a971db16c57d150876173063",
+    "configuration": "Release",
+    "sdkObserved": "10.0.303"
+  },
+  "observationSequence": {
+    "initialObservedIteration": {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC094DocumentIdentityTests\" --logger \"console;verbosity=minimal\"",
+      "exitCode": 1,
+      "passed": 27,
+      "skipped": 0,
+      "failed": 2,
+      "total": 29,
+      "countedAsCandidateEvidence": false,
+      "failureCases": ["REC-094-W02", "REC-094-C02"],
+      "reason": "The first replay exposed an over-broad offset-only demonstration assertion: applying the captured Name replacement to current text that already contained Name is idempotent. The stale identity rejection and reanalysis assertions passed; only the invalid generic change assertion was corrected before final replay."
+    },
+    "frozenManifest": {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-094-pre-observation-manifest.json",
+      "sha256": "335bc8405caf63067a24b107a7e87d2f089d5abe6b9b4d3ba591eddfa7707c80",
+      "caseContractPath": "docs/campaigns/recovery-v3/evidence/REC-094-case-contract.json",
+      "caseContractSha256": "88cb95de1aafd15e88bafc8ad4873b9474ce923db784acba0ae155401dfd3b4f",
+      "sourceCorpusSha256": "920e92f47ac8d714a8b7ed6b5a1ea94612f8275b250a8915565c40606bdb2402",
+      "matrixRevision": 2,
+      "registeredCandidateCases": 24,
+      "registeredValidationControls": 4
+    },
+    "finalReplay": {
+      "buildCommand": "dotnet build src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj --configuration Release --no-restore --no-incremental --nologo --verbosity minimal",
+      "buildExitCode": 0,
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC094DocumentIdentityTests\" --logger \"console;verbosity=minimal\"",
+      "exitCode": 0,
+      "passed": 29,
+      "skipped": 0,
+      "failed": 0,
+      "total": 29,
+      "candidateCases": 24,
+      "validationControls": 4,
+      "matrixChecks": 1
+    }
+  },
+  "focusedEvidence": {
+    "adjacentEvaluatorSuites": {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC093AmbiguityAbstentionTests|FullyQualifiedName~CompilationPipelineErrorTests|FullyQualifiedName~CallableResolutionDiagnosticsTests|FullyQualifiedName~AliasTests|FullyQualifiedName~ColumnsTests|FullyQualifiedName~DiagnosticExceptionTaxonomyTests\" --logger \"console;verbosity=minimal\"",
+      "exitCode": 0,
+      "passed": 202,
+      "skipped": 0,
+      "failed": 0,
+      "total": 202
+    },
+    "adjacentParserSuites": {
+      "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj --configuration Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC091MissingTokenTargetingTests|FullyQualifiedName~DiagnosticRuntime060EnvelopeSafetyTests|FullyQualifiedName~DiagnosticUx064DiagnosticContractTests|FullyQualifiedName~DiagnosticCoreTypesTests|FullyQualifiedName~DiagnosticMetadataAndPhasesTests\" --logger \"console;verbosity=minimal\"",
+      "exitCode": 0,
+      "passed": 127,
+      "skipped": 0,
+      "failed": 0,
+      "total": 127
+    },
+    "campaignToolTests": {
+      "command": "python -m unittest discover -s docs/campaigns/recovery-v3/tools -p \"test_*.py\" -v",
+      "exitCode": 0,
+      "passed": 46,
+      "skipped": 0,
+      "failed": 0,
+      "total": 46
+    }
+  },
+  "candidateResults": {
+    "caseCount": 24,
+    "novelCandidates": 24,
+    "duplicateCandidates": 0,
+    "metamorphicVariants": 0,
+    "cleanStreak": 24,
+    "families": {
+      "beforeError": { "cases": 4, "passed": 4, "staleRejections": 4 },
+      "withinError": { "cases": 4, "passed": 4, "staleRejections": 4 },
+      "afterError": { "cases": 4, "passed": 4, "staleRejections": 4 },
+      "wrapperIdentity": { "cases": 4, "passed": 4, "staleRejections": 4 },
+      "unicodeAndLines": { "cases": 4, "passed": 4, "staleRejections": 4 },
+      "sameLengthBoundary": { "cases": 4, "passed": 4, "staleRejections": 4 }
+    },
+    "staleRejections": {
+      "TextDigest": 20,
+      "DocumentVersion": 1,
+      "DocumentId": 2,
+      "CoordinateUnit": 1
+    },
+    "reanalysis": {
+      "rejectedActions": 24,
+      "currentTextReanalyzed": 24,
+      "currentTextAnalyzedSuccessfully": 2,
+      "currentTextRetainedMQ3001BindDiagnostic": 22,
+      "appliedStaleActions": 0
+    },
+    "nativeAction": {
+      "originalDiagnostics": 24,
+      "originalTextEdits": 24,
+      "replacement": "Name",
+      "coordinateUnit": "utf16-code-units",
+      "offsetsBoundToOriginalText": 24
+    },
+    "consumerBoundary": {
+      "documentIdsRecorded": 24,
+      "wrapperVersionsRecorded": 24,
+      "textDigestsRecorded": 24,
+      "coordinateUnitsRecorded": 24,
+      "nativeIdentityFieldsAdded": false
+    }
+  },
+  "productionChange": {
+    "changed": false,
+    "productionFixes": 0,
+    "judgment": "REC-094 required a test-local consumer harness and stale-action matrix only; no production implementation or native diagnostic protocol behavior was changed."
+  },
+  "fullGate": {
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-094-full-gate.json",
+    "evidenceSha256": "ad9d08128689c12ed5d319124dacd44d38078e8fee3a47f8b0b769a3e10882bb",
+    "runId": "REC-094-9cfd7b1d5353",
+    "testedPayloadSha256": "60d07fdbf4ea9fd7e573132abf12b3ee05899c1b23a4f494bf9a49c07f284b67",
+    "testedPayloadFileCount": 5743,
+    "targetCount": 8,
+    "passed": 20039,
+    "skipped": 3,
+    "failed": 0,
+    "total": 20042,
+    "allowlistedSkips": [
+      "Musoq.Evaluator.Tests.GeneratedInterpretationCodeDumpTests.Refresh_Local_Interpretation_Samples",
+      "Musoq.Evaluator.Tests.GeneratedCodeSamplesSnapshotTests.Refresh_All_Local_Generated_Samples",
+      "Musoq.Evaluator.Tests.GeneratedCodeSamplesManifestTests.Refresh_Tracked_Generated_Code_Sample_Manifest"
+    ]
+  },
+  "obligations": {
+    "REC-094-O01": "The harness binds every captured action to the original document digest, document id, wrapper version, and UTF-16 coordinate unit.",
+    "REC-094-O02": "Twenty-four mutations before, within, and after the original span are rejected before application; current text is reanalyzed, including same-length text changes.",
+    "REC-094-O03": "The matrix covers same text with a changed wrapper version and changed text with equal length; both are protected by the recorded identity policy.",
+    "REC-094-O04": "Native actions remain Span/NewText only; identity and stale-action policy are explicitly owned and tested by the consumer harness."
+  },
+  "selfReview": {
+    "scopeDiffAndMatrixReviewed": true,
+    "nativeActionBoundaryReviewed": true,
+    "identityAndCoordinateBindingReviewed": true,
+    "sameLengthAndIdempotentCasesReviewed": true,
+    "excludedObservationHistoryReviewed": true,
+    "focusedBehaviorEvidenceReviewed": true,
+    "fullGateEvidenceReviewed": true,
+    "productionChangeReviewed": true
+  },
+  "observedAt": "2026-09-07T02:16:00Z"
+}

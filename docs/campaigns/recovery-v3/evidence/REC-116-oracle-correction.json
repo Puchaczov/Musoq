@@ -1,0 +1,86 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-116",
+  "outcome": "passed",
+  "initialRevision": {
+    "revision": 1,
+    "contractPath": "docs/campaigns/recovery-v3/evidence/REC-116-case-contract.json",
+    "contractSha256": "60b55ccedf4c366983c30415c0b0e7f0a509bacc9b5ea7b1263970e0f5fb25fb",
+    "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-116-pre-observation-manifest.json",
+    "manifestSha256": "34cd27de9861dc87b5b845bb214c1ed5ae26b6d477f7d918687de849d3aa4018",
+    "preObservationPayloadSha256": "af86e2f443fe3e6aa95f6d4faf263fa619601e0053a07507c7caec5d6485e382",
+    "focusedReplayPath": ".campaign-artifacts/REC-116-focused-v1-corrected/REC-116-focused-v1-corrected.trx",
+    "focusedReplaySha256": "4be81d2293926b2228b431f33a75df08d9e4db9163b941bd9d59eebcdbd82aa1",
+    "passed": 1,
+    "failed": 4,
+    "total": 5,
+    "observation": "The initial 48-case contract was frozen before replay. The first candidate replay exposed the regex/path lexical false positive, actual MQ5014 Parse provenance for bound path warnings, and invalid dotted dynamic-operand fixtures in R07 and L11."
+  },
+  "revisions": [
+    {
+      "revision": 2,
+      "contractPath": "docs/campaigns/recovery-v3/evidence/REC-116-case-contract-v2.json",
+      "contractSha256": "3597c6cb051edf0e2d13243a69c61b0676392048035ae9b87fcf6cc190fdece8",
+      "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-116-pre-observation-manifest-v2.json",
+      "manifestSha256": "d684d4539c98130d38092f501a8527248e19ca1318f229dc67ad4ab1f81dd0b3",
+      "preObservationPayloadSha256": "75c47b29d33529a2105f97aa260ca56e08c87f2ba19cf2cd2a17d11418e93f17",
+      "focusedReplayPath": ".campaign-artifacts/REC-116-focused-v6/REC-116-focused-v6.trx",
+      "focusedReplaySha256": "55bded43530b436bdf77a78bbffbfbe34ae5d90460bf13becda943c0e7f67751",
+      "passed": 5,
+      "failed": 0,
+      "total": 5,
+      "correction": "R07 and L11 now use valid unqualified dynamic columns because the original dotted RHS operands are rejected by the parser; MQ5014 expected phase metadata is Parse as permitted by the authority contract. No candidate, warning code, warning count or classification was removed."
+    }
+  ],
+  "replayAttempts": [
+    {
+      "label": "production-fix-iteration-1",
+      "path": ".campaign-artifacts/REC-116-focused-v2/REC-116-focused-v2.trx",
+      "sha256": "1e38ced9b94b902686853090b046c17e75dbb5802894b8de362776f98d7c5830",
+      "passed": 2,
+      "failed": 3,
+      "total": 5
+    },
+    {
+      "label": "production-fix-iteration-2",
+      "path": ".campaign-artifacts/REC-116-focused-v3/REC-116-focused-v3.trx",
+      "sha256": "e775ef23c3cb16da975f86208e7a1911d8f7c43a1a20a5f58e8951820fe3cc8a",
+      "passed": 3,
+      "failed": 2,
+      "total": 5
+    },
+    {
+      "label": "fixture-correction-r07",
+      "path": ".campaign-artifacts/REC-116-focused-v4/REC-116-focused-v4.trx",
+      "sha256": "f2e5e6bbbaa6fbe87ff1ec772e75ca77f61e9be13991dd7811f7061ee8275448",
+      "passed": 3,
+      "failed": 2,
+      "total": 5
+    },
+    {
+      "label": "fixture-correction-l11",
+      "path": ".campaign-artifacts/REC-116-focused-v5/REC-116-focused-v5.trx",
+      "sha256": "53dbeaccfb6b845f55c5fe9b1ce8789e486430390207c980f0cbac9bf604385b",
+      "passed": 5,
+      "failed": 0,
+      "total": 5
+    },
+    {
+      "label": "cache-replay-hardening",
+      "path": ".campaign-artifacts/REC-116-focused-v6/REC-116-focused-v6.trx",
+      "sha256": "55bded43530b436bdf77a78bbffbfbe34ae5d90460bf13becda943c0e7f67751",
+      "passed": 5,
+      "failed": 0,
+      "total": 5
+    }
+  ],
+  "invariants": {
+    "candidateCount": 48,
+    "invalidCandidates": 0,
+    "validOrdinaryControls": 19,
+    "validSuspiciousControls": 29,
+    "candidatesRemoved": 0,
+    "candidateFamiliesChanged": 0,
+    "warningExpectationsRemoved": 0
+  }
+}

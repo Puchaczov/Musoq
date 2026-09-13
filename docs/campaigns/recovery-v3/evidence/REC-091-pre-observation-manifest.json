@@ -1,0 +1,637 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-091",
+  "validatedFromCommit": "a70bb24e552e4ccf209d5aa391197bbe4d4a302e",
+  "sourceCorpus": {
+    "path": "src/dotnet/Musoq.Parser.Tests/Diagnostic.REC-091MissingTokenTargetingTests.cs",
+    "sha256": "AAEB63093876100B6F057A32BB6CD9A5DE3EC3CEBFE384F6E11D324D15D1A1F8",
+    "rawBytes": true
+  },
+  "authoritySourceFiles": [
+    {
+      "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+      "sha256": "435F6EA1A0B76BA56624B0012522E9845BDB7F3E13E32F7755822F411F0247A8",
+      "rawBytes": true
+    }
+  ],
+  "caseCount": 48,
+  "expectedClassifications": {
+    "invalid": 48,
+    "valid_suspicious": 0,
+    "valid_ordinary": 0,
+    "unspecified": 0
+  },
+  "cases": [
+    {
+      "caseId": "REC-091-A01",
+      "context": "alias.explicit-before-where",
+      "query": "select 1 from #system.dual() as where 1 = 1",
+      "expected": {
+        "diagnosticCode": "MQ2035_MissingRequiredAlias",
+        "span": { "anchor": "<after:as>", "length": 0 },
+        "boundary": "where",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-A02",
+      "context": "alias.comment-before-where",
+      "query": "select 1 from #system.dual() as -- preserve boundary\r\nwhere 1 = 1",
+      "expected": {
+        "diagnosticCode": "MQ2035_MissingRequiredAlias",
+        "span": { "anchor": "<after:as>", "length": 0 },
+        "boundary": "where",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-A03",
+      "context": "alias.invalid-after-as",
+      "query": "select 1 from #system.dual() as 123 where 1 = 1",
+      "expected": {
+        "diagnosticCode": "MQ2022_InvalidAlias",
+        "span": { "anchor": "123", "length": 3 },
+        "boundary": "where",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-A04",
+      "context": "alias.apply-before-multiline-where",
+      "query": "select 1 from source cross apply source.Column\r\nwhere 1 = 1",
+      "expected": {
+        "diagnosticCode": "MQ2035_MissingRequiredAlias",
+        "span": { "anchor": "<after:source.Column>", "length": 0 },
+        "boundary": "where",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-A05",
+      "context": "alias.apply-before-block-comment-take",
+      "query": "select 1 from source cross apply source.Column /* preserve */ take 1",
+      "expected": {
+        "diagnosticCode": "MQ2035_MissingRequiredAlias",
+        "span": { "anchor": "<after:source.Column>", "length": 0 },
+        "boundary": "take",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-A06",
+      "context": "alias.join-before-on",
+      "query": "select 1 from a.first() a inner join b.second() on 1 = 1",
+      "expected": {
+        "diagnosticCode": "MQ2035_MissingRequiredAlias",
+        "span": { "anchor": "<after:second()>", "length": 0 },
+        "boundary": "on",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-A07",
+      "context": "alias.derived-before-where",
+      "query": "select * from (select 1 from #system.dual()) where 1 = 1",
+      "expected": {
+        "diagnosticCode": "MQ2035_MissingRequiredAlias",
+        "span": { "anchor": "<after:#system.dual())>", "length": 0 },
+        "boundary": "where",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-A08",
+      "context": "alias.derived-at-eof",
+      "query": "select * from (select 1 from #system.dual())",
+      "expected": {
+        "diagnosticCode": "MQ2035_MissingRequiredAlias",
+        "span": { "anchor": "<eof>", "length": 0 },
+        "boundary": "<eof>",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-A09",
+      "context": "alias.values-before-order",
+      "query": "select * from values { { Name: 'A' } } order by 1",
+      "expected": {
+        "diagnosticCode": "MQ2035_MissingRequiredAlias",
+        "span": { "anchor": "<after:} }>", "length": 0 },
+        "boundary": "order",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-A10",
+      "context": "alias.values-at-eof",
+      "query": "select * from values { { Name: 'A' } }",
+      "expected": {
+        "diagnosticCode": "MQ2035_MissingRequiredAlias",
+        "span": { "anchor": "<eof>", "length": 0 },
+        "boundary": "<eof>",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-A11",
+      "context": "alias.derived-explicit-as-before-take",
+      "query": "select * from (select 1 from #system.dual()) as take 1",
+      "expected": {
+        "diagnosticCode": "MQ2035_MissingRequiredAlias",
+        "span": { "anchor": "<after:as>", "length": 0 },
+        "boundary": "take",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-A12",
+      "context": "alias.first-source-before-cross-join",
+      "query": "select 1 from a.first() cross join b.second()",
+      "expected": {
+        "diagnosticCode": "MQ2035_MissingRequiredAlias",
+        "span": { "anchor": "<after:a.first()>", "length": 0 },
+        "boundary": "cross join",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-S01",
+      "context": "separator.between-before-where",
+      "query": "select 1 from #system.dual() where 1 between 2 where 1 = 1",
+      "expected": {
+        "diagnosticCode": "MQ2002_MissingToken",
+        "span": { "anchor": "where 1 = 1", "length": 0 },
+        "boundary": "where",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-S02",
+      "context": "separator.between-comment-before-take",
+      "query": "select 1 from #system.dual() where 1 between 2 /* keep */ take 1",
+      "expected": {
+        "diagnosticCode": "MQ2002_MissingToken",
+        "span": { "anchor": "take", "length": 0 },
+        "boundary": "take",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-S03",
+      "context": "separator.in-before-order",
+      "query": "select 1 from #system.dual() where 1 in order by 1",
+      "expected": {
+        "diagnosticCode": "MQ2002_MissingToken",
+        "span": { "anchor": "order", "length": 0 },
+        "boundary": "order",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-S04",
+      "context": "separator.in-at-eof",
+      "query": "select 1 from #system.dual() where 1 in",
+      "expected": {
+        "diagnosticCode": "MQ2002_MissingToken",
+        "span": { "anchor": "<eof>", "length": 0 },
+        "boundary": "<eof>",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-S05",
+      "context": "separator.in-list-before-close",
+      "query": "select 1 from #system.dual() where 1 in (1 2) take 1",
+      "expected": {
+        "diagnosticCode": "MQ2018_MissingOperator",
+        "span": { "anchor": "2", "length": 0 },
+        "boundary": "take",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-S06",
+      "context": "separator.function-before-from",
+      "query": "select #system.dual(1 from #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2021_UnclosedFunctionCall",
+        "span": { "anchor": "from #system", "length": 0 },
+        "boundary": "from",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-S07",
+      "context": "separator.function-before-close",
+      "query": "select #system.dual(1 2) from #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2018_MissingOperator",
+        "span": { "anchor": "2", "length": 0 },
+        "boundary": "from",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-S08",
+      "context": "separator.values-rows",
+      "query": "select * from values { { Name: 'A' } { Name: 'B' } }",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "{ Name: 'B' }", "length": 1 },
+        "boundary": null,
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-S09",
+      "context": "separator.values-fields",
+      "query": "select * from values { { Name: 'A' Age: 1 } }",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "Age", "length": 3 },
+        "boundary": null,
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-S10",
+      "context": "separator.named-arguments",
+      "query": "select 1 from #system.dual(a: 1 /* keep */ b: 2)",
+      "expected": {
+        "diagnosticCode": "MQ2021_UnclosedFunctionCall",
+        "span": { "anchor": "b", "length": 0 },
+        "boundary": "b",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-D01",
+      "context": "delimiter.grouped-before-from",
+      "query": "select (1 + 2 from #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2010_MissingClosingParenthesis",
+        "span": { "anchor": "from #system", "length": 0 },
+        "boundary": "from",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-D02",
+      "context": "delimiter.grouped-at-eof",
+      "query": "select (1 + 2",
+      "expected": {
+        "diagnosticCode": "MQ2010_MissingClosingParenthesis",
+        "span": { "anchor": "<eof>", "length": 0 },
+        "boundary": "<eof>",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-D03",
+      "context": "delimiter.function-before-from",
+      "query": "select #system.dual(1 from #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2021_UnclosedFunctionCall",
+        "span": { "anchor": "from #system", "length": 0 },
+        "boundary": "from",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-D04",
+      "context": "delimiter.function-at-eof",
+      "query": "select #system.dual(1",
+      "expected": {
+        "diagnosticCode": "MQ2021_UnclosedFunctionCall",
+        "span": { "anchor": "<eof>", "length": 0 },
+        "boundary": "<eof>",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-D05",
+      "context": "delimiter.in-before-take",
+      "query": "select 1 from #system.dual() where 1 in (1, 2 take 1",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "take", "length": 4 },
+        "boundary": "take",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-D06",
+      "context": "delimiter.scalar-subquery-at-eof",
+      "query": "select (select 1 from #system.dual() where 1 = 1",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "<eof>", "length": 0 },
+        "boundary": "<eof>",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-D07",
+      "context": "delimiter.derived-at-eof",
+      "query": "select * from (select 1 from #system.dual() where 1 = 1",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "<eof>", "length": 0 },
+        "boundary": "<eof>",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-D08",
+      "context": "delimiter.values-brace-at-eof",
+      "query": "select * from values { { Name: 'A' }",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "<eof>", "length": 0 },
+        "boundary": "<eof>",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-D09",
+      "context": "delimiter.bracket-before-next-bracket",
+      "query": "select 1 as [case, 2 as [order], 3 as [Column With Spaces] from #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2011_MissingClosingBracket",
+        "span": { "anchor": "[case", "length": 12 },
+        "boundary": "[order]",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-D10",
+      "context": "delimiter.bracket-at-eof",
+      "query": "select 1 as [Column With Spaces from #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2011_MissingClosingBracket",
+        "span": { "anchor": "[Column", "length": -1 },
+        "boundary": "<eof>",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-C01",
+      "context": "case.missing-when",
+      "query": "select case, 1 from #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2027_MissingWhenClause",
+        "span": { "anchor": "case", "length": 4 },
+        "boundary": "case",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-C02",
+      "context": "case.missing-condition",
+      "query": "select case when then 1 else 2 end from #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "then", "length": 4 },
+        "boundary": "then",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-C03",
+      "context": "case.missing-then-keyword",
+      "query": "select case when 1 = 1 else 2 end from #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "else", "length": 4 },
+        "boundary": "else",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-C04",
+      "context": "case.missing-then-result",
+      "query": "select case when 1 = 1 then else 2 end from #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "else", "length": 4 },
+        "boundary": "else",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-C05",
+      "context": "case.missing-else-keyword",
+      "query": "select case when 1 = 1 then 1 end from #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "end", "length": 3 },
+        "boundary": "end",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-C06",
+      "context": "case.missing-else-result",
+      "query": "select case when 1 = 1 then 1 else end from #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "end", "length": 3 },
+        "boundary": "end",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-C07",
+      "context": "case.missing-end-before-from",
+      "query": "select case when 1 = 1 then 1 else 2 from #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "from #system", "length": 4 },
+        "boundary": "from",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-C08",
+      "context": "case.missing-end-at-eof",
+      "query": "select case when 1 = 1 then 1 else 2",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "<eof>", "length": 0 },
+        "boundary": "<eof>",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-C09",
+      "context": "case.multiline-missing-end",
+      "query": "select case\r\nwhen 1 = 1 then 1 else 2\r\nfrom #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "from #system", "length": 4 },
+        "boundary": "from",
+        "action": "none"
+      }
+    },
+    {
+      "caseId": "REC-091-K01",
+      "context": "keyword.select-typo",
+      "query": "SELCT 1 FROM #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "SELCT", "length": 5 },
+        "boundary": "SELCT",
+        "action": "quick-fix",
+        "replacement": "SELECT",
+        "repairedQuery": "SELECT 1 FROM #system.dual()"
+      }
+    },
+    {
+      "caseId": "REC-091-K02",
+      "context": "keyword.from-typo",
+      "query": "SELECT 1 FRMO #system.dual()",
+      "expected": {
+        "diagnosticCode": "MQ2004_MissingFromClause",
+        "span": { "anchor": "FRMO", "length": 4 },
+        "boundary": "FRMO",
+        "action": "quick-fix",
+        "replacement": "FROM",
+        "repairedQuery": "SELECT 1 FROM #system.dual()"
+      }
+    },
+    {
+      "caseId": "REC-091-K03",
+      "context": "keyword.where-typo-with-bracketed-alias",
+      "query": "SELECT 1 FROM #system.dual() [where] WHRE 1 = 1",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "WHRE", "length": 4 },
+        "boundary": "WHRE",
+        "action": "quick-fix",
+        "replacement": "WHERE",
+        "repairedQuery": "SELECT 1 FROM #system.dual() [where] WHERE 1 = 1"
+      }
+    },
+    {
+      "caseId": "REC-091-K04",
+      "context": "keyword.group-typo-with-crlf",
+      "query": "SELECT 1 FROM #system.dual() d\r\nGROPU BY 1",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "GROPU", "length": 5 },
+        "boundary": "GROPU",
+        "action": "quick-fix",
+        "replacement": "GROUP",
+        "repairedQuery": "SELECT 1 FROM #system.dual() d\r\nGROUP BY 1"
+      }
+    },
+    {
+      "caseId": "REC-091-K05",
+      "context": "keyword.order-typo-with-literal",
+      "query": "SELECT 'ORDRE' AS Literal, 1 FROM #system.dual() d ORDRE BY 1",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "ORDRE BY", "length": 5 },
+        "boundary": "ORDRE",
+        "action": "quick-fix",
+        "replacement": "ORDER",
+        "repairedQuery": "SELECT 'ORDRE' AS Literal, 1 FROM #system.dual() d ORDER BY 1"
+      }
+    },
+    {
+      "caseId": "REC-091-K06",
+      "context": "keyword.having-typo-with-comment",
+      "query": "SELECT 1 FROM #system.dual() d GROUP BY ALL HAVIGN /* preserve */ 1 = 1",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "HAVIGN", "length": 6 },
+        "boundary": "HAVIGN",
+        "action": "quick-fix",
+        "replacement": "HAVING",
+        "repairedQuery": "SELECT 1 FROM #system.dual() d GROUP BY ALL HAVING /* preserve */ 1 = 1"
+      }
+    },
+    {
+      "caseId": "REC-091-K07",
+      "context": "keyword.join-typo",
+      "query": "SELECT 1 FROM #system.dual() a JION #system.dual() b ON 1 = 1",
+      "expected": {
+        "diagnosticCode": "MQ2001_UnexpectedToken",
+        "span": { "anchor": "JION", "length": 4 },
+        "boundary": "JION",
+        "action": "quick-fix",
+        "replacement": "JOIN",
+        "repairedQuery": "SELECT 1 FROM #system.dual() a JOIN #system.dual() b ON 1 = 1"
+      }
+    }
+  ],
+  "validationControls": [
+    {
+      "caseId": "REC-091-Q01",
+      "query": "select 1 as [case], 2 as [order], 3 as [Column With Spaces] from #system.dual()",
+      "expectedIdentifier": "[Column With Spaces]"
+    },
+    {
+      "caseId": "REC-091-Q02",
+      "query": "select 1 from source cross apply source.Column as [cross apply] take 1",
+      "expectedIdentifier": "[cross apply]"
+    },
+    {
+      "caseId": "REC-091-Q03",
+      "query": "select [where] from source",
+      "expectedIdentifier": "[where]"
+    },
+    {
+      "caseId": "REC-091-Q04",
+      "query": "select * from (select 1 from #system.dual()) [derived alias]",
+      "expectedIdentifier": "[derived alias]"
+    }
+  ],
+  "preObservation": {
+    "state": "frozen_before_final_replay",
+    "registeredBeforeCandidate": true,
+    "observedCandidateBehavior": false,
+    "matrixRevision": 2,
+    "revisionHistory": [
+      {
+        "revision": 1,
+        "state": "superseded_after_observation",
+        "caseIds": [
+          "REC-091-K06"
+        ],
+        "reason": "The initial K06 candidate omitted the grammar-required GROUP BY, so its HAVING repair was invalid as a one-fault case and was excluded from candidate evidence."
+      },
+      {
+        "revision": 2,
+        "state": "frozen_before_final_replay",
+        "registeredBeforeCandidate": true,
+        "observedCandidateBehavior": false,
+        "caseIds": [
+          "REC-091-A01",
+          "REC-091-A02",
+          "REC-091-A04",
+          "REC-091-A05",
+          "REC-091-A06",
+          "REC-091-A07",
+          "REC-091-A09",
+          "REC-091-A11",
+          "REC-091-A12",
+          "REC-091-S05",
+          "REC-091-S07",
+          "REC-091-S10",
+          "REC-091-K06"
+        ],
+        "reason": "The final replay matrix records the parser's documented insertion spans, specific missing-operator diagnostics, the corrected K06 grammar context, and the final candidate source hash."
+      }
+    ]
+  },
+  "rules": {
+    "expectationsFrozenBeforeObservation": true,
+    "oneFaultPerCase": true,
+    "missingExpressionsAndAliasesDoNotReceiveGuessedTextEdits": true,
+    "emittedEditMustBeApplied": true,
+    "keywordFixMustReparse": true,
+    "bracketedIdentifierControlsMustReparse": true,
+    "nextBoundaryMustRemainAtOrAfterDiagnosticSpan": true
+  }
+}

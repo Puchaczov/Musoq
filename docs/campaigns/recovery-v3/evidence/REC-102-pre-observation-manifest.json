@@ -1,0 +1,315 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-102",
+  "state": "pre_observation",
+  "caseCount": 24,
+  "sourceFiles": [
+    {
+      "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+      "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "byteLength": 239774
+    },
+    {
+      "path": "docs/enums.md",
+      "sha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494",
+      "byteLength": 10295
+    }
+  ],
+  "preObservationPayloadSha256": "75d1efaf0702d70821f7c825a86d9505315adc1970b8bcbfb0203eef6c0f1148",
+  "cases": [
+    {
+      "caseId": "REC-102-SIG01",
+      "preObservationDigest": "b062ec2e464985b3ffefd8ea7b2db62b2866f0c971666af96d90cef6402868b1",
+      "rootCauseContextFingerprint": "3582c2168b9819b2982688d6c111021db9b1465c598157ecc89c79961ab60cc8",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "REC-102-SIG02",
+      "preObservationDigest": "3624ac1b9923f9101bc0961c7ef702e2a5b0943291ae7a41572ba665543df1bb",
+      "rootCauseContextFingerprint": "9d959c707ce0a94f5ed894162b3315bfd4145130cdb857ae12d251a3955923f2",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "REC-102-SIG03",
+      "preObservationDigest": "c3282782e49c7f9c37dd6f9b5aa59600d43f9ad40f82b34aa89ea20a2ba2977b",
+      "rootCauseContextFingerprint": "2432407e6dedebe01aae286e6354c56b4ffd9d480ee5c4ce15525c20c0d06518",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "REC-102-SIG04",
+      "preObservationDigest": "c19fbd4bfddf34994669d720df32b811db931050975da9aac7b199dc8e229f5d",
+      "rootCauseContextFingerprint": "76fe50a4c9d1ff13d3eb09bbe7c9c8e3f26ca5564abeb6e27eee7d2fcfa8d707",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "REC-102-SIG05",
+      "preObservationDigest": "af0722cc77ef538e363b2a1048934c347332154b838e958eefefdc4818bb8930",
+      "rootCauseContextFingerprint": "dd4ca19342eb0b4a10d17601f00458d0fa392908bfdf579e9f423bf3923ec649",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "REC-102-SIG06",
+      "preObservationDigest": "303fbd4c0ace75435385d01158b2a488e7701087b1f9278b2d7f0332c0de337f",
+      "rootCauseContextFingerprint": "ef21d0a1dad7f6a237df448c8c2bb77a49ee819bd9a0a9000786985ffc420e49",
+      "authorityDigests": [
+        {
+          "path": "docs/enums.md",
+          "sha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "REC-102-SIG07",
+      "preObservationDigest": "a0b56f73b2ac1ae3e0fee0a40e1a50f6c4cbdfa3bb85eeb4f72b83a5cd59581f",
+      "rootCauseContextFingerprint": "0de844be8d85d0c5fda95f40b09defdac2ce075805ef0e4fc6d97f3bbdc474f5",
+      "authorityDigests": [
+        {
+          "path": "docs/enums.md",
+          "sha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "REC-102-SIG08",
+      "preObservationDigest": "2f8035f0d353a036e14aec2e7108299c3e8c44dba62c6074ba11daa07fea03b2",
+      "rootCauseContextFingerprint": "22b54a6b810fa1a98f9af526930699037c46290c286b527b57c99366614b2546",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "REC-102-SIG09",
+      "preObservationDigest": "f3693b7686e26f2331bf4b957e1ec3517be8b1d8d357d96979b64a3f9f787566",
+      "rootCauseContextFingerprint": "30b50b015c0534b37cca5b663a599f072e753a1e5c261f55b44940f6622a51d5",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "REC-102-SIG10",
+      "preObservationDigest": "2d284fb89e872e47d4d1197a791b6967daf902ddf5f88757ce4877d229463583",
+      "rootCauseContextFingerprint": "d3353223d8811a7c0c9965dcdc313a8a4ebc4dde2fe55b76633742cea1936120",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "REC-102-SIG11",
+      "preObservationDigest": "b7f5a512080de5e6d9167f5b64da33a62b0904ffacdb8ec0a07afbba3dcb0dc7",
+      "rootCauseContextFingerprint": "d2c9ae3de0f0fac54722a670c44d491704ba4ffac23bbdc8964072a7e79be791",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "REC-102-SIG12",
+      "preObservationDigest": "ffa68bbf3ff326c63f7031be3b829c54a688b69f04b375764545bb6affab41c5",
+      "rootCauseContextFingerprint": "d23ed7296078820f155aa1228fbfcb3132f40eb697019f253d4c4465352d1d3e",
+      "authorityDigests": [
+        {
+          "path": "docs/enums.md",
+          "sha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "REC-102-FLAG01",
+      "preObservationDigest": "e6c433f644de4eb6ab4bb5896f3ad9e3f74b115baa8697efb865335c0e45a69b",
+      "rootCauseContextFingerprint": "4638f0f1da4c88dbd321173bf9f51d2f6874fbc5cd518631a21f5412fdd2c509",
+      "authorityDigests": [
+        {
+          "path": "docs/enums.md",
+          "sha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "REC-102-FLAG02",
+      "preObservationDigest": "38e19d90132e8bcc69c53304c40018a89fb1bafc2282d87a47006fbf8d4f805a",
+      "rootCauseContextFingerprint": "0f33eb9f9eac2aaa5225c8d756635e88355baa6ff1a068d38d9bf70dade33b76",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "REC-102-FLAG03",
+      "preObservationDigest": "0287d67bbfea63a5b131cd50210e27626d5bb84c7c7a7f42ba0ac97b03baef7a",
+      "rootCauseContextFingerprint": "6706b337575894f64a90daec451676e9e7f1701b2e6acd4b78774c1a760fb096",
+      "authorityDigests": [
+        {
+          "path": "docs/enums.md",
+          "sha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "REC-102-FLAG04",
+      "preObservationDigest": "dfe33fee774ac586644d9430da2c32053be8cea901884d40c660fecb5e77603b",
+      "rootCauseContextFingerprint": "f63f88726678d7b897a9097930267155b3531d31c6fb5d0e86f62e195baeef3e",
+      "authorityDigests": [
+        {
+          "path": "docs/enums.md",
+          "sha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "REC-102-FLAG05",
+      "preObservationDigest": "20ffa8cc087cf751e6090e8702ebdd59f23b03d8b47ee162cbdaf42c20c28bb8",
+      "rootCauseContextFingerprint": "b31d9eb60a99670d012e446af5a404e29db3826c085207e1db280e47de811a14",
+      "authorityDigests": [
+        {
+          "path": "docs/enums.md",
+          "sha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "REC-102-FLAG06",
+      "preObservationDigest": "7ad10ee0d36daa3ef81ad1537d538bd1ca7399b979aba9bf168e90ed301e0ee4",
+      "rootCauseContextFingerprint": "38ee0d6fc3f11fa57d686419f446e7800c930e9c0db6917aed43e1fca1aaa41e",
+      "authorityDigests": [
+        {
+          "path": "docs/enums.md",
+          "sha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "REC-102-VALUE01",
+      "preObservationDigest": "002d83a00e3565f004036eca1105e1772fad4d8c96b77788a3d620ec609096d0",
+      "rootCauseContextFingerprint": "e89e38c15c53f2edba2bec783151d38d21b9c5dec83157114aaf7c1ef79aac88",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "REC-102-VALUE02",
+      "preObservationDigest": "482a83224d2dfc151bfb99aa0fbcb3541c0582292cbb40c84f0a61cc8bfcd856",
+      "rootCauseContextFingerprint": "f14847fd428499d06c1a80ef57d8e099a871f0c92363b96db12211d5b356ee60",
+      "authorityDigests": [
+        {
+          "path": "docs/enums.md",
+          "sha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "REC-102-VALUE03",
+      "preObservationDigest": "bdf6595c2545fb702432448eecf08b1b42142b38a2b697c1405429b925869c2d",
+      "rootCauseContextFingerprint": "c23a585e54bece695a298b0c66724000e9f03ccb88536c68db2ea88a1f28f9cc",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "REC-102-VALUE04",
+      "preObservationDigest": "bbdb245ecc126ba8386d760be41549b2f1d4c4781d306441288e84b2e00a3095",
+      "rootCauseContextFingerprint": "cb24cceee7dc9208485b9fa80e75b1e8b89f8fa6a90cec667b32bc3ee427544d",
+      "authorityDigests": [
+        {
+          "path": "docs/enums.md",
+          "sha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "REC-102-VALUE05",
+      "preObservationDigest": "f138abed974c2233a2249335c97975ad0ffad2837a99625181c48e6ba07546b7",
+      "rootCauseContextFingerprint": "fbb0b9a3fac50c2d2c76e7733d5f6c947116caa379e15821dfd4a8c8cc3da167",
+      "authorityDigests": [
+        {
+          "path": "docs/enums.md",
+          "sha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "REC-102-VALUE06",
+      "preObservationDigest": "ae491f180ce1947f237db5ed93de5a7f4d63f92de2e00727c67ac5f958d7a223",
+      "rootCauseContextFingerprint": "901222e484283b7b01df30f72336579f945aea1181dc7f7645c253fdd76defd3",
+      "authorityDigests": [
+        {
+          "path": "docs/enums.md",
+          "sha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    }
+  ],
+  "rules": {
+    "expectationsFrozenBeforeObservation": true,
+    "identifierSpellingAloneIsNotNovel": true,
+    "sourceHashesAreRawBytes": true,
+    "minimizationRequiresSameFaultAndObservation": true
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-111",
+  "findingId": "REC-111-FINDING-001",
+  "kind": "production-fix",
+  "status": "resolved",
+  "title": "Competing callable, member and query-block roots were recovered without hiding sibling failures",
+  "firstObservation": {
+    "candidateIds": [
+      "REC-111-D04",
+      "REC-111-E04",
+      "REC-111-G01"
+    ],
+    "observed": [
+      "An unknown callable left invalid argument diagnostics in the envelope.",
+      "A dependent outer derived/CTE column diagnostic obscured the inner alias root.",
+      "A callable with an invalid owner/member argument retained the dependent member error as a competing root."
+    ],
+    "compatibilityObservation": "The first recovery implementation regressed P_MISC_07_ConvertFunction_SqlServerStyle by suppressing the established MQ3001_UnknownColumn root for CONVERT(varchar, Population).",
+    "evidencePath": ".campaign-artifacts/REC-111-full-gate-failed/test.stdout.log"
+  },
+  "authority": {
+    "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+    "sections": [
+      "23.1 Diagnostic envelope contract",
+      "23.3 Root-cause classification"
+    ],
+    "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+    "rule": "Schema/source, alias, column/property and callable-owner/name/arity roles retain their precedence; dependent nodes after an invalid root are suppressed while independent sibling roots remain source ordered."
+  },
+  "repair": {
+    "files": [
+      "src/dotnet/Musoq.Evaluator/DiagnosticContext.cs",
+      "src/dotnet/Musoq.Evaluator/Visitors/DiagnosticRecovery.cs",
+      "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.Methods.cs",
+      "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.SourceBinding.FromNodes.cs",
+      "src/dotnet/Musoq.Evaluator/Visitors/QueryState/BuildMetadataAndInferTypesVisitor.SetAndCte.cs"
+    ],
+    "changes": [
+      "Suppress only argument diagnostics inside an unresolved callable or invalid-arity callable span, while preserving independent diagnostics.",
+      "Treat the established SQL Server-shaped CONVERT(type, value) contract as a dialect boundary so its unresolved type token remains the reported MQ3001 root.",
+      "Mark CTE values containing a diagnostic recovery root and suppress only dependent consumer diagnostics when the recovered table is referenced by an outer query block.",
+      "Retain source-ordered sibling errors for independent columns, aliases and properties.",
+      "Keep the recovery helper outside the existing visitor partial budgets and verify the maintainability baselines remain unchanged."
+    ],
+    "rejectedApproach": "Blanket query-wide suppression was rejected because it hides independent sibling roots and makes an expected code appearing somewhere in a cascade look like a correct primary diagnosis."
+  },
+  "regressionTests": [
+    "CompetingFailures_ShouldHonorFrozenContract",
+    "CandidateMatrix_ShouldContainFortyEightCasesAcrossEightFamilies",
+    "CandidateMetadata_ShouldDeclarePrimaryOrderAndForbiddenSecondaryCodes",
+    "ValidControls_ShouldExecuteWithoutChangingResolution",
+    "P_MISC_07_ConvertFunction_SqlServerStyle",
+    "ProductionHotspotFiles_ShouldNotGrowBeyondRound13Baseline",
+    "ProductionFamilies_ShouldNotGrowNewOversizedPartials",
+    "ProductionFamilyTotals_ShouldNotGrowBeyondRound13Baseline",
+    "FocusedArchitecture_CoreFamilyTotals_ShouldStayAtOrBelowFocusedBaseline"
+  ],
+  "finalFocusedEvidence": {
+    "path": ".campaign-artifacts/REC-111-focused-final/REC-111-focused-final.trx",
+    "sha256": "b2fc04071ed61ba7ce5f4903cc892985a68cdf8537bc5ffb658f0466231c83e1",
+    "result": "4 passed, 0 failed, 0 skipped"
+  },
+  "adjacentRegressionEvidence": {
+    "path": ".campaign-artifacts/REC-111-regression-final/REC-111-regression-final.trx",
+    "sha256": "dd7438888ad4768342ba3709d2d3696d6b7b3b845282a09ace194f8c8583d963",
+    "result": "66 passed, 0 failed, 0 skipped"
+  },
+  "maintainabilityEvidence": {
+    "path": ".campaign-artifacts/REC-111-maintainability-v2/REC-111-maintainability-v2.trx",
+    "sha256": "24f08cd4857904d153271c2a7196bb0f8bc9576fceac08b822cd5d488597ee48",
+    "result": "4 passed, 0 failed, 0 skipped"
+  },
+  "review": {
+    "independentRequired": false,
+    "finalReviewerPending": false,
+    "finalReviewer": {
+      "reviewer": "main session",
+      "independent": false,
+      "verdict": "approved",
+      "evidence": "Reviewed the exact 48-case matrix, callable/member/query-block recovery paths, the CONVERT compatibility regression, 66 adjacent tests, 4 maintainability checks and the fresh all-target Release gate."
+    }
+  },
+  "repairAttempts": 1,
+  "cleanStreakReset": true
+}

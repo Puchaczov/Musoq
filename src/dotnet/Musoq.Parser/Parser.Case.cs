@@ -8,7 +8,7 @@ namespace Musoq.Parser;
 
 public partial class Parser
 {
-    private ((Node When, Node Then)[] WhenThenNodes, Node ElseNode) ComposeCase()
+    private ((Node When, Node Then)[] WhenThenNodes, Node ElseNode, TextSpan Span) ComposeCase()
     {
         var caseToken = ConsumeAndGetToken(TokenType.Case);
 
@@ -43,9 +43,9 @@ public partial class Parser
 
         Consume(TokenType.Else);
         var elseNode = ComposeEqualityOperators();
-        Consume(TokenType.End);
+        var endToken = ConsumeAndGetToken(TokenType.End);
 
-        return (whenThenNodes.ToArray(), new ElseNode(elseNode));
+        return (whenThenNodes.ToArray(), new ElseNode(elseNode), caseToken.Span.Through(endToken.Span));
     }
 
 }

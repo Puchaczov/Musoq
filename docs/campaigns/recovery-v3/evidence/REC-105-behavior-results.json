@@ -1,0 +1,309 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-105",
+  "outcome": "passed",
+  "repositoryIdentity": {
+    "root": "D:\\repos\\Musoq",
+    "baselineCommit": "79369c4eadb27b8176abacdff46f5b68ae5da3ff",
+    "branch": "feature/runtime_v2_final",
+    "configuration": "Release",
+    "sdkObserved": "10.0.303"
+  },
+  "observationSequence": {
+    "frozenManifest": {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-105-pre-observation-manifest.json",
+      "sha256": "f6a5a5005b2f3425b094403610dea404fc6d326a809046086cdd0a8970332396",
+      "caseContractPath": "docs/campaigns/recovery-v3/evidence/REC-105-case-contract.json",
+      "caseContractSha256": "c163d2b08e399bbb64866c90b411f6acd2e65810c287af54deec657676ed1aee",
+      "preObservationPayloadSha256": "77874bb82c80b391e6b2f10470ddd7da07185795cb05c35e8e11023cb9de5ffd",
+      "matrixRevision": 1,
+      "registeredCandidateCases": 48,
+      "registeredValidationControls": 8
+    },
+    "finalReplay": {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC105\" --logger \"trx;LogFileName=REC-105-focused.trx\" --results-directory .campaign-artifacts/REC-105-focused/trx",
+      "exitCode": 0,
+      "passed": 64,
+      "skipped": 0,
+      "failed": 0,
+      "total": 64,
+      "candidateCases": 48,
+      "validationControls": 14,
+      "matrixChecks": 2,
+      "allValidCandidatesExecuted": true,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-105-focused/trx/REC-105-focused.trx",
+        "sha256": "a2bcd972c98b9c5cc37ecd0a81d724929717c964fde90e1653fab9cca3a9f511"
+      }
+    }
+  },
+  "focusedEvidence": {
+    "affectedEvaluatorSuites": {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC105|FullyQualifiedName~DiagnosticREC104|FullyQualifiedName~DiagnosticREC103|FullyQualifiedName~DiagnosticREC102|FullyQualifiedName~DiagnosticREC101|FullyQualifiedName~DiagnosticREC100|FullyQualifiedName~DiagnosticREC099|FullyQualifiedName~FirstClassEnumExecutionTests|FullyQualifiedName~BuildMetadataAndInferTypesVisitorTests|FullyQualifiedName~ExpressionIRTests|FullyQualifiedName~SpecDiagnosticQualityTests\"",
+      "exitCode": 0,
+      "passed": 396,
+      "skipped": 0,
+      "failed": 0,
+      "total": 396
+    },
+    "converterEnumSuite": {
+      "command": "dotnet test src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj -c Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~EnumQueryScopedRowTests\"",
+      "exitCode": 0,
+      "passed": 17,
+      "skipped": 0,
+      "failed": 0,
+      "total": 17
+    },
+    "interpretationSchemaSuite": {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-build --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticBinary044SchemaDefinitionTests|FullyQualifiedName~DiagnosticText049TextSchemaDefinitionTests|FullyQualifiedName~DiagnosticText051TextSchemaCompositionTests\"",
+      "exitCode": 0,
+      "passed": 17,
+      "skipped": 0,
+      "failed": 0,
+      "total": 17
+    },
+    "campaignToolTests": {
+      "command": "python -m unittest discover -s docs/campaigns/recovery-v3/tools -p \"test_*.py\" -v",
+      "exitCode": 0,
+      "passed": 46,
+      "skipped": 0,
+      "failed": 0,
+      "total": 46
+    },
+    "caseContractVerification": {
+      "command": "python docs/campaigns/recovery-v3/tools/case_contract.py verify --root . --scope-id REC-105 --cases docs/campaigns/recovery-v3/evidence/REC-105-case-contract.json --manifest docs/campaigns/recovery-v3/evidence/REC-105-pre-observation-manifest.json",
+      "exitCode": 0,
+      "verified": true,
+      "caseCount": 48,
+      "preObservationPayloadSha256": "77874bb82c80b391e6b2f10470ddd7da07185795cb05c35e8e11023cb9de5ffd"
+    },
+    "fullReleaseGate": {
+      "command": "python docs/campaigns/recovery-v3/tools/full_gate.py run --scope-id REC-105 --solution src/dotnet/Musoq.sln --configuration Release --output .campaign-artifacts/REC-105-full-gate --evidence docs/campaigns/recovery-v3/evidence/REC-105-full-gate.json --expected-inventory docs/campaigns/recovery-v3/evidence/REC-085-expected-inventory.json --skip-allowlist docs/campaigns/recovery-v3/evidence/REC-085-skip-allowlist.json",
+      "exitCode": 0,
+      "runId": "REC-105-b5aaefe9d888",
+      "targetCount": 8,
+      "passed": 20441,
+      "skipped": 3,
+      "failed": 0,
+      "total": 20444,
+      "testedPayloadSha256": "117e24bb1d9930ee689a750e0bcaaea8270e648eb16401b8cf6e7222d6e82006",
+      "testedPayloadFileCount": 5764,
+      "targets": [
+        {
+          "targetId": "Musoq.Benchmarks.Tests/net10.0",
+          "passed": 98,
+          "skipped": 0,
+          "failed": 0,
+          "total": 98
+        },
+        {
+          "targetId": "Musoq.Converter.Tests/net10.0",
+          "passed": 1117,
+          "skipped": 0,
+          "failed": 0,
+          "total": 1117
+        },
+        {
+          "targetId": "Musoq.Evaluator.Tests/net10.0",
+          "passed": 11245,
+          "skipped": 3,
+          "failed": 0,
+          "total": 11248
+        },
+        {
+          "targetId": "Musoq.Examples.DataSources.Csv.Tests/net10.0",
+          "passed": 49,
+          "skipped": 0,
+          "failed": 0,
+          "total": 49
+        },
+        {
+          "targetId": "Musoq.Examples.DataSources.Git.Tests/net10.0",
+          "passed": 45,
+          "skipped": 0,
+          "failed": 0,
+          "total": 45
+        },
+        {
+          "targetId": "Musoq.Parser.Tests/net10.0",
+          "passed": 2608,
+          "skipped": 0,
+          "failed": 0,
+          "total": 2608
+        },
+        {
+          "targetId": "Musoq.Plugins.Tests/net10.0",
+          "passed": 4743,
+          "skipped": 0,
+          "failed": 0,
+          "total": 4743
+        },
+        {
+          "targetId": "Musoq.Schema.Tests/net10.0",
+          "passed": 536,
+          "skipped": 0,
+          "failed": 0,
+          "total": 536
+        }
+      ]
+    }
+  },
+  "candidateResults": {
+    "caseCount": 48,
+    "novelCandidates": 48,
+    "duplicateCandidates": 0,
+    "metamorphicVariants": 0,
+    "cleanStreak": 48,
+    "families": {
+      "enumNameRecovery": {
+        "cases": 16,
+        "passed": 16,
+        "metadataFailures": 9,
+        "metadataValid": 7,
+        "primaryDiagnostics": {
+          "MQ3005_TypeMismatch": 8,
+          "MQ3107_UnknownEnumType": 1
+        }
+      },
+      "enumMemberRecovery": {
+        "cases": 12,
+        "passed": 12,
+        "primaryDiagnostics": {
+          "MQ3108_UnknownEnumMember": 12
+        }
+      },
+      "enumOperatorAndOutputRules": {
+        "cases": 20,
+        "passed": 20,
+        "primaryDiagnostics": {
+          "MQ3110_UnsupportedEnumOperator": 19,
+          "MQ3112_UnsupportedEnumScriptParameter": 1
+        }
+      },
+      "interpretationBoundaryControls": {
+        "cases": 8,
+        "passed": 8,
+        "binaryReferenceDiagnostics": {
+          "MQ2030_UnsupportedSyntax": 2,
+          "MQ4003_UndefinedSchemaReference": 2
+        },
+        "textReferenceDiagnostics": {
+          "MQ4003_UndefinedSchemaReference": 2,
+          "MQ2001_UnexpectedToken": 2
+        },
+        "directEnumDescriptorCreated": false,
+        "tableEnumSyntaxRemainsSeparate": true
+      }
+    },
+    "diagnosticPolicy": {
+      "invalidCandidates": 41,
+      "validMetadataCandidates": 7,
+      "rootDiagnosticPhase": "Bind",
+      "rootDiagnosticSourceDomain": "Query",
+      "unexpectedSecondaryDiagnostics": 0,
+      "expectedMetadataProjectionCascades": 8,
+      "generatedCodeErrors": 0,
+      "internalCompilerErrors": 0,
+      "allInvalidCandidatesAtBind": true,
+      "actionableGuidanceAsserted": true
+    },
+    "controls": {
+      "localNamesCaseInsensitiveAndMetadataPreserved": true,
+      "nativeNamesRequireExactQualifiedIdentity": true,
+      "exactMembersEqualityMembershipAndFlags": true,
+      "explicitBridgesAndEnumPartitionKey": true,
+      "interpretationAnnotationsNotInferred": true,
+      "tableEnumSupportDoesNotImplyInterpretationEnumSupport": true,
+      "candidateMatrixHasExactFamilyCounts": true
+    }
+  },
+  "productionChange": {
+    "changed": false,
+    "productionFixes": 0,
+    "files": [],
+    "judgment": "REC-105 found no production defect within its bounded enum-name, member, operator, output, or interpretation-exclusion contract. Coverage was added in evaluator and interpretation-schema diagnostics only; existing production behavior passed the frozen expectations."
+  },
+  "sourceBindings": {
+    "evaluatorTestSourceSha256": "b701b8ea613a229605b196187d741428d8ca3abfe41d0e83f3010a745071cf65",
+    "interpretationTestSourceSha256": "efc4ce37c1194f3912f827b1f2688bbfad12a0a282ce03d26858ef8560388d6b",
+    "coreSpecSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+    "tableSpecSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca",
+    "binaryTextSpecSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+    "enumGuideSha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494",
+    "catalogSha256": "6bcec5e94d51905fead0b99875c18fe350f679743cd5ce9dbc969d0ab6cdb670",
+    "caseContractSha256": "c163d2b08e399bbb64866c90b411f6acd2e65810c287af54deec657676ed1aee",
+    "preObservationManifestSha256": "f6a5a5005b2f3425b094403610dea404fc6d326a809046086cdd0a8970332396",
+    "fullGateSha256": "963cae521bef8f065bc630aa836546a1bec07bb3d056773f7bb8967f9d351d04"
+  },
+  "fullGate": {
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-105-full-gate.json",
+    "evidenceSha256": "963cae521bef8f065bc630aa836546a1bec07bb3d056773f7bb8967f9d351d04",
+    "runId": "REC-105-b5aaefe9d888",
+    "testedPayloadSha256": "117e24bb1d9930ee689a750e0bcaaea8270e648eb16401b8cf6e7222d6e82006",
+    "testedPayloadFileCount": 5764,
+    "targetCount": 8,
+    "passed": 20441,
+    "skipped": 3,
+    "failed": 0,
+    "total": 20444,
+    "targetSummaries": [
+      {
+        "targetId": "Musoq.Benchmarks.Tests/net10.0",
+        "passed": 98,
+        "skipped": 0,
+        "failed": 0,
+        "total": 98
+      },
+      {
+        "targetId": "Musoq.Converter.Tests/net10.0",
+        "passed": 1117,
+        "skipped": 0,
+        "failed": 0,
+        "total": 1117
+      },
+      {
+        "targetId": "Musoq.Evaluator.Tests/net10.0",
+        "passed": 11245,
+        "skipped": 3,
+        "failed": 0,
+        "total": 11248
+      },
+      {
+        "targetId": "Musoq.Examples.DataSources.Csv.Tests/net10.0",
+        "passed": 49,
+        "skipped": 0,
+        "failed": 0,
+        "total": 49
+      },
+      {
+        "targetId": "Musoq.Examples.DataSources.Git.Tests/net10.0",
+        "passed": 45,
+        "skipped": 0,
+        "failed": 0,
+        "total": 45
+      },
+      {
+        "targetId": "Musoq.Parser.Tests/net10.0",
+        "passed": 2608,
+        "skipped": 0,
+        "failed": 0,
+        "total": 2608
+      },
+      {
+        "targetId": "Musoq.Plugins.Tests/net10.0",
+        "passed": 4743,
+        "skipped": 0,
+        "failed": 0,
+        "total": 4743
+      },
+      {
+        "targetId": "Musoq.Schema.Tests/net10.0",
+        "passed": 536,
+        "skipped": 0,
+        "failed": 0,
+        "total": 536
+      }
+    ]
+  },
+  "observedAt": "2026-09-07T05:11:01.797Z"
+}

@@ -1,0 +1,3173 @@
+{
+  "formatVersion": 1,
+  "cases": [
+    {
+      "formatVersion": 1,
+      "caseId": "DEPTH-01",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded depth workload for DEPTH-01 (depth=2).",
+      "seedQuery": "select 1 /* REC-138-DEPTH-01-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NestedMalformedQueries_ShouldReturnBoundedDiagnosticsWithoutStackOverflow",
+        "proof": "The permanent depth family parses twelve bounded malformed nesting workloads and asserts error output remains bounded without an internal compiler diagnostic."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered DEPTH-01 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "DEPTH-01-seed",
+        "after": "DEPTH-01-candidate",
+        "resultQuery": "select 1 /* REC-138-DEPTH-01-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared depth=2 outcome for DEPTH-01 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_DEPTH",
+        "rootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+        "context": "DEPTH/DEPTH-01/depth=2"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-DEPTH-01-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "DEPTH-02",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded depth workload for DEPTH-02 (depth=4).",
+      "seedQuery": "select 1 /* REC-138-DEPTH-02-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NestedMalformedQueries_ShouldReturnBoundedDiagnosticsWithoutStackOverflow",
+        "proof": "The permanent depth family parses twelve bounded malformed nesting workloads and asserts error output remains bounded without an internal compiler diagnostic."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered DEPTH-02 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "DEPTH-02-seed",
+        "after": "DEPTH-02-candidate",
+        "resultQuery": "select 1 /* REC-138-DEPTH-02-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared depth=4 outcome for DEPTH-02 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_DEPTH",
+        "rootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+        "context": "DEPTH/DEPTH-02/depth=4"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-DEPTH-02-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "DEPTH-03",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded depth workload for DEPTH-03 (depth=8).",
+      "seedQuery": "select 1 /* REC-138-DEPTH-03-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NestedMalformedQueries_ShouldReturnBoundedDiagnosticsWithoutStackOverflow",
+        "proof": "The permanent depth family parses twelve bounded malformed nesting workloads and asserts error output remains bounded without an internal compiler diagnostic."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered DEPTH-03 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "DEPTH-03-seed",
+        "after": "DEPTH-03-candidate",
+        "resultQuery": "select 1 /* REC-138-DEPTH-03-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared depth=8 outcome for DEPTH-03 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_DEPTH",
+        "rootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+        "context": "DEPTH/DEPTH-03/depth=8"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-DEPTH-03-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "DEPTH-04",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded depth workload for DEPTH-04 (depth=16).",
+      "seedQuery": "select 1 /* REC-138-DEPTH-04-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NestedMalformedQueries_ShouldReturnBoundedDiagnosticsWithoutStackOverflow",
+        "proof": "The permanent depth family parses twelve bounded malformed nesting workloads and asserts error output remains bounded without an internal compiler diagnostic."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered DEPTH-04 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "DEPTH-04-seed",
+        "after": "DEPTH-04-candidate",
+        "resultQuery": "select 1 /* REC-138-DEPTH-04-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared depth=16 outcome for DEPTH-04 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_DEPTH",
+        "rootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+        "context": "DEPTH/DEPTH-04/depth=16"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-DEPTH-04-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "DEPTH-05",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded depth workload for DEPTH-05 (depth=24).",
+      "seedQuery": "select 1 /* REC-138-DEPTH-05-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NestedMalformedQueries_ShouldReturnBoundedDiagnosticsWithoutStackOverflow",
+        "proof": "The permanent depth family parses twelve bounded malformed nesting workloads and asserts error output remains bounded without an internal compiler diagnostic."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered DEPTH-05 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "DEPTH-05-seed",
+        "after": "DEPTH-05-candidate",
+        "resultQuery": "select 1 /* REC-138-DEPTH-05-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared depth=24 outcome for DEPTH-05 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_DEPTH",
+        "rootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+        "context": "DEPTH/DEPTH-05/depth=24"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-DEPTH-05-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "DEPTH-06",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded depth workload for DEPTH-06 (depth=32).",
+      "seedQuery": "select 1 /* REC-138-DEPTH-06-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NestedMalformedQueries_ShouldReturnBoundedDiagnosticsWithoutStackOverflow",
+        "proof": "The permanent depth family parses twelve bounded malformed nesting workloads and asserts error output remains bounded without an internal compiler diagnostic."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered DEPTH-06 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "DEPTH-06-seed",
+        "after": "DEPTH-06-candidate",
+        "resultQuery": "select 1 /* REC-138-DEPTH-06-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared depth=32 outcome for DEPTH-06 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_DEPTH",
+        "rootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+        "context": "DEPTH/DEPTH-06/depth=32"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-DEPTH-06-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "DEPTH-07",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded depth workload for DEPTH-07 (depth=48).",
+      "seedQuery": "select 1 /* REC-138-DEPTH-07-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NestedMalformedQueries_ShouldReturnBoundedDiagnosticsWithoutStackOverflow",
+        "proof": "The permanent depth family parses twelve bounded malformed nesting workloads and asserts error output remains bounded without an internal compiler diagnostic."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered DEPTH-07 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "DEPTH-07-seed",
+        "after": "DEPTH-07-candidate",
+        "resultQuery": "select 1 /* REC-138-DEPTH-07-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared depth=48 outcome for DEPTH-07 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_DEPTH",
+        "rootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+        "context": "DEPTH/DEPTH-07/depth=48"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-DEPTH-07-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "DEPTH-08",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded depth workload for DEPTH-08 (depth=64).",
+      "seedQuery": "select 1 /* REC-138-DEPTH-08-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NestedMalformedQueries_ShouldReturnBoundedDiagnosticsWithoutStackOverflow",
+        "proof": "The permanent depth family parses twelve bounded malformed nesting workloads and asserts error output remains bounded without an internal compiler diagnostic."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered DEPTH-08 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "DEPTH-08-seed",
+        "after": "DEPTH-08-candidate",
+        "resultQuery": "select 1 /* REC-138-DEPTH-08-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared depth=64 outcome for DEPTH-08 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_DEPTH",
+        "rootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+        "context": "DEPTH/DEPTH-08/depth=64"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-DEPTH-08-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "DEPTH-09",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded depth workload for DEPTH-09 (depth=96).",
+      "seedQuery": "select 1 /* REC-138-DEPTH-09-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NestedMalformedQueries_ShouldReturnBoundedDiagnosticsWithoutStackOverflow",
+        "proof": "The permanent depth family parses twelve bounded malformed nesting workloads and asserts error output remains bounded without an internal compiler diagnostic."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered DEPTH-09 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "DEPTH-09-seed",
+        "after": "DEPTH-09-candidate",
+        "resultQuery": "select 1 /* REC-138-DEPTH-09-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared depth=96 outcome for DEPTH-09 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_DEPTH",
+        "rootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+        "context": "DEPTH/DEPTH-09/depth=96"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-DEPTH-09-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "DEPTH-10",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded depth workload for DEPTH-10 (depth=128).",
+      "seedQuery": "select 1 /* REC-138-DEPTH-10-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NestedMalformedQueries_ShouldReturnBoundedDiagnosticsWithoutStackOverflow",
+        "proof": "The permanent depth family parses twelve bounded malformed nesting workloads and asserts error output remains bounded without an internal compiler diagnostic."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered DEPTH-10 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "DEPTH-10-seed",
+        "after": "DEPTH-10-candidate",
+        "resultQuery": "select 1 /* REC-138-DEPTH-10-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared depth=128 outcome for DEPTH-10 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_DEPTH",
+        "rootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+        "context": "DEPTH/DEPTH-10/depth=128"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-DEPTH-10-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "DEPTH-11",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded depth workload for DEPTH-11 (depth=160).",
+      "seedQuery": "select 1 /* REC-138-DEPTH-11-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NestedMalformedQueries_ShouldReturnBoundedDiagnosticsWithoutStackOverflow",
+        "proof": "The permanent depth family parses twelve bounded malformed nesting workloads and asserts error output remains bounded without an internal compiler diagnostic."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered DEPTH-11 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "DEPTH-11-seed",
+        "after": "DEPTH-11-candidate",
+        "resultQuery": "select 1 /* REC-138-DEPTH-11-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared depth=160 outcome for DEPTH-11 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_DEPTH",
+        "rootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+        "context": "DEPTH/DEPTH-11/depth=160"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-DEPTH-11-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "DEPTH-12",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded depth workload for DEPTH-12 (depth=192).",
+      "seedQuery": "select 1 /* REC-138-DEPTH-12-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NestedMalformedQueries_ShouldReturnBoundedDiagnosticsWithoutStackOverflow",
+        "proof": "The permanent depth family parses twelve bounded malformed nesting workloads and asserts error output remains bounded without an internal compiler diagnostic."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered DEPTH-12 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "DEPTH-12-seed",
+        "after": "DEPTH-12-candidate",
+        "resultQuery": "select 1 /* REC-138-DEPTH-12-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared depth=192 outcome for DEPTH-12 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_DEPTH",
+        "rootCause": "Malformed nesting must fail with a bounded parser diagnostic rather than stack overflow or an internal compiler diagnostic.",
+        "context": "DEPTH/DEPTH-12/depth=192"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-DEPTH-12-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LITERAL-01",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded literal workload for LITERAL-01 (malformedHexLength=8).",
+      "seedQuery": "select 1 /* REC-138-LITERAL-01-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "LongMalformedLiterals_ShouldKeepRenderedDiagnosticsBoundedAndHonorCancellation",
+        "proof": "The permanent literal family scans twelve declared malformed-hex lengths, verifies bounded rendering, and checks cancellation is preserved."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered LITERAL-01 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "LITERAL-01-seed",
+        "after": "LITERAL-01-candidate",
+        "resultQuery": "select 1 /* REC-138-LITERAL-01-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared malformedHexLength=8 outcome for LITERAL-01 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_LITERAL",
+        "rootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+        "context": "LITERAL/LITERAL-01/malformedHexLength=8"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-LITERAL-01-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LITERAL-02",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded literal workload for LITERAL-02 (malformedHexLength=16).",
+      "seedQuery": "select 1 /* REC-138-LITERAL-02-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "LongMalformedLiterals_ShouldKeepRenderedDiagnosticsBoundedAndHonorCancellation",
+        "proof": "The permanent literal family scans twelve declared malformed-hex lengths, verifies bounded rendering, and checks cancellation is preserved."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered LITERAL-02 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "LITERAL-02-seed",
+        "after": "LITERAL-02-candidate",
+        "resultQuery": "select 1 /* REC-138-LITERAL-02-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared malformedHexLength=16 outcome for LITERAL-02 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_LITERAL",
+        "rootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+        "context": "LITERAL/LITERAL-02/malformedHexLength=16"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-LITERAL-02-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LITERAL-03",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded literal workload for LITERAL-03 (malformedHexLength=32).",
+      "seedQuery": "select 1 /* REC-138-LITERAL-03-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "LongMalformedLiterals_ShouldKeepRenderedDiagnosticsBoundedAndHonorCancellation",
+        "proof": "The permanent literal family scans twelve declared malformed-hex lengths, verifies bounded rendering, and checks cancellation is preserved."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered LITERAL-03 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "LITERAL-03-seed",
+        "after": "LITERAL-03-candidate",
+        "resultQuery": "select 1 /* REC-138-LITERAL-03-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared malformedHexLength=32 outcome for LITERAL-03 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_LITERAL",
+        "rootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+        "context": "LITERAL/LITERAL-03/malformedHexLength=32"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-LITERAL-03-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LITERAL-04",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded literal workload for LITERAL-04 (malformedHexLength=64).",
+      "seedQuery": "select 1 /* REC-138-LITERAL-04-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "LongMalformedLiterals_ShouldKeepRenderedDiagnosticsBoundedAndHonorCancellation",
+        "proof": "The permanent literal family scans twelve declared malformed-hex lengths, verifies bounded rendering, and checks cancellation is preserved."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered LITERAL-04 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "LITERAL-04-seed",
+        "after": "LITERAL-04-candidate",
+        "resultQuery": "select 1 /* REC-138-LITERAL-04-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared malformedHexLength=64 outcome for LITERAL-04 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_LITERAL",
+        "rootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+        "context": "LITERAL/LITERAL-04/malformedHexLength=64"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-LITERAL-04-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LITERAL-05",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded literal workload for LITERAL-05 (malformedHexLength=128).",
+      "seedQuery": "select 1 /* REC-138-LITERAL-05-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "LongMalformedLiterals_ShouldKeepRenderedDiagnosticsBoundedAndHonorCancellation",
+        "proof": "The permanent literal family scans twelve declared malformed-hex lengths, verifies bounded rendering, and checks cancellation is preserved."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered LITERAL-05 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "LITERAL-05-seed",
+        "after": "LITERAL-05-candidate",
+        "resultQuery": "select 1 /* REC-138-LITERAL-05-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared malformedHexLength=128 outcome for LITERAL-05 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_LITERAL",
+        "rootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+        "context": "LITERAL/LITERAL-05/malformedHexLength=128"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-LITERAL-05-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LITERAL-06",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded literal workload for LITERAL-06 (malformedHexLength=256).",
+      "seedQuery": "select 1 /* REC-138-LITERAL-06-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "LongMalformedLiterals_ShouldKeepRenderedDiagnosticsBoundedAndHonorCancellation",
+        "proof": "The permanent literal family scans twelve declared malformed-hex lengths, verifies bounded rendering, and checks cancellation is preserved."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered LITERAL-06 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "LITERAL-06-seed",
+        "after": "LITERAL-06-candidate",
+        "resultQuery": "select 1 /* REC-138-LITERAL-06-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared malformedHexLength=256 outcome for LITERAL-06 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_LITERAL",
+        "rootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+        "context": "LITERAL/LITERAL-06/malformedHexLength=256"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-LITERAL-06-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LITERAL-07",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded literal workload for LITERAL-07 (malformedHexLength=512).",
+      "seedQuery": "select 1 /* REC-138-LITERAL-07-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "LongMalformedLiterals_ShouldKeepRenderedDiagnosticsBoundedAndHonorCancellation",
+        "proof": "The permanent literal family scans twelve declared malformed-hex lengths, verifies bounded rendering, and checks cancellation is preserved."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered LITERAL-07 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "LITERAL-07-seed",
+        "after": "LITERAL-07-candidate",
+        "resultQuery": "select 1 /* REC-138-LITERAL-07-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared malformedHexLength=512 outcome for LITERAL-07 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_LITERAL",
+        "rootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+        "context": "LITERAL/LITERAL-07/malformedHexLength=512"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-LITERAL-07-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LITERAL-08",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded literal workload for LITERAL-08 (malformedHexLength=1024).",
+      "seedQuery": "select 1 /* REC-138-LITERAL-08-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "LongMalformedLiterals_ShouldKeepRenderedDiagnosticsBoundedAndHonorCancellation",
+        "proof": "The permanent literal family scans twelve declared malformed-hex lengths, verifies bounded rendering, and checks cancellation is preserved."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered LITERAL-08 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "LITERAL-08-seed",
+        "after": "LITERAL-08-candidate",
+        "resultQuery": "select 1 /* REC-138-LITERAL-08-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared malformedHexLength=1024 outcome for LITERAL-08 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_LITERAL",
+        "rootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+        "context": "LITERAL/LITERAL-08/malformedHexLength=1024"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-LITERAL-08-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LITERAL-09",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded literal workload for LITERAL-09 (malformedHexLength=2048).",
+      "seedQuery": "select 1 /* REC-138-LITERAL-09-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "LongMalformedLiterals_ShouldKeepRenderedDiagnosticsBoundedAndHonorCancellation",
+        "proof": "The permanent literal family scans twelve declared malformed-hex lengths, verifies bounded rendering, and checks cancellation is preserved."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered LITERAL-09 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "LITERAL-09-seed",
+        "after": "LITERAL-09-candidate",
+        "resultQuery": "select 1 /* REC-138-LITERAL-09-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared malformedHexLength=2048 outcome for LITERAL-09 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_LITERAL",
+        "rootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+        "context": "LITERAL/LITERAL-09/malformedHexLength=2048"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-LITERAL-09-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LITERAL-10",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded literal workload for LITERAL-10 (malformedHexLength=4096).",
+      "seedQuery": "select 1 /* REC-138-LITERAL-10-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "LongMalformedLiterals_ShouldKeepRenderedDiagnosticsBoundedAndHonorCancellation",
+        "proof": "The permanent literal family scans twelve declared malformed-hex lengths, verifies bounded rendering, and checks cancellation is preserved."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered LITERAL-10 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "LITERAL-10-seed",
+        "after": "LITERAL-10-candidate",
+        "resultQuery": "select 1 /* REC-138-LITERAL-10-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared malformedHexLength=4096 outcome for LITERAL-10 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_LITERAL",
+        "rootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+        "context": "LITERAL/LITERAL-10/malformedHexLength=4096"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-LITERAL-10-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LITERAL-11",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded literal workload for LITERAL-11 (malformedHexLength=8192).",
+      "seedQuery": "select 1 /* REC-138-LITERAL-11-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "LongMalformedLiterals_ShouldKeepRenderedDiagnosticsBoundedAndHonorCancellation",
+        "proof": "The permanent literal family scans twelve declared malformed-hex lengths, verifies bounded rendering, and checks cancellation is preserved."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered LITERAL-11 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "LITERAL-11-seed",
+        "after": "LITERAL-11-candidate",
+        "resultQuery": "select 1 /* REC-138-LITERAL-11-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared malformedHexLength=8192 outcome for LITERAL-11 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_LITERAL",
+        "rootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+        "context": "LITERAL/LITERAL-11/malformedHexLength=8192"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-LITERAL-11-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LITERAL-12",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded literal workload for LITERAL-12 (malformedHexLength=16384).",
+      "seedQuery": "select 1 /* REC-138-LITERAL-12-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "LongMalformedLiterals_ShouldKeepRenderedDiagnosticsBoundedAndHonorCancellation",
+        "proof": "The permanent literal family scans twelve declared malformed-hex lengths, verifies bounded rendering, and checks cancellation is preserved."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered LITERAL-12 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "LITERAL-12-seed",
+        "after": "LITERAL-12-candidate",
+        "resultQuery": "select 1 /* REC-138-LITERAL-12-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared malformedHexLength=16384 outcome for LITERAL-12 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_LITERAL",
+        "rootCause": "Malformed literal text must produce bounded rendered diagnostics and preserve cooperative cancellation.",
+        "context": "LITERAL/LITERAL-12/malformedHexLength=16384"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-LITERAL-12-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "VOLUME-01",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded volume workload for VOLUME-01 (statementCount=16,maxErrors=3).",
+      "seedQuery": "select 1 /* REC-138-VOLUME-01-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "RepeatedMalformedStatements_ShouldRespectDeclaredDiagnosticLimit",
+        "proof": "The permanent volume family parses twelve repeated-malformed-statement workloads with explicit MaxErrors values and records bounded error output."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered VOLUME-01 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "VOLUME-01-seed",
+        "after": "VOLUME-01-candidate",
+        "resultQuery": "select 1 /* REC-138-VOLUME-01-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared statementCount=16,maxErrors=3 outcome for VOLUME-01 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_VOLUME",
+        "rootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+        "context": "VOLUME/VOLUME-01/statementCount=16,maxErrors=3"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-VOLUME-01-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "VOLUME-02",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded volume workload for VOLUME-02 (statementCount=24,maxErrors=4).",
+      "seedQuery": "select 1 /* REC-138-VOLUME-02-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "RepeatedMalformedStatements_ShouldRespectDeclaredDiagnosticLimit",
+        "proof": "The permanent volume family parses twelve repeated-malformed-statement workloads with explicit MaxErrors values and records bounded error output."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered VOLUME-02 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "VOLUME-02-seed",
+        "after": "VOLUME-02-candidate",
+        "resultQuery": "select 1 /* REC-138-VOLUME-02-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared statementCount=24,maxErrors=4 outcome for VOLUME-02 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_VOLUME",
+        "rootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+        "context": "VOLUME/VOLUME-02/statementCount=24,maxErrors=4"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-VOLUME-02-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "VOLUME-03",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded volume workload for VOLUME-03 (statementCount=32,maxErrors=5).",
+      "seedQuery": "select 1 /* REC-138-VOLUME-03-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "RepeatedMalformedStatements_ShouldRespectDeclaredDiagnosticLimit",
+        "proof": "The permanent volume family parses twelve repeated-malformed-statement workloads with explicit MaxErrors values and records bounded error output."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered VOLUME-03 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "VOLUME-03-seed",
+        "after": "VOLUME-03-candidate",
+        "resultQuery": "select 1 /* REC-138-VOLUME-03-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared statementCount=32,maxErrors=5 outcome for VOLUME-03 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_VOLUME",
+        "rootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+        "context": "VOLUME/VOLUME-03/statementCount=32,maxErrors=5"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-VOLUME-03-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "VOLUME-04",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded volume workload for VOLUME-04 (statementCount=48,maxErrors=6).",
+      "seedQuery": "select 1 /* REC-138-VOLUME-04-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "RepeatedMalformedStatements_ShouldRespectDeclaredDiagnosticLimit",
+        "proof": "The permanent volume family parses twelve repeated-malformed-statement workloads with explicit MaxErrors values and records bounded error output."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered VOLUME-04 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "VOLUME-04-seed",
+        "after": "VOLUME-04-candidate",
+        "resultQuery": "select 1 /* REC-138-VOLUME-04-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared statementCount=48,maxErrors=6 outcome for VOLUME-04 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_VOLUME",
+        "rootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+        "context": "VOLUME/VOLUME-04/statementCount=48,maxErrors=6"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-VOLUME-04-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "VOLUME-05",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded volume workload for VOLUME-05 (statementCount=64,maxErrors=7).",
+      "seedQuery": "select 1 /* REC-138-VOLUME-05-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "RepeatedMalformedStatements_ShouldRespectDeclaredDiagnosticLimit",
+        "proof": "The permanent volume family parses twelve repeated-malformed-statement workloads with explicit MaxErrors values and records bounded error output."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered VOLUME-05 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "VOLUME-05-seed",
+        "after": "VOLUME-05-candidate",
+        "resultQuery": "select 1 /* REC-138-VOLUME-05-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared statementCount=64,maxErrors=7 outcome for VOLUME-05 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_VOLUME",
+        "rootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+        "context": "VOLUME/VOLUME-05/statementCount=64,maxErrors=7"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-VOLUME-05-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "VOLUME-06",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded volume workload for VOLUME-06 (statementCount=96,maxErrors=8).",
+      "seedQuery": "select 1 /* REC-138-VOLUME-06-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "RepeatedMalformedStatements_ShouldRespectDeclaredDiagnosticLimit",
+        "proof": "The permanent volume family parses twelve repeated-malformed-statement workloads with explicit MaxErrors values and records bounded error output."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered VOLUME-06 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "VOLUME-06-seed",
+        "after": "VOLUME-06-candidate",
+        "resultQuery": "select 1 /* REC-138-VOLUME-06-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared statementCount=96,maxErrors=8 outcome for VOLUME-06 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_VOLUME",
+        "rootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+        "context": "VOLUME/VOLUME-06/statementCount=96,maxErrors=8"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-VOLUME-06-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "VOLUME-07",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded volume workload for VOLUME-07 (statementCount=128,maxErrors=9).",
+      "seedQuery": "select 1 /* REC-138-VOLUME-07-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "RepeatedMalformedStatements_ShouldRespectDeclaredDiagnosticLimit",
+        "proof": "The permanent volume family parses twelve repeated-malformed-statement workloads with explicit MaxErrors values and records bounded error output."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered VOLUME-07 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "VOLUME-07-seed",
+        "after": "VOLUME-07-candidate",
+        "resultQuery": "select 1 /* REC-138-VOLUME-07-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared statementCount=128,maxErrors=9 outcome for VOLUME-07 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_VOLUME",
+        "rootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+        "context": "VOLUME/VOLUME-07/statementCount=128,maxErrors=9"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-VOLUME-07-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "VOLUME-08",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded volume workload for VOLUME-08 (statementCount=192,maxErrors=10).",
+      "seedQuery": "select 1 /* REC-138-VOLUME-08-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "RepeatedMalformedStatements_ShouldRespectDeclaredDiagnosticLimit",
+        "proof": "The permanent volume family parses twelve repeated-malformed-statement workloads with explicit MaxErrors values and records bounded error output."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered VOLUME-08 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "VOLUME-08-seed",
+        "after": "VOLUME-08-candidate",
+        "resultQuery": "select 1 /* REC-138-VOLUME-08-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared statementCount=192,maxErrors=10 outcome for VOLUME-08 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_VOLUME",
+        "rootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+        "context": "VOLUME/VOLUME-08/statementCount=192,maxErrors=10"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-VOLUME-08-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "VOLUME-09",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded volume workload for VOLUME-09 (statementCount=256,maxErrors=11).",
+      "seedQuery": "select 1 /* REC-138-VOLUME-09-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "RepeatedMalformedStatements_ShouldRespectDeclaredDiagnosticLimit",
+        "proof": "The permanent volume family parses twelve repeated-malformed-statement workloads with explicit MaxErrors values and records bounded error output."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered VOLUME-09 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "VOLUME-09-seed",
+        "after": "VOLUME-09-candidate",
+        "resultQuery": "select 1 /* REC-138-VOLUME-09-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared statementCount=256,maxErrors=11 outcome for VOLUME-09 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_VOLUME",
+        "rootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+        "context": "VOLUME/VOLUME-09/statementCount=256,maxErrors=11"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-VOLUME-09-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "VOLUME-10",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded volume workload for VOLUME-10 (statementCount=384,maxErrors=12).",
+      "seedQuery": "select 1 /* REC-138-VOLUME-10-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "RepeatedMalformedStatements_ShouldRespectDeclaredDiagnosticLimit",
+        "proof": "The permanent volume family parses twelve repeated-malformed-statement workloads with explicit MaxErrors values and records bounded error output."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered VOLUME-10 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "VOLUME-10-seed",
+        "after": "VOLUME-10-candidate",
+        "resultQuery": "select 1 /* REC-138-VOLUME-10-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared statementCount=384,maxErrors=12 outcome for VOLUME-10 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_VOLUME",
+        "rootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+        "context": "VOLUME/VOLUME-10/statementCount=384,maxErrors=12"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-VOLUME-10-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "VOLUME-11",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded volume workload for VOLUME-11 (statementCount=512,maxErrors=13).",
+      "seedQuery": "select 1 /* REC-138-VOLUME-11-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "RepeatedMalformedStatements_ShouldRespectDeclaredDiagnosticLimit",
+        "proof": "The permanent volume family parses twelve repeated-malformed-statement workloads with explicit MaxErrors values and records bounded error output."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered VOLUME-11 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "VOLUME-11-seed",
+        "after": "VOLUME-11-candidate",
+        "resultQuery": "select 1 /* REC-138-VOLUME-11-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared statementCount=512,maxErrors=13 outcome for VOLUME-11 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_VOLUME",
+        "rootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+        "context": "VOLUME/VOLUME-11/statementCount=512,maxErrors=13"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-VOLUME-11-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "VOLUME-12",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded volume workload for VOLUME-12 (statementCount=768,maxErrors=14).",
+      "seedQuery": "select 1 /* REC-138-VOLUME-12-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "RepeatedMalformedStatements_ShouldRespectDeclaredDiagnosticLimit",
+        "proof": "The permanent volume family parses twelve repeated-malformed-statement workloads with explicit MaxErrors values and records bounded error output."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered VOLUME-12 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "VOLUME-12-seed",
+        "after": "VOLUME-12-candidate",
+        "resultQuery": "select 1 /* REC-138-VOLUME-12-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared statementCount=768,maxErrors=14 outcome for VOLUME-12 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_VOLUME",
+        "rootCause": "Repeated malformed statements must respect the declared diagnostic collection limit and terminate with a graceful parse result.",
+        "context": "VOLUME/VOLUME-12/statementCount=768,maxErrors=14"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-VOLUME-12-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CANDIDATE-01",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded candidate workload for CANDIDATE-01 (candidateCount=16).",
+      "seedQuery": "select 1 /* REC-138-CANDIDATE-01-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NearMatchingDescriptorNames_ShouldRankDeterministicallyAndBoundRenderedCandidates",
+        "proof": "The permanent candidate family renders descriptor facts for twelve candidate-set sizes and asserts deterministic top-five ranking without arbitrary edits."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered CANDIDATE-01 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "CANDIDATE-01-seed",
+        "after": "CANDIDATE-01-candidate",
+        "resultQuery": "select 1 /* REC-138-CANDIDATE-01-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared candidateCount=16 outcome for CANDIDATE-01 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_CANDIDATE",
+        "rootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+        "context": "CANDIDATE/CANDIDATE-01/candidateCount=16"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-CANDIDATE-01-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CANDIDATE-02",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded candidate workload for CANDIDATE-02 (candidateCount=32).",
+      "seedQuery": "select 1 /* REC-138-CANDIDATE-02-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NearMatchingDescriptorNames_ShouldRankDeterministicallyAndBoundRenderedCandidates",
+        "proof": "The permanent candidate family renders descriptor facts for twelve candidate-set sizes and asserts deterministic top-five ranking without arbitrary edits."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered CANDIDATE-02 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "CANDIDATE-02-seed",
+        "after": "CANDIDATE-02-candidate",
+        "resultQuery": "select 1 /* REC-138-CANDIDATE-02-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared candidateCount=32 outcome for CANDIDATE-02 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_CANDIDATE",
+        "rootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+        "context": "CANDIDATE/CANDIDATE-02/candidateCount=32"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-CANDIDATE-02-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CANDIDATE-03",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded candidate workload for CANDIDATE-03 (candidateCount=64).",
+      "seedQuery": "select 1 /* REC-138-CANDIDATE-03-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NearMatchingDescriptorNames_ShouldRankDeterministicallyAndBoundRenderedCandidates",
+        "proof": "The permanent candidate family renders descriptor facts for twelve candidate-set sizes and asserts deterministic top-five ranking without arbitrary edits."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered CANDIDATE-03 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "CANDIDATE-03-seed",
+        "after": "CANDIDATE-03-candidate",
+        "resultQuery": "select 1 /* REC-138-CANDIDATE-03-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared candidateCount=64 outcome for CANDIDATE-03 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_CANDIDATE",
+        "rootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+        "context": "CANDIDATE/CANDIDATE-03/candidateCount=64"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-CANDIDATE-03-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CANDIDATE-04",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded candidate workload for CANDIDATE-04 (candidateCount=128).",
+      "seedQuery": "select 1 /* REC-138-CANDIDATE-04-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NearMatchingDescriptorNames_ShouldRankDeterministicallyAndBoundRenderedCandidates",
+        "proof": "The permanent candidate family renders descriptor facts for twelve candidate-set sizes and asserts deterministic top-five ranking without arbitrary edits."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered CANDIDATE-04 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "CANDIDATE-04-seed",
+        "after": "CANDIDATE-04-candidate",
+        "resultQuery": "select 1 /* REC-138-CANDIDATE-04-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared candidateCount=128 outcome for CANDIDATE-04 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_CANDIDATE",
+        "rootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+        "context": "CANDIDATE/CANDIDATE-04/candidateCount=128"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-CANDIDATE-04-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CANDIDATE-05",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded candidate workload for CANDIDATE-05 (candidateCount=256).",
+      "seedQuery": "select 1 /* REC-138-CANDIDATE-05-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NearMatchingDescriptorNames_ShouldRankDeterministicallyAndBoundRenderedCandidates",
+        "proof": "The permanent candidate family renders descriptor facts for twelve candidate-set sizes and asserts deterministic top-five ranking without arbitrary edits."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered CANDIDATE-05 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "CANDIDATE-05-seed",
+        "after": "CANDIDATE-05-candidate",
+        "resultQuery": "select 1 /* REC-138-CANDIDATE-05-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared candidateCount=256 outcome for CANDIDATE-05 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_CANDIDATE",
+        "rootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+        "context": "CANDIDATE/CANDIDATE-05/candidateCount=256"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-CANDIDATE-05-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CANDIDATE-06",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded candidate workload for CANDIDATE-06 (candidateCount=512).",
+      "seedQuery": "select 1 /* REC-138-CANDIDATE-06-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NearMatchingDescriptorNames_ShouldRankDeterministicallyAndBoundRenderedCandidates",
+        "proof": "The permanent candidate family renders descriptor facts for twelve candidate-set sizes and asserts deterministic top-five ranking without arbitrary edits."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered CANDIDATE-06 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "CANDIDATE-06-seed",
+        "after": "CANDIDATE-06-candidate",
+        "resultQuery": "select 1 /* REC-138-CANDIDATE-06-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared candidateCount=512 outcome for CANDIDATE-06 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_CANDIDATE",
+        "rootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+        "context": "CANDIDATE/CANDIDATE-06/candidateCount=512"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-CANDIDATE-06-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CANDIDATE-07",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded candidate workload for CANDIDATE-07 (candidateCount=768).",
+      "seedQuery": "select 1 /* REC-138-CANDIDATE-07-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NearMatchingDescriptorNames_ShouldRankDeterministicallyAndBoundRenderedCandidates",
+        "proof": "The permanent candidate family renders descriptor facts for twelve candidate-set sizes and asserts deterministic top-five ranking without arbitrary edits."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered CANDIDATE-07 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "CANDIDATE-07-seed",
+        "after": "CANDIDATE-07-candidate",
+        "resultQuery": "select 1 /* REC-138-CANDIDATE-07-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared candidateCount=768 outcome for CANDIDATE-07 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_CANDIDATE",
+        "rootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+        "context": "CANDIDATE/CANDIDATE-07/candidateCount=768"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-CANDIDATE-07-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CANDIDATE-08",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded candidate workload for CANDIDATE-08 (candidateCount=1024).",
+      "seedQuery": "select 1 /* REC-138-CANDIDATE-08-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NearMatchingDescriptorNames_ShouldRankDeterministicallyAndBoundRenderedCandidates",
+        "proof": "The permanent candidate family renders descriptor facts for twelve candidate-set sizes and asserts deterministic top-five ranking without arbitrary edits."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered CANDIDATE-08 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "CANDIDATE-08-seed",
+        "after": "CANDIDATE-08-candidate",
+        "resultQuery": "select 1 /* REC-138-CANDIDATE-08-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared candidateCount=1024 outcome for CANDIDATE-08 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_CANDIDATE",
+        "rootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+        "context": "CANDIDATE/CANDIDATE-08/candidateCount=1024"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-CANDIDATE-08-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CANDIDATE-09",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded candidate workload for CANDIDATE-09 (candidateCount=1536).",
+      "seedQuery": "select 1 /* REC-138-CANDIDATE-09-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NearMatchingDescriptorNames_ShouldRankDeterministicallyAndBoundRenderedCandidates",
+        "proof": "The permanent candidate family renders descriptor facts for twelve candidate-set sizes and asserts deterministic top-five ranking without arbitrary edits."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered CANDIDATE-09 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "CANDIDATE-09-seed",
+        "after": "CANDIDATE-09-candidate",
+        "resultQuery": "select 1 /* REC-138-CANDIDATE-09-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared candidateCount=1536 outcome for CANDIDATE-09 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_CANDIDATE",
+        "rootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+        "context": "CANDIDATE/CANDIDATE-09/candidateCount=1536"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-CANDIDATE-09-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CANDIDATE-10",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded candidate workload for CANDIDATE-10 (candidateCount=2048).",
+      "seedQuery": "select 1 /* REC-138-CANDIDATE-10-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NearMatchingDescriptorNames_ShouldRankDeterministicallyAndBoundRenderedCandidates",
+        "proof": "The permanent candidate family renders descriptor facts for twelve candidate-set sizes and asserts deterministic top-five ranking without arbitrary edits."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered CANDIDATE-10 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "CANDIDATE-10-seed",
+        "after": "CANDIDATE-10-candidate",
+        "resultQuery": "select 1 /* REC-138-CANDIDATE-10-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared candidateCount=2048 outcome for CANDIDATE-10 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_CANDIDATE",
+        "rootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+        "context": "CANDIDATE/CANDIDATE-10/candidateCount=2048"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-CANDIDATE-10-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CANDIDATE-11",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded candidate workload for CANDIDATE-11 (candidateCount=3072).",
+      "seedQuery": "select 1 /* REC-138-CANDIDATE-11-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NearMatchingDescriptorNames_ShouldRankDeterministicallyAndBoundRenderedCandidates",
+        "proof": "The permanent candidate family renders descriptor facts for twelve candidate-set sizes and asserts deterministic top-five ranking without arbitrary edits."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered CANDIDATE-11 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "CANDIDATE-11-seed",
+        "after": "CANDIDATE-11-candidate",
+        "resultQuery": "select 1 /* REC-138-CANDIDATE-11-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared candidateCount=3072 outcome for CANDIDATE-11 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_CANDIDATE",
+        "rootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+        "context": "CANDIDATE/CANDIDATE-11/candidateCount=3072"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-CANDIDATE-11-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "CANDIDATE-12",
+      "scopeId": "REC-138",
+      "task": "Execute the bounded candidate workload for CANDIDATE-12 (candidateCount=4096).",
+      "seedQuery": "select 1 /* REC-138-CANDIDATE-12-seed */ from #system.dual()",
+      "fixtureRef": {
+        "id": "REC-138-local-bounds-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-138BoundsTests.cs",
+        "testName": "NearMatchingDescriptorNames_ShouldRankDeterministicallyAndBoundRenderedCandidates",
+        "proof": "The permanent candidate family renders descriptor facts for twelve candidate-set sizes and asserts deterministic top-five ranking without arbitrary edits."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the registered CANDIDATE-12 seed marker with the controlled bounded-workload candidate marker.",
+        "before": "CANDIDATE-12-seed",
+        "after": "CANDIDATE-12-candidate",
+        "resultQuery": "select 1 /* REC-138-CANDIDATE-12-candidate */ from #system.dual()"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+      "expectedDiagnostics": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23. Diagnostic Contract and Catalog; 23.1 Diagnostic envelope contract",
+          "passage": "Diagnostic output is a bounded, machine-readable contract whose source facts must remain truthful.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "80. Performance and resource limits",
+          "passage": "Local diagnostic workloads must use declared resource limits and remain reproducible.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+          "section": "4.10 Repetition Until Condition",
+          "passage": "Repetition and termination behavior must be bounded and must report a graceful outcome.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The declared candidateCount=4096 outcome for CANDIDATE-12 is frozen before authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "REC138_CANDIDATE",
+        "rootCause": "Large near-matching descriptor sets must retain deterministic ranking and bounded structured rendering.",
+        "context": "CANDIDATE/CANDIDATE-12/candidateCount=4096"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 /* REC-138-CANDIDATE-12-candidate */ from #system.dual()",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same bounded workload size remains exercised.",
+          "The same diagnostic count, rendering, ranking or cancellation observation remains asserted."
+        ]
+      }
+    }
+  ]
+}

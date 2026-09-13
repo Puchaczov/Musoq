@@ -1,0 +1,174 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-136",
+  "outcome": "passed",
+  "registeredCases": 60,
+  "classificationCounts": {
+    "valid_ordinary": 48,
+    "invalid": 12
+  },
+  "families": [
+    {
+      "name": "SUPPORTED_PROVIDER_SESSIONS",
+      "cases": 12,
+      "coverage": "Identical query text executes concurrently through independent production compilation sessions with distinct provider schemas and row values; no cross-session rows or schema bindings were observed."
+    },
+    {
+      "name": "PARAMETERS_AND_SOURCE_SETTINGS",
+      "cases": 12,
+      "coverage": "Distinct runtime parameter snapshots and source-setting resolver values are exercised concurrently; parameter cases are frozen in the contract and settings are a supporting isolation control."
+    },
+    {
+      "name": "DIAGNOSTIC_LOCATIONS_AND_CORRELATIONS",
+      "cases": 12,
+      "coverage": "Concurrent invalid queries retain their own candidate marker and source span, while compiler internal-error contexts receive unique internal correlation IDs and sanitized public messages."
+    },
+    {
+      "name": "QUERY_LOCAL_ENUM_DESCRIPTORS",
+      "cases": 12,
+      "coverage": "Concurrent query-local enum metadata compilations retain distinct enum names and fingerprints without descriptor crossover."
+    },
+    {
+      "name": "HISTORICAL_STAR_MODIFIER_SESSIONS",
+      "cases": 12,
+      "coverage": "The historical full-star modifier query executes concurrently with distinct projected values; exclusion, replacement and rename semantics remain session-local."
+    }
+  ],
+  "contract": {
+    "authoritySha256": [
+      "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "9ddd9f6dafc2fe2e919243e050bce4bd1076fcbac9bceed03e850a75159337b3"
+    ],
+    "contractPath": "docs/campaigns/recovery-v3/evidence/REC-136-case-contract.json",
+    "contractSha256": "b0813e2cccedc9209468da7df4488036e90ab13df223cc3e7ba672058bdefbcf",
+    "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-136-case-manifest.json",
+    "manifestSha256": "ef74b0bb858ca808f17f0470db711d391bf8345aa01cb3960063b534fe6f4f3f",
+    "preObservationPayloadSha256": "b32ff7780836af1b91f6b211e73d3ed467af6cca168e5cdc38ced18e7a9d2aaa",
+    "verificationCommand": "python docs/campaigns/recovery-v3/tools/case_contract.py verify --scope-id REC-136 --cases docs/campaigns/recovery-v3/evidence/REC-136-case-contract.json --manifest docs/campaigns/recovery-v3/evidence/REC-136-case-manifest.json",
+    "verificationResult": "60/60 frozen cases verified before authoritative replay; no frozen expectation was replaced."
+  },
+  "initialObservations": [
+    {
+      "revision": 1,
+      "outcome": "failed-calibration",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-136-calibration-r1/REC-136-calibration-r1.trx",
+        "sha256": "624a835b823dc01e39c98321ad23d3856e3f3e00b03186f133c08cf14349510a"
+      },
+      "passed": 3,
+      "failed": 1,
+      "skipped": 0,
+      "total": 4,
+      "finding": "The first calibration incorrectly expected Name to remain in the historical LIKE star projection even though that modifier excludes it; the failure was a fixture oracle issue, not a production finding."
+    },
+    {
+      "revision": 2,
+      "outcome": "failed-calibration-stale-binary",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-136-calibration-r2/REC-136-calibration-r2.trx",
+        "sha256": "a72c24d3fd23ce8ad54bf66e49daeb89d1efa00a459823585881f80300819bf6"
+      },
+      "passed": 3,
+      "failed": 1,
+      "skipped": 0,
+      "total": 4,
+      "finding": "A no-build replay ran stale binaries after the fixture correction; it is retained as calibration evidence and is not authoritative."
+    },
+    {
+      "revision": 3,
+      "outcome": "passed-calibration-replay",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-136-calibration-r3/REC-136-calibration-r3.trx",
+        "sha256": "14289cabf58ae6b5ffbd7d9a0e8e5f208c09f7e2fd42014671bb601873f9bcaa"
+      },
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "total": 4,
+      "finding": "After correcting the oracle to assert a unique projected Money value and rebuilding the focused fixture, all four test methods passed."
+    },
+    {
+      "revision": 4,
+      "outcome": "passed-authoritative-replay",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-136-authoritative-r1/REC-136-authoritative-r1.trx",
+        "sha256": "d7a057b8864925b50a55d5fbad13fa254a034c3e610af1d70d8417eb0868d580"
+      },
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "total": 4,
+      "finding": "The frozen REC-136 matrix and supporting concurrent settings, correlation and descriptor controls passed after manifest freeze against the Release binaries."
+    }
+  ],
+  "repairAttempts": [
+    {
+      "revisions": [1, 2],
+      "outcome": "fixture-calibration",
+      "note": "No production repair was made; the test oracle was corrected to assert a discriminating projected value, then the focused binaries were rebuilt."
+    }
+  ],
+  "focusedReplay": {
+    "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-build --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticRec136ConcurrentSessionIsolationTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-136-authoritative-r1.trx\" --results-directory .campaign-artifacts/REC-136-authoritative-r1",
+    "exitCode": 0,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "total": 4,
+    "registeredCaseCount": 60,
+    "trxArtifact": {
+      "path": ".campaign-artifacts/REC-136-authoritative-r1/REC-136-authoritative-r1.trx",
+      "sha256": "d7a057b8864925b50a55d5fbad13fa254a034c3e610af1d70d8417eb0868d580"
+    },
+    "coverage": "The four MSTest methods execute all 60 frozen cases plus supporting source-setting, internal-correlation and query-local enum controls; all sessions use independent production runtime objects."
+  },
+  "regressionReplays": [
+    {
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-build --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticCore010StarModifierTests|FullyQualifiedName~DiagnosticRework083StarModifierContractTests|FullyQualifiedName~CompiledQueryRuntimeStateTests|FullyQualifiedName~SourceRuntimeSettingsLifecycleTests|FullyQualifiedName~DiagnosticREC103NativeEnumSourcePlanningTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-136-evaluator-regressions-r1.trx\" --results-directory .campaign-artifacts/REC-136-evaluator-regressions-r1",
+      "exitCode": 0,
+      "passed": 68,
+      "failed": 0,
+      "skipped": 0,
+      "total": 68,
+      "trxSha256": "a2659bff669f9a8b5c4776b4b76d79dd1897d3c7286e871170a25e18630f539c"
+    },
+    {
+      "command": "python -m unittest discover -s docs/campaigns/recovery-v3/tools -p \"test_*.py\"",
+      "exitCode": 0,
+      "passed": 46,
+      "failed": 0,
+      "skipped": 0,
+      "total": 46
+    }
+  ],
+  "harnessContract": {
+    "budget": "60 frozen cases; no credentials, external providers, live services, shell actors or AI calls; all values are synthetic fixture data.",
+    "supportedBoundary": "The campaign qualifies concurrent independent production API sessions and does not infer that arbitrary mutable engine objects may be shared concurrently.",
+    "harnessBoundary": "The permanent class is marked DoNotParallelize because the historical test base controls process/thread culture and shared test compilation coordination; the class itself creates independent production sessions concurrently.",
+    "acceptanceBoundary": "The results establish supported engine-session diagnostic isolation only. They do not certify installed CLI behavior, host integration, product-wide concurrency, human workflow or AI-agent safety."
+  },
+  "productionFindings": [],
+  "obligations": {
+    "REC-136-O01": "Supported production concurrency boundaries and test-harness global state were inventoried before selecting reusable objects.",
+    "REC-136-O02": "Independent concurrent sessions with identical query text and distinct schemas, parameters and supporting settings completed without cross-session values.",
+    "REC-136-O03": "Concurrent diagnostic locations, candidate markers, internal correlation IDs and query-local enum descriptors remained session-specific.",
+    "REC-136-O04": "The historical non-parallel star fixture was replayed concurrently; its scheduler/culture restriction was classified as harness state, while production session isolation passed.",
+    "acceptance": "The 60-case frozen matrix passed 4/4 MSTest methods, the adjacent evaluator controls passed 68/68, campaign-tool self-tests passed 46/46 and the eight-target Release gate passed."
+  },
+  "cleanStreak": 60,
+  "novelCandidates": 60,
+  "duplicateCandidates": 0,
+  "metamorphicVariants": 0,
+  "productionFixes": 0,
+  "fullGate": {
+    "outcome": "passed",
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-136-full-gate-final-r1.json",
+    "evidenceSha256": "6dfe5ee47f06b895cd5c7b0589f78415d395fe313cdfb220d77d190ba9c220d5",
+    "testedPayloadSha256": "010ca87f9f132e259e6d8e6cf509023557b2fe8d82c8ea8c19f8e1f678b70651",
+    "targets": 8,
+    "passed": 21021,
+    "failed": 0,
+    "skipped": 3,
+    "total": 21024
+  }
+}

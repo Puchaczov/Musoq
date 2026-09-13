@@ -1,0 +1,357 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-141",
+  "status": "in_progress_approved_corrections_applied",
+  "targetBaseline": {
+    "commit": "6293addf113a1a0b6e5c50b9eec64bb60bb611e1",
+    "branch": "feature/runtime_v2_final",
+    "sourceBindingsPath": "docs/campaigns/recovery-v3/source-bindings.json",
+    "sourceBindingsSha256": "a691c3d6337fea30b940927c11a8e206506e6147ea2eac0785bb69dc825b6768"
+  },
+  "boundFiles": [
+    {
+      "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+      "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "targetPath": "specs/musoq-core-language-spec.md",
+      "targetSha256": "f3ab89e6806334d05be0e32d14e294897d2a6cd0867b10ca30d9759823d8f833",
+      "bindingStatus": "target_retains_bound_nonsemantic_link_drift"
+    },
+    {
+      "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+      "sourceSha256": "ef150fa474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+      "targetPath": "specs/musoq-binary-text-spec.md",
+      "targetPreCorrectionSha256": "7e4c0f0c93ead6414ad6a13d9383cec42f900aee794adfc34f17f699b7f2d08b",
+      "targetSha256": "ad73aa4254568ba7f012a7e9dead0bf7c830c45224a5eb898488890a95f9e71f",
+      "bindingStatus": "target_contains_approved_documentation_corrections_only"
+    },
+    {
+      "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+      "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca",
+      "targetPath": "specs/musoq-table-couple-spec.md",
+      "targetPreCorrectionSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca",
+      "targetSha256": "8a7c8a6e7ad2c0c069fe6ce6e6ad5e4aba097851b036772cf983a716afde0ab4",
+      "bindingStatus": "target_contains_approved_documentation_correction_only"
+    },
+    {
+      "sourcePath": "specs/diagnostic-catalog.json",
+      "sourceSha256": "6bcec5e94d51905fead0b99875c18fe350f679743cd5ce9dbc969d0ab6cdb670",
+      "targetPath": "specs/diagnostic-catalog.json",
+      "targetSha256": "6bcec5e94d51905fead0b99875c18fe350f679743cd5ce9dbc969d0ab6cdb670",
+      "bindingStatus": "independent_active_catalog_exact_match"
+    },
+    {
+      "sourcePath": "docs/enums.md",
+      "sourceSha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494",
+      "targetPath": "docs/enums.md",
+      "targetSha256": "df73b87b6be303efcb2eac32b95a5779c832d34bfb96378c29809928e7dfc494",
+      "bindingStatus": "independent_reference_exact_match"
+    },
+    {
+      "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+      "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+      "targetPath": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-141ExecutableExamplesTests.cs",
+      "targetSha256": "7cfff73ad86d1b3ca9d140400dcddc72bf222f3ee5593d87802875f92f0467c8",
+      "bindingStatus": "permanent_fixture_and_negative_controls"
+    }
+  ],
+  "classification": {
+    "coreAppendixExamples": "Six repository-owned BasicEntity fixture checks: complete positives, grouping/string positives, and one intentional missing-ELSE negative followed by its prescribed correction; no installed-provider claim.",
+    "tableExamples": "Seven repository-owned fixture mappings cover TABLE/COUPLE positives, parameters, all-types explicit projection, nullable syntax, settings profiles and read modifiers; the unsupported-encoding behavior is disclosed as a fixture-provider boundary.",
+    "binaryAndTextExamples": "Eight explicit BinaryEntity/TextEntity fixture checks cover PNG, Apache, mixed protocol, COBOL and storage examples; published defects retain permanent negative controls and no installed-provider claim is made.",
+    "metadataExamples": "The missing-provider MQ3010 boundary is compared with the independent diagnostic catalog and a corrected repository-owned provider fixture.",
+    "unexecutedRemainingExamples": "None within REC-141 obligations; arbitrary prose commands and installed-provider behavior remain explicitly unclaimed."
+  },
+  "focusedReplay": {
+    "fixturePath": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-141ExecutableExamplesTests.cs",
+    "resultTrx": ".campaign-artifacts/REC-141-focused-r19/REC-141-focused-r19.trx",
+    "resultTrxSha256": "b72680975fda3cd0b5d1188b04301f65e733fa84a412f1a5008497a705eb5949",
+    "passed": 21,
+    "failed": 0,
+    "skipped": 0,
+    "total": 21,
+    "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC141\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-141-focused-r19.trx\" --results-directory .campaign-artifacts/REC-141-focused-r19"
+  },
+  "conflicts": [
+    {
+      "conflictId": "REC-141-C01",
+      "status": "resolved_documentation_drift",
+      "affectedObligations": ["REC-141-O01", "REC-141-O03"],
+      "authorityAndTarget": {
+        "section": "11.1 PNG File Header",
+        "targetLines": [2024, 2026],
+        "passage": "Corrected target example uses Signature: byte[8] magic [0x89, ...]; bound 4.9.1 permits byte-list values after const or magic, not check.",
+        "sourceSha256": "ef150fa474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+        "targetPreCorrectionSha256": "7e4c0f0c93ead6414ad6a13d9383cec42f900aee794adfc34f17f699b7f2d08b",
+        "targetPostCorrectionSha256": "ad73aa4254568ba7f012a7e9dead0bf7c830c45224a5eb898488890a95f9e71f"
+      },
+      "reproduction": {
+        "testName": "BinaryPngPublishedExample_ShouldExposeTheCheckListCorrection",
+        "observed": "The published form produces MQ2001_UnexpectedToken at '[' during Parse; the corrected magic-list form executes in the explicit BinaryEntity fixture.",
+        "diagnostic": "MQ2001_UnexpectedToken",
+        "phase": "Parse",
+        "sourceKind": "Query"
+      },
+      "proposedResolution": {
+        "decision": "Change only the target-local published PNG example from check Signature = [byte list] to magic [byte list].",
+        "normativeJustification": "The bound grammar assigns byte-list validation to magic/const and reserves check for a Boolean expression.",
+        "approvalRequired": true,
+        "approved": true
+      }
+    },
+    {
+      "conflictId": "REC-141-C02",
+      "status": "resolved_documentation_drift",
+      "affectedObligations": ["REC-141-O01", "REC-141-O03"],
+      "authorityAndTarget": {
+        "section": "11.2 Apache Combined Log Format",
+        "targetLines": [2062, 2078],
+        "passage": "Corrected target removes literals for delimiters consumed by until and uses literal ' ' after Protocol: until '\"'.",
+        "sourceSha256": "ef150fa474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+        "targetPreCorrectionSha256": "7e4c0f0c93ead6414ad6a13d9383cec42f900aee794adfc34f17f699b7f2d08b",
+        "targetPostCorrectionSha256": "ad73aa4254568ba7f012a7e9dead0bf7c830c45224a5eb898488890a95f9e71f"
+      },
+      "reproduction": {
+        "testName": "BinaryApachePublishedExample_ShouldExposeConsumedDelimiterBoundary",
+        "observed": "The published schema compiles but the fixture fails at runtime with ISE0004 at ApacheLog._ because until already consumed the delimiter before the redundant literal.",
+        "diagnostic": "ISE0004",
+        "phase": "Runtime parse"
+      },
+      "proposedResolution": {
+        "decision": "Remove redundant literals after until captures and change the post-Protocol literal from '\" ' to ' '.",
+        "normativeJustification": "The bound specification says until consumes its delimiter; the corrected schema matches the fixture input without changing engine behavior.",
+        "approvalRequired": true,
+        "approved": true
+      }
+    },
+    {
+      "conflictId": "REC-141-C03",
+      "status": "resolved_documentation_drift",
+      "affectedObligations": ["REC-141-O01", "REC-141-O03"],
+      "authorityAndTarget": {
+        "section": "11.2 Apache Combined Log Format",
+        "targetLines": [2081, 2084],
+        "passage": "Corrected target aggregate is MaxDateTime(ToDateTimeWithFormat(log.Timestamp, 'dd/MMM/yyyy:HH:mm:ss zzz')).",
+        "sourceSha256": "ef150fa474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+        "targetPreCorrectionSha256": "7e4c0f0c93ead6414ad6a13d9383cec42f900aee794adfc34f17f699b7f2d08b",
+        "targetPostCorrectionSha256": "ad73aa4254568ba7f012a7e9dead0bf7c830c45224a5eb898488890a95f9e71f"
+      },
+      "reproduction": {
+        "testName": "BinaryApachePublishedExample_ShouldExposeTheStringAggregateCorrection",
+        "observed": "The published query binds Max against string Timestamp and produces MQ3088_NoMatchingCallableOverload.",
+        "diagnostic": "MQ3088_NoMatchingCallableOverload",
+        "phase": "Bind"
+      },
+      "proposedResolution": {
+        "decision": "Parse the text timestamp with ToDateTimeWithFormat and aggregate it with MaxDateTime.",
+        "normativeJustification": "Timestamp is a text capture and these are the bound callables for the stated last-seen operation.",
+        "approvalRequired": true,
+        "approved": true
+      }
+    },
+    {
+      "conflictId": "REC-141-C04",
+      "status": "resolved_documentation_drift",
+      "affectedObligations": ["REC-141-O01", "REC-141-O03"],
+      "authorityAndTarget": {
+        "section": "11.3 Mixed Binary/Text Protocol",
+        "targetLines": [2097, 2103],
+        "passage": "Corrected target declares the unsigned sync word as ushort le check Sync = 0xAA55.",
+        "sourceSha256": "ef150fa474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+        "targetPreCorrectionSha256": "7e4c0f0c93ead6414ad6a13d9383cec42f900aee794adfc34f17f699b7f2d08b",
+        "targetPostCorrectionSha256": "ad73aa4254568ba7f012a7e9dead0bf7c830c45224a5eb898488890a95f9e71f"
+      },
+      "reproduction": {
+        "testName": "BinaryMixedProtocolExample_ShouldExecuteWithExplicitFixtureProviderMapping",
+        "observed": "The published short form reaches runtime and fails its 0xAA55 check with ISE0002 at MessageFrame.Sync; corrected ushort form returns PING and sensor 7 for two explicit frames.",
+        "diagnostic": "ISE0002",
+        "phase": "Runtime interpretation"
+      },
+      "proposedResolution": {
+        "decision": "Change the target-local sync field from signed short to unsigned ushort.",
+        "normativeJustification": "0xAA55 is an unsigned 16-bit protocol word and is not represented by the published signed form.",
+        "approvalRequired": true,
+        "approved": true
+      }
+    },
+    {
+      "conflictId": "REC-141-C05",
+      "status": "resolved_documentation_drift",
+      "affectedObligations": ["REC-141-O01", "REC-141-O03"],
+      "authorityAndTarget": {
+        "section": "11.4 COBOL Copybook Record",
+        "targetLines": [2148, 2157],
+        "passage": "Corrected target uses ToDateTimeWithFormat(r.LastUpdate, 'yyyyMMdd') for the text date field.",
+        "sourceSha256": "ef150fa474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+        "targetPreCorrectionSha256": "7e4c0f0c93ead6414ad6a13d9383cec42f900aee794adfc34f17f699b7f2d08b",
+        "targetPostCorrectionSha256": "ad73aa4254568ba7f012a7e9dead0bf7c830c45224a5eb898488890a95f9e71f"
+      },
+      "reproduction": {
+        "testName": "BinaryCobolPublishedExample_ShouldExposeDateCallableCorrection",
+        "observed": "The published query names nonexistent ParseDate and produces MQ3086_UnknownCallable at Bind; corrected fixture returns the documented customer, address, balance and date.",
+        "diagnostic": "MQ3086_UnknownCallable",
+        "phase": "Bind"
+      },
+      "proposedResolution": {
+        "decision": "Change the target-local ParseDate call to ToDateTimeWithFormat.",
+        "normativeJustification": "ParseDate is not in the bound callable surface; ToDateTimeWithFormat accepts the documented text and format.",
+        "approvalRequired": true,
+        "approved": true
+      }
+    },
+    {
+      "conflictId": "REC-141-C06",
+      "status": "resolved_documentation_drift",
+      "affectedObligations": ["REC-141-O01", "REC-141-O03"],
+      "authorityAndTarget": {
+        "section": "11.5 Structured Storage with Mixed Data",
+        "targetLines": [2163, 2192],
+        "passage": "Corrected target declares SubRecord before StorageRecord, so Nested: SubRecord[NestedCount] is definition-before-use.",
+        "sourceSha256": "ef150fa474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+        "targetPreCorrectionSha256": "7e4c0f0c93ead6414ad6a13d9383cec42f900aee794adfc34f17f699b7f2d08b",
+        "targetPostCorrectionSha256": "ad73aa4254568ba7f012a7e9dead0bf7c830c45224a5eb898488890a95f9e71f"
+      },
+      "reproduction": {
+        "testName": "BinaryStoragePublishedExample_ShouldExecuteWithExplicitFixtureProviderMapping",
+        "observed": "The published order references SubRecord before declaration and compilation reports MQ2030 at Nested; corrected order compiles and executes the explicit storage fixture.",
+        "diagnostic": "MQ2030_UnsupportedSyntax",
+        "phase": "Parse/semantic schema validation"
+      },
+      "proposedResolution": {
+        "decision": "Move SubRecord before StorageRecord in the target-local example.",
+        "normativeJustification": "The bound schema language retains definition-before-use and does not require a forward-reference relaxation.",
+        "approvalRequired": true,
+        "approved": true
+      }
+    },
+    {
+      "conflictId": "REC-141-C07",
+      "status": "resolved_documentation_drift",
+      "affectedObligations": ["REC-141-O01", "REC-141-O03"],
+      "authorityAndTarget": {
+        "section": "11.5 Structured Storage with Mixed Data",
+        "targetLines": [2204, 2206],
+        "passage": "Corrected target calls InterpretAt<StorageRecord>(..., ToInt32(h.DataOffset) ?? 0).",
+        "sourceSha256": "ef150fa474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+        "targetPreCorrectionSha256": "7e4c0f0c93ead6414ad6a13d9383cec42f900aee794adfc34f17f699b7f2d08b",
+        "targetPostCorrectionSha256": "ad73aa4254568ba7f012a7e9dead0bf7c830c45224a5eb898488890a95f9e71f"
+      },
+      "reproduction": {
+        "testName": "BinaryStoragePublishedExample_ShouldExecuteWithExplicitFixtureProviderMapping",
+        "observed": "The published nullable long offset fails compilation with MQ9001/CS1503 when passed directly to the int offset API; the explicit conversion and null fallback compiles and executes.",
+        "diagnostic": "MQ9001_UnexpectedClrFailure",
+        "phase": "Code generation/compile"
+      },
+      "proposedResolution": {
+        "decision": "Convert the nullable long header offset to int with ToInt32 and make the missing-offset fallback explicit.",
+        "normativeJustification": "InterpretAt requires an int offset while DataOffset is a nullable long generated from the header.",
+        "approvalRequired": true,
+        "approved": true
+      }
+    },
+    {
+      "conflictId": "REC-141-C08",
+      "status": "resolved_documentation_drift",
+      "affectedObligations": ["REC-141-O01", "REC-141-O03"],
+      "authorityAndTarget": {
+        "section": "9.5 All Supported Types",
+        "targetLines": [781, 810],
+        "passage": "Corrected target explicitly projects all 20 declared columns instead of relying on star expansion.",
+        "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca",
+        "targetPreCorrectionSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca",
+        "targetPostCorrectionSha256": "8a7c8a6e7ad2c0c069fe6ce6e6ad5e4aba097851b036772cf983a716afde0ab4"
+      },
+      "implementationBoundary": {
+        "path": "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitorUtilities.cs",
+        "lines": [131, 149],
+        "fact": "ShouldIncludeColumnInStarExpansion filters arrays and non-primitive types."
+      },
+      "reproduction": {
+        "testName": "TableAllTypesExample_ShouldExecuteWithAnExplicitFixtureMapping",
+        "observed": "The published select-star form is valid but returns 17 columns and omits TimeSpanCol, GuidCol and ObjectCol; corrected explicit projection returns all 20 values.",
+        "diagnostic": "none; valid-suspicious incomplete output",
+        "phase": "Execution/result-shape"
+      },
+      "proposedResolution": {
+        "decision": "Replace the published select-star form with an explicit projection of all 20 documented columns.",
+        "normativeJustification": "The engine star boundary filters non-primitive/complex columns; an all-types example must explicitly select the columns it promises to demonstrate.",
+        "approvalRequired": true,
+        "approved": true
+      }
+    }
+  ],
+  "caseMatrix": {
+    "core": {
+      "tests": 6,
+      "methods": [
+        "CoreAppendixExamples_ShouldExecuteDocumentedCaseCastAndGroupingResults",
+        "CoreAppendixGroupingExamples_ShouldExecuteOrdinalAndAliasForms",
+        "CoreAppendixStringExamples_ShouldPreserveRawAndDoubledPathValues",
+        "CoreAppendixCaseNegative_ShouldAssertDiagnosticAndRunPrescribedElseCorrection",
+        "TableCoupleExample_ShouldExecuteWithAnExplicitRepositoryFixtureMapping",
+        "RecoveryMetadataExample_ShouldMatchIndependentCatalogAndMissingProviderBoundary"
+      ]
+    },
+    "table": {
+      "tests": 7,
+      "methods": [
+        "TableTypedColumnsExample_ShouldExecuteWithAnExplicitFixtureMapping",
+        "TableJoinExample_ShouldExecuteWithExplicitFixtureMappings",
+        "TableParametersExample_ShouldExecuteWithAnExplicitFixtureMapping",
+        "TableAllTypesExample_ShouldExecuteWithAnExplicitFixtureMapping",
+        "TableNullableTrailingCommaExample_ShouldExecuteWithAnExplicitFixtureMapping",
+        "TableSettingsExample_ShouldExecuteWithExplicitProfileFixtureMappings",
+        "TableReadModifiersExample_ShouldExecuteWithExplicitFixtureProviderMapping"
+      ]
+    },
+    "binaryAndText": {
+      "tests": 8,
+      "methods": [
+        "BinaryPngExample_ShouldExecuteWithExplicitFixtureProviderMapping",
+        "BinaryPngPublishedExample_ShouldExposeTheCheckListCorrection",
+        "BinaryApacheCorrectedExample_ShouldExecuteWithExplicitFixtureProviderMapping",
+        "BinaryApachePublishedExample_ShouldExposeConsumedDelimiterBoundary",
+        "BinaryApachePublishedExample_ShouldExposeTheStringAggregateCorrection",
+        "BinaryMixedProtocolExample_ShouldExecuteWithExplicitFixtureProviderMapping",
+        "BinaryCobolPublishedExample_ShouldExposeDateCallableCorrection",
+        "BinaryStoragePublishedExample_ShouldExecuteWithExplicitFixtureProviderMapping"
+      ]
+    }
+  },
+  "obligations": [
+    {
+      "id": "REC-141-O01",
+      "evidence": ["documentation-drift", "behavior-results", "focused-replay"]
+    },
+    {
+      "id": "REC-141-O02",
+      "evidence": ["behavior-results", "focused-replay"]
+    },
+    {
+      "id": "REC-141-O03",
+      "evidence": ["documentation-drift", "behavior-results", "focused-replay"]
+    },
+    {
+      "id": "REC-141-O04",
+      "evidence": ["behavior-results", "focused-replay", "independent-catalog"]
+    }
+  ],
+  "approval": {
+    "required": true,
+    "status": "recorded",
+    "request": "Approve the target-local documentation corrections identified by executable REC-141 examples. No production engine change, immutable authority edit, installed-provider execution, or publication is requested.",
+    "approvedBy": "user",
+    "approvalId": "explicit-user-message-2026-09-08-rec-141",
+    "approvalText": "approved all current and further documentation corrections."
+  },
+  "review": {
+    "type": "self_review_main_session",
+    "independentReviewAvailable": false,
+    "summary": "Reviewed all eight authority/target conflicts, preserved published negative controls, verified explicit fixture mappings, checked independent catalog metadata and retained no-installed-provider boundaries. No production code changed."
+  },
+  "boundary": [
+    "Supplied authority snapshots remain immutable; their hashes and the target baseline are retained.",
+    "Only target-local documentation examples and the permanent REC-141 executable fixture changed; no production engine source changed.",
+    "Repository-owned fixtures adapt provider-shaped examples without claiming installed-provider conformance.",
+    "The 21-test focused replay is iteration evidence; the fresh full Release gate, final evidence reconciliation and one completion commit are still required before REC-141 can become completed."
+  ]
+}

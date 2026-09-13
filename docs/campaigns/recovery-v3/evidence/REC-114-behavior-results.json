@@ -1,0 +1,127 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-114",
+  "matrixRevision": 2,
+  "outcome": "passed",
+  "registeredCases": 48,
+  "classificationCounts": {
+    "invalid": 32,
+    "validOrdinary": 16,
+    "validSuspicious": 0
+  },
+  "families": [
+    "BINARY_SCHEMA",
+    "TEXT_SCHEMA",
+    "BINARY_SUBSTRATE",
+    "TEXT_SUBSTRATE",
+    "REFERENCE_AND_BRANCH",
+    "REPETITION_PROGRESS",
+    "BOUNDED_SUBSTREAM",
+    "DOMAIN_BOUNDARY"
+  ],
+  "contract": {
+    "authoritySha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+    "revisions": [
+      {
+        "revision": 1,
+        "contractPath": "docs/campaigns/recovery-v3/evidence/REC-114-case-contract.json",
+        "contractSha256": "20377b6f1c49f1d93a2104acbd890162d0cd0bb502883b9cb436b672cf98f3ae",
+        "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-114-pre-observation-manifest.json",
+        "manifestSha256": "71fd237c5b8c6c9878587a02bc3ac79adf1e73e3386988634232bf958c66ed1f",
+        "preObservationPayloadSha256": "ccca73066795bd981422bad7ecacf433b83ace6bca3fb171f44afe8fbaf9142c",
+        "caseCount": 48,
+        "invalidCandidates": 32,
+        "validOrdinaryControls": 16,
+        "observation": "immutable initial matrix; F04 seed was rejected before the intended runtime observation because its text declaration used unsupported modifier ordering"
+      },
+      {
+        "revision": 2,
+        "contractPath": "docs/campaigns/recovery-v3/evidence/REC-114-case-contract-v2.json",
+        "contractSha256": "43d73b83a50e714c62bad59280a0ff924c282e021e052a95ac9b59eca5db1657",
+        "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-114-pre-observation-manifest-v2.json",
+        "manifestSha256": "b82093f39d6f4c81e7d52fb6f8a6eb1e9cf2a47ea733551368c66deda5b47720",
+        "preObservationPayloadSha256": "b7e747643483bccfacea731ac58259a5ad9f6d49420d6615c6b58f9805266d58",
+        "caseCount": 48,
+        "invalidCandidates": 32,
+        "validOrdinaryControls": 16,
+        "observation": "immutable corrected matrix used for final replay; F04 uses a valid Empty schema reference and retains ISE0009 zero-progress expectation"
+      }
+    ],
+    "contractValidation": {
+      "command": "python docs/campaigns/recovery-v3/tools/case_contract.py validate --root . --scope-id REC-114 --cases docs/campaigns/recovery-v3/evidence/REC-114-case-contract-v2.json",
+      "result": "validated",
+      "caseCount": 48,
+      "sourceFileCount": 1
+    },
+    "contractVerification": {
+      "command": "python docs/campaigns/recovery-v3/tools/case_contract.py verify --root . --scope-id REC-114 --cases docs/campaigns/recovery-v3/evidence/REC-114-case-contract-v2.json --manifest docs/campaigns/recovery-v3/evidence/REC-114-pre-observation-manifest-v2.json",
+      "result": "verified"
+    },
+    "oracleCorrectionPath": "docs/campaigns/recovery-v3/evidence/REC-114-oracle-correction.json"
+  },
+  "focusedReplay": {
+    "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticREC114BinaryTextRecoveryTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-114-focused-final.trx\" --results-directory .campaign-artifacts/REC-114-focused-final",
+    "exitCode": 0,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "total": 3,
+    "trxArtifact": {
+      "path": ".campaign-artifacts/REC-114-focused-final/REC-114-focused-final.trx",
+      "sha256": "691f52e47d1edf75f0db5b89b89fecb06c9ea16d77244cccdeb5da4434d9701c"
+    },
+    "coverage": "The strict candidate method executes all 48 corrected frozen cases: 32 schema or substrate invalid mutations and 16 ordinary controls. The domain method distinguishes located MQ schema diagnostics from ISE runtime failures, and the boundary method retains bounded-substream and repetition-progress field context."
+  },
+  "adjacentSuites": [
+    {
+      "name": "parser-binary-text-schema",
+      "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticBinary040BinaryDeclarationTests|FullyQualifiedName~DiagnosticBinary041NestedArrayComputedTests|FullyQualifiedName~DiagnosticBinary042BitAlignmentValidationTests|FullyQualifiedName~DiagnosticBinary043RepetitionDiscardTests|FullyQualifiedName~DiagnosticBinary044SwitchTests|FullyQualifiedName~DiagnosticBinary046SchemaCompositionTests|FullyQualifiedName~DiagnosticText047TextDeclarationTests|FullyQualifiedName~DiagnosticText048TextFieldsTests|FullyQualifiedName~DiagnosticText049TextAlternativesTests|FullyQualifiedName~DiagnosticText050TextDeclarationTests|FullyQualifiedName~DiagnosticText051TextSchemaCompositionTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-114-parser-adjacent.trx\" --results-directory .campaign-artifacts/REC-114-parser-adjacent",
+      "exitCode": 0,
+      "passed": 71,
+      "failed": 0,
+      "skipped": 0,
+      "total": 71,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-114-parser-adjacent/REC-114-parser-adjacent.trx",
+        "sha256": "42056fe76afd06f71cc745918a1a8554b52031eb5dd21832f1ba3b6aba1692bb"
+      }
+    },
+    {
+      "name": "evaluator-binary-text-runtime",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~DiagnosticBinary040BinaryInterpretationTests|FullyQualifiedName~DiagnosticBinary041NestedArrayComputedTests|FullyQualifiedName~DiagnosticBinary042BitAlignmentValidationTests|FullyQualifiedName~DiagnosticBinary043RepetitionDiscardTests|FullyQualifiedName~DiagnosticBinary043RepetitionSemanticTests|FullyQualifiedName~DiagnosticBinary044SchemaDefinitionTests|FullyQualifiedName~DiagnosticBinary045SubstreamTests|FullyQualifiedName~DiagnosticBinary046SchemaCompositionTests|FullyQualifiedName~DiagnosticText049TextSchemaDefinitionTests|FullyQualifiedName~DiagnosticText051TextSchemaCompositionTests|FullyQualifiedName~DiagnosticInterpret052InterpretationPlacementTests|FullyQualifiedName~DiagnosticInterpret053SuccessfulBindingTests|FullyQualifiedName~DiagnosticInterpret054ApplyNullSemanticsTests|FullyQualifiedName~DiagnosticRuntime057InterpretationErrorTaxonomyTests\" --logger \"console;verbosity=minimal\" --logger \"trx;LogFileName=REC-114-evaluator-adjacent.trx\" --results-directory .campaign-artifacts/REC-114-evaluator-adjacent",
+      "exitCode": 0,
+      "passed": 76,
+      "failed": 0,
+      "skipped": 0,
+      "total": 76,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-114-evaluator-adjacent/REC-114-evaluator-adjacent.trx",
+        "sha256": "2f8b0e7e2c67f253d7c6d02e27570bf3853b790c0231a711f8e9c805cf7599f2"
+      }
+    }
+  ],
+  "semanticChecks": {
+    "schemaDomain": "All schema mutations emitted one located Schema-phase, Schema-source MQ diagnostic; no schema candidate was accepted by tolerant runtime behavior.",
+    "substrateDomain": "All malformed binary/text substrate mutations retained valid schemas and emitted their declared ISE runtime code without MQ fallback.",
+    "repetitionAndSubstream": "The corrected F04 zero-progress text repeat, F03 binary zero-progress repeat, and G01-G06 bounded-substream cases retained their expected progress, exact/lax, overread and under-consumption boundaries."
+  },
+  "productionFinding": null,
+  "fullReleaseGate": {
+    "command": "python docs/campaigns/recovery-v3/tools/full_gate.py run --scope-id REC-114 --solution src/dotnet/Musoq.sln --configuration Release --output .campaign-artifacts/REC-114-full-gate --evidence docs/campaigns/recovery-v3/evidence/REC-114-full-gate.json --expected-inventory docs/campaigns/recovery-v3/evidence/REC-085-expected-inventory.json --skip-allowlist docs/campaigns/recovery-v3/evidence/REC-085-skip-allowlist.json",
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-114-full-gate.json",
+    "evidenceSha256": "d05206db45d0c14018e721fb6278904d12b911cf0285c612e18906babc1213f8",
+    "runId": "REC-114-02f11d681b19",
+    "targetCount": 8,
+    "passed": 20484,
+    "failed": 0,
+    "skipped": 3,
+    "total": 20487,
+    "testedPayloadSha256": "acf7dae5ed18969061ee36e527706439342a02caa5a033888127f0531f9afcf2",
+    "testedPayloadFileCount": 5775
+  },
+  "notes": [
+    "Revision 1 and its manifest remain immutable; the F04 seed-validity correction is recorded separately and revision 2 is the complete final contract.",
+    "The v2 final replay passed all 48 corrected cases with 32 invalid candidates and 16 ordinary controls. No candidate was removed, weakened, or reclassified.",
+    "No production finding or production fix was required. Product and empirical lanes remain not run under the selected engine-lane stopping contract."
+  ]
+}

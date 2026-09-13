@@ -1,0 +1,3174 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-127",
+  "cases": [
+    {
+      "formatVersion": 1,
+      "caseId": "A01",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected construction boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e /* A01-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid A01 seed marker with the controlled construction fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "A01-seed",
+        "after": "A01-fault",
+        "resultQuery": "select e.Name from #boundary.items() e /* A01-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider construction boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider construction failure must not cross as SQL syntax",
+        "context": "REC-127/A01/construction"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e /* A01-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "A02",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected construction boundary fault.",
+      "seedQuery": "select e.Name as Label from #boundary.items() e /* A02-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid A02 seed marker with the controlled construction fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "A02-seed",
+        "after": "A02-fault",
+        "resultQuery": "select e.Name as Label from #boundary.items() e /* A02-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider construction boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider construction failure must not cross as SQL syntax",
+        "context": "REC-127/A02/construction"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name as Label from #boundary.items() e /* A02-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "A03",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected construction boundary fault.",
+      "seedQuery": "select e.Name, e.Population from #boundary.items() e /* A03-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid A03 seed marker with the controlled construction fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "A03-seed",
+        "after": "A03-fault",
+        "resultQuery": "select e.Name, e.Population from #boundary.items() e /* A03-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider construction boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider construction failure must not cross as SQL syntax",
+        "context": "REC-127/A03/construction"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name, e.Population from #boundary.items() e /* A03-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "A04",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected construction boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e where e.Population >= 0 /* A04-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid A04 seed marker with the controlled construction fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "A04-seed",
+        "after": "A04-fault",
+        "resultQuery": "select e.Name from #boundary.items() e where e.Population >= 0 /* A04-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider construction boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider construction failure must not cross as SQL syntax",
+        "context": "REC-127/A04/construction"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e where e.Population >= 0 /* A04-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "A05",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected construction boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e order by e.Name /* A05-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid A05 seed marker with the controlled construction fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "A05-seed",
+        "after": "A05-fault",
+        "resultQuery": "select e.Name from #boundary.items() e order by e.Name /* A05-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider construction boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider construction failure must not cross as SQL syntax",
+        "context": "REC-127/A05/construction"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e order by e.Name /* A05-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "A06",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected construction boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e take 1 /* A06-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid A06 seed marker with the controlled construction fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "A06-seed",
+        "after": "A06-fault",
+        "resultQuery": "select e.Name from #boundary.items() e take 1 /* A06-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider construction boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider construction failure must not cross as SQL syntax",
+        "context": "REC-127/A06/construction"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e take 1 /* A06-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "A07",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected construction boundary fault.",
+      "seedQuery": "select Count(e.Name) as Total from #boundary.items() e /* A07-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid A07 seed marker with the controlled construction fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "A07-seed",
+        "after": "A07-fault",
+        "resultQuery": "select Count(e.Name) as Total from #boundary.items() e /* A07-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider construction boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider construction failure must not cross as SQL syntax",
+        "context": "REC-127/A07/construction"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select Count(e.Name) as Total from #boundary.items() e /* A07-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "A08",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected construction boundary fault.",
+      "seedQuery": "with rows as (select e.Name from #boundary.items() e) select Name from rows /* A08-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid A08 seed marker with the controlled construction fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "A08-seed",
+        "after": "A08-fault",
+        "resultQuery": "with rows as (select e.Name from #boundary.items() e) select Name from rows /* A08-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider construction boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider construction failure must not cross as SQL syntax",
+        "context": "REC-127/A08/construction"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "with rows as (select e.Name from #boundary.items() e) select Name from rows /* A08-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "A09",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected construction boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e inner join #boundary.items() f on e.Name = f.Name /* A09-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid A09 seed marker with the controlled construction fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "A09-seed",
+        "after": "A09-fault",
+        "resultQuery": "select e.Name from #boundary.items() e inner join #boundary.items() f on e.Name = f.Name /* A09-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider construction boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider construction failure must not cross as SQL syntax",
+        "context": "REC-127/A09/construction"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e inner join #boundary.items() f on e.Name = f.Name /* A09-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "A10",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected construction boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e where e.Name is not null order by e.Name /* A10-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid A10 seed marker with the controlled construction fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "A10-seed",
+        "after": "A10-fault",
+        "resultQuery": "select e.Name from #boundary.items() e where e.Name is not null order by e.Name /* A10-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider construction boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider construction failure must not cross as SQL syntax",
+        "context": "REC-127/A10/construction"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e where e.Name is not null order by e.Name /* A10-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "A11",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected construction boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e skip 0 /* A11-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid A11 seed marker with the controlled construction fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "A11-seed",
+        "after": "A11-fault",
+        "resultQuery": "select e.Name from #boundary.items() e skip 0 /* A11-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider construction boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider construction failure must not cross as SQL syntax",
+        "context": "REC-127/A11/construction"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e skip 0 /* A11-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "A12",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected construction boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e order by e.Name take 1 /* A12-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid A12 seed marker with the controlled construction fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "A12-seed",
+        "after": "A12-fault",
+        "resultQuery": "select e.Name from #boundary.items() e order by e.Name take 1 /* A12-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider construction boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider construction failure must not cross as SQL syntax",
+        "context": "REC-127/A12/construction"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e order by e.Name take 1 /* A12-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "B01",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected description boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e /* B01-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid B01 seed marker with the controlled description fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "B01-seed",
+        "after": "B01-fault",
+        "resultQuery": "select e.Name from #boundary.items() e /* B01-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider description boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider description failure must not cross as SQL syntax",
+        "context": "REC-127/B01/description"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e /* B01-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "B02",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected description boundary fault.",
+      "seedQuery": "select e.Name as Label from #boundary.items() e /* B02-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid B02 seed marker with the controlled description fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "B02-seed",
+        "after": "B02-fault",
+        "resultQuery": "select e.Name as Label from #boundary.items() e /* B02-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider description boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider description failure must not cross as SQL syntax",
+        "context": "REC-127/B02/description"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name as Label from #boundary.items() e /* B02-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "B03",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected description boundary fault.",
+      "seedQuery": "select e.Name, e.Population from #boundary.items() e /* B03-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid B03 seed marker with the controlled description fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "B03-seed",
+        "after": "B03-fault",
+        "resultQuery": "select e.Name, e.Population from #boundary.items() e /* B03-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider description boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider description failure must not cross as SQL syntax",
+        "context": "REC-127/B03/description"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name, e.Population from #boundary.items() e /* B03-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "B04",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected description boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e where e.Population >= 0 /* B04-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid B04 seed marker with the controlled description fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "B04-seed",
+        "after": "B04-fault",
+        "resultQuery": "select e.Name from #boundary.items() e where e.Population >= 0 /* B04-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider description boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider description failure must not cross as SQL syntax",
+        "context": "REC-127/B04/description"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e where e.Population >= 0 /* B04-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "B05",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected description boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e order by e.Name /* B05-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid B05 seed marker with the controlled description fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "B05-seed",
+        "after": "B05-fault",
+        "resultQuery": "select e.Name from #boundary.items() e order by e.Name /* B05-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider description boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider description failure must not cross as SQL syntax",
+        "context": "REC-127/B05/description"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e order by e.Name /* B05-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "B06",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected description boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e take 1 /* B06-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid B06 seed marker with the controlled description fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "B06-seed",
+        "after": "B06-fault",
+        "resultQuery": "select e.Name from #boundary.items() e take 1 /* B06-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider description boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider description failure must not cross as SQL syntax",
+        "context": "REC-127/B06/description"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e take 1 /* B06-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "B07",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected description boundary fault.",
+      "seedQuery": "select Count(e.Name) as Total from #boundary.items() e /* B07-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid B07 seed marker with the controlled description fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "B07-seed",
+        "after": "B07-fault",
+        "resultQuery": "select Count(e.Name) as Total from #boundary.items() e /* B07-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider description boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider description failure must not cross as SQL syntax",
+        "context": "REC-127/B07/description"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select Count(e.Name) as Total from #boundary.items() e /* B07-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "B08",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected description boundary fault.",
+      "seedQuery": "with rows as (select e.Name from #boundary.items() e) select Name from rows /* B08-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid B08 seed marker with the controlled description fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "B08-seed",
+        "after": "B08-fault",
+        "resultQuery": "with rows as (select e.Name from #boundary.items() e) select Name from rows /* B08-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider description boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider description failure must not cross as SQL syntax",
+        "context": "REC-127/B08/description"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "with rows as (select e.Name from #boundary.items() e) select Name from rows /* B08-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "B09",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected description boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e inner join #boundary.items() f on e.Name = f.Name /* B09-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid B09 seed marker with the controlled description fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "B09-seed",
+        "after": "B09-fault",
+        "resultQuery": "select e.Name from #boundary.items() e inner join #boundary.items() f on e.Name = f.Name /* B09-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider description boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider description failure must not cross as SQL syntax",
+        "context": "REC-127/B09/description"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e inner join #boundary.items() f on e.Name = f.Name /* B09-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "B10",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected description boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e where e.Name is not null order by e.Name /* B10-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid B10 seed marker with the controlled description fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "B10-seed",
+        "after": "B10-fault",
+        "resultQuery": "select e.Name from #boundary.items() e where e.Name is not null order by e.Name /* B10-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider description boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider description failure must not cross as SQL syntax",
+        "context": "REC-127/B10/description"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e where e.Name is not null order by e.Name /* B10-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "B11",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected description boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e skip 0 /* B11-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid B11 seed marker with the controlled description fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "B11-seed",
+        "after": "B11-fault",
+        "resultQuery": "select e.Name from #boundary.items() e skip 0 /* B11-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider description boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider description failure must not cross as SQL syntax",
+        "context": "REC-127/B11/description"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e skip 0 /* B11-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "B12",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected description boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e order by e.Name take 1 /* B12-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid B12 seed marker with the controlled description fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "B12-seed",
+        "after": "B12-fault",
+        "resultQuery": "select e.Name from #boundary.items() e order by e.Name take 1 /* B12-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider description boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider description failure must not cross as SQL syntax",
+        "context": "REC-127/B12/description"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e order by e.Name take 1 /* B12-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C01",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected planning boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e /* C01-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid C01 seed marker with the controlled planning fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "C01-seed",
+        "after": "C01-fault",
+        "resultQuery": "select e.Name from #boundary.items() e /* C01-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider planning boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider planning failure must not cross as SQL syntax",
+        "context": "REC-127/C01/planning"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e /* C01-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C02",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected planning boundary fault.",
+      "seedQuery": "select e.Name as Label from #boundary.items() e /* C02-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid C02 seed marker with the controlled planning fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "C02-seed",
+        "after": "C02-fault",
+        "resultQuery": "select e.Name as Label from #boundary.items() e /* C02-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider planning boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider planning failure must not cross as SQL syntax",
+        "context": "REC-127/C02/planning"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name as Label from #boundary.items() e /* C02-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C03",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected planning boundary fault.",
+      "seedQuery": "select e.Name, e.Population from #boundary.items() e /* C03-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid C03 seed marker with the controlled planning fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "C03-seed",
+        "after": "C03-fault",
+        "resultQuery": "select e.Name, e.Population from #boundary.items() e /* C03-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider planning boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider planning failure must not cross as SQL syntax",
+        "context": "REC-127/C03/planning"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name, e.Population from #boundary.items() e /* C03-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C04",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected planning boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e where e.Population >= 0 /* C04-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid C04 seed marker with the controlled planning fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "C04-seed",
+        "after": "C04-fault",
+        "resultQuery": "select e.Name from #boundary.items() e where e.Population >= 0 /* C04-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider planning boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider planning failure must not cross as SQL syntax",
+        "context": "REC-127/C04/planning"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e where e.Population >= 0 /* C04-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C05",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected planning boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e order by e.Name /* C05-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid C05 seed marker with the controlled planning fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "C05-seed",
+        "after": "C05-fault",
+        "resultQuery": "select e.Name from #boundary.items() e order by e.Name /* C05-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider planning boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider planning failure must not cross as SQL syntax",
+        "context": "REC-127/C05/planning"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e order by e.Name /* C05-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C06",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected planning boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e take 1 /* C06-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid C06 seed marker with the controlled planning fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "C06-seed",
+        "after": "C06-fault",
+        "resultQuery": "select e.Name from #boundary.items() e take 1 /* C06-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider planning boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider planning failure must not cross as SQL syntax",
+        "context": "REC-127/C06/planning"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e take 1 /* C06-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C07",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected planning boundary fault.",
+      "seedQuery": "select Count(e.Name) as Total from #boundary.items() e /* C07-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid C07 seed marker with the controlled planning fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "C07-seed",
+        "after": "C07-fault",
+        "resultQuery": "select Count(e.Name) as Total from #boundary.items() e /* C07-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider planning boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider planning failure must not cross as SQL syntax",
+        "context": "REC-127/C07/planning"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select Count(e.Name) as Total from #boundary.items() e /* C07-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C08",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected planning boundary fault.",
+      "seedQuery": "with rows as (select e.Name from #boundary.items() e) select Name from rows /* C08-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid C08 seed marker with the controlled planning fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "C08-seed",
+        "after": "C08-fault",
+        "resultQuery": "with rows as (select e.Name from #boundary.items() e) select Name from rows /* C08-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider planning boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider planning failure must not cross as SQL syntax",
+        "context": "REC-127/C08/planning"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "with rows as (select e.Name from #boundary.items() e) select Name from rows /* C08-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C09",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected planning boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e inner join #boundary.items() f on e.Name = f.Name /* C09-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid C09 seed marker with the controlled planning fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "C09-seed",
+        "after": "C09-fault",
+        "resultQuery": "select e.Name from #boundary.items() e inner join #boundary.items() f on e.Name = f.Name /* C09-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider planning boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider planning failure must not cross as SQL syntax",
+        "context": "REC-127/C09/planning"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e inner join #boundary.items() f on e.Name = f.Name /* C09-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C10",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected planning boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e where e.Name is not null order by e.Name /* C10-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid C10 seed marker with the controlled planning fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "C10-seed",
+        "after": "C10-fault",
+        "resultQuery": "select e.Name from #boundary.items() e where e.Name is not null order by e.Name /* C10-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider planning boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider planning failure must not cross as SQL syntax",
+        "context": "REC-127/C10/planning"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e where e.Name is not null order by e.Name /* C10-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C11",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected planning boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e skip 0 /* C11-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid C11 seed marker with the controlled planning fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "C11-seed",
+        "after": "C11-fault",
+        "resultQuery": "select e.Name from #boundary.items() e skip 0 /* C11-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider planning boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider planning failure must not cross as SQL syntax",
+        "context": "REC-127/C11/planning"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e skip 0 /* C11-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "C12",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected planning boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e order by e.Name take 1 /* C12-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid C12 seed marker with the controlled planning fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "C12-seed",
+        "after": "C12-fault",
+        "resultQuery": "select e.Name from #boundary.items() e order by e.Name take 1 /* C12-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider planning boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+          "section": "7.3 Source Contract Diagnostics",
+          "passage": "Datasources may report contract diagnostics from DescribeSource or TryPlanSource; source-provided failures remain datasource facts rather than SQL syntax errors.",
+          "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider planning failure must not cross as SQL syntax",
+        "context": "REC-127/C12/planning"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e order by e.Name take 1 /* C12-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "D01",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected open boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e /* D01-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid D01 seed marker with the controlled open fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "D01-seed",
+        "after": "D01-fault",
+        "resultQuery": "select e.Name from #boundary.items() e /* D01-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider open boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider open failure must not cross as SQL syntax",
+        "context": "REC-127/D01/open"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e /* D01-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "D02",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected open boundary fault.",
+      "seedQuery": "select e.Name as Label from #boundary.items() e /* D02-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid D02 seed marker with the controlled open fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "D02-seed",
+        "after": "D02-fault",
+        "resultQuery": "select e.Name as Label from #boundary.items() e /* D02-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider open boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider open failure must not cross as SQL syntax",
+        "context": "REC-127/D02/open"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name as Label from #boundary.items() e /* D02-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "D03",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected open boundary fault.",
+      "seedQuery": "select e.Name, e.Population from #boundary.items() e /* D03-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid D03 seed marker with the controlled open fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "D03-seed",
+        "after": "D03-fault",
+        "resultQuery": "select e.Name, e.Population from #boundary.items() e /* D03-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider open boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider open failure must not cross as SQL syntax",
+        "context": "REC-127/D03/open"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name, e.Population from #boundary.items() e /* D03-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "D04",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected open boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e where e.Population >= 0 /* D04-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid D04 seed marker with the controlled open fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "D04-seed",
+        "after": "D04-fault",
+        "resultQuery": "select e.Name from #boundary.items() e where e.Population >= 0 /* D04-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider open boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider open failure must not cross as SQL syntax",
+        "context": "REC-127/D04/open"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e where e.Population >= 0 /* D04-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "D05",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected open boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e order by e.Name /* D05-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid D05 seed marker with the controlled open fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "D05-seed",
+        "after": "D05-fault",
+        "resultQuery": "select e.Name from #boundary.items() e order by e.Name /* D05-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider open boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider open failure must not cross as SQL syntax",
+        "context": "REC-127/D05/open"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e order by e.Name /* D05-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "D06",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected open boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e take 1 /* D06-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid D06 seed marker with the controlled open fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "D06-seed",
+        "after": "D06-fault",
+        "resultQuery": "select e.Name from #boundary.items() e take 1 /* D06-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider open boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider open failure must not cross as SQL syntax",
+        "context": "REC-127/D06/open"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e take 1 /* D06-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "D07",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected open boundary fault.",
+      "seedQuery": "select Count(e.Name) as Total from #boundary.items() e /* D07-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid D07 seed marker with the controlled open fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "D07-seed",
+        "after": "D07-fault",
+        "resultQuery": "select Count(e.Name) as Total from #boundary.items() e /* D07-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider open boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider open failure must not cross as SQL syntax",
+        "context": "REC-127/D07/open"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select Count(e.Name) as Total from #boundary.items() e /* D07-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "D08",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected open boundary fault.",
+      "seedQuery": "with rows as (select e.Name from #boundary.items() e) select Name from rows /* D08-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid D08 seed marker with the controlled open fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "D08-seed",
+        "after": "D08-fault",
+        "resultQuery": "with rows as (select e.Name from #boundary.items() e) select Name from rows /* D08-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider open boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider open failure must not cross as SQL syntax",
+        "context": "REC-127/D08/open"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "with rows as (select e.Name from #boundary.items() e) select Name from rows /* D08-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "D09",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected open boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e inner join #boundary.items() f on e.Name = f.Name /* D09-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid D09 seed marker with the controlled open fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "D09-seed",
+        "after": "D09-fault",
+        "resultQuery": "select e.Name from #boundary.items() e inner join #boundary.items() f on e.Name = f.Name /* D09-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider open boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider open failure must not cross as SQL syntax",
+        "context": "REC-127/D09/open"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e inner join #boundary.items() f on e.Name = f.Name /* D09-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "D10",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected open boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e where e.Name is not null order by e.Name /* D10-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid D10 seed marker with the controlled open fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "D10-seed",
+        "after": "D10-fault",
+        "resultQuery": "select e.Name from #boundary.items() e where e.Name is not null order by e.Name /* D10-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider open boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider open failure must not cross as SQL syntax",
+        "context": "REC-127/D10/open"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e where e.Name is not null order by e.Name /* D10-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "E01",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected open after successful metadata boundary fault.",
+      "seedQuery": "select e.Name from #boundary.items() e /* E01-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid E01 seed marker with the controlled open after successful metadata fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "E01-seed",
+        "after": "E01-fault",
+        "resultQuery": "select e.Name from #boundary.items() e /* E01-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider open after successful metadata boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7010_DataSourceOpenFailed",
+          "phase": "DataSource",
+          "sourceDomain": "DataSource",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider open after successful metadata failure must not cross as SQL syntax",
+        "context": "REC-127/E01/open after successful metadata"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select e.Name from #boundary.items() e /* E01-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "E02",
+      "scopeId": "REC-127",
+      "task": "Exercise a valid source query with an injected required-parameter boundary fault.",
+      "seedQuery": "param(key: string) select e.Name from #boundary.items($key) e /* E02-seed */",
+      "fixtureRef": {
+        "id": "REC-127-provider-boundary-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-127ProviderBoundaryTests.cs",
+        "testName": "ProviderBoundaryMatrix_ShouldExposeSafeOperationFacts",
+        "proof": "The permanent MSTest matrix drives controlled provider construction, description, planning, open and parameter-boundary faults."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid E02 seed marker with the controlled required-parameter fault marker; the provider fault is injected by the permanent fixture.",
+        "before": "E02-seed",
+        "after": "E02-fault",
+        "resultQuery": "param(key: string) select e.Name from #boundary.items($key) e /* E02-fault */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "the provider required-parameter boundary must be reported with its actual operation and safe original cause",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ7003_RequiredScriptParameterMissing",
+          "phase": "Runtime",
+          "sourceDomain": "Runtime",
+          "severity": "Error"
+        }
+      ],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.6 Schema, datasource, runtime, and internal failures",
+          "passage": "Datasource construction/open failures use the DataSource domain with safe schema, source, alias, context and operation facts; unexpected CLR exceptions are not rewritten as unsupported SQL syntax.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The valid seed, controlled provider fault, expected envelope facts and authority hashes are frozen before observation."
+      },
+      "fingerprint": {
+        "domain": "PROVIDER_BOUNDARY",
+        "rootCause": "provider required-parameter failure must not cross as SQL syntax",
+        "context": "REC-127/E02/required-parameter"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "param(key: string) select e.Name from #boundary.items($key) e /* E02-fault */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "the reported operation matches the injected provider boundary",
+          "schema, source, alias and source context facts remain present",
+          "the safe envelope omits provider argument values and retains the original cause type",
+          "the failure is not classified as SQL parse or syntax"
+        ]
+      }
+    }
+  ]
+}

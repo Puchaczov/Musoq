@@ -1,0 +1,134 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-108",
+  "outcome": "passed",
+  "artifacts": [
+    {
+      "id": "case-contract-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-108-case-contract.json",
+      "sha256": "1be1c745778c00ba8124d2338fdac2a644582fbb5c09d5f6c8d3ebaf4182bb9a",
+      "role": "Immutable revision-1 frozen insertion, duplication, pasted-fragment, quiet-control and entry-point matrix."
+    },
+    {
+      "id": "pre-observation-manifest-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-108-pre-observation-manifest.json",
+      "sha256": "d5cb2ada55900f91e3799e204185c75b447ef18d82dc65c8492de3ba34e6e0d2",
+      "role": "Revision-1 authority hashes and pre-observation payload digest."
+    },
+    {
+      "id": "behavior-results-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-108-behavior-results.json",
+      "sha256": "1301eeeaf0f084c71d294eee67bd4912bc0b9e14e032b64340f1fe846d768289",
+      "role": "Complete revision-1 observation with the two immutable oracle mismatches."
+    },
+    {
+      "id": "oracle-correction",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-108-oracle-correction.json",
+      "sha256": "a4f8322108ac698c6d77a525e53e2b2777b5db92b26512849a9c7eef91fab759",
+      "role": "Source-justified revision-2 correction with two independent read-only approvals."
+    },
+    {
+      "id": "case-contract-revision-2",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-108-case-contract-v2.json",
+      "sha256": "69829a11d7a0bcf7a63095ca48c7f7a2309e7cff0005faa21db09402357161d4",
+      "role": "Revision-2 frozen matrix with corrected candidate-version IDs and classifications."
+    },
+    {
+      "id": "pre-observation-manifest-revision-2",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-108-pre-observation-manifest-v2.json",
+      "sha256": "a7432f0f0006b40c5af2bdcd57eec4104fa88b76b37baad2e1155c6a87432e4b",
+      "role": "Revision-2 authority hashes and pre-observation payload digest."
+    },
+    {
+      "id": "behavior-results-revision-2",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-108-behavior-results-v2.json",
+      "sha256": "02a21d075fbfd4ddd0c722e5e2bb5ace13029a05e261b21281bf28d28ecdb800",
+      "role": "Complete revision-2 replay with all 30 expected outcomes matched."
+    },
+    {
+      "id": "focused-parser-trx",
+      "path": ".campaign-artifacts/REC-108-focused-final/REC-108-focused-final.trx",
+      "sha256": "51233efd9d8ab0f3fd366d218f1f8a7e87ca433195799c01b9fe8505875c3644",
+      "role": "Machine-readable final parser matrix replay."
+    },
+    {
+      "id": "entry-point-trx",
+      "path": ".campaign-artifacts/REC-108-entrypoint-final/REC-108-entrypoint-final.trx",
+      "sha256": "d50e484c5b092a37888396fa6c8da5688a716a1aa8f51a4dc61cc7f9ce551666",
+      "role": "Machine-readable single-query entry-point probe."
+    },
+    {
+      "id": "adjacent-parser-trx",
+      "path": ".campaign-artifacts/REC-108-adjacent-parser/REC-108-adjacent-parser.trx",
+      "sha256": "8730d03ede1d2182d2b11014844c38e4870da144a98210788e7bb17e2591be6d",
+      "role": "Machine-readable adjacent parser regression replay, 115/115 passed."
+    },
+    {
+      "id": "adjacent-evaluator-trx",
+      "path": ".campaign-artifacts/REC-108-adjacent-evaluator/REC-108-adjacent-evaluator.trx",
+      "sha256": "cbcaa4fd662abe350720f5a9dbc756f99599fb00c6a82d75cad326c7da22b5d2",
+      "role": "Machine-readable entry-point, evaluator regression and maintainability replay, 9/9 passed."
+    },
+    {
+      "id": "parser-tests",
+      "path": "src/dotnet/Musoq.Parser.Tests/Diagnostic.REC-108InsertionDuplicationTests.cs",
+      "sha256": "8192f58c812751fe7430229673cb254a24d2cc2f819ab4c85c6ca5b67c4e9fa3",
+      "role": "Permanent 30-case revision-2 parser matrix and strict diagnostic assertions."
+    },
+    {
+      "id": "entry-point-tests",
+      "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-108EntryPointTests.cs",
+      "sha256": "a2dd728efcb580d9792187e3ac3a53fc6f94ef49f4f554c166543b4d08c3c78a",
+      "role": "Permanent compiler entry-point boundary probe."
+    },
+    {
+      "id": "report",
+      "path": "docs/campaigns/recovery-v3/reports/REC-108.md",
+      "sha256": "b4bc775fd80189dac345e4e97b700e1e9ead0d00e8e4f06d119e0cec7dfd2833",
+      "role": "Human-readable REC-108 completion report."
+    },
+    {
+      "id": "full-gate",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-108-full-gate.json",
+      "sha256": "76982c9be0fc67110c378608b4676aa8ead4dfa11357b71bac017103e5c6fa87",
+      "role": "Fresh all-target Release restore/build/test gate."
+    }
+  ],
+  "validation": {
+    "revision1": {
+      "frozenContractVerified": true,
+      "caseCount": 30,
+      "matchingCases": 28,
+      "oracleMismatches": 2
+    },
+    "revision2": {
+      "frozenContractVerified": true,
+      "caseCount": 30,
+      "invalidCandidates": 14,
+      "validSuspiciousCases": 5,
+      "validOrdinaryCases": 11,
+      "matchingCases": 30,
+      "oracleMismatches": 0
+    },
+    "focusedParser": {"passed": 3,"skipped": 0,"failed": 0,"total": 3},
+    "entryPointProbe": {"passed": 3,"skipped": 0,"failed": 0,"total": 3},
+    "adjacentParser": {"passed": 115,"skipped": 0,"failed": 0,"total": 115},
+    "evaluatorAndMaintainability": {"passed": 9,"skipped": 0,"failed": 0,"total": 9},
+    "campaignTools": {"passed": 46,"skipped": 0,"failed": 0,"total": 46},
+    "fullReleaseGate": {
+      "runId": "REC-108-84512d08067a",
+      "passed": 20454,
+      "skipped": 3,
+      "failed": 0,
+      "total": 20457,
+      "targetCount": 8,
+      "testedPayloadSha256": "0ebac7bf263d3c07f7ff32719904e574d0abf95ef492e2a34ad699ddedd77ff1",
+      "testedPayloadFileCount": 5768
+    }
+  },
+  "notes": [
+    "Revision 1 remains unchanged after observation; revision 2 is a new candidate version, not a post-hoc replacement.",
+    "No production source change was made for REC-108.",
+    "The three full-gate skips are the established generated-code refresh utilities from the campaign allowlist."
+  ]
+}

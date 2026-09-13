@@ -97,13 +97,13 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (TryBindEnumCollectionPredicate(left, args, node, out var enumArgs))
         {
-            PushSemanticNode(new InNode(left, enumArgs));
+            PushSemanticNode(new InNode(left, enumArgs).CopySpansFrom(node));
             return;
         }
 
         ValidateCollectionPredicateItems(left, args, node);
 
-        PushSemanticNode(new InNode(left, args));
+        PushSemanticNode(new InNode(left, args).CopySpansFrom(node));
     }
 
     public override void Visit(CollectionInNode node)
@@ -117,13 +117,13 @@ public partial class BuildMetadataAndInferTypesVisitor
                 DiagnosticCode.MQ3112_UnsupportedEnumScriptParameter,
                 $"Enum script parameters are not supported for enum type '{enumType.DisplayName}'. Use exact quoted members directly in IN (...).",
                 node);
-            PushSemanticNode(new CollectionInNode(left, collection));
+            PushSemanticNode(new CollectionInNode(left, collection).CopySpansFrom(node));
             return;
         }
 
         ValidateCollectionParameterPredicate(left, collection, node);
 
-        PushSemanticNode(new CollectionInNode(left, collection));
+        PushSemanticNode(new CollectionInNode(left, collection).CopySpansFrom(node));
     }
 
     public override void Visit(BetweenNode node)
@@ -135,14 +135,14 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (TryRejectUnsupportedEnumOperator("BETWEEN", node, expression, min, max))
         {
-            PushSemanticNode(new BetweenNode(expression, min, max));
+            PushSemanticNode(new BetweenNode(expression, min, max).CopySpansFrom(node));
             return;
         }
 
         ValidateBinaryOperatorOperands(expression, min, BinaryOperatorKind.Relational, node);
         ValidateBinaryOperatorOperands(expression, max, BinaryOperatorKind.Relational, node);
 
-        PushSemanticNode(new BetweenNode(expression, min, max));
+        PushSemanticNode(new BetweenNode(expression, min, max).CopySpansFrom(node));
     }
 
     public override void Visit(ContainsNode node)
@@ -153,20 +153,20 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (TryBindEnumCollectionPredicate(left, args, node, out var enumArgs))
         {
-            PushSemanticNode(new ContainsNode(left, enumArgs));
+            PushSemanticNode(new ContainsNode(left, enumArgs).CopySpansFrom(node));
             return;
         }
 
         ValidateCollectionPredicateItems(left, args, node);
 
-        PushSemanticNode(new ContainsNode(left, args));
+        PushSemanticNode(new ContainsNode(left, args).CopySpansFrom(node));
     }
 
     public override void Visit(IsNullNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var operand = PopSemanticNode(VisitorOperationNames.VisitIsNullNode);
-        PushSemanticNode(new IsNullNode(operand, node.IsNegated));
+        PushSemanticNode(new IsNullNode(operand, node.IsNegated).CopySpansFrom(node));
     }
 
     public override void Visit(RowPresenceNode node)

@@ -75,7 +75,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         ValidateBooleanOperand(left, "AND", node);
         ValidateBooleanOperand(right, "AND", node);
 
-        PushSemanticNode(new AndNode(left, right));
+        PushSemanticNode(new AndNode(left, right).CopySpansFrom(node));
     }
 
     public override void Visit(OrNode node)
@@ -87,7 +87,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         ValidateBooleanOperand(left, "OR", node);
         ValidateBooleanOperand(right, "OR", node);
 
-        PushSemanticNode(new OrNode(left, right));
+        PushSemanticNode(new OrNode(left, right).CopySpansFrom(node));
     }
 
     public override void Visit(BitwiseAndNode node)

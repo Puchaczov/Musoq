@@ -1,0 +1,3018 @@
+{
+  "formatVersion": 1,
+  "cases": [
+    {
+      "formatVersion": 1,
+      "caseId": "PR-01",
+      "scopeId": "REC-134",
+      "task": "Exercise pr secret-safe diagnostic variant PR-01 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-PR-01-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid PR-01 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-PR-01-seed",
+        "after": "REC-134-PR-01-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-PR-01-candidate */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-01.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for PR-01 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_PR",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-01.",
+        "context": "REC-134/PR-01/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-PR-01-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "PR-02",
+      "scopeId": "REC-134",
+      "task": "Exercise pr secret-safe diagnostic variant PR-02 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-PR-02-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid PR-02 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-PR-02-seed",
+        "after": "REC-134-PR-02-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-PR-02-candidate */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-02.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for PR-02 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_PR",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-02.",
+        "context": "REC-134/PR-02/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-PR-02-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "PR-03",
+      "scopeId": "REC-134",
+      "task": "Exercise pr secret-safe diagnostic variant PR-03 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-PR-03-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid PR-03 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-PR-03-seed",
+        "after": "REC-134-PR-03-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-PR-03-candidate */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-03.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for PR-03 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_PR",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-03.",
+        "context": "REC-134/PR-03/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-PR-03-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "PR-04",
+      "scopeId": "REC-134",
+      "task": "Exercise pr secret-safe diagnostic variant PR-04 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-PR-04-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid PR-04 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-PR-04-seed",
+        "after": "REC-134-PR-04-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-PR-04-candidate */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-04.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for PR-04 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_PR",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-04.",
+        "context": "REC-134/PR-04/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-PR-04-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "PR-05",
+      "scopeId": "REC-134",
+      "task": "Exercise pr secret-safe diagnostic variant PR-05 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-PR-05-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid PR-05 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-PR-05-seed",
+        "after": "REC-134-PR-05-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-PR-05-candidate */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-05.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for PR-05 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_PR",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-05.",
+        "context": "REC-134/PR-05/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-PR-05-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "PR-06",
+      "scopeId": "REC-134",
+      "task": "Exercise pr secret-safe diagnostic variant PR-06 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-PR-06-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid PR-06 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-PR-06-seed",
+        "after": "REC-134-PR-06-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-PR-06-candidate */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-06.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for PR-06 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_PR",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-06.",
+        "context": "REC-134/PR-06/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-PR-06-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "PR-07",
+      "scopeId": "REC-134",
+      "task": "Exercise pr secret-safe diagnostic variant PR-07 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-PR-07-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid PR-07 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-PR-07-seed",
+        "after": "REC-134-PR-07-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-PR-07-candidate */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-07.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for PR-07 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_PR",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-07.",
+        "context": "REC-134/PR-07/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-PR-07-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "PR-08",
+      "scopeId": "REC-134",
+      "task": "Exercise pr secret-safe diagnostic variant PR-08 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-PR-08-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid PR-08 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-PR-08-seed",
+        "after": "REC-134-PR-08-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-PR-08-candidate */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-08.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for PR-08 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_PR",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-08.",
+        "context": "REC-134/PR-08/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-PR-08-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "PR-09",
+      "scopeId": "REC-134",
+      "task": "Exercise pr secret-safe diagnostic variant PR-09 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-PR-09-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid PR-09 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-PR-09-seed",
+        "after": "REC-134-PR-09-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-PR-09-candidate */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-09.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for PR-09 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_PR",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-09.",
+        "context": "REC-134/PR-09/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-PR-09-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "PR-10",
+      "scopeId": "REC-134",
+      "task": "Exercise pr secret-safe diagnostic variant PR-10 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-PR-10-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid PR-10 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-PR-10-seed",
+        "after": "REC-134-PR-10-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-PR-10-candidate */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-10.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for PR-10 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_PR",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-10.",
+        "context": "REC-134/PR-10/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-PR-10-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "PR-11",
+      "scopeId": "REC-134",
+      "task": "Exercise pr secret-safe diagnostic variant PR-11 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-PR-11-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid PR-11 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-PR-11-seed",
+        "after": "REC-134-PR-11-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-PR-11-candidate */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-11.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for PR-11 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_PR",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-11.",
+        "context": "REC-134/PR-11/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-PR-11-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "PR-12",
+      "scopeId": "REC-134",
+      "task": "Exercise pr secret-safe diagnostic variant PR-12 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-PR-12-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid PR-12 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-PR-12-seed",
+        "after": "REC-134-PR-12-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-PR-12-candidate */"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-12.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for PR-12 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_PR",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for PR-12.",
+        "context": "REC-134/PR-12/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-PR-12-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SET-01",
+      "scopeId": "REC-134",
+      "task": "Exercise set secret-safe diagnostic variant SET-01 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-SET-01-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SET-01 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SET-01-seed",
+        "after": "REC-134-SET-01-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-SET-01-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-01.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SET-01 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SET",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-01.",
+        "context": "REC-134/SET-01/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-SET-01-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SET-02",
+      "scopeId": "REC-134",
+      "task": "Exercise set secret-safe diagnostic variant SET-02 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-SET-02-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SET-02 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SET-02-seed",
+        "after": "REC-134-SET-02-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-SET-02-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-02.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SET-02 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SET",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-02.",
+        "context": "REC-134/SET-02/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-SET-02-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SET-03",
+      "scopeId": "REC-134",
+      "task": "Exercise set secret-safe diagnostic variant SET-03 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-SET-03-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SET-03 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SET-03-seed",
+        "after": "REC-134-SET-03-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-SET-03-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-03.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SET-03 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SET",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-03.",
+        "context": "REC-134/SET-03/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-SET-03-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SET-04",
+      "scopeId": "REC-134",
+      "task": "Exercise set secret-safe diagnostic variant SET-04 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-SET-04-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SET-04 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SET-04-seed",
+        "after": "REC-134-SET-04-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-SET-04-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-04.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SET-04 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SET",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-04.",
+        "context": "REC-134/SET-04/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-SET-04-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SET-05",
+      "scopeId": "REC-134",
+      "task": "Exercise set secret-safe diagnostic variant SET-05 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-SET-05-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SET-05 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SET-05-seed",
+        "after": "REC-134-SET-05-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-SET-05-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-05.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SET-05 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SET",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-05.",
+        "context": "REC-134/SET-05/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-SET-05-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SET-06",
+      "scopeId": "REC-134",
+      "task": "Exercise set secret-safe diagnostic variant SET-06 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-SET-06-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SET-06 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SET-06-seed",
+        "after": "REC-134-SET-06-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-SET-06-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-06.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SET-06 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SET",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-06.",
+        "context": "REC-134/SET-06/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-SET-06-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SET-07",
+      "scopeId": "REC-134",
+      "task": "Exercise set secret-safe diagnostic variant SET-07 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-SET-07-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SET-07 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SET-07-seed",
+        "after": "REC-134-SET-07-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-SET-07-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-07.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SET-07 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SET",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-07.",
+        "context": "REC-134/SET-07/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-SET-07-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SET-08",
+      "scopeId": "REC-134",
+      "task": "Exercise set secret-safe diagnostic variant SET-08 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-SET-08-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SET-08 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SET-08-seed",
+        "after": "REC-134-SET-08-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-SET-08-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-08.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SET-08 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SET",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-08.",
+        "context": "REC-134/SET-08/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-SET-08-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SET-09",
+      "scopeId": "REC-134",
+      "task": "Exercise set secret-safe diagnostic variant SET-09 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-SET-09-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SET-09 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SET-09-seed",
+        "after": "REC-134-SET-09-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-SET-09-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-09.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SET-09 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SET",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-09.",
+        "context": "REC-134/SET-09/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-SET-09-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SET-10",
+      "scopeId": "REC-134",
+      "task": "Exercise set secret-safe diagnostic variant SET-10 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-SET-10-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SET-10 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SET-10-seed",
+        "after": "REC-134-SET-10-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-SET-10-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-10.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SET-10 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SET",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-10.",
+        "context": "REC-134/SET-10/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-SET-10-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SET-11",
+      "scopeId": "REC-134",
+      "task": "Exercise set secret-safe diagnostic variant SET-11 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-SET-11-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SET-11 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SET-11-seed",
+        "after": "REC-134-SET-11-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-SET-11-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-11.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SET-11 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SET",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-11.",
+        "context": "REC-134/SET-11/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-SET-11-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SET-12",
+      "scopeId": "REC-134",
+      "task": "Exercise set secret-safe diagnostic variant SET-12 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-SET-12-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SET-12 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SET-12-seed",
+        "after": "REC-134-SET-12-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-SET-12-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-12.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SET-12 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SET",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SET-12.",
+        "context": "REC-134/SET-12/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-SET-12-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SN-01",
+      "scopeId": "REC-134",
+      "task": "Exercise sn secret-safe diagnostic variant SN-01 through the permanent REC-134 matrix.",
+      "seedQuery": "select 'REC-134-SN-01-seed' from #rec134.items() r",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SN-01 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SN-01-seed",
+        "after": "REC-134-SN-01-candidate",
+        "resultQuery": "select 'REC-134-SN-01-candidate' from #rec134.items() r"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-01.",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ1002_UnterminatedString",
+          "phase": "parse",
+          "sourceDomain": "query",
+          "severity": "error"
+        }
+      ],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SN-01 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SN",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-01.",
+        "context": "REC-134/SN-01/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'REC-134-SN-01-candidate' from #rec134.items() r",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SN-02",
+      "scopeId": "REC-134",
+      "task": "Exercise sn secret-safe diagnostic variant SN-02 through the permanent REC-134 matrix.",
+      "seedQuery": "select 'REC-134-SN-02-seed' from #rec134.items() r",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SN-02 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SN-02-seed",
+        "after": "REC-134-SN-02-candidate",
+        "resultQuery": "select 'REC-134-SN-02-candidate' from #rec134.items() r"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-02.",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ1002_UnterminatedString",
+          "phase": "parse",
+          "sourceDomain": "query",
+          "severity": "error"
+        }
+      ],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SN-02 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SN",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-02.",
+        "context": "REC-134/SN-02/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'REC-134-SN-02-candidate' from #rec134.items() r",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SN-03",
+      "scopeId": "REC-134",
+      "task": "Exercise sn secret-safe diagnostic variant SN-03 through the permanent REC-134 matrix.",
+      "seedQuery": "select 'REC-134-SN-03-seed' from #rec134.items() r",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SN-03 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SN-03-seed",
+        "after": "REC-134-SN-03-candidate",
+        "resultQuery": "select 'REC-134-SN-03-candidate' from #rec134.items() r"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-03.",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ1002_UnterminatedString",
+          "phase": "parse",
+          "sourceDomain": "query",
+          "severity": "error"
+        }
+      ],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SN-03 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SN",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-03.",
+        "context": "REC-134/SN-03/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'REC-134-SN-03-candidate' from #rec134.items() r",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SN-04",
+      "scopeId": "REC-134",
+      "task": "Exercise sn secret-safe diagnostic variant SN-04 through the permanent REC-134 matrix.",
+      "seedQuery": "select 'REC-134-SN-04-seed' from #rec134.items() r",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SN-04 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SN-04-seed",
+        "after": "REC-134-SN-04-candidate",
+        "resultQuery": "select 'REC-134-SN-04-candidate' from #rec134.items() r"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-04.",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ1002_UnterminatedString",
+          "phase": "parse",
+          "sourceDomain": "query",
+          "severity": "error"
+        }
+      ],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SN-04 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SN",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-04.",
+        "context": "REC-134/SN-04/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'REC-134-SN-04-candidate' from #rec134.items() r",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SN-05",
+      "scopeId": "REC-134",
+      "task": "Exercise sn secret-safe diagnostic variant SN-05 through the permanent REC-134 matrix.",
+      "seedQuery": "select 'REC-134-SN-05-seed' from #rec134.items() r",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SN-05 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SN-05-seed",
+        "after": "REC-134-SN-05-candidate",
+        "resultQuery": "select 'REC-134-SN-05-candidate' from #rec134.items() r"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-05.",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ1002_UnterminatedString",
+          "phase": "parse",
+          "sourceDomain": "query",
+          "severity": "error"
+        }
+      ],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SN-05 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SN",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-05.",
+        "context": "REC-134/SN-05/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'REC-134-SN-05-candidate' from #rec134.items() r",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SN-06",
+      "scopeId": "REC-134",
+      "task": "Exercise sn secret-safe diagnostic variant SN-06 through the permanent REC-134 matrix.",
+      "seedQuery": "select 'REC-134-SN-06-seed' from #rec134.items() r",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SN-06 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SN-06-seed",
+        "after": "REC-134-SN-06-candidate",
+        "resultQuery": "select 'REC-134-SN-06-candidate' from #rec134.items() r"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-06.",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ1002_UnterminatedString",
+          "phase": "parse",
+          "sourceDomain": "query",
+          "severity": "error"
+        }
+      ],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SN-06 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SN",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-06.",
+        "context": "REC-134/SN-06/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'REC-134-SN-06-candidate' from #rec134.items() r",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SN-07",
+      "scopeId": "REC-134",
+      "task": "Exercise sn secret-safe diagnostic variant SN-07 through the permanent REC-134 matrix.",
+      "seedQuery": "select 'REC-134-SN-07-seed' from #rec134.items() r",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SN-07 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SN-07-seed",
+        "after": "REC-134-SN-07-candidate",
+        "resultQuery": "select 'REC-134-SN-07-candidate' from #rec134.items() r"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-07.",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ1002_UnterminatedString",
+          "phase": "parse",
+          "sourceDomain": "query",
+          "severity": "error"
+        }
+      ],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SN-07 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SN",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-07.",
+        "context": "REC-134/SN-07/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'REC-134-SN-07-candidate' from #rec134.items() r",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SN-08",
+      "scopeId": "REC-134",
+      "task": "Exercise sn secret-safe diagnostic variant SN-08 through the permanent REC-134 matrix.",
+      "seedQuery": "select 'REC-134-SN-08-seed' from #rec134.items() r",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SN-08 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SN-08-seed",
+        "after": "REC-134-SN-08-candidate",
+        "resultQuery": "select 'REC-134-SN-08-candidate' from #rec134.items() r"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-08.",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ1002_UnterminatedString",
+          "phase": "parse",
+          "sourceDomain": "query",
+          "severity": "error"
+        }
+      ],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SN-08 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SN",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-08.",
+        "context": "REC-134/SN-08/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'REC-134-SN-08-candidate' from #rec134.items() r",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SN-09",
+      "scopeId": "REC-134",
+      "task": "Exercise sn secret-safe diagnostic variant SN-09 through the permanent REC-134 matrix.",
+      "seedQuery": "select 'REC-134-SN-09-seed' from #rec134.items() r",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SN-09 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SN-09-seed",
+        "after": "REC-134-SN-09-candidate",
+        "resultQuery": "select 'REC-134-SN-09-candidate' from #rec134.items() r"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-09.",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ1002_UnterminatedString",
+          "phase": "parse",
+          "sourceDomain": "query",
+          "severity": "error"
+        }
+      ],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SN-09 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SN",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-09.",
+        "context": "REC-134/SN-09/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'REC-134-SN-09-candidate' from #rec134.items() r",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SN-10",
+      "scopeId": "REC-134",
+      "task": "Exercise sn secret-safe diagnostic variant SN-10 through the permanent REC-134 matrix.",
+      "seedQuery": "select 'REC-134-SN-10-seed' from #rec134.items() r",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SN-10 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SN-10-seed",
+        "after": "REC-134-SN-10-candidate",
+        "resultQuery": "select 'REC-134-SN-10-candidate' from #rec134.items() r"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-10.",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ1002_UnterminatedString",
+          "phase": "parse",
+          "sourceDomain": "query",
+          "severity": "error"
+        }
+      ],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SN-10 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SN",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-10.",
+        "context": "REC-134/SN-10/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'REC-134-SN-10-candidate' from #rec134.items() r",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SN-11",
+      "scopeId": "REC-134",
+      "task": "Exercise sn secret-safe diagnostic variant SN-11 through the permanent REC-134 matrix.",
+      "seedQuery": "select 'REC-134-SN-11-seed' from #rec134.items() r",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SN-11 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SN-11-seed",
+        "after": "REC-134-SN-11-candidate",
+        "resultQuery": "select 'REC-134-SN-11-candidate' from #rec134.items() r"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-11.",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ1002_UnterminatedString",
+          "phase": "parse",
+          "sourceDomain": "query",
+          "severity": "error"
+        }
+      ],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SN-11 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SN",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-11.",
+        "context": "REC-134/SN-11/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'REC-134-SN-11-candidate' from #rec134.items() r",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "SN-12",
+      "scopeId": "REC-134",
+      "task": "Exercise sn secret-safe diagnostic variant SN-12 through the permanent REC-134 matrix.",
+      "seedQuery": "select 'REC-134-SN-12-seed' from #rec134.items() r",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid SN-12 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-SN-12-seed",
+        "after": "REC-134-SN-12-candidate",
+        "resultQuery": "select 'REC-134-SN-12-candidate' from #rec134.items() r"
+      },
+      "expectedClassification": "invalid",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-12.",
+      "expectedDiagnostics": [
+        {
+          "code": "MQ1002_UnterminatedString",
+          "phase": "parse",
+          "sourceDomain": "query",
+          "severity": "error"
+        }
+      ],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "request_observation",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for SN-12 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_SN",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for SN-12.",
+        "context": "REC-134/SN-12/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 'REC-134-SN-12-candidate' from #rec134.items() r",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LG-01",
+      "scopeId": "REC-134",
+      "task": "Exercise lg secret-safe diagnostic variant LG-01 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-LG-01-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid LG-01 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-LG-01-seed",
+        "after": "REC-134-LG-01-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-LG-01-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-01.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for LG-01 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_LG",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-01.",
+        "context": "REC-134/LG-01/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-LG-01-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LG-02",
+      "scopeId": "REC-134",
+      "task": "Exercise lg secret-safe diagnostic variant LG-02 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-LG-02-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid LG-02 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-LG-02-seed",
+        "after": "REC-134-LG-02-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-LG-02-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-02.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for LG-02 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_LG",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-02.",
+        "context": "REC-134/LG-02/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-LG-02-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LG-03",
+      "scopeId": "REC-134",
+      "task": "Exercise lg secret-safe diagnostic variant LG-03 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-LG-03-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid LG-03 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-LG-03-seed",
+        "after": "REC-134-LG-03-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-LG-03-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-03.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for LG-03 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_LG",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-03.",
+        "context": "REC-134/LG-03/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-LG-03-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LG-04",
+      "scopeId": "REC-134",
+      "task": "Exercise lg secret-safe diagnostic variant LG-04 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-LG-04-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid LG-04 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-LG-04-seed",
+        "after": "REC-134-LG-04-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-LG-04-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-04.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for LG-04 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_LG",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-04.",
+        "context": "REC-134/LG-04/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-LG-04-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LG-05",
+      "scopeId": "REC-134",
+      "task": "Exercise lg secret-safe diagnostic variant LG-05 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-LG-05-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid LG-05 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-LG-05-seed",
+        "after": "REC-134-LG-05-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-LG-05-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-05.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for LG-05 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_LG",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-05.",
+        "context": "REC-134/LG-05/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-LG-05-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LG-06",
+      "scopeId": "REC-134",
+      "task": "Exercise lg secret-safe diagnostic variant LG-06 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-LG-06-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid LG-06 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-LG-06-seed",
+        "after": "REC-134-LG-06-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-LG-06-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-06.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for LG-06 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_LG",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-06.",
+        "context": "REC-134/LG-06/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-LG-06-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LG-07",
+      "scopeId": "REC-134",
+      "task": "Exercise lg secret-safe diagnostic variant LG-07 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-LG-07-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid LG-07 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-LG-07-seed",
+        "after": "REC-134-LG-07-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-LG-07-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-07.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for LG-07 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_LG",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-07.",
+        "context": "REC-134/LG-07/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-LG-07-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LG-08",
+      "scopeId": "REC-134",
+      "task": "Exercise lg secret-safe diagnostic variant LG-08 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-LG-08-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid LG-08 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-LG-08-seed",
+        "after": "REC-134-LG-08-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-LG-08-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-08.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for LG-08 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_LG",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-08.",
+        "context": "REC-134/LG-08/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-LG-08-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LG-09",
+      "scopeId": "REC-134",
+      "task": "Exercise lg secret-safe diagnostic variant LG-09 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-LG-09-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid LG-09 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-LG-09-seed",
+        "after": "REC-134-LG-09-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-LG-09-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-09.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for LG-09 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_LG",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-09.",
+        "context": "REC-134/LG-09/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-LG-09-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LG-10",
+      "scopeId": "REC-134",
+      "task": "Exercise lg secret-safe diagnostic variant LG-10 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-LG-10-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid LG-10 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-LG-10-seed",
+        "after": "REC-134-LG-10-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-LG-10-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-10.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for LG-10 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_LG",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-10.",
+        "context": "REC-134/LG-10/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-LG-10-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LG-11",
+      "scopeId": "REC-134",
+      "task": "Exercise lg secret-safe diagnostic variant LG-11 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-LG-11-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid LG-11 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-LG-11-seed",
+        "after": "REC-134-LG-11-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-LG-11-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-11.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for LG-11 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_LG",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-11.",
+        "context": "REC-134/LG-11/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-LG-11-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    },
+    {
+      "formatVersion": 1,
+      "caseId": "LG-12",
+      "scopeId": "REC-134",
+      "task": "Exercise lg secret-safe diagnostic variant LG-12 through the permanent REC-134 matrix.",
+      "seedQuery": "select 1 from #rec134.items() r /* REC-134-LG-12-seed */",
+      "fixtureRef": {
+        "id": "REC-134-secret-safe-diagnostics-fixture",
+        "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-134SecretSafeDiagnosticsTests.cs",
+        "testName": "SecretSafeDiagnosticsMatrix_ShouldProtectPublicSinks",
+        "proof": "The permanent 48-case MSTest matrix injects unique synthetic sentinels through actual exception, settings, parser span, engine logging and structured envelope paths."
+      },
+      "mutation": {
+        "kind": "replace",
+        "description": "Replace the valid LG-12 seed marker with the controlled secret-safety candidate marker.",
+        "before": "REC-134-LG-12-seed",
+        "after": "REC-134-LG-12-candidate",
+        "resultQuery": "select 1 from #rec134.items() r /* REC-134-LG-12-candidate */"
+      },
+      "expectedClassification": "valid_ordinary",
+      "expectedRootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-12.",
+      "expectedDiagnostics": [],
+      "expectedInterpretationErrors": [],
+      "authority": [
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "section": "23.1 Diagnostic envelope contract",
+          "passage": "Arguments contain stable string facts with values containing secrets excluded; details are sanitized by default and raw exception details require explicit verbose formatting.",
+          "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        },
+        {
+          "sourcePath": "docs/campaigns/recovery-v3/authority/manual.md",
+          "section": "66. Apply safe AI and automation execution; 78. Security model",
+          "passage": "Retain redacted evidence, store secrets outside query text, constrain output, and never echo source expressions, settings values, or provider exception text.",
+          "sourceSha256": "ca06204edbabaa78484f81eb6b74bd478a765799f6bf54987408f0ed035d2efe"
+        }
+      ],
+      "repairPolicy": "no_change",
+      "seedValidity": "valid",
+      "preObservation": {
+        "state": "unobserved",
+        "registeredBeforeCandidate": true,
+        "uncertainty": "The public-safe sink result, trusted verbose boundary, and retained synthetic-secret evidence for LG-12 are frozen before the authoritative observation."
+      },
+      "fingerprint": {
+        "domain": "DIAGNOSTIC_LG",
+        "rootCause": "A public diagnostic sink must not disclose the synthetic secret for LG-12.",
+        "context": "REC-134/LG-12/secret-safe-sinks"
+      },
+      "minimization": {
+        "status": "pending_observation",
+        "originalQuery": "select 1 from #rec134.items() r /* REC-134-LG-12-candidate */",
+        "minimizedQuery": null,
+        "sameFault": null,
+        "sameObservation": null,
+        "preservationCriteria": [
+          "The same public-safe diagnostic sink boundary remains exercised.",
+          "The synthetic sentinel remains unique to the case and is absent from redacted output."
+        ]
+      }
+    }
+  ]
+}
+

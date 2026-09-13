@@ -1,0 +1,105 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-108",
+  "matrixRevision": 1,
+  "outcome": "oracle_mismatches",
+  "repositoryIdentity": {
+    "root": "D:\\\\repos\\\\Musoq",
+    "baselineCommit": "85c126cfc2d92fc717abe2d734e2296c2efd6114",
+    "branch": "feature/runtime_v2_final",
+    "configuration": "Release",
+    "sdkObserved": "10.0.303"
+  },
+  "observationSequence": {
+    "frozenManifest": {
+      "path": "docs/campaigns/recovery-v3/evidence/REC-108-pre-observation-manifest.json",
+      "sha256": "d5cb2ada55900f91e3799e204185c75b447ef18d82dc65c8492de3ba34e6e0d2",
+      "caseContractPath": "docs/campaigns/recovery-v3/evidence/REC-108-case-contract.json",
+      "caseContractSha256": "1be1c745778c00ba8124d2338fdac2a644582fbb5c09d5f6c8d3ebaf4182bb9a",
+      "preObservationPayloadSha256": "9d4eb3b9faf51c148de0f86561ec76bfeb78e8b0471efb9d747acacc15cbc65f",
+      "registeredCandidateCases": 30,
+      "registeredValidationControls": 15
+    },
+    "completeInventoryReplay": {
+      "method": "TEMP_ObserveAllFrozenCandidates",
+      "command": "dotnet test src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj -c Release --no-restore --nologo --verbosity minimal --filter \"FullyQualifiedName~TEMP_ObserveAllFrozenCandidates\" --logger \"console;verbosity=detailed\" --logger \"trx;LogFileName=REC-108-observation-inventory-v1.trx\" --results-directory .campaign-artifacts/REC-108-observation-inventory-v1",
+      "exitCode": 0,
+      "passed": 1,
+      "skipped": 0,
+      "failed": 0,
+      "total": 1,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-108-observation-inventory-v1/REC-108-observation-inventory-v1.trx",
+        "sha256": "ac396be53fe6aecdfb5cadd72c197c5177cde589ad91882b57a6efa519e5d401"
+      },
+      "perCaseOutput": "The temporary inventory emitted one line for each of the 30 frozen candidates; the temporary method was removed before revision-2 implementation and replay."
+    }
+  },
+  "summary": {
+    "candidateCases": 30,
+    "invalidCandidates": 15,
+    "validationControls": 15,
+    "actualMatches": 28,
+    "actualMismatches": 2,
+    "allSeedsValid": true,
+    "allCandidatesExecuted": true,
+    "parseRootOnly": true
+  },
+  "mismatches": [
+    {
+      "caseId": "REC-108-I06",
+      "expectedClassification": "invalid",
+      "expectedCode": "MQ2001_UnexpectedToken",
+      "actualClassification": "invalid",
+      "actualCode": "MQ2009_InvalidOrderByExpression",
+      "actualMessage": "Unrecognized token for ComposeOrder(), the token was OrderBy.",
+      "reason": "The parser's duplicate ORDER BY recovery path uses the specific invalid-ordering diagnostic rather than the generic unexpected-token fallback."
+    },
+    {
+      "caseId": "REC-108-P01",
+      "expectedClassification": "invalid",
+      "expectedCode": "MQ2001_UnexpectedToken",
+      "actualClassification": "valid_suspicious",
+      "actualCode": null,
+      "actualMessage": null,
+      "reason": "The formal root grammar accepts semicolon-separated script items; the single-result compilation restriction is an entry-point rule tested separately."
+    }
+  ],
+  "cases": [
+    {"caseId":"REC-108-I01","expectedClassification":"invalid","expectedCode":"MQ2014_TrailingComma","actualClassification":"invalid","actualCode":"MQ2014_TrailingComma","match":true},
+    {"caseId":"REC-108-I02","expectedClassification":"invalid","expectedCode":"MQ2015_LeadingComma","actualClassification":"invalid","actualCode":"MQ2015_LeadingComma","match":true},
+    {"caseId":"REC-108-I03","expectedClassification":"invalid","expectedCode":"MQ2001_UnexpectedToken","actualClassification":"invalid","actualCode":"MQ2001_UnexpectedToken","match":true},
+    {"caseId":"REC-108-I04","expectedClassification":"invalid","expectedCode":"MQ2041_InvalidStarModifierOrder","actualClassification":"invalid","actualCode":"MQ2041_InvalidStarModifierOrder","match":true},
+    {"caseId":"REC-108-I05","expectedClassification":"invalid","expectedCode":"MQ2001_UnexpectedToken","actualClassification":"invalid","actualCode":"MQ2001_UnexpectedToken","match":true},
+    {"caseId":"REC-108-I06","expectedClassification":"invalid","expectedCode":"MQ2001_UnexpectedToken","actualClassification":"invalid","actualCode":"MQ2009_InvalidOrderByExpression","match":false},
+    {"caseId":"REC-108-D01","expectedClassification":"invalid","expectedCode":"MQ2001_UnexpectedToken","actualClassification":"invalid","actualCode":"MQ2001_UnexpectedToken","match":true},
+    {"caseId":"REC-108-D02","expectedClassification":"invalid","expectedCode":"MQ2001_UnexpectedToken","actualClassification":"invalid","actualCode":"MQ2001_UnexpectedToken","match":true},
+    {"caseId":"REC-108-D03","expectedClassification":"invalid","expectedCode":"MQ2001_UnexpectedToken","actualClassification":"invalid","actualCode":"MQ2001_UnexpectedToken","match":true},
+    {"caseId":"REC-108-D04","expectedClassification":"valid_suspicious","expectedCode":null,"actualClassification":"valid_suspicious","actualCode":null,"match":true},
+    {"caseId":"REC-108-D05","expectedClassification":"valid_suspicious","expectedCode":null,"actualClassification":"valid_suspicious","actualCode":null,"match":true},
+    {"caseId":"REC-108-D06","expectedClassification":"valid_suspicious","expectedCode":null,"actualClassification":"valid_suspicious","actualCode":null,"match":true},
+    {"caseId":"REC-108-P01","expectedClassification":"invalid","expectedCode":"MQ2001_UnexpectedToken","actualClassification":"valid_suspicious","actualCode":null,"match":false},
+    {"caseId":"REC-108-P02","expectedClassification":"invalid","expectedCode":"MQ2001_UnexpectedToken","actualClassification":"invalid","actualCode":"MQ2001_UnexpectedToken","match":true},
+    {"caseId":"REC-108-P03","expectedClassification":"invalid","expectedCode":"MQ2001_UnexpectedToken","actualClassification":"invalid","actualCode":"MQ2001_UnexpectedToken","match":true},
+    {"caseId":"REC-108-P04","expectedClassification":"invalid","expectedCode":"MQ2001_UnexpectedToken","actualClassification":"invalid","actualCode":"MQ2001_UnexpectedToken","match":true},
+    {"caseId":"REC-108-P05","expectedClassification":"valid_ordinary","expectedCode":null,"actualClassification":"valid_ordinary","actualCode":null,"match":true},
+    {"caseId":"REC-108-P06","expectedClassification":"valid_ordinary","expectedCode":null,"actualClassification":"valid_ordinary","actualCode":null,"match":true},
+    {"caseId":"REC-108-Q01","expectedClassification":"valid_ordinary","expectedCode":null,"actualClassification":"valid_ordinary","actualCode":null,"match":true},
+    {"caseId":"REC-108-Q02","expectedClassification":"valid_ordinary","expectedCode":null,"actualClassification":"valid_ordinary","actualCode":null,"match":true},
+    {"caseId":"REC-108-Q03","expectedClassification":"valid_ordinary","expectedCode":null,"actualClassification":"valid_ordinary","actualCode":null,"match":true},
+    {"caseId":"REC-108-Q04","expectedClassification":"valid_ordinary","expectedCode":null,"actualClassification":"valid_ordinary","actualCode":null,"match":true},
+    {"caseId":"REC-108-Q05","expectedClassification":"valid_ordinary","expectedCode":null,"actualClassification":"valid_ordinary","actualCode":null,"match":true},
+    {"caseId":"REC-108-Q06","expectedClassification":"valid_ordinary","expectedCode":null,"actualClassification":"valid_ordinary","actualCode":null,"match":true},
+    {"caseId":"REC-108-E01","expectedClassification":"valid_suspicious","expectedCode":null,"actualClassification":"valid_suspicious","actualCode":null,"match":true},
+    {"caseId":"REC-108-E02","expectedClassification":"valid_ordinary","expectedCode":null,"actualClassification":"valid_ordinary","actualCode":null,"match":true},
+    {"caseId":"REC-108-E03","expectedClassification":"valid_ordinary","expectedCode":null,"actualClassification":"valid_ordinary","actualCode":null,"match":true},
+    {"caseId":"REC-108-E04","expectedClassification":"valid_ordinary","expectedCode":null,"actualClassification":"valid_ordinary","actualCode":null,"match":true},
+    {"caseId":"REC-108-E05","expectedClassification":"invalid","expectedCode":"MQ2001_UnexpectedToken","actualClassification":"invalid","actualCode":"MQ2001_UnexpectedToken","match":true},
+    {"caseId":"REC-108-E06","expectedClassification":"invalid","expectedCode":"MQ2001_UnexpectedToken","actualClassification":"invalid","actualCode":"MQ2001_UnexpectedToken","match":true}
+  ],
+  "notes": [
+    "Revision 1 remains immutable after observation.",
+    "The two mismatches are oracle-design corrections, not production parser defects; revision 2 must use new candidate-version IDs and an independently reviewed correction record.",
+    "The temporary inventory method was removed before the final fixture replay."
+  ]
+}

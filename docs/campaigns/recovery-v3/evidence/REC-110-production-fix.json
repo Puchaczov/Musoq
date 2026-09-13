@@ -1,0 +1,69 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-110",
+  "findingId": "REC-110-FINDING-001",
+  "kind": "production-fix",
+  "status": "resolved",
+  "title": "Dependent GROUP BY cascade obscured the unresolved rename root",
+  "firstObservation": {
+    "candidateId": "REC-110-B02-v2",
+    "query": "select a.Country as RegionOut from #A.entities() a group by CountryOut",
+    "expectedRoot": "MQ3001_UnknownColumn for stale CountryOut",
+    "observedDiagnostics": [
+      "MQ3012_NonAggregateInSelect",
+      "MQ3001_UnknownColumn"
+    ],
+    "evidencePath": ".campaign-artifacts/REC-110-focused-v3.trx",
+    "evidenceSha256": "eaa5fa79d2ec8281f0938eb539f9627d7740b2149be6b9ae1c312d49f3b0810a"
+  },
+  "authority": {
+    "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+    "sections": [
+      "23.3 Root-cause classification",
+      "10. GROUP BY and Aggregation"
+    ],
+    "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a",
+    "rule": "Dependent expressions are poisoned after an unresolved name; independent sibling roots remain reportable."
+  },
+  "repair": {
+    "files": [
+      "src/dotnet/Musoq.Evaluator/Visitors/Semantics/SemanticDiagnosticReporter.cs",
+      "src/dotnet/Musoq.Evaluator/Visitors/Semantics/SemanticQueryValidationService.cs"
+    ],
+    "changes": [
+      "Reconstruct a full GROUP BY expression span from parser-node descendants when the qualified DotNode has no direct span.",
+      "Associate an unresolved GROUP BY diagnostic with the current nonaggregate projection only when its terminal expression or structured candidate column matches within a compatible source-qualifier set.",
+      "Keep independent MQ3001 and MQ3012 sibling roots instead of applying a query-global suppression."
+    ],
+    "rejectedApproach": "A broad overlap-only suppression was rejected after independent review identified qualified alias misses and global suppression of independent projections."
+  },
+  "regressionTests": [
+    "IncrementalRenameCandidates_ShouldHonorFrozenContract",
+    "GroupedQualifiedUnknownAlias_ShouldSuppressDependentProjectionCascade",
+    "GroupedUnknownConsumer_ShouldRetainIndependentUnknownColumnRoots",
+    "GroupedInvalidKey_ShouldRetainIndependentNonAggregateRoot",
+    "GroupedKnownAliasUnknownColumn_ShouldRetainIndependentProjectionRoot",
+    "GroupedQualifiedUnknownColumn_ShouldRetainIndependentCrossSourceProjectionRoot"
+  ],
+  "finalFocusedEvidence": {
+    "path": ".campaign-artifacts/REC-110-focused-cross-source-fix/REC-110-focused-cross-source-fix.trx",
+    "sha256": "93b63bdd3b182b55f3f9cd35858aa72f5a76ac11dfd06b305be8594863f81b16",
+    "result": "9 passed, 0 failed"
+  },
+  "review": {
+    "independentRequired": true,
+    "priorReview": {
+      "reviewerAgentId": "01a07af0-062c-79d1-9959-9cd900601c2f",
+      "verdict": "rejected broad overlap-only implementation",
+      "disposition": "required qualified-span and per-projection regression corrections were applied"
+    },
+    "finalReviewerPending": false,
+    "finalReviewer": {
+      "reviewerAgentId": "01a07afd-c453-7403-af7b-de85870ae735",
+      "verdict": "approved qualifier-set source identity repair",
+      "evidence": "Reviewed the exact cross-source regression, symmetric probes, focused 9/9 replay and adjacent 36/36 semantic/diagnostic controls."
+    }
+  },
+  "repairAttempts": 1,
+  "cleanStreakReset": true
+}

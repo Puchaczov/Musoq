@@ -89,7 +89,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     }
 
     [TestMethod]
-    public void Build_WhenAsOfJoinRightSourceIsExpando_ShouldReturnUnsupportedReason()
+    public void Build_WhenAsOfJoinRightSourceIsExpando_ShouldMaterializeAdapterCandidates()
     {
         var left = CreateScan();
         var right = CreateScan("q");
@@ -115,9 +115,15 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
 
         var result = builder.Build(project, "Q_DynamicAsOf");
 
-        Assert.IsFalse(result.Supported);
-        Assert.AreEqual(
-            "Execution IR ASOF join lowering requires a non-dynamic source-entity or table-row right source. Found ExpandoAdapterShape with row type ExpandoObject.",
-            RequireUnsupportedReason(result));
+        Assert.IsTrue(result.Supported);
+        var plan = RequireExecutionPlan(result);
+        var materialization = CollectNodes<ExecutionMaterializeExpandoList>(plan.Body).Single();
+        var createIndex = CollectNodes<ExecutionCreateAsOfIndex>(plan.Body).Single();
+        var probe = CollectNodes<ExecutionAsOfProbe>(plan.Body).Single();
+
+        Assert.AreEqual("qDynamicRow0", materialization.Shape.TypeName);
+        Assert.AreEqual(materialization.Shape.TypeName, createIndex.Candidate.GeneratedRowTypeName);
+        Assert.AreEqual(createIndex.Index, probe.Index);
+        Assert.AreEqual(materialization.Shape.TypeName, probe.Match.GeneratedRowTypeName);
     }
 }

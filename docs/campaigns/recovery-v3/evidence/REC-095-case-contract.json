@@ -1,0 +1,82 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-095",
+  "outcome": "pre_candidate_observation_frozen",
+  "casesPath": "docs/campaigns/recovery-v3/evidence/REC-095-pre-observation-manifest.json",
+  "caseCount": 24,
+  "validationControlCount": 4,
+  "testSource": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-095MultipleActionsTests.cs",
+  "candidateTestMethod": "ActionComposition_ShouldApplyIndependentEditsOrRejectConflicts",
+  "matrixTestMethod": "CaseMatrix_ShouldCoverAllCompositionBoundaries",
+  "controlTestMethods": [
+    "ExactIndependentBatch_ShouldApplyAgainstOneOriginalCoordinateSystem",
+    "ConflictingActions_ShouldBeRejectedWithoutTryingEitherApplicationOrder",
+    "ReanalysisAfterFirstAction_ShouldRequireAFreshSecondAction",
+    "NativeDiagnosticActions_ShouldRemainIndividualActions"
+  ],
+  "authority": {
+    "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+    "sections": [
+      "23 Diagnostic Contract and Catalog",
+      "23.1 Diagnostic envelope contract"
+    ]
+  },
+  "coverage": {
+    "nonOverlapping": 4,
+    "originalCoordinate": 4,
+    "overlapping": 4,
+    "alternative": 4,
+    "repeated": 4,
+    "reanalyzeEach": 4,
+    "nativeTwoDiagnosticBatches": 12,
+    "nativeSingleDiagnosticConflicts": 12,
+    "lengthChangingOriginalCoordinateCases": 4,
+    "sameDocumentReapplicationCases": 4
+  },
+  "nativeBoundary": {
+    "nativeActionProperties": ["Title", "Kind", "TextEdit"],
+    "nativeTextEditProperties": ["Span", "NewText"],
+    "nativeMultiEditSupportRequired": false,
+    "compositionOwner": "consumer harness",
+    "engineOwns": ["individual diagnostic actions", "individual text-edit spans", "replacement text"],
+    "harnessOwns": ["original coordinate system", "batch conflict policy", "stale reapplication policy"],
+    "coordinateUnit": "utf16-code-units",
+    "identityBinding": "SHA-256 of UTF-8 document text plus document id, wrapper version, and coordinate unit"
+  },
+  "comparisonContract": {
+    "independentEdits": "Non-overlapping actions captured from one original document may be applied in descending original-offset order.",
+    "lengthChangingEdits": "A length-changing edit must not corrupt a later original-coordinate edit when both are applied as one batch.",
+    "conflicts": "Overlapping replacements and mutually exclusive alternatives are rejected explicitly without selecting an application order.",
+    "reanalysis": "After one action changes the document, an old second action is stale; reanalysis must produce a fresh action bound to current text.",
+    "reapplication": "An old action is rejected after successful correction, including when its replacement would be idempotent or the current text has the same length.",
+    "nativeContract": "The campaign validates consumer composition around individual native actions and does not require a native batch-edit field."
+  },
+  "fingerprintRules": {
+    "caseIdsAreRegisteredBeforeObservation": true,
+    "independentEditsAreNonOverlapping": true,
+    "overlappingActionsAreExplicitlyConflicted": true,
+    "alternativesAreMutuallyExclusive": true,
+    "originalCoordinatesAreRecorded": true,
+    "reanalysisRefreshesActions": true,
+    "oldActionsCannotBeSilentlyReapplied": true,
+    "validationControlsAreNotCandidateCounts": true
+  },
+  "matrixRevision": {
+    "current": 2,
+    "state": "frozen_before_candidate_observation",
+    "sourceCorpusSha256": "1ce7dd2a1e32c19eb0d2feb39cc48fb1406a4f9ab629b53a6a2d6bc952ee65b5",
+    "revisionHistory": [
+      {
+        "revision": 1,
+        "state": "superseded_before_observation",
+        "sourceCorpusSha256": "6dbea7ab3d207d12beb5b971f7854d0740b6c9d227bfe9eaf84240bfa4eca3d9",
+        "reason": "Compile-only correction: import Musoq.Parser so the test-local overlap cases can construct TextSpan values; candidate cases and expectations are unchanged."
+      },
+      {
+        "revision": 2,
+        "state": "frozen_before_candidate_observation",
+        "sourceCorpusSha256": "1ce7dd2a1e32c19eb0d2feb39cc48fb1406a4f9ab629b53a6a2d6bc952ee65b5"
+      }
+    ]
+  }
+}

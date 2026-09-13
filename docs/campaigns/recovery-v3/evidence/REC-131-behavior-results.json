@@ -1,0 +1,235 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-131",
+  "outcome": "passed",
+  "registeredCases": 48,
+  "classificationCounts": {
+    "invalid": 32,
+    "validOrdinary": 4,
+    "validSuspicious": 12
+  },
+  "families": [
+    {
+      "name": "STRICT_TOLERANT",
+      "cases": 12,
+      "coverage": "Strict binary interpretation and text parsing throw their declared substrate failures; Try variants return null and partial variants retain their declared prefixes."
+    },
+    {
+      "name": "ROW_RETENTION",
+      "cases": 12,
+      "coverage": "CROSS drops failed interpretation rows while OUTER APPLY preserves the null-extended row, including empty and validation cases."
+    },
+    {
+      "name": "FAILURE_BOUNDARY",
+      "cases": 12,
+      "coverage": "Schema binding, provider open/read, cancellation and engine-invariant failures remain distinct from substrate interpretation errors."
+    },
+    {
+      "name": "PARTIAL_METADATA",
+      "cases": 12,
+      "coverage": "Partial field dictionaries, failure fields, diagnostic codes, positions, consumed units, nested paths and encodings remain truthful."
+    }
+  ],
+  "contract": {
+    "authoritySha256": [
+      "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+      "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+    ],
+    "contractPath": "docs/campaigns/recovery-v3/evidence/REC-131-case-contract.json",
+    "contractSha256": "203ef7171ae7f09e2875300eb4a85bd17ea680d23fe1b03b97eb01ccadab9060",
+    "manifestPath": "docs/campaigns/recovery-v3/evidence/REC-131-case-manifest.json",
+    "manifestSha256": "7bd8b3c05bc5edb4adf69d6538f2c2f59bc35e291a22b85924b4b2096072a68f",
+    "preObservationPayloadSha256": "8ea7cd8076a71432d266683770499cd727af6dbc8c5d9757d23e4dd08a507298",
+    "verificationCommand": "python docs/campaigns/recovery-v3/tools/case_contract.py verify --root . --scope-id REC-131 --cases docs/campaigns/recovery-v3/evidence/REC-131-case-contract.json --manifest docs/campaigns/recovery-v3/evidence/REC-131-case-manifest.json",
+    "verificationResult": "48/48 cases verified before observation and again before completion; the frozen contract records strict, tolerant, partial, row-retention, failure-boundary and metadata expectations."
+  },
+  "initialObservations": [
+    {
+      "revision": 1,
+      "outcome": "failed-before-harness-calibration",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-131-initial-r1/REC-131-initial-r1.trx",
+        "sha256": "8ce35ba9aa3eaee6b36c20f742bdd2a21ca372c2148d29add003e479c4c2bd10"
+      },
+      "passed": 29,
+      "failed": 19,
+      "skipped": 0,
+      "total": 48,
+      "finding": "The first observation exposed fixture helper assumptions, byte-versus-int assertion mismatches, and schema-boundary oracle calibration; it was retained as pre-final-calibration evidence."
+    },
+    {
+      "revision": 4,
+      "outcome": "failed-before-final-harness-calibration",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-131-initial-r4/REC-131-initial-r4.trx",
+        "sha256": "8fda50bfc1abf8ed5e38a7e4b69495106a55f689c7091d320b027cd367a85775"
+      },
+      "passed": 45,
+      "failed": 3,
+      "skipped": 0,
+      "total": 48,
+      "finding": "After helper and type corrections, the remaining failures were the direct schema-definition boundary expectations; no production source was changed."
+    },
+    {
+      "revision": 8,
+      "outcome": "passed",
+      "observationTrx": {
+        "path": ".campaign-artifacts/REC-131-initial-r8/REC-131-initial-r8.trx",
+        "sha256": "0524c264349004082cfd629ccbe7d5a2b6aad0a269461a69c6487efef3f47d08"
+      },
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "total": 48,
+      "finding": "The calibrated permanent matrix passed before adjacency and full-gate qualification."
+    }
+  ],
+  "repairAttempts": [
+    {
+      "revisions": [2, 3, 5, 6, 7],
+      "outcome": "compile-failure-no-behavioral-trx",
+      "note": "These correction attempts did not emit a behavioral TRX and are not counted as passing or failing test cases. Their purpose was to correct namespace, exception-type and direct-schema helper compilation before the r8 observation."
+    }
+  ],
+  "focusedReplay": {
+    "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --nologo --filter 'FullyQualifiedName~REC131StrictTolerantPartialInterpretationTests' --logger 'trx;LogFileName=REC-131-initial-r8.trx' --results-directory .campaign-artifacts/REC-131-initial-r8",
+    "exitCode": 0,
+    "passed": 48,
+    "failed": 0,
+    "skipped": 0,
+    "total": 48,
+    "registeredCaseCount": 48,
+    "trxArtifact": {
+      "path": ".campaign-artifacts/REC-131-initial-r8/REC-131-initial-r8.trx",
+      "sha256": "0524c264349004082cfd629ccbe7d5a2b6aad0a269461a69c6487efef3f47d08"
+    },
+    "coverage": "The final permanent matrix exercises all 48 frozen identifiers across strict/tolerant/partial interpretation, CROSS versus OUTER row retention, unrelated failure boundaries and partial metadata."
+  },
+  "adjoiningSuites": [
+    {
+      "name": "interpretation-054",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --no-build --nologo --filter 'FullyQualifiedName~DiagnosticInterpret054ApplyNullSemanticsTests' --logger 'trx;LogFileName=REC-131-adj-interpret054.trx' --results-directory .campaign-artifacts/REC-131-adj-interpret054",
+      "exitCode": 0,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "total": 2,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-131-adj-interpret054/REC-131-adj-interpret054.trx",
+        "sha256": "6400c1aa2ceaf5e911592c36ddf66c443d4de81eb225d0b2af2324e557628abf"
+      }
+    },
+    {
+      "name": "interpretation-055",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --no-build --nologo --filter 'FullyQualifiedName~BinaryOrTextualSchemaFeaturesTests' --logger 'trx;LogFileName=REC-131-adj-interpret055.trx' --results-directory .campaign-artifacts/REC-131-adj-interpret055",
+      "exitCode": 0,
+      "passed": 52,
+      "failed": 0,
+      "skipped": 0,
+      "total": 52,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-131-adj-interpret055/REC-131-adj-interpret055.trx",
+        "sha256": "fdc4a1ba60e14a9a91a1e345e9a2e423616653d9ff50966b553000f9d3e7db39"
+      }
+    },
+    {
+      "name": "provider-boundary-rec127",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --no-build --nologo --filter 'FullyQualifiedName~DiagnosticRec127ProviderBoundaryTests' --logger 'trx;LogFileName=REC-131-adj-rec127.trx' --results-directory .campaign-artifacts/REC-131-adj-rec127",
+      "exitCode": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "total": 50,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-131-adj-rec127/REC-131-adj-rec127.trx",
+        "sha256": "b6ff76e8c3bd4081d8134809a886656599f01b6cac1df077dc42779f3428adc3"
+      }
+    },
+    {
+      "name": "runtime-classification-rec129",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --no-build --nologo --filter 'FullyQualifiedName~REC129RuntimeClassificationTests' --logger 'trx;LogFileName=REC-131-adj-rec129-r2.trx' --results-directory .campaign-artifacts/REC-131-adj-rec129-r2",
+      "exitCode": 0,
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "total": 48,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-131-adj-rec129-r2/REC-131-adj-rec129-r2.trx",
+        "sha256": "6270ddc59f4d46d243a2c725e6d61fb7cebaa53ca7d3024777034a32a3350065"
+      }
+    },
+    {
+      "name": "runtime-interpretation-057",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --no-build --nologo --filter 'FullyQualifiedName~DiagnosticRuntime057InterpretationErrorTaxonomyTests' --logger 'trx;LogFileName=REC-131-adj-runtime057.trx' --results-directory .campaign-artifacts/REC-131-adj-runtime057",
+      "exitCode": 0,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "total": 5,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-131-adj-runtime057/REC-131-adj-runtime057.trx",
+        "sha256": "c9ddb42f7805314625d63ad1ba55628fb92001d4dbe9031a655624cb5612aaa5"
+      }
+    },
+    {
+      "name": "stale-filter-correction",
+      "command": "dotnet test src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj -c Release --no-restore --no-build --nologo --filter 'FullyQualifiedName~DiagnosticRec129RuntimeClassificationTests' --logger 'trx;LogFileName=REC-131-adj-rec129.trx' --results-directory .campaign-artifacts/REC-131-adj-rec129",
+      "exitCode": 0,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "total": 0,
+      "trxArtifact": {
+        "path": ".campaign-artifacts/REC-131-adj-rec129/REC-131-adj-rec129.trx",
+        "sha256": "14f8976488838f21ee11844dfd1162bbd18d7938e01270801d769a52ddd317e6"
+      },
+      "classification": "invalid-zero-test-selection",
+      "note": "The filter matched no test case; this artifact is preserved and excluded from the passing adjacency total."
+    }
+  ],
+  "initialAdjacentObservations": [
+    {
+      "name": "stale-filter-zero-test-selection",
+      "path": ".campaign-artifacts/REC-131-adj-rec129/REC-131-adj-rec129.trx",
+      "sha256": "14f8976488838f21ee11844dfd1162bbd18d7938e01270801d769a52ddd317e6",
+      "passed": 0,
+      "failed": 0,
+      "total": 0,
+      "finding": "The class filter selected no tests; the exact class name was located and rerun in REC-131-adj-rec129-r2."
+    }
+  ],
+  "productionFindings": [],
+  "obligations": {
+    "REC-131-O01": "The permanent 48-case matrix compares strict Parse/Interpret, Try variants and Partial variants over malformed rows between valid rows, with binary and text units represented.",
+    "REC-131-O02": "The row-retention family asserts that CROSS drops null results and OUTER APPLY preserves null-extended rows for valid, malformed, empty and validation inputs.",
+    "REC-131-O03": "The failure-boundary family keeps schema compilation, provider failures, cancellation and BasicEntity engine invariants distinct from ordinary substrate mismatch; Try helpers do not catch unrelated exceptions.",
+    "REC-131-O04": "The partial-metadata family asserts field dictionaries, failure fields, ISE codes, positions, consumed bytes/chars, nested paths and encoding facts on success and failure.",
+    "acceptance": "No automatic correction changed strictness or row-retention policy; no production repair was required."
+  },
+  "fullReleaseGate": {
+    "command": "python docs/campaigns/recovery-v3/tools/full_gate.py run --scope-id REC-131 --solution src/dotnet/Musoq.sln --configuration Release --output .campaign-artifacts/REC-131-full-gate-final-r1 --evidence docs/campaigns/recovery-v3/evidence/REC-131-full-gate-final-r1.json --expected-inventory docs/campaigns/recovery-v3/evidence/REC-085-expected-inventory.json --skip-allowlist docs/campaigns/recovery-v3/evidence/REC-085-skip-allowlist.json",
+    "evidencePath": "docs/campaigns/recovery-v3/evidence/REC-131-full-gate-final-r1.json",
+    "evidenceSha256": "625f9410e17040dbbf9c474c9601a5bbb151cb9c1d27c6503cda093cb94b813e",
+    "runId": "REC-131-c6f38fd21573",
+    "targetCount": 8,
+    "passed": 21223,
+    "failed": 0,
+    "skipped": 3,
+    "total": 21226,
+    "testedPayloadSha256": "aac640fa377aeae3bfd096e20b5c79195f88657b665dffe9d34307180eb49b90",
+    "testedPayloadFileCount": 5796,
+    "sdkObserved": "10.0.303"
+  },
+  "sourceFiles": [
+    {
+      "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-131StrictTolerantPartialInterpretationTests.cs",
+      "sha256": "765951f1d7c206b34c15aa23dca0f10b4c9c489fb3988af685ea08dd459ce43c"
+    }
+  ],
+  "notes": [
+    "The initial r2, r3, r5, r6 and r7 correction attempts were compile-only and emitted no behavioral TRX; they are not represented as passing or failing test counts.",
+    "The direct schema-definition cases intentionally preserve the frozen MQ4003/MQ4004 boundary. A query-level undefined-reference probe produced MQ2030 and was not substituted for the frozen direct-definition oracle.",
+    "The final focused matrix and all corrected adjacencies ran before the authoritative full gate. The full gate includes the three established generated-code refresh skips from REC-085-skip-allowlist.json.",
+    "No production source or behavior was changed for REC-131; the scope records a clean qualification of the existing strict, tolerant, partial and unrelated-failure boundaries."
+  ]
+}

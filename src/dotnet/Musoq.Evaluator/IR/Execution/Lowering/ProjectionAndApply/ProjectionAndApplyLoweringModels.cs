@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.IR.Execution.Lowering.ProjectionAndApply;
 
@@ -31,6 +32,7 @@ internal sealed record NullExtendedProjectedValue(
     int OutputIndex,
     Type ResultType,
     FieldNullability Nullability,
+    EnumTypeDescriptor? EnumType,
     ExecutionExpression MatchedValue,
     ExecutionExpression UnmatchedValue);
 
@@ -64,6 +66,7 @@ internal sealed record FullOuterNullExtendedProjectedValue(
     int OutputIndex,
     Type ResultType,
     FieldNullability Nullability,
+    EnumTypeDescriptor? EnumType,
     ExecutionExpression MatchedValue,
     ExecutionExpression LeftOnlyValue,
     ExecutionExpression RightOnlyValue);

@@ -70,11 +70,12 @@ public partial class BuildMetadataAndInferTypesVisitor
     }
 
     private void AddColumnToGeneratedColumns(TableSymbol tableSymbol, ISchemaColumn column, int index,
-        string identifier, List<FieldNode> generatedColumns, bool isCompoundTable = false, string? outputName = null)
+        string identifier, List<FieldNode> generatedColumns, bool isCompoundTable = false, string? outputName = null,
+        TextSpan sourceSpan = default)
     {
         AddAssembly(column.ColumnType.Assembly);
 
-        var accessColumn = new AccessColumnNode(column.ColumnName, identifier, column.ColumnType, TextSpan.Empty,
+        var accessColumn = new AccessColumnNode(column.ColumnName, identifier, column.ColumnType, sourceSpan,
             column.IntendedTypeName);
         if (column.EnumType != null)
             MarkEnumExpression(accessColumn, column.EnumType);

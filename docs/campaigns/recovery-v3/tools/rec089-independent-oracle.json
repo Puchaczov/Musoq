@@ -1,0 +1,136 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-089",
+  "activeSetPolicy": "Derive active members from the resolved DiagnosticCode enum and synchronize them with the JSON catalog. Do not freeze a historical count or list.",
+  "retiredNumericCodes": [
+    { "number": 3003, "replacement": "MQ3023_TableNotDefined or MQ3085_UnknownSource" },
+    { "number": 3004, "replacement": "MQ3086_UnknownCallable" },
+    { "number": 3006, "replacement": "MQ3087_InvalidCallableArity" },
+    { "number": 3009, "replacement": "role-specific symbol, cast, member, datasource, or internal code" },
+    { "number": 3013, "replacement": "MQ3086-MQ3089 according to the callable decision tree" },
+    { "number": 3014, "replacement": "MQ3028_UnknownProperty or the precise index/member code" },
+    { "number": 3029, "replacement": "MQ3086-MQ3089" },
+    { "number": 3030, "replacement": "MQ4016_UnsupportedSchemaConstruction" },
+    { "number": 3031, "replacement": "the applicable set-column/count/type diagnostic" },
+    { "number": 3082, "replacement": "MQ3089 or MQ3035 according to owner/overload ambiguity" },
+    { "number": 5001, "replacement": "no active style/optimization warning" },
+    { "number": 5002, "replacement": "no active style/optimization warning" },
+    { "number": 5004, "replacement": "no active style/optimization warning" },
+    { "number": 5005, "replacement": "no active style/optimization warning" },
+    { "number": 5006, "replacement": "no active style/optimization warning" },
+    { "number": 5007, "replacement": "no active style/optimization warning" },
+    { "number": 5009, "replacement": "compatibility documentation only; no emitted v18 diagnostic" },
+    { "number": 5012, "replacement": "no active style/optimization warning" },
+    { "number": 6001, "replacement": "the precise parse, bind, schema, or runtime diagnostic" },
+    { "number": 6002, "replacement": "the precise parse, bind, schema, or runtime diagnostic" },
+    { "number": 6003, "replacement": "the precise parse, bind, schema, or runtime diagnostic" },
+    { "number": 6004, "replacement": "the precise parse, bind, schema, or runtime diagnostic" },
+    { "number": 7001, "replacement": "MQ7010_DataSourceOpenFailed" },
+    { "number": 7002, "replacement": "MQ7011_DataSourceReadFailed" },
+    { "number": 9999, "replacement": "MQ9001_InternalCompilerError or MQ9002_InternalExecutionError" }
+  ],
+  "compatibilityOnly": [
+    {
+      "code": "MQ5009_OrderByAliasBehavior",
+      "number": 5009,
+      "presence": "documentation-only",
+      "specAllPhrases": [
+        "MQ5009 remains a compatibility documentation identifier only",
+        "not an active v18 enum member or emitted diagnostic"
+      ],
+      "catalogAllTerms": []
+    },
+    {
+      "code": "MQ5020_SetOperationOrderByScope",
+      "number": 5020,
+      "presence": "catalog-only",
+      "specAllPhrases": [
+        "retained as catalog compatibility identifiers for the completed set-modifier migration",
+        "The current language version does not emit them"
+      ],
+      "catalogAllTerms": ["compatibility", "does not emit"]
+    },
+    {
+      "code": "MQ5026_SetOperationSliceScope",
+      "number": 5026,
+      "presence": "catalog-only",
+      "specAllPhrases": [
+        "retained as catalog compatibility identifiers for the completed set-modifier migration",
+        "The current language version does not emit them"
+      ],
+      "catalogAllTerms": ["compatibility", "does not emit"]
+    }
+  ],
+  "highRiskRootCauses": [
+    {
+      "code": "MQ3085_UnknownSource",
+      "requiredFields": { "phase": "Bind", "severity": "Error", "category": "Semantic" },
+      "requiredExplanationTerms": ["schema", "source", "available"],
+      "requiredSpecPhrases": [
+        "The schema exists but the referenced source/table method does not.",
+        "Includes schema and source facts plus bounded available-source candidates."
+      ]
+    },
+    {
+      "code": "MQ3086_UnknownCallable",
+      "requiredFields": { "phase": "Bind", "severity": "Error", "category": "Semantic" },
+      "requiredExplanationTerms": ["no scalar", "callable", "name", "available"],
+      "requiredSpecPhrases": [
+        "No scalar, aggregate, row, or library callable has the requested name.",
+        "Includes callable kind and spelling candidates."
+      ]
+    },
+    {
+      "code": "MQ3087_InvalidCallableArity",
+      "requiredFields": { "phase": "Bind", "severity": "Error", "category": "Semantic" },
+      "requiredExplanationTerms": ["name", "overload", "accepts", "number", "arguments"],
+      "requiredSpecPhrases": [
+        "The name exists but no overload accepts the supplied argument count.",
+        "Includes actual and expected counts plus up to five signatures."
+      ]
+    },
+    {
+      "code": "MQ3088_NoMatchingCallableOverload",
+      "requiredFields": { "phase": "Bind", "severity": "Error", "category": "Semantic" },
+      "requiredExplanationTerms": ["overload", "arity", "accepts", "argument types"],
+      "requiredSpecPhrases": [
+        "At least one overload has the right arity but none accepts the argument types.",
+        "Includes actual types and bounded candidate signatures."
+      ]
+    },
+    {
+      "code": "MQ3089_AmbiguousCallableOverload",
+      "requiredFields": { "phase": "Bind", "severity": "Error", "category": "Semantic" },
+      "requiredExplanationTerms": ["more than one", "overload", "equally valid", "supplied arguments"],
+      "requiredSpecPhrases": [
+        "More than one overload remains equally valid.",
+        "Includes candidate signatures and related candidate locations when available."
+      ]
+    }
+  ],
+  "driftChecks": [
+    {
+      "findingId": "DRIFT-001",
+      "specAllPhrases": [
+        "Simple CASE form",
+        "Supported (desugared to searched CASE internally)"
+      ],
+      "catalogCode": "MQ2026_InvalidCaseExpression",
+      "catalogAllTerms": ["searched CASE only", "not simple CASE"],
+      "relatedCatalogCodes": ["MQ2028_MissingThenClause", "MQ2029_MissingEndKeyword"]
+    },
+    {
+      "findingId": "DRIFT-002",
+      "specAllPhrases": [
+        "Function names are **case-sensitive**.",
+        "Function names are case-insensitive and underscore-insensitive.",
+        "Supported function names** (case-insensitive, underscores ignored)"
+      ],
+      "specConflictAllPhrases": [
+        "Function names are **case-sensitive**.",
+        "Function names are case-insensitive and underscore-insensitive."
+      ],
+      "compatibilityCodes": ["MQ5020_SetOperationOrderByScope", "MQ5026_SetOperationSliceScope"]
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-140",
+  "status": "resolved_documentation_drift",
+  "targetBaseline": {
+    "commit": "788974d4f30a062d8d9695c5afec70e4de7c75e0",
+    "branch": "feature/runtime_v2_final",
+    "sourceBindingsPath": "docs/campaigns/recovery-v3/source-bindings.json",
+    "sourceBindingsSha256": "a691c3d6337fea30b940927c11a8e206506e6147ea2eac0785bb69dc825b6768"
+  },
+  "boundFiles": [
+    {
+      "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+      "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+      "targetPath": "specs/musoq-binary-text-spec.md",
+      "targetPreCorrectionSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+      "targetSha256": "7e4c0f0c93ead6414ad6a13d9383cec42f900aee794adfc34f17f699b7f2d08b",
+      "bindingStatus": "target_corrected_against_immutable_authority"
+    }
+  ],
+  "conflicts": [
+    {
+      "conflictId": "REC-140-C01",
+      "priorFindingId": "REC-086-BINARY-001",
+      "status": "resolved_documentation_drift",
+      "affectedObligations": [
+        "REC-140-O01",
+        "REC-140-O02",
+        "REC-140-O04",
+        "REC-140-O05"
+      ],
+      "authority": [
+        {
+          "section": "5.4.1 Until Delimiter",
+          "lines": [
+            1057,
+            1070
+          ],
+          "passage": "Captures everything until delimiter (exclusive). Delimiter is consumed but not included. / Cursor advances PAST the delimiter.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        },
+        {
+          "section": "5.4.1 Until Delimiter example",
+          "lines": [
+            1060,
+            1063
+          ],
+          "passage": "text Example { Key: until ':', _: literal ': ', Value: until '\\n' }",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "reproduction": {
+        "fixturePath": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-140DocumentationConflictTests.cs",
+        "testName": "UntilExample_ShouldProveDelimiterIsConsumedBeforeFollowingLiteral",
+        "resultTrx": ".campaign-artifacts/REC-140-conflict-replay-r2/REC-140-conflict-replay-r2.trx",
+        "resultTrxSha256": "3e59d360442a450dffccf7ec4bcf46dd327fac44cce31e05d99649250106fce4",
+        "observed": "The documented schema accepts key:: value\\n and returns Key=key, Value=value; the natural single-delimiter input key: value\\n fails with LiteralMismatch on the following literal field._"
+      },
+      "correctedFixture": {
+        "targetSpecChange": "specs/musoq-binary-text-spec.md changes the following literal from ': ' to ' '.",
+        "testName": "UntilCorrectedExample_ShouldParseSingleDelimiterAndSpace"
+      },
+      "proposedResolution": {
+        "decision": "Treat the example as documentation drift and change the following literal from ': ' to ' ' while retaining the normative delimiter-consumption semantics.",
+        "normativeJustification": "The same bound specification explicitly states that until consumes the delimiter; the corrected example preserves the intended key/value input without changing engine semantics.",
+        "approvalRequired": true,
+        "approved": true,
+        "approvedBy": "user",
+        "approvalId": "explicit-user-message-2026-09-08"
+      }
+    },
+    {
+      "conflictId": "REC-140-C02",
+      "priorFindingId": "REC-086-BINARY-002",
+      "status": "resolved_documentation_drift",
+      "affectedObligations": [
+        "REC-140-O01",
+        "REC-140-O03",
+        "REC-140-O04",
+        "REC-140-O05"
+      ],
+      "authority": [
+        {
+          "section": "4.9 Validation Constraints example",
+          "lines": [
+            669,
+            674
+          ],
+          "passage": "Checksum: int le check Checksum = Crc32(Data), / Data: byte[Length]",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        },
+        {
+          "section": "6.4 Field Reference Scoping",
+          "lines": [
+            1457,
+            1463
+          ],
+          "passage": "Within a schema, expressions may reference fields declared BEFORE the current field. Forward references MUST NOT occur.",
+          "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+        }
+      ],
+      "reproduction": {
+        "fixturePath": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-140DocumentationConflictTests.cs",
+        "testName": "CheckExample_ShouldRejectForwardFieldReferenceBeforeCodeGeneration",
+        "resultTrx": ".campaign-artifacts/REC-140-conflict-replay-r2/REC-140-conflict-replay-r2.trx",
+        "resultTrxSha256": "3e59d360442a450dffccf7ec4bcf46dd327fac44cce31e05d99649250106fce4",
+        "observed": "The complete documented ValidatedHeader example is rejected at Parse with MQ2030_UnsupportedSyntax at the later Data reference; code generation is not reached."
+      },
+      "correctedFixture": {
+        "targetSpecChange": "specs/musoq-binary-text-spec.md moves Data before Checksum while retaining the definition-before-use rule.",
+        "testName": "CorrectedCheckExample_ShouldRemainValidWhenDataPrecedesChecksum"
+      },
+      "proposedResolution": {
+        "decision": "Treat the CHECK example as documentation drift and move Data before Checksum while retaining the explicit definition-before-use rule.",
+        "normativeJustification": "The field-reference section is an explicit scoping rule and the corrected ordering preserves the example's intended checksum validation without permitting forward references.",
+        "approvalRequired": true,
+        "approved": true,
+        "approvedBy": "user",
+        "approvalId": "explicit-user-message-2026-09-08"
+      }
+    }
+  ],
+  "forwardReferenceControl": {
+    "conflictId": "REC-140-C03",
+    "description": "The schema-reference example is valid only in definition-before-use order; the exact forward-order negative is retained as an executable control.",
+    "authority": {
+      "section": "8.1 Schema References",
+      "lines": [
+        1641,
+        1649
+      ],
+      "passage": "Schemas may reference other schemas by name. Referenced schemas MUST be defined first.",
+      "sourceSha256": "ef150fae474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d"
+    },
+    "testName": "SchemaReferenceExample_ShouldRejectUseBeforeDefinition",
+    "correctedTestName": "CorrectedSchemaReferenceExample_ShouldRemainValidWhenDefinitionPrecedesUse",
+    "resultTrx": ".campaign-artifacts/REC-140-conflict-replay-r2/REC-140-conflict-replay-r2.trx",
+    "resultTrxSha256": "3e59d360442a450dffccf7ec4bcf46dd327fac44cce31e05d99649250106fce4",
+    "observed": "Forward Triangle->Point use returns MQ2030_UnsupportedSyntax; Point before Triangle is accepted without diagnostics."
+  },
+  "approval": {
+    "required": true,
+    "status": "recorded",
+    "request": "Approve or reject the two proposed documentation-only resolutions before REC-140 can add corrected normative fixtures and complete its gate.",
+    "approvedBy": "user",
+    "approvalId": "explicit-user-message-2026-09-08",
+    "approvalText": "approved"
+  }
+}

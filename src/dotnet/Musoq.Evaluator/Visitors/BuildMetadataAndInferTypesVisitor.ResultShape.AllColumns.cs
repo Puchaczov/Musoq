@@ -66,7 +66,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                         generatedColumnIdentifier,
                         generatedColumns,
                         false,
-                        entry.OutputName);
+                        entry.OutputName,
+                        node.Span);
                 }
             }
         }
@@ -75,7 +76,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             var positionCounter = 0;
             foreach (var column in eligibleColumns)
                 AddColumnToGeneratedColumns(tableSymbol, column, positionCounter++, generatedColumnIdentifier,
-                    generatedColumns);
+                    generatedColumns, sourceSpan: node.Span);
         }
 
         UpdateUsedColumns(generatedColumnIdentifier, table);
@@ -96,7 +97,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 foreach (var column in table.Columns)
                     if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(column.ColumnType))
                         AddColumnToGeneratedColumns(tableSymbol, column, positionCounter++, tableIdentifier,
-                            generatedColumns, true);
+                            generatedColumns, true, sourceSpan: node.Span);
 
                 UpdateUsedColumns(tableIdentifier, table);
             }
@@ -149,7 +150,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 else
                 {
                     AddColumnToGeneratedColumns(tableSymbol, column, positionCounter++, tableIdentifier,
-                        generatedColumns, true, projectedEntry.OutputName);
+                        generatedColumns, true, projectedEntry.OutputName, node.Span);
                 }
             }
 

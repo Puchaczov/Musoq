@@ -1,0 +1,84 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-097",
+  "outcome": "pre_candidate_observation_frozen",
+  "casesPath": "docs/campaigns/recovery-v3/evidence/REC-097-pre-observation-manifest.json",
+  "caseCount": 48,
+  "validationControlCount": 4,
+  "testSource": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-097ActionableNameAndOverloadTests.cs",
+  "candidateTestMethod": "ActionableDiagnostics_ShouldClassifyFactsAndValidateRepairs",
+  "matrixTestMethod": "CandidateMatrix_ShouldContainEightCasesPerResolutionFamily",
+  "controlTestMethods": [
+    "DiagnosticRoleContract_ShouldUseOneStableBindCodePerRegisteredRole",
+    "OverloadDiagnostics_ShouldExposeBoundedTypedFactsAndNoTextEdit",
+    "SuccessfulNativeRepairs_ShouldLeaveOnlyTheIntendedOwnerAndNoSecondaryError"
+  ],
+  "authority": {
+    "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+    "sections": [
+      "23.3 Root-cause classification",
+      "6.1.1 Named source arguments",
+      "8.10 Function Calls in Multi-Source Queries"
+    ]
+  },
+  "coverage": {
+    "sourceAndSchema": 8,
+    "alias": 8,
+    "column": 8,
+    "property": 8,
+    "function": 8,
+    "overload": 8,
+    "unknownSource": 4,
+    "unknownSchema": 2,
+    "namedSourceArgumentCorrections": 2,
+    "uniqueNativeRepairs": 28,
+    "manualQualifierRepairs": 2,
+    "overloadArity": 4,
+    "overloadType": 4
+  },
+  "diagnosticContract": {
+    "phase": "Bind",
+    "sourceKind": "Query",
+    "rootCauseOrder": [
+      "owner/schema exists",
+      "callable name exists",
+      "arity matches",
+      "argument types match",
+      "exactly one overload wins",
+      "exactly one owner wins"
+    ],
+    "boundedSignatureLimit": 5,
+    "secondaryErrorPolicy": "each candidate has exactly one root diagnostic and a successful repair has no secondary diagnostics",
+    "uniqueSpellingEdit": "one native TextEdit is applied and reparsed",
+    "ambiguousOwnerEdit": "qualifier is applied as an explicit manual correction; no arbitrary native edit is accepted",
+    "nonRepairableFailure": "overload and owner ambiguity facts are exposed without a TextEdit"
+  },
+  "fingerprintRules": {
+    "caseIdsAreRegisteredBeforeObservation": true,
+    "roleCodeMustBeExact": true,
+    "sourceAndSchemaRolesRemainDistinct": true,
+    "overloadCountsAndTypesAreStructuredFacts": true,
+    "candidateSignaturesAreBoundedToFive": true,
+    "visibilityAwareCandidatesOnly": true,
+    "successfulRepairsHaveNoSecondaryErrors": true,
+    "validationControlsAreNotCandidateCounts": true
+  },
+  "matrixRevision": {
+    "current": 2,
+    "state": "frozen_for_final_replay",
+    "sourceCorpusSha256": "0b9d7316582456ecfbdf333cc60f39f8fc72aa8b749930e3c0b5217f8e41acae",
+    "revisionHistory": [
+      {
+        "revision": 1,
+        "state": "superseded_after_initial_observation",
+        "sourceCorpusSha256": "fc661d79838b158fc19632d1c2679575313f1e4a02215bd0b951a6de9c64b092",
+        "reason": "The initial replay showed that REC-097-P08 intentionally produced two root property diagnostics while the candidate harness required one; the case was replaced with one Dictinary-to-Dictionary property near-miss, and the repair-control count was corrected from 28 to the registered 32 native repairs."
+      },
+      {
+        "revision": 2,
+        "state": "frozen_for_final_replay",
+        "sourceCorpusSha256": "0b9d7316582456ecfbdf333cc60f39f8fc72aa8b749930e3c0b5217f8e41acae"
+      }
+    ]
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-141",
+  "outcome": "passed_pending_completion_commit",
+  "artifacts": [
+    {
+      "id": "documentation-drift",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-141-documentation-drift.json",
+      "sha256": "34e6be828d835d6d1736bc65108a28efa68aec12ad4a8d9f8c8de2c48c874a42",
+      "role": "Authority/target conflict records, eight approved target-local corrections, classifications and boundaries."
+    },
+    {
+      "id": "behavior-results",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-141-behavior-results.json",
+      "sha256": "6715a05bf435e7e0cf1e7ed83cd015b9fcd08f3f9020b982fd0d8d9d8ea61dd1",
+      "role": "Finite example matrix, observed diagnostics, corrected outputs, obligation mapping and focused/adjacent qualification."
+    },
+    {
+      "id": "fixture-source",
+      "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-141ExecutableExamplesTests.cs",
+      "sha256": "7cfff73ad86d1b3ca9d140400dcddc72bf222f3ee5593d87802875f92f0467c8",
+      "role": "Permanent executable positives, negative controls and explicit fixture mappings."
+    },
+    {
+      "id": "binary-target-spec",
+      "path": "specs/musoq-binary-text-spec.md",
+      "sha256": "ad73aa4254568ba7f012a7e9dead0bf7c830c45224a5eb898488890a95f9e71f",
+      "role": "Target-local binary/text examples after the approved documentation corrections."
+    },
+    {
+      "id": "table-target-spec",
+      "path": "specs/musoq-table-couple-spec.md",
+      "sha256": "8a7c8a6e7ad2c0c069fe6ce6e6ad5e4aba097851b036772cf983a716afde0ab4",
+      "role": "Target-local all-types example after the approved explicit-projection correction."
+    },
+    {
+      "id": "focused-replay-trx",
+      "path": ".campaign-artifacts/REC-141-focused-r19/REC-141-focused-r19.trx",
+      "sha256": "b72680975fda3cd0b5d1188b04301f65e733fa84a412f1a5008497a705eb5949",
+      "role": "Authoritative 21-test REC-141 focused replay."
+    },
+    {
+      "id": "parser-adjacent-trx",
+      "path": ".campaign-artifacts/REC-141-parser-adjacent-r1/REC-141-parser-adjacent-r1.trx",
+      "sha256": "99ce982769c90d80f0bc4ec6bee693e8cf44718259a98522ee6c08c414140b0f",
+      "role": "Adjacent parser/schema syntax coverage: 108 passed."
+    },
+    {
+      "id": "evaluator-adjacent-trx",
+      "path": ".campaign-artifacts/REC-141-evaluator-adjacent-r1/REC-141-evaluator-adjacent-r1.trx",
+      "sha256": "5c3ef018228f27e912e0f9bfa8b2553bc56652538e00c454cb4273106a93784c",
+      "role": "Adjacent evaluator binary/text/TABLE/COUPLE/settings coverage: 211 passed."
+    },
+    {
+      "id": "campaign-self-tests",
+      "path": "docs/campaigns/recovery-v3/tools",
+      "role": "Campaign tool self-test replay: 46 passed."
+    },
+    {
+      "id": "full-gate-evidence",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-141-full-gate-final-r1.json",
+      "sha256": "9ee5107ce7ec88d226139d31234ab46e07ade2cc570310d53fd23422e9a666ce",
+      "role": "Fresh complete eight-target Release gate: 21,060 passed, 0 failed, 3 established skips, 21,063 total across 8 targets."
+    }
+  ],
+  "sourceAuthority": {
+    "binarySuppliedPath": "docs/campaigns/recovery-v3/authority/musoq-binary-text-spec.md",
+    "binarySuppliedSha256": "ef150fa474ddf25b26bea42058c1af3f6fefc2bace676f51cb7fe95461b7a4d",
+    "binaryTargetPreCorrectionSha256": "7e4c0f0c93ead6414ad6a13d9383cec42f900aee794adfc34f17f699b7f2d08b",
+    "binaryTargetPostCorrectionSha256": "ad73aa4254568ba7f012a7e9dead0bf7c830c45224a5eb898488890a95f9e71f",
+    "tableSuppliedPath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+    "tableSuppliedSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca",
+    "tableTargetPreCorrectionSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca",
+    "tableTargetPostCorrectionSha256": "8a7c8a6e7ad2c0c069fe6ce6e6ad5e4aba097851b036772cf983a716afde0ab4",
+    "compatibilityDecision": "Retain supplied authority snapshots unchanged; apply only the approved target-local example corrections."
+  },
+  "completion": {
+    "status": "pending_completion_commit",
+    "reportPath": "docs/campaigns/recovery-v3/reports/REC-141.md",
+    "fullGateEvidencePath": "docs/campaigns/recovery-v3/evidence/REC-141-full-gate-final-r1.json",
+    "fullGateRequired": true,
+    "exactlyOneCompletionCommitRequired": true
+  }
+}

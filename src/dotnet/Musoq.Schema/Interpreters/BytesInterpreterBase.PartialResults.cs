@@ -75,13 +75,27 @@ public abstract partial class BytesInterpreterBase<TOut>
     {
         ArgumentNullException.ThrowIfNull(interpreter);
 
+        var parentPosition = ParsePosition;
+
         try
         {
             return interpreter.InterpretAt(data, offset);
         }
         catch (ParseException ex)
         {
-            throw AddNestedFieldContext(ex, fieldName);
+            var nestedConsumed = interpreter.BytesConsumed;
+            if (nestedConsumed >= offset)
+                ParsePosition = parentPosition + (nestedConsumed - offset);
+
+            var rebasedPosition = (long)parentPosition + ex.Position - offset;
+            var position = rebasedPosition switch
+            {
+                > int.MaxValue => int.MaxValue,
+                < int.MinValue => int.MinValue,
+                _ => (int)rebasedPosition
+            };
+
+            throw AddNestedFieldContext(ex, fieldName, position);
         }
     }
 
@@ -142,7 +156,10 @@ public abstract partial class BytesInterpreterBase<TOut>
         }
     }
 
-    private static ParseException AddNestedFieldContext(ParseException exception, string fieldName)
+    private static ParseException AddNestedFieldContext(
+        ParseException exception,
+        string fieldName,
+        int? positionOverride = null)
     {
         var nestedFieldName = exception.FieldName;
         var qualifiedFieldName = string.IsNullOrEmpty(nestedFieldName)
@@ -156,7 +173,7 @@ public abstract partial class BytesInterpreterBase<TOut>
             exception.ErrorCode,
             exception.SchemaName,
             qualifiedFieldName,
-            exception.Position,
+            positionOverride ?? exception.Position,
             exception.Details,
             exception);
     }

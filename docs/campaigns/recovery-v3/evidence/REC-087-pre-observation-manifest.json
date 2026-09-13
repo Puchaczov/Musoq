@@ -1,0 +1,74 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-087",
+  "state": "pre_observation",
+  "caseCount": 4,
+  "sourceFiles": [
+    {
+      "path": "specs/musoq-core-language-spec.md",
+      "sha256": "f3ab89e6806334d05be0e32d14e294897d2a6cd0867b10ca30d9759823d8f833",
+      "byteLength": 239797
+    }
+  ],
+  "preObservationPayloadSha256": "e4bb2badac0cfe79a9433c329476f68f9434a975ae4819ca87220aaccb55d46b",
+  "cases": [
+    {
+      "caseId": "REC-087-A01",
+      "preObservationDigest": "e3b3f60b326bf1aae60d0d4e0dbfc485b0e5cbfb6a325586127ab5a8bd848138",
+      "rootCauseContextFingerprint": "800cbe87afdec84e0aea61c1e0e720ebf2574944ca0ebe1e8524cdf32d763691",
+      "authorityDigests": [
+        {
+          "path": "specs/musoq-core-language-spec.md",
+          "sha256": "f3ab89e6806334d05be0e32d14e294897d2a6cd0867b10ca30d9759823d8f833"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "REC-087-A02",
+      "preObservationDigest": "d42d7ad0af3f13d646ee8a61502c3adb501e77bddd7ad077f46b37b1cc581242",
+      "rootCauseContextFingerprint": "7917cdf32e4e8c2f21d93b22a4bb661eb7247c34df866f7a7e2a58c11604e535",
+      "authorityDigests": [
+        {
+          "path": "specs/musoq-core-language-spec.md",
+          "sha256": "f3ab89e6806334d05be0e32d14e294897d2a6cd0867b10ca30d9759823d8f833"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "REC-087-A03",
+      "preObservationDigest": "f1126e9ecf40a44386a7f49667679d84962ee53d025e3dd8ada8831be59812ea",
+      "rootCauseContextFingerprint": "5f1c4dbc537c91f45bb3087cd72f67e423db4d98571888f5d61435ebe1349ab9",
+      "authorityDigests": [
+        {
+          "path": "specs/musoq-core-language-spec.md",
+          "sha256": "f3ab89e6806334d05be0e32d14e294897d2a6cd0867b10ca30d9759823d8f833"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "REC-087-A04",
+      "preObservationDigest": "3591e68cb611c9607b5f9b7354720c3fa65c56ae5d5767a7b95072f277cb2d5a",
+      "rootCauseContextFingerprint": "1e4374c70c8bf6b0678f9239e9538fe8c2bba4ca8b3bdea6020b8362b66a3d88",
+      "authorityDigests": [
+        {
+          "path": "specs/musoq-core-language-spec.md",
+          "sha256": "f3ab89e6806334d05be0e32d14e294897d2a6cd0867b10ca30d9759823d8f833"
+        },
+        {
+          "path": "specs/musoq-core-language-spec.md",
+          "sha256": "f3ab89e6806334d05be0e32d14e294897d2a6cd0867b10ca30d9759823d8f833"
+        }
+      ],
+      "expectedClassification": "invalid"
+    }
+  ],
+  "rules": {
+    "expectationsFrozenBeforeObservation": true,
+    "identifierSpellingAloneIsNotNovel": true,
+    "sourceHashesAreRawBytes": true,
+    "minimizationRequiresSameFaultAndObservation": true
+  }
+}

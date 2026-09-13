@@ -1,0 +1,169 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-109",
+  "outcome": "passed",
+  "artifacts": [
+    {
+      "id": "case-contract-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-109-case-contract.json",
+      "sha256": "1f5f8fbd4006fbe932179c86a7cb69b84374044bfd46fea8889a6cb1e51d54ad",
+      "role": "Immutable revision-1 frozen matrix for misplaced clauses, dialect forms, ASOF boundaries and reserved identifiers."
+    },
+    {
+      "id": "pre-observation-manifest-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-109-pre-observation-manifest.json",
+      "sha256": "5854d7b11ef0e13801cc52337944fbe794cde8ac8e391101bb9e57ffa0cc0d48",
+      "role": "Revision-1 authority hashes and pre-observation payload digest."
+    },
+    {
+      "id": "behavior-results-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-109-behavior-results-v1.json",
+      "sha256": "c660f6d5901584e8423a325949df6d6d8527952612998f24be11a88477b738ee",
+      "role": "Immutable revision-1 seed failure and initial focused-replay record."
+    },
+    {
+      "id": "oracle-correction",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-109-oracle-correction.json",
+      "sha256": "7a35b8bfa44dc3b488c421f87fd5908c8e34dd05f5a12b11e950b817d54e6320",
+      "role": "Source-justified revision-2/3 corrections and independent reviewer approvals."
+    },
+    {
+      "id": "case-contract-revision-2",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-109-case-contract-v2.json",
+      "sha256": "bff51fa24da6affc5f37270f982c1a21c4eb31367f95d447784d87b386b0b993",
+      "role": "Revision-2 grouped M03 matrix with observed oracle and guidance mismatches retained."
+    },
+    {
+      "id": "pre-observation-manifest-revision-2",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-109-pre-observation-manifest-v2.json",
+      "sha256": "b4cb8fad9468946864bccc2749790a88d41513c078c651c9b9976696c6147973",
+      "role": "Revision-2 authority hashes and pre-observation payload digest."
+    },
+    {
+      "id": "behavior-results-revision-2",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-109-behavior-results-v2.json",
+      "sha256": "ff29a703ff67423cde0913d3e7d62696a83a4c4235248b317e7e893f0a2dc70d",
+      "role": "Immutable revision-2 observations, including the ASOF production finding."
+    },
+    {
+      "id": "case-contract-revision-3",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-109-case-contract-v3.json",
+      "sha256": "3a53d9eb809cd45eff2a4bc5b89dc20aeb9188eb84e9417533c787ad048873f0",
+      "role": "Final revision-3 frozen 48-case matrix with corrected D04 oracle."
+    },
+    {
+      "id": "pre-observation-manifest-revision-3",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-109-pre-observation-manifest-v3.json",
+      "sha256": "027074f3c0423818aa16f563ee0900df2b4bf60d73add2a03c70188b2acb19ed",
+      "role": "Revision-3 authority hashes and pre-observation payload digest."
+    },
+    {
+      "id": "behavior-results-revision-3",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-109-behavior-results.json",
+      "sha256": "63b6e8d86d52decda64a0635616c9f2ae4dac80cf857b30234c72e3f33cf4975",
+      "role": "Final 48-case replay and adjacent-suite counters."
+    },
+    {
+      "id": "focused-matrix-trx",
+      "path": ".campaign-artifacts/REC-109-focused-final-clean/REC-109-focused-final-clean.trx",
+      "sha256": "34b0f069d85881ff1093e28cf84fc6ee8d40307eda44cb41e914ba6aa7f55948",
+      "role": "Machine-readable final matrix replay, 4/4 methods passed."
+    },
+    {
+      "id": "adjacent-parser-trx",
+      "path": ".campaign-artifacts/REC-109-parser-adjacent/REC-109-parser-adjacent.trx",
+      "sha256": "a14428de69295fcd09929603bfd516c25f036ea90645b6751f8afd22c416e0eb",
+      "role": "Machine-readable adjacent parser replay, 83/83 passed."
+    },
+    {
+      "id": "adjacent-evaluator-trx",
+      "path": ".campaign-artifacts/REC-109-evaluator-adjacent/REC-109-evaluator-adjacent.trx",
+      "sha256": "2d8cac124ba683ff12233fe0e93620698dd8b1d38310d523b6a86f292efcb19a",
+      "role": "Machine-readable adjacent evaluator, ASOF, dialect and parameter replay, 157/157 passed."
+    },
+    {
+      "id": "core018-rerun-trx",
+      "path": ".campaign-artifacts/REC-109-core018-rerun/REC-109-core018-rerun.trx",
+      "sha256": "e4bd932abeec47fe9ed498b066209cfe436c38f5a28b770c52c35b11d8b4f68f",
+      "role": "Sequential exact Core018 ASOF semantic regression, 11/11 passed."
+    },
+    {
+      "id": "matrix-tests",
+      "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-109MisplacementDialectTests.cs",
+      "sha256": "20190ebf1aa6824603a69cad2038024de9721c8f97904cbe72221fe4adaffb06",
+      "role": "Permanent strict REC-109 matrix, metadata, controls and contextual-guidance tests."
+    },
+    {
+      "id": "asof-semantic-regression",
+      "path": "src/dotnet/Musoq.Evaluator.Tests/Core018AsOfJoinSemanticsTests.cs",
+      "sha256": "b305b272c94ac4ed3e63a08ea8ea0789ea78527335d6968231da1cfce1cb3e85",
+      "role": "Updated exact ASOF RIGHT contract and surrounding semantic regression."
+    },
+    {
+      "id": "asof-keyword-repair",
+      "path": "src/dotnet/Musoq.Parser/Diagnostics/SyntaxDiagnosticEnhancer.KeywordSuggestions.cs",
+      "sha256": "ee5d42041226dd36b4acb566de2349ee34d672bc7031cd40286d228a8c76a24e",
+      "role": "Exact-context suppression of the false ASC repair and ASOF-specific keyword handling."
+    },
+    {
+      "id": "asof-dialect-help",
+      "path": "src/dotnet/Musoq.Parser/Diagnostics/SyntaxDiagnosticEnhancer.DialectHelp.cs",
+      "sha256": "c0d966498c71971f68c7720fb4b4b61df6a23768c9c4ff74ac80092f90ef09cf",
+      "role": "Bounded ASOF RIGHT repair alternatives and contextual explanation."
+    },
+    {
+      "id": "report",
+      "path": "docs/campaigns/recovery-v3/reports/REC-109.md",
+      "sha256": "2a859ee5165a17d287c03ec89eebf125774d926f56171072bca6d64efdd9c45e",
+      "role": "Human-readable REC-109 completion report."
+    },
+    {
+      "id": "full-gate",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-109-full-gate.json",
+      "sha256": "b9ef94e3e4e63656efd2ebd124a98d525348dc54c165d868f94ac473f91a180f",
+      "role": "Fresh all-target Release restore/build/test gate."
+    }
+  ],
+  "validation": {
+    "revision1": {
+      "frozenContractVerified": true,
+      "caseCount": 48,
+      "candidateObservation": "blocked by invalid M03 seed before mutation observation"
+    },
+    "revision2": {
+      "frozenContractVerified": true,
+      "caseCount": 48,
+      "oracleMismatches": 3,
+      "remainingAfterProductionRepair": "REC-109-D04 only"
+    },
+    "revision3": {
+      "frozenContractVerified": true,
+      "caseCount": 48,
+      "invalidCandidates": 29,
+      "validOrdinaryCases": 19,
+      "matchingCases": 48,
+      "oracleMismatches": 0
+    },
+    "focusedMatrix": {"passed": 4, "skipped": 0, "failed": 0, "total": 4},
+    "adjacentParser": {"passed": 83, "skipped": 0, "failed": 0, "total": 83},
+    "adjacentEvaluatorAndDiagnostics": {"passed": 157, "skipped": 0, "failed": 0, "total": 157},
+    "core018AsOfRerun": {"passed": 11, "skipped": 0, "failed": 0, "total": 11},
+    "campaignTools": {"passed": 46, "skipped": 0, "failed": 0, "total": 46},
+    "fullReleaseGate": {
+      "runId": "REC-109-7be398c16b05",
+      "passed": 20458,
+      "skipped": 3,
+      "failed": 0,
+      "total": 20461,
+      "targetCount": 8,
+      "testedPayloadSha256": "a5dae8ad284b24c24334b0d8b8a45eeadabdfffcb440ce0ef74f95ed500c51a5",
+      "testedPayloadFileCount": 5769
+    }
+  },
+  "notes": [
+    "Revision 1 and revision 2 contracts, manifests and behavior records remain immutable after observation.",
+    "REC-109-F01 is the only production finding; the repair retains MQ2001 and is exact-context scoped.",
+    "The three full-gate skips are the established generated-code refresh utilities from the campaign allowlist.",
+    "Product and empirical lanes remain not run under the selected engine-lane stopping contract."
+  ]
+}

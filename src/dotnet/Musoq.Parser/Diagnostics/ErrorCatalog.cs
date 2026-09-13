@@ -375,8 +375,8 @@ public static class ErrorCatalog
 
     /// <summary>
     ///     Gets the closest spelling candidates at the same minimum edit distance.
-    ///     Candidate casing is normalized deterministically and ambiguous ties are
-    ///     retained so callers can avoid presenting an arbitrary automatic fix.
+    ///     Candidate values are preserved exactly and ambiguous ties are retained
+    ///     so callers can avoid presenting an arbitrary automatic fix.
     /// </summary>
     public static IReadOnlyList<string> GetDidYouMeanCandidates(
         string input,
@@ -390,7 +390,7 @@ public static class ErrorCatalog
         if (maxDistance < 0 || maxCandidates <= 0)
             return [];
 
-        var canonicalCandidates = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var canonicalCandidates = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var candidate in candidates)
         {
             if (string.IsNullOrWhiteSpace(candidate))

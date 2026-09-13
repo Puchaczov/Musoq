@@ -1,0 +1,44 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-126",
+  "conflictId": "REC-126-C01",
+  "status": "resolved_in_scope",
+  "authority": [
+    {
+      "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+      "section": "23.1 Diagnostic envelope contract",
+      "lines": [
+        5121,
+        5202
+      ],
+      "sourceSha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "contract": "A zero-length span is a real insertion point; null means unknown. Parser insertion diagnostics use a known zero-length span only when the insertion location is known."
+    },
+    {
+      "sourcePath": "docs/campaigns/recovery-v3/authority/musoq-table-couple-spec.md",
+      "section": "7.3 Source Contract Diagnostics",
+      "lines": [
+        623,
+        633
+      ],
+      "sourceSha256": "80c07ef355a91e643378fc5131f1913c6b9dbcf1cc9a67da5790a5fe8ef6b6ca",
+      "contract": "Diagnostics with TABLE origin should point to modifier or column text; diagnostics without table-origin metadata use the normal empty-span fallback while retaining the datasource message."
+    }
+  ],
+  "observedConflict": {
+    "currentReporterBehavior": "SourceContractDiagnosticReporter.ResolveSpan returns TextSpan.Empty when no source-context location exists, then DiagnosticContext maps that empty span through SourceText.GetLocations.",
+    "currentEnvelopeEffect": "A provider diagnostic with no table-origin metadata is emitted as a known offset-zero query location, conflating unavailable location with a real insertion.",
+    "preservedControl": "A caller that explicitly supplies DiagnosticContext.ReportWarning(..., TextSpan.Empty) continues to receive a known zero-length insertion."
+  },
+  "resolution": {
+    "decision": "Interpret the table specification's empty-span fallback as unavailable location at the diagnostic envelope boundary when no table-origin mapping exists.",
+    "rationale": [
+      "The core diagnostic contract makes null and known zero-length locations semantically distinct.",
+      "SourceContractDiagnosticReporter can distinguish absent mapping from an explicitly mapped span by returning nullable TextSpan.",
+      "The direct DiagnosticContext TextSpan API remains unchanged, so intentional zero-length insertions are not weakened."
+    ],
+    "implementationBoundary": "SourceContractDiagnosticReporter uses no-span DiagnosticContext overloads only when ResolveSpan has no mapped modifier or column span.",
+    "evidence": "REC-126 D01, D02, D05 and D06 permanent tests; initial pre-fix TRX is preserved under .campaign-artifacts/REC-126-focused-initial.",
+    "reviewedInMainSession": true
+  }
+}

@@ -247,7 +247,7 @@ public sealed class Diagnostic
     public override string ToString()
     {
         var severityStr = FormatSeverity(Severity);
-        return $"{severityStr} {CodeString}: {Message} at {Location}";
+        return $"{severityStr} {CodeString}: {DiagnosticSafety.SanitizeMessage(this)} at {Location}";
     }
 
     /// <summary>
@@ -257,19 +257,30 @@ public sealed class Diagnostic
     {
         var lines = new List<string>
         {
-            $"{FormatSeverity(Severity)} {CodeString}: {Message}",
+            $"{FormatSeverity(Severity)} {CodeString}: {DiagnosticSafety.SanitizeMessage(this)}",
             $"  --> {Location}"
         };
 
-        if (!string.IsNullOrEmpty(ContextSnippet))
+        var safeSnippet = DiagnosticSafety.GetSafeSnippet(this);
+        if (!string.IsNullOrEmpty(safeSnippet))
         {
             lines.Add("   |");
-            foreach (var line in ContextSnippet.Split('\n')) lines.Add(line.TrimEnd('\r'));
+            if (SourceKind == DiagnosticSourceKind.DataSource)
+            {
+                lines.Add($"   | {DiagnosticSafety.SanitizeForDisplay(safeSnippet)}");
+            }
+            else
+            {
+                foreach (var line in safeSnippet.Split('\n'))
+                    lines.Add(DiagnosticSafety.SanitizeForDisplay(line.TrimEnd('\r')));
+            }
         }
 
-        foreach (var info in _relatedInfo) lines.Add($"  = note: {info}");
+        foreach (var info in _relatedInfo)
+            lines.Add($"  = note: {DiagnosticSafety.SanitizeForDisplay(DiagnosticSafety.SanitizeText(info, this))}");
 
-        foreach (var fix in _suggestedFixes) lines.Add($"  = help: {fix.Title}");
+        foreach (var fix in _suggestedFixes)
+            lines.Add($"  = help: {DiagnosticSafety.SanitizeForDisplay(DiagnosticSafety.SanitizeText(fix.Title, this))}");
 
         return string.Join(Environment.NewLine, lines);
     }

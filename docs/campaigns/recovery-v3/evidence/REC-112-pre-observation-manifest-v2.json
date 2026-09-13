@@ -1,0 +1,598 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-112",
+  "state": "pre_observation",
+  "caseCount": 48,
+  "sourceFiles": [
+    {
+      "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+      "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8",
+      "byteLength": 239774
+    }
+  ],
+  "preObservationPayloadSha256": "0d99acbbf943a3bdc6213a261cdd1ccdc1e6c122e8ac59b43aae0435c05ab2ec",
+  "cases": [
+    {
+      "caseId": "A01",
+      "preObservationDigest": "1af5863fe1ee57739743e3fe90ca874953b395b27e5c6ec3cde6e3e9b06cc8d1",
+      "rootCauseContextFingerprint": "5c9732dac27ebbd0b1346479c3a0b5c0764b7706b9be8883ee3ddfaf75869e8a",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "A02",
+      "preObservationDigest": "48c393576efc3d3c83ed5e9a88f711808484e1d9c8eb5706a429dbed8fd95c29",
+      "rootCauseContextFingerprint": "cbd129f3e80d94e25d094eeaaac3aa2bd563d723667a528ca38976ccadb97b8f",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "A03",
+      "preObservationDigest": "c3262140e4ffb826613ac9a489e670b4fb8b87ba1079624545b8796dbca6cf4b",
+      "rootCauseContextFingerprint": "e175082ddb3598db2290f9058e99ea0d4911f2a755023be0840009154e2b3015",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "A04",
+      "preObservationDigest": "e8993e245cdfa42a78bc39bf35a08c022c677ff20b00939562b9815fde1f7c59",
+      "rootCauseContextFingerprint": "bf4dcffb2c134495a6e0a0700c077eb281e554da5d535eb007132ffb1eb79998",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "A05",
+      "preObservationDigest": "cc87b1f9b874387800c4d6707f655ac042fdc0fd209c44e981272fea0e6cbd85",
+      "rootCauseContextFingerprint": "f1694bc6c7bf3ab7f573bba46e58b4cafc42f95836c15e869502f3ab25e442ac",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "A06",
+      "preObservationDigest": "17428c1b040c7049aa72fea647a813866776fd2990328c407051ac1252a61c13",
+      "rootCauseContextFingerprint": "6dc39cdeed2461a257af0e5eebf3d21713cbf3a65b71f30467548761cb6c9e2a",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "B01",
+      "preObservationDigest": "63b6d670c219fd11dcf6e8b8344dbfd9e409e440297592ba7890242d00e108a7",
+      "rootCauseContextFingerprint": "c0ac632ef3775fbeb82d53d6db6254323bb8a2368da6a118afc866d2c2474787",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "B02",
+      "preObservationDigest": "26b5f5f982681018d286bd9c380bda7d734d0f3de13295747cb79911759f9dcb",
+      "rootCauseContextFingerprint": "4efa9edc6a7ba572bd580d8c1995414cc555a66225054a3151d8b893bf72df4f",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "B03",
+      "preObservationDigest": "15cb68c8fc9c8cd3484b3962c97ab3d72c966386c84ae1705d7cbcaf3b824685",
+      "rootCauseContextFingerprint": "97aa05d778cb769a8b3e7b94ef9486f20b9adb456b5122b949f293ca01c4a7ca",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "B04",
+      "preObservationDigest": "11eeb9bc2c776cea29d506eb658573655627c14da1b0415cf922b8d429bee192",
+      "rootCauseContextFingerprint": "f51594b45bff5494cf5dbe91ef6b43bf8193d46f824e46b5ba4711e153b73875",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "B05",
+      "preObservationDigest": "16ad45a105811f86c11fd2754f27903a736a37dcc861d2aa960e5c53b23b38b3",
+      "rootCauseContextFingerprint": "abbdf4917a7799d665a31450314fe32840837e2bc0582c67e94b727de04b57c0",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "B06",
+      "preObservationDigest": "8e91846b5221475932ab2353d77587ed8ef76d70e15f3528206d70c57ad925b5",
+      "rootCauseContextFingerprint": "c28b20ab23d6ea23b5ce4051ff9558c91315b6b3a98cb33b09ade8d5775198af",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "C01",
+      "preObservationDigest": "564074f72c386c7e4523292c94e21d449ada800ad52b84d311a97314f7add449",
+      "rootCauseContextFingerprint": "990221b6cfef43aaea368d25031f63a035de9267ec4a07d6d22923409cb39c82",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "C02",
+      "preObservationDigest": "b75798c505c10c280091b16c846872bef711e95d0e3874adcc4cced42abb23cd",
+      "rootCauseContextFingerprint": "29af7c72dc67fb0b348364070df79b43ce760e2d4e6994ebaee9d926f8f79b8f",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "C03",
+      "preObservationDigest": "193d76b5fe3b5a934bbf48875692cba0267fef6d5204190a6184a58c8cf2b170",
+      "rootCauseContextFingerprint": "715db63850541a183b649b79d63b7e191dac89b8ad3dbfef7b1b5a52f5e6dc75",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "C04",
+      "preObservationDigest": "86263d2fb24be802e056fc4d9419996f3ed01bd30ad43380c0bdf990bd374cbe",
+      "rootCauseContextFingerprint": "399326ad7697d9aed03670382493a69cdff054514249aa310bc4605af0519947",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "C05",
+      "preObservationDigest": "4a8f90ea086b95da331abd6e1d63468586b67fa5e42c08c896b10d70f68aa10f",
+      "rootCauseContextFingerprint": "bd30911956f349feedca050102a7d3b60b04513996cad4df3cc257df5466ecfc",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "C06",
+      "preObservationDigest": "090cbf06a9aa4c4d269eb626350aa121cda6081361edceec631e212ff5f4d177",
+      "rootCauseContextFingerprint": "b1d29b71419ed60e8170d64828c14c201e71f140f17806a76fd57db6ba6b39aa",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "D01",
+      "preObservationDigest": "b3d76dcca73785e4a1e8b1a0a8df53daccd584b1441f2a88e39eb71bfc0d1876",
+      "rootCauseContextFingerprint": "4f95c233267fd7a325e0cd692c7c06a2af0b34bcbcf742af5e0e27040470dbe5",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "D02",
+      "preObservationDigest": "92ad356666365311e7ea71b57935d704b6069ed9a6ef1c69540e043d0c6c06be",
+      "rootCauseContextFingerprint": "9a97c46260575ca60110047b769c6f90f439c0ccf489cbbb4b6ea9bed163900e",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "D03",
+      "preObservationDigest": "00d85e0a35034ac87955383b82f4b61e4d531d4a19afc93d5340d2b3b1487797",
+      "rootCauseContextFingerprint": "a6b4e4dafd45ed63729bcf3c2620c171c60f4e6b755adec02104a4d8120b1943",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "D04",
+      "preObservationDigest": "b866fcba63c5706cbadb6e68680474d014da6a1e7ca352ee1d685917c668b56a",
+      "rootCauseContextFingerprint": "1811248d817111467d6df48714c59ca2079087b9e8494a414b104b69c9843262",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "D05",
+      "preObservationDigest": "a240e0c4708da5761c5aa989d2b38a7ee9d7b4c17faac5e772e94ccf35098f6d",
+      "rootCauseContextFingerprint": "53e07ccb61caf1524c372c3d0b9cecf1dcb9b9503130f1a72e3d4d3f14b2bce2",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "D06",
+      "preObservationDigest": "0f06a28faa7d9a9ac54de4284edda375f8da426f1cc7440cbec7225b4af727e5",
+      "rootCauseContextFingerprint": "7fec2c94014c1ad9ceff2a69e3943c9e027632ab7946a0a541454ed6bf1081aa",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "E01",
+      "preObservationDigest": "6ff9a15922072d0854631f7427ef3c5c98c3d5634a54920c3932fb5d6ba320c0",
+      "rootCauseContextFingerprint": "50cfc7062e93bc4a9d1f78a2e8cf82bf00ec68418df6677820dd852172ed6fc8",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "E02",
+      "preObservationDigest": "b425fb6313e410f334865d047b9690c9564c34a9fd138f390f8c58bade820472",
+      "rootCauseContextFingerprint": "11f0febbd3e154d987c673f0bb7688b56db3d558396920d7901b56318ed8f586",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "E03",
+      "preObservationDigest": "e53987cc1be5cb5d2477ae4da43b031f211d8ee81a7ed4eb4046a7eed02ccf9f",
+      "rootCauseContextFingerprint": "0d1fa2fee7e2c80ad39b3f0f20ac90bb3c27016e1d3ea0b1fd3c904978281e9f",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "E04",
+      "preObservationDigest": "b7a947dd502eebf670737efa807000d8e2b2f5d7093f821a4f377ce0c3230028",
+      "rootCauseContextFingerprint": "07b7cbf1b1eed1605379412f6289191fc4b76e7fd1fb7a17115b4a384de9aa6e",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "E05",
+      "preObservationDigest": "1d40014280674a520120e16229be5a3e2e81aa18df071ad12b1988de087159f6",
+      "rootCauseContextFingerprint": "ed2f9743152a6dce6e53b0272a1480a355670a08e7de5e023ad2298a0e77501e",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "E06",
+      "preObservationDigest": "c71f289a474328148ea585f334f14f94f3fb9e4e22791fef3905e425a9cd61a3",
+      "rootCauseContextFingerprint": "70edd3240ad399f30f04289f5cc5701d706dfb15a08e6b84079d7454a14cd3f2",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "F01",
+      "preObservationDigest": "c673469f86e4746fc23bf708263a81adfab8054889aafbbd6f032c767625b6f9",
+      "rootCauseContextFingerprint": "5bbb988694c1b032d6d451cd34da41a49d17b4e605a6a37bb21813888daf90e6",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "F02",
+      "preObservationDigest": "d8d731d4ccbe293383e689acfcc90ccb082299e22ab15fa184ddbe725449d7c4",
+      "rootCauseContextFingerprint": "0cfdc84b7ad008f45fde77817fc6170223521bd094ec8c1a96cd266f7d08cef9",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "F03",
+      "preObservationDigest": "cf1868f9fc59ba60e7e663c5e90b8f1c482f031669c1e951b0527ab2fa9995bb",
+      "rootCauseContextFingerprint": "fb4b5a08f2b688b3d3920f49c790a64c295e15b1465af6c79e93ce48ed1b5486",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "F04",
+      "preObservationDigest": "4ad627376c8f82b2affb1756e943077ba9daef1df4e0710bcef313429e6b2279",
+      "rootCauseContextFingerprint": "0bfac2bb149478805fc998827eea124aacc312dda743202544e442fc1d68070e",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "F05",
+      "preObservationDigest": "e1b2b1bcf0f4966fdb71ac62ffb1f60ca8df040da63387d6fb5655c603c5eb76",
+      "rootCauseContextFingerprint": "265d361ef09d4299496b2e5152dad92a85b8c5a4426940843924acadbad05c03",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "F06",
+      "preObservationDigest": "94b3a6a7596bd1af90009d8758b037dbacf9e68833501ac8b25a9347c3e11a8c",
+      "rootCauseContextFingerprint": "cfb529c92f584f8e4c8c4359c962c9ebfb47121e1e54c7e2e6f1b6523aa3ed63",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "G01",
+      "preObservationDigest": "b1e0a65a8084cea5367fc4df9f64a83b8063f447c643f19be63cb6aefdc6afbd",
+      "rootCauseContextFingerprint": "c210d388be83488224dcdec1cd8bd7e5ca058c7290df0556987feee10e9f7a22",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "G02",
+      "preObservationDigest": "66aa99788220ae344dda222a750134f42a9517bdc1b3689428a676c335ef2a63",
+      "rootCauseContextFingerprint": "422ea7d96d39fb422bd9639d859bcfa553a468a6e4debcfaff86b00c9d2fc4c6",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "G03",
+      "preObservationDigest": "c84ed96e70cb64b18e12098955075e1a61d7f68b9bc3eab5e6e998da91a7a6fd",
+      "rootCauseContextFingerprint": "221d51617815f0ab8adeafbd96a70cbb3d2daca868412951863599061eca5303",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "G04",
+      "preObservationDigest": "e7d2a1f75cb11b45a783322dc1ce4856f7f359e447f9700cf6c82a942580466b",
+      "rootCauseContextFingerprint": "6f578ce535c5054f1ae349e8a10370b8ff7c4b2ccfce0d3cfc5910f9165bf83b",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "G05",
+      "preObservationDigest": "3dd50f4fba0248011cf61adfa0aa15d155dc2fae3c20b72920406e2c276302a0",
+      "rootCauseContextFingerprint": "e419843da22a5f7577fd08b96836b3c00f72c9bbd41edbe59a47590297dd16f9",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "G06",
+      "preObservationDigest": "85fe9e11b68a2f7fdcbe6abaf52d27a0d0468dc77665e24177d424c104213ce2",
+      "rootCauseContextFingerprint": "fb4ea7f1a604832f143b5a3a2173b03897c125043ef63648feeaaffa4413956a",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "H01",
+      "preObservationDigest": "f614e2383ce9e44c7d8d77e68837b8066f837d973efe49b8c51550b93323ed6d",
+      "rootCauseContextFingerprint": "def1eb208712decc3afefc3450ae252ed067a2e3deafab70392005d84d893aa4",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "H02",
+      "preObservationDigest": "631ba55cd0f8dae90e01cd9d0387f2131c946124dc16f6f4909ce32f750e8c28",
+      "rootCauseContextFingerprint": "747088118fee06526e3c047666015c80e19136b2a94396c5f00bc1a18872f4e2",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "H03",
+      "preObservationDigest": "13bdbabd3bcea8f64ff32ba3dbb3d37999411ab7bba8f8f97c3507f89132112d",
+      "rootCauseContextFingerprint": "6ba327ff274e45e91bdf4fccc3477fc4a387c6bbec086c15db354f1fc44aaaa2",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "H04",
+      "preObservationDigest": "6632340c616f684974e1003329c302853abab2b279fc28c0d6be61391bf039d5",
+      "rootCauseContextFingerprint": "dcb18598cbc7d96aef6e3b6c99ddb435614bd4760395c58a080cfd34cc409e50",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "invalid"
+    },
+    {
+      "caseId": "H05",
+      "preObservationDigest": "2bfeaf290c4304d27fc9934b8e1ce78a44381327641ec1fda46d75115df158fd",
+      "rootCauseContextFingerprint": "80ffbbb3e87f99f54acf04dd168cd8ec3c646539f4c0de57b173037259106be3",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    },
+    {
+      "caseId": "H06",
+      "preObservationDigest": "1798d6a27444b582396c1925275e07bb68c6e70f80b892db84a205f2bd486239",
+      "rootCauseContextFingerprint": "565ffd8b277d5290df8116f3b5df71c71696aaebdabb755d285bd372d5fc272d",
+      "authorityDigests": [
+        {
+          "path": "docs/campaigns/recovery-v3/authority/musoq-core-language-spec.md",
+          "sha256": "435f6ea1a0b76ba56624b0012522e9845bdb7f3e13e32f7755822f411f0247a8"
+        }
+      ],
+      "expectedClassification": "valid_ordinary"
+    }
+  ],
+  "rules": {
+    "expectationsFrozenBeforeObservation": true,
+    "identifierSpellingAloneIsNotNovel": true,
+    "sourceHashesAreRawBytes": true,
+    "minimizationRequiresSameFaultAndObservation": true
+  }
+}

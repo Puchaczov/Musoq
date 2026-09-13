@@ -1,0 +1,204 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-129",
+  "outcome": "passed",
+  "artifacts": [
+    {
+      "id": "case-contract",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-129-case-contract.json",
+      "sha256": "cb99355a8de600c1657f62815612ebc6f774af51d27a17a728c4640b0b11502b",
+      "role": "Frozen 48-case runtime-classification expectation contract."
+    },
+    {
+      "id": "case-manifest",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-129-case-manifest.json",
+      "sha256": "63a7bf366947862d6a453e856a0b3d47a3f855adeaea833c071bbf1bb037125e",
+      "role": "Frozen pre-observation payload and authority digest."
+    },
+    {
+      "id": "initial-focused-r1-trx",
+      "path": ".campaign-artifacts/REC-129-focused-initial-r1/REC-129-focused-initial-r1.trx",
+      "sha256": "b0b5d61e7c68a788f606a771123871836fcb30c1f0b8d5664f2d30b2d61d0f03",
+      "role": "Preserved pre-contract fixture calibration: 44 passed and 4 failed."
+    },
+    {
+      "id": "initial-focused-r2-trx",
+      "path": ".campaign-artifacts/REC-129-focused-initial-r2/REC-129-focused-initial-r2.trx",
+      "sha256": "353ee841638115b6998ca372a30b24bd3f8edcded189bc8e10e8fe5ed77d9736",
+      "role": "Preserved stale-binary calibration replay: 44 passed and 4 failed."
+    },
+    {
+      "id": "initial-focused-r3-trx",
+      "path": ".campaign-artifacts/REC-129-focused-initial-r3/REC-129-focused-initial-r3.trx",
+      "sha256": "ce3ecd4eaf245b86a235ba1aff58763f7da34261cad18760737638c72d693115",
+      "role": "Corrected pre-freeze fixture replay: 48 passed."
+    },
+    {
+      "id": "focused-final-trx",
+      "path": ".campaign-artifacts/REC-129-focused-final/REC-129-focused-final.trx",
+      "sha256": "cc983c94699588ef8bbfdb38b720b6dd4f9f40ebff94e2884cb1901465a0b609",
+      "role": "Final permanent 48-case matrix replay."
+    },
+    {
+      "id": "adjacent-core013-trx",
+      "path": ".campaign-artifacts/REC-129-adjacent-core013/REC-129-adjacent-core013.trx",
+      "sha256": "cdfb46e7b9796700482415d379407140752fc086e786f059eac7b9820a7aacd2",
+      "role": "Core-013 dynamic-regex regression adjacency: 9 passed."
+    },
+    {
+      "id": "adjacent-core015-trx",
+      "path": ".campaign-artifacts/REC-129-adjacent-core015/REC-129-adjacent-core015.trx",
+      "sha256": "f358c427bb0f4dafa7b03e78a2d33e0b4bca8e8eb192af1a7813c216c7d003ec",
+      "role": "Core-015 scalar-cardinality regression adjacency: 11 passed."
+    },
+    {
+      "id": "adjacent-casts-trx",
+      "path": ".campaign-artifacts/REC-129-adjacent-casts/REC-129-adjacent-casts.trx",
+      "sha256": "6d9fbcfe7a24fb856c2b89a3277cf0c42f391257d2f67473b708cfca1e828f00",
+      "role": "Strict-conversion regression adjacency: 16 passed."
+    },
+    {
+      "id": "adjacent-runtime-trx",
+      "path": ".campaign-artifacts/REC-129-adjacent-runtime/REC-129-adjacent-runtime.trx",
+      "sha256": "0df8372ee21e7439fb35744aed168154ca752d27b10c17786279ff9311c6af9c",
+      "role": "Runtime arithmetic regression adjacency: 5 passed."
+    },
+    {
+      "id": "adjacent-constant-folding-trx",
+      "path": ".campaign-artifacts/REC-129-adjacent-constant-folding/REC-129-adjacent-constant-folding.trx",
+      "sha256": "53c4590da259cc75d15bc8221d816f2131bb14995f5564342d461cad9eaa8954",
+      "role": "Constant-folding arithmetic regression adjacency: 85 passed."
+    },
+    {
+      "id": "adjacent-taxonomy-trx",
+      "path": ".campaign-artifacts/REC-129-adjacent-taxonomy/REC-129-adjacent-taxonomy.trx",
+      "sha256": "25f4f9be8c268d639440d25e745956d75f1315b497ac429d2f875ddbbfdc2d10",
+      "role": "Diagnostic taxonomy regression adjacency: 7 passed."
+    },
+    {
+      "id": "adjacent-typed-failure-trx",
+      "path": ".campaign-artifacts/REC-129-adjacent-typed-failure/REC-129-adjacent-typed-failure.trx",
+      "sha256": "fe87d6b79dcb4d382274ce9b0aec753ae2c645ee40cd7112c4f61819453aa9e1",
+      "role": "Typed-query runtime-envelope adjacency: 1 passed."
+    },
+    {
+      "id": "full-gate-test-log",
+      "path": ".campaign-artifacts/REC-129-full-gate-final/test.stdout.log",
+      "sha256": "e67b8ead724d4b65e5da8f5fbfa35785049d8cae8e657d2919221596da3064aa",
+      "role": "Authoritative Release test stdout."
+    },
+    {
+      "id": "behavior-results",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-129-behavior-results.json",
+      "sha256": "6b37dae026bad899d78e621fd182daacb839ff5f67f45d04d15871476525f1fe",
+      "role": "Case observations, classification results, obligations and validation."
+    },
+    {
+      "id": "full-gate",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-129-full-gate.json",
+      "sha256": "527b40e071f67c62af8d5b14ebbe918b5911c4a92d77e16ea8d1a16975c30de6",
+      "role": "Authoritative Release restore/build/test gate over 8/8 targets."
+    },
+    {
+      "id": "fixture-source",
+      "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-129RuntimeClassificationTests.cs",
+      "sha256": "825f9a0db22d17101b2597f8ce34b23266b44c62c8a5fad99e0e2ea1322fb457",
+      "role": "Permanent 48-case runtime-classification fixture and assertions."
+    },
+    {
+      "id": "report",
+      "path": "docs/campaigns/recovery-v3/reports/REC-129.md",
+      "sha256": "32e6472097f75aad0db89976f05a89c6ba46c60dea1698fd4e2c9a8c9f22ad6c",
+      "role": "REC-129 completion report."
+    }
+  ],
+  "validation": {
+    "contractVerification": {
+      "caseCount": 48,
+      "verified": true
+    },
+    "focusedMatrix": {
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "total": 48,
+      "candidateCount": 48
+    },
+    "initialFocusedReplay": {
+      "calibrationRevision1": {
+        "passed": 44,
+        "failed": 4,
+        "skipped": 0,
+        "total": 48
+      },
+      "calibrationRevision2": {
+        "passed": 44,
+        "failed": 4,
+        "skipped": 0,
+        "total": 48
+      },
+      "correctedRevision3": {
+        "passed": 48,
+        "failed": 0,
+        "skipped": 0,
+        "total": 48
+      },
+      "failureSummary": "The two failed replays were pre-contract fixture calibration and stale-binary evidence; the corrected fixture passed 48/48 before freezing."
+    },
+    "adjoiningSuites": {
+      "core013DynamicRegex": {
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "total": 9
+      },
+      "core015ScalarCardinality": {
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0,
+        "total": 11
+      },
+      "strictConversion": {
+        "passed": 16,
+        "failed": 0,
+        "skipped": 0,
+        "total": 16
+      },
+      "runtimeArithmetic": {
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "total": 5
+      },
+      "constantFolding": {
+        "passed": 85,
+        "failed": 0,
+        "skipped": 0,
+        "total": 85
+      },
+      "diagnosticTaxonomy": {
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0,
+        "total": 7
+      },
+      "typedQueryEnvelope": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "total": 1
+      }
+    },
+    "fullReleaseGate": {
+      "status": "passed",
+      "runId": "REC-129-63491d949103",
+      "targetCount": 8,
+      "passed": 20727,
+      "failed": 0,
+      "skipped": 3,
+      "total": 20730,
+      "testedPayloadSha256": "2a0d638f7c12f8d20d01e3223910bc4a9bb5b6e802e3f4c379ae1fcd29b48123",
+      "testedPayloadFileCount": 5794
+    }
+  }
+}

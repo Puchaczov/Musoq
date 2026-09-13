@@ -21,6 +21,7 @@ public partial class BuildMetadataAndInferTypesVisitorTests
             "select 1 from #EnvironmentVariables.All()");
 
         Assert.IsTrue(visitor.QueryLocalEnumTypes.TryGetValue("fileaccess", out var descriptor));
+        Assert.IsNotNull(descriptor);
         Assert.AreEqual(EnumTypeOrigin.QueryLocal, descriptor.Origin);
         Assert.AreEqual(EnumUnderlyingKind.UInt32, descriptor.UnderlyingKind);
         Assert.IsTrue(descriptor.IsFlags);

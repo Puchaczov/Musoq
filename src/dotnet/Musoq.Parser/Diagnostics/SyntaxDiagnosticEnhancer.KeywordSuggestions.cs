@@ -22,8 +22,15 @@ internal static partial class SyntaxDiagnosticEnhancer
 
     private static string? GetKeywordSuggestion(Token? currentToken, SourceText? sourceText, TextSpan span)
     {
+        if (sourceText != null && IsUnsupportedAsOfRight(sourceText.Text, span))
+            return null;
+
         var candidate = GetKeywordCandidate(currentToken, sourceText, span);
         if (string.IsNullOrWhiteSpace(candidate))
+            return null;
+
+        if (!IsWordLike(candidate) ||
+            sourceText != null && IsNamedFieldLabel(sourceText.Text, span))
             return null;
 
         if (DialectKeywordHelpMap.ContainsKey(candidate))
@@ -32,8 +39,52 @@ internal static partial class SyntaxDiagnosticEnhancer
         return ErrorCatalog.GetDidYouMeanSuggestion(candidate, KnownKeywords, maxDistance: 2);
     }
 
+    private static bool IsWordLike(string candidate)
+    {
+        foreach (var character in candidate)
+            if (!char.IsLetterOrDigit(character) && character != '_')
+                return false;
+
+        return true;
+    }
+
+    private static bool IsNamedFieldLabel(string text, TextSpan span)
+    {
+        var position = span.End;
+        while (position < text.Length)
+        {
+            while (position < text.Length && char.IsWhiteSpace(text[position]))
+                position++;
+
+            if (position + 1 < text.Length && text[position] == '-' && text[position + 1] == '-')
+            {
+                position += 2;
+                while (position < text.Length && text[position] is not '\r' and not '\n')
+                    position++;
+                continue;
+            }
+
+            if (position + 1 < text.Length && text[position] == '/' && text[position + 1] == '*')
+            {
+                var commentEnd = text.IndexOf("*/", position + 2, StringComparison.Ordinal);
+                if (commentEnd < 0)
+                    return false;
+
+                position = commentEnd + 2;
+                continue;
+            }
+
+            break;
+        }
+
+        return position < text.Length && text[position] == ':';
+    }
+
     private static DialectKeywordHelp? GetDialectKeywordHelp(Token? currentToken, SourceText? sourceText, TextSpan span)
     {
+        if (sourceText != null && IsUnsupportedAsOfRight(sourceText.Text, span))
+            return AsOfRightJoinHelp;
+
         if (sourceText != null && span.Length > 0 && span.Start >= 0 && span.End <= sourceText.Text.Length &&
             IsWholeWordAt(sourceText.Text, span.Start, span.Length))
         {
@@ -65,6 +116,31 @@ internal static partial class SyntaxDiagnosticEnhancer
         return IsCastKeywordContext(currentToken, sourceText?.Text, span.Start)
             ? DialectKeywordHelpMap["CAST"]
             : null;
+    }
+
+    private static bool IsUnsupportedAsOfRight(string text, TextSpan span)
+    {
+        if (span.Length != 4 || span.Start < 0 || span.End > text.Length ||
+            !string.Equals(text.Substring(span.Start, span.Length), "asof", StringComparison.OrdinalIgnoreCase) ||
+            !IsWholeWordAt(text, span.Start, span.Length))
+            return false;
+
+        var position = SkipWhiteSpace(text, span.End);
+        if (!IsWordAt(text, position, "right"))
+            return false;
+
+        position = SkipWhiteSpace(text, position + "right".Length);
+        if (IsWordAt(text, position, "outer"))
+            position = SkipWhiteSpace(text, position + "outer".Length);
+
+        return IsWordAt(text, position, "join");
+    }
+
+    private static bool IsWordAt(string text, int position, string word)
+    {
+        return position >= 0 && position + word.Length <= text.Length &&
+               string.Equals(text.Substring(position, word.Length), word, StringComparison.OrdinalIgnoreCase) &&
+               IsWholeWordAt(text, position, word.Length);
     }
 
     private static DialectKeywordHelp? GetNearbyDialectKeywordHelp(string text, int diagnosticStart)

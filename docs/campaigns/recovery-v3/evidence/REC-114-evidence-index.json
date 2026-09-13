@@ -1,0 +1,117 @@
+{
+  "formatVersion": 1,
+  "scopeId": "REC-114",
+  "outcome": "passed",
+  "artifacts": [
+    {
+      "id": "case-contract-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-114-case-contract.json",
+      "sha256": "20377b6f1c49f1d93a2104acbd890162d0cd0bb502883b9cb436b672cf98f3ae",
+      "role": "Immutable initial 48-case binary/text pre-observation contract."
+    },
+    {
+      "id": "pre-observation-manifest-revision-1",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-114-pre-observation-manifest.json",
+      "sha256": "71fd237c5b8c6c9878587a02bc3ac79adf1e73e3386988634232bf958c66ed1f",
+      "role": "Immutable revision-1 authority hashes and pre-observation payload digest."
+    },
+    {
+      "id": "oracle-correction",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-114-oracle-correction.json",
+      "sha256": "6536241c9fbb1b45f7d9c4f5905f41e394705b95f94ee1347cf4557a7153d368",
+      "role": "Transparent F04 seed-validity fixture correction preserving the zero-progress runtime fault."
+    },
+    {
+      "id": "case-contract-revision-2",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-114-case-contract-v2.json",
+      "sha256": "43d73b83a50e714c62bad59280a0ff924c282e021e052a95ac9b59eca5db1657",
+      "role": "Immutable corrected final 48-case contract used for replay."
+    },
+    {
+      "id": "pre-observation-manifest-revision-2",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-114-pre-observation-manifest-v2.json",
+      "sha256": "b82093f39d6f4c81e7d52fb6f8a6eb1e9cf2a47ea733551368c66deda5b47720",
+      "role": "Final verified revision-2 pre-observation manifest."
+    },
+    {
+      "id": "behavior-results",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-114-behavior-results.json",
+      "sha256": "98ef7c0586a9851219702464b60f2be49a9db4a7073bf9e969df6d854237a932",
+      "role": "Final matrix classifications, revision history, adjacent replays and full-gate results."
+    },
+    {
+      "id": "focused-matrix-trx",
+      "path": ".campaign-artifacts/REC-114-focused-final/REC-114-focused-final.trx",
+      "sha256": "691f52e47d1edf75f0db5b89b89fecb06c9ea16d77244cccdeb5da4434d9701c",
+      "role": "Final REC-114 focused replay, 3/3 methods passed over the 48-case corrected matrix."
+    },
+    {
+      "id": "parser-adjacent-trx",
+      "path": ".campaign-artifacts/REC-114-parser-adjacent/REC-114-parser-adjacent.trx",
+      "sha256": "42056fe76afd06f71cc745918a1a8554b52031eb5dd21832f1ba3b6aba1692bb",
+      "role": "Adjacent parser binary/text schema regressions, 71/71 passed."
+    },
+    {
+      "id": "evaluator-adjacent-trx",
+      "path": ".campaign-artifacts/REC-114-evaluator-adjacent/REC-114-evaluator-adjacent.trx",
+      "sha256": "2f8b0e7e2c67f253d7c6d02e27570bf3853b790c0231a711f8e9c805cf7599f2",
+      "role": "Adjacent evaluator binary/text/runtime interpretation regressions, 76/76 passed."
+    },
+    {
+      "id": "matrix-tests",
+      "path": "src/dotnet/Musoq.Evaluator.Tests/Diagnostic.REC-114BinaryTextRecoveryTests.cs",
+      "sha256": "73c0bbbeb24dd53523ba3c5178c2fb60267f4089e6796198a3094bc258bd6257",
+      "role": "Permanent REC-114 eight-family schema/substrate mutation matrix and domain/boundary assertions."
+    },
+    {
+      "id": "full-gate",
+      "path": "docs/campaigns/recovery-v3/evidence/REC-114-full-gate.json",
+      "sha256": "d05206db45d0c14018e721fb6278904d12b911cf0285c612e18906babc1213f8",
+      "role": "Final all-target Release restore/build/test gate."
+    },
+    {
+      "id": "report",
+      "path": "docs/campaigns/recovery-v3/reports/REC-114.md",
+      "sha256": "9c0d82958e5cd1d290e0c7575a6e0f677015a1b121215030983bb69c73a0b3c6",
+      "role": "Human-readable REC-114 completion report."
+    }
+  ],
+  "validation": {
+    "focusedMatrix": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "total": 3,
+      "candidateCount": 48,
+      "invalidCandidates": 32,
+      "validOrdinaryControls": 16
+    },
+    "parserAdjacent": {
+      "passed": 71,
+      "failed": 0,
+      "skipped": 0,
+      "total": 71
+    },
+    "evaluatorAdjacent": {
+      "passed": 76,
+      "failed": 0,
+      "skipped": 0,
+      "total": 76
+    },
+    "fullReleaseGate": {
+      "runId": "REC-114-02f11d681b19",
+      "passed": 20484,
+      "skipped": 3,
+      "failed": 0,
+      "total": 20487,
+      "targetCount": 8,
+      "testedPayloadSha256": "acf7dae5ed18969061ee36e527706439342a02caa5a033888127f0531f9afcf2",
+      "testedPayloadFileCount": 5775
+    }
+  },
+  "notes": [
+    "Revision 1 and its manifest remain immutable; revision 2 is the final verified contract used for completion.",
+    "The source/test payload was unchanged after the final full gate; administrative report, evidence and ledger updates are outside the tested payload boundary.",
+    "No production finding or production fix was required. Product and empirical lanes remain not run under the selected engine-lane stopping contract."
+  ]
+}

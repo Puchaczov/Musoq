@@ -20,7 +20,21 @@ internal static partial class SourcePlanningPlanner
     {
         context.CancellationToken.ThrowIfCancellationRequested();
         request = request with { CancellationToken = context.CancellationToken };
-        var schema = SchemaProviderBoundary.Invoke(() => context.SchemaProvider.GetSchema(scan.SchemaName));
+        ISchema schema;
+        try
+        {
+            schema = SchemaProviderBoundary.Invoke(() => context.SchemaProvider.GetSchema(scan.SchemaName));
+        }
+        catch (SchemaProviderFailureException exception)
+        {
+            throw DataSourceLifecycleException.ForProviderOperation(
+                scan.SchemaName,
+                scan.MethodName,
+                scan.Alias,
+                request.Identity.SourceContextId,
+                "construct",
+                exception.InnerException ?? exception);
+        }
         context.CancellationToken.ThrowIfCancellationRequested();
         var semanticSource = sourceNode as Musoq.Evaluator.Parser.SchemaFromNode;
         var parameters = semanticSource is { StaticMetadataArguments.Length: > 0 } or
@@ -38,9 +52,10 @@ internal static partial class SourcePlanningPlanner
             request.SourceRuntimeSettings,
             NullLogger.Instance);
 
+        SourceDescriptor descriptor;
         try
         {
-            var descriptor = SchemaProviderBoundary.Invoke(() => schema.DescribeSource(
+            descriptor = SchemaProviderBoundary.Invoke(() => schema.DescribeSource(
                 scan.MethodName,
                 new SourceDescribeContext(request.Identity, metadataContext),
                 parameters));
@@ -49,22 +64,20 @@ internal static partial class SourcePlanningPlanner
                 metadataContext.AllColumns,
                 descriptor,
                 columnName => ResolveColumnSpan(context, sourceNode, columnName));
-            var result = SchemaProviderBoundary.Invoke(() => schema.TryPlanSource(scan.MethodName, request, parameters))
-                         ?? SourcePlanResult.RejectAll(request);
-            context.CancellationToken.ThrowIfCancellationRequested();
-            SourcePredicatePlanContractValidator.Validate(
-                request,
-                result,
-                ResolveSourceSpan(sourceNode));
-            result = OptimizationDiagnosticOriginMarker.Mark(result, "TryPlanSource");
-            result = SourceContractDiagnosticOriginMarker.Mark(result, "TryPlanSource");
-            result = OptimizationDiagnosticOriginMarker.Prepend(result, descriptor.Diagnostics, "DescribeSource");
-            result = SourceContractDiagnosticOriginMarker.Prepend(result, descriptor.ContractDiagnostics, "DescribeSource");
-            return (result, descriptor);
         }
         catch (SchemaProviderFailureException exception) when (semanticSource?.HasRequiredRuntimeArguments == true)
         {
             throw CreateMetadataDefaultException(scan, semanticSource, exception);
+        }
+        catch (SchemaProviderFailureException exception)
+        {
+            throw DataSourceLifecycleException.ForProviderOperation(
+                scan.SchemaName,
+                scan.MethodName,
+                request.Identity.Alias,
+                request.Identity.SourceContextId,
+                "describe",
+                exception.InnerException ?? exception);
         }
         catch (SchemaArgumentException exception) when (
             semanticSource?.HasRequiredRuntimeArguments == true &&
@@ -72,5 +85,43 @@ internal static partial class SourcePlanningPlanner
         {
             throw CreateMetadataDefaultException(scan, semanticSource, exception);
         }
+
+        SourcePlanResult result;
+        try
+        {
+            result = SchemaProviderBoundary.Invoke(() => schema.TryPlanSource(scan.MethodName, request, parameters))
+                     ?? SourcePlanResult.RejectAll(request);
+            context.CancellationToken.ThrowIfCancellationRequested();
+            SourcePredicatePlanContractValidator.Validate(
+                request,
+                result,
+                ResolveSourceSpan(sourceNode));
+        }
+        catch (SchemaProviderFailureException exception) when (semanticSource?.HasRequiredRuntimeArguments == true)
+        {
+            throw CreateMetadataDefaultException(scan, semanticSource, exception);
+        }
+        catch (SchemaProviderFailureException exception)
+        {
+            throw DataSourceLifecycleException.ForProviderOperation(
+                scan.SchemaName,
+                scan.MethodName,
+                request.Identity.Alias,
+                request.Identity.SourceContextId,
+                "plan",
+                exception.InnerException ?? exception);
+        }
+        catch (SchemaArgumentException exception) when (
+            semanticSource?.HasRequiredRuntimeArguments == true &&
+            !string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal))
+        {
+            throw CreateMetadataDefaultException(scan, semanticSource, exception);
+        }
+
+        result = OptimizationDiagnosticOriginMarker.Mark(result, "TryPlanSource");
+        result = SourceContractDiagnosticOriginMarker.Mark(result, "TryPlanSource");
+        result = OptimizationDiagnosticOriginMarker.Prepend(result, descriptor.Diagnostics, "DescribeSource");
+        result = SourceContractDiagnosticOriginMarker.Prepend(result, descriptor.ContractDiagnostics, "DescribeSource");
+        return (result, descriptor);
     }
 }
