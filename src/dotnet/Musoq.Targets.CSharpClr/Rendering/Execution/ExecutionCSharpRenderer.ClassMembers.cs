@@ -72,6 +72,10 @@ public sealed partial class ExecutionCSharpRenderer
                 .ToDictionary(static pair => pair.Key, static pair => pair.Value);
 
             var members = new List<MemberDeclarationSyntax>();
+            members.AddRange(StructuralCarrierSyntaxFactory.CreateMembers(
+                _scriptVariableDefinitions,
+                _scriptParameterDefinitions,
+                ExecutionIrAnalysis.CollectExpressions<ExecutionStructuralConversion>(plan.Body)));
 
             var constructorUsages = CollectGeneratedRowConstructorUsages(plan.Body, session.TypedStoredTableResults);
             session.GeneratedRowVariableTypeNamesByName = CollectGeneratedRowVariableTypeNames(plan.Body, session.TypedStoredTableResults);
@@ -131,7 +135,7 @@ public sealed partial class ExecutionCSharpRenderer
                 members.Add(RenderFinalSelectShapeClass(plan.FinalResult));
 
             members.AddRange(CreateCteIndexResultMembers(plan));
-            members.AddRange(CreateCteRowResultMembers(session.TypedStoredTableResults));
+            members.AddRange(CreateCteRowResultMembers(session.TypedStoredTableResults)); members.AddRange(StructuralCtePreparationMembers.CreateMembers(plan.Body, context, this)); members.AddRange(StructuralInputLimitSyntaxFactory.CreateMembers(plan.Body));
             members.AddRange(session.ConstantInSetFields.Select(static field => CreateConstantInSetField(field)));
             members.AddRange(session.StaticMetadataFields.Select(static field => CreateStaticMetadataField(field)));
             members.AddRange(session.SingleKeyAggregateUpdateHelpersByBlock.Values

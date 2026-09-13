@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
@@ -84,15 +85,24 @@ public sealed partial class LogicalPlanBuilder
         var methodName = from?.Method ?? string.Empty;
         var column = node.Column?.ToString();
         var sourceContextId = from?.Id ?? string.Empty;
-        var arguments = from is Musoq.Evaluator.Parser.SchemaFromNode semanticSource &&
-                        semanticSource.BoundInvocation is { } invocation
-            ? ConvertArguments(from.Parameters, invocation)
-            : from?.Parameters.Args.Select(_converter.Convert).ToArray() ?? [];
+        var semanticSource = from as Musoq.Evaluator.Parser.SchemaFromNode;
+        var argumentDescriptions = node.Type == DescForType.Arguments &&
+                                      semanticSource?.BoundInvocation is { } descriptionInvocation
+            ? StructuralArgumentDescriptionFactory.Create(
+                descriptionInvocation.Signature,
+                descriptionInvocation.OverloadIndex)
+            : null;
+        var arguments = node.Type == DescForType.Arguments
+            ? []
+            : semanticSource?.BoundInvocation is { } invocation
+                ? ConvertArguments(from!.Parameters, invocation)
+                : from?.Parameters.Args.Select(_converter.Convert).ToArray() ?? [];
 
         var descType = node.Type switch
         {
             DescForType.Schema => IrNodes.DescType.Schema,
             DescForType.Constructors => IrNodes.DescType.Constructors,
+            DescForType.Arguments => IrNodes.DescType.Arguments,
             DescForType.FunctionsForSchema => IrNodes.DescType.Functions,
             DescForType.SpecificColumn => IrNodes.DescType.Column,
             DescForType.Settings => IrNodes.DescType.Settings,
@@ -106,8 +116,9 @@ public sealed partial class LogicalPlanBuilder
             column,
             arguments,
             sourceContextId,
-            OutputSchema.Empty,
-            ColumnSpan: node.Column?.Span));
+            node.Type == DescForType.Arguments ? CreateArgumentDescriptionOutputSchema() : OutputSchema.Empty,
+            ColumnSpan: node.Column?.Span,
+            ArgumentDescriptions: argumentDescriptions));
     }
 
     public void Visit(InternalQueryNode node)
@@ -353,6 +364,23 @@ public sealed partial class LogicalPlanBuilder
         _nodeStack.Push(source);
     }
 
+    private static OutputSchema CreateArgumentDescriptionOutputSchema()
+    {
+        return new OutputSchema(
+        [
+            new ColumnSchema("Overload", typeof(int), 0),
+            new ColumnSchema("Path", typeof(string), 1),
+            new ColumnSchema("Kind", typeof(string), 2),
+            new ColumnSchema("Type", typeof(string), 3),
+            new ColumnSchema("Required", typeof(bool?), 4),
+            new ColumnSchema("Nullable", typeof(bool), 5),
+            new ColumnSchema("HasDefault", typeof(bool), 6),
+            new ColumnSchema("Default", typeof(string), 7),
+            new ColumnSchema("MaxDepth", typeof(int?), 8),
+            new ColumnSchema("MaxNodes", typeof(int?), 9),
+            new ColumnSchema("MaxStringBytes", typeof(long?), 10)
+        ]);
+    }
     private static OutputSchema CreateDescriptionOutputSchema()
     {
         return new OutputSchema(

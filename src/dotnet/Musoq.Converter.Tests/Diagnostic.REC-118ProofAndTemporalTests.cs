@@ -13,8 +13,8 @@ namespace Musoq.Converter.Tests;
 public sealed class DiagnosticREC118ProofAndTemporalTests
 {
     private const string SystemSeed = "select d.Dummy from #system.dual() d";
-    private const string ValuesSeed = "select row.Value from values { { Value: 1 } } row";
-    private const string ValuesTwoSeed = "select row.Value from values { { Value: 2 } } row";
+    private const string ValuesSeed = "select row.Value from values { ( Value: 1 ) } row";
+    private const string ValuesTwoSeed = "select row.Value from values { ( Value: 2 ) } row";
     private const string JoinSeed = "select a.Dummy from #system.dual() a";
     private readonly TestsLoggerResolver loggerResolver = new();
 
@@ -194,7 +194,7 @@ public sealed class DiagnosticREC118ProofAndTemporalTests
         SystemCase("T02", "TAUTOLOGY", SystemSeed + " where 1 = 1", [DiagnosticCode.MQ5010_TautologicalCondition]),
         SystemCase("T03", "TAUTOLOGY", SystemSeed + " where false or true", [DiagnosticCode.MQ5010_TautologicalCondition]),
         SystemCase("T04", "TAUTOLOGY", SystemSeed + " where true and true", [DiagnosticCode.MQ5010_TautologicalCondition]),
-        ValuesCase("T05", "TAUTOLOGY", "select row.Value from values { { Value: 1 } } row group by row.Value having true", [DiagnosticCode.MQ5010_TautologicalCondition]),
+        ValuesCase("T05", "TAUTOLOGY", "select row.Value from values { ( Value: 1 ) } row group by row.Value having true", [DiagnosticCode.MQ5010_TautologicalCondition]),
         JoinCase("T06", "TAUTOLOGY", JoinSeed + " inner join #system.dual() b on true", [DiagnosticCode.MQ5010_TautologicalCondition]),
         ValuesCase("T07", "TAUTOLOGY", ValuesSeed + " where row.Value = row.Value", []),
         ValuesCase("T08", "TAUTOLOGY", ValuesSeed + " where row.Value = ToInt32(1) and row.Value = ToInt32(2)", []),

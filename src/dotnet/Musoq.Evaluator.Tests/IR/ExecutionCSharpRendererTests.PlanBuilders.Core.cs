@@ -657,7 +657,11 @@ public sealed partial class ExecutionCSharpRendererTests
                             ]))
                     ])),
                 new ExecutionReturnTable(resultTable)
-            ]));
+            ]),
+            storedTableRepresentations:
+            [
+                new ExecutionStoredTableRepresentationPlan(0, sourceShape)
+            ]);
     }
 
     private static ExecutionPlan CreateTypedMaterializedRowsBufferPlan()
@@ -780,7 +784,10 @@ public sealed partial class ExecutionCSharpRendererTests
                             resultContextLayout)
                     ])),
                 new ExecutionReturnTable(resultTable)
-            ]));
+            ]),
+            storedTableRepresentations: useRowContext
+                ? []
+                : [new ExecutionStoredTableRepresentationPlan(0, statementShape)]);
     }
 
     private static ExecutionPlan CreateParallelBlockPlan()
@@ -876,7 +883,12 @@ public sealed partial class ExecutionCSharpRendererTests
                         new ExecutionStoreTable(output1, 1)
                     ]))),
                 new ExecutionReturnTable(output0)
-            ]));
+            ]),
+            storedTableRepresentations:
+            [
+                new ExecutionStoredTableRepresentationPlan(0, cteShape),
+                new ExecutionStoredTableRepresentationPlan(1, cteShape)
+            ]);
     }
 
     private static ExecutionPlan CreateCapacityHintPlan()

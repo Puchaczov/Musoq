@@ -4,6 +4,7 @@ public enum DescType
 {
     Schema,
     Constructors,
+    Arguments,
     Functions,
     Table,
     Column,

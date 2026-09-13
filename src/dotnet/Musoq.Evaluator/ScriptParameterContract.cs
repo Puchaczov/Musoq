@@ -1,5 +1,6 @@
-using Musoq.Evaluator.Helpers;
+﻿using Musoq.Evaluator.Helpers;
 using Musoq.Parser;
+using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator;
 
@@ -14,8 +15,48 @@ public sealed record ScriptParameterContract(
     string? ElementCanonicalTypeName,
     bool HasDefaultValue,
     ScriptParameterDefaultKind DefaultKind,
-    object? DefaultValue)
+    object? DefaultValue,
+    StructuralTypeDescriptor? StructuralType = null)
 {
+    /// <summary>Gets whether this contract carries a recursive structural shape.</summary>
+    public bool IsStructured => StructuralType != null;
+
+    /// <summary>Gets the execution input limits applied to a structural parameter.</summary>
+    public StructuralInputLimits Limits { get; init; } = StructuralInputLimits.Default;
+
+    public static ScriptParameterContract CreateStructural(
+        string name,
+        string declaredTypeName,
+        StructuralTypeDescriptor structuralType,
+        bool hasDefaultValue,
+        object? defaultValue)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(declaredTypeName);
+        ArgumentNullException.ThrowIfNull(structuralType);
+
+        var defaultKind = !hasDefaultValue
+            ? ScriptParameterDefaultKind.None
+            : defaultValue == null
+                ? ScriptParameterDefaultKind.Null
+                : ScriptParameterDefaultKind.Structured;
+        var isCollection = structuralType.Kind == StructuralTypeKind.Collection;
+        var elementType = isCollection ? structuralType.ElementType?.CoreValueType : null;
+
+        return new ScriptParameterContract(
+            name,
+            declaredTypeName,
+            structuralType.ToCanonicalSql(),
+            structuralType.CoreValueType,
+            structuralType.IsNullable,
+            isCollection,
+            elementType,
+            structuralType.ElementType?.ToCanonicalSql(),
+            hasDefaultValue,
+            defaultKind,
+            defaultValue,
+            structuralType);
+    }
     public static ScriptParameterContract Create(
         string name,
         string declaredTypeName,

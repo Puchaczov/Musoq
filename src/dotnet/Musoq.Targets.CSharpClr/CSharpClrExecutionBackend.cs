@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -46,7 +47,8 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
                 FinalResultSinkKind: ResolveFinalResultSinkKind(inputs.QueryResultMode),
                 OutputType: inputs.OutputType,
                 ForceTableResultMaterialization: inputs.CompilationOptions.ForceTableResultMaterialization,
-                EnableContextualExecution: inputs.EnableContextualExecution));
+                EnableContextualExecution: inputs.EnableContextualExecution,
+                IsMetadataOnly: IsMetadataOnlyDescription(request.ExecutionPlan)));
 
         var renderer = new CSharpRenderer(renderContext, inputs.ExecutionBindings);
         const string queryIdentifier = "compiled";
@@ -155,6 +157,17 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
         var inputTypeName = request.BackendInputs?.GetType().Name ?? "<null>";
         throw CreateUnsupportedExecutionIrException(
             $"CSharpClr backend requires {nameof(CSharpClrRenderInputs)}, but received {inputTypeName}.");
+    }
+
+    private static bool IsMetadataOnlyDescription(ExecutionPlan plan)
+    {
+        var nodes = plan.Body.Nodes;
+        return nodes.Any(static node => node is Musoq.Evaluator.IR.Execution.ExecutionReturnDesc
+        {
+            Type: Musoq.Evaluator.IR.Logical.Nodes.DescType.Arguments
+        }) &&
+               nodes.All(static node => node is Musoq.Evaluator.IR.Execution.ExecutionReturnDesc
+                   or Musoq.Evaluator.IR.Execution.ExecutionPhaseBoundary);
     }
 
     private static FinalResultSinkKind ResolveFinalResultSinkKind(QueryResultMode resultMode)

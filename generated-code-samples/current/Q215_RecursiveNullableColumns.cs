@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive states (Id, ParentId, Depth) as (select Id, ParentId, 0 from values {{ Id: 1, ParentId: null }, { Id: 0, ParentId: 1 }} seed where Id = 1 union (Id) select s.Id + 1, case when s.Id < 0 then null else s.Id end, s.Depth + 1 from states s where s.Depth < 2) select Id, ParentId, Depth from states order by Id
+with recursive states (Id, ParentId, Depth) as (select Id, ParentId, 0 from values {( Id: 1, ParentId: null ), ( Id: 0, ParentId: 1 )} seed where Id = 1 union (Id) select s.Id + 1, case when s.Id < 0 then null else s.Id end, s.Depth + 1 from states s where s.Depth < 2) select Id, ParentId, Depth from states order by Id
 */
 
 // === Logical Plan ===

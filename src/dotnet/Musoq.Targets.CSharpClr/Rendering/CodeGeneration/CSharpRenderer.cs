@@ -42,14 +42,16 @@ public sealed partial class CSharpRenderer
             _context.ScriptVariableDefinitions,
             _context.InstrumentationMode,
             _executionBindings,
-            _context.InstrumentationMode == QueryInstrumentationMode.Disabled ? "" : "_Profiled");
+            _context.InstrumentationMode == QueryInstrumentationMode.Disabled ? "" : "_Profiled",
+            _context.IsMetadataOnly);
         var unprofiledExecutionRenderer = _context.InstrumentationMode == QueryInstrumentationMode.Disabled
             ? executionRenderer
             : new ExecutionCSharpRenderer(
                 _context.ScriptParameterDefinitions,
                 _context.ScriptVariableDefinitions,
                 QueryInstrumentationMode.Disabled,
-                _executionBindings);
+                _executionBindings,
+                metadataOnly: _context.IsMetadataOnly);
         var unsupportedReason = executionRenderer.GetUnsupportedReason(plan);
         if (unsupportedReason != null)
             return ExecutionQueryRenderOutcome.Unsupported(unsupportedReason);

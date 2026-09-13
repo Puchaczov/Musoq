@@ -309,8 +309,8 @@ public sealed class NonClrTargetPipelinePressureTests
     [DataRow(
         """
         from values {
-            { Name: 'first', Score: 1 },
-            { Name: 'second', Score: 2 }
+            ( Name: 'first', Score: 1 ),
+            ( Name: 'second', Score: 2 )
         } rows
         select rows.Name, rows.Score
         """,

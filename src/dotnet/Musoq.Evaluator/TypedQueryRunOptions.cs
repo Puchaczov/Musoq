@@ -48,4 +48,25 @@ public sealed class TypedQueryRunOptions
     public QueryProgressEventHandler? QueryProgress { get; init; }
 
     public QueryProgressOptions? QueryProgressOptions { get; init; }
+
+    internal bool ParametersAreCaptured { get; init; }
+
+    internal static TypedQueryRunOptions CreateCaptured(
+        TypedQueryRunOptions source,
+        IReadOnlyDictionary<string, object?> parameters)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(parameters);
+
+        return new TypedQueryRunOptions(
+            source.CancellationToken,
+            parameters,
+            source.PhaseChanged,
+            source.DataSourceProgress,
+            source.QueryProgress,
+            source.QueryProgressOptions)
+        {
+            ParametersAreCaptured = true
+        };
+    }
 }

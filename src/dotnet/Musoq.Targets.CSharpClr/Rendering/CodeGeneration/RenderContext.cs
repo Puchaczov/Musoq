@@ -33,6 +33,8 @@ public sealed class RenderContext
 
     public bool EnableContextualExecution { get; }
 
+    public bool IsMetadataOnly { get; }
+
     public TableViaRowsResultInfo? TableViaRowsResult { get; private set; }
 
     public RenderContext(SyntaxGenerator generator, RenderContextOptions? options = null)
@@ -51,6 +53,7 @@ public sealed class RenderContext
         FinalResultSinkKind = options.FinalResultSinkKind;
         ForceTableResultMaterialization = options.ForceTableResultMaterialization;
         EnableContextualExecution = options.EnableContextualExecution;
+        IsMetadataOnly = options.IsMetadataOnly;
     }
 
     public void AddClassMember(SyntaxNode member)

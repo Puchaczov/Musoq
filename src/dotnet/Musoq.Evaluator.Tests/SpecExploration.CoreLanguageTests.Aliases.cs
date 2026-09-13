@@ -87,10 +87,10 @@ public partial class SpecExplorationCoreLanguageTests
             "select d.Name from (select a.Name from #A.Entities() a) d",
             "Derived");
         AssertValidSourceQuery(
-            "from values { { Name: 'inline' } } valuesSource select valuesSource.Name",
+            "from values { ( Name: 'inline' ) } valuesSource select valuesSource.Name",
             "Values");
         AssertValidSourceQuery(
-            "select a.Name, valuesSource.Name from #A.Entities() a cross join values { { Name: 'inline' } } valuesSource",
+            "select a.Name, valuesSource.Name from #A.Entities() a cross join values { ( Name: 'inline' ) } valuesSource",
             "ValuesJoin");
     }
 

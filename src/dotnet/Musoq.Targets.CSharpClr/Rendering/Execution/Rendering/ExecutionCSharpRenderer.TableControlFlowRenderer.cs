@@ -12,7 +12,8 @@ public sealed partial class ExecutionCSharpRenderer
             statements = node switch
             {
                 ExecutionSourceScan sourceScan => renderer.RenderSourceScan(sourceScan, renderContext),
-                ExecutionInterpretSource interpret => renderer.RenderInterpretSource(interpret),
+                ExecutionPrepareStructuralInput structuralInput => [StructuralInputSyntaxFactory.RenderPrepare(structuralInput, renderContext, renderer)],
+               ExecutionInterpretSource interpret => renderer.RenderInterpretSource(interpret),
                 ExecutionEnumerableSource enumerable => [renderer.RenderEnumerableSource(enumerable)],
                 ExecutionCreateTable createTable => renderer.RenderCreateTable(createTable, renderContext),
                 ExecutionCreateValuesRows valuesRows => [renderer.RenderCreateValuesRows(valuesRows, renderContext)],

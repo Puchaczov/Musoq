@@ -340,7 +340,8 @@ public sealed partial class RewriteQueryVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var defaultValue = node.HasDefaultValue ? Nodes.Pop() : null;
-        Nodes.Push(new ParameterDeclarationNode(node.Name, node.TypeName, node.IsNullable, defaultValue, node.Span));
+        Nodes.Push(StructuralNodeRebuildSupport.RebuildParameter(node, defaultValue));
+
     }
 
     public void Visit(ParameterReferenceNode node)

@@ -39,7 +39,7 @@ internal static class ExpressionStabilityAnalyzer
                                  (caseWhen.ElseExpression == null || IsStable(caseWhen.ElseExpression)),
             Coalesce coalesce => coalesce.Expressions.All(IsStable),
             ArrayAccess access => IsStable(access.Array) && IsStable(access.Index),
-            AggregateRef or WindowFunctionRef or CteTableRef => false,
+            AggregateRef or WindowFunctionRef or CteTableRef or CteCollectionInput => false,
             _ => false
         };
     }
@@ -75,7 +75,7 @@ internal static class ExpressionStabilityAnalyzer
             ExecutionValueTupleKey key => key.Parts.All(IsStable),
             ExecutionRowPresence presence => IsStable(presence.PresenceSource),
             ExecutionAggregateCall aggregate => aggregate.Method.Descriptor.IsStable && aggregate.Arguments.All(IsStable),
-            ExecutionStoredTable or ExecutionStoredTableRows or ExecutionRowStream or ExecutionScalarRowStream => false,
+            ExecutionStoredTable or ExecutionStoredTableRows or ExecutionCteCollectionInput or ExecutionRowStream or ExecutionScalarRowStream => false,
             _ => false
         };
     }

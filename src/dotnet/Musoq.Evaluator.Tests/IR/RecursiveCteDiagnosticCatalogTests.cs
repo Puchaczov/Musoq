@@ -133,7 +133,7 @@ public sealed class RecursiveCteDiagnosticCatalogTests
     {
         const string query =
             "with recursive counter (Value) as (\n" +
-            "    select Value from values {{ Value: 1 }} seed\n" +
+            "    select Value from values {( Value: 1 )} seed\n" +
             "    union all\n" +
             "    select distinct c.Value + 1 from counter c\n" +
             "    where c.Value < 3)\n" +

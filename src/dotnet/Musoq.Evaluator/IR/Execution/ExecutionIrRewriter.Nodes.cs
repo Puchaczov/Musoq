@@ -4,6 +4,12 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal abstract partial class ExecutionIrRewriter
 {
+    protected virtual ExecutionNode RewritePrepareStructuralInput(ExecutionPrepareStructuralInput node)
+    {
+        var input = RewriteExpression(node.Input);
+        return ReferenceEquals(input, node.Input) ? node : node with { Input = input };
+    }
+
     protected virtual ExecutionNode RewriteSourceScan(ExecutionSourceScan node)
     {
         var binding = RewriteSourceBinding(node.Binding);

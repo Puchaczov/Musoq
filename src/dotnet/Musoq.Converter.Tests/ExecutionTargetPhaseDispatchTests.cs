@@ -65,6 +65,33 @@ public sealed class ExecutionTargetPhaseDispatchTests
 
         Assert.IsFalse(result.Success);
         Assert.AreEqual(TargetDiagnosticCodes.UnsupportedLowering, result.Diagnostics.Single().Code);
+        Assert.Contains("expected IR version", result.Diagnostics.Single().Message);
+        Assert.IsFalse(backend.WasCalled);
+    }
+
+    [TestMethod]
+    public void Render_WhenExecutionIrVersionIsPrevious_ShouldRejectBeforeBackendRendering()
+    {
+        var backend = new CapturingBackend();
+        using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
+            TestOnlyExecutionTarget.CreateDescriptor(backend: backend));
+        var plan = new ExecutionPlan(
+            "Q_PreviousIr",
+            [],
+            new ExecutionBlock([]),
+            executionIrVersion: TargetContractVersions.ExecutionIr - 1);
+        var request = CreateMinimalRequest() with
+        {
+            ExecutionPlan = plan,
+            ExecutionIrVersion = plan.ExecutionIrVersion,
+            SemanticsContract = plan.SemanticsContract
+        };
+
+        var result = ExecutionTargetCatalog.Render(request);
+
+        Assert.IsFalse(result.Success);
+        Assert.AreEqual(TargetDiagnosticCodes.UnsupportedLowering, result.Diagnostics.Single().Code);
+        Assert.Contains("expected IR version", result.Diagnostics.Single().Message);
         Assert.IsFalse(backend.WasCalled);
     }
 

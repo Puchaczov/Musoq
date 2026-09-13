@@ -1,10 +1,11 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
+using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -32,6 +33,12 @@ internal sealed class ScriptVariableMetadataBinder(
                 return;
 
             throw new NotSupportedException(message);
+        }
+
+        if (declaration.IsInferred || declaration.TypeSyntax != null)
+        {
+            TryAddStructuralDefinition(declaration, scriptParameters);
+            return;
         }
 
         if (!PrimitiveTypeResolver.TryResolveDeclarationType(declaration.DeclaredTypeName, out var variableType) ||
@@ -77,15 +84,7 @@ internal sealed class ScriptVariableMetadataBinder(
             throw new NotSupportedException(conversion.Error);
         }
 
-        var definition = new ScriptVariableDefinition(
-            declaration.Name,
-            variableType,
-            conversion.Value,
-            CanUseConstKeyword(variableType, conversion.Value));
-
-        _definitions.Add(definition);
-        _definitionsByName.Add(declaration.Name, definition);
-        addAssembly(variableType.Assembly);
+        AddDefinition(declaration, variableType, conversion.Value, null);
     }
 
     public bool TryBindReference(ParameterReferenceNode node, out ScriptVariableReferenceNode reference)
@@ -99,6 +98,86 @@ internal sealed class ScriptVariableMetadataBinder(
 
         reference = null!;
         return false;
+    }
+
+    private void TryAddStructuralDefinition(
+        ScriptVariableDeclarationNode declaration,
+        IReadOnlyDictionary<string, ScriptParameterDefinition> scriptParameters)
+    {
+        var evaluation = ScriptVariableInitializerEvaluator.Evaluate(
+            declaration.Initializer,
+            _definitionsByName,
+            scriptParameters,
+            declaration.Name);
+        if (!evaluation.Success)
+        {
+            ReportInitializerFailure(declaration, evaluation.ErrorCode, evaluation.Error);
+            return;
+        }
+
+        StructuralTypeDescriptor structuralType;
+        if (declaration.IsInferred)
+        {
+            if (!StructuralValueInference.TryInfer(evaluation.Value, out structuralType, out var inferenceError))
+            {
+                ReportInitializerFailure(declaration, DiagnosticCode.MQ3065_InvalidScriptVariableInitializer, inferenceError);
+                return;
+            }
+        }
+        else if (!StructuralTypeSyntaxBinder.TryBind(declaration.TypeSyntax!, out structuralType, out var typeError))
+        {
+            var message = $"Script variable '{declaration.Name}' type '{declaration.DeclaredTypeName}' is not supported: {typeError}";
+            if (reportError(DiagnosticCode.MQ3064_UnsupportedScriptVariableType, message, declaration))
+                return;
+
+            throw new TypeNotFoundException(
+                declaration.DeclaredTypeName,
+                "script variable declaration",
+                declaration.HasSpan ? declaration.Span : TextSpan.Empty);
+        }
+
+        if (!StructuralValueBinder.TryNormalize(
+                evaluation.Value,
+                structuralType,
+                $"script variable '{declaration.Name}'",
+                out var normalizedValue,
+                out var normalizationError))
+        {
+            ReportInitializerFailure(declaration, DiagnosticCode.MQ3065_InvalidScriptVariableInitializer, normalizationError);
+            return;
+        }
+
+        AddDefinition(declaration, structuralType.CoreValueType, normalizedValue, structuralType);
+    }
+
+    private void AddDefinition(
+        ScriptVariableDeclarationNode declaration,
+        Type variableType,
+        object? value,
+        StructuralTypeDescriptor? structuralType)
+    {
+        var definition = new ScriptVariableDefinition(
+            declaration.Name,
+            variableType,
+            value,
+            structuralType == null && CanUseConstKeyword(variableType, value),
+            structuralType);
+
+        _definitions.Add(definition);
+        _definitionsByName.Add(declaration.Name, definition);
+        addAssembly(variableType.Assembly);
+    }
+
+    private void ReportInitializerFailure(
+        ScriptVariableDeclarationNode declaration,
+        DiagnosticCode? code,
+        string message)
+    {
+        var diagnosticCode = code ?? DiagnosticCode.MQ3065_InvalidScriptVariableInitializer;
+        if (reportError(diagnosticCode, message, declaration))
+            return;
+
+        throw StructuralBindingFailure.Create(message);
     }
 
     private static bool CanUseConstKeyword(Type variableType, object? value)

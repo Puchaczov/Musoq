@@ -14,8 +14,8 @@ public partial class ValuesFromTests
     {
         const string query = @"
 from values {
-    { Name: 'Newtonsoft.Json', Approved: true },
-    { Name: 'Legacy.Package' }
+    ( Name: 'Newtonsoft.Json', Approved: true ),
+    ( Name: 'Legacy.Package' )
 } packages
 select packages.Name";
 
@@ -34,7 +34,7 @@ select packages.Name";
     {
         const string query = @"
 from values {
-    { Name: 'Newtonsoft.Json', Name: 'Legacy.Package' }
+    ( Name: 'Newtonsoft.Json', Name: 'Legacy.Package' )
 } packages
 select packages.Name";
 
@@ -53,8 +53,8 @@ select packages.Name";
     {
         const string query = @"
 from values {
-    { Name: 'Newtonsoft.Json', Score: 10 },
-    { Name: 'Legacy.Package', Score: 'high' }
+    ( Name: 'Newtonsoft.Json', Score: 10 ),
+    ( Name: 'Legacy.Package', Score: 'high' )
 } packages
 select packages.Name";
 
@@ -73,7 +73,7 @@ select packages.Name";
     {
         const string query = @"
 from values {
-    { Name: ToUpper('Newtonsoft.Json') }
+    ( Name: ToUpper('Newtonsoft.Json') )
 } packages
 select packages.Name";
 

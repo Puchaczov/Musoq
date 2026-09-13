@@ -22,4 +22,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private bool IsDescribingConstructors =>
         _descTypes.Count > 0 && _descTypes.Peek() == DescForType.Constructors;
+
+    private bool IsDescribingArguments =>
+        _descTypes.Count > 0 && _descTypes.Peek() == DescForType.Arguments;
 }

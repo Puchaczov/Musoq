@@ -66,6 +66,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "ExecutionParallelBlock",
             "ExecutionParallelFilterProjectLoop",
             "ExecutionParallelSingleKeyAggregateLoop", "ExecutionPhaseBoundary",
+            "ExecutionPrepareStructuralInput",
             "ExecutionProjectTable",
             "ExecutionRangeProbe",
             "ExecutionRecursiveCte",

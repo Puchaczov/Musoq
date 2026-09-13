@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
@@ -8,11 +8,12 @@ using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
 using Musoq.Schema.Optimization;
 using Musoq.Schema.Reflection;
+using Musoq.Schema.StructuralInputs;
 using ConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 
 namespace Musoq.Schema.DataSources;
 
-public abstract class SchemaBase : ISchema
+public abstract class SchemaBase : ISchema, ITypedSourceSchema
 {
     private const string SourcePart = "_source";
     private const string TablePart = "_table";
@@ -34,6 +35,7 @@ public abstract class SchemaBase : ISchema
 
     private List<SchemaMethodInfo> ConstructorsMethods { get; } = [];
     private Dictionary<string, object?[]> AdditionalArguments { get; } = new();
+    private Dictionary<string, TypedSourceRegistration> TypedSources { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     public string Name { get; }
 
@@ -336,6 +338,95 @@ public abstract class SchemaBase : ISchema
         AddToConstructors<TType>($"{NormalizeSchemaMemberName(name)}{TablePart}");
     }
 
+    /// <summary>Registers a source with its complete typed structural overload set.</summary>
+    public void AddTypedSource<TType>(string name) where TType : class
+    {
+        AddTypedSource<TType>(name, TypedSourceRegistrationOptions.Default);
+    }
+
+    /// <summary>Registers a source with its complete typed structural overload set and limits.</summary>
+    public void AddTypedSource<TType>(string name, TypedSourceRegistrationOptions options) where TType : class
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw SchemaArgumentException.ForEmptyString(nameof(name), "adding a typed source");
+        ArgumentNullException.ThrowIfNull(options);
+
+        var normalizedName = NormalizeSchemaMemberName(name);
+        if (TypedSources.ContainsKey(normalizedName))
+            throw new InvalidOperationException($"Typed source '{name}' is already registered.");
+
+        var sourceType = typeof(TType);
+        var rowType = ResolveRowType(sourceType);
+        var overloads = sourceType
+            .GetConstructors(BindingFlags.Instance | BindingFlags.Public)
+            .Select(constructor =>
+            {
+                var injectsContext = ValidateTypedSourceConstructor(constructor);
+                var contract = StructuralInputMetadata.CreateContract(name, constructor, options.Limits);
+                return new TypedSourceOverloadDescriptor(
+                    CreateStableSourceOverloadId(normalizedName, constructor),
+                    constructor,
+                    contract,
+                    injectsContext);
+            })
+            .OrderBy(static descriptor => CanonicalContractSignature(descriptor.Contract), StringComparer.Ordinal)
+            .ThenBy(static descriptor => descriptor.StableId, StringComparer.Ordinal)
+            .ToArray();
+
+        var registration = new TypedSourceRegistration(name, sourceType, rowType, overloads);
+        AddSource<TType>(name);
+        TypedSources.Add(normalizedName, registration);
+        foreach (var constructorInfo in GetConstructors($"{normalizedName}{SourcePart}"))
+        {
+            var origin = constructorInfo.ConstructorInfo.OriginConstructor;
+            var overload = overloads.FirstOrDefault(candidate => candidate.Constructor == origin);
+            constructorInfo.ConstructorInfo.StructuralContract = overload?.Contract;
+        }
+    }
+
+    /// <summary>Gets explicit typed source-construction metadata by name.</summary>
+    public bool TryGetTypedSourceRegistration(string name, out TypedSourceRegistration registration)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            registration = null!;
+            return false;
+        }
+
+        return TypedSources.TryGetValue(NormalizeSchemaMemberName(name), out registration!);
+    }
+
+    private static bool ValidateTypedSourceConstructor(System.Reflection.ConstructorInfo constructor)
+    {
+        var parameters = constructor.GetParameters();
+        var contextIndexes = parameters
+            .Where(static parameter => parameter.ParameterType == typeof(SourceExecutionContext))
+            .Select(static parameter => parameter.Position)
+            .ToArray();
+        if (contextIndexes.Length > 1)
+            throw new InvalidOperationException($"Source constructor '{constructor}' may contain at most one {nameof(SourceExecutionContext)} parameter.");
+        if (contextIndexes.Length == 1 && contextIndexes[0] != parameters.Length - 1)
+            throw new InvalidOperationException($"Source constructor '{constructor}' must place {nameof(SourceExecutionContext)} last.");
+        return contextIndexes.Length == 1;
+    }
+
+    private static string CreateStableSourceOverloadId(
+        string normalizedName,
+        System.Reflection.ConstructorInfo constructor)
+    {
+        var parameterTypes = string.Join(
+            ";",
+            constructor.GetParameters().Select(static parameter => parameter.ParameterType.FullName ?? parameter.ParameterType.Name));
+        return $"{normalizedName}:{constructor.DeclaringType?.FullName}:{parameterTypes}";
+    }
+
+    private static string CanonicalContractSignature(StructuralInputContract contract)
+    {
+        return string.Join(
+            "|",
+            contract.Parameters.Select(static parameter =>
+                $"{parameter.Name.ToLowerInvariant()}:{parameter.Type.ToCanonicalSql()}:{parameter.Required}:{parameter.Default.CanonicalText}"));
+    }
     public void AddSource<TType>(string name, params object?[] args)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -346,6 +437,16 @@ public abstract class SchemaBase : ISchema
         AdditionalArguments.Add(sourceName, args ?? []);
     }
 
+    private static Type ResolveRowType(Type sourceType)
+    {
+        for (var current = sourceType; current != null; current = current.BaseType)
+        {
+            if (current.IsGenericType && current.GetGenericTypeDefinition() == typeof(RowSource<>))
+                return current.GetGenericArguments()[0];
+        }
+
+        throw new InvalidOperationException($"Typed source '{sourceType.FullName}' must derive from RowSource<T>.");
+    }
     private static string NormalizeSchemaMemberName(string name)
     {
         var normalized = new char[name.Length];

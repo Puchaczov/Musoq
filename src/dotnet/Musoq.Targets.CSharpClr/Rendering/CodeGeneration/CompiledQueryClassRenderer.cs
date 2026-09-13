@@ -51,6 +51,9 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
 
     private SyntaxNode CreateClassDeclaration(IList<SyntaxNode> members)
     {
+        var implementsStructuralParameterSnapshotProvider =
+            _context.ScriptParameterDefinitions.Any(static definition => definition.Contract.IsStructured);
+
         if (_context.ResultMode == QueryResultMode.TypedEnumerable)
         {
             var outputType = _context.OutputType
@@ -59,7 +62,9 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
                 _context.Generator,
                 DefaultClassName,
                 outputType,
-                members);
+                members,
+                _context.IsMetadataOnly,
+                implementsStructuralParameterSnapshotProvider);
         }
 
             return ClassEmitter.CreateClassDeclaration(
@@ -68,16 +73,21 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
                 members,
                 IsInstrumentationEnabled,
                 _context.EnableContextualExecution,
-                IsInstrumentationEnabled && _context.EnableContextualExecution);
+                IsInstrumentationEnabled && _context.EnableContextualExecution,
+                _context.IsMetadataOnly,
+                implementsStructuralParameterSnapshotProvider);
     }
 
     private IEnumerable<string> ResolveNamespaces(IReadOnlyList<SyntaxNode> members)
     {
         var usesFrozenSet = members.Any(UsesFrozenSet);
         var usesQueryRowsRuntime = members.Any(UsesQueryRowsRuntime);
+        var usesStructuralInputs = members.Any(UsesStructuralInputs);
         foreach (var namespaceName in DefaultNamespaces)
         {
             yield return namespaceName;
+            if (usesStructuralInputs && namespaceName == "Musoq.Schema")
+                yield return "Musoq.Schema.StructuralInputs";
             if (usesQueryRowsRuntime && namespaceName == "Musoq.Evaluator.Helpers")
                 yield return "Musoq.Evaluator.Runtime";
             if (usesFrozenSet && namespaceName == "System.Collections.Generic")
@@ -102,6 +112,17 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
             .OfType<SimpleNameSyntax>()
             .Any(static name => name.Identifier.ValueText is "QueryRows" or "QueryTableEnumerable" or "QueryEnumerable");
     }
+
+    private static bool UsesStructuralInputs(SyntaxNode node)
+    {
+        return node.DescendantNodesAndSelf()
+            .OfType<SimpleNameSyntax>()
+            .Any(static name => name.Identifier.ValueText is
+                "StructuralTypeDescriptor" or
+                "StructuralFieldDescriptor" or
+                "StructuralDefaultDescriptor" or
+                "StructuralValue");
+    }
     private List<SyntaxNode> CreateClassMembers(
         string computeMethodName,
         int inMemoryTableCount,
@@ -109,6 +130,13 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
     {
         var members = new List<SyntaxNode>();
         var profiledComputeMethodName = QueryMethodNameResolver.ResolveProfiled(computeMethodName);
+
+        if (_context.ScriptParameterDefinitions.Any(static definition => definition.Contract.IsStructured))
+        {
+            members.AddRange(StructuralParameterCaptureSyntaxFactory.CreateMembers(
+                _context.ScriptVariableDefinitions,
+                _context.ScriptParameterDefinitions));
+        }
 
         foreach (var classMember in _context.ClassMembers)
         {

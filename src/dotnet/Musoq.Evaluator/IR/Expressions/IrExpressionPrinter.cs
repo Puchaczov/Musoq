@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text;
 
 namespace Musoq.Evaluator.IR.Expressions;
@@ -181,6 +182,8 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
         return node.Name;
     }
 
+    protected override string VisitCteCollectionInput(CteCollectionInput node) => $"CTE({node.CteName})";
+
     private static string FormatBinaryOperator(BinaryOpKind kind)
     {
         return kind switch
@@ -215,5 +218,20 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
         var arrayStr = Visit(node.Array);
         var indexStr = Visit(node.Index);
         return $"{arrayStr}[{indexStr}]";
+    }
+    protected override string VisitStructuralRecordLiteral(StructuralRecordLiteral node)
+    {
+        var parts = node.Fields.Select(field => $"{field.Name}: {Visit(field.Value)}");
+        return $"({string.Join(", ", parts)})";
+    }
+
+    protected override string VisitStructuralArrayLiteral(StructuralArrayLiteral node)
+    {
+        return $"array {{ {string.Join(", ", node.Elements.Select(Visit))} }}";
+    }
+
+    protected override string VisitStructuralConversion(StructuralConversion node)
+    {
+        return $"<{node.TargetType.Name}>{Visit(node.Value)}";
     }
 }

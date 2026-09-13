@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive walk (Id, Depth) as (select Id, 0 from values {{ Id: 1 }} seed union all select w.Id + 1, w.Depth + 1 from walk w where w.Depth < 3) select Count(Id) as NodeCount, Max(Depth) as MaxDepth from walk
+with recursive walk (Id, Depth) as (select Id, 0 from values {( Id: 1 )} seed union all select w.Id + 1, w.Depth + 1 from walk w where w.Depth < 3) select Count(Id) as NodeCount, Max(Depth) as MaxDepth from walk
 */
 
 // === Logical Plan ===

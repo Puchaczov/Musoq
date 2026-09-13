@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive cycle (Id) as (select Id from values {{ Id: 1 }} seed union (Id) select (case when c.Id = 1 then 2 else 1 end) from cycle c) select Id from cycle order by Id
+with recursive cycle (Id) as (select Id from values {( Id: 1 )} seed union (Id) select (case when c.Id = 1 then 2 else 1 end) from cycle c) select Id from cycle order by Id
 */
 
 // === Logical Plan ===

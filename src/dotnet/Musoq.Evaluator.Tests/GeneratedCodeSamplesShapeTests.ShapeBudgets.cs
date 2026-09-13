@@ -93,6 +93,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         ["Scan"] = new() { ContextsAccess = 0 },
         ["Set"] = new(),
         ["Subquery"] = new() { ContextsAccess = 0 },
+        ["StructuredInputs"] = new() { ContextsAccess = 0 },
         ["Unpivot"] = new() { ContextsAccess = 0 },
         ["Values"] = new() { ContextsAccess = 0 },
         ["Variables"] = new() { ContextsAccess = 0 },

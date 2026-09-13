@@ -63,6 +63,12 @@ internal static partial class ExecutionExpressionFingerprint
             ExecutionScalarRowStream rows => $"scalar-row:{ForAggregateVariable(rows.Variable, parallelAggregate)}",
             ExecutionStoredTable storedTable => $"stored-table:{storedTable.TableIndex.ToString(CultureInfo.InvariantCulture)}",
             ExecutionStoredTableRows storedTableRows => $"stored-table-rows:{storedTableRows.TableIndex.ToString(CultureInfo.InvariantCulture)}:{storedTableRows.GeneratedRowShape?.TypeName ?? string.Empty}",
+            ExecutionStructuralRecord structuralRecord => ForStructuralRecord(structuralRecord),
+            ExecutionStructuralArray structuralArray => ForStructuralArray(structuralArray),
+            ExecutionStructuralConversion structuralConversion => $"conversion:{structuralConversion.TargetType.StableId}:{ForParallelAggregate(structuralConversion.Input, parallelAggregate)}:limits={ExecutionExpressionFingerprint.FormatLimitBinding(structuralConversion.LimitBinding)}",
+            ExecutionCteCollectionInput cteCollection => ForCteCollectionInput(
+                cteCollection,
+                ForParallelAggregate(cteCollection.Rows, parallelAggregate)),
             ExecutionVariableRead variableRead => $"variable:{ForAggregateVariable(variableRead.Variable, parallelAggregate)}",
             ExecutionRowContextsRead rowContexts => $"contexts:{ForAggregateVariable(rowContexts.Row, parallelAggregate)}",
             ExecutionNullContextArray nullContextArray => $"null-contexts:{nullContextArray.Count.ToString(CultureInfo.InvariantCulture)}",

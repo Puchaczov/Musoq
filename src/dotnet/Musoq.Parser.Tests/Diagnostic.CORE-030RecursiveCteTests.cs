@@ -13,7 +13,7 @@ public sealed class DiagnosticCore030RecursiveCteTests
     {
         const string query =
             "with recursive counter (Value) as (" +
-            "select Value from values {{ Value: 1 }} seed " +
+            "select Value from values {( Value: 1 )} seed " +
             "union all select c.Value + 1 from counter c where c.Value < 3) " +
             "select Value from counter";
 
@@ -38,7 +38,7 @@ public sealed class DiagnosticCore030RecursiveCteTests
     public void RecursiveTokenBeforeAs_ShouldRemainAnOrdinaryCteName()
     {
         const string query =
-            "with recursive as (select Value from values {{ Value: 1 }} seed) " +
+            "with recursive as (select Value from values {( Value: 1 )} seed) " +
             "select Value from recursive";
 
         var cte = ParseCte(query);

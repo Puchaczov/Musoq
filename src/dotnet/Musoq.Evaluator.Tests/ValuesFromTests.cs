@@ -14,8 +14,8 @@ public partial class ValuesFromTests : BasicEntityTestBase
     {
         const string query = @"
 from values {
-    { Name: 'Newtonsoft.Json', Approved: true, Score: 10 },
-    { Name: 'Legacy.Package', Approved: false, Score: 20 }
+    ( Name: 'Newtonsoft.Json', Approved: true, Score: 10 ),
+    ( Name: 'Legacy.Package', Approved: false, Score: 20 )
 } packages
 where packages.Approved = false
 select packages.Name, packages.Score";
@@ -37,8 +37,8 @@ select packages.Name, packages.Score";
 select entity.Name, policy.Approved
 from #A.Entities() entity
 inner join values {
-    { Name: 'Newtonsoft.Json', Approved: true },
-    { Name: 'Legacy.Package', Approved: false }
+    ( Name: 'Newtonsoft.Json', Approved: true ),
+    ( Name: 'Legacy.Package', Approved: false )
 } policy on entity.Name = policy.Name
 where policy.Approved = false";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -67,8 +67,8 @@ where policy.Approved = false";
         const string query = @"
 with policy as (
     from values {
-        { Name: 'Newtonsoft.Json', Approved: true },
-        { Name: 'Legacy.Package', Approved: false }
+        ( Name: 'Newtonsoft.Json', Approved: true ),
+        ( Name: 'Legacy.Package', Approved: false )
     } p
     select p.Name, p.Approved
 )
@@ -92,9 +92,9 @@ where rightPolicy.Approved = false";
         const string query = @"
 select packages.Name, packages.Score
 from values {
-    { Name: 'Newtonsoft.Json', Score: 10 },
-    { Name: 'Legacy.Package', Score: 20 },
-    { Name: 'Modern.Package', Score: 30 }
+    ( Name: 'Newtonsoft.Json', Score: 10 ),
+    ( Name: 'Legacy.Package', Score: 20 ),
+    ( Name: 'Modern.Package', Score: 30 )
 } packages
 order by packages.Score desc
 skip 1
@@ -114,8 +114,8 @@ take 1";
         const string query = @"
 select packages.Name, packages.Score
 from values {
-    { Name: 'Newtonsoft.Json', Score: null },
-    { Name: 'Legacy.Package', Score: 20 }
+    ( Name: 'Newtonsoft.Json', Score: null ),
+    ( Name: 'Legacy.Package', Score: 20 )
 } packages
 order by packages.Name";
 
@@ -135,8 +135,8 @@ order by packages.Name";
         const string query = @"
 select scores.Name, scores.Score
 from values {
-    { Name: 'first', Score: 10ui },
-    { Name: 'second', Score: 20ui }
+    ( Name: 'first', Score: 10ui ),
+    ( Name: 'second', Score: 20ui )
 } scores
 order by scores.Score";
 
@@ -173,7 +173,7 @@ select literals.PlainInt,
        literals.BooleanValue,
        literals.NullValue
 from values {
-    {
+    (
         PlainInt: 10,
         IntSuffix: 11i,
         UIntSuffix: 12ui,
@@ -194,7 +194,7 @@ from values {
         StringValue: 'literal',
         BooleanValue: true,
         NullValue: null
-    }
+    )
 } literals";
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());

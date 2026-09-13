@@ -17,12 +17,12 @@ public sealed class Core012ValuesDiagnosticsTests : BasicEntityTestBase
     public void MissingValuesField_ReportsRowInsertionPointAndStructuredFacts()
     {
         const string validQuery =
-            "from values { { Name: 'A', Approved: true }, { Name: 'B', Approved: false } } packages select packages.Name";
+            "from values { ( Name: 'A', Approved: true ), ( Name: 'B', Approved: false ) } packages select packages.Name";
         var query = validQuery.Replace(", Approved: false", string.Empty, StringComparison.Ordinal);
         var exception = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(query, EmptySources()));
-        var rowStart = query.IndexOf("{ Name: 'B'", StringComparison.Ordinal);
-        var insertion = new TextSpan(query.IndexOf('}', rowStart), 0);
+        var rowStart = query.IndexOf("( Name: 'B'", StringComparison.Ordinal);
+        var insertion = new TextSpan(query.IndexOf(')', rowStart), 0);
         var envelope = exception.PrimaryEnvelope;
 
         Assert.AreEqual(DiagnosticCode.MQ3055_InvalidValuesSource, envelope.Code);
@@ -43,7 +43,7 @@ public sealed class Core012ValuesDiagnosticsTests : BasicEntityTestBase
     public void NonStaticValuesField_ReportsOnlyTheForbiddenExpression()
     {
         const string validQuery =
-            "from values { { Name: 'A' } } packages select packages.Name";
+            "from values { ( Name: 'A' ) } packages select packages.Name";
         var query = validQuery.Replace("Name: 'A'", "Name: ToUpper('A')", StringComparison.Ordinal);
         var exception = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(query, EmptySources()));
@@ -65,7 +65,7 @@ public sealed class Core012ValuesDiagnosticsTests : BasicEntityTestBase
     public void IncompatibleValuesColumn_ReportsOffendingExpressionAndTypes()
     {
         const string validQuery =
-            "from values { { Score: 10 }, { Score: 20 } } scores select scores.Score";
+            "from values { ( Score: 10 ), ( Score: 20 ) } scores select scores.Score";
         var query = validQuery.Replace("Score: 20", "Score: 'high'", StringComparison.Ordinal);
         var exception = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(query, EmptySources()));

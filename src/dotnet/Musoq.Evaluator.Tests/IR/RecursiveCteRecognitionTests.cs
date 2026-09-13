@@ -13,7 +13,7 @@ public sealed class RecursiveCteRecognitionTests : BasicEntityTestBase
 
     private const string CounterQuery =
         "with recursive counter (Value) as (" +
-        "select Value from values {{ Value: 1 }} seed " +
+        "select Value from values {( Value: 1 )} seed " +
         "union all select c.Value + 1 from counter c where c.Value < 3) " +
         "select Value from counter";
 
@@ -42,7 +42,7 @@ public sealed class RecursiveCteRecognitionTests : BasicEntityTestBase
     public void EarlierOrdinaryCte_ShouldBindBeforeRecursiveDefinition()
     {
         const string query =
-            "with recursive seed (Value) as (select Value from values {{ Value: 1 }} source), " +
+            "with recursive seed (Value) as (select Value from values {( Value: 1 )} source), " +
             "counter (Value) as (select Value from seed union all " +
             "select c.Value + 1 from counter c where c.Value < 3) " +
             "select Value from counter";
@@ -58,7 +58,7 @@ public sealed class RecursiveCteRecognitionTests : BasicEntityTestBase
     public void WithRecursive_WhenNoDefinitionIsRecursive_ShouldUseOrdinaryCteExecution()
     {
         const string query =
-            "with recursive items (Value) as (select Value from values {{ Value: 7 }} seed) " +
+            "with recursive items (Value) as (select Value from values {( Value: 7 )} seed) " +
             "select Value from items";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource());
@@ -73,7 +73,7 @@ public sealed class RecursiveCteRecognitionTests : BasicEntityTestBase
     {
         const string query =
             "with recursive counter (Id) as (" +
-            "select Value from values {{ Value: 1 }} seed union (id) " +
+            "select Value from values {( Value: 1 )} seed union (id) " +
             "select c.Id + 1 from counter c where c.Id < 3) select Id from counter";
 
         var buildItems = PlanOnlyBuildItems.Create(query);
@@ -89,7 +89,7 @@ public sealed class RecursiveCteRecognitionTests : BasicEntityTestBase
     {
         const string query =
             "with recursive counter (Payload, Id) as (" +
-            "select Label, Value from values {{ Label: 'seed', Value: 1 }} seed union (id) " +
+            "select Label, Value from values {( Label: 'seed', Value: 1 )} seed union (id) " +
             "select c.Payload, c.Id + 1 from counter c where c.Id < 3) " +
             "select Payload, Id from counter";
 
@@ -112,7 +112,7 @@ public sealed class RecursiveCteRecognitionTests : BasicEntityTestBase
     {
         const string query =
             "with recursive counter (Id) as (" +
-            "select Value from values {{ Value: 1 }} seed union (Value) " +
+            "select Value from values {( Value: 1 )} seed union (Value) " +
             "select c.Id + 1 from counter c where c.Id < 3) select Id from counter";
 
         var buildItems = PlanOnlyBuildItems.Create(query);
@@ -129,7 +129,7 @@ public sealed class RecursiveCteRecognitionTests : BasicEntityTestBase
     {
         var query =
             "with recursive counter (Value) as (" +
-            "select Value from values {{ Value: 1 }} seed " + separator +
+            "select Value from values {( Value: 1 )} seed " + separator +
             " select c.Value + 1 from counter c where c.Value < 3) " +
             "select Value from counter";
         var buildItems = PlanOnlyBuildItems.Create(query);

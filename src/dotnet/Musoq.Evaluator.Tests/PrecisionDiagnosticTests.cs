@@ -115,7 +115,7 @@ public sealed class PrecisionDiagnosticTests : BasicEntityTestBase
     [TestMethod]
     public void MultiRowValuesScalarSubquery_IsRejectedBeforeExecution()
     {
-        const string query = "select (select Value from values { { Value: 1 }, { Value: 2 } } valuesSource) from #A.Entities()";
+        const string query = "select (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource) from #A.Entities()";
         var scalar = GetScalarSubquery(query);
         var scalarQuery = scalar.Subquery as QueryNode;
         Assert.IsNotNull(scalarQuery);

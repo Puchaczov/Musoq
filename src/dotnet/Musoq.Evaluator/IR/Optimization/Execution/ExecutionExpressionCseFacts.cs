@@ -99,7 +99,8 @@ internal static partial class ExecutionExpressionCseFacts
             ExecutionRowStream or
             ExecutionScalarRowStream or
             ExecutionStoredTable or
-            ExecutionStoredTableRows);
+            ExecutionStoredTableRows or
+            ExecutionCteCollectionInput);
     }
 
     public static IEnumerable<HoistOccurrence> CollectHoistableOccurrences(

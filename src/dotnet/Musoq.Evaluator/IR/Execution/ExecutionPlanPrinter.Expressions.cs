@@ -12,6 +12,13 @@ public static partial class ExecutionPlanPrinter
     {
         return expression switch
         {
+            ExecutionStructuralRecord structuralRecord => $"({string.Join(", ", structuralRecord.Fields.Select(field => $"{field.Name}: {FormatExpression(field.Value)}"))}){FormatLimitBinding(structuralRecord.LimitBinding)}",
+            ExecutionStructuralArray structuralArray => $"array {{ {FormatExpressionList(structuralArray.Elements)} }}{FormatLimitBinding(structuralArray.LimitBinding)}",
+            ExecutionStructuralConversion conversion => $"convert<{conversion.TargetType.DisplayName}>({FormatExpression(conversion.Input)}){FormatLimitBinding(conversion.LimitBinding)}",
+            ExecutionCteCollectionInput cteCollection =>
+                $"cte-input<{cteCollection.ElementType.DisplayName}>({cteCollection.CteName})" +
+                $" [ownership {cteCollection.Ownership}; lifetime {cteCollection.Lifetime}; metrics {cteCollection.MetricsStrategy}; " +
+                $"limits {FormatLimitBinding(cteCollection.LimitBinding)}]",
             ExecutionFieldRead fieldRead => string.IsNullOrEmpty(fieldRead.Alias)
                 ? fieldRead.FieldName
                 : $"{fieldRead.Alias}.{fieldRead.FieldName}",
@@ -62,6 +69,9 @@ public static partial class ExecutionPlanPrinter
             _ => $"UnknownExpression({expression.GetType().Name})"
         };
     }
+
+    private static string FormatLimitBinding(ExecutionStructuralLimitBinding? binding) =>
+        binding == null ? string.Empty : $" [limits {binding.Limits}; origin {binding.Origin}; path {binding.Path}]";
 
     private static string FormatStoredTableRead(int tableIndex)
     {

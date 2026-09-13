@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Musoq.Parser;
+using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
@@ -52,6 +53,33 @@ public class CteReferenceExtractor : NoOpExpressionVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         if (_knownCteNames.Contains(node.InMemoryTableAlias)) _foundReferences.Add(node.InMemoryTableAlias);
+    }
+
+    /// <summary>
+    ///     Records only complete bare CTE arguments. Identifiers nested in records,
+    ///     arrays, or qualified column expressions are ordinary scalar expressions and
+    ///     are intentionally left to the normal child traversal.
+    /// </summary>
+    public override void Visit(SchemaFromNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        AddCompleteRelationArguments(node.Parameters);
+    }
+
+    public override void Visit(AliasedFromNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        AddCompleteRelationArguments(node.Args);
+    }
+
+    private void AddCompleteRelationArguments(ArgsListNode arguments)
+    {
+        for (var index = 0; index < arguments.Args.Length; index++)
+        {
+            if (arguments.Args[index] is IdentifierNode identifier &&
+                _knownCteNames.Contains(identifier.Name))
+                _foundReferences.Add(identifier.Name);
+        }
     }
 
     /// <summary>

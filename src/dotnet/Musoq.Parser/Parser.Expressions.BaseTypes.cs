@@ -1,4 +1,4 @@
-﻿using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
@@ -11,6 +11,9 @@ public partial class Parser
 {
     private Node ComposeBaseTypes(int minPrecedence = 0)
     {
+        if (IsContextualArrayLiteralStart())
+            return ComposeArrayLiteral();
+
         if (SqlKeywordTokenFacts.IsContextualExpressionIdentifier(Current.TokenType))
         {
             if (Current.TokenType == TokenType.Exists)

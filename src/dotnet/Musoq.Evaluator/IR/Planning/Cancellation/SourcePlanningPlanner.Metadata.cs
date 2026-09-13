@@ -37,7 +37,9 @@ internal static partial class SourcePlanningPlanner
         }
         context.CancellationToken.ThrowIfCancellationRequested();
         var semanticSource = sourceNode as Musoq.Evaluator.Parser.SchemaFromNode;
-        var parameters = semanticSource is { StaticMetadataArguments.Length: > 0 } or
+        var parameters = semanticSource?.BoundInvocation?.Signature.SourceConstructionType != null
+            ? []
+            : semanticSource is { StaticMetadataArguments.Length: > 0 } or
                          { HasRequiredRuntimeArguments: true }
             ? semanticSource.StaticMetadataArguments
             : semanticSource != null

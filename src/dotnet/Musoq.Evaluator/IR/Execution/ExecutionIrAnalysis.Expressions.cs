@@ -63,6 +63,10 @@ internal static partial class ExecutionIrAnalysis
     {
         return expression switch
         {
+            ExecutionStructuralRecord structuralRecord => structuralRecord.Fields.Select(static field => field.Value),
+            ExecutionStructuralArray structuralArray => structuralArray.Elements,
+            ExecutionStructuralConversion conversion => [conversion.Input],
+            ExecutionCteCollectionInput cteCollection => [cteCollection.Rows],
             ExecutionBinary binary => [binary.Left, binary.Right],
             ExecutionMemberRead memberRead => [memberRead.Receiver],
             ExecutionUnary unary => [unary.Operand],

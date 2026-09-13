@@ -93,7 +93,7 @@ public sealed class UnusedDeclarationAdvisoryTests
     {
         var result = Analyze(@"
             with recursive counter (Value) as (
-                select Value from values {{ Value: 1 }} seed
+                select Value from values {( Value: 1 )} seed
                 union all
                 select c.Value + 1 from counter c where c.Value < 2)
             select Name from #A.Entities()");

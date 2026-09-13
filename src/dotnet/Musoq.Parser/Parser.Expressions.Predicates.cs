@@ -282,7 +282,10 @@ public partial class Parser
 
     private Node ComposeParenthesizedExpressionOrScalarSubquery()
     {
-        Consume(TokenType.LeftParenthesis);
+        var opening = ConsumeAndGetToken(TokenType.LeftParenthesis);
+
+        if (IsRecordLiteralStart())
+            return ComposeRecordLiteral(opening);
 
         if (Current.TokenType == TokenType.Select || Current.TokenType == TokenType.From || Current.TokenType == TokenType.Pivot || Current.TokenType == TokenType.Unpivot)
         {

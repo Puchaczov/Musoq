@@ -109,6 +109,7 @@ internal static class IrExpressionDeterminism
                 reasons.Add($"{subject} contains a window function reference.");
                 return;
             case CteTableRef:
+            case CteCollectionInput:
                 reasons.Add($"{subject} contains a table/subquery reference.");
                 return;
             default:

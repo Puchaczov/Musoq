@@ -111,10 +111,28 @@ public sealed partial class ColumnRefExtractor : IrExpressionVisitor<IReadOnlyLi
 
     protected override IReadOnlyList<ColumnRef> VisitCteTableRef(CteTableRef node) => _columns;
 
+    protected override IReadOnlyList<ColumnRef> VisitCteCollectionInput(CteCollectionInput node) => _columns;
+
     protected override IReadOnlyList<ColumnRef> VisitArrayAccess(ArrayAccess node)
     {
         Visit(node.Array);
         Visit(node.Index);
         return _columns;
     }
-}
+    protected override IReadOnlyList<ColumnRef> VisitStructuralRecordLiteral(StructuralRecordLiteral node)
+    {
+        foreach (var field in node.Fields) Visit(field.Value);
+        return _columns;
+    }
+
+    protected override IReadOnlyList<ColumnRef> VisitStructuralArrayLiteral(StructuralArrayLiteral node)
+    {
+        foreach (var element in node.Elements) Visit(element);
+        return _columns;
+    }
+
+    protected override IReadOnlyList<ColumnRef> VisitStructuralConversion(StructuralConversion node)
+    {
+        Visit(node.Value);
+        return _columns;
+    }}

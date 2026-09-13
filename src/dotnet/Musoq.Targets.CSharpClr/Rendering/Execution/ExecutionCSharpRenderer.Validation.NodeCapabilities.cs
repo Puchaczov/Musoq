@@ -7,7 +7,8 @@ public sealed partial class ExecutionCSharpRenderer
         return node switch
         {
             ExecutionSourceScan sourceScan => CanRenderExpressions(sourceScan.Binding.Arguments),
-            ExecutionInterpretSource interpret => CanRenderExpressions(interpret.Arguments),
+            ExecutionPrepareStructuralInput structuralInput => StructuralInputSyntaxFactory.CanRenderPreparation(structuralInput, CanRenderExpression),
+           ExecutionInterpretSource interpret => CanRenderExpressions(interpret.Arguments),
             ExecutionEnumerableSource enumerable => CanRenderExpression(enumerable.Source),
             ExecutionCreateTable => true,
             ExecutionCreateValuesRows valuesRows => CanRenderValuesRows(valuesRows),

@@ -5,6 +5,24 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static class StoredTableBuildDiscovery
 {
+    public static bool TryGetParallelTaskResultTable(
+        ExecutionParallelTask task,
+        out ExecutionVariable table)
+    {
+        foreach (var assign in task.Body.Nodes.OfType<ExecutionAssign>().Reverse())
+        {
+            if (string.Equals(assign.Variable.Name, task.Output.Name, StringComparison.Ordinal) &&
+                assign.Value is ExecutionVariableRead read)
+            {
+                table = read.Variable;
+                return true;
+            }
+        }
+
+        table = null!;
+        return false;
+    }
+
     public static IEnumerable<StoredTableBuild> Collect(ExecutionBlock block)
     {
         var pending = new List<ExecutionNode>();

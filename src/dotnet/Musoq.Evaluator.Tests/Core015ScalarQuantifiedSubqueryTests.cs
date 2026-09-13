@@ -46,7 +46,7 @@ public sealed class Core015ScalarQuantifiedSubqueryTests : BasicEntityTestBase
         const string query = """
             select (
                 select Value
-                from values { { Value: 3 }, { Value: 1 } } valuesSource
+                from values { ( Value: 3 ), ( Value: 1 ) } valuesSource
                 order by Value desc
                 take 1
             ) as TopValue
@@ -66,7 +66,7 @@ public sealed class Core015ScalarQuantifiedSubqueryTests : BasicEntityTestBase
     [TestMethod]
     public void ScalarValuesWithTwoRows_ShouldReportExactCardinalityDiagnostic()
     {
-        const string query = "select (select Value from values { { Value: 1 }, { Value: 2 } } valuesSource) as Value from #A.Entities() a";
+        const string query = "select (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource) as Value from #A.Entities() a";
         var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
         var envelope = exception.PrimaryEnvelope;
         var expectedStart = query.IndexOf("Value", query.IndexOf("select Value", StringComparison.Ordinal), StringComparison.Ordinal);

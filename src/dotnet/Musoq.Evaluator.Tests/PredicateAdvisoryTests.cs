@@ -100,7 +100,7 @@ public sealed class PredicateAdvisoryTests
     [TestMethod]
     public void CrossJoin_ShouldNotAnalyzeSyntheticTrueAsAnOnPredicate()
     {
-        var result = Analyze("select r.Id, marker.Label from values { { Id: 1 } } r cross join values { { Label: 'x' } } marker");
+        var result = Analyze("select r.Id, marker.Label from values { ( Id: 1 ) } r cross join values { ( Label: 'x' ) } marker");
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
         Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5010_TautologicalCondition));

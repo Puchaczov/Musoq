@@ -269,9 +269,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                     reasons.Add("_tableResults slot access");
 
                 if (Regex.IsMatch(
-                    generatedCode,
-                    @"private static (?:Musoq\.Evaluator\.Tables\.)?Table BuildCte",
-                    RegexOptions.CultureInvariant))
+                        generatedCode,
+                        @"private static (?:Musoq\.Evaluator\.Tables\.)?Table BuildCte",
+                        RegexOptions.CultureInvariant) &&
+                    IntentionalTableBackedStoredRowSampleFileNames.Contains(sample.FileName, StringComparer.Ordinal) is false)
                 {
                     reasons.Add("table-returning CTE helper");
                 }

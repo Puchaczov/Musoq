@@ -38,6 +38,8 @@ internal static partial class ScriptVariableInitializerEvaluator
             NullNode => ScriptConstantEvaluationResult.Evaluated(null, typeof(NullNode.NullType)),
             ParameterReferenceNode parameter => EvaluateParameterReference(parameter, variables, parameters, ownerName),
             ScriptVariableReferenceNode variable => EvaluateVariableReference(variable, variables, ownerName),
+            RecordLiteralNode record => EvaluateRecord(record, variables, parameters, ownerName),
+            ArrayLiteralNode array => EvaluateArray(array, variables, parameters, ownerName),
             AddNode add => EvaluateBinary(add.Left, add.Right, variables, parameters, ownerName, EvaluateAdd),
             HyphenNode subtract => EvaluateBinary(subtract.Left, subtract.Right, variables, parameters, ownerName, EvaluateSubtract),
             StarNode multiply => EvaluateBinary(multiply.Left, multiply.Right, variables, parameters, ownerName, EvaluateMultiply),

@@ -33,7 +33,67 @@ internal static class TypedStoredTableResultResolver
                      .Where(result => IsTypedStoredTableResultCompatibleWithUsages(result, usageShapes)))
             AddTypedStoredTableResult(results, result);
 
+        // Set-operation producers do not have an ExecutionCreateTable node
+        // for their result: the set renderer creates the result buffer while
+        // rendering ExecutionSetOperation.  Discover those stored results
+        // from the authoritative arm shape so a structural CTE consumer can
+        // receive the generated row list without a Row cast.
+        foreach (var result in CollectStoredSetOperationTypedStoredTableResults(plan.Body, usageShapes)
+                     .Where(result => IsTypedStoredTableResultCompatibleWithUsages(result, usageShapes)))
+            AddTypedStoredTableResult(results, result);
+
         return results;
+    }
+
+    private static IEnumerable<TypedStoredTableResult> CollectStoredSetOperationTypedStoredTableResults(
+        ExecutionBlock block,
+        IReadOnlyDictionary<int, HashSet<string?>> usageShapes)
+    {
+        var nodes = ExecutionIrAnalysis.FlattenNodes(block).ToArray();
+        var storedTables = nodes
+            .OfType<ExecutionStoreTable>()
+            .ToDictionary(static store => store.Table.Name, static store => store.TableIndex, StringComparer.Ordinal);
+        var rowShapes = ExecutionTypedRowBufferResolver.CreateTableRowShapeMap(new ExecutionBlock(nodes));
+        var structurallyDemandedTableIndexes = ExecutionIrAnalysis
+            .CollectExpressions<ExecutionCteCollectionInput>(new ExecutionBlock(nodes))
+            .Where(ExecutionTypedRowBufferResolver.IsStructuralCteConsumer)
+            .Select(static input => input.Rows)
+            .OfType<ExecutionStoredTableRows>()
+            .Select(static rows => rows.TableIndex)
+            .ToHashSet();
+
+        foreach (var setOperation in nodes.OfType<ExecutionSetOperation>())
+        {
+            if (!storedTables.TryGetValue(setOperation.Target.Name, out var tableIndex) ||
+                !structurallyDemandedTableIndexes.Contains(tableIndex) ||
+                !usageShapes.ContainsKey(tableIndex) ||
+                !rowShapes.TryGetValue(setOperation.Left.Name, out var leftShape) ||
+                !rowShapes.TryGetValue(setOperation.Right.Name, out var rightShape) ||
+                !AreSetArmShapesCompatible(leftShape, rightShape))
+            {
+                continue;
+            }
+
+            yield return new TypedStoredTableResult(tableIndex, leftShape);
+        }
+    }
+
+    private static bool AreSetArmShapesCompatible(GeneratedRowShape left, GeneratedRowShape right)
+    {
+        if (left.Fields.Count != right.Fields.Count)
+            return false;
+
+        for (var index = 0; index < left.Fields.Count; index++)
+        {
+            var leftField = left.Fields[index];
+            var rightField = right.Fields[index];
+            if (!string.Equals(leftField.Type.StableId, rightField.Type.StableId, StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static IReadOnlyDictionary<int, HashSet<string?>> CollectStoredTableRowsUsageShapes(ExecutionBlock block)
@@ -57,9 +117,18 @@ internal static class TypedStoredTableResultResolver
         TypedStoredTableResult? result,
         IReadOnlyDictionary<int, HashSet<string?>> usageShapes)
     {
-        return result != null &&
-               (!usageShapes.TryGetValue(result.TableIndex, out var shapes) ||
-                shapes.SetEquals([result.RowShape.TypeName]));
+        if (result == null || !usageShapes.TryGetValue(result.TableIndex, out var shapes))
+            return result != null;
+
+        // A structural CTE consumer is initially lowered without a row shape.
+        // The planner still owns the authoritative generated shape, which is
+        // resolved from the stored-table producer below.  Unknown usage shapes
+        // therefore must not disqualify an otherwise safe typed table result;
+        // only two different concrete generated row types are incompatible.
+        var concreteShapes = shapes
+            .Where(static shape => shape != null)
+            .ToHashSet(StringComparer.Ordinal);
+        return concreteShapes.Count == 0 || concreteShapes.SetEquals([result.RowShape.TypeName]);
     }
 
     private static IEnumerable<TypedStoredTableResult> CollectFusedTypedStoredTableResults(ExecutionBlock block)
@@ -117,31 +186,13 @@ internal static class TypedStoredTableResultResolver
             .SingleOrDefault(node => string.Equals(node.Table.Name, task.Output.Name, StringComparison.Ordinal));
 
         if (store == null ||
-            !TryGetParallelTaskResultTable(task, out var table))
+            !StoredTableBuildDiscovery.TryGetParallelTaskResultTable(task, out var table))
         {
             return false;
         }
 
         build = new StoredTableBuild(store.TableIndex, task.Body.Nodes, table, []);
         return true;
-    }
-
-    public static bool TryGetParallelTaskResultTable(
-        ExecutionParallelTask task,
-        out ExecutionVariable table)
-    {
-        foreach (var assign in task.Body.Nodes.OfType<ExecutionAssign>().Reverse())
-        {
-            if (string.Equals(assign.Variable.Name, task.Output.Name, StringComparison.Ordinal) &&
-                assign.Value is ExecutionVariableRead read)
-            {
-                table = read.Variable;
-                return true;
-            }
-        }
-
-        table = null!;
-        return false;
     }
 
     private static void AddTypedStoredTableResult(

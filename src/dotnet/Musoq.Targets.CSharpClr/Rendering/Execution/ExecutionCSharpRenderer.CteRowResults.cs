@@ -10,18 +10,20 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private const string CteRowResultsFieldName = "_cteRowResults";
     private const string CteRowResultsTypeName = "CteRowResults";
-
     private static IReadOnlyDictionary<int, TypedStoredTableResult> CreateTypedStoredTableResults(ExecutionPlan plan)
     {
-        return TypedStoredTableResultResolver.Resolve(plan);
+        return plan.StoredTableRepresentations
+            .ToDictionary(
+                static representation => representation.TableIndex,
+                static representation => new TypedStoredTableResult(
+                    representation.TableIndex,
+                    representation.RowShape));
     }
-
     private static IEnumerable<MemberDeclarationSyntax> CreateCteRowResultMembers(
         IReadOnlyDictionary<int, TypedStoredTableResult> typedResults)
     {
         if (typedResults.Count == 0)
             return [];
-
         var slots = typedResults.Values
             .OrderBy(static result => result.TableIndex)
             .ToArray();
@@ -31,7 +33,6 @@ public sealed partial class ExecutionCSharpRenderer
             CreateCteRowResultsClass(slots)
         ];
     }
-
     private static ClassDeclarationSyntax CreateCteRowResultsClass(
         IReadOnlyList<TypedStoredTableResult> slots)
     {
@@ -60,7 +61,6 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return CreateListTypeSyntax(rowShape.TypeName);
     }
-
     private static MemberAccessExpressionSyntax CreateCteRowResultSlotAccess(int tableIndex)
     {
         return SyntaxFactory.MemberAccessExpression(
@@ -69,7 +69,7 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IdentifierName(CreateCteRowResultSlotFieldName(tableIndex)));
     }
 
-    private bool TryGetTypedStoredTableResult(
+    internal bool TryGetTypedStoredTableResult(
         int tableIndex,
         ExecutionRenderContext context,
         out TypedStoredTableResult result)

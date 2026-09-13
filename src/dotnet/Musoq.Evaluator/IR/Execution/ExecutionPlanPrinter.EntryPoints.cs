@@ -18,10 +18,10 @@ public static partial class ExecutionPlanPrinter
         var previousTypedStoredTableSlots = TypedStoredTableSlots.Value;
         var previousFinalShapeContext = FinalShapeContext.Value;
         var previousTypedRowBuffers = TypedRowBuffers.Value;
-        TypedStoredTableSlots.Value = TypedStoredTableResultResolver.Resolve(plan)
+        TypedStoredTableSlots.Value = plan.StoredTableRepresentations
             .ToDictionary(
-                static pair => pair.Key,
-                static pair => $"List<{pair.Value.RowShape.TypeName}>");
+                static representation => representation.TableIndex,
+                static representation => $"List<{representation.RowShape.TypeName}>");
         FinalShapeContext.Value = CreateFinalShapePrintContext(plan);
         TypedRowBuffers.Value = CreateTypedRowBuffers(plan);
 
@@ -30,6 +30,8 @@ public static partial class ExecutionPlanPrinter
             var builder = new StringBuilder();
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"ExecutionPlan [{plan.Identifier}]");
             AppendShapes(builder, plan.Shapes);
+            AppendStoredTableRepresentations(builder, plan.StoredTableRepresentations, plan.Body);
+            AppendStructuralPreparationPlans(builder, plan.Body);
             builder.AppendLine();
             builder.AppendLine("  Body");
             AppendBlock(builder, plan.Body, 4);

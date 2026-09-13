@@ -26,6 +26,12 @@ internal static partial class ExecutionExpressionFingerprint
             ExecutionBetween between => $"between:{ForHoist(between.Expression)}:{ForHoist(between.Low)}:{ForHoist(between.High)}:{HoistType(between.ReturnType)}",
             ExecutionVariableRead variableRead => $"variable:{variableRead.Variable.Name}:{HoistType(variableRead.ReturnType)}",
             ExecutionScalarRowStream rows => $"scalar-row:{rows.Variable.Name}:{HoistType(rows.ReturnType)}",
+            ExecutionStructuralRecord structuralRecord => ForStructuralRecord(structuralRecord),
+            ExecutionStructuralArray structuralArray => ForStructuralArray(structuralArray),
+            ExecutionStructuralConversion structuralConversion => $"conversion:{HoistType(structuralConversion.TargetType)}:{ForHoist(structuralConversion.Input)}:limits={ExecutionExpressionFingerprint.FormatLimitBinding(structuralConversion.LimitBinding)}",
+            ExecutionCteCollectionInput cteCollection => ForCteCollectionInput(
+                cteCollection,
+                ForHoist(cteCollection.Rows)),
             ExecutionRowContextsRead rowContextsRead => $"contexts:{rowContextsRead.Row.Name}",
             ExecutionNullContextArray nullContextArray => $"null-context:{nullContextArray.Count.ToString(CultureInfo.InvariantCulture)}",
             ExecutionContextArray contextArray => $"context-array:{string.Join(",", contextArray.Segments.Select(static segment => ForHoist(segment.Value)))}",

@@ -2246,6 +2246,19 @@
       ]
     },
     {
+      "code": "MQ3116_AmbiguousRelationArgument",
+      "number": 3116,
+      "phase": "Bind",
+      "severity": "Error",
+      "category": "Semantic",
+      "messageTemplate": "Datasource argument '{0}' is ambiguous between a scalar column and a complete CTE relation.",
+      "explanation": "A complete CTE relation and a scalar column are both valid interpretations of the datasource argument.",
+      "docsReference": "Core Spec - FROM Arguments",
+      "suggestedFixes": [
+        "Qualify the column or rename the CTE argument."
+      ]
+    },
+    {
       "code": "MQ4001_InvalidBinarySchemaField",
       "number": 4001,
       "phase": "Schema",
@@ -2858,6 +2871,20 @@
       "suggestedFixes": [
         "Check the provider's enumerator and resource-disposal implementation.",
         "Inspect the verbose exception details when debugging a trusted local provider."
+      ]
+    },
+    {
+      "code": "MQ7013_StructuralInputLimitExceeded",
+      "number": 7013,
+      "phase": "Runtime",
+      "severity": "Error",
+      "category": "Runtime",
+      "messageTemplate": "Structural input exceeded its {0} limit of {1} (observed {2}) at '{3}'.",
+      "explanation": "A structural input exceeded the configured depth, node, or string-payload bound before it could be used by a query source.",
+      "docsReference": "Core Spec - Structured Inputs",
+      "suggestedFixes": [
+        "Reduce the supplied structure or increase the receiving contract's limit.",
+        "Check the reported origin and path to locate the large or deeply nested value."
       ]
     },
     {

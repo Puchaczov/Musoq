@@ -8,7 +8,8 @@ public sealed partial class RewriteQueryVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var initializer = Nodes.Pop();
-        Nodes.Push(new ScriptVariableDeclarationNode(node.Name, node.TypeName, node.IsNullable, initializer, node.Span));
+        Nodes.Push(StructuralNodeRebuildSupport.RebuildScriptVariable(node, initializer));
+
     }
 
     public void Visit(ScriptVariableReferenceNode node)

@@ -23,7 +23,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "with recursive reachable (Id, Depth) as (" +
             "select RootId, 0 from #graph.roots() union (Id) " +
             "select e.TargetId, r.Depth + 1 from #graph.edges() e " +
-            "inner join values {{ Label: 'one-two' }, { Label: 'two-three' }} expected " +
+            "inner join values {( Label: 'one-two' ), ( Label: 'two-three' )} expected " +
             "on e.Label = expected.Label inner join reachable r on e.SourceId = r.Id) " +
             "select Id, Depth from reachable order by Id",
             [[1, 0], [2, 1], [3, 2]],

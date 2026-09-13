@@ -13,7 +13,12 @@ public sealed record ExecutionSourceBinding
         IReadOnlyList<FieldBinding> Fields,
         ExecutionColumnMetadata? InferredColumnsMetadata = null,
         ExecutionTypeRef? SourceType = null,
-        ExecutionQueryRowSourceTransfer? QueryRowSourceTransfer = null)
+        ExecutionQueryRowSourceTransfer? QueryRowSourceTransfer = null,
+        ExecutionTypeRef? SourceConstructionType = null,
+        bool SourceConstructionSupportsContext = false,
+        string? SourceConstructorStableId = null,
+        ExecutionCallableRef? SourceConstructor = null,
+        IReadOnlyList<ExecutionStructuralLimitPlan?>? StructuralArgumentLimits = null)
     {
         this.SchemaName = SchemaName;
         this.MethodName = MethodName;
@@ -24,6 +29,13 @@ public sealed record ExecutionSourceBinding
         this.InferredColumnsMetadata = InferredColumnsMetadata;
         this.SourceType = SourceType;
         this.QueryRowSourceTransfer = QueryRowSourceTransfer;
+        this.SourceConstructionType = SourceConstructionType;
+        this.SourceConstructionSupportsContext = SourceConstructionSupportsContext;
+        this.SourceConstructorStableId = SourceConstructorStableId;
+        this.SourceConstructor = SourceConstructor;
+        this.StructuralArgumentLimits = StructuralArgumentLimits == null
+            ? Array.Empty<ExecutionStructuralLimitPlan?>()
+            : ExecutionIrCollections.Freeze(StructuralArgumentLimits);
     }
 
     public string SchemaName { get; init; }
@@ -42,6 +54,17 @@ public sealed record ExecutionSourceBinding
 
     public ExecutionTypeRef? SourceType { get; init; }
 
+    public ExecutionTypeRef? SourceConstructionType { get; init; }
+
+    public bool SourceConstructionSupportsContext { get; init; }
+
+    public string? SourceConstructorStableId { get; init; }
+
+    public ExecutionCallableRef? SourceConstructor { get; init; }
+
+    /// <summary>Receiver limits aligned with source-visible argument slots.</summary>
+    public IReadOnlyList<ExecutionStructuralLimitPlan?> StructuralArgumentLimits { get; init; }
+
     public ExecutionQueryRowSourceTransfer? QueryRowSourceTransfer { get; init; }
 
     internal ExecutionSourceBinding(
@@ -53,7 +76,12 @@ public sealed record ExecutionSourceBinding
         IReadOnlyList<FieldBinding> fields,
         ExecutionColumnMetadata? inferredColumnsMetadata,
         Type sourceType,
-        ExecutionQueryRowSourceTransfer? queryRowSourceTransfer = null)
+        ExecutionQueryRowSourceTransfer? queryRowSourceTransfer = null,
+        Type? sourceConstructionType = null,
+        bool sourceConstructionSupportsContext = false,
+        string? sourceConstructorStableId = null,
+        ExecutionCallableRef? sourceConstructor = null,
+        IReadOnlyList<ExecutionStructuralLimitPlan?>? structuralArgumentLimits = null)
         : this(
             schemaName,
             methodName,
@@ -63,7 +91,12 @@ public sealed record ExecutionSourceBinding
             fields,
             inferredColumnsMetadata,
             ExecutionClrBindingFactory.FromClr(sourceType),
-            queryRowSourceTransfer)
+            queryRowSourceTransfer,
+            sourceConstructionType == null ? null : ExecutionClrBindingFactory.FromClr(sourceConstructionType),
+            sourceConstructionSupportsContext,
+            sourceConstructorStableId,
+            sourceConstructor,
+            structuralArgumentLimits)
     {
     }
 }

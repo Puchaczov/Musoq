@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using Musoq.Schema;
@@ -77,9 +78,18 @@ public sealed class QueryRunContext
         if (sender is IQueryRunnable runnable)
         {
             var binding = EvaluatorQueryRuntimeBinding.Capture(runnable);
+            var parameters = ParameterSnapshot.CaptureReadOnlyOrEmpty(options.Parameters);
+            if (runnable is IParameterizedRunnable parameterized && !options.ParametersAreCaptured)
+            {
+                parameters = StructuralParameterSnapshotter.CaptureForExecution(
+                    parameterized.ParameterDefinitions,
+                    parameters,
+                    options.CancellationToken,
+                    runnable as IStructuralParameterSnapshotProvider);
+            }
             return Create(
                 binding,
-                ParameterSnapshot.CaptureReadOnlyOrEmpty(options.Parameters),
+                parameters,
                 options.CancellationToken,
                 options.PhaseChanged,
                 options.DataSourceProgress,

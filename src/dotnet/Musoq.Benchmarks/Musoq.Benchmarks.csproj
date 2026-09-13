@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -18,6 +18,7 @@
         <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj"/>
         <ProjectReference Include="..\Musoq.Tests.Common\Musoq.Tests.Common.csproj"/>
         <ProjectReference Include="..\examples\data-sources\csv\Musoq.Examples.DataSources.Csv.csproj"/>
+        <ProjectReference Include="..\examples\data-sources\structured-inputs\Musoq.Examples.DataSources.StructuredInputs.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

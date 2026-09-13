@@ -289,7 +289,7 @@ select countries.GetCountry() from countries";
         const string query = @"
 select values.GetCountry()
 from values {
-    { Name: 'Poland' }
+    ( Name: 'Poland' )
 } values";
 
         var exception = Assert.Throws<MusoqQueryException>(() =>

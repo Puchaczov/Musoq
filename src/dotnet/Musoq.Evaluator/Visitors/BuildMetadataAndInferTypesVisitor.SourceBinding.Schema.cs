@@ -68,7 +68,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         _scriptParameters.ValidateSchemaArguments(schemaArgsNode, node);
         var queryId = node.QueryId.ToString(System.Globalization.CultureInfo.InvariantCulture);
         BoundSchemaInvocation? boundInvocation = null;
-        if (!IsDescribingConstructors && (_sourceBinding.CurrentScope.Name != "Desc" || !string.IsNullOrWhiteSpace(node.Method)))
+        var isArgumentInventory = IsDescribingArguments && node.Parameters.Args.Length == 0;
+        var isSettingsInventory = IsDescribingSourceRuntimeSettings && node.Parameters.Args.Length == 0 && node.Parameters.Span.IsEmpty;
+        if (!IsDescribingConstructors && !isArgumentInventory && !isSettingsInventory && (_sourceBinding.CurrentScope.Name != "Desc" || !string.IsNullOrWhiteSpace(node.Method)))
         {
             SchemaMethodInfo[] sourceMethods;
             try
@@ -95,9 +97,12 @@ public partial class BuildMetadataAndInferTypesVisitor
                     node.MethodSpan ?? sourceSpan,
                     exception.InnerException);
             }
+            sourceMethods = TypedSourceBindingMetadata.PreferTypedSource(schema, node.Method, sourceMethods);
             var bindingResult = SchemaSourceArgumentBinder.Bind(
                 schemaArgsNode,
-                sourceMethods);
+                sourceMethods,
+                ResolveStructuralArgumentType,
+            ResolveCteRelation);
             if (bindingResult.Failure is { } bindingFailure)
                 throw new CannotResolveMethodException(
                     bindingFailure.Message,
@@ -119,6 +124,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             _scriptParameters.DefinitionsByName,
             _scriptVariables.DefinitionsByName,
             boundInvocation);
+        if (boundInvocation?.Signature.SourceConstructionType != null)
+            staticSchemaArguments = [];
         var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, schemaArgsNode,
             _sourceBinding.QueryAlias, node.QueryId, hasExternallyProvidedTypes);
         if (node.SchemaSpan is { } schemaSpan) aliasedSchemaFromNode.WithSchemaSpan(schemaSpan);

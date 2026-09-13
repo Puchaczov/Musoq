@@ -14,7 +14,7 @@ public class ParserValuesFromTests
     [TestMethod]
     public void ValuesFromSource_ShouldParseRowsAndAlias()
     {
-        var root = Parse("from values { { Name: 'Newtonsoft.Json', Approved: true }, { Name: 'Legacy.Package', Approved: false } } packages select packages.Name");
+        var root = Parse("from values { ( Name: 'Newtonsoft.Json', Approved: true ), ( Name: 'Legacy.Package', Approved: false ) } packages select packages.Name");
 
         var query = GetSingleQuery(root);
         var values = (ValuesFromNode)UnwrapFrom(query.From);
@@ -29,7 +29,7 @@ public class ParserValuesFromTests
     [TestMethod]
     public void ValuesFromSource_WithTrailingCommas_ShouldParse()
     {
-        var root = Parse("select v.Name from values { { Name: 'A', Approved: true, }, { Name: 'B', Approved: false, }, } v");
+        var root = Parse("select v.Name from values { ( Name: 'A', Approved: true, ), ( Name: 'B', Approved: false, ), } v");
 
         var query = GetSingleQuery(root);
         var values = (ValuesFromNode)UnwrapFrom(query.From);
@@ -43,7 +43,7 @@ public class ParserValuesFromTests
     [TestMethod]
     public void ValuesFromSource_WithUnsignedIntSuffix_ShouldParse()
     {
-        var root = Parse("from values { { Score: 10ui } } scores select scores.Score");
+        var root = Parse("from values { ( Score: 10ui ) } scores select scores.Score");
 
         var query = GetSingleQuery(root);
         var values = (ValuesFromNode)UnwrapFrom(query.From);
@@ -82,7 +82,7 @@ public class ParserValuesFromTests
 
         foreach (var testCase in cases)
         {
-            var root = Parse($"from values {{ {{ Value: {testCase.Literal} }} }} valuesSource select valuesSource.Value");
+            var root = Parse($"from values {{ ( Value: {testCase.Literal} ) }} valuesSource select valuesSource.Value");
             var query = GetSingleQuery(root);
             var values = (ValuesFromNode)UnwrapFrom(query.From);
             var literal = values.Rows[0].Fields[0].Expression;
@@ -95,19 +95,19 @@ public class ParserValuesFromTests
     [TestMethod]
     public void ValuesFromSource_WithBareUnsignedSuffix_ShouldFail()
     {
-        Assert.Throws<SyntaxException>(() => Parse("from values { { Score: 10u } } scores select scores.Score"));
+        Assert.Throws<SyntaxException>(() => Parse("from values { ( Score: 10u ) } scores select scores.Score"));
     }
 
     [TestMethod]
     public void ValuesFromSource_WithBasePrefixedNumericLiteralTypeSuffix_ShouldFail()
     {
-        Assert.Throws<SyntaxException>(() => Parse("from values { { Score: 0x10ui } } scores select scores.Score"));
+        Assert.Throws<SyntaxException>(() => Parse("from values { ( Score: 0x10ui ) } scores select scores.Score"));
     }
 
     [TestMethod]
     public void ValuesFromSource_InJoin_ShouldParse()
     {
-        var root = Parse("from #os.files('.') f join values { { Extension: '.dll', MaxSize: 5242880 }, { Extension: '.exe', MaxSize: 5242880 } } policy on f.Extension = policy.Extension select f.FullName");
+        var root = Parse("from #os.files('.') f join values { ( Extension: '.dll', MaxSize: 5242880 ), ( Extension: '.exe', MaxSize: 5242880 ) } policy on f.Extension = policy.Extension select f.FullName");
 
         var query = GetSingleQuery(root);
         var join = ((JoinNode)UnwrapFrom(query.From)).Join;
@@ -119,11 +119,22 @@ public class ParserValuesFromTests
     [TestMethod]
     public void ValuesFromSource_WithoutAlias_ShouldFail()
     {
-        var exception = Assert.Throws<SyntaxException>(() => Parse("select * from values { { Name: 'A' } }"));
+        var exception = Assert.Throws<SyntaxException>(() => Parse("select * from values { ( Name: 'A' ) }"));
 
         Assert.AreEqual(DiagnosticCode.MQ2035_MissingRequiredAlias, exception.Code);
     }
 
+    [TestMethod]
+    public void ValuesFromSource_WithLegacyBraceRows_ShouldFail()
+    {
+        Assert.Throws<SyntaxException>(() => Parse("select * from values { { Name: 'A' } } v"));
+    }
+
+    [TestMethod]
+    public void ValuesFromSource_WithMixedRowSpelling_ShouldFail()
+    {
+        Assert.Throws<SyntaxException>(() => Parse("select * from values { ( Name: 'A' ), { Name: 'B' } } v"));
+    }
     [TestMethod]
     public void SourceNamedValues_WithoutLiteralBrace_ShouldRemainInMemorySource()
     {

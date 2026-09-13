@@ -26,7 +26,7 @@ public sealed class PortableSubsetConformanceTests
     [DataRow("select 1 as Value from #system.dual() d", DisplayName = "literal projection")]
     [DataRow("select d.Dummy as Value from #system.dual() d where d.Dummy = 'single'", DisplayName = "source filter projection")]
     [DataRow("select null is null as IsNull, coalesce(null, 'fallback') as Fallback, case when null is null then 'yes' else 'no' end as Choice from #system.dual() d", DisplayName = "null coalesce case")]
-    [DataRow("from values { { Name: 'b', Score: 2 }, { Name: 'a', Score: 1 } } rows select rows.Name, rows.Score order by rows.Score skip 0 take 1", DisplayName = "values ordering skip take")]
+    [DataRow("from values { ( Name: 'b', Score: 2 ), ( Name: 'a', Score: 1 ) } rows select rows.Name, rows.Score order by rows.Score skip 0 take 1", DisplayName = "values ordering skip take")]
     public void PortableSubset_WhenQueryIsSupported_ShouldMatchCSharpClr(string query)
     {
         AssertConforms(query, EmptyValues, EmptyValues);

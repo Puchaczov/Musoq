@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive powers (Value, Depth) as (select Value, 0 from values {{ Value: 2 }} seed union all select p.Value * 2, p.Depth + 1 from powers p where p.Depth < 3) select Value, Depth from powers order by Depth
+with recursive powers (Value, Depth) as (select Value, 0 from values {( Value: 2 )} seed union all select p.Value * 2, p.Depth + 1 from powers p where p.Depth < 3) select Value, Depth from powers order by Depth
 */
 
 // === Logical Plan ===

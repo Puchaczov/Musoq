@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive walk (Id) as (select Id from values {{ Id: 1 }} seed union all select w.Id + 1 from walk w where w.Id < 3) select w.Id, l.Name from walk w inner join values {{ Id: 1, Name: 'root' }, { Id: 2, Name: 'middle' }, { Id: 3, Name: 'leaf' }} l on w.Id = l.Id
+with recursive walk (Id) as (select Id from values {( Id: 1 )} seed union all select w.Id + 1 from walk w where w.Id < 3) select w.Id, l.Name from walk w inner join values {( Id: 1, Name: 'root' ), ( Id: 2, Name: 'middle' ), ( Id: 3, Name: 'leaf' )} l on w.Id = l.Id
 */
 
 // === Logical Plan ===

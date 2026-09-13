@@ -8,7 +8,7 @@ public partial class CloneQueryVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var initializer = Nodes.Pop();
-        Nodes.Push(new ScriptVariableDeclarationNode(node.Name, node.TypeName, node.IsNullable, initializer, node.Span));
+        Nodes.Push(StructuralNodeRebuildSupport.RebuildScriptVariable(node, initializer));
     }
 
     public override void Visit(ScriptVariableReferenceNode node)

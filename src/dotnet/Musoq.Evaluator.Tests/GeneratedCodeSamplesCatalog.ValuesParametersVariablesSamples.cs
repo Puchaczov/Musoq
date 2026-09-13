@@ -10,8 +10,8 @@ internal static partial class GeneratedCodeSamplesCatalog
                 "Q117_ValuesRowLiterals",
                 "Values",
                 @"from values {
-                  { Name: 'Newtonsoft.Json', Approved: true, Score: 10ui },
-                  { Name: 'Legacy.Package', Approved: false, Score: 20ui }
+                  ( Name: 'Newtonsoft.Json', Approved: true, Score: 10ui ),
+                  ( Name: 'Legacy.Package', Approved: false, Score: 20ui )
               } packages
               where packages.Approved = false
               select packages.Name, packages.Score"),
@@ -20,8 +20,8 @@ internal static partial class GeneratedCodeSamplesCatalog
                 "Values",
                 @"with policy as (
                   from values {
-                      { Name: 'Newtonsoft.Json', Approved: true },
-                      { Name: 'Legacy.Package', Approved: false }
+                      ( Name: 'Newtonsoft.Json', Approved: true ),
+                      ( Name: 'Legacy.Package', Approved: false )
                   } p
                   select p.Name, p.Approved
               )
@@ -33,7 +33,7 @@ internal static partial class GeneratedCodeSamplesCatalog
                 "Q119_ValuesNumericLiterals",
                 "Values",
                 @"from values {
-                  {
+                  (
                       PlainInt: 10,
                       UIntValue: 11ui,
                       LongValue: 12l,
@@ -46,7 +46,7 @@ internal static partial class GeneratedCodeSamplesCatalog
                       HexValue: 0x10,
                       BinaryValue: 0b1010,
                       OctalValue: 0o17
-                  }
+                  )
               } literals
               select literals.PlainInt,
                      literals.UIntValue,
@@ -66,8 +66,8 @@ internal static partial class GeneratedCodeSamplesCatalog
                 @"param(baseScore: int, suffix: string = '-ok')
               let bonus: int = 5
               from values {
-                  { Name: 'first' + $suffix, Score: $baseScore },
-                  { Name: 'second' + $suffix, Score: $baseScore + $bonus }
+                  ( Name: 'first' + $suffix, Score: $baseScore ),
+                  ( Name: 'second' + $suffix, Score: $baseScore + $bonus )
               } scores
               select scores.Name, scores.Score"),
             Basic(

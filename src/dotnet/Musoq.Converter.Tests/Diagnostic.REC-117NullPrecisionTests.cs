@@ -18,7 +18,7 @@ public sealed class DiagnosticREC117NullPrecisionTests
     private const string JoinSeed =
         "select a.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy";
     private const string ValuesSeed =
-        "select a.Id from values { { Id: 1 } } a left join values { { Id: 2 } } b on a.Id = b.Id";
+        "select a.Id from values { ( Id: 1 ) } a left join values { ( Id: 2 ) } b on a.Id = b.Id";
     private readonly TestsLoggerResolver loggerResolver = new();
 
     [TestMethod]
@@ -205,7 +205,7 @@ public sealed class DiagnosticREC117NullPrecisionTests
         SystemCase("N12", "NULL_COMPARISON", "select d.Dummy from #system.dual() d order by d.Dummy = null", []),
 
         JoinCase("O01", "OUTER_PRESENCE", "select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy is null", [DiagnosticCode.MQ5018_AmbiguousOuterJoinNullCheck]),
-        ValuesCase("O02", "OUTER_PRESENCE", "select a.Id, b.Id from values { { Id: 1 } } a left join values { { Id: 2 } } b on a.Id = b.Id where b.Id is null", []),
+        ValuesCase("O02", "OUTER_PRESENCE", "select a.Id, b.Id from values { ( Id: 1 ) } a left join values { ( Id: 2 ) } b on a.Id = b.Id where b.Id is null", []),
         JoinCase("O03", "OUTER_PRESENCE", "select a.Dummy, b.Dummy from #join.items() a right join #join.items() b on a.Dummy = b.Dummy where a.Dummy is null", [DiagnosticCode.MQ5018_AmbiguousOuterJoinNullCheck]),
         JoinCase("O04", "OUTER_PRESENCE", "select a.Dummy, b.Dummy from #join.items() a full outer join #join.items() b on a.Dummy = b.Dummy where a.Dummy is null", [DiagnosticCode.MQ5018_AmbiguousOuterJoinNullCheck]),
         JoinCase("O05", "OUTER_PRESENCE", "select a.Dummy, b.Dummy from #join.items() a full outer join #join.items() b on a.Dummy = b.Dummy where b.Dummy is null", [DiagnosticCode.MQ5018_AmbiguousOuterJoinNullCheck]),

@@ -1,7 +1,7 @@
 ﻿// === Parsed Query ===
 /*
 from values {
-                  {
+                  (
                       PlainInt: 10,
                       UIntValue: 11ui,
                       LongValue: 12l,
@@ -14,7 +14,7 @@ from values {
                       HexValue: 0x10,
                       BinaryValue: 0b1010,
                       OctalValue: 0o17
-                  }
+                  )
               } literals
               select literals.PlainInt,
                      literals.UIntValue,

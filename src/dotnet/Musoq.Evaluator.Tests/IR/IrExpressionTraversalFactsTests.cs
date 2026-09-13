@@ -80,6 +80,7 @@ public sealed class IrExpressionTraversalFactsTests
             [typeof(CollectionInCheck)] = new CollectionInCheck(column, scriptParameter, typeof(int), typeof(bool)),
             [typeof(ColumnRef)] = column,
             [typeof(CteTableRef)] = new CteTableRef("cte"),
+            [typeof(CteCollectionInput)] = new CteCollectionInput("cte", typeof(int[]), typeof(int), [new CteCollectionInputField("Value", 0, typeof(int))]),
             [typeof(InCheck)] = new InCheck(column, [literal], typeof(bool)),
             [typeof(IsNullCheck)] = new IsNullCheck(column, IsNegated: false, typeof(bool)),
             [typeof(Literal)] = literal,
@@ -91,7 +92,10 @@ public sealed class IrExpressionTraversalFactsTests
             [typeof(StrictCast)] = new StrictCast(literal, "int", typeof(int)),
             [typeof(UnaryOp)] = new UnaryOp(UnaryOpKind.Negate, literal, typeof(int)),
             [typeof(WildcardLiteral)] = new WildcardLiteral(typeof(object)),
-            [typeof(WindowFunctionRef)] = new WindowFunctionRef(0, typeof(int))
+            [typeof(WindowFunctionRef)] = new WindowFunctionRef(0, typeof(int)),
+            [typeof(StructuralRecordLiteral)] = new StructuralRecordLiteral(typeof(object), [new StructuralFieldExpression("Value", literal)]),
+            [typeof(StructuralArrayLiteral)] = new StructuralArrayLiteral(typeof(int[]), typeof(int), [literal]),
+            [typeof(StructuralConversion)] = new StructuralConversion(new Literal(1, typeof(int)), typeof(long))
         };
     }
 

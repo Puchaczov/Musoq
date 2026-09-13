@@ -16,7 +16,7 @@ public sealed class Core030RecursiveCteTests : BasicEntityTestBase
     {
         const string query =
             "with recursive counter (Value, Depth) as (" +
-            "select 1, 0 from values {{ Seed: 1 }} seed union all " +
+            "select 1, 0 from values {( Seed: 1 )} seed union all " +
             "select c.Value + 1, c.Depth + 1 from counter c where c.Depth < 2) " +
             "select Value, Depth from counter order by Depth";
 
@@ -39,7 +39,7 @@ public sealed class Core030RecursiveCteTests : BasicEntityTestBase
     {
         const string query =
             "with recursive walk (Id, Depth) as (" +
-            "select 1, 0 from values {{ Seed: 1 }} seed union all " +
+            "select 1, 0 from values {( Seed: 1 )} seed union all " +
             "select w.Id + 1, w.Depth + 1 from walk w where w.Depth < 3) " +
             "select Count(Id) as Nodes, Max(Depth) as MaxDepth from walk";
 

@@ -117,7 +117,7 @@ public partial class CteTests
     {
         const string prefix =
             "with recursive paths (Id, Path) as (" +
-            "select Id, Path from values {{ Id: 1, Path: 'left' }, { Id: 2, Path: 'right' }} seed " +
+            "select Id, Path from values {( Id: 1, Path: 'left' ), ( Id: 2, Path: 'right' )} seed " +
             "union (Id) select 3, p.Path + '->3' from paths p where p.Id < 3) ";
         var ascending = CreateAndRunVirtualMachine(
                 prefix + "select Id, Path from paths order by Id",
@@ -159,7 +159,7 @@ public partial class CteTests
     {
         const string query =
             "with recursive counter (Unused, Id) as (" +
-            "select 'anchor', Value from values {{ Value: 1 }} seed union (Id) " +
+            "select 'anchor', Value from values {( Value: 1 )} seed union (Id) " +
             "select 'member', c.Id + 1 from counter c where c.Id < 3) " +
             "select Id from counter order by Id";
 

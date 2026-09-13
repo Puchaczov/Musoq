@@ -13,7 +13,7 @@ public sealed class RawStringLiteralExecutionGapTests : BasicEntityTestBase
     {
         const string query = @"
 from values {
-    { Path: R'C:\new\test', Empty: R'', Quoted: R'a''b' }
+    ( Path: R'C:\new\test', Empty: R'', Quoted: R'a''b' )
 } paths
 select paths.Path, paths.Empty, paths.Quoted";
 
@@ -30,7 +30,7 @@ select paths.Path, paths.Empty, paths.Quoted";
     public void ValuesSource_WhenRawBackslashesReachLikeAndRlike_ShouldMatchExpectedPath()
     {
         const string query = @"
-from values { { Path: R'C:\logs\app.log' } } paths
+from values { ( Path: R'C:\logs\app.log' ) } paths
 select
     paths.Path like R'C:\logs\%.log' as LikeMatch,
     paths.Path rlike R'C:\\logs\\.*\.log' as RlikeMatch";
@@ -48,7 +48,7 @@ select
     {
         const string query = @"
 let path: string = R'C:\A';
-from values { { Path: $path } } paths
+from values { ( Path: $path ) } paths
 select paths.Path";
 
         var vm = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());

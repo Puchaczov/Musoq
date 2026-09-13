@@ -12,7 +12,8 @@ internal sealed class ExecutionRenderOptions
         IReadOnlyDictionary<string, string> scriptVariableLocalNames,
         QueryInstrumentationMode instrumentationMode,
         CSharpClrExecutionBindingContext executionBindings,
-        string generatedMemberSuffix)
+        string generatedMemberSuffix,
+        bool isMetadataOnly)
     {
         ScriptParameterDefinitions = scriptParameterDefinitions;
         ScriptVariableDefinitions = scriptVariableDefinitions;
@@ -21,6 +22,7 @@ internal sealed class ExecutionRenderOptions
         InstrumentationMode = instrumentationMode;
         ExecutionBindings = executionBindings;
         GeneratedMemberSuffix = generatedMemberSuffix;
+        IsMetadataOnly = isMetadataOnly;
     }
 
     internal IReadOnlyList<ScriptParameterDefinition> ScriptParameterDefinitions { get; }
@@ -37,12 +39,15 @@ internal sealed class ExecutionRenderOptions
 
     internal string GeneratedMemberSuffix { get; }
 
+    internal bool IsMetadataOnly { get; }
+
     internal static ExecutionRenderOptions Create(
         IReadOnlyList<ScriptParameterDefinition>? scriptParameterDefinitions,
         IReadOnlyList<ScriptVariableDefinition>? scriptVariableDefinitions,
         QueryInstrumentationMode instrumentationMode,
         CSharpClrExecutionBindingContext? executionBindings = null,
-        string generatedMemberSuffix = "")
+        string generatedMemberSuffix = "",
+        bool isMetadataOnly = false)
     {
         var parameterDefinitions = (scriptParameterDefinitions ?? []).ToArray();
         var variableDefinitions = (scriptVariableDefinitions ?? []).ToArray();
@@ -54,6 +59,7 @@ internal sealed class ExecutionRenderOptions
             ScriptVariableLocalNameResolver.CreateLocalNameMap(variableDefinitions),
             instrumentationMode,
             executionBindings ?? new CSharpClrExecutionBindingContext(),
-            generatedMemberSuffix);
+            generatedMemberSuffix,
+            isMetadataOnly);
     }
 }

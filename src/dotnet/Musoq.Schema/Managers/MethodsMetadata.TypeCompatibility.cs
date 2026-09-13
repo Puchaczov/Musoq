@@ -23,7 +23,7 @@ public partial class MethodsMetadata
         { typeof(TimeSpan), [typeof(TimeSpan)] }
     }.ToFrozenDictionary(static entry => entry.Key, static entry => entry.Value.ToFrozenSet());
 
-    private static readonly FrozenDictionary<Type, FrozenSet<Type>> ValidImplicitConversions = new Dictionary<Type, Type[]>
+    internal static readonly FrozenDictionary<Type, FrozenSet<Type>> ValidImplicitConversions = new Dictionary<Type, Type[]>
     {
         [typeof(sbyte)] =
             [typeof(short), typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal)],
@@ -49,7 +49,7 @@ public partial class MethodsMetadata
         ]
     }.ToFrozenDictionary(static entry => entry.Key, static entry => entry.Value.ToFrozenSet());
 
-    private static readonly FrozenDictionary<(Type, Type), int> ConversionCosts = new Dictionary<(Type, Type), int>()
+    internal static readonly FrozenDictionary<(Type, Type), int> ConversionCosts = new Dictionary<(Type, Type), int>()
     {
         [(typeof(sbyte), typeof(short))] = 1,
         [(typeof(sbyte), typeof(int))] = 2,

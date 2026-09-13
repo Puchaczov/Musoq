@@ -212,5 +212,4 @@ public partial class CteDependencyGraphBuilderTests
     }
 
     #endregion
-
 }

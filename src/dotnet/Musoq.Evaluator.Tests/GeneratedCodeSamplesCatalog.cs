@@ -43,6 +43,8 @@ internal static partial class GeneratedCodeSamplesCatalog
         samples.AddRange(CreateSpecificationBinaryInterpretationSamples());
         samples.AddRange(CreateSpecificationTextInterpretationSamples());
         samples.AddRange(CreateSpecificationTableCoupleSamples());
+        samples.AddRange(CreateStructuredInputSamples());
+        samples.AddRange(CreateStructuredInputRemediationSamples());
 
         return samples;
     }

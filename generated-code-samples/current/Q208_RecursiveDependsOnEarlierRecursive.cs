@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive first (Value) as (select Value from values {{ Value: 1 }} seed union all select f.Value + 1 from first f where f.Value < 3), second (Value) as (select Value from first where Value = 2 union all select s.Value + 1 from second s where s.Value < 4) select Value from second order by Value
+with recursive first (Value) as (select Value from values {( Value: 1 )} seed union all select f.Value + 1 from first f where f.Value < 3), second (Value) as (select Value from first where Value = 2 union all select s.Value + 1 from second s where s.Value < 4) select Value from second order by Value
 */
 
 // === Logical Plan ===

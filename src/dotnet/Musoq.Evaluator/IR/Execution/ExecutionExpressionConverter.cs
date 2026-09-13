@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Expressions.CollectionParameters;
+using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.IR.Execution;
 public static partial class ExecutionExpressionConverter
@@ -37,6 +38,9 @@ public static partial class ExecutionExpressionConverter
             ScriptParameterRef parameter => ConvertScriptParameter(parameter),
             ScriptVariableRef variable => new ExecutionScriptVariableRead(variable.Name, variable.ReturnType),
             Literal literal => new ExecutionLiteral(literal.Value, literal.ReturnType),
+            StructuralRecordLiteral record => ConvertStructuralRecord(record, sourceShapes, cteTableIndexes, methodTargets),
+            StructuralArrayLiteral array => ConvertStructuralArray(array, sourceShapes, cteTableIndexes, methodTargets),
+            StructuralConversion conversion => ConvertStructuralConversion(conversion, sourceShapes, cteTableIndexes, methodTargets),
             WildcardLiteral => new ExecutionLiteral("*", typeof(string)),
             BinaryOp binary => new ExecutionBinary(
                 binary.Kind,
@@ -91,7 +95,7 @@ public static partial class ExecutionExpressionConverter
                 coalesce.ReturnType),
             AggregateRef aggregateRef => new ExecutionAggregateResultRef(aggregateRef.Identifier, aggregateRef.DisplayName, aggregateRef.ReturnType),
             WindowFunctionRef windowRef => new ExecutionWindowResultRef(windowRef.WindowIndex, windowRef.ReturnType),
-            CteTableRef cteTableRef when cteTableIndexes?.TryGetValue(cteTableRef.Name, out var tableIndex) == true => new ExecutionStoredTable(tableIndex),
+            CteCollectionInput cteCollectionInput => ConvertCteCollectionInput(cteCollectionInput, cteTableIndexes), CteTableRef cteTableRef when cteTableIndexes?.TryGetValue(cteTableRef.Name, out var tableIndex) == true => new ExecutionStoredTable(tableIndex),
             CteTableRef cteTableRef => throw Unsupported(expression, $"CTE table '{cteTableRef.Name}' requires a registered table index"),
             _ => throw Unsupported(expression, "no execution expression lowering is registered")
         };

@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive walk (Id) as (select Id from values {{ Id: 1 }} seed union all select w.Id + 1 from walk w where w.Id < 3) select Id, RowNumber() over (order by Id) as Ordinal from walk union all select Id, RowNumber() over (order by Id) from walk where Id = 3
+with recursive walk (Id) as (select Id from values {( Id: 1 )} seed union all select w.Id + 1 from walk w where w.Id < 3) select Id, RowNumber() over (order by Id) as Ordinal from walk union all select Id, RowNumber() over (order by Id) from walk where Id = 3
 */
 
 // === Logical Plan ===

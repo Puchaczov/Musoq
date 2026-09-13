@@ -114,7 +114,9 @@ public static class ClassEmitter
         IList<SyntaxNode> members,
         bool implementsProfiledRunnable = false,
         bool implementsContextualRunnable = false,
-        bool implementsContextualProfiledRunnable = false)
+        bool implementsContextualProfiledRunnable = false,
+        bool isMetadataOnly = false,
+        bool implementsStructuralParameterSnapshotProvider = false)
     {
         ArgumentNullException.ThrowIfNull(generator);
         var orderedMembers = ReorderMembers(members);
@@ -135,6 +137,12 @@ public static class ClassEmitter
         if (implementsContextualProfiledRunnable)
             baseTypes.Add(SyntaxFactory.IdentifierName(nameof(IContextProfiledRunnable)));
 
+        if (isMetadataOnly)
+            baseTypes.Add(SyntaxFactory.IdentifierName(nameof(IMetadataOnlyRunnable)));
+
+        if (implementsStructuralParameterSnapshotProvider)
+            baseTypes.Add(SyntaxFactory.IdentifierName(nameof(IStructuralParameterSnapshotProvider)));
+
         return generator.ClassDeclaration(
             className,
             [],
@@ -149,7 +157,9 @@ public static class ClassEmitter
         SyntaxGenerator generator,
         string className,
         Type outputType,
-        IList<SyntaxNode> members)
+        IList<SyntaxNode> members,
+        bool isMetadataOnly = false,
+        bool implementsStructuralParameterSnapshotProvider = false)
     {
         ArgumentNullException.ThrowIfNull(generator);
         ArgumentNullException.ThrowIfNull(outputType);
@@ -164,6 +174,12 @@ public static class ClassEmitter
             SyntaxFactory.IdentifierName(nameof(IQueryProgressSource)),
             SyntaxFactory.IdentifierName(nameof(IParameterizedRunnable))
         };
+
+        if (isMetadataOnly)
+            baseTypes.Add(SyntaxFactory.IdentifierName(nameof(IMetadataOnlyRunnable)));
+
+        if (implementsStructuralParameterSnapshotProvider)
+            baseTypes.Add(SyntaxFactory.IdentifierName(nameof(IStructuralParameterSnapshotProvider)));
 
         return generator.ClassDeclaration(
             className,

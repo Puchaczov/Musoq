@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive wide (Id, Depth, A, B, C, D, E, F, Name, Flag, Amount, Code) as (select 1, 0, 10, 20, 30, 40, 50, 60, 'row', true, 1::Decimal, 'x' from values {{ Seed: 1 }} seed union (Id) select w.Id + 1, w.Depth + 1, w.A, w.B, w.C, w.D, w.E, w.F, w.Name + 'x', w.Flag, (w.Amount + 1)::Decimal, w.Code from wide w where w.Depth < 2) select Id, Depth, A, B, C, D, E, F, Name, Flag, Amount, Code from wide order by Id
+with recursive wide (Id, Depth, A, B, C, D, E, F, Name, Flag, Amount, Code) as (select 1, 0, 10, 20, 30, 40, 50, 60, 'row', true, 1::Decimal, 'x' from values {( Seed: 1 )} seed union (Id) select w.Id + 1, w.Depth + 1, w.A, w.B, w.C, w.D, w.E, w.F, w.Name + 'x', w.Flag, (w.Amount + 1)::Decimal, w.Code from wide w where w.Depth < 2) select Id, Depth, A, B, C, D, E, F, Name, Flag, Amount, Code from wide order by Id
 */
 
 // === Logical Plan ===

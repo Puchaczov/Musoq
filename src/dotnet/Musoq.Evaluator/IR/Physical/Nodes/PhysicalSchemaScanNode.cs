@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Planning;
 
@@ -14,7 +15,11 @@ public sealed record PhysicalSchemaScanNode(
     string[] ProjectedColumns,
     OutputSchema OutputSchema,
     string? SourceContextId = null,
-    SourceTransferStrategyPlan? SourceTransferStrategy = null) : PhysicalNode(OutputSchema)
+    SourceTransferStrategyPlan? SourceTransferStrategy = null,
+    Type? SourceConstructionType = null,
+    bool SourceConstructionSupportsContext = false,
+    string? SourceConstructorStableId = null,
+    ExecutionCallableRef? SourceConstructor = null, IReadOnlyList<ExecutionStructuralLimitPlan?>? StructuralArgumentLimits = null) : PhysicalNode(OutputSchema)
 {
     public override IReadOnlyList<PhysicalNode> Children { get; } = Array.Empty<PhysicalNode>();
 }

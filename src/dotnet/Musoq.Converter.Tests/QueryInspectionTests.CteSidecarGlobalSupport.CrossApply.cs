@@ -12,7 +12,7 @@ public partial class QueryInspectionTests
     public void CompileForExecution_WhenCteSidecarIndexesAreEnabledForCrossJoinValues_ShouldRunExecutableQuery()
     {
         var compiled = CompileForExecution(
-            "select d.Dummy, marker.Label from #system.dual() d cross join values { { Label: 'x' }, { Label: 'y' } } marker order by marker.Label",
+            "select d.Dummy, marker.Label from #system.dual() d cross join values { ( Label: 'x' ), ( Label: 'y' ) } marker order by marker.Label",
             SidecarGlobalOptions);
 
         var table = compiled.Run();

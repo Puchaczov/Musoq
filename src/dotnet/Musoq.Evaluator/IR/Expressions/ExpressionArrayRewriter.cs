@@ -75,4 +75,38 @@ public abstract partial class ExpressionArrayRewriter : IrExpressionVisitor<IrEx
     {
         return node;
     }
-}
+
+    protected override IrExpression VisitCteCollectionInput(CteCollectionInput node) => node;
+    protected override IrExpression VisitStructuralRecordLiteral(StructuralRecordLiteral node)
+    {
+        var fields = new StructuralFieldExpression[node.Fields.Count];
+        var changed = false;
+        for (var index = 0; index < node.Fields.Count; index++)
+        {
+            var field = node.Fields[index];
+            var value = Visit(field.Value);
+            fields[index] = ReferenceEquals(value, field.Value) ? field : new StructuralFieldExpression(field.Name, value);
+            changed |= !ReferenceEquals(value, field.Value);
+        }
+
+        return changed ? new StructuralRecordLiteral(node.ReturnType, fields, node.TargetType) : node;
+    }
+
+    protected override IrExpression VisitStructuralArrayLiteral(StructuralArrayLiteral node)
+    {
+        var elements = new IrExpression[node.Elements.Count];
+        var changed = false;
+        for (var index = 0; index < node.Elements.Count; index++)
+        {
+            elements[index] = Visit(node.Elements[index]);
+            changed |= !ReferenceEquals(elements[index], node.Elements[index]);
+        }
+
+        return changed ? new StructuralArrayLiteral(node.ReturnType, node.ElementType, elements) : node;
+    }
+
+    protected override IrExpression VisitStructuralConversion(StructuralConversion node)
+    {
+        var value = Visit(node.Value);
+        return ReferenceEquals(value, node.Value) ? node : new StructuralConversion(value, node.TargetType);
+    }}

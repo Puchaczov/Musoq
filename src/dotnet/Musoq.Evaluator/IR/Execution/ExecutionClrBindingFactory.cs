@@ -22,4 +22,7 @@ internal static class ExecutionClrBindingFactory
 
     internal static ExecutionCallableRef FromClr(MethodInfo clrMethod) =>
         new(ExecutionPortableSymbolFactory.FromMethod(clrMethod));
+
+    internal static ExecutionCallableRef FromClr(ConstructorInfo clrConstructor) =>
+        new(ExecutionPortableSymbolFactory.FromConstructor(clrConstructor));
 }

@@ -22,7 +22,7 @@ select numbers.SmallSigned,
        numbers.HexInt,
        numbers.NullUInt
 from values {
-    {
+    (
         SmallSigned: 1b,
         IntLong: 1,
         IntUInt: 1,
@@ -31,8 +31,8 @@ from values {
         IntDecimal: 1,
         HexInt: 0x10,
         NullUInt: null
-    },
-    {
+    ),
+    (
         SmallSigned: 2s,
         IntLong: 2l,
         IntUInt: 2ui,
@@ -41,7 +41,7 @@ from values {
         IntDecimal: 2d,
         HexInt: 2,
         NullUInt: 3ui
-    }
+    )
 } numbers
 order by numbers.IntLong";
 
@@ -96,12 +96,12 @@ order by numbers.IntLong";
         var query = $@"
 select {selectList}
 from values {{
-    {{
+    (
         {firstRowFields}
-    }},
-    {{
+    ),
+    (
         {secondRowFields}
-    }}
+    )
 }} numbers";
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
@@ -124,12 +124,12 @@ from values {{
         var query = $@"
 select {selectList}
 from values {{
-    {{
+    (
         {nullFields}
-    }},
-    {{
+    ),
+    (
         {numericFields}
-    }}
+    )
 }} numbers";
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
@@ -151,8 +151,8 @@ from values {{
     {
         const string query = @"
 from values {
-    { Value: 1ul },
-    { Value: 2 }
+    ( Value: 1ul ),
+    ( Value: 2 )
 } numbers
 select numbers.Value";
 
@@ -180,8 +180,8 @@ select numbers.Value";
         {
             var query = $@"
 from values {{
-    {{ Value: {pair.Left.Literal} }},
-    {{ Value: {pair.Right.Literal} }}
+    ( Value: {pair.Left.Literal} ),
+    ( Value: {pair.Right.Literal} )
 }} numbers
 select numbers.Value";
 

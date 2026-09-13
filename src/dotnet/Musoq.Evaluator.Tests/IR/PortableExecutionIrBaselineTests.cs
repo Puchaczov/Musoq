@@ -43,12 +43,12 @@ public sealed class PortableExecutionIrBaselineTests
             concreteTypes.Select(static type => type.FullName)
                 .Concat(clrShapedMembers.Select(static member => $"clr:{member}")));
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(inventory)));
-        Assert.AreEqual(89, nodeCount);
-        Assert.AreEqual(38, expressionCount);
+        Assert.AreEqual(90, nodeCount);
+        Assert.AreEqual(42, expressionCount);
         Assert.AreEqual(8, rowShapeCount);
         Assert.AreEqual(0, clrShapedMembers.Length);
         Assert.AreEqual(
-            "01EA23C3E6C83BCEFF02D2C9D701395D3A8A7C0FE35A28AF01239B3BA4699E55",
+            "E7CCBA84231E9BE842EF9726EAAA478FA6BDEFD9B2EE522FB00C6925257CDAA4",
             hash,
             $"Current inventory hash: {hash}");
     }

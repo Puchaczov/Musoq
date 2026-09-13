@@ -17,12 +17,12 @@ public sealed class DiagnosticREC113SemanticMutationTests
 {
     private const string RecursiveSeed =
         "with recursive counter (Value) as (" +
-        "select seed.Value from values {{ Value: 1 }} seed union all " +
+        "select seed.Value from values {( Value: 1 )} seed union all " +
         "select c.Value + 1 from counter c where c.Value < 3) " +
         "select Value from counter";
 
     private const string RecursiveAnchor =
-        "select seed.Value from values {{ Value: 1 }} seed";
+        "select seed.Value from values {( Value: 1 )} seed";
 
     private const string RecursiveMember =
         "select c.Value + 1 from counter c where c.Value < 3";

@@ -365,12 +365,13 @@ select * from AliasName(true, 'filter', 123)
 -- With table alias
 select a.Column1 from AliasName() a
 
--- Can be used with CTE results as arguments
+-- A complete CTE result may be passed as a named or positional argument
 with Data as (select * from other.source())
-select * from AliasName(Data)
+select * from AliasName(items: Data)
 ```
 
-The coupled alias (`AliasName`) names the callable data source. A table alias after the invocation (`a` in `AliasName() a`) is a normal FROM alias scoped to the current query block. When coupled-source columns are projected through a CTE, the core CTE output-name rules apply: explicit SELECT aliases define the exported names, and source qualifiers such as `a.` are not exported.
+The coupled alias (`AliasName`) names the callable data source.
+A complete visible CTE name in a source argument is a relation value. It is resolved only in that complete-argument position (optionally grouped as `(Data)`), is validated against the selected receiving collection contract, and never falls back to a string or a single row. Primitive collection receivers require one output column; record receivers match output columns by name and preserve duplicates and source order. A scalar column such as `p.Value` remains scalar. There is no `table(...)` wrapper. `DESC ARGUMENTS AliasName` reports the receiving contract without producing or enumerating the CTE. A table alias after the invocation (`a` in `AliasName() a`) is a normal FROM alias scoped to the current query block. When coupled-source columns are projected through a CTE, the core CTE output-name rules apply: explicit SELECT aliases define the exported names, and source qualifiers such as `a.` are not exported.
 
 ---
 

@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive states (Id, Branch, Depth) as (select Id, Branch, 0 from values {{ Id: 1, Branch: 'A' }} seed union (Id, Branch) select (case when s.Id = 1 then 2 else 1 end), s.Branch, s.Depth + 1 from states s) select Id, Branch, Depth from states order by Id
+with recursive states (Id, Branch, Depth) as (select Id, Branch, 0 from values {( Id: 1, Branch: 'A' )} seed union (Id, Branch) select (case when s.Id = 1 then 2 else 1 end), s.Branch, s.Depth + 1 from states s) select Id, Branch, Depth from states order by Id
 */
 
 // === Logical Plan ===

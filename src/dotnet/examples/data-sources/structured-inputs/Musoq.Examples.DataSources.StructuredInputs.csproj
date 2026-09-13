@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Musoq.Examples.DataSources.StructuredInputs.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Remove="tests\**\*.cs" />
+        <Compile Remove="runner\**\*.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\Musoq.Plugins\Musoq.Plugins.csproj" />
+        <ProjectReference Include="..\..\..\Musoq.Schema\Musoq.Schema.csproj" />
+    </ItemGroup>
+
+</Project>

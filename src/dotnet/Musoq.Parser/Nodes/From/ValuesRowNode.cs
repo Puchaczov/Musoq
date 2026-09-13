@@ -18,6 +18,6 @@ public class ValuesRowNode(IReadOnlyList<ValuesFieldNode> fields, TextSpan span)
 
     public override string ToString()
     {
-        return $"{{ {string.Join(", ", Fields.Select(field => field.ToString()))} }}";
+        return $"({string.Join(", ", Fields.Select(field => field.ToString()))})";
     }
 }

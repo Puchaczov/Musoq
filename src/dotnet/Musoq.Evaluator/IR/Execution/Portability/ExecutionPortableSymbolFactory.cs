@@ -235,6 +235,37 @@ internal static class ExecutionPortableSymbolFactory
         };
     }
 
+    public static ExecutionPortableCallableDescriptor FromConstructor(ConstructorInfo constructor)
+    {
+        ArgumentNullException.ThrowIfNull(constructor);
+
+        var declaringType = constructor.DeclaringType != null
+            ? FromType(constructor.DeclaringType)
+            : throw new ArgumentException("Constructor must have a declaring type.", nameof(constructor));
+        var parameters = constructor.GetParameters()
+            .Select(static parameter => FromType(parameter.ParameterType))
+            .ToArray();
+        var stableName =
+            $"constructor:{declaringType.StableName}({string.Join(",", parameters.Select(static parameter => parameter.StableName))})";
+
+        return new ExecutionPortableCallableDescriptor(
+            ExecutionPortableCallableKind.ClrMethod,
+            stableName,
+            $"{declaringType.DisplayName}.ctor")
+        {
+            Portability = ExecutionPortableSymbolPortability.ClrOnly,
+            PortabilityReason = $"CLR constructor for '{constructor.DeclaringType.FullName}'.",
+            MethodName = ".ctor",
+            DeclaringType = declaringType,
+            ReturnType = declaringType,
+            ParameterTypes = parameters,
+            IsStatic = false,
+            GenericArity = 0,
+            InvocationMode = ExecutionCallableInvocationMode.Instance,
+            IntrinsicKind = ExecutionIntrinsicCallableKind.None,
+            IsStable = false
+        };
+    }
     private static string CreateVersionFreeClrIdentity(Type type)
     {
         return $"{type.FullName ?? type.Name}@{type.Assembly.GetName().Name ?? "<unknown>"}";

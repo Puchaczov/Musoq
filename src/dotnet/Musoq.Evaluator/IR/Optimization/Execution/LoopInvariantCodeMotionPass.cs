@@ -541,9 +541,13 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
 
         private static bool IsPrologueNode(ExecutionNode node)
         {
-            return node is ExecutionAdaptExpando or
-                ExecutionLet or
-                ExecutionMethodTargetDeclarationCandidate;
+            return node switch
+            {
+                ExecutionAdaptExpando => true,
+                ExecutionMethodTargetDeclarationCandidate => true,
+                ExecutionLet let => !let.Variable.Name.StartsWith("__musoqStructural_", StringComparison.Ordinal),
+                _ => false
+            };
         }
 
         private string CreateVariableName(ExecutionExpression expression)

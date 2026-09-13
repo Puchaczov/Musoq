@@ -70,6 +70,15 @@ internal static class RuntimeErrorMetadataCatalog
             ],
             "Core Spec - Data Sources");
 
+        yield return Entry(
+            DiagnosticCode.MQ7013_StructuralInputLimitExceeded,
+            "A structural input exceeded the configured depth, node, or string-payload bound before it could be used by a query source.",
+            [
+                "Reduce the supplied structure or increase the receiving contract's limit.",
+                "Check the reported origin and path to locate the large or deeply nested value."
+            ],
+            "Core Spec - Structured Inputs");
+
         foreach (var entry in RecursiveCteRuntimeErrorMetadata.Build())
             yield return entry;
     }

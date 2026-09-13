@@ -19,8 +19,8 @@ public sealed class CrossJoinDiagnosticRegressionTests
     {
         const string query = """
             select r.Id, marker.Label
-            from values { { Id: 1 } } r
-            cross join values { { Label: 'x' }, { Label: 'y' } } marker
+            from values { ( Id: 1 ) } r
+            cross join values { ( Label: 'x' ), ( Label: 'y' ) } marker
             order by marker.Label
             """;
 
@@ -68,10 +68,10 @@ public sealed class CrossJoinDiagnosticRegressionTests
         {
             var query = $$"""
                 select r.Id, d.Label
-                from values { { Id: 1 } } r
+                from values { ( Id: 1 ) } r
                 {{apply}} (
                     select marker.Label
-                    from values { { Label: 'x' } } marker
+                    from values { ( Label: 'x' ) } marker
                 ) d
                 """;
 

@@ -1,5 +1,16 @@
 # Musoq Benchmarks
 
+## Structured input preparation qualification
+
+`StructuredInputPreparationBenchmark` measures typed and structural record,
+array, nested, nullable, empty, retained-`let`, host-parameter, CTE, source
+invocation, and post-preparation enumeration paths at sizes 1, 3, 32, and
+1,024.  The benchmark uses `MemoryDiagnoser`; generated-code and decoded-IL
+hard gates live in `Musoq.Benchmarks.Tests` and never assert machine-dependent
+timings.  See `Baselines/StructuredInputPreparationQualification.md` for the
+commands and acceptance rules.
+
+
 ## Recursive CTE performance gate
 
 `RecursiveCteBenchmark` compares generated recursive execution with an equivalent typed handwritten semi-naive loop across chain, tree, diamond, cycle, duplicate-heavy keyed, wide-row, invariant-snapshot, indexed-edge, correlated-apply, and empty-anchor cases. Every scenario runs with both `ParallelizationMode.None` and `ParallelizationMode.Full`; the recursive fixed-point loop remains sequential in both modes. Schema metadata is reused by both operations, while source enumeration and recursive snapshots occur for each operation.

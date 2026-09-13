@@ -95,9 +95,9 @@ public sealed class ThirdRoundJoinAsOfValuesResultTests : BasicEntityTestBase
             select scores.Name, scores.Score,
                    RowNumber() over (order by scores.Score, scores.Name) as rn
             from values {
-                { Name: 'missing', Score: null },
-                { Name: 'low', Score: 1 },
-                { Name: 'high', Score: 2 }
+                ( Name: 'missing', Score: null ),
+                ( Name: 'low', Score: 1 ),
+                ( Name: 'high', Score: 2 )
             } scores
             qualify RowNumber() over (order by scores.Score, scores.Name) <= 2
             order by scores.Score, scores.Name";

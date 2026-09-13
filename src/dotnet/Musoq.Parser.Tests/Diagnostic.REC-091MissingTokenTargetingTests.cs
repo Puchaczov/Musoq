@@ -113,10 +113,10 @@ public sealed class DiagnosticREC091MissingTokenTargetingTests
             "select * from (select 1 from #system.dual())",
             DiagnosticCode.MQ2035_MissingRequiredAlias, "<eof>", 0, "", "", "", ""];
         yield return ["REC-091-A09", "alias.values-before-order",
-            "select * from values { { Name: 'A' } } order by 1",
-            DiagnosticCode.MQ2035_MissingRequiredAlias, "<after:} }>", 0, "order", "order", "", ""];
+            "select * from values { ( Name: 'A' ) } order by 1",
+            DiagnosticCode.MQ2035_MissingRequiredAlias, "<after:) }>", 0, "order", "order", "", ""];
         yield return ["REC-091-A10", "alias.values-at-eof",
-            "select * from values { { Name: 'A' } }",
+            "select * from values { ( Name: 'A' ) }",
             DiagnosticCode.MQ2035_MissingRequiredAlias, "<eof>", 0, "", "", "", ""];
         yield return ["REC-091-A11", "alias.derived-explicit-as-before-take",
             "select * from (select 1 from #system.dual()) as take 1",
@@ -147,10 +147,10 @@ public sealed class DiagnosticREC091MissingTokenTargetingTests
             "select #system.dual(1 2) from #system.dual()",
             DiagnosticCode.MQ2018_MissingOperator, "2", 0, "from #system", "from", "", ""];
         yield return ["REC-091-S08", "separator.values-rows",
-            "select * from values { { Name: 'A' } { Name: 'B' } }",
+            "select * from values { ( Name: 'A' ) { Name: 'B' } }",
             DiagnosticCode.MQ2001_UnexpectedToken, "{ Name: 'B' }", 1, "", "", "", ""];
         yield return ["REC-091-S09", "separator.values-fields",
-            "select * from values { { Name: 'A' Age: 1 } }",
+            "select * from values { ( Name: 'A' Age: 1 ) }",
             DiagnosticCode.MQ2001_UnexpectedToken, "Age", 3, "", "", "", ""];
         yield return ["REC-091-S10", "separator.named-arguments",
             "select 1 from #system.dual(a: 1 /* keep */ b: 2)",
@@ -178,7 +178,7 @@ public sealed class DiagnosticREC091MissingTokenTargetingTests
             "select * from (select 1 from #system.dual() where 1 = 1",
             DiagnosticCode.MQ2001_UnexpectedToken, "<eof>", 0, "", "", "", ""];
         yield return ["REC-091-D08", "delimiter.values-brace-at-eof",
-            "select * from values { { Name: 'A' }",
+            "select * from values { ( Name: 'A' )",
             DiagnosticCode.MQ2001_UnexpectedToken, "<eof>", 0, "", "", "", ""];
         yield return ["REC-091-D09", "delimiter.bracket-before-next-bracket",
             "select 1 as [case, 2 as [order], 3 as [Column With Spaces] from #system.dual()",

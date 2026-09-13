@@ -20,6 +20,8 @@ internal static partial class ExecutionNodeFacts
 
         switch (node)
         {
+            case ExecutionPrepareStructuralInput structuralInput:
+                return [structuralInput.Input];
             case ExecutionSourceScan sourceScan:
                 return sourceScan.Binding.Arguments;
             case ExecutionInterpretSource interpret:

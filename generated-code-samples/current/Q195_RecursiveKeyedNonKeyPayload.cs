@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive paths (Id, Depth, Path) as (select Id, 0, '1' from values {{ Id: 1 }} seed union (Id) select (case when p.Id = 1 then 2 else 1 end), p.Depth + 1, p.Path + '->' + (case when p.Id = 1 then '2' else '1' end) from paths p) select Id, Depth, Path from paths order by Id
+with recursive paths (Id, Depth, Path) as (select Id, 0, '1' from values {( Id: 1 )} seed union (Id) select (case when p.Id = 1 then 2 else 1 end), p.Depth + 1, p.Path + '->' + (case when p.Id = 1 then '2' else '1' end) from paths p) select Id, Depth, Path from paths order by Id
 */
 
 // === Logical Plan ===

@@ -18,30 +18,27 @@ public partial class Parser
         var start = ConsumeAndGetToken(Current.TokenType);
         var name = ConsumeScriptVariableName();
 
-        if (Current.TokenType != TokenType.Colon)
+        StructuralTypeSyntaxNode? typeSyntax = null;
+        if (Current.TokenType == TokenType.Colon)
+        {
+            Consume(TokenType.Colon);
+            typeSyntax = ComposeStructuralTypeSyntax();
+        }
+        else if (Current.TokenType != TokenType.Equality)
         {
             var example = CreateScriptVariableDeclarationExample(name);
             throw new SyntaxException(
-                $"Invalid script variable declaration near '{name.Value}'. Use '{example}' with the variable name before the type and a colon between them.",
+                $"Invalid script variable declaration near '{name.Value}'. Use '{example}' with the variable name before the type.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2033_InvalidScriptVariableDeclaration,
                 name.Span.Through(Current.Span));
         }
 
-        Consume(TokenType.Colon);
-        var type = ConsumeScriptVariableTypeName();
-
-        var isNullable = false;
-        if (Current.TokenType == TokenType.QuestionMark)
-        {
-            isNullable = true;
-            Consume(TokenType.QuestionMark);
-        }
-
         if (Current.TokenType != TokenType.Equality)
         {
+            var typeText = typeSyntax?.ToString() ?? "type";
             throw new SyntaxException(
-                $"Script variable '{name.Value}' must declare an initializer. Use 'let {name.Value}: {type.Value} = value'.",
+                $"Script variable '{name.Value}' must declare an initializer. Use 'let {name.Value}: {typeText} = value'.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2033_InvalidScriptVariableDeclaration,
                 name.Span.Through(Current.Span));
@@ -49,11 +46,20 @@ public partial class Parser
 
         Consume(TokenType.Equality);
         var initializer = ComposeOperations();
-        var span = start.Span.Through(initializer is AccessMethodNode accessMethod && accessMethod.Arguments.HasSpan ? accessMethod.FunctionToken.Span.Through(accessMethod.Arguments.Span) : initializer.Span);
+        var endSpan = initializer is AccessMethodNode accessMethod && accessMethod.Arguments.HasSpan
+            ? accessMethod.FunctionToken.Span.Through(accessMethod.Arguments.Span)
+            : initializer.Span;
+        var span = start.Span.Through(endSpan);
 
-        return new ScriptVariableDeclarationNode(name.Value, type.Value, isNullable, initializer, span);
+        if (typeSyntax == null)
+            return new ScriptVariableDeclarationNode(name.Value, initializer, span);
+
+        if (TryGetLegacyTypeParts(typeSyntax, out var typeName, out var isNullable) &&
+            initializer is not ArrayLiteralNode)
+            return new ScriptVariableDeclarationNode(name.Value, typeName, isNullable, initializer, span);
+
+        return new ScriptVariableDeclarationNode(name.Value, typeSyntax, initializer, span);
     }
-
     private Token ConsumeScriptVariableName()
     {
         if (Current.TokenType is TokenType.Identifier or TokenType.Word)

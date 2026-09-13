@@ -13,8 +13,8 @@ public sealed class RawStringLiteralExecutionTests : BasicEntityTestBase
     {
         const string query = @"
 from values {
-    { Path: r'C:\new\test' },
-    { Path: r'\\server\share' }
+    ( Path: r'C:\new\test' ),
+    ( Path: r'\\server\share' )
 } paths
 select paths.Path
 order by paths.Path";
@@ -36,7 +36,7 @@ order by paths.Path";
         const string query = @"
 let path: string = r'C:\A';
 from values {
-    { Path: $path }
+    ( Path: $path )
 } paths
 select paths.Path";
 

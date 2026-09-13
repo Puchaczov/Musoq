@@ -13,9 +13,9 @@ internal static class IrExpressionTraversal
         return expression switch
         {
             ColumnRef or Literal or WildcardLiteral or ScriptParameterRef or ScriptVariableRef or RowPresence or
-                AggregateRef or WindowFunctionRef or CteTableRef or BinaryOp or UnaryOp or ArrayAccess or
+                AggregateRef or WindowFunctionRef or CteTableRef or CteCollectionInput or BinaryOp or UnaryOp or ArrayAccess or
                 IsNullCheck or InCheck or CollectionInCheck or PatternMatch or Between or CaseWhen or Coalesce or
-                MethodCall or StrictCast => true,
+                MethodCall or StrictCast or StructuralRecordLiteral or StructuralArrayLiteral or StructuralConversion => true,
             _ => false
         };
     }
@@ -79,6 +79,17 @@ internal static class IrExpressionTraversal
                 yield break;
             case StrictCast strictCast:
                 yield return strictCast.Expression;
+                yield break;
+            case StructuralRecordLiteral record:
+                foreach (var field in record.Fields)
+                    yield return field.Value;
+                yield break;
+            case StructuralArrayLiteral array:
+                foreach (var element in array.Elements)
+                    yield return element;
+                yield break;
+            case StructuralConversion conversion:
+                yield return conversion.Value;
                 yield break;
         }
     }

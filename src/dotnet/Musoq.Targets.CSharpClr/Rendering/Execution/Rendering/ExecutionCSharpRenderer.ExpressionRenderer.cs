@@ -12,6 +12,11 @@ public sealed partial class ExecutionCSharpRenderer
             expression switch
             {
                 ExecutionFieldRead fieldRead => renderer.RenderFieldRead(fieldRead, context),
+                ExecutionStructuralArray structuralArray => StructuralInputSyntaxFactory.RenderArray(structuralArray, context, renderer),
+                ExecutionStructuralRecord structuralRecord when structuralRecord.ConstructionPlan is { } plan => StructuralInputSyntaxFactory.RenderConstruction(structuralRecord, plan, context, renderer),
+                ExecutionStructuralRecord => throw UnsupportedShape.Of("Structural record rendering requires a construction plan.", "the C# backend"),
+                ExecutionStructuralConversion conversion => StructuralInputSyntaxFactory.RenderConversion(conversion, context, renderer),
+                ExecutionCteCollectionInput cteCollection => StructuralInputSyntaxFactory.RenderCteCollection(cteCollection, context, renderer),
                 ExecutionMemberRead memberRead => renderer.RenderMemberRead(memberRead, context),
                 ExecutionScriptParameterRead parameterRead => CreateIdentifierName(renderer.GetScriptParameterLocalName(parameterRead.Name)),
                 ExecutionScriptVariableRead variableRead => CreateIdentifierName(renderer.GetScriptVariableLocalName(variableRead.Name)),

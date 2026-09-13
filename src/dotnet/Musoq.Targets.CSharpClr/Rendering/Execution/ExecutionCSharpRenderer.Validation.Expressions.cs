@@ -44,6 +44,17 @@ public sealed partial class ExecutionCSharpRenderer
         return expression switch
         {
             ExecutionFieldRead fieldRead => CanRenderFieldRead(fieldRead),
+            ExecutionStructuralArray structuralArray => structuralArray.Elements.All(CanRenderExpression) && CanReferenceType(structuralArray.ElementType),
+            ExecutionStructuralConversion conversion => CanRenderExpression(conversion.Input) && CanReferenceType(conversion.TargetType.RequireClrType()),
+            ExecutionCteCollectionInput cteCollection => cteCollection.Rows is ExecutionStoredTableRows { GeneratedRowShape: not null } &&
+                                                         CanReferenceType(cteCollection.ElementType) &&
+                                                         (cteCollection.ConstructionPlan == null ||
+                                                          CanReferenceType(cteCollection.ConstructionPlan.TargetType)),
+            ExecutionStructuralRecord structuralRecord => structuralRecord.ConstructionPlan is { } plan &&
+                                                       structuralRecord.Fields.All(field => CanRenderExpression(field.Value)) &&
+                                                       plan.SourceFieldIndexes.Count == plan.Defaults.Count &&
+                                                       plan.Defaults.Where(static value => value != null).All(value => CanRenderExpression(value!)) &&
+                                                       CanReferenceType(plan.TargetType),
             ExecutionMemberRead memberRead => CanRenderMemberRead(memberRead),
             ExecutionScriptParameterRead parameterRead => !string.IsNullOrWhiteSpace(parameterRead.Name) &&
                                                           CanReferenceType(parameterRead.ReturnType),

@@ -134,4 +134,22 @@ internal sealed partial class RowPresenceAliasExtractor : IrExpressionVisitor<IR
     }
 
     protected override IReadOnlyList<string> VisitCteTableRef(CteTableRef node) => _aliases.ToArray();
-}
+
+    protected override IReadOnlyList<string> VisitCteCollectionInput(CteCollectionInput node) => _aliases.ToArray();
+    protected override IReadOnlyList<string> VisitStructuralRecordLiteral(StructuralRecordLiteral node)
+    {
+        foreach (var field in node.Fields) Visit(field.Value);
+        return _aliases.ToArray();
+    }
+
+    protected override IReadOnlyList<string> VisitStructuralArrayLiteral(StructuralArrayLiteral node)
+    {
+        foreach (var element in node.Elements) Visit(element);
+        return _aliases.ToArray();
+    }
+
+    protected override IReadOnlyList<string> VisitStructuralConversion(StructuralConversion node)
+    {
+        Visit(node.Value);
+        return _aliases.ToArray();
+    }}

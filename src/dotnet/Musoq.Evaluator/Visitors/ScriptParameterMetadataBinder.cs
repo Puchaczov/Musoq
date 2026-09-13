@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Exceptions;
@@ -53,6 +53,49 @@ internal sealed class ScriptParameterMetadataBinder(
                 return;
 
             throw new NotSupportedException(message);
+        }
+
+        if (parameter.TypeSyntax is { } structuralSyntax)
+        {
+            if (!StructuralTypeSyntaxBinder.TryBind(structuralSyntax, out var structuralType, out var structuralError))
+            {
+                if (reportScriptParameterError(
+                        DiagnosticCode.MQ3060_UnsupportedScriptParameterType,
+                        structuralError,
+                        parameter))
+                    return;
+
+                throw new TypeNotFoundException(
+                    parameter.DeclaredTypeName,
+                    "script parameter declaration",
+                    parameter.HasSpan ? parameter.Span : TextSpan.Empty);
+            }
+
+            if (!ScriptParameterDefaultValueBinder.TryBindStructural(
+                    parameter,
+                    structuralType,
+                    out var structuralDefault,
+                    out var defaultError))
+            {
+                if (reportScriptParameterError(
+                        DiagnosticCode.MQ3061_InvalidScriptParameterDefault,
+                        defaultError,
+                        parameter))
+                    return;
+
+                throw StructuralBindingFailure.Create(defaultError);
+            }
+
+            var structuralDefinition = new ScriptParameterDefinition(ScriptParameterContract.CreateStructural(
+                parameter.Name,
+                parameter.DeclaredTypeName,
+                structuralType,
+                parameter.HasDefaultValue,
+                structuralDefault));
+            _definitions.Add(structuralDefinition);
+            _definitionsByName.Add(parameter.Name, structuralDefinition);
+            addAssembly(structuralType.CoreValueType.Assembly);
+            return;
         }
 
         if (!PrimitiveTypeResolver.TryResolveDeclarationType(parameter.DeclaredTypeName, out var parameterType))
@@ -114,6 +157,11 @@ internal sealed class ScriptParameterMetadataBinder(
     {
         foreach (var arg in args.Args)
         {
+            // Structural literals are evaluated in the normal execution scope. Their
+            // nested parameter/column references are intentional and preserve the
+            // correlation rules for inline record and array inputs.
+            if (arg is ArrayLiteralNode or RecordLiteralNode)
+                continue;
             if (arg is ParameterReferenceNode)
                 continue;
 

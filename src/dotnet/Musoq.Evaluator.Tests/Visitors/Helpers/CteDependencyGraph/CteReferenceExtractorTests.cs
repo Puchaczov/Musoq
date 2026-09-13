@@ -302,4 +302,41 @@ public class CteReferenceExtractorTests
     }
 
     #endregion
+
+    [TestMethod]
+    public void Visit_SchemaSourceWithCompleteCteArgument_ShouldFindCte()
+    {
+        var extractor = new CteReferenceExtractor(["patterns"]);
+        var source = new SchemaFromNode(
+            "inputs",
+            "match",
+            new ArgsListNode([new IdentifierNode("patterns")]),
+            "m",
+            typeof(object),
+            0);
+
+        extractor.Visit(source);
+
+        Assert.Contains("patterns", extractor.FoundReferences);
+    }
+
+    [TestMethod]
+    public void Visit_SchemaSourceWithNestedIdentifier_ShouldNotTreatItAsRelation()
+    {
+        var extractor = new CteReferenceExtractor(["patterns"]);
+        var source = new SchemaFromNode(
+            "inputs",
+            "match",
+            new ArgsListNode([
+                new AccessColumnNode("Pattern", "p", typeof(string), default)
+            ]),
+            "m",
+            typeof(object),
+            0);
+
+        extractor.Visit(source);
+
+        Assert.DoesNotContain("patterns", extractor.FoundReferences);
+    }
+
 }

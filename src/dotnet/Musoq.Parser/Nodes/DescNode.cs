@@ -56,7 +56,12 @@ public class DescNode : Node
         if (Query != null)
             return $"desc query ({Query})";
 
-        var prefix = Type == DescForType.Settings ? "desc settings" : "desc";
+        var prefix = Type switch
+        {
+            DescForType.Settings => "desc settings",
+            DescForType.Arguments => "desc arguments",
+            _ => "desc"
+        };
 
         return Column != null
             ? $"{prefix} {From.ToString()} column {Column.ToString()}"

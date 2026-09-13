@@ -254,7 +254,7 @@ order by r'C:\A'";
     {
         const string query = @"
 from values {
-    { Path: r'C:\new\test' }
+    ( Path: r'C:\new\test' )
 } paths
 select paths.Path";
 

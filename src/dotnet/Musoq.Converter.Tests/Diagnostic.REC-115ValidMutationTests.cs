@@ -14,7 +14,7 @@ namespace Musoq.Converter.Tests;
 public sealed class DiagnosticREC115ValidMutationTests
 {
     private const string SimpleSeed = "select d.Dummy from #system.dual() d";
-    private const string BindingSeed = "select row.Left from values {{ Left: 'a', Right: 'b' }} row";
+    private const string BindingSeed = "select row.Left from values {( Left: 'a', Right: 'b' )} row";
     private readonly TestsLoggerResolver loggerResolver = new();
 
     [TestMethod]
@@ -165,12 +165,12 @@ public sealed class DiagnosticREC115ValidMutationTests
         new("D05", "ESCAPES", SimpleSeed, @"select r'C:\new\test' from #system.dual() d", null, false),
         new("D06", "ESCAPES", SimpleSeed, @"select r'ordinary\q' from #system.dual() d", null, false),
 
-        new("E01", "BINDING", BindingSeed, "select row.Right from values {{ Left: 'a', Right: 'b' }} row", null, false),
-        new("E02", "BINDING", BindingSeed, "select row.Right as Left from values {{ Left: 'a', Right: 'b' }} row", null, false),
-        new("E03", "BINDING", BindingSeed, "select row.Right from values {{ Left: 'a', Right: 'b' }} row where row.Right = 'b'", null, false),
-        new("E04", "BINDING", BindingSeed, "select row.Right, row.Left from values {{ Left: 'a', Right: 'b' }} row", null, false),
-        new("E05", "BINDING", BindingSeed, "with source as (select row.Right as Chosen from values {{ Left: 'a', Right: 'b' }} row) select Chosen from source", null, false),
-        new("E06", "BINDING", BindingSeed, "select row.Right from values {{ Left: 'a', Right: 'b' }} row order by row.Right", null, false),
+        new("E01", "BINDING", BindingSeed, "select row.Right from values {( Left: 'a', Right: 'b' )} row", null, false),
+        new("E02", "BINDING", BindingSeed, "select row.Right as Left from values {( Left: 'a', Right: 'b' )} row", null, false),
+        new("E03", "BINDING", BindingSeed, "select row.Right from values {( Left: 'a', Right: 'b' )} row where row.Right = 'b'", null, false),
+        new("E04", "BINDING", BindingSeed, "select row.Right, row.Left from values {( Left: 'a', Right: 'b' )} row", null, false),
+        new("E05", "BINDING", BindingSeed, "with source as (select row.Right as Chosen from values {( Left: 'a', Right: 'b' )} row) select Chosen from source", null, false),
+        new("E06", "BINDING", BindingSeed, "select row.Right from values {( Left: 'a', Right: 'b' )} row order by row.Right", null, false),
 
         new("F01", "FORMATTING", SimpleSeed, "select\n  d.Dummy\nfrom #system.dual() d", null, true),
         new("F02", "FORMATTING", SimpleSeed, "-- leading comment\nselect d.Dummy from #system.dual() d", null, true),

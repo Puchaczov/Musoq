@@ -24,6 +24,7 @@
     <ProjectReference Include="..\Musoq.Targets.Execution.Analysis\Musoq.Targets.Execution.Analysis.csproj" />
     <ProjectReference Include="..\Musoq.Targets.TestPortable\Musoq.Targets.TestPortable.csproj" />
     <ProjectReference Include="..\Musoq.Tests.Common\Musoq.Tests.Common.csproj" />
+    <ProjectReference Include="..\examples\data-sources\structured-inputs\Musoq.Examples.DataSources.StructuredInputs.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="QueryInspectionTests.CteSidecarFallbackWarnings.cs">

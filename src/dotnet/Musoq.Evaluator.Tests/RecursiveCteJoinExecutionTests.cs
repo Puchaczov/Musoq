@@ -248,7 +248,7 @@ public sealed class RecursiveCteJoinExecutionTests
             "select RootId, 0 from #graph.roots() union (Id) " +
             "select e.TargetId, r.Depth + 1 " +
             "from #graph.edges() e " +
-            "inner join values {{ Label: 'one-two' }, { Label: 'two-three' }} expected " +
+            "inner join values {( Label: 'one-two' ), ( Label: 'two-three' )} expected " +
             "on e.Label = expected.Label " +
             "inner join reachable r on e.SourceId = r.Id) " +
             "select Id, Depth from reachable order by Id";
@@ -279,8 +279,8 @@ public sealed class RecursiveCteJoinExecutionTests
     public void RecursiveEarlierMaterializedCte_ShouldReuseStoredRowsWithoutSnapshotCopy()
     {
         const string query =
-            "with recursive steps (Amount) as (select Amount from values {{ Amount: 1 }} step), " +
-            "counter (Value) as (select 1 from values {{ Seed: 1 }} seed union all " +
+            "with recursive steps (Amount) as (select Amount from values {( Amount: 1 )} step), " +
+            "counter (Value) as (select 1 from values {( Seed: 1 )} seed union all " +
             "select c.Value + s.Amount from counter c cross join steps s where c.Value < 3) " +
             "select Value from counter order by Value";
         var inspection = InstanceCreator.CompileForInspection(
@@ -347,7 +347,7 @@ public sealed class RecursiveCteJoinExecutionTests
             "with recursive dead (Id) as (" +
             "select RootId from #graph.roots() union all " +
             "select d.Id + 1 from dead d where d.Id < 3), " +
-            "live (Value) as (select Value from values {{ Value: 42 }} row) " +
+            "live (Value) as (select Value from values {( Value: 42 )} row) " +
             "select Value from live";
         var provider = new RecursiveGraphSchemaProvider(new RecursiveGraphData
         {

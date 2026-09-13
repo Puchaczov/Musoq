@@ -11,9 +11,9 @@ public sealed class CardinalityFactPlanningTextTests : BasicEntityTestBase
     {
         const string query = @"
 from values {
-    { Name: 'Newtonsoft.Json', Score: 10 },
-    { Name: 'Legacy.Package', Score: 20 },
-    { Name: 'Other.Package', Score: 30 }
+    ( Name: 'Newtonsoft.Json', Score: 10 ),
+    ( Name: 'Legacy.Package', Score: 20 ),
+    ( Name: 'Other.Package', Score: 30 )
 } packages
 select packages.Name";
         var buildItems = CreateBuildItems<BasicEntity>(query);

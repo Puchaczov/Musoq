@@ -32,11 +32,19 @@ internal static class ExecutionTypedRowBufferResolver
             .OfType<ExecutionStoreTable>()
             .Select(static store => store.Table.Name)
             .ToHashSet(StringComparer.Ordinal);
-        var blocked = CreateBlockedSetOperationTypedRowBuffers(nodes, tableStoredNames);
+        var structurallyDemandedStoredNames = CollectStructurallyDemandedStoredTableNames(nodes);
+        var blocked = CreateBlockedSetOperationTypedRowBuffers(
+            nodes,
+            tableStoredNames,
+            structurallyDemandedStoredNames);
 
         foreach (var setOperation in nodes
                      .OfType<ExecutionSetOperation>()
-                     .Where(setOperation => CanUseTypedSetOperationBuffers(setOperation, tableStoredNames, blocked)))
+                     .Where(setOperation => CanUseTypedSetOperationBuffers(
+                         setOperation,
+                         tableStoredNames,
+                         structurallyDemandedStoredNames,
+                         blocked)))
         {
             candidates.Add(setOperation.Left.Name);
             candidates.Add(setOperation.Right.Name);
@@ -64,7 +72,11 @@ internal static class ExecutionTypedRowBufferResolver
                 }
 
                 if (node is ExecutionSetOperation setOperation &&
-                    CanUseTypedSetOperationBuffers(setOperation, tableStoredNames, blocked) &&
+                    CanUseTypedSetOperationBuffers(
+                        setOperation,
+                        tableStoredNames,
+                        structurallyDemandedStoredNames,
+                        blocked) &&
                     candidates.Contains(setOperation.Target.Name))
                 {
                     changed |= candidates.Add(setOperation.Left.Name);
@@ -126,7 +138,7 @@ internal static class ExecutionTypedRowBufferResolver
         return candidates;
     }
 
-    private static Dictionary<string, GeneratedRowShape> CreateTableRowShapeMap(ExecutionBlock block)
+    internal static Dictionary<string, GeneratedRowShape> CreateTableRowShapeMap(ExecutionBlock block)
     {
         var result = new Dictionary<string, GeneratedRowShape>(StringComparer.Ordinal);
 
@@ -236,9 +248,11 @@ internal static class ExecutionTypedRowBufferResolver
     private static bool CanUseTypedSetOperationBuffers(
         ExecutionSetOperation setOperation,
         IReadOnlySet<string> tableStoredNames,
+        IReadOnlySet<string> structurallyDemandedStoredNames,
         IReadOnlySet<string> blocked)
     {
-        return !tableStoredNames.Contains(setOperation.Target.Name) &&
+        return (!tableStoredNames.Contains(setOperation.Target.Name) ||
+                structurallyDemandedStoredNames.Contains(setOperation.Target.Name)) &&
                !blocked.Contains(setOperation.Target.Name) &&
                !blocked.Contains(setOperation.Left.Name) &&
                !blocked.Contains(setOperation.Right.Name) &&
@@ -249,13 +263,15 @@ internal static class ExecutionTypedRowBufferResolver
 
     private static HashSet<string> CreateBlockedSetOperationTypedRowBuffers(
         IReadOnlyList<ExecutionNode> nodes,
-        IReadOnlySet<string> tableStoredNames)
+        IReadOnlySet<string> tableStoredNames,
+        IReadOnlySet<string> structurallyDemandedStoredNames)
     {
         var blocked = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var setOperation in nodes.OfType<ExecutionSetOperation>())
         {
-            if (!tableStoredNames.Contains(setOperation.Target.Name) &&
+            if ((!tableStoredNames.Contains(setOperation.Target.Name) ||
+                 structurallyDemandedStoredNames.Contains(setOperation.Target.Name)) &&
                 (setOperation.Kind == SetOpKind.UnionAll ||
                  setOperation.Strategy == ExecutionSetOperationStrategy.HashSet ||
                  setOperation.Strategy == ExecutionSetOperationStrategy.GeneratedEqualityLoop))
@@ -294,6 +310,46 @@ internal static class ExecutionTypedRowBufferResolver
 
         return blocked;
     }
+
+    private static HashSet<string> CollectStructurallyDemandedStoredTableNames(
+        IReadOnlyList<ExecutionNode> nodes)
+    {
+        // A flattened execution body can contain stores from nested scopes
+        // that reuse a table index.  Keep the first stable mapping instead of
+        // letting an unrelated nested store make planning fail with a
+        // duplicate-key exception.
+        var namesByIndex = new Dictionary<int, string>();
+        foreach (var store in nodes.OfType<ExecutionStoreTable>())
+            namesByIndex.TryAdd(store.TableIndex, store.Table.Name);
+        var result = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var input in ExecutionIrAnalysis.CollectExpressions<ExecutionCteCollectionInput>(
+                     new ExecutionBlock(nodes)))
+        {
+            if (!IsStructuralCteConsumer(input))
+                continue;
+
+            if (input.Rows is ExecutionStoredTableRows rows &&
+                namesByIndex.TryGetValue(rows.TableIndex, out var tableName))
+            {
+                result.Add(tableName);
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Identifies the CTE relation inputs that are part of the structural
+    /// datasource contract.  Ordinary relational subquery consumers also use
+    /// <see cref="ExecutionCteCollectionInput"/>, but they must retain the
+    /// legacy <c>Row</c> representation and cannot opt a set operation into
+    /// generated-row storage.  Structural lowering attaches either a
+    /// construction plan (record receiver) or a demand limit binding (all
+    /// structural roots), which gives the planner an explicit marker without
+    /// inspecting CLR types or guessing from field count.
+    internal static bool IsStructuralCteConsumer(ExecutionCteCollectionInput input) =>
+        input.ConstructionPlan != null || input.LimitBinding != null;
 
     private static bool HasName(ExecutionVariable variable, string variableName)
     {
