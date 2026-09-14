@@ -53,13 +53,7 @@ public sealed class LikeMatcherCacheSlot
         ? _serialState.MatcherConstructionCount
         : _workerStates.Values.Sum(static state => state.MatcherConstructionCount);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal PreparedLikeMatcher GetOrAdd(string pattern)
-    {
-        ArgumentNullException.ThrowIfNull(pattern);
 
-        return GetState().GetOrAdd(pattern);
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool IsMatch(string content, string pattern)
@@ -67,12 +61,7 @@ public sealed class LikeMatcherCacheSlot
         return GetState().IsMatch(content, pattern);
     }
 
-    internal void Clear()
-    {
-        _serialState.Clear();
-        if (_workerStates is not null)
-            _workerStates.Clear();
-    }
+
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private SlotState GetState() => _workerStates is null

@@ -48,7 +48,7 @@
 ### Build Validation
 - **Build succeeds without errors**: All projects compile cleanly in Release configuration
 - **NuGet packages are generated**: use `dotnet pack` or the release scripts for distributable modules
-- **No build-time dependencies**: Only requires the .NET 10.0.300+ SDK
+- **No build-time dependencies**: Only requires the .NET 10.0.401+ SDK
 
 ### Performance and Benchmarks Validation
 - **Benchmarks validate functionality**: run a focused benchmark with quiet build output, for example `dotnet build src/dotnet/Musoq.sln --configuration Release --no-restore --nologo --verbosity quiet` followed by `dotnet run --project src/dotnet/Musoq.Benchmarks --configuration Release --no-build -- --filter "*RelevantBenchmark*" --job short --exporters json > TestResults/benchmark.log 2>&1`

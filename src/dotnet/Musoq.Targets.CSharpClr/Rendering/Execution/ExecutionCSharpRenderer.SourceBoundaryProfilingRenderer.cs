@@ -42,26 +42,7 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName(nameof(SourceProfileRecorder.CreateDiagnostics)))));
     }
 
-    private static ConditionalExpressionSyntax CreateProfiledRowsExpression(
-        ExpressionSyntax rows,
-        string sourceProfileName,
-        TypeSyntax rowType)
-    {
-        return SyntaxFactory.ConditionalExpression(
-            SyntaxFactory.BinaryExpression(
-                SyntaxKind.EqualsExpression,
-                SyntaxFactory.IdentifierName(sourceProfileName),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-            rows,
-            SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.GenericName(nameof(ProfiledEnumerable<object>))
-                            .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                                SyntaxFactory.SingletonSeparatedList(rowType))),
-                        SyntaxFactory.IdentifierName(nameof(ProfiledEnumerable<object>.Create))))
-                .WithArgumentList(CreateArgumentList(rows, SyntaxFactory.IdentifierName(sourceProfileName))));
-    }
+
 
     private static ConditionalExpressionSyntax CreateProfiledChunksExpression(
         ExpressionSyntax chunks,

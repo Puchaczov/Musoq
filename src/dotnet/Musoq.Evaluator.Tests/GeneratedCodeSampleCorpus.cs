@@ -24,7 +24,6 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         {
             var startedUtc = DateTimeOffset.UtcNow;
             var stopwatch = Stopwatch.StartNew();
-            var allocatedBefore = GC.GetTotalAllocatedBytes(precise: true);
             var samples = GeneratedCodeSamplesCatalog.Samples;
             var degreeOfParallelism = ResolveDegreeOfParallelism();
             var generated = new GeneratedCodeSampleFile[samples.Count];
@@ -54,8 +53,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                     degreeOfParallelism,
                     startedUtc,
                     DateTimeOffset.UtcNow,
-                    stopwatch.Elapsed,
-                    GC.GetTotalAllocatedBytes(precise: true) - allocatedBefore);
+                    stopwatch.Elapsed);
             }
         }
 

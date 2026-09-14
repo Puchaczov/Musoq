@@ -12,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 public sealed class FeatureCoverageBoundaryTests
 {
     [TestMethod]
-    [FeatureEvidence("system-range-source", FeatureEvidenceKind.RuntimeNegativeDiagnostic)]
     public void SystemRange_WithoutHostRegistration_ShouldReportUnknownSchema()
     {
         const string query = "select Value from system.range(1, 5)";
@@ -32,7 +31,6 @@ public sealed class FeatureCoverageBoundaryTests
     }
 
     [TestMethod]
-    [FeatureEvidence("generic-interpretation-schema-sql", FeatureEvidenceKind.RuntimeNegativeDiagnostic)]
     public void GenericInterpretationSchema_InSqlPipeline_ShouldReportUnsupportedSyntax()
     {
         var result = Analyze(
@@ -48,7 +46,6 @@ public sealed class FeatureCoverageBoundaryTests
     }
 
     [TestMethod]
-    [FeatureEvidence("asof-right-join", FeatureEvidenceKind.RuntimeNegativeDiagnostic)]
     public void AsOfRightJoin_ShouldReportUnsupportedSyntax()
     {
         var result = Analyze(
@@ -62,7 +59,6 @@ public sealed class FeatureCoverageBoundaryTests
     }
 
     [TestMethod]
-    [FeatureEvidence("groups-exclude-window-frames", FeatureEvidenceKind.RuntimeNegativeDiagnostic)]
     public void GroupsAndExcludeFrames_ShouldReportUnsupportedSyntax()
     {
         var groups = Analyze(

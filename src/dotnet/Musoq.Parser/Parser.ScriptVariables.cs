@@ -72,17 +72,7 @@ public partial class Parser
             Current.Span);
     }
 
-    private Token ConsumeScriptVariableTypeName()
-    {
-        if ((Current.TokenType is TokenType.Identifier or TokenType.Word) || IsSchemaKeywordToken(Current.TokenType))
-            return ConsumeAndGetToken(Current.TokenType);
 
-        throw new SyntaxException(
-            $"Expected script variable type name but received {Current.TokenType}. Use Musoq syntax: let name: type = value.",
-            _lexer.AlreadyResolvedQueryPart,
-            DiagnosticCode.MQ2033_InvalidScriptVariableDeclaration,
-            Current.Span);
-    }
 
     private string CreateScriptVariableDeclarationExample(Token firstToken)
     {

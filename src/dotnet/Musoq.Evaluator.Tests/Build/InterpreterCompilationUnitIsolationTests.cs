@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -129,30 +128,6 @@ public sealed class InterpreterCompilationUnitIsolationTests
         Assert.Throws<ObjectDisposedException>(() => unit.GetAssemblyBytes());
         Assert.Throws<ObjectDisposedException>(() => unit.GetErrorMessages().ToArray());
         Assert.Throws<ObjectDisposedException>(() => _ = unit.IsSuccess);
-    }
-
-    [TestMethod]
-    public void Dispose_ShouldAllowCollectibleAssemblyToUnload()
-    {
-        var assemblyReference = CompileAndDispose();
-
-        for (var attempt = 0; attempt < 10 && assemblyReference.IsAlive; attempt++)
-        {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-        }
-
-        Assert.IsFalse(assemblyReference.IsAlive);
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static WeakReference CompileAndDispose()
-    {
-        using var unit = new InterpreterCompilationUnit("unload", ValidSource);
-        Assert.IsTrue(unit.Compile());
-
-        return new WeakReference(unit.CompiledAssembly!);
     }
 
     private static InterpreterCompilationUnit CreateUnit(

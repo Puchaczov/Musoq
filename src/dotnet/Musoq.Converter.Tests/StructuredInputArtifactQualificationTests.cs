@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Loader;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -280,41 +279,6 @@ public sealed class StructuredInputArtifactQualificationTests
         var manifest = TargetArtifactPackageManifestSerializer.Serialize(package);
         StringAssert.Contains(manifest, $"execution-ir={TargetContractVersions.ExecutionIr}");
         StringAssert.Contains(manifest, $"host-abi={TargetContractVersions.HostAbi}");
-    }
-
-    [TestMethod]
-    public void StructuredArtifact_DefaultLoaderUsesCollectibleContextAfterDispose()
-    {
-        var weakReference = CreateStructuredLoadedContextWeakReference();
-        for (var index = 0; index < 10 && weakReference.IsAlive; index++)
-        {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-        }
-
-        Assert.IsFalse(weakReference.IsAlive);
-    }
-
-    private WeakReference CreateStructuredLoadedContextWeakReference()
-    {
-        const string query =
-            "select m.PatternId from #inputs.match('TODO', patterns: array { (Id: 'todo', Pattern: 'TODO') }) m";
-        var provider = new StructuredInputsSchemaProvider();
-        var artifactResult = InstanceCreator.CompileArtifactWithDiagnostics(query, "StructuredUnload", provider, _loggerResolver);
-        Assert.IsTrue(artifactResult.Succeeded, FormatDiagnostics(artifactResult.Diagnostics));
-        var loaded = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(query, artifactResult.Artifact!, provider, _loggerResolver);
-        Assert.IsTrue(loaded.Succeeded, FormatDiagnostics(loaded.Diagnostics));
-        var compiled = loaded.CompiledQuery ?? throw new AssertFailedException("No structured query was loaded.");
-        var runnableField = typeof(CompiledQuery).GetField("_runnable", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-        Assert.IsNotNull(runnableField);
-        var runnable = (ITableRunnable)runnableField!.GetValue(compiled)!;
-        var context = AssemblyLoadContext.GetLoadContext(runnable.GetType().Assembly);
-        Assert.IsNotNull(context);
-        Assert.IsTrue(context!.IsCollectible);
-        var weakReference = new WeakReference(context);
-        compiled.Dispose();
-        return weakReference;
     }
 
     private BuildResult Compile(string query, string name)

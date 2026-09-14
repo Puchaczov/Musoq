@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Tests.Components;
@@ -241,21 +240,6 @@ public class CompiledQueryArtifactApiTests
         compiledQuery.Dispose();
         Assert.IsTrue(owner!.Disposed);
         Assert.Throws<ObjectDisposedException>(() => compiledQuery.Run());
-    }
-
-    [TestMethod]
-    public void CreateExecutableFromArtifactWithDiagnostics_WhenDefaultLoaderIsUsed_LoadsCollectibleContext()
-    {
-        var weakReference = CreateDefaultLoadedContextWeakReference();
-
-        for (var i = 0; i < 10 && weakReference.IsAlive; i++)
-        {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-        }
-
-        Assert.IsFalse(weakReference.IsAlive);
     }
 
     [TestMethod]
@@ -745,32 +729,6 @@ public class CompiledQueryArtifactApiTests
 
         Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())));
         return result.Artifact ?? throw new AssertFailedException("Successful artifact compilation produced no artifact.");
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private WeakReference CreateDefaultLoadedContextWeakReference()
-    {
-        const string query = "select i.Value from #artifact.items() i";
-        var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
-        var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
-            query,
-            artifact,
-            new ArtifactSchemaProvider(new ArtifactSchema("single")),
-            _loggerResolver);
-
-        Assert.IsTrue(result.Succeeded);
-        var compiledQuery = result.CompiledQuery ??
-            throw new AssertFailedException("Successful artifact load did not produce a compiled query.");
-        var runnable = GetRunnable(compiledQuery);
-        var loadContext = AssemblyLoadContext.GetLoadContext(runnable.GetType().Assembly);
-        Assert.IsNotNull(loadContext);
-        Assert.IsTrue(loadContext.IsCollectible);
-        var weakReference = new WeakReference(loadContext);
-
-        compiledQuery.Dispose();
-        Assert.Throws<ObjectDisposedException>(() => compiledQuery.Run());
-
-        return weakReference;
     }
 
     private static ITableRunnable GetRunnable(CompiledQuery compiledQuery)

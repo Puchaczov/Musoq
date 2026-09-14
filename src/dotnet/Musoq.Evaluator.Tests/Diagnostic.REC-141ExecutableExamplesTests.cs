@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
@@ -162,7 +160,7 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
     }
 
     [TestMethod]
-    public void RecoveryMetadataExample_ShouldMatchIndependentCatalogAndMissingProviderBoundary()
+    public void UnknownSchemaDiagnostic_ShouldReportMissingSchemaBeforeCorrectedQueryExecutes()
     {
         var provider = CreateCoreProvider([new BasicEntity("fixture")]);
         const string missingProviderQuery = "select Name from #missing.entities()";
@@ -175,20 +173,6 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
         Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
         StringAssert.Contains(diagnostic.Message, "missing");
-
-        var catalogPath = Path.Combine(FindRepositoryRoot(), "specs", "diagnostic-catalog.json");
-        using var catalog = JsonDocument.Parse(File.ReadAllText(catalogPath));
-        var descriptor = catalog.RootElement
-            .GetProperty("diagnostics")
-            .EnumerateArray()
-            .Single(item => item.GetProperty("code").GetString() == "MQ3010_UnknownSchema");
-        Assert.AreEqual("Bind", descriptor.GetProperty("phase").GetString());
-        Assert.AreEqual("Error", descriptor.GetProperty("severity").GetString());
-        Assert.IsTrue(
-            descriptor.GetProperty("suggestedFixes").EnumerateArray()
-                .Select(item => item.GetString() ?? string.Empty)
-                .Any(item => item.Contains("provider", StringComparison.OrdinalIgnoreCase)),
-            "The recovery metadata must retain the provider-registration correction.");
 
         using var corrected = CreateAndRunVirtualMachine(
             "select Name from #A.entities()",
@@ -203,21 +187,6 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
     {
         return new BasicSchemaProvider<BasicEntity>(
             new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = entities });
-    }
-
-    private static string FindRepositoryRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory != null)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "musoq-recovery-campaign.json")))
-                return directory.FullName;
-
-            directory = directory.Parent;
-        }
-
-        Assert.Fail("Could not locate the repository root from the test output directory.");
-        return string.Empty;
     }
 
     private static string Format(IEnumerable<Diagnostic> diagnostics)

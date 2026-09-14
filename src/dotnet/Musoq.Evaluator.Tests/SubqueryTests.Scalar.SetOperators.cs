@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests;
 public partial class SubqueryTests
 {
     [TestMethod]
-    [FeatureEvidence("correlated-scalar-set-operations", FeatureEvidenceKind.RuntimePositive)]
     public void WhenCorrelatedScalarSubquery_UsesUnion_ShouldDeduplicatePerCorrelationKey()
     {
         const string query = @"
@@ -110,7 +109,6 @@ public partial class SubqueryTests
     }
 
     [TestMethod]
-    [FeatureEvidence("correlated-scalar-set-operations", FeatureEvidenceKind.RuntimeNegativeDiagnostic)]
     public void WhenCorrelatedScalarSetBranches_UseDifferentOuterKeys_ShouldExplainSharedKeyRequirement()
     {
         const string query = @"

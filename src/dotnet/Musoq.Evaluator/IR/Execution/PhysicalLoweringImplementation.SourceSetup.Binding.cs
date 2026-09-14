@@ -108,8 +108,5 @@ internal sealed partial class PhysicalLoweringImplementation
         return $"{alias}:{SourceInstanceOrdinal}";
     }
 
-    private static string CreateResolverVariableName(string alias)
-    {
-        return $"{alias}Resolver";
-    }
+
 }

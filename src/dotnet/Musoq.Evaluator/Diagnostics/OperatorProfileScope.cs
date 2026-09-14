@@ -49,13 +49,7 @@ public sealed class OperatorProfileScope : IDisposable
         _owner?.AddOperatorFrameOutputRows(_frameIndex, _frameToken, count);
     }
 
-    internal void ExcludeElapsed(TimeSpan elapsed)
-    {
-        if (elapsed <= TimeSpan.Zero)
-            return;
 
-        _owner?.ExcludeOperatorFrameElapsed(_frameIndex, _frameToken, elapsed.Ticks);
-    }
 
     public void Dispose()
     {

@@ -16,7 +16,7 @@ public static partial class EvaluationHelper
     private static readonly WeakTypeRuntimeCache<Func<object, IReadOnlyList<object>>> ObjectChunkAdapters =
         new(RuntimeCacheOptions.ObjectChunkAdapterCacheSize);
 
-    internal static void ClearObjectChunkAdapterCache() => ObjectChunkAdapters.Clear();
+
 
     public static Type GetRequiredType(string assemblyQualifiedName)
     {

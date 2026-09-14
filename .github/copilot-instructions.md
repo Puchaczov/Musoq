@@ -49,10 +49,10 @@ When two files appear to disagree, the more specific one wins for its scope: per
 ## Working Effectively
 
 ### Prerequisites and Environment Setup
-- **Required**: .NET 10.0.300 SDK or newer 10.0 feature band (pinned in [global.json](../global.json) with `rollForward: latestFeature`)
+- **Required**: .NET 10.0.401 SDK or newer 10.0 feature band (pinned in [global.json](../global.json) with `rollForward: latestFeature`); this carries runtime 10.0.12, which fixes intermittent heap corruption under dynamic-code and parallel-GC workloads
 - **Recommended**: Visual Studio or VS Code with C# extension
 - **OS**: Works on Windows, Linux, and macOS
-- **Package Management**: Packable projects are packaged explicitly with `dotnet pack`; release versions and publication are tag-driven, as described in `RELEASING.md`.
+- **Package Management**: Packable projects are packaged explicitly with `dotnet pack`; release versions and publication are tag-driven, as defined by the [Publish workflow](workflows/publish.yml) and [release scripts](../scripts/release/).
 
 ### Core Development Workflow
 Bootstrap, build, and test the repository:
@@ -304,7 +304,7 @@ For benchmark commands, result interpretation thresholds, baseline workflow, and
 ### Build Validation
 - **Build succeeds without errors**: All projects compile cleanly in Release configuration
 - **NuGet packages are generated**: use `dotnet pack` or the release scripts for distributable modules
-- **No build-time dependencies**: Only requires the .NET 10.0.300+ SDK
+- **No build-time dependencies**: Only requires the .NET 10.0.401+ SDK
 
 ### Performance and Benchmarks Validation
 - **Benchmarks validate functionality**: run a focused benchmark with quiet build output, for example `dotnet build src/dotnet/Musoq.sln --configuration Release --no-restore --nologo --verbosity quiet` followed by `dotnet run --project src/dotnet/Musoq.Benchmarks --configuration Release --no-build -- --filter "*RelevantBenchmark*" --job short --exporters json > TestResults/benchmark.log 2>&1`
@@ -455,7 +455,7 @@ Before touching IR planner, Execution IR, or renderer code, read [architecture.m
 ## Troubleshooting
 
 ### Common Issues
-- **Build failures**: Usually missing .NET 10.0.300+ SDK or corrupted package cache
+- **Build failures**: Usually missing .NET 10.0.401+ SDK or corrupted package cache
 - **Test failures**: Often related to environment-specific paths or test data
 - **Memory issues during development**: Expected due to runtime code generation
 - **Package conflicts**: Use `dotnet clean` then rebuild if dependency issues occur

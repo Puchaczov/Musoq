@@ -5,12 +5,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private static IEnumerable<ExecutionExpression> GetContextLayoutExpressions(ExecutionContextLayout? contextLayout)
-    {
-        return contextLayout == null
-            ? []
-            : contextLayout.Segments.Select(static segment => segment.Value);
-    }
+
 
     private static ExecutionPlan CreateTableResultPlan(
         string identifier,
@@ -23,12 +18,7 @@ internal sealed partial class PhysicalLoweringImplementation
             result.FinalResult ?? throw new InvalidOperationException("Supported table build result must expose final shape metadata."));
     }
 
-    private static ExecutionMaterializeList CreateEmptyMaterializationNode()
-    {
-        return new ExecutionMaterializeList(
-            new ExecutionLiteral(null, typeof(object)),
-            new ExecutionVariable(string.Empty, typeof(object)));
-    }
+
 
     private static ExecutionNode CreateMaterializeListNode(
         ExecutionExpression source,

@@ -49,19 +49,7 @@ public static partial class InstanceCreator
             CreateRuntimeBinding(items));
     }
 
-    private static ITypedRunnable<TOut> CreateTypedRunnable<TOut>(BuildItems items)
-    {
-        var executable = GetExecutableArtifact(
-            items.ExecutableArtifact,
-            items.DllFile,
-            items.PdbFile,
-            () => items.AccessToClassPath,
-            () => CreateMissingRunnableDllMessage(items));
-        var activator = ExecutionTargetCatalog.ResolveActivator(executable.TargetId);
-        return activator.ActivateTyped<TOut>(
-            executable,
-            CreateRuntimeBinding(items));
-    }
+
 
     private static Type LoadRunnableType(BuildItems items)
     {

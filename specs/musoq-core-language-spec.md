@@ -5186,13 +5186,12 @@ engine implementation details are not part of the language contract. Hosts and
 agents should classify a failure by its diagnostic code, phase, source domain,
 arguments, related locations, and actions.
 
-The complete machine-readable catalog is
-specs/diagnostic-catalog.json. It is generated from the
-Musoq.Parser.Diagnostics.DiagnosticDescriptorRegistry and a parser test compares
-every committed record with the registry. The JSON catalog is therefore the
-authoritative list of active codes, including exact message templates,
-severity, phase, category, explanations, documentation references, and
-suggested fixes.
+The authoritative list of active codes and their unified contract is the in-code
+`Musoq.Parser.Diagnostics.DiagnosticDescriptorRegistry`. It is built from the
+in-code `ErrorCatalog` and `ErrorMetadataCatalog`, which define exact message
+templates, severity, phase, category, explanations, documentation references,
+and suggested fixes. Parser tests validate that the registry and metadata
+catalogs remain complete and coherent.
 
 ### 23.1 Diagnostic envelope contract
 

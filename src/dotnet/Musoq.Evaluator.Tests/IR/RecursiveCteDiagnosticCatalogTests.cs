@@ -80,7 +80,6 @@ public sealed class RecursiveCteDiagnosticCatalogTests
 
     [TestMethod]
     [DynamicData(nameof(Cases))]
-    [FeatureEvidence("recursive-ctes", FeatureEvidenceKind.RuntimeNegativeDiagnostic)]
     public void UnsupportedCase_ShouldStopBeforePlanningWithDeclaredDiagnostic(
         RecursiveCteUnsupportedCase testCase)
     {

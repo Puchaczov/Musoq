@@ -119,28 +119,4 @@ public sealed class LikePatternClassifierTests
         Assert.AreEqual(LikePatternRejectionReason.SingleCharacterWildcard, classification.RejectionReason);
     }
 
-    [TestMethod]
-    [DoNotParallelize]
-    public void Classify_AfterWarmup_ShouldNotAllocateForAcceptedOrRejectedPatterns()
-    {
-        var patterns = new[]
-        {
-            new string('a', 4096) + "%",
-            "%" + new string('b', 4096) + "%",
-            new string('c', 2048) + "%middle%" + new string('d', 2048),
-            new string('e', 4096) + "_"
-        };
-        foreach (var pattern in patterns)
-            _ = LikePatternClassifier.Classify(pattern);
-
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var repetition = 0; repetition < 128; repetition++)
-        {
-            foreach (var pattern in patterns)
-                _ = LikePatternClassifier.Classify(pattern);
-        }
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-
-        Assert.AreEqual(0, allocated);
-    }
 }

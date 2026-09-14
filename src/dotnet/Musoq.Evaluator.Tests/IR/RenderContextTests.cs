@@ -30,7 +30,6 @@ public sealed class RenderContextTests : IDisposable
     public void Dispose()
     {
         DisposeWorkspace();
-        GC.SuppressFinalize(this);
     }
 
     private void DisposeWorkspace()

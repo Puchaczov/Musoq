@@ -43,11 +43,7 @@ public sealed class RLikeMatcherCacheSlot
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool IsMatch(string input, string pattern) => GetState().IsMatch(input, pattern);
 
-    internal void Clear()
-    {
-        _serialState.Clear();
-        _workerStates?.Clear();
-    }
+
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private SlotState GetState() => _workerStates is null

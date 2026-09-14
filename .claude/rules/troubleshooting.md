@@ -1,7 +1,7 @@
 ## Troubleshooting
 
 ### Common Issues
-- **Build failures**: Usually missing .NET 10.0.300+ SDK or corrupted package cache
+- **Build failures**: Usually missing .NET 10.0.401+ SDK or corrupted package cache
 - **Test failures**: Often related to environment-specific paths or test data
 - **Memory issues during development**: Expected due to runtime code generation
 - **Package conflicts**: Use `dotnet clean` then rebuild if dependency issues occur

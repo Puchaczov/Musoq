@@ -101,8 +101,5 @@ internal sealed partial class ParallelStrategyPlanner
                pipeline.Project.Fields.Any(static field => ParallelPlanningEligibilityRules.ContainsMethodCall(field.Expression));
     }
 
-    private static int ResolveMaxDegreeOfParallelism(int taskCount)
-    {
-        return Math.Max(1, taskCount);
-    }
+
 }

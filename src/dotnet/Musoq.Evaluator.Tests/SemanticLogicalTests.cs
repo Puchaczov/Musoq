@@ -83,7 +83,6 @@ public class SemanticLogicalTests : NegativeTestsBase
     }
 
     [TestMethod]
-    [FeatureEvidence("outer-join-empty-results", FeatureEvidenceKind.RuntimePositive)]
     public void SL021_LeftOuterJoinWithEmptyRightSide_ShouldReturnAllLeftRows()
     {
         var vm = CompileQuery(

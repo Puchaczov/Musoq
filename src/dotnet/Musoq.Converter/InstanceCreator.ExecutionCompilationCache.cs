@@ -125,14 +125,7 @@ public static partial class InstanceCreator
             canonicalContract);
     }
 
-    private static void CommitExecutionCompilation(
-        ExecutionCompilationCachePublication publication,
-        CancellationToken cancellationToken)
-    {
-        ArgumentNullException.ThrowIfNull(publication);
-        cancellationToken.ThrowIfCancellationRequested();
-        CommitExecutionCompilationAfterCancellationCheck(publication);
-    }
+
 
     private static void CommitExecutionCompilationAfterCancellationCheck(
         ExecutionCompilationCachePublication publication)
@@ -187,14 +180,7 @@ public static partial class InstanceCreator
             canonicalContract);
     }
 
-    private static void CommitCanonicalExecutionAlias(
-        ExecutionCompilationCachePublication publication,
-        CancellationToken cancellationToken)
-    {
-        ArgumentNullException.ThrowIfNull(publication);
-        cancellationToken.ThrowIfCancellationRequested();
-        CommitCanonicalExecutionAliasAfterCancellationCheck(publication);
-    }
+
 
     private static void CommitCanonicalExecutionAliasAfterCancellationCheck(
         ExecutionCompilationCachePublication publication)

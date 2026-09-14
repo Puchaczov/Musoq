@@ -46,8 +46,7 @@ internal static class GeneratedCodeSampleTiming
         int degreeOfParallelism,
         DateTimeOffset startedUtc,
         DateTimeOffset finishedUtc,
-        TimeSpan duration,
-        long allocatedBytes)
+        TimeSpan duration)
     {
         var timingEvent = new GeneratedCodeSampleTimingEvent(
             "corpus-setup",
@@ -57,8 +56,7 @@ internal static class GeneratedCodeSampleTiming
             finishedUtc,
             duration.TotalMilliseconds,
             sampleCount,
-            degreeOfParallelism,
-            allocatedBytes);
+            degreeOfParallelism);
         Events.Enqueue(timingEvent);
         WriteEvent(timingEvent);
     }
@@ -91,6 +89,5 @@ internal static class GeneratedCodeSampleTiming
         DateTimeOffset FinishedUtc,
         double DurationMilliseconds,
         int? SampleCount = null,
-        int? DegreeOfParallelism = null,
-        long? AllocatedBytes = null);
+        int? DegreeOfParallelism = null);
 }

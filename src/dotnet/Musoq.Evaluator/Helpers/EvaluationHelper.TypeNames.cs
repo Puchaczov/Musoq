@@ -11,7 +11,7 @@ public static partial class EvaluationHelper
     private static readonly WeakTypeRuntimeCache<string> CastableTypeCache =
         new(RuntimeCacheOptions.CastableTypeCacheSize);
 
-    internal static void ClearCastableTypeCache() => CastableTypeCache.Clear();
+
 
     public static string GetCastableType(Type type)
     {

@@ -48,33 +48,7 @@ public partial class SubqueryToCteRewriteVisitor
         };
     }
 
-    private static QueryNode AddDistinct(QueryNode subquery)
-    {
-        if (subquery.Select.IsDistinct)
-            return subquery;
 
-        if (subquery.GroupBy != null)
-            return subquery;
-
-        if (subquery.Select.Fields.Any(f => f.Expression is AccessMethodNode))
-            return subquery;
-
-        var groupByFields = new FieldNode[subquery.Select.Fields.Length];
-        for (var i = 0; i < subquery.Select.Fields.Length; i++)
-            groupByFields[i] = new FieldNode(subquery.Select.Fields[i].Expression, i, string.Empty);
-
-        return new QueryNode(
-            subquery.Select,
-            subquery.From,
-            subquery.Where,
-            new GroupByNode(groupByFields, null),
-            subquery.OrderBy,
-            subquery.Skip,
-            subquery.Take,
-            subquery.Window,
-            subquery.Qualify,
-            default);
-    }
 
     private Node ProjectExistsKey(
         Node node,

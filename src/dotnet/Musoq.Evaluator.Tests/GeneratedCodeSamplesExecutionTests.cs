@@ -48,7 +48,6 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
 
     [TestMethod]
     [DynamicData(nameof(RecursiveSampleData))]
-    [FeatureEvidence("recursive-ctes", FeatureEvidenceKind.RuntimePositive)]
     public void RecursiveSample_WhenExecuted_ShouldReturnItsCatalogResult(RecursiveCteSupportedCase testCase)
     {
         using var measurement = EvaluatorTestCaseMeasurement.Begin(

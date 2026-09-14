@@ -49,10 +49,10 @@ When two files appear to disagree, the more specific one wins for its scope: per
 ## Working Effectively
 
 ### Prerequisites and Environment Setup
-- **Required**: .NET 10.0.300 SDK or newer 10.0 feature band (pinned in [global.json](global.json) with `rollForward: latestFeature`)
+- **Required**: .NET 10.0.401 SDK or newer 10.0 feature band (pinned in [global.json](global.json) with `rollForward: latestFeature`); this carries runtime 10.0.12, which fixes intermittent heap corruption under dynamic-code and parallel-GC workloads
 - **Recommended**: Visual Studio or VS Code with C# extension
 - **OS**: Works on Windows, Linux, and macOS
-- **Package Management**: Packages are generated explicitly with `dotnet pack`; release package versions live in [scripts/Versions.props](scripts/Versions.props). Publishing is tag-driven only; see [RELEASING.md](RELEASING.md).
+- **Package Management**: Packages are generated explicitly with `dotnet pack`; release package versions live in [scripts/Versions.props](scripts/Versions.props). Publishing is tag-driven only; see the [Publish workflow](.github/workflows/publish.yml) and [release scripts](scripts/release/).
 
 ### Core Development Workflow
 Bootstrap, build, and test the repository:

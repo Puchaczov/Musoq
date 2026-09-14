@@ -10,7 +10,7 @@ Start with the repo-wide [Copilot guide](.github/copilot-instructions.md). Befor
 
 ## Build, Test, and Development Commands
 
-Use the .NET SDK pinned by `global.json` (10.0.300 or a compatible 10.0 feature band):
+Use the .NET SDK pinned by `global.json` (10.0.401 or a compatible newer 10.0 feature band):
 
 ```powershell
 dotnet restore src/dotnet/Musoq.sln --nologo --verbosity quiet
@@ -30,4 +30,4 @@ Tests use MSTest in `*.Tests` projects. Add regression coverage beside the chang
 
 ## Commit & Pull Request Guidelines
 
-Use imperative Conventional-Commit-style subjects, optionally scoped: `feat(evaluator): ...`, `fix(parser): ...`, `test: ...`, or `chore(release): ...`. Keep commits focused. Pull requests should explain the behavior and affected modules, link the relevant issue when one exists, and report the exact build/test commands run; include screenshots only for user-facing visual changes. Keep release and package changes aligned with `RELEASING.md`.
+Use imperative Conventional-Commit-style subjects, optionally scoped: `feat(evaluator): ...`, `fix(parser): ...`, `test: ...`, or `chore(release): ...`. Keep commits focused. Pull requests should explain the behavior and affected modules, link the relevant issue when one exists, and report the exact build/test commands run; include screenshots only for user-facing visual changes. Keep release and package changes aligned with the [Publish workflow](.github/workflows/publish.yml) and [release scripts](scripts/release/).

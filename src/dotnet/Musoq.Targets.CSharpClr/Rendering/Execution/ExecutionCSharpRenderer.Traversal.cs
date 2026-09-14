@@ -36,9 +36,6 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
 
-    private static IEnumerable<ExecutionFieldRead> CollectFieldReads(ExecutionBlock block)
-    {
-        return ExecutionIrAnalysis.CollectExpressions<ExecutionFieldRead>(block);
-    }
+
 
 }

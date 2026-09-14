@@ -602,9 +602,5 @@ internal static class OuterApplyNullSubstitutionService
 
     private static string FormatTypeName(ExecutionTypeRef type) => FormatTypeName(type.ResolveClrType());
 
-    private static bool ReferencesAlias(IrExpression expression, string alias)
-    {
-        return AliasRefExtractor.Extract(expression).Any(candidate =>
-            string.Equals(candidate, alias, StringComparison.OrdinalIgnoreCase));
-    }
+
 }

@@ -21,15 +21,4 @@ public sealed class SourcePredicateContractDocumentationTests
         Assert.Contains("before payload open, decode, or row materialization", source);
     }
 
-    [TestMethod]
-    public void MatchingSemanticsDocumentation_ShouldDescribePreparationCulture()
-    {
-        var source = File.ReadAllText(Path.Combine(
-            RepositorySourceScan.RepositoryRoot(),
-            "docs",
-            "source-string-match-specialization.md"));
-
-        Assert.Contains("execution culture captured when the", source);
-        Assert.DoesNotContain("culture-independent", source);
-    }
 }

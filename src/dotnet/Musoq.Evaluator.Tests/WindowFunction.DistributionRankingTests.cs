@@ -8,7 +8,6 @@ public sealed class WindowFunctionDistributionRankingTests : BasicEntityTestBase
 {
 
     [TestMethod]
-    [FeatureEvidence("percent-rank-cume-dist", FeatureEvidenceKind.RuntimePositive)]
     public void DistributionRankings_WithPartitionsCompositePeersAndNulls_ShouldUsePeerOrdinals()
     {
         const string query = """

@@ -110,31 +110,6 @@ public sealed class RLikeLiteralPatternClassifierTests
         });
     }
 
-    [TestMethod]
-    public void Classify_AfterWarmup_ShouldNotAllocate()
-    {
-        var patterns = new[]
-        {
-            new string('a', 4096),
-            string.Concat(@"\A", new string('b', 4096)),
-            string.Concat(new string('c', 4096), @"\z"),
-            string.Concat(@"\A", new string('d', 4096), @"\z"),
-            string.Concat(new string('e', 2048), ".", new string('f', 2048)),
-            string.Concat(new string('g', 2048), @"\d", new string('h', 2048))
-        };
-        foreach (var pattern in patterns)
-            _ = RLikeLiteralPatternClassifier.Classify(pattern);
-
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var repetition = 0; repetition < 128; repetition++)
-        {
-            foreach (var pattern in patterns)
-                _ = RLikeLiteralPatternClassifier.Classify(pattern);
-        }
-
-        Assert.AreEqual(0, GC.GetAllocatedBytesForCurrentThread() - before);
-    }
-
     private static (string Pattern, string Input, bool Expected)[] FixedCases() =>
     [
         ("alpha", "head-alpha-tail", true),

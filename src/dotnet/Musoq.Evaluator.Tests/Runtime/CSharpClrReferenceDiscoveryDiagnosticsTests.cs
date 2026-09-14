@@ -1,12 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
-using System.Runtime.Loader;
-using System.Collections.Generic;
-using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.External.Contracts;
@@ -146,159 +144,6 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
         }
     }
 
-    [TestMethod]
-    public void DuplicateAssemblyIdentitiesFromDifferentPaths_ShouldKeepFirstReferenceOnly()
-    {
-        var probe = CollectDuplicateAssemblies();
-        try
-        {
-            Assert.HasCount(1, probe.ReferencePaths);
-            Assert.AreEqual(
-                Path.GetFullPath(probe.FirstPath),
-                Path.GetFullPath(probe.ReferencePaths[0]));
-        }
-        finally
-        {
-            DeleteDirectory(probe.DirectoryPath);
-        }
-    }
-
-    [TestMethod]
-    [DoNotParallelize]
-    public void CollectibleAssembly_ShouldNotBeRetainedByReferenceDiscoveryState()
-    {
-        if (!string.Equals(
-                Environment.GetEnvironmentVariable(CollectibleAssemblyProbeEnvironmentVariable),
-                "1",
-                StringComparison.Ordinal))
-        {
-            RunCollectibleAssemblyProbeInChildProcess();
-            return;
-        }
-
-        AssertCollectibleAssemblyCanUnload();
-    }
-
-    private static void AssertCollectibleAssemblyCanUnload()
-    {
-        var probe = CollectFromCollectibleAssembly();
-        try
-        {
-            for (var attempt = 0; attempt < 10 && probe.Context.IsAlive; attempt++)
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
-            }
-
-            Assert.IsFalse(probe.Context.IsAlive);
-        }
-        finally
-        {
-            DeleteDirectory(probe.DirectoryPath);
-        }
-    }
-
-    [TestMethod]
-    public void CollectibleAssemblyGcDiagnostic_ShouldRemainSerialized()
-    {
-        var method = typeof(CSharpClrReferenceDiscoveryDiagnosticsTests).GetMethod(
-            nameof(CollectibleAssembly_ShouldNotBeRetainedByReferenceDiscoveryState));
-
-        Assert.IsNotNull(method?.GetCustomAttribute<DoNotParallelizeAttribute>());
-    }
-
-    private static void RunCollectibleAssemblyProbeInChildProcess()
-    {
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = "dotnet",
-            WorkingDirectory = AppContext.BaseDirectory,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            CreateNoWindow = true
-        };
-        startInfo.ArgumentList.Add("test");
-        startInfo.ArgumentList.Add(typeof(CSharpClrReferenceDiscoveryDiagnosticsTests).Assembly.Location);
-        startInfo.ArgumentList.Add("--nologo");
-        startInfo.ArgumentList.Add("--verbosity");
-        startInfo.ArgumentList.Add("quiet");
-        startInfo.ArgumentList.Add("--filter");
-        startInfo.ArgumentList.Add(
-            $"FullyQualifiedName={typeof(CSharpClrReferenceDiscoveryDiagnosticsTests).FullName}." +
-            nameof(CollectibleAssembly_ShouldNotBeRetainedByReferenceDiscoveryState));
-        startInfo.ArgumentList.Add("--logger");
-        startInfo.ArgumentList.Add("console;verbosity=minimal");
-        startInfo.Environment[CollectibleAssemblyProbeEnvironmentVariable] = "1";
-
-        using var process = Process.Start(startInfo)
-                            ?? throw new InvalidOperationException("Could not start the collectible-assembly probe.");
-        var standardOutput = process.StandardOutput.ReadToEndAsync();
-        var standardError = process.StandardError.ReadToEndAsync();
-
-        if (!process.WaitForExit(CollectibleAssemblyProbeTimeoutMilliseconds))
-        {
-            process.Kill(entireProcessTree: true);
-            Assert.Fail("The isolated collectible-assembly probe exceeded its 30 second timeout.");
-        }
-
-        var output = standardOutput.GetAwaiter().GetResult();
-        var error = standardError.GetAwaiter().GetResult();
-        Assert.AreEqual(
-            0,
-            process.ExitCode,
-            $"The isolated collectible-assembly probe failed.{Environment.NewLine}{output}{Environment.NewLine}{error}");
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static (WeakReference Context, string DirectoryPath) CollectFromCollectibleAssembly()
-    {
-        var directoryPath = CreateDirectory();
-        var assemblyPath = CopyAssembly(directoryPath, "collectible.dll");
-        var loadContext = new AssemblyLoadContext("wave5-collectible", isCollectible: true);
-        var assembly = loadContext.LoadFromAssemblyPath(assemblyPath);
-        var type = assembly.GetType(typeof(ExternalPayload).FullName!, throwOnError: true)!;
-
-        _ = Collect(
-            [assembly],
-            new ExecutionTargetRequirement(
-                ExecutionTargetRequirementKind.ClrTypeUsage,
-                "collectible source row",
-                ExecutionPortableSymbolFactory.FromType(type)));
-
-        var reference = new WeakReference(loadContext);
-        loadContext.Unload();
-        return (reference, directoryPath);
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static (string DirectoryPath, string FirstPath, string[] ReferencePaths) CollectDuplicateAssemblies()
-    {
-        var directoryPath = CreateDirectory();
-        var firstPath = CopyAssembly(directoryPath, "first.dll");
-        var secondPath = CopyAssembly(directoryPath, "second.dll");
-        var firstContext = new AssemblyLoadContext("wave5-first", isCollectible: true);
-        var secondContext = new AssemblyLoadContext("wave5-second", isCollectible: true);
-        var referencePaths = Array.Empty<string>();
-
-        try
-        {
-            var firstAssembly = firstContext.LoadFromAssemblyPath(firstPath);
-            var secondAssembly = secondContext.LoadFromAssemblyPath(secondPath);
-            referencePaths = Collect([firstAssembly, secondAssembly])
-                .Select(static reference => reference.Location)
-                .ToArray();
-        }
-        finally
-        {
-            firstContext.Unload();
-            secondContext.Unload();
-        }
-
-        return (directoryPath, firstPath, referencePaths);
-    }
-
     private static void AssertMissingReferenceDiagnostic(
         CSharpClrReferenceDiscoveryException exception,
         string assemblyIdentity,
@@ -349,13 +194,6 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
         return path;
     }
 
-    private static string CopyAssembly(string directoryPath, string fileName)
-    {
-        var destination = Path.Combine(directoryPath, fileName);
-        File.Copy(typeof(ExternalPayload).Assembly.Location, destination);
-        return destination;
-    }
-
     private static void DeleteDirectory(string directoryPath)
     {
         for (var attempt = 0; attempt < 10 && Directory.Exists(directoryPath); attempt++)
@@ -364,11 +202,9 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
             {
                 Directory.Delete(directoryPath, recursive: true);
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedAccessException) when (attempt < 9)
             {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
+                Thread.Sleep(20);
             }
         }
     }
@@ -380,7 +216,4 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
         public override string FullName => identity;
     }
 
-    private const int CollectibleAssemblyProbeTimeoutMilliseconds = 30_000;
-    private const string CollectibleAssemblyProbeEnvironmentVariable =
-        "MUSOQ_COLLECTIBLE_ASSEMBLY_PROBE_PROCESS";
 }

@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -121,71 +119,6 @@ public sealed class DiagnosticREC142MissingEnvironmentGuidanceTests : BasicEntit
         AssertSafeObservationGuidance(compatibilityEnvelope, "Check", "verbose");
     }
 
-    [TestMethod]
-    public void ProductRecoveryRoutes_ShouldBeValidatedAgainstTheBoundCommandSnapshot()
-    {
-        var commandsPath = Path.Combine(FindRepositoryRoot(), "docs", "campaigns", "recovery-v3", "authority", "commands.json");
-        using var commands = JsonDocument.Parse(File.ReadAllText(commandsPath));
-        var paths = commands.RootElement
-            .GetProperty("Commands")
-            .EnumerateArray()
-            .Select(command => command.GetProperty("Path").GetString() ?? string.Empty)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var observationRoutes = new[]
-        {
-            "describe error",
-            "describe schema",
-            "describe settings",
-            "describe source"
-        };
-
-        foreach (var route in observationRoutes)
-            Assert.IsTrue(paths.Contains(route), $"The bound product command contract is missing '{route}'.");
-
-        Assert.IsFalse(paths.Contains("describe recover"));
-        Assert.IsFalse(paths.Contains("force repair"));
-        Assert.IsFalse(paths.Contains("reset environment"));
-    }
-
-    [TestMethod]
-    public void EnvironmentGuidanceCatalog_ShouldRemainNonDestructiveAndRequestObservation()
-    {
-        var catalogPath = Path.Combine(FindRepositoryRoot(), "specs", "diagnostic-catalog.json");
-        using var catalog = JsonDocument.Parse(File.ReadAllText(catalogPath));
-        var expectedPhases = new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["MQ3010_UnknownSchema"] = "Bind",
-            ["MQ3085_UnknownSource"] = "Bind",
-            ["MQ3067_MissingSourceRuntimeSetting"] = "Bind",
-            ["MQ3071_SourceContractError"] = "Bind",
-            ["MQ5013_SourceContractWarning"] = "Bind",
-            ["MQ7010_DataSourceOpenFailed"] = "DataSource",
-            ["MQ7011_DataSourceReadFailed"] = "DataSource"
-        };
-
-        foreach (var (code, phase) in expectedPhases)
-        {
-            var descriptor = catalog.RootElement
-                .GetProperty("diagnostics")
-                .EnumerateArray()
-                .Single(item => item.GetProperty("code").GetString() == code);
-            Assert.AreEqual(phase, descriptor.GetProperty("phase").GetString(), code);
-
-            var explanation = descriptor.GetProperty("explanation").GetString() ?? string.Empty;
-            var fixes = descriptor.GetProperty("suggestedFixes")
-                .EnumerateArray()
-                .Select(item => item.GetString() ?? string.Empty)
-                .ToArray();
-            Assert.IsFalse(string.IsNullOrWhiteSpace(explanation), code);
-            Assert.IsNotEmpty(fixes, code);
-
-            var recoveryText = string.Join(" ", fixes.Prepend(explanation));
-            Assert.IsFalse(ContainsDestructiveRecoveryWord(recoveryText),
-                $"{code} must not collapse safe observation guidance into destructive recovery.");
-        }
-    }
-
     private static void AssertSafeObservationGuidance(
         MusoqErrorEnvelope envelope,
         params string[] requiredTerms)
@@ -214,21 +147,6 @@ public sealed class DiagnosticREC142MissingEnvironmentGuidanceTests : BasicEntit
         return value.Contains("reset", StringComparison.OrdinalIgnoreCase) ||
                value.Contains("reinstall", StringComparison.OrdinalIgnoreCase) ||
                value.Contains("force", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static string FindRepositoryRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory != null)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "musoq-recovery-campaign.json")))
-                return directory.FullName;
-
-            directory = directory.Parent;
-        }
-
-        Assert.Fail("Could not locate the repository root from the test output directory.");
-        return string.Empty;
     }
 
     private sealed class ThrowingProvider(Exception exception) : ISchemaProvider

@@ -65,12 +65,7 @@ public partial class Parser
     }
 
 
-    private TNode ComposeAndSkip<TNode>(Func<Parser, TNode> parserAction, TokenType type)
-    {
-        var node = Compose(parserAction);
-        Consume(type);
-        return node;
-    }
+
 
 
     private TNode ComposeAndSkipIfPresent<TNode>(Func<Parser, TNode> parserAction, TokenType type)

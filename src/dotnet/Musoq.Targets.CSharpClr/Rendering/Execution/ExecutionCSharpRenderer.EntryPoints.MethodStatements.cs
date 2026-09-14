@@ -221,10 +221,7 @@ public sealed partial class ExecutionCSharpRenderer
         }
     }
 
-    private static IDisposable SuppressChunkLoopCancellationChecks(ExecutionRenderContext context)
-    {
-        return new ChunkLoopCancellationCheckScope(context, false);
-    }
+
 
     private sealed class ChunkLoopCancellationCheckScope : IDisposable
     {

@@ -123,14 +123,5 @@ public sealed partial class CSharpRenderer
                 SyntaxFactory.DiscardDesignation())));
     }
 
-    private static BinaryExpressionSyntax CreateParallelRowsAvailableCondition(string parallelRowsName)
-    {
-        return SyntaxFactory.BinaryExpression(
-            SyntaxKind.GreaterThanExpression,
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName(parallelRowsName),
-                SyntaxFactory.IdentifierName(nameof(IReadOnlyCollection<object>.Count))),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0)));
-    }
+
 }

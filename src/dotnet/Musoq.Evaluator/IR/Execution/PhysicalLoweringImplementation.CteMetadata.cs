@@ -189,12 +189,7 @@ internal sealed partial class PhysicalLoweringImplementation
             ClassifyCteOutput(child, ref flags);
     }
 
-    private static string? ResolveStatementNamePrefix(string resultTableName)
-    {
-        return string.Equals(resultTableName, "result", StringComparison.Ordinal)
-            ? null
-            : resultTableName;
-    }
+
 
     private static string CreateStatementTableName(string? namePrefix, int index)
     {
