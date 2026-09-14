@@ -82,8 +82,8 @@ internal static partial class ExecutionIrAnalysis
             ExecutionRowPresence rowPresence => [rowPresence.PresenceSource],
             ExecutionInCheck inCheck => [inCheck.Expression, .. inCheck.Values],
             ExecutionCollectionInCheck collectionInCheck => [collectionInCheck.Expression, collectionInCheck.Collection],
-            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or
-                ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot => PatternExpressionFacts.GetChildren(expression),
+            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or
+                ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.GetChildren(expression),
             ExecutionBetween between => [between.Expression, between.Low, between.High],
             ExecutionCaseWhen caseWhen => caseWhen.ElseExpression == null
                 ? caseWhen.Branches.SelectMany(static branch => new[] { branch.Condition, branch.Result })

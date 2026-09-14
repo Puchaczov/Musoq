@@ -48,7 +48,7 @@ public sealed class LikeStrategyLoweringPassTests
         Assert.HasCount(1, ExecutionIrAnalysis.CollectExpressions<ExecutionPrepareLikeMatcher>(result.Plan.Body));
         Assert.HasCount(2, ExecutionIrAnalysis.CollectExpressions<ExecutionPreparedLikeMatch>(result.Plan.Body));
         Assert.IsEmpty(ExecutionIrAnalysis.CollectExpressions<ExecutionDynamicLikeMatch>(result.Plan.Body));
-        StringAssert.Contains(result.Reason, "loop-invariant prepared=2");
+        StringAssert.Contains(result.Reason, "LIKE(direct=0, prepared=2, dynamic=0, loop-invariant=2");
     }
 
     [TestMethod]

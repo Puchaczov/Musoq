@@ -15,8 +15,8 @@ public partial class Operators
         new(RuntimeCacheOptions.PatternCacheSize);
     private static readonly BoundedRuntimeCache<LikeMatcherCacheKey, Func<string, bool>> LegacyLikeMatcherCache =
         new(RuntimeCacheOptions.PatternCacheSize);
-    private static readonly BoundedRuntimeCache<string, Regex> RLikePatternCache =
-        new(RuntimeCacheOptions.PatternCacheSize, StringComparer.Ordinal);
+    private static readonly BoundedRuntimeCache<RLikeMatcherCacheKey, Regex> RLikePatternCache =
+        new(RuntimeCacheOptions.PatternCacheSize);
     private static LegacyLikeMatcherFrontEntry? _legacyLikeMatcherFrontEntry;
 
     /// <summary>
@@ -243,13 +243,43 @@ public partial class Operators
 
     public bool RLike(string? content, string? pattern)
     {
+        return RLikeDynamic(content, pattern);
+    }
+
+    /// <summary>Prepares an RLIKE pattern without compiling it until the first non-null match.</summary>
+    public static PreparedRLikeMatcher? PrepareRLike(string? pattern)
+    {
+        if (pattern is null)
+            return null;
+
+        return new PreparedRLikeMatcher(pattern, GetOrCreateRLikeRegex);
+    }
+
+    /// <summary>Matches a value using a prepared RLIKE pattern.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool RLikePrepared(string? content, PreparedRLikeMatcher? matcher)
+    {
+        return content is not null && matcher is not null && matcher.IsMatch(content);
+    }
+
+    /// <summary>Matches a value against a runtime RLIKE pattern using the bounded process cache.</summary>
+    public static bool RLikeDynamic(string? content, string? pattern)
+    {
         if (content is null || pattern is null)
             return false;
 
-        var regex = RLikePatternCache.GetOrAdd(pattern, static p =>
-            new Regex(p, RegexOptions.Compiled, RuntimeCacheOptions.DefaultRegexTimeout));
+        return GetOrCreateRLikeRegex(pattern, CultureInfo.CurrentCulture).IsMatch(content);
+    }
 
-        return regex.IsMatch(content);
+    /// <summary>Matches a value against a runtime RLIKE pattern using an execution-local cache.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool RLikeDynamic(string? content, string? pattern, RLikeMatcherCacheSlot cacheSlot)
+    {
+        if (content is null || pattern is null)
+            return false;
+
+        ArgumentNullException.ThrowIfNull(cacheSlot);
+        return cacheSlot.IsMatch(content, pattern);
     }
 
     public bool Contains<T>(T? value, T?[]? values)
@@ -278,6 +308,13 @@ public partial class Operators
 
     private static LikeMatcherCacheKey CreateLikeMatcherCacheKey(string pattern) =>
         new(pattern, CultureInfo.CurrentCulture.Name);
+
+    private static Regex GetOrCreateRLikeRegex(string pattern, CultureInfo culture)
+    {
+        var key = new RLikeMatcherCacheKey(pattern, culture.Name);
+        return RLikePatternCache.GetOrAdd(key, static cacheKey =>
+            new Regex(cacheKey.Pattern, RegexOptions.Compiled, RuntimeCacheOptions.DefaultRegexTimeout));
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool LikeLegacyRegexAfterAsciiMiss(
@@ -556,6 +593,8 @@ public partial class Operators
     }
 
     private readonly record struct LikeMatcherCacheKey(string Pattern, string CultureName);
+
+    private readonly record struct RLikeMatcherCacheKey(string Pattern, string CultureName);
 
     private sealed record LegacyLikeMatcherFrontEntry(
         string Pattern,

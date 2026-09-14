@@ -30,7 +30,7 @@ public sealed class StringMatchTargetContractTests
         var operations = ExecutionTargetOperationAnalyzer.Analyze(plan);
         var features = ExecutionTargetFeatureAnalyzer.Analyze(plan);
 
-        Assert.AreEqual(7, plan.ExecutionIrVersion);
+        Assert.AreEqual(8, plan.ExecutionIrVersion);
         Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.Validate(operations).IsSupported);
         Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.Validate(features).IsSupported);
 
@@ -100,5 +100,54 @@ public sealed class StringMatchTargetContractTests
             feature.Kind == ExecutionTargetFeatureKind.LikeMatcherStrategy));
         Assert.IsTrue(portableFeatures.UnsupportedFeatures.Any(static feature =>
             feature.Kind == ExecutionTargetFeatureKind.StringMatchComparison));
+    }
+
+    [TestMethod]
+    public void RLikeMatcherOperations_CSharpShouldAcceptAndPortableSubsetShouldRejectBeforeRendering()
+    {
+        var matcherType = ExecutionClrBindingFactory.FromClr(typeof(PreparedRLikeMatcher));
+        var cacheType = ExecutionClrBindingFactory.FromClr(typeof(RLikeMatcherCacheSlot));
+        var matcher = new ExecutionVariable("matcher", matcherType);
+        var cache = new ExecutionVariable("cache", cacheType);
+        var plan = new ExecutionPlan(
+            "Q_RLikeMatcherTargetContract",
+            [],
+            new ExecutionBlock([
+                new ExecutionLet(cache, new ExecutionRLikeMatcherCacheSlot(cacheType)),
+                new ExecutionLet(
+                    matcher,
+                    new ExecutionPrepareRLikeMatcher(new ExecutionLiteral("^a", typeof(string)), matcherType)),
+                new ExecutionLet(
+                    new ExecutionVariable("prepared", typeof(bool)),
+                    new ExecutionPreparedRLikeMatch(
+                        new ExecutionLiteral("alpha", typeof(string)),
+                        new ExecutionVariableRead(matcher),
+                        ExecutionClrBindingFactory.FromClr(typeof(bool)))),
+                new ExecutionLet(
+                    new ExecutionVariable("dynamic", typeof(bool)),
+                    new ExecutionDynamicRLikeMatch(
+                        new ExecutionLiteral("alpha", typeof(string)),
+                        new ExecutionLiteral("^a", typeof(string)),
+                        new ExecutionVariableRead(cache),
+                        ExecutionClrBindingFactory.FromClr(typeof(bool))))
+            ]));
+        var operations = ExecutionTargetOperationAnalyzer.Analyze(plan);
+        var features = ExecutionTargetFeatureAnalyzer.Analyze(plan);
+
+        Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.Validate(operations).IsSupported);
+        Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.Validate(features).IsSupported);
+        var portableOperations = PortableSubsetTarget.Capabilities.Validate(operations);
+        var portableFeatures = PortableSubsetTarget.Capabilities.Validate(features);
+        CollectionAssert.AreEquivalent(
+            new[]
+            {
+                "expr.rlike.cache-slot",
+                "expr.rlike.dynamic-match",
+                "expr.rlike.prepare-matcher",
+                "expr.rlike.prepared-match"
+            },
+            portableOperations.UnsupportedOperations.Select(static operation => operation.Value).ToArray());
+        Assert.IsTrue(portableFeatures.UnsupportedFeatures.Any(static feature =>
+            feature.Kind == ExecutionTargetFeatureKind.RLikeMatcherStrategy));
     }
 }

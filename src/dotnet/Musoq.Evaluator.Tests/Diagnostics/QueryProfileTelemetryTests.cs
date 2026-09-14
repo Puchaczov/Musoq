@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Diagnostics;
 using Musoq.Schema.Diagnostics;
@@ -15,43 +17,73 @@ public sealed class QueryProfileTelemetryTests
     [TestMethod]
     public void QueryProfileTelemetry_WhenActivityListenerIsEnabled_EmitsQuerySourceAndOperatorActivities()
     {
-        var activities = new List<Activity>();
+        var activities = new ConcurrentQueue<Activity>();
         using var listener = new ActivityListener
         {
             ShouldListenTo = static source => source.Name == QueryProfileTelemetry.Name,
             Sample = static (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
-            ActivityStopped = activities.Add
+            ActivityStopped = activities.Enqueue
         };
 
         ActivitySource.AddActivityListener(listener);
 
-        QueryProfileTelemetry.Emit(CreateSnapshot());
+        QueryProfileTelemetry.Emit(CreateSnapshot("activity-query"));
 
-        var queryActivity = activities.First(static activity => activity.OperationName == "Musoq.Query");
-        Assert.AreEqual("query-1", queryActivity.GetTagItem("musoq.query.id"));
-        Assert.IsTrue(activities.Any(static activity => activity.OperationName == "Musoq.Query.Source"));
-        Assert.IsTrue(activities.Any(static activity => activity.OperationName == "Musoq.Query.Operator"));
+        var queryActivity = activities.First(static activity =>
+            activity.OperationName == "Musoq.Query" &&
+            Equals(activity.GetTagItem("musoq.query.id"), "activity-query"));
+        Assert.AreEqual("activity-query", queryActivity.GetTagItem("musoq.query.id"));
+        Assert.IsTrue(activities.Any(static activity =>
+            activity.OperationName == "Musoq.Query.Source" &&
+            Equals(activity.GetTagItem("musoq.query.id"), "activity-query")));
+        Assert.IsTrue(activities.Any(static activity =>
+            activity.OperationName == "Musoq.Query.Operator" &&
+            Equals(activity.GetTagItem("musoq.query.id"), "activity-query")));
 
         var sourceActivity = activities.First(static activity =>
             activity.OperationName == "Musoq.Query.Source" &&
+            Equals(activity.GetTagItem("musoq.query.id"), "activity-query") &&
             Equals(activity.GetTagItem("musoq.source.name"), "items"));
-        Assert.AreEqual("query-1", sourceActivity.GetTagItem("musoq.query.id"));
+        Assert.AreEqual("activity-query", sourceActivity.GetTagItem("musoq.query.id"));
         Assert.AreEqual("items", sourceActivity.GetTagItem("musoq.source.id"));
         Assert.AreEqual("items", sourceActivity.GetTagItem("musoq.source.name"));
         Assert.AreEqual("Balanced", sourceActivity.GetTagItem("musoq.source.diagnosis"));
 
         var operatorActivity = activities.First(static activity =>
             activity.OperationName == "Musoq.Query.Operator" &&
+            Equals(activity.GetTagItem("musoq.query.id"), "activity-query") &&
             Equals(activity.GetTagItem("musoq.operator.id"), "op1"));
-        Assert.AreEqual("query-1", operatorActivity.GetTagItem("musoq.query.id"));
+        Assert.AreEqual("activity-query", operatorActivity.GetTagItem("musoq.query.id"));
         Assert.AreEqual("op1", operatorActivity.GetTagItem("musoq.operator.id"));
         Assert.AreEqual("SourceScan", operatorActivity.GetTagItem("musoq.operator.name"));
     }
 
     [TestMethod]
+    public void QueryProfileTelemetry_WhenSnapshotsAreEmittedConcurrently_ListenerReceivesCompleteActivityTrees()
+    {
+        var activities = new ConcurrentQueue<Activity>();
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = static source => source.Name == QueryProfileTelemetry.Name,
+            Sample = static (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = activities.Enqueue
+        };
+
+        ActivitySource.AddActivityListener(listener);
+        Parallel.For(0, 8, _ => QueryProfileTelemetry.Emit(CreateSnapshot("concurrent-query")));
+
+        var matchingActivities = activities
+            .Where(static activity => Equals(activity.GetTagItem("musoq.query.id"), "concurrent-query"))
+            .ToArray();
+        Assert.HasCount(8, matchingActivities.Where(static activity => activity.OperationName == "Musoq.Query"));
+        Assert.HasCount(8, matchingActivities.Where(static activity => activity.OperationName == "Musoq.Query.Source"));
+        Assert.HasCount(8, matchingActivities.Where(static activity => activity.OperationName == "Musoq.Query.Operator"));
+    }
+
+    [TestMethod]
     public void QueryProfileTelemetry_WhenMeterListenerIsEnabled_EmitsRowsDurationsAndBacklogMeasurements()
     {
-        var measurements = new List<RecordedMeasurement>();
+        var measurements = new ConcurrentQueue<RecordedMeasurement>();
         using var listener = new MeterListener();
 
         listener.InstrumentPublished = static (instrument, meterListener) =>
@@ -60,14 +92,19 @@ public sealed class QueryProfileTelemetryTests
                 meterListener.EnableMeasurementEvents(instrument);
         };
         listener.SetMeasurementEventCallback<double>((instrument, _, tags, _) =>
-            measurements.Add(new RecordedMeasurement(instrument.Name, ToDictionary(tags))));
+            measurements.Enqueue(new RecordedMeasurement(instrument.Name, ToDictionary(tags))));
         listener.SetMeasurementEventCallback<long>((instrument, _, tags, _) =>
-            measurements.Add(new RecordedMeasurement(instrument.Name, ToDictionary(tags))));
+            measurements.Enqueue(new RecordedMeasurement(instrument.Name, ToDictionary(tags))));
         listener.Start();
 
-        QueryProfileTelemetry.Emit(CreateSnapshot());
+        QueryProfileTelemetry.Emit(CreateSnapshot("meter-query"));
 
-        var measurementNames = measurements.Select(static measurement => measurement.Name).ToArray();
+        var queryMeasurements = measurements
+            .Where(static measurement =>
+                measurement.Tags.TryGetValue("musoq.query.id", out var queryId) &&
+                Equals(queryId, "meter-query"))
+            .ToArray();
+        var measurementNames = queryMeasurements.Select(static measurement => measurement.Name).ToArray();
         CollectionAssert.Contains(measurementNames, "musoq.query.elapsed");
         CollectionAssert.Contains(measurementNames, "musoq.query.source.rows_read");
         CollectionAssert.Contains(measurementNames, "musoq.query.source.rows_produced");
@@ -77,19 +114,19 @@ public sealed class QueryProfileTelemetryTests
         CollectionAssert.Contains(measurementNames, "musoq.query.operator.rows");
         CollectionAssert.Contains(measurementNames, "musoq.query.operator.elapsed");
 
-        var queryMeasurement = measurements.First(static measurement => measurement.Name == "musoq.query.elapsed");
-        Assert.AreEqual("query-1", queryMeasurement.Tags["musoq.query.id"]);
+        var queryMeasurement = queryMeasurements.First(static measurement => measurement.Name == "musoq.query.elapsed");
+        Assert.AreEqual("meter-query", queryMeasurement.Tags["musoq.query.id"]);
 
-        var sourceMeasurement = measurements.First(static measurement => measurement.Name == "musoq.query.source.rows_read");
-        Assert.AreEqual("query-1", sourceMeasurement.Tags["musoq.query.id"]);
+        var sourceMeasurement = queryMeasurements.First(static measurement => measurement.Name == "musoq.query.source.rows_read");
+        Assert.AreEqual("meter-query", sourceMeasurement.Tags["musoq.query.id"]);
         Assert.AreEqual("items", sourceMeasurement.Tags["musoq.source.id"]);
 
-        var operatorMeasurement = measurements.First(static measurement => measurement.Name == "musoq.query.operator.rows");
-        Assert.AreEqual("query-1", operatorMeasurement.Tags["musoq.query.id"]);
+        var operatorMeasurement = queryMeasurements.First(static measurement => measurement.Name == "musoq.query.operator.rows");
+        Assert.AreEqual("meter-query", operatorMeasurement.Tags["musoq.query.id"]);
         Assert.AreEqual("op1", operatorMeasurement.Tags["musoq.operator.id"]);
     }
 
-    private static QueryProfileSnapshot CreateSnapshot()
+    private static QueryProfileSnapshot CreateSnapshot(string queryId)
     {
         return new QueryProfileSnapshot(
             TimeSpan.FromMilliseconds(12),
@@ -122,7 +159,7 @@ public sealed class QueryProfileTelemetryTests
                     TimeSpan.FromMilliseconds(6))
             ])
         {
-            QueryId = "query-1"
+            QueryId = queryId
         };
     }
 

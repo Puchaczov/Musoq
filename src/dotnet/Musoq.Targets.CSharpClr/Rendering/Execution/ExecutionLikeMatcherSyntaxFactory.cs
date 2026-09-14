@@ -6,7 +6,8 @@ namespace Musoq.Targets.CSharpClr;
 internal static class ExecutionLikeMatcherSyntaxFactory
 {
     public static bool IsStateDeclaration(ExecutionLet declaration) =>
-        declaration.Value is ExecutionPrepareLikeMatcher or ExecutionLikeMatcherCacheSlot;
+        declaration.Value is ExecutionPrepareLikeMatcher or ExecutionLikeMatcherCacheSlot or
+            ExecutionPrepareRLikeMatcher or ExecutionRLikeMatcherCacheSlot;
 
     public static ExpressionSyntax Render(
         ExecutionExpression expression,
@@ -36,6 +37,24 @@ internal static class ExecutionLikeMatcherSyntaxFactory
                     cacheSlot.WorkerLocal
                         ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
                         : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))),
+            ExecutionPrepareRLikeMatcher prepareRLike => InvokeOperators(
+                nameof(Operators.PrepareRLike),
+                renderChild(prepareRLike.Pattern)),
+            ExecutionPreparedRLikeMatch preparedRLike => InvokeOperators(
+                nameof(Operators.RLikePrepared),
+                renderChild(preparedRLike.Input),
+                renderChild(preparedRLike.Matcher)),
+            ExecutionDynamicRLikeMatch dynamicRLike => InvokeOperators(
+                nameof(Operators.RLikeDynamic),
+                renderChild(dynamicRLike.Input),
+                renderChild(dynamicRLike.Pattern),
+                renderChild(dynamicRLike.CacheSlot)),
+            ExecutionRLikeMatcherCacheSlot cacheSlot => SyntaxFactory
+                .ObjectCreationExpression(CreateTypeSyntax(typeof(RLikeMatcherCacheSlot)))
+                .WithArgumentList(ExecutionSyntaxFactory.CreateArgumentList(
+                    cacheSlot.WorkerLocal
+                        ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
+                        : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))),
             _ => throw new ArgumentOutOfRangeException(nameof(expression), expression.GetType().Name, "Unknown LIKE matcher expression.")
         };
 
@@ -46,7 +65,7 @@ internal static class ExecutionLikeMatcherSyntaxFactory
         expression switch
         {
             ExecutionStringMatch match =>
-                match.Comparison == ExecutionStringMatchComparison.LikeIgnoreCase &&
+                Enum.IsDefined(match.Comparison) &&
                 match.Kind is (ExecutionStringMatchKind.Exact or ExecutionStringMatchKind.Prefix or
                     ExecutionStringMatchKind.Suffix or ExecutionStringMatchKind.Contains) &&
                 canRenderChild(match.Input) && canReferenceType(match.ReturnType),
@@ -68,6 +87,22 @@ internal static class ExecutionLikeMatcherSyntaxFactory
                 canRenderChild(dynamicLike.CacheSlot),
             ExecutionLikeMatcherCacheSlot cacheSlot =>
                 cacheSlot.ReturnType.RequireClrType() == typeof(LikeMatcherCacheSlot),
+            ExecutionPrepareRLikeMatcher prepareRLike =>
+                prepareRLike.ReturnType.RequireClrType() == typeof(PreparedRLikeMatcher) &&
+                canRenderChild(prepareRLike.Pattern),
+            ExecutionPreparedRLikeMatch preparedRLike =>
+                preparedRLike.ReturnType.RequireClrType() == typeof(bool) &&
+                preparedRLike.Matcher.ReturnType.RequireClrType() == typeof(PreparedRLikeMatcher) &&
+                canRenderChild(preparedRLike.Input) &&
+                canRenderChild(preparedRLike.Matcher),
+            ExecutionDynamicRLikeMatch dynamicRLike =>
+                dynamicRLike.ReturnType.RequireClrType() == typeof(bool) &&
+                dynamicRLike.CacheSlot.ReturnType.RequireClrType() == typeof(RLikeMatcherCacheSlot) &&
+                canRenderChild(dynamicRLike.Input) &&
+                canRenderChild(dynamicRLike.Pattern) &&
+                canRenderChild(dynamicRLike.CacheSlot),
+            ExecutionRLikeMatcherCacheSlot cacheSlot =>
+                cacheSlot.ReturnType.RequireClrType() == typeof(RLikeMatcherCacheSlot),
             _ => false
         };
 

@@ -71,7 +71,8 @@ internal sealed record ExecutionTargetCapabilities(
             ExecutionTargetFeatureKind.QueryRowSourceAccess,
             ExecutionTargetFeatureKind.StringMatchKind,
             ExecutionTargetFeatureKind.StringMatchComparison,
-            ExecutionTargetFeatureKind.LikeMatcherStrategy
+            ExecutionTargetFeatureKind.LikeMatcherStrategy,
+            ExecutionTargetFeatureKind.RLikeMatcherStrategy
         ]);
 
     public static ExecutionTargetCapabilities Create(params ExecutionTargetRequirementKind[] supportedRequirementKinds)

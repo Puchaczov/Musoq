@@ -10,7 +10,8 @@ public enum ExecutionStringMatchKind
 
 public enum ExecutionStringMatchComparison
 {
-    LikeIgnoreCase
+    LikeIgnoreCase,
+    Ordinal
 }
 
 public sealed record ExecutionStringMatch : ExecutionExpression
@@ -27,7 +28,7 @@ public sealed record ExecutionStringMatch : ExecutionExpression
         Input = input ?? throw new ArgumentNullException(nameof(input));
         OriginalPattern = originalPattern ?? throw new ArgumentNullException(nameof(originalPattern));
         Needle = needle ?? throw new ArgumentNullException(nameof(needle));
-        if (comparison != ExecutionStringMatchComparison.LikeIgnoreCase)
+        if (!Enum.IsDefined(comparison))
             throw new ArgumentOutOfRangeException(nameof(comparison), comparison, "Unknown string-match comparison.");
 
         Kind = kind;

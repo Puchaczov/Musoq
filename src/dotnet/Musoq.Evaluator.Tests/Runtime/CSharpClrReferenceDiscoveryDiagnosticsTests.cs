@@ -6,6 +6,7 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.External.Contracts;
@@ -163,7 +164,22 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
     }
 
     [TestMethod]
+    [DoNotParallelize]
     public void CollectibleAssembly_ShouldNotBeRetainedByReferenceDiscoveryState()
+    {
+        if (!string.Equals(
+                Environment.GetEnvironmentVariable(CollectibleAssemblyProbeEnvironmentVariable),
+                "1",
+                StringComparison.Ordinal))
+        {
+            RunCollectibleAssemblyProbeInChildProcess();
+            return;
+        }
+
+        AssertCollectibleAssemblyCanUnload();
+    }
+
+    private static void AssertCollectibleAssemblyCanUnload()
     {
         var probe = CollectFromCollectibleAssembly();
         try
@@ -181,6 +197,58 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
         {
             DeleteDirectory(probe.DirectoryPath);
         }
+    }
+
+    [TestMethod]
+    public void CollectibleAssemblyGcDiagnostic_ShouldRemainSerialized()
+    {
+        var method = typeof(CSharpClrReferenceDiscoveryDiagnosticsTests).GetMethod(
+            nameof(CollectibleAssembly_ShouldNotBeRetainedByReferenceDiscoveryState));
+
+        Assert.IsNotNull(method?.GetCustomAttribute<DoNotParallelizeAttribute>());
+    }
+
+    private static void RunCollectibleAssemblyProbeInChildProcess()
+    {
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = "dotnet",
+            WorkingDirectory = AppContext.BaseDirectory,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true
+        };
+        startInfo.ArgumentList.Add("test");
+        startInfo.ArgumentList.Add(typeof(CSharpClrReferenceDiscoveryDiagnosticsTests).Assembly.Location);
+        startInfo.ArgumentList.Add("--nologo");
+        startInfo.ArgumentList.Add("--verbosity");
+        startInfo.ArgumentList.Add("quiet");
+        startInfo.ArgumentList.Add("--filter");
+        startInfo.ArgumentList.Add(
+            $"FullyQualifiedName={typeof(CSharpClrReferenceDiscoveryDiagnosticsTests).FullName}." +
+            nameof(CollectibleAssembly_ShouldNotBeRetainedByReferenceDiscoveryState));
+        startInfo.ArgumentList.Add("--logger");
+        startInfo.ArgumentList.Add("console;verbosity=minimal");
+        startInfo.Environment[CollectibleAssemblyProbeEnvironmentVariable] = "1";
+
+        using var process = Process.Start(startInfo)
+                            ?? throw new InvalidOperationException("Could not start the collectible-assembly probe.");
+        var standardOutput = process.StandardOutput.ReadToEndAsync();
+        var standardError = process.StandardError.ReadToEndAsync();
+
+        if (!process.WaitForExit(CollectibleAssemblyProbeTimeoutMilliseconds))
+        {
+            process.Kill(entireProcessTree: true);
+            Assert.Fail("The isolated collectible-assembly probe exceeded its 30 second timeout.");
+        }
+
+        var output = standardOutput.GetAwaiter().GetResult();
+        var error = standardError.GetAwaiter().GetResult();
+        Assert.AreEqual(
+            0,
+            process.ExitCode,
+            $"The isolated collectible-assembly probe failed.{Environment.NewLine}{output}{Environment.NewLine}{error}");
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -311,4 +379,8 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
 
         public override string FullName => identity;
     }
+
+    private const int CollectibleAssemblyProbeTimeoutMilliseconds = 30_000;
+    private const string CollectibleAssemblyProbeEnvironmentVariable =
+        "MUSOQ_COLLECTIBLE_ASSEMBLY_PROBE_PROCESS";
 }

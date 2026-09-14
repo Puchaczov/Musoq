@@ -197,6 +197,45 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
         Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.Validate(report).IsSupported);
     }
 
+    [TestMethod]
+    public void Analyze_WhenPlanUsesPreparedAndDynamicRLike_ShouldReportEveryMatcherStrategy()
+    {
+        var matcherType = ExecutionClrBindingFactory.FromClr(typeof(PreparedRLikeMatcher));
+        var cacheType = ExecutionClrBindingFactory.FromClr(typeof(RLikeMatcherCacheSlot));
+        var matcher = new ExecutionVariable("matcher", matcherType);
+        var cache = new ExecutionVariable("cache", cacheType);
+        var plan = new ExecutionPlan(
+            "Q_RLikeMatcherFeatures",
+            [],
+            new ExecutionBlock([
+                new ExecutionLet(cache, new ExecutionRLikeMatcherCacheSlot(cacheType)),
+                new ExecutionLet(
+                    matcher,
+                    new ExecutionPrepareRLikeMatcher(new ExecutionLiteral("^a", typeof(string)), matcherType)),
+                new ExecutionLet(
+                    new ExecutionVariable("prepared", typeof(bool)),
+                    new ExecutionPreparedRLikeMatch(
+                        new ExecutionLiteral("alpha", typeof(string)),
+                        new ExecutionVariableRead(matcher),
+                        ExecutionClrBindingFactory.FromClr(typeof(bool)))),
+                new ExecutionLet(
+                    new ExecutionVariable("dynamic", typeof(bool)),
+                    new ExecutionDynamicRLikeMatch(
+                        new ExecutionLiteral("alpha", typeof(string)),
+                        new ExecutionLiteral("^a", typeof(string)),
+                        new ExecutionVariableRead(cache),
+                        ExecutionClrBindingFactory.FromClr(typeof(bool))))
+            ]));
+
+        var report = ExecutionTargetFeatureAnalyzer.Analyze(plan);
+
+        AssertFeature(report, ExecutionTargetFeatureKind.RLikeMatcherStrategy, "rlike-matcher-strategy:cache-slot");
+        AssertFeature(report, ExecutionTargetFeatureKind.RLikeMatcherStrategy, "rlike-matcher-strategy:prepare");
+        AssertFeature(report, ExecutionTargetFeatureKind.RLikeMatcherStrategy, "rlike-matcher-strategy:prepared-match");
+        AssertFeature(report, ExecutionTargetFeatureKind.RLikeMatcherStrategy, "rlike-matcher-strategy:dynamic-match");
+        Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.Validate(report).IsSupported);
+    }
+
     private static void AssertFeature(
         ExecutionTargetFeatureReport report,
         ExecutionTargetFeatureKind kind,

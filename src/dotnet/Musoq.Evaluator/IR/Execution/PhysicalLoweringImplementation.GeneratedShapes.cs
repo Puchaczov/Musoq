@@ -204,7 +204,7 @@ internal sealed partial class PhysicalLoweringImplementation
             ExecutionIsNullCheck isNull => ContainsNullablePositionalFieldRead(isNull.Expression),
             ExecutionInCheck inCheck => ContainsNullablePositionalFieldRead(inCheck.Expression) ||
                                         inCheck.Values.Any(ContainsNullablePositionalFieldRead),
-            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot => PatternExpressionFacts.AnyChild(expression, ContainsNullablePositionalFieldRead),
+            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.AnyChild(expression, ContainsNullablePositionalFieldRead),
             ExecutionBetween between => ContainsNullablePositionalFieldRead(between.Expression) ||
                                         ContainsNullablePositionalFieldRead(between.Low) ||
                                         ContainsNullablePositionalFieldRead(between.High),

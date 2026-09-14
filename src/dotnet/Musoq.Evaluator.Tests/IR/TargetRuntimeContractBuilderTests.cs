@@ -56,6 +56,50 @@ public sealed class TargetRuntimeContractBuilderTests
     }
 
     [TestMethod]
+    public void HostAbiInventoryBuilder_WhenPlanUsesRLikeMatcherOperations_ShouldRegisterVersionOneContract()
+    {
+        var cacheType = ExecutionClrBindingFactory.FromClr(typeof(RLikeMatcherCacheSlot));
+        var plan = new ExecutionPlan(
+            "Q_RLikeMatcherAbi",
+            [],
+            new ExecutionBlock([
+                new ExecutionLet(
+                    new ExecutionVariable("cache", cacheType),
+                    new ExecutionRLikeMatcherCacheSlot(cacheType))
+            ]));
+
+        var contract = Build(plan);
+        var inventory = TargetHostAbiInventoryBuilder.Build(contract);
+        var import = inventory.Imports.Single(static item => item.Kind == TargetHostAbiImportKind.RLikeMatcher);
+        var services = inventory.CreateServiceRequirements(TargetRuntimeServiceFulfillmentKind.HostImport);
+
+        Assert.IsNotNull(contract.RLikeMatcher);
+        Assert.AreEqual(2, contract.RLikeMatcher.CacheCapacity);
+        Assert.IsTrue(contract.RLikeMatcher.CultureAware);
+        Assert.AreEqual(250, contract.RLikeMatcher.TimeoutMilliseconds);
+        var details = Assert.IsInstanceOfType<TargetRLikeMatcherAbiDetails>(import.Details);
+        Assert.AreEqual("rlike-matcher-v1", import.Contract);
+        Assert.AreEqual(1, import.ContractVersion);
+        Assert.AreEqual(2, details.CacheCapacity);
+        Assert.IsTrue(details.CultureAware);
+        Assert.AreEqual(250, details.TimeoutMilliseconds);
+        Assert.AreEqual("2", import.Attributes["cache-capacity"]);
+        Assert.AreEqual("true", import.Attributes["culture-aware"]);
+        Assert.AreEqual("250", import.Attributes["timeout-milliseconds"]);
+        Assert.IsTrue(services.Requires(TargetRuntimeServiceRequirementKind.RLikeMatcher));
+        inventory.ValidateRuntimeServices(services);
+    }
+
+    [TestMethod]
+    public void RLikeMatcherAbiDetails_WhenCapacityOrTimeoutIsNotPositive_ShouldRejectContract()
+    {
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            new TargetRLikeMatcherAbiDetails(0, true, 250));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            new TargetRLikeMatcherAbiDetails(2, true, 0));
+    }
+
+    [TestMethod]
     public void Build_WhenPlanScansSource_ShouldDescribeSourceAccessDiagnosticsAndProfiling()
     {
         var shape = new SourceEntityShape(

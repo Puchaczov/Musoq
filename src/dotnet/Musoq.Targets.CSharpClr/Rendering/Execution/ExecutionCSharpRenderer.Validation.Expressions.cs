@@ -80,7 +80,7 @@ public sealed partial class ExecutionCSharpRenderer
                                         (inCheck.ConstantSet == null || CanRenderConstantInSet(inCheck.ConstantSet)),
             ExecutionCollectionInCheck collectionInCheck => CanRenderCollectionInCheck(collectionInCheck),
             ExecutionPatternMatch patternMatch => CanRenderPatternMatch(patternMatch),
-            ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot => ExecutionLikeMatcherSyntaxFactory.CanRender(expression, CanRenderExpression, CanReferenceType),
+            ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot => ExecutionLikeMatcherSyntaxFactory.CanRender(expression, CanRenderExpression, CanReferenceType),
             ExecutionBetween between => CanRenderExpression(between.Expression) &&
                                         CanRenderExpression(between.Low) &&
                                         CanRenderExpression(between.High),

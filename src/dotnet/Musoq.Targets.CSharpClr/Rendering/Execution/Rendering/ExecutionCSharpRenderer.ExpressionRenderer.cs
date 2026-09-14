@@ -34,7 +34,7 @@ public sealed partial class ExecutionCSharpRenderer
                 ExecutionInCheck inCheck => renderer.RenderInCheck(inCheck, context),
                 ExecutionCollectionInCheck collectionInCheck => renderer.RenderCollectionInCheck(collectionInCheck, context),
                 ExecutionPatternMatch patternMatch => renderer.RenderPatternMatch(patternMatch, context),
-                ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot => ExecutionLikeMatcherSyntaxFactory.Render(expression, Render, context.Session),
+                ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot => ExecutionLikeMatcherSyntaxFactory.Render(expression, Render, context.Session),
                 ExecutionBetween between => renderer.RenderBetween(between, context),
                 ExecutionCaseWhen caseWhen => renderer.RenderCaseWhen(caseWhen, context),
                 ExecutionCoalesce coalesce => renderer.RenderCoalesce(coalesce, context),

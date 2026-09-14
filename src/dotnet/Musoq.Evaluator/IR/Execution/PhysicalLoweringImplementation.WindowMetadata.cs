@@ -25,7 +25,7 @@ internal sealed partial class PhysicalLoweringImplementation
             ExecutionIsNullCheck isNull => ContainsRowScopedRead(isNull.Expression),
             ExecutionInCheck inCheck => ContainsRowScopedRead(inCheck.Expression) ||
                                         inCheck.Values.Any(ContainsRowScopedRead),
-            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot => PatternExpressionFacts.AnyChild(expression, ContainsRowScopedRead),
+            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.AnyChild(expression, ContainsRowScopedRead),
             ExecutionBetween between => ContainsRowScopedRead(between.Expression) ||
                                         ContainsRowScopedRead(between.Low) ||
                                         ContainsRowScopedRead(between.High),

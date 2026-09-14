@@ -194,7 +194,7 @@ internal sealed class CteSourceBackedNodeRewriter
                     isNull with { Expression = rewrittenExpression }, out rewritten);
             case ExecutionInCheck inCheck:
                 return TryRewriteInCheck(inCheck, out rewritten);
-            case ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot:
+            case ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot:
                 return PatternExpressionFacts.TryRewriteChildren(expression, TryRewriteExpression, out rewritten);
             case ExecutionBetween between:
                 return TryRewriteBetween(between, out rewritten);

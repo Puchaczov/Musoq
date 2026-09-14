@@ -286,6 +286,10 @@ internal static partial class ExecutionExpressionCseFacts
             ExecutionPreparedLikeMatch => true,
             ExecutionDynamicLikeMatch => true,
             ExecutionLikeMatcherCacheSlot => false,
+            ExecutionPrepareRLikeMatcher => true,
+            ExecutionPreparedRLikeMatch => true,
+            ExecutionDynamicRLikeMatch => true,
+            ExecutionRLikeMatcherCacheSlot => false,
             ExecutionBetween => true,
             _ => false
         };
@@ -368,6 +372,13 @@ internal static partial class ExecutionExpressionCseFacts
             ExecutionDynamicLikeMatch dynamicLike => 1 + Math.Max(
                 GetExpressionDepth(dynamicLike.Input),
                 Math.Max(GetExpressionDepth(dynamicLike.Pattern), GetExpressionDepth(dynamicLike.CacheSlot))),
+            ExecutionPrepareRLikeMatcher prepareRLike => 1 + GetExpressionDepth(prepareRLike.Pattern),
+            ExecutionPreparedRLikeMatch preparedRLike => 1 + Math.Max(
+                GetExpressionDepth(preparedRLike.Input),
+                GetExpressionDepth(preparedRLike.Matcher)),
+            ExecutionDynamicRLikeMatch dynamicRLike => 1 + Math.Max(
+                GetExpressionDepth(dynamicRLike.Input),
+                Math.Max(GetExpressionDepth(dynamicRLike.Pattern), GetExpressionDepth(dynamicRLike.CacheSlot))),
             ExecutionBetween between => 1 + Math.Max(
                 GetExpressionDepth(between.Expression),
                 Math.Max(GetExpressionDepth(between.Low), GetExpressionDepth(between.High))),

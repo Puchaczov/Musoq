@@ -35,6 +35,10 @@ internal static partial class ExecutionOperationCatalog
         yield return Operation<ExecutionPreparedLikeMatch>("expr.like.prepared-match");
         yield return Operation<ExecutionDynamicLikeMatch>("expr.like.dynamic-match");
         yield return Operation<ExecutionLikeMatcherCacheSlot>("expr.like.cache-slot");
+        yield return Operation<ExecutionPrepareRLikeMatcher>("expr.rlike.prepare-matcher");
+        yield return Operation<ExecutionPreparedRLikeMatch>("expr.rlike.prepared-match");
+        yield return Operation<ExecutionDynamicRLikeMatch>("expr.rlike.dynamic-match");
+        yield return Operation<ExecutionRLikeMatcherCacheSlot>("expr.rlike.cache-slot");
         yield return Operation<ExecutionBetween>("expr.between");
         yield return Operation<ExecutionCaseWhen>("expr.case");
         yield return Operation<ExecutionCoalesce>("expr.coalesce");

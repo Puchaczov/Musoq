@@ -35,6 +35,8 @@ ExecutionPlan [compiled]
 
   Body
     PhaseBoundary [Begin]
+    Let [__rlikeMatcher0: PreparedRLikeMatcher = PREPARE_RLIKE('^[A-Z]', strategy=regex, anchors=none, literal-span=none, fallback=RegexMetacharacter)]
+    Let [__rlikeMatcher1: PreparedRLikeMatcher = PREPARE_RLIKE('^$', strategy=regex, anchors=none, literal-span=none, fallback=RegexMetacharacter)]
     PhaseBoundary [From]
     SourceScan [ko3iko: BasicEntity] -> ko3ikoRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
@@ -44,7 +46,7 @@ ExecutionPlan [compiled]
       Let [name: string = ko3iko.Name]
       Let [city: string = ko3iko.City]
       If [((STRING_MATCH(name, pattern='%a%', needle='a', kind=Contains, comparison=LikeIgnoreCase) OR STRING_MATCH(city, pattern='%a%', needle='a', kind=Contains, comparison=LikeIgnoreCase)) AND (NOT STRING_MATCH(name, pattern='%z%', needle='z', kind=Contains, comparison=LikeIgnoreCase) AND NOT STRING_MATCH(city, pattern='%z%', needle='z', kind=Contains, comparison=LikeIgnoreCase)))]
-        AppendShape [result <- ResultShape0(Name: name, IsLike: STRING_MATCH(name, pattern='A%', needle='A', kind=Prefix, comparison=LikeIgnoreCase), IsNotLike: NOT STRING_MATCH(name, pattern='Z%', needle='Z', kind=Prefix, comparison=LikeIgnoreCase), IsRlike: name RLIKE '^[A-Z]', IsNotRlike: NOT name RLIKE '^$')]
+        AppendShape [result <- ResultShape0(Name: name, IsLike: STRING_MATCH(name, pattern='A%', needle='A', kind=Prefix, comparison=LikeIgnoreCase), IsNotLike: NOT STRING_MATCH(name, pattern='Z%', needle='Z', kind=Prefix, comparison=LikeIgnoreCase), IsRlike: PREPARED_RLIKE(name, __rlikeMatcher0), IsNotRlike: NOT PREPARED_RLIKE(name, __rlikeMatcher1))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
 
@@ -112,6 +114,8 @@ namespace GeneratedSample_Q269_SpecCorePatternPredicates
             {
                 var __musoqExecutionState = ExecutionState.Capture(Parameters);
                 ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState.Parameters, Array.Empty<string>());
+                Musoq.Evaluator.PreparedRLikeMatcher __rlikeMatcher0 = Operators.PrepareRLike("^[A-Z]");
+                Musoq.Evaluator.PreparedRLikeMatcher __rlikeMatcher1 = Operators.PrepareRLike("^$");
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 var __ko3ikoSchema = provider.GetSchema("#A");
@@ -138,7 +142,7 @@ namespace GeneratedSample_Q269_SpecCorePatternPredicates
                                 string city = ko3iko.City;
                                 if ((((name is string __musoqStringMatch1 ? (__musoqStringMatch1.Length >= 1) && __musoqStringMatch1.Contains("a", StringComparison.OrdinalIgnoreCase) : false) || (city is string __musoqStringMatch2 ? (__musoqStringMatch2.Length >= 1) && __musoqStringMatch2.Contains("a", StringComparison.OrdinalIgnoreCase) : false)) && ((!(name is string __musoqStringMatch3 ? (__musoqStringMatch3.Length >= 1) && __musoqStringMatch3.Contains("z", StringComparison.OrdinalIgnoreCase) : false)) && (!(city is string __musoqStringMatch4 ? (__musoqStringMatch4.Length >= 1) && __musoqStringMatch4.Contains("z", StringComparison.OrdinalIgnoreCase) : false)))))
                                 {
-                                    yield return new ResultShape0(name, (name is string __musoqStringMatch1 ? (__musoqStringMatch1.Length >= 1) && ((__musoqStringMatch1[0] == 'A') || (((__musoqStringMatch1[0] | 32) == 97) && (((__musoqStringMatch1[0] | 32) - 97) <= 25))) : false), (!(name is string __musoqStringMatch1 ? (__musoqStringMatch1.Length >= 1) && ((__musoqStringMatch1[0] == 'Z') || (((__musoqStringMatch1[0] | 32) == 122) && (((__musoqStringMatch1[0] | 32) - 97) <= 25))) : false)), new Musoq.Evaluator.Operators().RLike(name, "^[A-Z]"), (!new Musoq.Evaluator.Operators().RLike(name, "^$")));
+                                    yield return new ResultShape0(name, (name is string __musoqStringMatch1 ? (__musoqStringMatch1.Length >= 1) && ((__musoqStringMatch1[0] == 'A') || (((__musoqStringMatch1[0] | 32) == 97) && (((__musoqStringMatch1[0] | 32) - 97) <= 25))) : false), (!(name is string __musoqStringMatch1 ? (__musoqStringMatch1.Length >= 1) && ((__musoqStringMatch1[0] == 'Z') || (((__musoqStringMatch1[0] | 32) == 122) && (((__musoqStringMatch1[0] | 32) - 97) <= 25))) : false)), Operators.RLikePrepared(name, __rlikeMatcher0), (!Operators.RLikePrepared(name, __rlikeMatcher1)));
                                 }
                             }
 
@@ -160,7 +164,7 @@ namespace GeneratedSample_Q269_SpecCorePatternPredicates
                                 string city = ko3iko.City;
                                 if ((((name is string __musoqStringMatch5 ? (__musoqStringMatch5.Length >= 1) && __musoqStringMatch5.Contains("a", StringComparison.OrdinalIgnoreCase) : false) || (city is string __musoqStringMatch6 ? (__musoqStringMatch6.Length >= 1) && __musoqStringMatch6.Contains("a", StringComparison.OrdinalIgnoreCase) : false)) && ((!(name is string __musoqStringMatch7 ? (__musoqStringMatch7.Length >= 1) && __musoqStringMatch7.Contains("z", StringComparison.OrdinalIgnoreCase) : false)) && (!(city is string __musoqStringMatch8 ? (__musoqStringMatch8.Length >= 1) && __musoqStringMatch8.Contains("z", StringComparison.OrdinalIgnoreCase) : false)))))
                                 {
-                                    yield return new ResultShape0(name, (name is string __musoqStringMatch1 ? (__musoqStringMatch1.Length >= 1) && ((__musoqStringMatch1[0] == 'A') || (((__musoqStringMatch1[0] | 32) == 97) && (((__musoqStringMatch1[0] | 32) - 97) <= 25))) : false), (!(name is string __musoqStringMatch1 ? (__musoqStringMatch1.Length >= 1) && ((__musoqStringMatch1[0] == 'Z') || (((__musoqStringMatch1[0] | 32) == 122) && (((__musoqStringMatch1[0] | 32) - 97) <= 25))) : false)), new Musoq.Evaluator.Operators().RLike(name, "^[A-Z]"), (!new Musoq.Evaluator.Operators().RLike(name, "^$")));
+                                    yield return new ResultShape0(name, (name is string __musoqStringMatch1 ? (__musoqStringMatch1.Length >= 1) && ((__musoqStringMatch1[0] == 'A') || (((__musoqStringMatch1[0] | 32) == 97) && (((__musoqStringMatch1[0] | 32) - 97) <= 25))) : false), (!(name is string __musoqStringMatch1 ? (__musoqStringMatch1.Length >= 1) && ((__musoqStringMatch1[0] == 'Z') || (((__musoqStringMatch1[0] | 32) == 122) && (((__musoqStringMatch1[0] | 32) - 97) <= 25))) : false)), Operators.RLikePrepared(name, __rlikeMatcher0), (!Operators.RLikePrepared(name, __rlikeMatcher1)));
                                 }
                             }
 
@@ -180,7 +184,7 @@ namespace GeneratedSample_Q269_SpecCorePatternPredicates
                         string city = ko3iko.City;
                         if ((((name is string __musoqStringMatch9 ? (__musoqStringMatch9.Length >= 1) && __musoqStringMatch9.Contains("a", StringComparison.OrdinalIgnoreCase) : false) || (city is string __musoqStringMatch10 ? (__musoqStringMatch10.Length >= 1) && __musoqStringMatch10.Contains("a", StringComparison.OrdinalIgnoreCase) : false)) && ((!(name is string __musoqStringMatch11 ? (__musoqStringMatch11.Length >= 1) && __musoqStringMatch11.Contains("z", StringComparison.OrdinalIgnoreCase) : false)) && (!(city is string __musoqStringMatch12 ? (__musoqStringMatch12.Length >= 1) && __musoqStringMatch12.Contains("z", StringComparison.OrdinalIgnoreCase) : false)))))
                         {
-                            yield return new ResultShape0(name, (name is string __musoqStringMatch1 ? (__musoqStringMatch1.Length >= 1) && ((__musoqStringMatch1[0] == 'A') || (((__musoqStringMatch1[0] | 32) == 97) && (((__musoqStringMatch1[0] | 32) - 97) <= 25))) : false), (!(name is string __musoqStringMatch1 ? (__musoqStringMatch1.Length >= 1) && ((__musoqStringMatch1[0] == 'Z') || (((__musoqStringMatch1[0] | 32) == 122) && (((__musoqStringMatch1[0] | 32) - 97) <= 25))) : false)), new Musoq.Evaluator.Operators().RLike(name, "^[A-Z]"), (!new Musoq.Evaluator.Operators().RLike(name, "^$")));
+                            yield return new ResultShape0(name, (name is string __musoqStringMatch1 ? (__musoqStringMatch1.Length >= 1) && ((__musoqStringMatch1[0] == 'A') || (((__musoqStringMatch1[0] | 32) == 97) && (((__musoqStringMatch1[0] | 32) - 97) <= 25))) : false), (!(name is string __musoqStringMatch1 ? (__musoqStringMatch1.Length >= 1) && ((__musoqStringMatch1[0] == 'Z') || (((__musoqStringMatch1[0] | 32) == 122) && (((__musoqStringMatch1[0] | 32) - 97) <= 25))) : false)), Operators.RLikePrepared(name, __rlikeMatcher0), (!Operators.RLikePrepared(name, __rlikeMatcher1)));
                         }
                     }
                 }

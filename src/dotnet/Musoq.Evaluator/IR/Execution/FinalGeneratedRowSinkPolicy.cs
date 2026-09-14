@@ -100,7 +100,7 @@ internal static class FinalGeneratedRowSinkPolicy
             foreach (var expression in ExecutionIrAnalysis.GetNodeExpressions(node))
             {
                 if (ExecutionIrAnalysis.FlattenExpressions(expression).Any(static current =>
-                        current is ExecutionDynamicLikeMatch))
+                        current is ExecutionDynamicLikeMatch or ExecutionDynamicRLikeMatch))
                 {
                     containsLikeMatch = true;
                     break;

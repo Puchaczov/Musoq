@@ -155,7 +155,7 @@ public sealed class ExecutionIrOptimizerTests
         StringAssert.Contains(trace.Reason, "direct=1");
         StringAssert.Contains(trace.Reason, "prepared=3");
         StringAssert.Contains(trace.Reason, "dynamic=1");
-        StringAssert.Contains(trace.Reason, "serial=1");
+        StringAssert.Contains(trace.Reason, "serial-cache=1");
     }
 
     [TestMethod]

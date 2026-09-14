@@ -244,6 +244,21 @@ internal static partial class ExpressionCseSubstitution
                 Pattern = Replace(dynamicLike.Pattern, variablesBySignature),
                 CacheSlot = Replace(dynamicLike.CacheSlot, variablesBySignature)
             },
+            ExecutionPrepareRLikeMatcher prepareRLike => prepareRLike with
+            {
+                Pattern = Replace(prepareRLike.Pattern, variablesBySignature)
+            },
+            ExecutionPreparedRLikeMatch preparedRLike => preparedRLike with
+            {
+                Input = Replace(preparedRLike.Input, variablesBySignature),
+                Matcher = Replace(preparedRLike.Matcher, variablesBySignature)
+            },
+            ExecutionDynamicRLikeMatch dynamicRLike => dynamicRLike with
+            {
+                Input = Replace(dynamicRLike.Input, variablesBySignature),
+                Pattern = Replace(dynamicRLike.Pattern, variablesBySignature),
+                CacheSlot = Replace(dynamicRLike.CacheSlot, variablesBySignature)
+            },
             ExecutionBetween between => between with
             {
                 Expression = Replace(between.Expression, variablesBySignature),

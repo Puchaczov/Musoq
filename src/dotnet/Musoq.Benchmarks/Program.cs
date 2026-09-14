@@ -12,6 +12,8 @@ if (args is ["gate-like-specialization", .. var likeSpecializationArgs])
         Console.Error);
 if (args is ["gate-dynamic-like", .. var dynamicLikeArgs])
     return DynamicLikeQualificationGateCommand.Run(dynamicLikeArgs, Console.Out, Console.Error);
+if (args is ["gate-rlike", .. var rLikeArgs])
+    return RLikeQualificationGateCommand.Run(rLikeArgs, Console.Out, Console.Error);
 if (args is ["gate-recursive", .. var recursiveArgs])
     return RecursiveCteBenchmarkGateCommand.Run(recursiveArgs, Console.Out, Console.Error);
 if (args is ["gate-query-rows", .. var queryRowArgs])

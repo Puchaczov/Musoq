@@ -17,7 +17,8 @@ internal sealed record TargetRuntimeContract
         TargetDiagnosticsContract diagnostics,
         TargetProfilingContract profiling,
         IReadOnlyList<TargetQueryRowSourceAccessContract>? queryRowSourceAccess = null,
-        TargetLikeMatcherContract? likeMatcher = null)
+        TargetLikeMatcherContract? likeMatcher = null,
+        TargetRLikeMatcherContract? rLikeMatcher = null)
     {
         PlanIdentifier = planIdentifier;
         SourceAccess = Freeze(sourceAccess);
@@ -29,6 +30,7 @@ internal sealed record TargetRuntimeContract
         Profiling = profiling;
         QueryRowSourceAccess = Freeze(queryRowSourceAccess);
         LikeMatcher = likeMatcher;
+        RLikeMatcher = rLikeMatcher;
     }
 
     public string PlanIdentifier { get; }
@@ -51,6 +53,8 @@ internal sealed record TargetRuntimeContract
 
     public TargetLikeMatcherContract? LikeMatcher { get; }
 
+    public TargetRLikeMatcherContract? RLikeMatcher { get; }
+
     private static IReadOnlyList<T> Freeze<T>(IEnumerable<T>? values)
     {
         return Array.AsReadOnly(values?.ToArray() ?? []);
@@ -61,6 +65,11 @@ internal sealed record TargetLikeMatcherContract(
     int CacheCapacity,
     string Comparison,
     bool CultureAware);
+
+internal sealed record TargetRLikeMatcherContract(
+    int CacheCapacity,
+    bool CultureAware,
+    int TimeoutMilliseconds);
 
 internal sealed record TargetQueryRowSourceAccessContract
 {

@@ -90,7 +90,7 @@ internal sealed partial class PhysicalLoweringImplementation
         return CanInlineFinalProjectionSource(source) ||
                finalFilter != null &&
                IrExpressionTraversal.SelfAndDescendants(finalFilter.Predicate)
-                   .Any(static expression => expression is PatternMatch { Kind: PatternKind.Like }) &&
+                   .Any(static expression => expression is PatternMatch) &&
                CanInlineSideEffectApplyProjectionSource(source);
     }
 

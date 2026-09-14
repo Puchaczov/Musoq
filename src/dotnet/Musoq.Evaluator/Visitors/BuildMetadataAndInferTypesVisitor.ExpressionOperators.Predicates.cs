@@ -77,7 +77,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         try
         {
-            _ = new Regex(regexPattern, RegexOptions.Compiled, RuntimeCacheOptions.DefaultRegexTimeout);
+            _ = new Regex(regexPattern, RegexOptions.None, RuntimeCacheOptions.DefaultRegexTimeout);
         }
         catch (ArgumentException exception)
         {

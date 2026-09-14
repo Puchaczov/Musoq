@@ -245,6 +245,17 @@ internal sealed class SingleUseHashBuildFusionPlanner
                        TryCollectRequiredPayloadFieldNames(dynamicLike.CacheSlot, payloadAlias, requiredFields);
             case ExecutionLikeMatcherCacheSlot:
                 return true;
+            case ExecutionPrepareRLikeMatcher prepareRLike:
+                return TryCollectRequiredPayloadFieldNames(prepareRLike.Pattern, payloadAlias, requiredFields);
+            case ExecutionPreparedRLikeMatch preparedRLike:
+                return TryCollectRequiredPayloadFieldNames(preparedRLike.Input, payloadAlias, requiredFields) &&
+                       TryCollectRequiredPayloadFieldNames(preparedRLike.Matcher, payloadAlias, requiredFields);
+            case ExecutionDynamicRLikeMatch dynamicRLike:
+                return TryCollectRequiredPayloadFieldNames(dynamicRLike.Input, payloadAlias, requiredFields) &&
+                       TryCollectRequiredPayloadFieldNames(dynamicRLike.Pattern, payloadAlias, requiredFields) &&
+                       TryCollectRequiredPayloadFieldNames(dynamicRLike.CacheSlot, payloadAlias, requiredFields);
+            case ExecutionRLikeMatcherCacheSlot:
+                return true;
             case ExecutionBetween between:
                 return TryCollectRequiredPayloadFieldNames(between.Expression, payloadAlias, requiredFields) &&
                        TryCollectRequiredPayloadFieldNames(between.Low, payloadAlias, requiredFields) &&

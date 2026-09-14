@@ -14,7 +14,7 @@ internal static class ExecutionStringMatchSyntaxFactory
         ArgumentNullException.ThrowIfNull(input);
         ArgumentNullException.ThrowIfNull(session);
 
-        if (match.Comparison != ExecutionStringMatchComparison.LikeIgnoreCase)
+        if (!Enum.IsDefined(match.Comparison))
             throw UnsupportedShape.Of($"String comparison {match.Comparison}");
 
         if (match.Kind == ExecutionStringMatchKind.Contains && match.Needle.Length == 0)
@@ -27,11 +27,10 @@ internal static class ExecutionStringMatchSyntaxFactory
 
         var variableName = $"__musoqStringMatch{++session.StringMatchPatternCount}";
         var variable = SyntaxFactory.IdentifierName(variableName);
-        var inputIsString = SyntaxFactory.IsPatternExpression(
-            Parenthesize(input),
-            SyntaxFactory.DeclarationPattern(
-                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(variableName))));
+        var stringPattern = SyntaxFactory.DeclarationPattern(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+            SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(variableName)));
+        var inputIsString = SyntaxFactory.IsPatternExpression(Parenthesize(input), stringPattern);
         var length = Member(variable, nameof(string.Length));
         var needleLength = Number(match.Needle.Length);
         var lengthCheck = SyntaxFactory.BinaryExpression(
@@ -42,7 +41,8 @@ internal static class ExecutionStringMatchSyntaxFactory
             needleLength);
         var direct = CreateDirectMatch(match, variable);
         ExpressionSyntax selectedMatch = direct;
-        if (RequiresLegacyUnicodeFallback(match.Needle))
+        if (match.Comparison == ExecutionStringMatchComparison.LikeIgnoreCase &&
+            RequiresLegacyUnicodeFallback(match.Needle))
         {
             ExpressionSyntax asciiStart = match.Kind == ExecutionStringMatchKind.Suffix
                 ? SyntaxFactory.BinaryExpression(SyntaxKind.SubtractExpression, length, needleLength)
@@ -73,9 +73,22 @@ internal static class ExecutionStringMatchSyntaxFactory
                     fallback);
         }
 
+        var successfulMatch = And(lengthCheck, Parenthesize(selectedMatch));
+        if (match.Comparison == ExecutionStringMatchComparison.Ordinal)
+        {
+            return Parenthesize(SyntaxFactory.SwitchExpression(
+                Parenthesize(input),
+                SyntaxFactory.SeparatedList([
+                    SyntaxFactory.SwitchExpressionArm(stringPattern, successfulMatch),
+                    SyntaxFactory.SwitchExpressionArm(
+                        SyntaxFactory.DiscardPattern(),
+                        SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))
+                ])));
+        }
+
         return Parenthesize(SyntaxFactory.ConditionalExpression(
             inputIsString,
-            And(lengthCheck, Parenthesize(selectedMatch)),
+            successfulMatch,
             SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)));
     }
 
@@ -83,13 +96,20 @@ internal static class ExecutionStringMatchSyntaxFactory
         ExecutionStringMatch match,
         IdentifierNameSyntax variable)
     {
-        if (match.Needle.Length == 1 && match.Kind != ExecutionStringMatchKind.Contains)
+        if (match.Comparison == ExecutionStringMatchComparison.LikeIgnoreCase &&
+            match.Needle.Length == 1 &&
+            match.Kind != ExecutionStringMatchKind.Contains)
             return CreateSingleAsciiCharacterMatch(match, variable);
 
         var needle = ExecutionSyntaxFactory.CreateStringLiteral(match.Needle);
         var comparison = Member(
             SyntaxFactory.IdentifierName(nameof(StringComparison)),
-            nameof(StringComparison.OrdinalIgnoreCase));
+            match.Comparison switch
+            {
+                ExecutionStringMatchComparison.LikeIgnoreCase => nameof(StringComparison.OrdinalIgnoreCase),
+                ExecutionStringMatchComparison.Ordinal => nameof(StringComparison.Ordinal),
+                _ => throw UnsupportedShape.Of($"String comparison {match.Comparison}")
+            });
 
         return match.Kind switch
         {

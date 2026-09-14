@@ -56,6 +56,15 @@ internal static class ParallelExecutionEligibilityRules
                 CanUseExpression(dynamicLike.Pattern, fieldReadEligibility),
                 CanUseExpression(dynamicLike.CacheSlot, fieldReadEligibility)),
             ExecutionLikeMatcherCacheSlot => ParallelExecutionEligibilityCheck.Enabled,
+            ExecutionPrepareRLikeMatcher prepareRLike => CanUseExpression(prepareRLike.Pattern, fieldReadEligibility),
+            ExecutionPreparedRLikeMatch preparedRLike => Combine(
+                CanUseExpression(preparedRLike.Input, fieldReadEligibility),
+                CanUseExpression(preparedRLike.Matcher, fieldReadEligibility)),
+            ExecutionDynamicRLikeMatch dynamicRLike => Combine(
+                CanUseExpression(dynamicRLike.Input, fieldReadEligibility),
+                CanUseExpression(dynamicRLike.Pattern, fieldReadEligibility),
+                CanUseExpression(dynamicRLike.CacheSlot, fieldReadEligibility)),
+            ExecutionRLikeMatcherCacheSlot => ParallelExecutionEligibilityCheck.Enabled,
             ExecutionBetween between => Combine(
                 CanUseExpression(between.Expression, fieldReadEligibility),
                 CanUseExpression(between.Low, fieldReadEligibility),
@@ -122,6 +131,12 @@ internal static class ParallelExecutionEligibilityRules
             ExecutionDynamicLikeMatch dynamicLike => ContainsMethodCall(dynamicLike.Input) ||
                                                       ContainsMethodCall(dynamicLike.Pattern) ||
                                                       ContainsMethodCall(dynamicLike.CacheSlot),
+            ExecutionPrepareRLikeMatcher prepareRLike => ContainsMethodCall(prepareRLike.Pattern),
+            ExecutionPreparedRLikeMatch preparedRLike => ContainsMethodCall(preparedRLike.Input) ||
+                                                          ContainsMethodCall(preparedRLike.Matcher),
+            ExecutionDynamicRLikeMatch dynamicRLike => ContainsMethodCall(dynamicRLike.Input) ||
+                                                        ContainsMethodCall(dynamicRLike.Pattern) ||
+                                                        ContainsMethodCall(dynamicRLike.CacheSlot),
             ExecutionBetween between => ContainsMethodCall(between.Expression) ||
                                         ContainsMethodCall(between.Low) ||
                                         ContainsMethodCall(between.High),

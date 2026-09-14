@@ -18,6 +18,10 @@ internal static class PatternExpressionFacts
             ExecutionPreparedLikeMatch preparedLike => [preparedLike.Input, preparedLike.Matcher],
             ExecutionDynamicLikeMatch dynamicLike => [dynamicLike.Input, dynamicLike.Pattern, dynamicLike.CacheSlot],
             ExecutionLikeMatcherCacheSlot => [],
+            ExecutionPrepareRLikeMatcher prepareRLike => [prepareRLike.Pattern],
+            ExecutionPreparedRLikeMatch preparedRLike => [preparedRLike.Input, preparedRLike.Matcher],
+            ExecutionDynamicRLikeMatch dynamicRLike => [dynamicRLike.Input, dynamicRLike.Pattern, dynamicRLike.CacheSlot],
+            ExecutionRLikeMatcherCacheSlot => [],
             _ => throw new ArgumentOutOfRangeException(nameof(expression), expression.GetType().Name, "Unknown pattern expression.")
         };
 
@@ -103,6 +107,15 @@ internal static class PatternExpressionFacts
                 CacheSlot = children[2]
             },
             ExecutionLikeMatcherCacheSlot => expression,
+            ExecutionPrepareRLikeMatcher prepareRLike => prepareRLike with { Pattern = children[0] },
+            ExecutionPreparedRLikeMatch preparedRLike => preparedRLike with { Input = children[0], Matcher = children[1] },
+            ExecutionDynamicRLikeMatch dynamicRLike => dynamicRLike with
+            {
+                Input = children[0],
+                Pattern = children[1],
+                CacheSlot = children[2]
+            },
+            ExecutionRLikeMatcherCacheSlot => expression,
             _ => throw new ArgumentOutOfRangeException(nameof(expression), expression.GetType().Name, "Unknown pattern expression.")
         };
 }

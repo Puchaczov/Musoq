@@ -21,7 +21,8 @@ internal enum ExecutionTargetFeatureKind
     QueryRowSourceAccess,
     StringMatchKind,
     StringMatchComparison,
-    LikeMatcherStrategy
+    LikeMatcherStrategy,
+    RLikeMatcherStrategy
 }
 
 internal sealed record ExecutionTargetFeature

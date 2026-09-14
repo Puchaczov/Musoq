@@ -31,7 +31,9 @@ internal abstract partial class ExecutionIrRewriter
             ExecutionCollectionInCheck collectionInCheck => RewriteCollectionInCheck(collectionInCheck),
             ExecutionPatternMatch patternMatch => RewritePatternMatch(patternMatch),
             ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or
-                ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot => PatternExpressionFacts.RewriteChildren(expression, RewriteExpression),
+                ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or
+                ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot =>
+                PatternExpressionFacts.RewriteChildren(expression, RewriteExpression),
             ExecutionBetween between => RewriteBetween(between),
             ExecutionCaseWhen caseWhen => RewriteCaseWhen(caseWhen),
             ExecutionCoalesce coalesce => RewriteCoalesce(coalesce),

@@ -138,11 +138,26 @@ internal static class ExecutionTargetFeatureAnalyzer
             case ExecutionLikeMatcherCacheSlot:
                 AddLikeMatcherStrategy(sink, "cache-slot", "CacheSlot");
                 break;
+            case ExecutionPrepareRLikeMatcher:
+                AddRLikeMatcherStrategy(sink, "prepare", "Prepare");
+                break;
+            case ExecutionPreparedRLikeMatch:
+                AddRLikeMatcherStrategy(sink, "prepared-match", "PreparedMatch");
+                break;
+            case ExecutionDynamicRLikeMatch:
+                AddRLikeMatcherStrategy(sink, "dynamic-match", "DynamicMatch");
+                break;
+            case ExecutionRLikeMatcherCacheSlot:
+                AddRLikeMatcherStrategy(sink, "cache-slot", "CacheSlot");
+                break;
         }
     }
 
     private static void AddLikeMatcherStrategy(FeatureSink sink, string stableToken, string detail) =>
         sink.Add(ExecutionTargetFeatureKind.LikeMatcherStrategy, $"like-matcher-strategy:{stableToken}", detail);
+
+    private static void AddRLikeMatcherStrategy(FeatureSink sink, string stableToken, string detail) =>
+        sink.Add(ExecutionTargetFeatureKind.RLikeMatcherStrategy, $"rlike-matcher-strategy:{stableToken}", detail);
 
     private static void AddStringMatchComparison(
         FeatureSink sink,

@@ -845,3 +845,30 @@ internal sealed record TargetLikeMatcherAbiDetails(
             ? value
             : throw new ArgumentOutOfRangeException(nameof(CacheCapacity), "Cache capacity must be positive.");
 }
+
+internal sealed record TargetRLikeMatcherAbiDetails(
+    int CacheCapacity,
+    bool CultureAware,
+    int TimeoutMilliseconds) : TargetHostAbiImportDetails
+{
+    public override TargetHostAbiImportKind Kind => TargetHostAbiImportKind.RLikeMatcher;
+
+    internal override string CanonicalDefinition => CreateCanonicalDefinition(
+        Kind.ToString(),
+        builder =>
+        {
+            AppendScalar(builder, "cacheCapacity", CacheCapacity);
+            AppendScalar(builder, "cultureAware", CultureAware);
+            AppendScalar(builder, "timeoutMilliseconds", TimeoutMilliseconds);
+        });
+
+    public override IReadOnlyDictionary<string, string> Attributes { get; } = BuildAttributes(
+        ("cache-capacity", RequirePositive(CacheCapacity, nameof(CacheCapacity))),
+        ("culture-aware", CultureAware),
+        ("timeout-milliseconds", RequirePositive(TimeoutMilliseconds, nameof(TimeoutMilliseconds))));
+
+    private static int RequirePositive(int value, string parameterName) =>
+        value > 0
+            ? value
+            : throw new ArgumentOutOfRangeException(parameterName, "Value must be positive.");
+}

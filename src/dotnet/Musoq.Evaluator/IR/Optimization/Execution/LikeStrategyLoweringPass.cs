@@ -25,10 +25,14 @@ internal sealed partial class LikeStrategyLoweringPass : IExecutionIrOptimizatio
 
     private sealed partial class Rewriter : ExecutionIrRewriter
     {
-        private static readonly ExecutionTypeRef PreparedMatcherType =
+        private static readonly ExecutionTypeRef PreparedLikeMatcherType =
             ExecutionClrBindingFactory.FromClr(typeof(PreparedLikeMatcher));
-        private static readonly ExecutionTypeRef MatcherCacheSlotType =
+        private static readonly ExecutionTypeRef LikeMatcherCacheSlotType =
             ExecutionClrBindingFactory.FromClr(typeof(LikeMatcherCacheSlot));
+        private static readonly ExecutionTypeRef PreparedRLikeMatcherType =
+            ExecutionClrBindingFactory.FromClr(typeof(PreparedRLikeMatcher));
+        private static readonly ExecutionTypeRef RLikeMatcherCacheSlotType =
+            ExecutionClrBindingFactory.FromClr(typeof(RLikeMatcherCacheSlot));
 
         private readonly HashSet<string> _usedVariableNames;
         private readonly Dictionary<string, LoopFrame> _variableOwners = new(StringComparer.OrdinalIgnoreCase);
@@ -43,6 +47,13 @@ internal sealed partial class LikeStrategyLoweringPass : IExecutionIrOptimizatio
         private int _loopInvariantPreparedCount;
         private int _serialCacheCount;
         private int _workerCacheCount;
+        private int _rLikeDirectCount;
+        private int _rLikePreparedCount;
+        private int _rLikeDynamicCount;
+        private int _rLikeLoopInvariantPreparedCount;
+        private int _rLikeSerialCacheCount;
+        private int _rLikeWorkerCacheCount;
+        private readonly Dictionary<RLikeLiteralRejectionReason, int> _rLikeFallbackReasons = [];
 
         public Rewriter(ExecutionPlan plan)
         {
@@ -55,12 +66,19 @@ internal sealed partial class LikeStrategyLoweringPass : IExecutionIrOptimizatio
         }
 
         public string FormatTrace() =>
-            $"Lowered LIKE expressions: direct={_directCount.ToString(CultureInfo.InvariantCulture)}, " +
+            $"Lowered pattern matches: LIKE(direct={_directCount.ToString(CultureInfo.InvariantCulture)}, " +
             $"prepared={_preparedCount.ToString(CultureInfo.InvariantCulture)}, " +
-            $"dynamic={_dynamicCount.ToString(CultureInfo.InvariantCulture)}; " +
-            $"loop-invariant prepared={_loopInvariantPreparedCount.ToString(CultureInfo.InvariantCulture)}; " +
-            $"cache slots: serial={_serialCacheCount.ToString(CultureInfo.InvariantCulture)}, " +
-            $"parallel-worker={_workerCacheCount.ToString(CultureInfo.InvariantCulture)}.";
+            $"dynamic={_dynamicCount.ToString(CultureInfo.InvariantCulture)}, " +
+            $"loop-invariant={_loopInvariantPreparedCount.ToString(CultureInfo.InvariantCulture)}, " +
+            $"serial-cache={_serialCacheCount.ToString(CultureInfo.InvariantCulture)}, " +
+            $"worker-cache={_workerCacheCount.ToString(CultureInfo.InvariantCulture)}); " +
+            $"RLIKE(prepared={_rLikePreparedCount.ToString(CultureInfo.InvariantCulture)}, " +
+            $"dynamic={_rLikeDynamicCount.ToString(CultureInfo.InvariantCulture)}, " +
+            $"loop-invariant={_rLikeLoopInvariantPreparedCount.ToString(CultureInfo.InvariantCulture)}, " +
+            $"direct={_rLikeDirectCount.ToString(CultureInfo.InvariantCulture)}, " +
+            $"serial-cache={_rLikeSerialCacheCount.ToString(CultureInfo.InvariantCulture)}, " +
+            $"worker-cache={_rLikeWorkerCacheCount.ToString(CultureInfo.InvariantCulture)}, " +
+            $"fallbacks=[{FormatRLikeFallbacks()}]).";
 
         public override ExecutionPlan RewritePlan(ExecutionPlan plan)
         {
@@ -154,9 +172,16 @@ internal sealed partial class LikeStrategyLoweringPass : IExecutionIrOptimizatio
         protected override ExecutionExpression RewritePatternMatch(ExecutionPatternMatch expression)
         {
             var rewritten = (ExecutionPatternMatch)base.RewritePatternMatch(expression);
-            if (rewritten.Kind != PatternKind.Like)
-                return rewritten;
+            return rewritten.Kind switch
+            {
+                PatternKind.Like => LowerLike(rewritten),
+                PatternKind.RLike => LowerRLike(rewritten),
+                _ => rewritten
+            };
+        }
 
+        private ExecutionExpression LowerLike(ExecutionPatternMatch rewritten)
+        {
             if (rewritten.Pattern is ExecutionLiteral literal)
             {
                 if (literal.Value.ToClrValue() is string pattern)
@@ -178,11 +203,11 @@ internal sealed partial class LikeStrategyLoweringPass : IExecutionIrOptimizatio
                 _preparedCount++;
                 return new ExecutionPreparedLikeMatch(
                     rewritten.Expression,
-                    GetPreparedMatcher(literal),
+                    GetPreparedMatcher(literal, PatternKind.Like),
                     rewritten.ReturnType);
             }
 
-            if (TryGetLoopInvariantMatcher(rewritten.Expression, rewritten.Pattern, out var matcher))
+            if (TryGetLoopInvariantMatcher(rewritten.Expression, rewritten.Pattern, PatternKind.Like, out var matcher))
             {
                 _preparedCount++;
                 _loopInvariantPreparedCount++;
@@ -196,55 +221,118 @@ internal sealed partial class LikeStrategyLoweringPass : IExecutionIrOptimizatio
             return new ExecutionDynamicLikeMatch(
                 rewritten.Expression,
                 rewritten.Pattern,
-                GetCacheSlot(),
+                GetCacheSlot(PatternKind.Like),
                 ExecutionStringMatchComparison.LikeIgnoreCase,
                 rewritten.ReturnType);
         }
 
-        private ExecutionVariableRead GetPreparedMatcher(ExecutionLiteral pattern)
+        private ExecutionExpression LowerRLike(ExecutionPatternMatch rewritten)
+        {
+            if (rewritten.Pattern is ExecutionLiteral literal)
+            {
+                if (literal.Value.ToClrValue() is string pattern)
+                {
+                    var result = RLikeLiteralPatternClassifier.Classify(pattern);
+                    if (result.Classification is { } match)
+                    {
+                        _rLikeDirectCount++;
+                        return new ExecutionStringMatch(
+                            rewritten.Expression,
+                            pattern,
+                            pattern.Substring(match.LiteralStart, match.LiteralLength),
+                            ToExecutionKind(match.Kind),
+                            ExecutionStringMatchComparison.Ordinal,
+                            rewritten.ReturnType);
+                    }
+
+                    _rLikeFallbackReasons.TryGetValue(result.RejectionReason, out var count);
+                    _rLikeFallbackReasons[result.RejectionReason] = count + 1;
+                }
+
+                _rLikePreparedCount++;
+                return new ExecutionPreparedRLikeMatch(
+                    rewritten.Expression,
+                    GetPreparedMatcher(literal, PatternKind.RLike),
+                    rewritten.ReturnType);
+            }
+
+            if (TryGetLoopInvariantMatcher(rewritten.Expression, rewritten.Pattern, PatternKind.RLike, out var matcher))
+            {
+                _rLikePreparedCount++;
+                _rLikeLoopInvariantPreparedCount++;
+                return new ExecutionPreparedRLikeMatch(
+                    rewritten.Expression,
+                    matcher,
+                    rewritten.ReturnType);
+            }
+
+            _rLikeDynamicCount++;
+            return new ExecutionDynamicRLikeMatch(
+                rewritten.Expression,
+                rewritten.Pattern,
+                GetCacheSlot(PatternKind.RLike),
+                rewritten.ReturnType);
+        }
+
+        private ExecutionVariableRead GetPreparedMatcher(ExecutionLiteral pattern, PatternKind kind)
         {
             var key = pattern.Value.ToClrValue() as string;
+            var preparedMatchers = kind == PatternKind.Like
+                ? _rootRegion.PreparedLikeMatchers
+                : _rootRegion.PreparedRLikeMatchers;
             if (key is null)
             {
-                if (_rootRegion.NullMatcher is { } nullMatcher)
+                var nullMatcher = kind == PatternKind.Like
+                    ? _rootRegion.NullLikeMatcher
+                    : _rootRegion.NullRLikeMatcher;
+                if (nullMatcher is not null)
                     return new ExecutionVariableRead(nullMatcher);
             }
-            else if (_rootRegion.PreparedMatchers.TryGetValue(key, out var existing))
+            else if (preparedMatchers.TryGetValue(key, out var existing))
             {
                 return new ExecutionVariableRead(existing);
             }
 
-            var variable = CreateVariable("__likeMatcher", PreparedMatcherType);
+            var variable = CreateVariable(
+                kind == PatternKind.Like ? "__likeMatcher" : "__rlikeMatcher",
+                PreparedMatcherType(kind));
             if (key is null)
-                _rootRegion.NullMatcher = variable;
+            {
+                if (kind == PatternKind.Like)
+                    _rootRegion.NullLikeMatcher = variable;
+                else
+                    _rootRegion.NullRLikeMatcher = variable;
+            }
             else
-                _rootRegion.PreparedMatchers.Add(key, variable);
+            {
+                preparedMatchers.Add(key, variable);
+            }
             _rootRegion.Prelude.Add(new ExecutionLet(
                 variable,
-                new ExecutionPrepareLikeMatcher(
-                    pattern,
-                    ExecutionStringMatchComparison.LikeIgnoreCase,
-                    PreparedMatcherType),
+                CreatePrepareMatcher(pattern, kind),
                 ExecutionLetCacheMode.SuppressMethodCache));
             return new ExecutionVariableRead(variable);
         }
 
-        private ExecutionVariableRead GetCacheSlot()
+        private ExecutionVariableRead GetCacheSlot(PatternKind kind)
         {
-            if (_currentCacheScope.Variable is not { } variable)
+            var variable = kind == PatternKind.Like
+                ? _currentCacheScope.LikeVariable
+                : _currentCacheScope.RLikeVariable;
+            if (variable is null)
             {
-                variable = CreateVariable("__likeCache", MatcherCacheSlotType);
-                _currentCacheScope.Variable = variable;
+                variable = CreateVariable(
+                    kind == PatternKind.Like ? "__likeCache" : "__rlikeCache",
+                    MatcherCacheSlotType(kind));
+                if (kind == PatternKind.Like)
+                    _currentCacheScope.LikeVariable = variable;
+                else
+                    _currentCacheScope.RLikeVariable = variable;
                 _currentCacheScope.Region.Prelude.Add(new ExecutionLet(
                     variable,
-                    new ExecutionLikeMatcherCacheSlot(
-                        _currentCacheScope.WorkerLocal,
-                        MatcherCacheSlotType),
+                    CreateMatcherCacheSlot(kind, _currentCacheScope.WorkerLocal),
                     ExecutionLetCacheMode.SuppressMethodCache));
-                if (_currentCacheScope.WorkerLocal)
-                    _workerCacheCount++;
-                else
-                    _serialCacheCount++;
+                IncrementCacheCount(kind, _currentCacheScope.WorkerLocal);
             }
 
             return new ExecutionVariableRead(variable);
@@ -281,19 +369,86 @@ internal sealed partial class LikeStrategyLoweringPass : IExecutionIrOptimizatio
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown LIKE match kind.")
         };
 
+        private static ExecutionStringMatchKind ToExecutionKind(RLikeLiteralMatchKind kind) => kind switch
+        {
+            RLikeLiteralMatchKind.Exact => ExecutionStringMatchKind.Exact,
+            RLikeLiteralMatchKind.Prefix => ExecutionStringMatchKind.Prefix,
+            RLikeLiteralMatchKind.Suffix => ExecutionStringMatchKind.Suffix,
+            RLikeLiteralMatchKind.Contains => ExecutionStringMatchKind.Contains,
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown literal RLIKE match kind.")
+        };
+
+        private string FormatRLikeFallbacks() => _rLikeFallbackReasons.Count == 0
+            ? "none"
+            : string.Join(
+                ",",
+                _rLikeFallbackReasons
+                    .OrderBy(static pair => pair.Key)
+                    .Select(static pair => $"{pair.Key}={pair.Value.ToString(CultureInfo.InvariantCulture)}"));
+
+        private static ExecutionExpression CreatePrepareMatcher(ExecutionExpression pattern, PatternKind kind) =>
+            kind switch
+            {
+                PatternKind.Like => new ExecutionPrepareLikeMatcher(
+                    pattern,
+                    ExecutionStringMatchComparison.LikeIgnoreCase,
+                    PreparedLikeMatcherType),
+                PatternKind.RLike => new ExecutionPrepareRLikeMatcher(pattern, PreparedRLikeMatcherType),
+                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown prepared matcher kind.")
+            };
+
+        private static ExecutionExpression CreateMatcherCacheSlot(PatternKind kind, bool workerLocal) =>
+            kind switch
+            {
+                PatternKind.Like => new ExecutionLikeMatcherCacheSlot(workerLocal, LikeMatcherCacheSlotType),
+                PatternKind.RLike => new ExecutionRLikeMatcherCacheSlot(workerLocal, RLikeMatcherCacheSlotType),
+                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown matcher cache kind.")
+            };
+
+        private static ExecutionTypeRef PreparedMatcherType(PatternKind kind) =>
+            kind == PatternKind.Like ? PreparedLikeMatcherType : PreparedRLikeMatcherType;
+
+        private static ExecutionTypeRef MatcherCacheSlotType(PatternKind kind) =>
+            kind == PatternKind.Like ? LikeMatcherCacheSlotType : RLikeMatcherCacheSlotType;
+
+        private void IncrementCacheCount(PatternKind kind, bool workerLocal)
+        {
+            if (kind == PatternKind.Like)
+            {
+                if (workerLocal)
+                    _workerCacheCount++;
+                else
+                    _serialCacheCount++;
+                return;
+            }
+
+            if (workerLocal)
+                _rLikeWorkerCacheCount++;
+            else
+                _rLikeSerialCacheCount++;
+        }
+
         private sealed class Region
         {
             public List<ExecutionNode> Prelude { get; } = [];
 
-            public Dictionary<string, ExecutionVariable> PreparedMatchers { get; } =
+            public Dictionary<string, ExecutionVariable> PreparedLikeMatchers { get; } =
                 new(StringComparer.Ordinal);
 
-            public Dictionary<string, ExecutionVariable> LoopInvariantMatchers { get; } =
+            public Dictionary<string, ExecutionVariable> PreparedRLikeMatchers { get; } =
+                new(StringComparer.Ordinal);
+
+            public Dictionary<string, ExecutionVariable> LoopInvariantLikeMatchers { get; } =
+                new(StringComparer.Ordinal);
+
+            public Dictionary<string, ExecutionVariable> LoopInvariantRLikeMatchers { get; } =
                 new(StringComparer.Ordinal);
 
             public List<MatcherPreparation> MatcherPreparations { get; } = [];
 
-            public ExecutionVariable? NullMatcher { get; set; }
+            public ExecutionVariable? NullLikeMatcher { get; set; }
+
+            public ExecutionVariable? NullRLikeMatcher { get; set; }
         }
 
         private sealed class CacheScope(Region region, bool workerLocal)
@@ -302,7 +457,9 @@ internal sealed partial class LikeStrategyLoweringPass : IExecutionIrOptimizatio
 
             public bool WorkerLocal { get; } = workerLocal;
 
-            public ExecutionVariable? Variable { get; set; }
+            public ExecutionVariable? LikeVariable { get; set; }
+
+            public ExecutionVariable? RLikeVariable { get; set; }
         }
 
     }

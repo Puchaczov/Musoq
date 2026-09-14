@@ -70,7 +70,7 @@ internal sealed partial class PhysicalLoweringImplementation
                     .Select(value => ReplaceExecutionAliasCore(value, fromAlias, toAlias))
                     .ToArray()
             },
-            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot => PatternExpressionFacts.RewriteChildren(expression, child => ReplaceExecutionAliasCore(child, fromAlias, toAlias)),
+            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.RewriteChildren(expression, child => ReplaceExecutionAliasCore(child, fromAlias, toAlias)),
             ExecutionBetween between => between with
             {
                 Expression = ReplaceExecutionAliasCore(between.Expression, fromAlias, toAlias),

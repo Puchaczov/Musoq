@@ -158,7 +158,7 @@ public sealed class OperatorsCacheCharacterizationTests
     public void RLike_RuntimeCacheReusesDuplicatePatternsAndStaysBounded()
     {
         var operators = new Operators();
-        var cache = PrivateStaticCache<string, Regex>("RLikePatternCache");
+        var cache = PrivateStaticCache("RLikePatternCache");
         cache.Clear();
         var prefix = "wave1_rlike_" + Guid.NewGuid().ToString("N");
         var firstPattern = prefix + "_first_[0-9]+";
@@ -169,13 +169,40 @@ public sealed class OperatorsCacheCharacterizationTests
         Assert.IsTrue(operators.RLike(prefix + "_second_123", secondPattern));
 
         Assert.AreEqual(2, cache.Count);
-        Assert.IsTrue(cache.TryGetValue(firstPattern, out var regex));
-        Assert.AreEqual(RuntimeCacheOptions.DefaultRegexTimeout, regex.MatchTimeout);
 
         for (var i = 0; i < RuntimeCacheOptions.PatternCacheSize + 10; i++)
             Assert.IsTrue(operators.RLike($"{prefix}_bounded_{i}_123", $"{prefix}_bounded_{i}_[0-9]+"));
 
         Assert.AreEqual(RuntimeCacheOptions.PatternCacheSize, cache.Count);
+    }
+
+    [TestMethod]
+    public void RLike_RuntimeCacheSeparatesCultureSensitivePatterns()
+    {
+        var originalCulture = CultureInfo.CurrentCulture;
+        var cache = PrivateStaticCache("RLikePatternCache");
+        cache.Clear();
+
+        try
+        {
+            var operators = new Operators();
+            const string pattern = @"(?i)\Ai\z";
+
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
+            Assert.IsTrue(operators.RLike("I", pattern));
+
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("tr-TR");
+            Assert.IsFalse(operators.RLike("I", pattern));
+
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
+            Assert.IsTrue(operators.RLike("I", pattern));
+            Assert.AreEqual(2, cache.Count);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            cache.Clear();
+        }
     }
 
     private static BoundedRuntimeCache<TKey, TValue> PrivateStaticCache<TKey, TValue>(string fieldName)

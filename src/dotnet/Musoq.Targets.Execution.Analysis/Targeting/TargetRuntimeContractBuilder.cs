@@ -55,7 +55,8 @@ internal static class TargetRuntimeContractBuilder
                 SourceBoundaryCount: sourceAccess.Count,
                 OperatorCount: nodes.Length),
             queryRowSourceAccess,
-            CreateLikeMatcherContract(expressions));
+            CreateLikeMatcherContract(expressions),
+            CreateRLikeMatcherContract(expressions));
     }
 
     private static TargetLikeMatcherContract? CreateLikeMatcherContract(
@@ -67,6 +68,18 @@ internal static class TargetRuntimeContractBuilder
             ExecutionDynamicLikeMatch or
             ExecutionLikeMatcherCacheSlot)
             ? new TargetLikeMatcherContract(2, nameof(ExecutionStringMatchComparison.LikeIgnoreCase), true)
+            : null;
+    }
+
+    private static TargetRLikeMatcherContract? CreateRLikeMatcherContract(
+        IReadOnlyList<ExecutionExpression> expressions)
+    {
+        return expressions.Any(static expression => expression is
+            ExecutionPrepareRLikeMatcher or
+            ExecutionPreparedRLikeMatch or
+            ExecutionDynamicRLikeMatch or
+            ExecutionRLikeMatcherCacheSlot)
+            ? new TargetRLikeMatcherContract(2, true, 250)
             : null;
     }
 

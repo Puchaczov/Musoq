@@ -119,6 +119,7 @@ internal sealed partial class LikeStrategyLoweringPass
         private bool TryGetLoopInvariantMatcher(
             ExecutionExpression input,
             ExecutionExpression pattern,
+            PatternKind kind,
             out ExecutionVariableRead matcher)
         {
             matcher = null!;
@@ -147,17 +148,19 @@ internal sealed partial class LikeStrategyLoweringPass
             }
 
             var signature = ExecutionExpressionFingerprint.ForHoist(pattern);
-            if (!region.LoopInvariantMatchers.TryGetValue(signature, out var variable))
+            var loopInvariantMatchers = kind == PatternKind.Like
+                ? region.LoopInvariantLikeMatchers
+                : region.LoopInvariantRLikeMatchers;
+            if (!loopInvariantMatchers.TryGetValue(signature, out var variable))
             {
-                variable = CreateVariable("__likeMatcher", PreparedMatcherType);
-                region.LoopInvariantMatchers.Add(signature, variable);
+                variable = CreateVariable(
+                    kind == PatternKind.Like ? "__likeMatcher" : "__rlikeMatcher",
+                    PreparedMatcherType(kind));
+                loopInvariantMatchers.Add(signature, variable);
                 region.MatcherPreparations.Add(new MatcherPreparation(
                     new ExecutionLet(
                         variable,
-                        new ExecutionPrepareLikeMatcher(
-                            pattern,
-                            ExecutionStringMatchComparison.LikeIgnoreCase,
-                            PreparedMatcherType),
+                        CreatePrepareMatcher(pattern, kind),
                         ExecutionLetCacheMode.SuppressMethodCache),
                     GetDependencyNames(pattern)));
             }

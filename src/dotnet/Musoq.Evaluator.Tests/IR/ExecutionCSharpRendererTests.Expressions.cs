@@ -435,4 +435,66 @@ public sealed partial class ExecutionCSharpRendererTests
         Assert.IsLessThan(code.IndexOf(patternRead, StringComparison.Ordinal), code.IndexOf(inputRead, StringComparison.Ordinal));
         Assert.AreEqual("Operators.LikeDynamic(p.Input, p.Pattern, likeCache)", code);
     }
+
+    [TestMethod]
+    public void RenderExpression_WhenPlanUsesPreparedAndDynamicRLike_ShouldUseStaticMatcherAbi()
+    {
+        var matcherType = ExecutionClrBindingFactory.FromClr(typeof(PreparedRLikeMatcher));
+        var cacheSlotType = ExecutionClrBindingFactory.FromClr(typeof(RLikeMatcherCacheSlot));
+        var boolType = ExecutionClrBindingFactory.FromClr(typeof(bool));
+        var matcherVariable = new ExecutionVariable("matcher", matcherType);
+        var cacheVariable = new ExecutionVariable("rlikeCache", cacheSlotType);
+        var renderer = new ExecutionCSharpRenderer();
+        var prepare = new ExecutionPrepareRLikeMatcher(
+            new ExecutionLiteral("^a", typeof(string)),
+            matcherType);
+        var prepared = new ExecutionPreparedRLikeMatch(
+            new ExecutionLiteral("alpha", typeof(string)),
+            new ExecutionVariableRead(matcherVariable),
+            boolType);
+        var dynamic = new ExecutionDynamicRLikeMatch(
+            new ExecutionLiteral("alpha", typeof(string)),
+            new ExecutionLiteral("^a", typeof(string)),
+            new ExecutionVariableRead(cacheVariable),
+            boolType);
+        var cacheSlot = new ExecutionRLikeMatcherCacheSlot(cacheSlotType);
+
+        Assert.AreEqual("Operators.PrepareRLike(\"^a\")", Render(prepare));
+        Assert.AreEqual("Operators.RLikePrepared(\"alpha\", matcher)", Render(prepared));
+        Assert.AreEqual("Operators.RLikeDynamic(\"alpha\", \"^a\", rlikeCache)", Render(dynamic));
+        Assert.AreEqual("new Musoq.Evaluator.RLikeMatcherCacheSlot(false)", Render(cacheSlot));
+        Assert.AreEqual(
+            "new Musoq.Evaluator.RLikeMatcherCacheSlot(true)",
+            Render(new ExecutionRLikeMatcherCacheSlot(true, cacheSlotType)));
+        Assert.IsTrue(ExecutionCSharpRenderer.CanRenderExpression(prepare));
+        Assert.IsTrue(ExecutionCSharpRenderer.CanRenderExpression(prepared));
+        Assert.IsTrue(ExecutionCSharpRenderer.CanRenderExpression(dynamic));
+        Assert.IsTrue(ExecutionCSharpRenderer.CanRenderExpression(cacheSlot));
+
+        string Render(ExecutionExpression expression) => renderer.RenderExpression(expression)
+            .NormalizeWhitespace()
+            .ToFullString();
+    }
+
+    [TestMethod]
+    public void RenderExpression_WhenStringMatchUsesOrdinalComparison_ShouldEmitOrdinalBclCall()
+    {
+        var match = new ExecutionStringMatch(
+            new ExecutionFieldRead("p", "Name", typeof(string)),
+            "\\Aliteral\\z",
+            "literal",
+            ExecutionStringMatchKind.Exact,
+            ExecutionStringMatchComparison.Ordinal,
+            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+
+        var code = new ExecutionCSharpRenderer()
+            .RenderExpression(match)
+            .NormalizeWhitespace()
+            .ToFullString();
+
+        Assert.Contains("string.Equals(__musoqStringMatch1, \"literal\", StringComparison.Ordinal)", code);
+        Assert.Contains("switch", code);
+        Assert.DoesNotContain("LikeLegacyRegex", code);
+        Assert.IsTrue(ExecutionCSharpRenderer.CanRenderExpression(match));
+    }
 }

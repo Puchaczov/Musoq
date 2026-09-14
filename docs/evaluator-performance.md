@@ -3028,3 +3028,30 @@ The corrective three-cohort qualification, result hashes, payload counters, and
 threshold decisions are recorded in the
 [final campaign receipt](campaigns/qms-like-specialization-qualification.md).
 The historical table above must not be treated as the completed qualification.
+
+## Prepared and dynamic RLIKE execution
+
+SQL `RLIKE` uses explicit evaluator-owned execution strategies. A deliberately
+small literal-regex subset uses ordinal BCL string matching; other constants
+and safe outer-loop patterns prepare a lazy matcher once; row-varying patterns
+use a bounded two-entry execution-local cache. Arbitrary regex syntax remains
+on .NET Regex with the historical culture, timeout, null, and invalid-pattern
+behavior. Generated query code contains no per-row `new Operators().RLike`.
+
+The one-cohort directional qualification measured constants at 0.7482x-0.8318x
+baseline time, dynamic cardinalities 1-512 at 0.5087x-0.7308x, and input-length
+cases at 0.5129x-0.7104x. Literal-classified 4,096-cardinality cases improved by
+orders of magnitude; the arbitrary complex-regex case remained within noise at
+1.0112x. Compilation was slower in the formal ShortRun pair and one
+outer-pattern APPLY cell measured 1.0336x, so the fixed gate still reports
+three failures. The campaign author accepted those disclosed exceptions after
+explicitly relaxing performance qualification; correctness remained a hard
+gate.
+
+The complete environment, all 39 time/allocation comparisons, result hashes,
+cache/source counters, generated-code evidence, and unchanged gate output are
+recorded in the
+[optimized RLIKE qualification receipt](campaigns/qms-rlike-execution-qualification.md).
+RLIKE remains evaluator residual execution and is not transferred to
+datasources. Direct ordinal operations rely on BCL/runtime-managed SIMD where
+available; no handwritten vector kernel was added.
