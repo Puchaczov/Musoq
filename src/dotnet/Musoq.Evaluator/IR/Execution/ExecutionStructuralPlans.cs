@@ -207,4 +207,3 @@ public sealed record ExecutionStructuralConstructionPlan
         $"lifetime={Lifetime};origin={Origin};metrics={MetricsStrategy};ownership={Ownership};limits={Limits};" +
         $"indexes={string.Join(',', SourceFieldIndexes)};defaults={string.Join(',', Defaults.Select(static value => value?.ToString() ?? "-"))}";
 }
-

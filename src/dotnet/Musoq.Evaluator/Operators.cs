@@ -416,7 +416,9 @@ public partial class Operators
         var regexPattern = CreateOptimizedLegacyLikeRegexPattern(pattern);
         var options = RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled;
         Regex regex;
-        if (CanUseTimeoutBoundedBacktrackingMatcher(pattern))
+        var classification = LikePatternClassifier.Classify(pattern).Classification;
+        if (CanUseTimeoutBoundedBacktrackingMatcher(pattern) &&
+            classification is { Domain: LikePatternCharacterDomain.Ascii })
         {
             regex = new Regex(regexPattern, options, RuntimeCacheOptions.DefaultRegexTimeout);
             return regex.IsMatch;

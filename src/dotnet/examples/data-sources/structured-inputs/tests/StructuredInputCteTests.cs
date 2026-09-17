@@ -107,4 +107,3 @@ public sealed class StructuredInputCteTests
         public Microsoft.Extensions.Logging.ILogger<T> ResolveLogger<T>() => NullLogger<T>.Instance;
     }
 }
-

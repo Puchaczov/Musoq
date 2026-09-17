@@ -12,4 +12,3 @@ public sealed record ExecutionPrepareStructuralInput(
 
     public ExecutionStructuralConstructionPlan Plan { get; } = Plan ?? throw new ArgumentNullException(nameof(Plan));
 }
-

@@ -20,10 +20,10 @@ public sealed class CompiledQueryRuntimeStateTests
         using var query = new CompiledQuery(runnable);
         query.Parameters["value"] = 1;
 
-        var firstRun = Task.Run(() => query.Run());
+        var firstRun = StartLongRunning(() => query.Run());
         Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
 
-        var secondRun = Task.Run(() =>
+        var secondRun = StartLongRunning(() =>
         {
             query.Parameters["value"] = 2;
             return query.Run();
@@ -46,10 +46,10 @@ public sealed class CompiledQueryRuntimeStateTests
         var query = new CompiledQuery(runnable);
         query.Parameters["value"] = 3;
 
-        var run = Task.Run(() => query.Run());
+        var run = StartLongRunning(() => query.Run());
         Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
 
-        var dispose = Task.Run(query.Dispose);
+        var dispose = StartLongRunning(query.Dispose);
         Assert.IsFalse(dispose.Wait(TimeSpan.FromMilliseconds(100)));
 
         runnable.Release.Set();
@@ -67,10 +67,10 @@ public sealed class CompiledQueryRuntimeStateTests
         using var query = new CompiledQuery(runnable);
         query.Parameters["value"] = 1;
 
-        var firstRun = Task.Run(() => query.Run());
+        var firstRun = StartLongRunning(() => query.Run());
         Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
 
-        var secondRun = Task.Run(() =>
+        var secondRun = StartLongRunning(() =>
         {
             query.Parameters["value"] = 2;
             return query.Run();
@@ -93,12 +93,12 @@ public sealed class CompiledQueryRuntimeStateTests
         var query = new CompiledQuery(runnable);
         query.Parameters["value"] = 3;
 
-        var firstRun = Task.Run(() => query.Run());
+        var firstRun = StartLongRunning(() => query.Run());
         Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
-        var secondRun = Task.Run(() => query.Run());
+        var secondRun = StartLongRunning(() => query.Run());
         Assert.IsTrue(runnable.SecondRunStarted.Wait(TimeSpan.FromSeconds(5)));
 
-        var dispose = Task.Run(query.Dispose);
+        var dispose = StartLongRunning(query.Dispose);
         Assert.IsFalse(dispose.Wait(TimeSpan.FromMilliseconds(100)));
 
         runnable.Release.Set();
@@ -108,6 +108,20 @@ public sealed class CompiledQueryRuntimeStateTests
 
         Assert.IsTrue(runnable.IsDisposed);
     }
+
+    private static Task<T> StartLongRunning<T>(Func<T> function) =>
+        Task.Factory.StartNew(
+            function,
+            CancellationToken.None,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default);
+
+    private static Task StartLongRunning(Action action) =>
+        Task.Factory.StartNew(
+            action,
+            CancellationToken.None,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default);
 
     private sealed class BlockingParameterizedRunnable : ITableRunnable, IParameterizedRunnable, IDisposable
     {

@@ -577,7 +577,9 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("/missing", table[0][0]);
         Assert.AreEqual(1L, table[0][1]);
-        Assert.AreEqual(new DateTime(2026, 7, 17, 14, 34, 56), table[0][2]);
+        Assert.AreEqual(
+            new DateTimeOffset(2026, 7, 17, 12, 34, 56, TimeSpan.Zero),
+            table[0][2]);
     }
 
     [TestMethod]
@@ -1051,7 +1053,7 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
         }
 
         select log.Path, Count(*) as ErrorCount,
-            MaxDateTime(ToDateTimeWithFormat(log.Timestamp, 'dd/MMM/yyyy:HH:mm:ss zzz')) as LastSeen
+            MaxDateTimeOffset(ToDateTimeOffsetWithFormat(log.Timestamp, 'dd/MMM/yyyy:HH:mm:ss zzz')) as LastSeen
         from #test.lines() f
         cross apply Lines(f.Text) line
         cross apply Parse<ApacheLog>(line.Value) log
