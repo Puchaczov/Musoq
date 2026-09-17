@@ -5,6 +5,7 @@ using Musoq.Evaluator.Visitors;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
+using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.IR.Expressions;
 public sealed partial class ExpressionConverter
@@ -30,13 +31,16 @@ public sealed partial class ExpressionConverter
     private EnumTypeDescriptor? ResolveColumnEnumType(string alias, string columnName) =>
         _columnEnumTypeResolver(alias, columnName);
 
-    public IrExpression Convert(Node node)
+    public IrExpression Convert(Node node) => Convert(node, null);
+
+    public IrExpression Convert(Node node, Type? expectedType)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var expression = node switch
         {
             AccessColumnNode col => ConvertColumnAccess(col),
-            ParameterReferenceNode parameter => new ScriptParameterRef(parameter.Name, RequireReturnType(parameter)),
-            ScriptVariableReferenceNode variable => new ScriptVariableRef(variable.Name, RequireReturnType(variable)),
+            ParameterReferenceNode parameter => StructuralReferenceExpressionFactory.CreateParameter(parameter.Name, RequireReturnType(parameter), expectedType),
+            ScriptVariableReferenceNode variable => StructuralReferenceExpressionFactory.CreateVariable(variable.Name, RequireReturnType(variable), expectedType),
             AggregateIdentifierNode n => new Literal(n.ObjValue, RequireReturnType(n), n.DisplayName),
             ConstantValueNode n => new Literal(n.ObjValue, RequireReturnType(n)),
             NullNode n => new Literal(null, RequireReturnType(n)),
@@ -79,6 +83,8 @@ public sealed partial class ExpressionConverter
             WindowFunctionNode n => ConvertWindowFunction(n),
             AllColumnsNode => new WildcardLiteral(typeof(void)),
             FieldNode n => Convert(n.Expression),
+            RecordLiteralNode n => ConvertRecordLiteral(n, expectedType),
+            ArrayLiteralNode n => ConvertArrayLiteral(n, expectedType),
 
             ShortCircuitingNodeLeft n => Convert(n.Expression),
             ShortCircuitingNodeRight n => Convert(n.Expression),

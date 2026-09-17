@@ -66,7 +66,7 @@ internal static partial class RecursiveCteUnsupportedCaseCatalog
         Case(
             "NestedSelfReference",
             "with recursive counter (Value) as (" + Anchor +
-            " union all select seed.Value from values {{ Value: 1 }} seed " +
+            " union all select seed.Value from values {( Value: 1 )} seed " +
             "where exists (select c.Value from counter c)) select Value from counter",
             DiagnosticCode.MQ3074_InvalidRecursiveCteReference,
             "counter c",
@@ -118,7 +118,7 @@ internal static partial class RecursiveCteUnsupportedCaseCatalog
         Case(
             "OuterJoinRecursiveMember",
             "with recursive counter (Value) as (" + Anchor +
-            " union all select c.Value + 1 from counter c left outer join values {{ Value: 1 }} seed " +
+            " union all select c.Value + 1 from counter c left outer join values {( Value: 1 )} seed " +
             "on c.Value = seed.Value) select Value from counter",
             DiagnosticCode.MQ3075_UnsupportedRecursiveCteOperator,
             "counter c",
@@ -126,7 +126,7 @@ internal static partial class RecursiveCteUnsupportedCaseCatalog
         Case(
             "NestedSetOperation",
             "with recursive counter (Value) as (" + Anchor + " union all " + Member +
-            " union all select seed.Value from values {{ Value: 4 }} seed) select Value from counter",
+            " union all select seed.Value from values {( Value: 4 )} seed) select Value from counter",
             DiagnosticCode.MQ3073_InvalidRecursiveCteShape,
             "counter",
             "exactly one anchor"),
@@ -148,7 +148,7 @@ internal static partial class RecursiveCteUnsupportedCaseCatalog
             "anchor type 'Int32'")
     ];
 
-    private const string Anchor = "select seed.Value from values {{ Value: 1 }} seed";
+    private const string Anchor = "select seed.Value from values {( Value: 1 )} seed";
 
     private const string Member = "select c.Value + 1 from counter c where c.Value < 3";
 

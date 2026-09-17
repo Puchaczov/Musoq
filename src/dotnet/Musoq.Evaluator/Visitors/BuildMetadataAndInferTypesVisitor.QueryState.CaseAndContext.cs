@@ -47,9 +47,9 @@ public partial class BuildMetadataAndInferTypesVisitor
             var anyWasNullable = _diagnostics.NullSuspiciousTypes.Any(type => type.GetUnderlyingNullable() != null);
             var greatestCommonSubtype = SemanticTypeInferenceService.FindGreatestCommonSubtype(_diagnostics.NullSuspiciousTypes);
             var caseNode = anyWasNullable
-                ? new CaseNode(whenThenPairs.ToArray(), elseNode, greatestCommonSubtype)
+                ? new CaseNode(whenThenPairs.ToArray(), elseNode, greatestCommonSubtype).CopySpansFrom(node)
                 : new CaseNode(whenThenPairs.ToArray(), elseNode,
-                    BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(greatestCommonSubtype));
+                    BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(greatestCommonSubtype)).CopySpansFrom(node);
 
             result = caseNode;
         }
@@ -58,7 +58,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             var greatestCommonSubtype = SemanticTypeInferenceService.FindGreatestCommonSubtype(_diagnostics.NullSuspiciousTypes);
             var nullableGreatestCommonSubtype =
                 BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(greatestCommonSubtype);
-            var caseNode = new CaseNode(whenThenPairs.ToArray(), elseNode, nullableGreatestCommonSubtype);
+            var caseNode = new CaseNode(whenThenPairs.ToArray(), elseNode, nullableGreatestCommonSubtype).CopySpansFrom(node);
 
             var rewritePartsWithProperNullHandling =
                 new RewritePartsWithProperNullHandlingVisitor(greatestCommonSubtype);
@@ -82,14 +82,14 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         ValidateExpressionIsBoolean(expression, "CASE WHEN");
 
-        var newNode = new WhenNode(expression);
+        var newNode = new WhenNode(expression).CopySpansFrom(node);
 
         PushSemanticNode(newNode);
     }
 
     public override void Visit(ThenNode node)
     {
-        var newNode = new ThenNode(PopSemanticNode());
+        var newNode = new ThenNode(PopSemanticNode()).CopySpansFrom(node);
 
         _diagnostics.NullSuspiciousTypes.Add(newNode.ReturnType ?? typeof(object));
 
@@ -98,7 +98,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     public override void Visit(ElseNode node)
     {
-        var newNode = new ElseNode(PopSemanticNode());
+        var newNode = new ElseNode(PopSemanticNode()).CopySpansFrom(node);
 
         _diagnostics.NullSuspiciousTypes.Add(newNode.ReturnType ?? typeof(object));
 

@@ -7,6 +7,8 @@ public class TransitionSchemaProvider(ISchemaProvider schemaProvider) : ISchemaP
 {
     private readonly Dictionary<string, ISchema> _transientSchemas = new();
 
+    internal ISchemaProvider InnerProvider => schemaProvider;
+
     public ISchema GetSchema(string schema)
     {
         return _transientSchemas.TryGetValue(schema, out var foundSchema)

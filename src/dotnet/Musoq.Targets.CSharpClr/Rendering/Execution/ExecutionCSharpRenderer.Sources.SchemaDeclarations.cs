@@ -119,6 +119,43 @@ public sealed partial class ExecutionCSharpRenderer
             return statements;
         }
 
+        if (sourceScan.Binding.SourceConstructionType is { } constructionType)
+        {
+            var rowType = sourceScan.Binding.SourceType?.RequireClrType() ?? sourceScan.Source.Type.RequireClrType();
+            var sourceClrType = constructionType.RequireClrType();
+            if (!CanReferenceType(sourceClrType) || !CanReferenceType(rowType))
+                throw new InvalidOperationException(
+                    $"Generated typed source '{sourceScan.Binding.MethodName}' has a non-referenceable construction or row type.");
+
+            var typedRowSourceName = CreateRowSourceVariableName(sourceScan.Rows.Name);
+            var sourceContextName = $"{typedRowSourceName}Context";
+            statements.AddRange(TypedSourceDeclarationHelper.Create(
+                sourceScan,
+                schemaVariableName,
+                arguments,
+                runtimeContext,
+                sourceClrType,
+                rowType,
+                typedRowSourceName,
+                sourceContextName));
+
+            var typedRows = SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(typedRowSourceName),
+                    SyntaxFactory.IdentifierName("Chunks"));
+            var typedProgressRows = CreateProgressChunksExpression(
+                typedRows,
+                CreateTypeSyntax(rowType),
+                sourceScan.Binding.RuntimeContextId,
+                context);
+            statements.Add(CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                sourceScan.Rows.Name,
+                IsInstrumentationEnabled
+                    ? CreateProfiledChunksExpression(typedProgressRows, sourceProfileName, CreateTypeSyntax(rowType))
+                    : typedProgressRows));
+            return statements;
+        }
         var sourceType = sourceScan.Binding.SourceType?.RequireClrType() ?? sourceScan.Source.Type.RequireClrType();
         if (!CanReferenceType(sourceType))
             throw new InvalidOperationException(

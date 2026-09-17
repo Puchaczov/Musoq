@@ -4,6 +4,26 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.11-alpha.1
+
+See the curated full-train release notes for [Musoq 17.0.11-alpha.1](release-notes/v17.0.11-alpha.1.md).
+
+### Musoq.Parser, Musoq.Schema, and structured datasource contracts
+
+- Added structured datasource inputs for typed parameters, `let` declarations, records, arrays, nested values, and direct CTE arguments with presence-aware defaults and validation.
+- Added the corresponding parser, schema conversion, source registration, metadata, ownership, lifecycle, and diagnostics contracts.
+
+### Musoq.Evaluator, Musoq.Converter, and execution targets
+
+- Added planner-owned LIKE/RLIKE specialization with literal, prepared, and dynamic execution strategies carried through Execution IR and generated C#.
+- Added Execution IR and Host ABI version 8 metadata for the new execution capabilities and preserved evaluator ownership of residual string matching.
+- Avoided the .NET runtime crash in struct-key window sorting by replacing the pooled sort-key buffer with a regular array; this trades some allocation/performance efficiency for runtime stability.
+
+### Compatibility and verification
+
+- Published as a full five-package alpha train. `Musoq.Schema` and `Musoq.Plugins` intentionally do not claim binary compatibility with the preceding train; datasource providers must rebuild against this alpha.
+- The C# target implementation remains bundled through `Musoq.Converter`; no standalone target package is introduced.
+
 ## 17.0.10-alpha.1
 
 See the curated full-train release notes for [Musoq 17.0.10-alpha.1](release-notes/v17.0.10-alpha.1.md).

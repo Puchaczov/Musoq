@@ -59,7 +59,7 @@ internal static class RecursiveScalarInvariantFacts
                 "Window values belong to the current recursive iteration.");
         }
 
-        if (expression is CteTableRef)
+        if (expression is CteTableRef or CteCollectionInput)
         {
             return new(
                 RecursiveScalarInvariantKind.Stream,

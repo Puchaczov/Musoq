@@ -439,9 +439,12 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
     }
 
     private abstract class OwnedTableRunnableBase(ITableRunnable inner, IDisposable lifetimeOwner)
-        : ITableRunnable, IQueryProgressSource, IParameterizedRunnable, IProfiledRunnable, IContextProfiledRunnable, IDisposable
+        : ITableRunnable, IQueryProgressSource, IParameterizedRunnable, IMetadataOnlyRunnable,
+            IProfiledRunnable, IContextProfiledRunnable, IStructuralParameterSnapshotProvider, IDisposable
     {
         private readonly IParameterizedRunnable? _parameterized = inner as IParameterizedRunnable;
+        private readonly IStructuralParameterSnapshotProvider? _structuralParameterSnapshotProvider =
+            inner as IStructuralParameterSnapshotProvider;
         private readonly Dictionary<string, object?> _fallbackParameters = new(StringComparer.Ordinal);
         private int _disposed;
 
@@ -491,6 +494,22 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
 
         public IReadOnlyList<ScriptParameterContract> ParameterContracts =>
             _parameterized?.ParameterContracts ?? Array.Empty<ScriptParameterContract>();
+
+        public IReadOnlyDictionary<string, object?> CaptureParameterSnapshot(
+            IReadOnlyDictionary<string, object?> supplied,
+            CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(supplied);
+
+            return StructuralParameterSnapshotter.CaptureForExecution(
+                ParameterDefinitions,
+                supplied,
+                cancellationToken,
+                _structuralParameterSnapshotProvider);
+        }
+
+        public bool IsMetadataOnly =>
+            Inner is IMetadataOnlyRunnable { IsMetadataOnly: true };
 
         public event QueryPhaseEventHandler PhaseChanged
         {

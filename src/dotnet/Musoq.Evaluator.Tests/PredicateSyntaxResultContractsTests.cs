@@ -36,7 +36,6 @@ public class PredicateSyntaxResultContractsTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    [FeatureEvidence("contains-null-semantics", FeatureEvidenceKind.RuntimePositive)]
     public void Contains_ShouldTreatNullLeftAsAbsentUnlessNullIsListed()
     {
         const string query = "select Name from #A.Entities() where Name contains (null, 'a')";
@@ -86,7 +85,6 @@ public class PredicateSyntaxResultContractsTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    [FeatureEvidence("regex-null-semantics", FeatureEvidenceKind.RuntimePositive)]
     public void RLike_ShouldExcludeNullLeftValues()
     {
         const string query = "select Name from #A.Entities() where Name rlike '^test.*$'";

@@ -14,7 +14,8 @@ public sealed record DescNode(
     string SourceContextId,
     OutputSchema OutputSchema,
     OutputSchema? QueryOutputSchema = null,
-    TextSpan? ColumnSpan = null) : LogicalNode(OutputSchema)
+    TextSpan? ColumnSpan = null,
+    IReadOnlyList<StructuralArgumentDescription>? ArgumentDescriptions = null) : LogicalNode(OutputSchema)
 {
     public override IReadOnlyList<LogicalNode> Children { get; } = Array.Empty<LogicalNode>();
 }

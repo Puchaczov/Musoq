@@ -157,7 +157,7 @@ public sealed partial class RewriteQueryVisitor
         for (var i = node.InnerExpression.Length - 1; i >= 0; --i)
             sets[i] = (CteInnerExpressionNode)Nodes.Pop();
 
-        Nodes.Push(new CteExpressionNode(sets, set, node.IsRecursive));
+        Nodes.Push(new CteExpressionNode(sets, set, node.IsRecursive).CopySpansFrom(node));
     }
 
     public void Visit(CteInnerExpressionNode node)

@@ -66,29 +66,47 @@ internal sealed partial class PhysicalLoweringImplementation
         RowShape sourceShape,
         int schemaFromIndex,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        IReadOnlyDictionary<string, int> cteIndexes)
+        IReadOnlyDictionary<string, int> cteIndexes,
+        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName)
     {
         return new ExecutionSourceBinding(
             scan.SchemaName,
             scan.MethodName,
             scan.SourceContextId ?? CreateRuntimeContextIdentifier(scan.Alias),
             schemaFromIndex,
-            scan.Arguments.Select(argument => ExecutionExpressionConverter.Convert(argument, sourceLookup, cteIndexes)).ToArray(),
+            scan.Arguments
+                .Select(argument => AttachCteRowShape(
+                    ExecutionExpressionConverter.Convert(argument, sourceLookup, cteIndexes),
+                    cteShapesByName))
+                .ToArray(),
             sourceShape.Fields,
             CreateColumnMetadata(scan.Alias, sourceShape.Fields, ExecutionColumnMetadataKind.SourceSchemaColumns),
             RowShapeLookup.ResolveSourceRequestType(sourceShape),
             scan.SourceTransferStrategy is { Mode: SourceTransferMode.QueryScopedRows } transfer
                 ? ExecutionQueryRowSourceTransfer.FromPlanner(transfer)
-                : null);
+                : null,
+            scan.SourceConstructionType,
+            scan.SourceConstructionSupportsContext,
+            scan.SourceConstructorStableId,
+            scan.SourceConstructor, scan.StructuralArgumentLimits);
     }
 
+    private static ExecutionExpression AttachCteRowShape(
+        ExecutionExpression argument,
+        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName)
+    {
+        if (argument is not ExecutionCteCollectionInput relation ||
+            cteShapesByName == null ||
+            !cteShapesByName.TryGetValue(relation.CteName, out var rowShape) ||
+            relation.Rows is not ExecutionStoredTableRows storedRows)
+            return argument;
+
+        return relation with { Rows = storedRows with { GeneratedRowShape = rowShape } };
+    }
     private static string CreateRuntimeContextIdentifier(string alias)
     {
         return $"{alias}:{SourceInstanceOrdinal}";
     }
 
-    private static string CreateResolverVariableName(string alias)
-    {
-        return $"{alias}Resolver";
-    }
+
 }

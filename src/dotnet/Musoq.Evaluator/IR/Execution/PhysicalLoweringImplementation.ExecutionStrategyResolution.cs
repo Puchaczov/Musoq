@@ -39,8 +39,5 @@ internal sealed partial class PhysicalLoweringImplementation
         _physicalLoweringFacade = CreatePhysicalLoweringDispatchFacade();
     }
 
-    private ExecutionStrategyPlan ResolveExecutionStrategies()
-    {
-        return _facts.ExecutionStrategies;
-    }
+
 }

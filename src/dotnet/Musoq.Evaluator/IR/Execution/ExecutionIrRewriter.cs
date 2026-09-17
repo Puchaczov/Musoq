@@ -36,6 +36,7 @@ internal abstract partial class ExecutionIrRewriter
         return node switch
         {
             ExecutionSourceScan sourceScan => RewriteSourceScan(sourceScan),
+            ExecutionPrepareStructuralInput structuralInput => RewritePrepareStructuralInput(structuralInput),
             ExecutionInterpretSource interpret => RewriteInterpretSource(interpret),
             ExecutionEnumerableSource enumerable => RewriteEnumerableSource(enumerable),
             ExecutionCreateTable createTable => RewriteCreateTable(createTable),

@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Musoq.Parser.Nodes;
+using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -34,6 +36,36 @@ internal static class ScriptParameterDefaultValueBinder
         return ConvertDefaultValue(declaration, parameterType, constantValue.ObjValue, out value, out error);
     }
 
+    public static bool TryBindStructural(
+        ParameterDeclarationNode declaration,
+        StructuralTypeDescriptor structuralType,
+        out object? value,
+        out string error)
+    {
+        ArgumentNullException.ThrowIfNull(declaration);
+        ArgumentNullException.ThrowIfNull(structuralType);
+        value = null;
+        error = string.Empty;
+
+        if (!declaration.HasDefaultValue)
+            return true;
+
+        var evaluation = ScriptVariableInitializerEvaluator.EvaluateStaticExpression(
+            declaration.DefaultValue!,
+            new Dictionary<string, ScriptVariableDefinition>(StringComparer.Ordinal));
+        if (!evaluation.Success)
+        {
+            error = evaluation.Error;
+            return false;
+        }
+
+        return StructuralValueBinder.TryNormalize(
+            evaluation.Value,
+            structuralType,
+            $"parameter '{declaration.Name}'",
+            out value,
+            out error);
+    }
     private static bool ConvertDefaultValue(
         ParameterDeclarationNode declaration,
         Type parameterType,

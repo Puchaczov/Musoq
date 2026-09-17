@@ -28,6 +28,15 @@ public class AliasedFromNode : FromNode
 
     public string? TypeParameter { get; }
 
+    /// <summary>Source span of the callable name, when parsed from query text.</summary>
+    public TextSpan? MethodSpan { get; private set; }
+
+    public AliasedFromNode WithMethodSpan(TextSpan span)
+    {
+        MethodSpan = span;
+        return this;
+    }
+
     public override string Id => $"{Identifier}{CreateTypeParameterSuffix(TypeParameter)}-{Alias}";
 
     public override void Accept(IExpressionVisitor visitor)

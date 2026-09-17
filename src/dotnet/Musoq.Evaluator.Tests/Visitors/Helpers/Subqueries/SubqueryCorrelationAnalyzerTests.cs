@@ -120,7 +120,7 @@ public sealed class SubqueryCorrelationAnalyzerTests
         Assert.IsTrue(analysis.HasIllegalOuterConsumingCteReferences);
         CollectionAssert.AreEquivalent(new[] { "a" }, analysis.IllegalOuterConsumingCteAliases.ToArray());
         Assert.Contains("a", analysis.IllegalOuterConsumingCteAliases);
-        var referenceStart = query.Trim().IndexOf("a.Country", StringComparison.Ordinal);
+        var referenceStart = query.IndexOf("a.Country", StringComparison.Ordinal);
         Assert.AreEqual(new TextSpan(referenceStart, "a.Country".Length),
             analysis.IllegalOuterConsumingCteReferenceSpan);
     }

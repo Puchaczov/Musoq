@@ -73,7 +73,7 @@ public partial class CloneQueryVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var defaultValue = node.HasDefaultValue ? Nodes.Pop() : null;
-        Nodes.Push(new ParameterDeclarationNode(node.Name, node.TypeName, node.IsNullable, defaultValue, node.Span));
+        Nodes.Push(StructuralNodeRebuildSupport.RebuildParameter(node, defaultValue));
     }
 
     public override void Visit(ParameterReferenceNode node)
@@ -115,7 +115,7 @@ public partial class CloneQueryVisitor
     public override void Visit(IsNullNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new IsNullNode(Nodes.Pop(), node.IsNegated));
+        Nodes.Push(new IsNullNode(Nodes.Pop(), node.IsNegated).CopySpansFrom(node));
     }
 
     public override void Visit(AccessRefreshAggregationScoreNode node)
@@ -148,7 +148,7 @@ public partial class CloneQueryVisitor
             node.IsNotLike,
             node.ExcludeColumns,
             clonedReplaceItems ?? node.ReplaceItems,
-            node.RenameItems).WithSpan(node.Span));
+            node.RenameItems).CopySpansFrom(node));
     }
 
     public override void Visit(IdentifierNode node)
@@ -202,6 +202,6 @@ public partial class CloneQueryVisitor
         for (var i = node.Args.Length - 1; i >= 0; --i)
             args[i] = Nodes.Pop();
 
-        Nodes.Push(new ArgsListNode(args, node.ArgumentNames, node.Span));
+        Nodes.Push(StructuralNodeRebuildSupport.Rebuild(node, args));
     }
 }

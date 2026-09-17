@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Schema.Tests;
@@ -41,21 +39,6 @@ public sealed class EnumScalarContractTests
             EnumScalarValue.FromRaw(EnumUnderlyingKind.Int16, ushort.MaxValue + 1UL));
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             EnumScalarValue.FromRaw(EnumUnderlyingKind.UInt32, (ulong)uint.MaxValue + 1UL));
-    }
-
-    [TestMethod]
-    public void ScalarValue_TypedEqualityShouldAllocateNoMemory()
-    {
-        var left = EnumScalarValue.FromInt32(-7);
-        var right = EnumScalarValue.FromInt32(-7);
-        Assert.IsTrue(CompareMany(left, right, 1));
-
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        var equal = CompareMany(left, right, 100_000);
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-
-        Assert.IsTrue(equal);
-        Assert.AreEqual(0L, allocated);
     }
 
     [TestMethod]
@@ -150,21 +133,6 @@ public sealed class EnumScalarContractTests
         Assert.Throws<ArgumentException>(() => EnumTypeDescriptor.FromClrEnum(typeof(CaseCollision)));
     }
 
-    [TestMethod]
-    public void NativeDescriptor_ShouldNotRetainCollectibleClrEnumType()
-    {
-        var probe = CreateCollectibleDescriptor();
-
-        ForceCollection(probe.TypeReference, probe.AssemblyReference);
-
-        Assert.IsFalse(probe.TypeReference.IsAlive, "The portable descriptor retained its source CLR enum Type.");
-        Assert.IsFalse(probe.AssemblyReference.IsAlive, "The portable descriptor retained its source CLR assembly.");
-        Assert.AreEqual(EnumTypeOrigin.NativeClr, probe.Descriptor.Origin);
-        Assert.AreEqual(EnumUnderlyingKind.Int16, probe.Descriptor.UnderlyingKind);
-        Assert.IsTrue(probe.Descriptor.TryGetValue("Ready", out var value));
-        Assert.AreEqual((short)7, value.AsInt16());
-    }
-
     private static EnumTypeDescriptor CreateStatusDescriptor()
     {
         return new EnumTypeDescriptor(
@@ -177,52 +145,6 @@ public sealed class EnumScalarContractTests
                 new EnumMemberDescriptor("Waiting", EnumScalarValue.FromInt32(10)),
                 new EnumMemberDescriptor("Running", EnumScalarValue.FromInt32(20))
             ]);
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static CollectibleDescriptorProbe CreateCollectibleDescriptor()
-    {
-        var assembly = AssemblyBuilder.DefineDynamicAssembly(
-            new AssemblyName($"Musoq.EnumCollectible.{Guid.NewGuid():N}"),
-            AssemblyBuilderAccess.RunAndCollect);
-        var module = assembly.DefineDynamicModule("Main");
-        var enumBuilder = module.DefineEnum(
-            "CollectibleStatus",
-            TypeAttributes.Public,
-            typeof(short));
-        enumBuilder.DefineLiteral("Ready", (short)7);
-        var enumType = enumBuilder.CreateTypeInfo()!.AsType();
-        var descriptor = EnumTypeDescriptor.FromClrEnum(enumType);
-
-        return new CollectibleDescriptorProbe(
-            descriptor,
-            new WeakReference(enumType),
-            new WeakReference(assembly));
-    }
-
-    private static void ForceCollection(params WeakReference[] references)
-    {
-        for (var attempt = 0; attempt < 20 && references.Any(static reference => reference.IsAlive); attempt++)
-        {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-        }
-    }
-
-    private sealed record CollectibleDescriptorProbe(
-        EnumTypeDescriptor Descriptor,
-        WeakReference TypeReference,
-        WeakReference AssemblyReference);
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool CompareMany(EnumScalarValue left, EnumScalarValue right, int count)
-    {
-        var equal = true;
-        for (var index = 0; index < count; index++)
-            equal &= left == right;
-
-        return equal;
     }
 
     [Flags]

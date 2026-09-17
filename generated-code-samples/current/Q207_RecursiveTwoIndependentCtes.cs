@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive up (Value) as (select Value from values {{ Value: 1 }} seed union all select u.Value + 1 from up u where u.Value < 3), down (Value) as (select Value from values {{ Value: 5 }} seed union all select d.Value - 1 from down d where d.Value > 3) select u.Value as Up, d.Value as Down from up u inner join down d on u.Value + d.Value = 6
+with recursive up (Value) as (select Value from values {( Value: 1 )} seed union all select u.Value + 1 from up u where u.Value < 3), down (Value) as (select Value from values {( Value: 5 )} seed union all select d.Value - 1 from down d where d.Value > 3) select u.Value as Up, d.Value as Down from up u inner join down d on u.Value + d.Value = 6
 */
 
 // === Logical Plan ===

@@ -268,7 +268,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people("));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "EndOfFile");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2021_UnclosedFunctionCall, DiagnosticPhase.Parse, "closing parenthesis");
         AssertHasGuidance(ex);
     }
 

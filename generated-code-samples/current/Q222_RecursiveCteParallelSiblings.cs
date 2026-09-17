@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive seeds (Id) as (select Id from values {{ Id: 1 }} seed), edges (SourceId, TargetId) as (select SourceId, TargetId from values {{ SourceId: 1, TargetId: 2 }, { SourceId: 2, TargetId: 3 }} edge), reachable (Id, Depth) as (select Id, 0 from seeds union (Id) select e.TargetId, r.Depth + 1 from reachable r inner join edges e on e.SourceId = r.Id) select Id, Depth from reachable order by Id
+with recursive seeds (Id) as (select Id from values {( Id: 1 )} seed), edges (SourceId, TargetId) as (select SourceId, TargetId from values { ( SourceId: 1, TargetId: 2 ), ( SourceId: 2, TargetId: 3 ) } edge), reachable (Id, Depth) as (select Id, 0 from seeds union (Id) select e.TargetId, r.Depth + 1 from reachable r inner join edges e on e.SourceId = r.Id) select Id, Depth from reachable order by Id
 */
 
 // === Logical Plan ===

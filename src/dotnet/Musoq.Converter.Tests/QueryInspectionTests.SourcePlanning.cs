@@ -267,7 +267,9 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileWithDiagnostics_WhenCachedCompilationIsReused_ShouldKeepNoSourceFallbackWarning()
     {
-        const string query = "select d.Dummy from #system.dual() d order by d.Dummy take 1";
+        var query =
+            $"select d.Dummy, '{Guid.NewGuid():N}' as CacheColdMarker from #system.dual() d " +
+            "order by d.Dummy take 1";
         var assemblyName = Guid.NewGuid().ToString();
         var provider = new SystemSchemaProvider();
 

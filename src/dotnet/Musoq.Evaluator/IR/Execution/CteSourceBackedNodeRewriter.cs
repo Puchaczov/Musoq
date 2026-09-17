@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Musoq.Evaluator.IR.Execution;
-
 internal sealed class CteSourceBackedNodeRewriter
 {
     private readonly string _sourceAlias;
@@ -195,8 +194,8 @@ internal sealed class CteSourceBackedNodeRewriter
                     isNull with { Expression = rewrittenExpression }, out rewritten);
             case ExecutionInCheck inCheck:
                 return TryRewriteInCheck(inCheck, out rewritten);
-            case ExecutionPatternMatch pattern:
-                return TryRewritePattern(pattern, out rewritten);
+            case ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot:
+                return PatternExpressionFacts.TryRewriteChildren(expression, TryRewriteExpression, out rewritten);
             case ExecutionBetween between:
                 return TryRewriteBetween(between, out rewritten);
             case ExecutionCaseWhen caseWhen:
@@ -243,17 +242,6 @@ internal sealed class CteSourceBackedNodeRewriter
             return Fail(out rewritten);
 
         return Succeed(inCheck with { Expression = expression, Values = values }, out rewritten);
-    }
-
-    private bool TryRewritePattern(
-        ExecutionPatternMatch pattern,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
-    {
-        if (!TryRewriteExpression(pattern.Expression, out var expression) ||
-            !TryRewriteExpression(pattern.Pattern, out var patternValue))
-            return Fail(out rewritten);
-
-        return Succeed(pattern with { Expression = expression, Pattern = patternValue }, out rewritten);
     }
 
     private bool TryRewriteBetween(

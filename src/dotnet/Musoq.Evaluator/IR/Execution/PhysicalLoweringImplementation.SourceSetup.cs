@@ -62,13 +62,10 @@ internal sealed partial class PhysicalLoweringImplementation
         }
 
         var sourceRows = new ExecutionVariable(CreateSourceRowsName(scan.Alias, sourceRowsScope), typeof(object));
-        return
-        [
-            new ExecutionSourceScan(
-                sourceVariable,
-                sourceRows,
-                CreateSourceBinding(scan, sourceShape, schemaFromIndex, sourceLookup, cteIndexes))
-        ];
+        var binding = CreateSourceBinding(scan, sourceShape, schemaFromIndex, sourceLookup, cteIndexes, cteShapesByName);
+        var prepared = StructuralSourcePreparation.PrepareStructuralSourceArguments(binding.Arguments, binding.StructuralArgumentLimits, scan.Alias, sourceRowsScope, binding.RuntimeContextId);
+        var preparedBinding = binding with { Arguments = prepared.Arguments };
+        return [..prepared.Preparations, new ExecutionSourceScan(sourceVariable, sourceRows, preparedBinding)];
     }
 
     private void GuardSourceBoundaryStrategy(PhysicalNode source)

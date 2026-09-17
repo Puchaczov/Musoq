@@ -61,38 +61,23 @@ public partial class Parser
         }
 
         Consume(TokenType.Colon);
-        var type = ConsumeParameterTypeName();
-        var typeName = type.Value;
-        var typeSpan = type.Span;
-
-        if (Current.TokenType == TokenType.LeftSquareBracket)
-        {
-            Consume(TokenType.LeftSquareBracket);
-            var rightBracket = ConsumeAndGetToken(TokenType.RightSquareBracket);
-            typeName = $"{typeName}[]";
-            typeSpan = typeSpan.Through(rightBracket.Span);
-        }
-
-        var isNullable = false;
-        TextSpan? nullableSpan = null;
-        if (Current.TokenType == TokenType.QuestionMark)
-        {
-            isNullable = true;
-            nullableSpan = ConsumeAndGetToken(TokenType.QuestionMark).Span;
-        }
+        var typeSyntax = ComposeStructuralTypeSyntax();
+        var typeSpan = typeSyntax.Span;
 
         Node? defaultValue = null;
         if (Current.TokenType == TokenType.Equality)
         {
             Consume(TokenType.Equality);
-            defaultValue = ComposeParameterDefaultValue();
+            defaultValue = ComposeParameterDefaultValueOrStructured();
         }
 
-        var span = name.Span.Through(defaultValue?.Span ?? nullableSpan ?? typeSpan);
-        return new ParameterDeclarationNode(name.Value, typeName, isNullable, defaultValue, span);
+        var span = name.Span.Through(defaultValue?.Span ?? typeSpan);
+        if (TryGetLegacyTypeParts(typeSyntax, out var typeName, out var isNullable) &&
+            defaultValue is not ArrayLiteralNode)
+            return new ParameterDeclarationNode(name.Value, typeName, isNullable, defaultValue, span);
+
+        return new ParameterDeclarationNode(name.Value, typeSyntax, defaultValue, span);
     }
-
-
     private string CreateParameterDeclarationExample(Token firstToken)
     {
         if (Current.TokenType is not (TokenType.Identifier or TokenType.Word))

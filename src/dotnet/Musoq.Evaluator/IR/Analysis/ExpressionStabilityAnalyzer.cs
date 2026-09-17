@@ -39,7 +39,7 @@ internal static class ExpressionStabilityAnalyzer
                                  (caseWhen.ElseExpression == null || IsStable(caseWhen.ElseExpression)),
             Coalesce coalesce => coalesce.Expressions.All(IsStable),
             ArrayAccess access => IsStable(access.Array) && IsStable(access.Index),
-            AggregateRef or WindowFunctionRef or CteTableRef => false,
+            AggregateRef or WindowFunctionRef or CteTableRef or CteCollectionInput => false,
             _ => false
         };
     }
@@ -65,6 +65,15 @@ internal static class ExpressionStabilityAnalyzer
             ExecutionInCheck check => IsStable(check.Expression) && check.Values.All(IsStable),
             ExecutionCollectionInCheck check => IsStable(check.Expression) && IsStable(check.Collection),
             ExecutionPatternMatch match => IsStable(match.Expression) && IsStable(match.Pattern),
+            ExecutionStringMatch match => IsStable(match.Input),
+            ExecutionPrepareLikeMatcher prepare => IsStable(prepare.Pattern),
+            ExecutionPreparedLikeMatch match => IsStable(match.Input) && IsStable(match.Matcher),
+            ExecutionDynamicLikeMatch match => IsStable(match.Input) && IsStable(match.Pattern),
+            ExecutionLikeMatcherCacheSlot => false,
+            ExecutionPrepareRLikeMatcher prepare => IsStable(prepare.Pattern),
+            ExecutionPreparedRLikeMatch match => IsStable(match.Input) && IsStable(match.Matcher),
+            ExecutionDynamicRLikeMatch match => IsStable(match.Input) && IsStable(match.Pattern),
+            ExecutionRLikeMatcherCacheSlot => false,
             ExecutionBetween between => IsStable(between.Expression) &&
                                         IsStable(between.Low) &&
                                         IsStable(between.High),
@@ -75,7 +84,7 @@ internal static class ExpressionStabilityAnalyzer
             ExecutionValueTupleKey key => key.Parts.All(IsStable),
             ExecutionRowPresence presence => IsStable(presence.PresenceSource),
             ExecutionAggregateCall aggregate => aggregate.Method.Descriptor.IsStable && aggregate.Arguments.All(IsStable),
-            ExecutionStoredTable or ExecutionStoredTableRows or ExecutionRowStream or ExecutionScalarRowStream => false,
+            ExecutionStoredTable or ExecutionStoredTableRows or ExecutionCteCollectionInput or ExecutionRowStream or ExecutionScalarRowStream => false,
             _ => false
         };
     }

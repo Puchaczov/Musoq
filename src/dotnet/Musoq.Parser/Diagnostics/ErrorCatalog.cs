@@ -189,6 +189,7 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ3113_UnsupportedEnumOutputTarget] = "Enum values cannot be mapped directly into enum-valued typed output members.",
         [DiagnosticCode.MQ3114_EnumSourceCapabilityRequired] = "Source '{0}' does not support logical scalar reads required by enum column '{1}'.",
         [DiagnosticCode.MQ3115_EnumDescriptorMismatch] = "Enum descriptor for column '{0}' does not match the compiled source contract.",
+        [DiagnosticCode.MQ3116_AmbiguousRelationArgument] = "Datasource argument '{0}' is ambiguous between a scalar column and a complete CTE relation.",
 
         // Schema Definition Errors (MQ4xxx)
         [DiagnosticCode.MQ4001_InvalidBinarySchemaField] = "Invalid binary schema field '{0}'",
@@ -239,6 +240,8 @@ public static class ErrorCatalog
             "The data source failed while reading rows for schema '{0}', source '{1}', alias '{2}'.",
         [DiagnosticCode.MQ7012_DataSourceCleanupFailed] =
             "The data source failed while cleaning up rows for schema '{0}', source '{1}', alias '{2}'.",
+        [DiagnosticCode.MQ7013_StructuralInputLimitExceeded] =
+            "Structural input exceeded its {0} limit of {1} (observed {2}) at '{3}'.",
         // Code Generation Errors (MQ8xxx)
         [DiagnosticCode.MQ8001_CodeGenerationFailed] =
             "Generated C# code failed to compile: {0}",
@@ -375,8 +378,8 @@ public static class ErrorCatalog
 
     /// <summary>
     ///     Gets the closest spelling candidates at the same minimum edit distance.
-    ///     Candidate casing is normalized deterministically and ambiguous ties are
-    ///     retained so callers can avoid presenting an arbitrary automatic fix.
+    ///     Candidate values are preserved exactly and ambiguous ties are retained
+    ///     so callers can avoid presenting an arbitrary automatic fix.
     /// </summary>
     public static IReadOnlyList<string> GetDidYouMeanCandidates(
         string input,
@@ -390,7 +393,7 @@ public static class ErrorCatalog
         if (maxDistance < 0 || maxCandidates <= 0)
             return [];
 
-        var canonicalCandidates = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var canonicalCandidates = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var candidate in candidates)
         {
             if (string.IsNullOrWhiteSpace(candidate))

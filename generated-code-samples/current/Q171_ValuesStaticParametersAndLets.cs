@@ -3,8 +3,8 @@
 param(baseScore: int, suffix: string = '-ok')
               let bonus: int = 5
               from values {
-                  { Name: 'first' + $suffix, Score: $baseScore },
-                  { Name: 'second' + $suffix, Score: $baseScore + $bonus }
+                  ( Name: 'first' + $suffix, Score: $baseScore ),
+                  ( Name: 'second' + $suffix, Score: $baseScore + $bonus )
               } scores
               select scores.Name, scores.Score
 */

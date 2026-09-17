@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Runtime.CompilerServices;
 
 namespace Musoq.Evaluator.Helpers;
 
@@ -29,26 +28,19 @@ public static partial class WindowFunctionHelpers
         where T : struct, IComparable<T>
     {
         var indices = partitions.Indices;
-        var sortKeys = ArrayPool<StructPartitionSortKey<T>>.Shared.Rent(indices.Length);
+        var sortKeys = new StructPartitionSortKey<T>[indices.Length];
 
-        try
+        for (var partitionIndex = 0; partitionIndex < partitions.PartitionCount; partitionIndex++)
         {
-            for (var partitionIndex = 0; partitionIndex < partitions.PartitionCount; partitionIndex++)
-            {
-                var start = partitions.GetStart(partitionIndex);
-                var count = partitions.GetLength(partitionIndex);
-                if (count <= 1)
-                    continue;
+            var start = partitions.GetStart(partitionIndex);
+            var count = partitions.GetLength(partitionIndex);
+            if (count <= 1)
+                continue;
 
-                for (var index = 0; index < count; index++)
-                    sortKeys[start + index] = new StructPartitionSortKey<T>(orderKeys[indices[start + index]], descending);
+            for (var index = 0; index < count; index++)
+                sortKeys[start + index] = new StructPartitionSortKey<T>(orderKeys[indices[start + index]], descending);
 
-                Array.Sort(sortKeys, indices, start, count);
-            }
-        }
-        finally
-        {
-            ArrayPool<StructPartitionSortKey<T>>.Shared.Return(sortKeys, RuntimeHelpers.IsReferenceOrContainsReferences<StructPartitionSortKey<T>>());
+            Array.Sort(sortKeys, indices, start, count);
         }
     }
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors.Helpers;
@@ -10,25 +11,28 @@ namespace Musoq.Evaluator.Visitors.Helpers;
 public static class LogicalOperationVisitorHelper
 {
     /// <summary>Processes an And operation with nullable boolean expression rewriting.</summary>
-    public static void ProcessAndOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions)
+    public static void ProcessAndOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions,
+        TextSpan span = default)
     {
         ArgumentNullException.ThrowIfNull(nodes);
         ArgumentNullException.ThrowIfNull(rewriteNullableBoolExpressions);
-        ProcessLogicalBinaryOperation(nodes, rewriteNullableBoolExpressions, (left, right) => new AndNode(left, right));
+        ProcessLogicalBinaryOperation(nodes, rewriteNullableBoolExpressions, (left, right) => new AndNode(left, right), span);
     }
 
     /// <summary>Processes an Or operation with nullable boolean expression rewriting.</summary>
-    public static void ProcessOrOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions)
+    public static void ProcessOrOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions,
+        TextSpan span = default)
     {
         ArgumentNullException.ThrowIfNull(nodes);
         ArgumentNullException.ThrowIfNull(rewriteNullableBoolExpressions);
-        ProcessLogicalBinaryOperation(nodes, rewriteNullableBoolExpressions, (left, right) => new OrNode(left, right));
+        ProcessLogicalBinaryOperation(nodes, rewriteNullableBoolExpressions, (left, right) => new OrNode(left, right), span);
     }
 
     private static void ProcessLogicalBinaryOperation(
         Stack<Node> nodes,
         Func<Node, Node> rewriteNullableBoolExpressions,
-        Func<Node, Node, Node> nodeFactory)
+        Func<Node, Node, Node> nodeFactory,
+        TextSpan span)
     {
         ValidateBinaryOperation(nodes);
         ArgumentNullException.ThrowIfNull(rewriteNullableBoolExpressions);
@@ -40,7 +44,7 @@ public static class LogicalOperationVisitorHelper
 
         var right = rewriteNullableBoolExpressions(rightRaw);
         var left = rewriteNullableBoolExpressions(leftRaw);
-        nodes.Push(nodeFactory(left, right));
+        nodes.Push(nodeFactory(left, right).WithSpan(span));
     }
 
     /// <summary>
@@ -50,7 +54,7 @@ public static class LogicalOperationVisitorHelper
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
     /// <exception cref="InvalidOperationException">Thrown when stack is empty.</exception>
     /// <exception cref="ArgumentException">Thrown when popped node is null.</exception>
-    public static void ProcessNotOperation(Stack<Node> nodes)
+    public static void ProcessNotOperation(Stack<Node> nodes, TextSpan span = default)
     {
         ValidateUnaryOperation(nodes);
         var operand = nodes.Pop();
@@ -58,7 +62,7 @@ public static class LogicalOperationVisitorHelper
         if (operand == null)
             throw new ArgumentException("Operand cannot be null");
 
-        nodes.Push(new NotNode(operand));
+        nodes.Push(new NotNode(operand).WithSpan(span));
     }
 
     /// <summary>
@@ -68,7 +72,7 @@ public static class LogicalOperationVisitorHelper
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
     /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null or right operand is not ArgsListNode.</exception>
-    public static void ProcessContainsOperation(Stack<Node> nodes)
+    public static void ProcessContainsOperation(Stack<Node> nodes, TextSpan span = default)
     {
         ValidateBinaryOperation(nodes);
         var right = nodes.Pop();
@@ -79,7 +83,7 @@ public static class LogicalOperationVisitorHelper
         if (!(right is ArgsListNode argsListNode))
             throw new ArgumentException("Right operand must be an ArgsListNode for Contains operation");
 
-        nodes.Push(new ContainsNode(left, argsListNode));
+        nodes.Push(new ContainsNode(left, argsListNode).WithSpan(span));
     }
 
     /// <summary>
@@ -90,7 +94,7 @@ public static class LogicalOperationVisitorHelper
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
     /// <exception cref="InvalidOperationException">Thrown when stack is empty.</exception>
     /// <exception cref="ArgumentException">Thrown when popped node is null.</exception>
-    public static void ProcessIsNullOperation(Stack<Node> nodes, bool isNegated)
+    public static void ProcessIsNullOperation(Stack<Node> nodes, bool isNegated, TextSpan span = default)
     {
         ValidateUnaryOperation(nodes);
         var operand = nodes.Pop();
@@ -98,7 +102,7 @@ public static class LogicalOperationVisitorHelper
         if (operand == null)
             throw new ArgumentException("Operand cannot be null");
 
-        nodes.Push(new IsNullNode(operand, isNegated));
+        nodes.Push(new IsNullNode(operand, isNegated).WithSpan(span));
     }
 
     internal const int ContainsThreshold = 5;
@@ -113,7 +117,7 @@ public static class LogicalOperationVisitorHelper
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
     /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null or right operand is not ArgsListNode.</exception>
-    public static void ProcessInOperation(Stack<Node> nodes)
+    public static void ProcessInOperation(Stack<Node> nodes, TextSpan span = default)
     {
         ValidateBinaryOperation(nodes);
         var rightRaw = nodes.Pop();
@@ -129,27 +133,27 @@ public static class LogicalOperationVisitorHelper
 
         if (right.Args.Length == 0)
         {
-            nodes.Push(new BooleanNode(false));
+            nodes.Push(new BooleanNode(false).WithSpan(span));
             return;
         }
 
         if (right.Args.Length >= ContainsThreshold)
         {
-            nodes.Push(new ContainsNode(left, right));
+            nodes.Push(new ContainsNode(left, right).WithSpan(span));
             return;
         }
 
         if (right.Args[0] == null)
             throw new ArgumentException("Arguments in ArgsListNode cannot be null");
 
-        Node exp = new EqualityNode(left, right.Args[0]);
+        Node exp = new EqualityNode(left, right.Args[0]).WithSpan(span);
 
         for (var i = 1; i < right.Args.Length; i++)
         {
             if (right.Args[i] == null)
                 throw new ArgumentException($"Argument at index {i} in ArgsListNode cannot be null");
 
-            exp = new OrNode(exp, new EqualityNode(left, right.Args[i]));
+            exp = new OrNode(exp, new EqualityNode(left, right.Args[i]).WithSpan(span)).WithSpan(span);
         }
 
         nodes.Push(exp);

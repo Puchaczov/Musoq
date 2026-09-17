@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.Architecture;
 
@@ -50,6 +51,32 @@ public sealed class ExecutionArtifactFreezeTests
         var copiedNested = (IReadOnlyDictionary<string, object?>)plan.Properties["nested"]!;
         CollectionAssert.AreEqual(new[] { "one" }, (string[])copiedNested["values"]!);
         Assert.IsFalse(plan.Properties.ContainsKey("new"));
+    }
+
+    [TestMethod]
+    public void SourceExecutionPlan_ShouldFreezePredicateApplications()
+    {
+        var match = new SourcePredicateStringMatch(
+            new SourceColumnRef("Name"),
+            SourceStringMatchKind.Prefix,
+            "item%",
+            "item");
+        var applications = new List<SourcePredicateApplication>
+        {
+            new(match, SourcePredicateEvaluationPhase.RowFiltering)
+        };
+        var plan = new SourceExecutionPlan
+        {
+            Identity = new SourceIdentity("schema", "method", "context", "alias"),
+            AcceptedPredicate = match,
+            PredicateApplications = applications
+        };
+
+        applications.Clear();
+
+        Assert.HasCount(1, plan.PredicateApplications);
+        Assert.Throws<NotSupportedException>(() =>
+            ((IList<SourcePredicateApplication>)plan.PredicateApplications).Clear());
     }
 
     [TestMethod]

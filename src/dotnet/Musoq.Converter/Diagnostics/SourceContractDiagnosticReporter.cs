@@ -39,21 +39,40 @@ internal static class SourceContractDiagnosticReporter
             var span = ResolveSpan(planningResult, candidate);
             if (candidate.Diagnostic.Severity == SourceContractDiagnosticSeverity.Error)
             {
-                diagnosticContext.ReportError(
-                    DiagnosticCode.MQ3071_SourceContractError,
-                    message,
-                    span);
+                if (span.HasValue)
+                {
+                    diagnosticContext.ReportError(
+                        DiagnosticCode.MQ3071_SourceContractError,
+                        message,
+                        span.Value);
+                }
+                else
+                {
+                    diagnosticContext.ReportError(
+                        DiagnosticCode.MQ3071_SourceContractError,
+                        message);
+                }
+
                 continue;
             }
 
-            diagnosticContext.ReportWarning(
-                DiagnosticCode.MQ5013_SourceContractWarning,
-                message,
-                span);
+            if (span.HasValue)
+            {
+                diagnosticContext.ReportWarning(
+                    DiagnosticCode.MQ5013_SourceContractWarning,
+                    message,
+                    span.Value);
+            }
+            else
+            {
+                diagnosticContext.ReportWarning(
+                    DiagnosticCode.MQ5013_SourceContractWarning,
+                    message);
+            }
         }
     }
 
-    private static TextSpan ResolveSpan(
+    private static TextSpan? ResolveSpan(
         PlanningResult planningResult,
         SourceContractDiagnosticCandidate candidate)
     {
@@ -61,7 +80,7 @@ internal static class SourceContractDiagnosticReporter
                 candidate.SourceContextId,
                 out var locations))
         {
-            return TextSpan.Empty;
+            return null;
         }
 
         if (locations.TryGetModifierSpan(
@@ -75,7 +94,7 @@ internal static class SourceContractDiagnosticReporter
         if (locations.TryGetColumnSpan(candidate.Diagnostic.ColumnName, out var columnSpan))
             return columnSpan;
 
-        return TextSpan.Empty;
+        return null;
     }
 
     private static IEnumerable<SourceContractDiagnosticCandidate> CollectDiagnostics(PlanningResult planningResult)

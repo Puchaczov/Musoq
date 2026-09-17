@@ -12,6 +12,7 @@ using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
 using Musoq.Schema;
+using Musoq.Schema.Exceptions;
 
 namespace Musoq.Evaluator;
 
@@ -196,6 +197,14 @@ public sealed class QueryAnalyzer
                     Diagnostics = diagnosticBag.ToSortedList()
                 };
 
+            // Semantic advisory analyzers need to refine parse-time warnings
+            // when the bound AST establishes a more specific interpretation.
+            // Move the warning-free parse diagnostics into the shared context
+            // so context-aware suppression has the same behavior as the
+            // converter pipeline. Parser errors have already returned above.
+            diagnosticContext.AddRange(diagnosticBag);
+            diagnosticBag.Clear();
+
             var metadataVisitor = new BuildMetadataAndInferTypesVisitor(
                 _schemaProvider,
                 new Dictionary<string, string[]>(),
@@ -231,6 +240,12 @@ public sealed class QueryAnalyzer
         catch (OperationCanceledException)
         {
             throw;
+        }
+        catch (DataSourceLifecycleException ex)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ExceptionDispatchInfo.Capture(ex.InnerException ?? ex).Throw();
+            throw new InvalidOperationException("Datasource provider failure rethrow did not propagate.");
         }
         catch (SchemaProviderFailureException ex)
         {
@@ -341,10 +356,17 @@ public sealed class QueryAnalyzer
                     .ToDiagnostic(sourceText));
         }
 
+        var syntaxDiagnostics = rootNode is null
+            ? diagnosticBag.ToSortedList()
+            : RegexPatternAdvisoryAnalyzer.FilterSyntaxDiagnostics(
+                rootNode,
+                sourceText,
+                diagnosticBag.ToSortedList());
+
         return new QueryAnalysisResult
         {
             Root = rootNode,
-            Diagnostics = diagnosticBag.ToSortedList()
+            Diagnostics = syntaxDiagnostics
         };
     }
 

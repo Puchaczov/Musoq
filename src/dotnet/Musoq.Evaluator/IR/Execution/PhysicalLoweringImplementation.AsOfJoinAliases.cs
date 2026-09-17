@@ -1,11 +1,12 @@
 using System.Linq;
-
 namespace Musoq.Evaluator.IR.Execution;
-
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private static bool CanUseAsOfProbeSource(RowShape sourceShape, Type rowType)
+    private static bool CanUseAsOfProbeSource(RowShape sourceShape, ExecutionVariable sourceVariable)
     {
+        if (sourceShape is ExpandoAdapterShape)
+            return !string.IsNullOrWhiteSpace(sourceVariable.GeneratedRowTypeName);
+        var rowType = sourceVariable.Type.ResolveClrType();
         return sourceShape is SourceEntityShape or TableRowShape &&
                !rowType.IsValueType &&
                !DynamicEntityBoundary.IsDynamicMetaObjectProvider(rowType);
@@ -22,7 +23,6 @@ internal sealed partial class PhysicalLoweringImplementation
             throw new NotSupportedException(
                 $"Execution IR ASOF join lowering cannot rewrite right-side expression {expression.GetType().Name} for candidate row probing.");
         }
-
         return replaced;
     }
 
@@ -70,11 +70,7 @@ internal sealed partial class PhysicalLoweringImplementation
                     .Select(value => ReplaceExecutionAliasCore(value, fromAlias, toAlias))
                     .ToArray()
             },
-            ExecutionPatternMatch pattern => pattern with
-            {
-                Expression = ReplaceExecutionAliasCore(pattern.Expression, fromAlias, toAlias),
-                Pattern = ReplaceExecutionAliasCore(pattern.Pattern, fromAlias, toAlias)
-            },
+            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.RewriteChildren(expression, child => ReplaceExecutionAliasCore(child, fromAlias, toAlias)),
             ExecutionBetween between => between with
             {
                 Expression = ReplaceExecutionAliasCore(between.Expression, fromAlias, toAlias),

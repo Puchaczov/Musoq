@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Schema;
@@ -66,9 +67,33 @@ public class CompiledTypedQuery<TOut> : IQueryProgressSource
         if (token.IsCancellationRequested)
             throw new OperationCanceledException("Query execution was cancelled before it started.", token);
 
-        return new ConfiguredTypedRunEnumerable(_runnable, options);
+        var preparedOptions = CaptureOptions(options);
+        return new ConfiguredTypedRunEnumerable(_runnable, preparedOptions);
     }
 
+    private TypedQueryRunOptions CaptureOptions(TypedQueryRunOptions options)
+    {
+        if (_runnable is IMetadataOnlyRunnable { IsMetadataOnly: true })
+            return options;
+
+        if (_runState.ParameterDefinitions.Count == 0)
+            return options;
+
+        var rawParameters = options.Parameters ?? ParameterSnapshot.EmptyReadOnly;
+        try
+        {
+            var snapshot = StructuralParameterSnapshotter.CaptureForExecution(
+                _runState.ParameterDefinitions,
+                rawParameters,
+                options.CancellationToken,
+                _runnable as IStructuralParameterSnapshotProvider);
+            return TypedQueryRunOptions.CreateCaptured(options, snapshot);
+        }
+        catch (ScriptParameterBindingException exception)
+        {
+            throw QueryExecutionException.ForScriptParameterBinding(exception);
+        }
+    }
     private sealed class ConfiguredTypedRunEnumerable(
         ITypedRunnable<TOut> runnable,
         TypedQueryRunOptions options) : IEnumerable<TOut>

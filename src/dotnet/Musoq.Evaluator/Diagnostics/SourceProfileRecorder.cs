@@ -57,10 +57,7 @@ public sealed class SourceProfileRecorder
         _timingMode = SourceProfileTimingMode.Adaptive;
     }
 
-    internal void ExcludeCurrentOperatorElapsed(long startTimestamp, long endTimestamp)
-    {
-        _queryRecorder?.ExcludeCurrentOperatorElapsed(startTimestamp, endTimestamp);
-    }
+
 
     internal OperatorProfileExclusionTarget CaptureCurrentOperatorExclusionTarget()
     {

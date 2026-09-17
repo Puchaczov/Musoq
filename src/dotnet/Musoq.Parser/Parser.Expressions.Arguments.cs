@@ -14,7 +14,7 @@ public partial class Parser
         var hasNamedArgument = false;
         var openingToken = ConsumeAndGetToken(TokenType.LeftParenthesis);
 
-        if (Current.TokenType != TokenType.RightParenthesis)
+        if (Current.TokenType is not (TokenType.RightParenthesis or TokenType.EndOfFile))
             do
             {
                 if (Current.TokenType == TokenType.Comma)
@@ -64,7 +64,7 @@ public partial class Parser
             isDistinct = true;
         }
 
-        if (Current.TokenType != TokenType.RightParenthesis)
+        if (Current.TokenType is not (TokenType.RightParenthesis or TokenType.EndOfFile))
             do
             {
                 if (Current.TokenType == TokenType.Comma)

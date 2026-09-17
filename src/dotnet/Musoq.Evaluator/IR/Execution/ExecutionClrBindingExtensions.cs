@@ -21,6 +21,12 @@ internal static class ExecutionClrBindingExtensions
         return type.FullName ?? type.Name;
     }
 
+    internal static ConstructorInfo ResolveClrConstructor(this ExecutionCallableRef callableRef)
+    {
+        ArgumentNullException.ThrowIfNull(callableRef);
+        return ExecutionClrBindingResolver.ResolveConstructor(callableRef.Descriptor);
+    }
+
     internal static MethodInfo ResolveClrMethod(this ExecutionCallableRef callableRef)
     {
         ArgumentNullException.ThrowIfNull(callableRef);

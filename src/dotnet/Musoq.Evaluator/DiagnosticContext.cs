@@ -123,6 +123,14 @@ public sealed class DiagnosticContext
     }
 
     /// <summary>
+    ///     Reports an error diagnostic whose source location is unavailable.
+    /// </summary>
+    public void ReportError(DiagnosticCode code, string message)
+    {
+        ReportError(code, message, (Node?)null);
+    }
+
+    /// <summary>
     ///     Reports an error diagnostic from a node.
     /// </summary>
     public void ReportError(DiagnosticCode code, string message, Node? node)
@@ -147,6 +155,14 @@ public sealed class DiagnosticContext
     public void ReportWarning(DiagnosticCode code, string message, TextSpan span)
     {
         _diagnostics.Add(CreateWarningDiagnostic(code, message, span));
+    }
+
+    /// <summary>
+    ///     Reports a warning diagnostic whose source location is unavailable.
+    /// </summary>
+    public void ReportWarning(DiagnosticCode code, string message)
+    {
+        _diagnostics.Add(CreateWarningDiagnostic(code, message));
     }
 
     /// <summary>
@@ -232,6 +248,27 @@ public sealed class DiagnosticContext
     }
 
     /// <summary>
+    ///     Removes diagnostics that were discovered under a semantic node after
+    ///     a higher-precedence root failure has been established for that node.
+    ///     The operation is intentionally internal to semantic recovery; callers
+    ///     must not use it to hide independent diagnostics from another query
+    ///     branch.
+    /// </summary>
+    internal void SuppressDiagnostics(Func<Diagnostic, bool> predicate)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+
+        lock (_lock)
+        {
+            var retained = _diagnostics.ToSortedList()
+                .Where(diagnostic => !predicate(diagnostic))
+                .ToArray();
+            _diagnostics.Clear();
+            _diagnostics.AddRange(retained);
+        }
+    }
+
+    /// <summary>
     ///     Reports a diagnostic from an exception.
     /// </summary>
     public void ReportException(Exception exception, TextSpan? span = null)
@@ -270,7 +307,7 @@ public sealed class DiagnosticContext
             .OrderBy(static candidate => candidate, StringComparer.Ordinal)
             .ToArray();
         var span = GetAliasSpan(alias, node);
-        var message = $"Unknown alias '{alias}'.";
+        var message = $"Unknown alias {DiagnosticSafety.QuoteForDisplay(alias)}.";
 
         var closeCandidates = ErrorCatalog.GetDidYouMeanCandidates(alias, candidates);
         var suggestion = closeCandidates.Count == 1 ? closeCandidates[0] : null;
@@ -278,13 +315,13 @@ public sealed class DiagnosticContext
 
         var facts = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["alias"] = alias,
-            ["availableAliases"] = string.Join(", ", candidates)
+            ["alias"] = DiagnosticSafety.SanitizeForDisplay(alias),
+            ["availableAliases"] = FormatFactCandidates(candidates)
         };
         IReadOnlyList<DiagnosticAction>? suggestedFixes = null;
         if (!string.IsNullOrEmpty(suggestion))
         {
-            facts["suggestion"] = suggestion;
+            facts["suggestion"] = DiagnosticSafety.SanitizeForDisplay(suggestion);
 
             // A text replacement is safe only when there is one visible
             // candidate. The catalog intentionally keeps its suggestion
@@ -294,7 +331,7 @@ public sealed class DiagnosticContext
                 suggestedFixes =
                 [
                     DiagnosticAction.QuickFix(
-                        $"Replace '{alias}' with '{suggestion}'",
+                        $"Replace {DiagnosticSafety.QuoteForDisplay(alias)} with {DiagnosticSafety.QuoteForDisplay(suggestion)}",
                         span,
                         suggestion)
                 ];
@@ -327,16 +364,19 @@ public sealed class DiagnosticContext
         var candidates = NormalizeCandidates(availableColumns);
         var closeCandidates = ErrorCatalog.GetDidYouMeanCandidates(columnName, candidates);
         var suggestion = closeCandidates.Count == 1 ? closeCandidates[0] : null;
-        var message = AppendCandidateGuidance($"Unknown column '{columnName}'.", closeCandidates, suggestion);
+        var message = AppendCandidateGuidance(
+            $"Unknown column {DiagnosticSafety.QuoteForDisplay(columnName)}.",
+            closeCandidates,
+            suggestion);
         var facts = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["column"] = columnName,
-            ["availableColumns"] = string.Join(", ", GetDisplayCandidates(candidates, closeCandidates))
+            ["column"] = DiagnosticSafety.SanitizeForDisplay(columnName),
+            ["availableColumns"] = FormatFactCandidates(GetDisplayCandidates(candidates, closeCandidates))
         };
         if (closeCandidates.Count > 0)
-            facts["candidateColumns"] = string.Join(", ", closeCandidates);
+            facts["candidateColumns"] = FormatFactCandidates(closeCandidates);
         if (suggestion != null)
-            facts["suggestion"] = suggestion;
+            facts["suggestion"] = DiagnosticSafety.SanitizeForDisplay(suggestion);
 
         var replacementSpan = GetIdentifierSpan(columnName, span);
         var suggestedFixes = CreateSafeReplacement(columnName, suggestion, replacementSpan);
@@ -364,25 +404,27 @@ public sealed class DiagnosticContext
         var candidates = NormalizeCandidates(availableProperties);
         var closeCandidates = ErrorCatalog.GetDidYouMeanCandidates(propertyName, candidates);
         var suggestion = closeCandidates.Count == 1 ? closeCandidates[0] : null;
-        var message = $"Unknown property '{propertyName}'" +
-                      (string.IsNullOrWhiteSpace(objectTypeName) ? "." : $" on '{objectTypeName}'.");
+        var message = $"Unknown property {DiagnosticSafety.QuoteForDisplay(propertyName)}" +
+                      (string.IsNullOrWhiteSpace(objectTypeName)
+                          ? "."
+                          : $" on {DiagnosticSafety.QuoteForDisplay(objectTypeName)}.");
         if (!string.IsNullOrWhiteSpace(accessContext))
-            message += $" Accessed through '{accessContext}'.";
+            message += $" Accessed through {DiagnosticSafety.QuoteForDisplay(accessContext)}.";
         message = AppendCandidateGuidance(message, closeCandidates, suggestion);
 
         var facts = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["property"] = propertyName,
-            ["availableProperties"] = string.Join(", ", GetDisplayCandidates(candidates, closeCandidates))
+            ["property"] = DiagnosticSafety.SanitizeForDisplay(propertyName),
+            ["availableProperties"] = FormatFactCandidates(GetDisplayCandidates(candidates, closeCandidates))
         };
         if (!string.IsNullOrWhiteSpace(objectTypeName))
-            facts["objectType"] = objectTypeName;
+            facts["objectType"] = DiagnosticSafety.SanitizeForDisplay(objectTypeName);
         if (!string.IsNullOrWhiteSpace(accessContext))
-            facts["accessContext"] = accessContext;
+            facts["accessContext"] = DiagnosticSafety.SanitizeForDisplay(accessContext);
         if (closeCandidates.Count > 0)
-            facts["candidateProperties"] = string.Join(", ", closeCandidates);
+            facts["candidateProperties"] = FormatFactCandidates(closeCandidates);
         if (suggestion != null)
-            facts["suggestion"] = suggestion;
+            facts["suggestion"] = DiagnosticSafety.SanitizeForDisplay(suggestion);
 
         var replacementSpan = GetIdentifierSpan(propertyName, span);
         var suggestedFixes = CreateSafeReplacement(propertyName, suggestion, replacementSpan);
@@ -406,16 +448,19 @@ public sealed class DiagnosticContext
         var candidates = NormalizeCandidates(availableFunctions);
         var closeCandidates = ErrorCatalog.GetDidYouMeanCandidates(functionName, candidates);
         var suggestion = closeCandidates.Count == 1 ? closeCandidates[0] : null;
-        var message = AppendCandidateGuidance($"Unknown function '{functionName}'.", closeCandidates, suggestion);
+        var message = AppendCandidateGuidance(
+            $"Unknown function {DiagnosticSafety.QuoteForDisplay(functionName)}.",
+            closeCandidates,
+            suggestion);
         var facts = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["callable"] = functionName,
-            ["availableCallables"] = string.Join(", ", GetDisplayCandidates(candidates, closeCandidates))
+            ["callable"] = DiagnosticSafety.SanitizeForDisplay(functionName),
+            ["availableCallables"] = FormatFactCandidates(GetDisplayCandidates(candidates, closeCandidates))
         };
         if (closeCandidates.Count > 0)
-            facts["candidateCallables"] = string.Join(", ", closeCandidates);
+            facts["candidateCallables"] = FormatFactCandidates(closeCandidates);
         if (suggestion != null)
-            facts["suggestion"] = suggestion;
+            facts["suggestion"] = DiagnosticSafety.SanitizeForDisplay(suggestion);
 
         var replacementSpan = GetIdentifierSpan(functionName, span);
         var suggestedFixes = CreateSafeReplacement(functionName, suggestion, replacementSpan);
@@ -435,7 +480,7 @@ public sealed class DiagnosticContext
     {
         ArgumentNullException.ThrowIfNull(node);
         var span = node.SpanOrEmpty();
-        var message = $"Type mismatch: expected '{expected}' but got '{actual}'.";
+        var message = $"Type mismatch: expected {DiagnosticSafety.QuoteForDisplay(expected)} but got {DiagnosticSafety.QuoteForDisplay(actual)}.";
         ReportError(DiagnosticCode.MQ3005_TypeMismatch, message, span);
     }
 
@@ -457,16 +502,16 @@ public sealed class DiagnosticContext
         var closeCandidates = ErrorCatalog.GetDidYouMeanCandidates(typeName, candidates);
         var suggestion = closeCandidates.Count == 1 ? closeCandidates[0] : null;
         var message = AppendCandidateGuidance(
-            $"Type '{typeName}' could not be found or resolved.",
+            $"Type {DiagnosticSafety.QuoteForDisplay(typeName)} could not be found or resolved.",
             closeCandidates,
             suggestion);
         var facts = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["type"] = typeName,
-            ["candidateTypes"] = string.Join(", ", closeCandidates)
+            ["type"] = DiagnosticSafety.SanitizeForDisplay(typeName),
+            ["candidateTypes"] = FormatFactCandidates(closeCandidates)
         };
         if (suggestion != null)
-            facts["suggestion"] = suggestion;
+            facts["suggestion"] = DiagnosticSafety.SanitizeForDisplay(suggestion);
 
         var replacementSpan = GetIdentifierSpan(typeName, span);
         var suggestedFixes = CreateSafeReplacement(typeName, suggestion, replacementSpan);
@@ -485,11 +530,13 @@ public sealed class DiagnosticContext
     public void ReportAmbiguousColumn(string columnName, string alias1, string alias2, Node? node)
     {
         var span = node.SpanOrEmpty();
-        var message = $"Ambiguous column name '{columnName}' between '{alias1}' and '{alias2}'.";
+        var message =
+            $"Ambiguous column name {DiagnosticSafety.QuoteForDisplay(columnName)} between " +
+            $"{DiagnosticSafety.QuoteForDisplay(alias1)} and {DiagnosticSafety.QuoteForDisplay(alias2)}.";
         var facts = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["column"] = columnName,
-            ["aliases"] = $"{alias1}, {alias2}"
+            ["column"] = DiagnosticSafety.SanitizeForDisplay(columnName),
+            ["aliases"] = FormatFactCandidates([alias1, alias2])
         };
         _diagnostics.Add(SemanticDiagnosticFactory.Create(
             DiagnosticCode.MQ3002_AmbiguousColumn,
@@ -506,8 +553,8 @@ public sealed class DiagnosticContext
     {
         ArgumentNullException.ThrowIfNull(node);
         var span = node.SpanOrEmpty();
-        var aliases = string.Join(", ", candidateAliases.Select(alias => $"'{alias}'"));
-        var message = $"Aggregate call '{methodCall}' is ambiguous because multiple source aliases expose different implementations: {aliases}.";
+        var aliases = string.Join(", ", candidateAliases.Select(DiagnosticSafety.QuoteForDisplay));
+        var message = $"Aggregate call {DiagnosticSafety.QuoteForDisplay(methodCall)} is ambiguous because multiple source aliases expose different implementations: {aliases}.";
         ReportError(DiagnosticCode.MQ3034_AmbiguousAggregateOwner, message, span);
     }
 
@@ -518,8 +565,8 @@ public sealed class DiagnosticContext
     {
         ArgumentNullException.ThrowIfNull(node);
         var span = node.SpanOrEmpty();
-        var aliases = string.Join(", ", candidateAliases.Select(alias => $"'{alias}'"));
-        var message = $"Method call '{methodCall}' is ambiguous because multiple source aliases expose different implementations: {aliases}.";
+        var aliases = string.Join(", ", candidateAliases.Select(DiagnosticSafety.QuoteForDisplay));
+        var message = $"Method call {DiagnosticSafety.QuoteForDisplay(methodCall)} is ambiguous because multiple source aliases expose different implementations: {aliases}.";
         ReportError(DiagnosticCode.MQ3035_AmbiguousMethodOwner, message, span);
     }
 
@@ -530,7 +577,7 @@ public sealed class DiagnosticContext
     {
         ArgumentNullException.ThrowIfNull(node);
         var span = node.SpanOrEmpty();
-        var message = $"Function '{functionName}' expects {expected} argument(s) but got {actual}.";
+        var message = $"Function {DiagnosticSafety.QuoteForDisplay(functionName)} expects {expected} argument(s) but got {actual}.";
         ReportError(DiagnosticCode.MQ3087_InvalidCallableArity, message, span);
     }
 
@@ -560,7 +607,7 @@ public sealed class DiagnosticContext
         string? suggestion)
     {
         if (!string.IsNullOrEmpty(suggestion))
-            return $"{message} Did you mean '{suggestion}'?";
+            return $"{message} Did you mean {DiagnosticSafety.QuoteForDisplay(suggestion)}?";
 
         return closeCandidates.Count > 1
             ? $"{message} Possible matches: {FormatCandidates(closeCandidates)}."
@@ -606,7 +653,12 @@ public sealed class DiagnosticContext
 
     private static string FormatCandidates(IEnumerable<string> candidates)
     {
-        return string.Join(", ", candidates.Select(static candidate => $"'{candidate}'"));
+        return string.Join(", ", candidates.Select(DiagnosticSafety.QuoteForDisplay));
+    }
+
+    private static string FormatFactCandidates(IEnumerable<string> candidates)
+    {
+        return string.Join(", ", candidates.Select(DiagnosticSafety.SanitizeForDisplay));
     }
 
     private static IReadOnlyList<DiagnosticAction>? CreateSafeReplacement(
@@ -614,13 +666,14 @@ public sealed class DiagnosticContext
         string? suggestion,
         TextSpan span)
     {
-        if (string.IsNullOrWhiteSpace(suggestion) || span.IsEmpty || span.Length != original.Length)
+        if (string.IsNullOrWhiteSpace(suggestion) || !DiagnosticSafety.IsSafeSuggestedIdentifier(suggestion) ||
+            span.IsEmpty || span.Length != original.Length)
             return null;
 
         return
         [
             DiagnosticAction.QuickFix(
-                $"Replace '{original}' with '{suggestion}'",
+                $"Replace {DiagnosticSafety.QuoteForDisplay(original)} with {DiagnosticSafety.QuoteForDisplay(suggestion)}",
                 span,
                 suggestion)
         ];

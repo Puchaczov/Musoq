@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors.Helpers;
@@ -11,38 +12,38 @@ namespace Musoq.Evaluator.Visitors.Helpers;
 public static class ComparisonOperationVisitorHelper
 {
     /// <summary>Processes an Equality operation.</summary>
-    public static void ProcessEqualityOperation(Stack<Node> nodes) =>
-        ProcessComparisonOperation(nodes, (left, right) => new EqualityNode(left, right));
+    public static void ProcessEqualityOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessComparisonOperation(nodes, (left, right) => new EqualityNode(left, right), span);
 
     /// <summary>Processes a GreaterOrEqual operation.</summary>
-    public static void ProcessGreaterOrEqualOperation(Stack<Node> nodes) =>
-        ProcessComparisonOperation(nodes, (left, right) => new GreaterOrEqualNode(left, right));
+    public static void ProcessGreaterOrEqualOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessComparisonOperation(nodes, (left, right) => new GreaterOrEqualNode(left, right), span);
 
     /// <summary>Processes a LessOrEqual operation.</summary>
-    public static void ProcessLessOrEqualOperation(Stack<Node> nodes) =>
-        ProcessComparisonOperation(nodes, (left, right) => new LessOrEqualNode(left, right));
+    public static void ProcessLessOrEqualOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessComparisonOperation(nodes, (left, right) => new LessOrEqualNode(left, right), span);
 
     /// <summary>Processes a Greater operation.</summary>
-    public static void ProcessGreaterOperation(Stack<Node> nodes) =>
-        ProcessComparisonOperation(nodes, (left, right) => new GreaterNode(left, right));
+    public static void ProcessGreaterOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessComparisonOperation(nodes, (left, right) => new GreaterNode(left, right), span);
 
     /// <summary>Processes a Less operation.</summary>
-    public static void ProcessLessOperation(Stack<Node> nodes) =>
-        ProcessComparisonOperation(nodes, (left, right) => new LessNode(left, right));
+    public static void ProcessLessOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessComparisonOperation(nodes, (left, right) => new LessNode(left, right), span);
 
     /// <summary>Processes a Diff operation.</summary>
-    public static void ProcessDiffOperation(Stack<Node> nodes) =>
-        ProcessComparisonOperation(nodes, (left, right) => new DiffNode(left, right));
+    public static void ProcessDiffOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessComparisonOperation(nodes, (left, right) => new DiffNode(left, right), span);
 
     /// <summary>Processes a Like operation.</summary>
-    public static void ProcessLikeOperation(Stack<Node> nodes) =>
-        ProcessComparisonOperation(nodes, (left, right) => new LikeNode(left, right));
+    public static void ProcessLikeOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessComparisonOperation(nodes, (left, right) => new LikeNode(left, right), span);
 
     /// <summary>Processes an RLike operation.</summary>
-    public static void ProcessRLikeOperation(Stack<Node> nodes) =>
-        ProcessComparisonOperation(nodes, (left, right) => new RLikeNode(left, right));
+    public static void ProcessRLikeOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessComparisonOperation(nodes, (left, right) => new RLikeNode(left, right), span);
 
-    private static void ProcessComparisonOperation(Stack<Node> nodes, Func<Node, Node, Node> nodeFactory)
+    private static void ProcessComparisonOperation(Stack<Node> nodes, Func<Node, Node, Node> nodeFactory, TextSpan span)
     {
         ArgumentNullException.ThrowIfNull(nodes);
 
@@ -57,6 +58,6 @@ public static class ComparisonOperationVisitorHelper
         if (right == null)
             throw new ArgumentException("Right operand cannot be null");
 
-        nodes.Push(nodeFactory(left, right));
+        nodes.Push(nodeFactory(left, right).WithSpan(span));
     }
 }

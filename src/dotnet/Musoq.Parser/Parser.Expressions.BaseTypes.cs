@@ -1,4 +1,4 @@
-﻿using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
@@ -11,6 +11,9 @@ public partial class Parser
 {
     private Node ComposeBaseTypes(int minPrecedence = 0)
     {
+        if (IsContextualArrayLiteralStart())
+            return ComposeArrayLiteral();
+
         if (SqlKeywordTokenFacts.IsContextualExpressionIdentifier(Current.TokenType))
         {
             if (Current.TokenType == TokenType.Exists)
@@ -99,8 +102,8 @@ public partial class Parser
                 return new StarNode(new IntegerNode("-1", "s"),
                     Compose(f => f.ComposeArithmeticExpression(minPrecedence)));
             case TokenType.Case:
-                var (whenThenNodes, elseNode) = ComposeCase();
-                return new CaseNode(whenThenNodes, elseNode);
+                var (whenThenNodes, elseNode, caseSpan) = ComposeCase();
+                return new CaseNode(whenThenNodes, elseNode).WithSpan(caseSpan);
             case TokenType.Null:
                 token = ConsumeAndGetToken(TokenType.Null);
                 return new NullNode(token.Span);
@@ -110,6 +113,7 @@ public partial class Parser
             default:
 
                 if (IsSchemaKeywordToken(Current.TokenType)) return ComposeSchemaTokenAsWord();
+                if (Current.TokenType == TokenType.Equality) throw ParserDiagnosticFacts.MissingLeftOperand(_lexer.AlreadyResolvedQueryPart, Current.Span);
                 if (GetArithmeticPrecedence(Current.TokenType) >= 0)
                     throw new SyntaxException(
                         "A binary operator is missing its left operand.",

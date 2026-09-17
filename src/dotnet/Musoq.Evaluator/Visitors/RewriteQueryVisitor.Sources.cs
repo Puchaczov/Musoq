@@ -70,7 +70,8 @@ public sealed partial class RewriteQueryVisitor
         ArgumentNullException.ThrowIfNull(node);
         var right = (FromNode)Nodes.Pop();
         var left = (FromNode)Nodes.Pop();
-        var newApply = new Parser.ApplyFromNode(left, right, node.ApplyType, node.WithOrdinality);
+        var newApply = new Parser.ApplyFromNode(left, right, node.ApplyType, node.WithOrdinality)
+            .CopySpansFrom(node);
         Nodes.Push(newApply);
 
         _joinedTables.Add(newApply);
@@ -78,7 +79,7 @@ public sealed partial class RewriteQueryVisitor
 
     public void Visit(ExpressionFromNode node)
     {
-        Nodes.Push(new Parser.ExpressionFromNode((FromNode)Nodes.Pop()));
+        Nodes.Push(new Parser.ExpressionFromNode((FromNode)Nodes.Pop()).CopySpansFrom(node));
     }
 
     public void Visit(InMemoryTableFromNode node)
@@ -135,7 +136,8 @@ public sealed partial class RewriteQueryVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var interpretCall = Nodes.Pop();
-        Nodes.Push(new InterpretFromNode(node.Alias, interpretCall, node.ApplyType, node.ReturnType ?? typeof(object)));
+        Nodes.Push(new InterpretFromNode(node.Alias, interpretCall, node.ApplyType, node.ReturnType ?? typeof(object))
+            .CopySpansFrom(node));
     }
 
     public void Visit(SchemaMethodFromNode node)

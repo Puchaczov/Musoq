@@ -74,7 +74,7 @@ public sealed class SpecDiagnosticQualityTests
     [TestMethod]
     public void CollectionParameterInValues_ReportsTheParameterReference()
     {
-        const string query = "param(xs: int[]) select * from values { { K: $xs } } v";
+        const string query = "param(xs: int[]) select * from values { ( K: $xs ) } v";
         var diagnostic = Compile(query).Errors.Single();
 
         Assert.AreEqual(DiagnosticCode.MQ3055_InvalidValuesSource, diagnostic.Code, Describe(diagnostic));
@@ -97,7 +97,7 @@ public sealed class SpecDiagnosticQualityTests
     [TestMethod]
     public void RenameDuplicateTarget_ReportsTheConflictingOutputName()
     {
-        const string query = "select * rename (A as B) from values { { A: 1, B: 2 } } v";
+        const string query = "select * rename (A as B) from values { ( A: 1, B: 2 ) } v";
         var diagnostic = Compile(query).Errors.Single();
 
         Assert.AreEqual(DiagnosticCode.MQ3069_StarRenameDuplicateTarget, diagnostic.Code, Describe(diagnostic));
@@ -137,8 +137,8 @@ public sealed class SpecDiagnosticQualityTests
     {
         var cases = new[]
         {
-            ("select a.K in (select b.K from values { { K: 1 } } b where b.K > a.K) from values { { K: 1 } } a", "correlated subquery strategy"),
-            ("select a.K > any (select b.K from values { { K: 1 } } b where b.K = a.K) from values { { K: 1 } } a", "correlated quantified subquery strategy")
+            ("select a.K in (select b.K from values { ( K: 1 ) } b where b.K > a.K) from values { ( K: 1 ) } a", "correlated subquery strategy"),
+            ("select a.K > any (select b.K from values { ( K: 1 ) } b where b.K = a.K) from values { ( K: 1 ) } a", "correlated quantified subquery strategy")
         };
 
         foreach (var (query, operation) in cases)

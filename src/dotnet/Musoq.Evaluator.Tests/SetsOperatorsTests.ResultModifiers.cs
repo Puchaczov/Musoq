@@ -19,7 +19,6 @@ public partial class SetsOperatorsTests
     [DataRow("union all")]
     [DataRow("except")]
     [DataRow("intersect")]
-    [FeatureEvidence("set-result-modifiers", FeatureEvidenceKind.RuntimePositive)]
     public void ResultOrderBy_WithAliasesAndNullOrdering_ShouldApplyAfterTheSet(string setOperator)
     {
         var query = $"select Name as Result from #A.Entities() {setOperator} select Name as Other from #B.Entities() order by Result nulls last";

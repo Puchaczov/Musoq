@@ -160,7 +160,7 @@ public sealed class ParserRequiredSourceAliasTests
     public void DerivedAndValuesSources_ShouldRequireAliasesEvenWhenAlone()
     {
         var derived = GetSingleDiagnostic("select * from (select 1 from source)");
-        var values = GetSingleDiagnostic("select * from values { { Name: 'A' } }");
+        var values = GetSingleDiagnostic("select * from values { ( Name: 'A' ) }");
 
         Assert.AreEqual(DiagnosticCode.MQ2035_MissingRequiredAlias, derived.Code);
         Assert.AreEqual("The derived table source requires an alias after the closing parenthesis.", derived.Message);

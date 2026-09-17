@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive walk (Id, Depth) as (select Id, 0 from values {{ Id: 1 }} seed union all select w.Id + 1, w.Depth + 1 from walk w where w.Depth < 3) select Id, Depth from walk where Depth > 0 order by Depth desc
+with recursive walk (Id, Depth) as (select Id, 0 from values {( Id: 1 )} seed union all select w.Id + 1, w.Depth + 1 from walk w where w.Depth < 3) select Id, Depth from walk where Depth > 0 order by Depth desc
 */
 
 // === Logical Plan ===

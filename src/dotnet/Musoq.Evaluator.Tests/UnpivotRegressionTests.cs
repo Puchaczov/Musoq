@@ -41,8 +41,8 @@ public sealed class UnpivotRegressionTests : BasicEntityTestBase
     {
         const string query = """
                              from values {
-                                 { Name: 'A', Score: 1 },
-                                 { Name: 'B', Score: 2 }
+                                 ( Name: 'A', Score: 1 ),
+                                 ( Name: 'B', Score: 2 )
                              } v
                              select v.Name, v.Score
                              order by v.Score
@@ -92,8 +92,8 @@ public sealed class UnpivotRegressionTests : BasicEntityTestBase
     {
         const string query = """
                              from values {
-                                 { Name: 'A', Score: null },
-                                 { Name: 'B', Score: 2l }
+                                 ( Name: 'A', Score: null ),
+                                 ( Name: 'B', Score: 2l )
                              } v
                              select v.Name, v.Score
                              order by v.Name

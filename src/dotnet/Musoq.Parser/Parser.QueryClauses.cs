@@ -160,8 +160,8 @@ public partial class Parser
         if (Current.TokenType == TokenType.Comma)
             throw new SyntaxException("Unnecessary comma found after GROUP BY clause.",
                 _lexer.AlreadyResolvedQueryPart);
-        if (Current.TokenType == TokenType.All)
-            return ComposeGroupByAllNode();
+        if (Current.TokenType == TokenType.All) return ComposeGroupByAllNode();
+        if (Current.TokenType == TokenType.Having) throw ParserDiagnosticFacts.MissingGroupByColumn(_lexer.AlreadyResolvedQueryPart, Current.Span);
 
         var fields = ComposeFields();
         foreach (var field in fields)

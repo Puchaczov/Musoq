@@ -3,26 +3,41 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
-
 namespace Musoq.Targets.CSharpClr;
-
 public sealed partial class ExecutionCSharpRenderer
 {
     private IEnumerable<StatementSyntax> CreateScriptParameterBindingStatements()
     {
-        foreach (var definition in _scriptParameterDefinitions)
+        for (var parameterIndex = 0; parameterIndex < _scriptParameterDefinitions.Count; parameterIndex++)
         {
+            var definition = _scriptParameterDefinitions[parameterIndex];
             yield return CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 GetScriptParameterLocalName(definition.Name),
-                CreateScriptParameterBindingExpression(definition));
+                CreateScriptParameterBindingExpression(definition, parameterIndex));
         }
-
         yield return CreateScriptParameterUnknownValidationStatement();
     }
-
-    private InvocationExpressionSyntax CreateScriptParameterBindingExpression(ScriptParameterDefinition definition)
+    private InvocationExpressionSyntax CreateScriptParameterBindingExpression(
+        ScriptParameterDefinition definition,
+        int parameterIndex)
     {
+        if (definition.Contract.IsStructured)
+        {
+            if (StructuralCarrierSyntaxFactory.TryCreateParameterStorage(
+                    _scriptVariableDefinitions,
+                    definition,
+                    parameterIndex,
+                    out var storageType))
+            {
+                return StructuralParameterBindingSyntaxFactory.Create(
+                    definition,
+                    storageType,
+                    CreateExecutionStateParametersRead);
+            }
+            throw new InvalidOperationException(
+                $"Structured parameter '{definition.Name}' does not have generated storage metadata.");
+        }
         if (definition.ParameterType.IsArray)
             return CreateCollectionScriptParameterBindingExpression(definition);
 

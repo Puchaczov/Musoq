@@ -14,8 +14,8 @@ public partial class ValuesFromTests
         const string query = @"
 param(baseScore: int)
 from values {
-    { Name: 'first', Score: $baseScore },
-    { Name: 'second', Score: $baseScore + 5 }
+    ( Name: 'first', Score: $baseScore ),
+    ( Name: 'second', Score: $baseScore + 5 )
 } scores
 select scores.Name, scores.Score
 order by scores.Score";
@@ -37,8 +37,8 @@ order by scores.Score";
         const string query = @"
 param(optionalScore: int? = null)
 from values {
-    { Name: 'first', Score: $optionalScore },
-    { Name: 'second', Score: 20 }
+    ( Name: 'first', Score: $optionalScore ),
+    ( Name: 'second', Score: 20 )
 } scores
 select scores.Name, scores.Score
 order by scores.Name";
@@ -63,8 +63,8 @@ order by scores.Name";
 let prefix: string = 'pkg'
 let baseScore: int = 40
 from values {
-    { Name: $prefix + '-a', Score: $baseScore + 1 },
-    { Name: $prefix + '-b', Score: $baseScore + 2 }
+    ( Name: $prefix + '-a', Score: $baseScore + 1 ),
+    ( Name: $prefix + '-b', Score: $baseScore + 2 )
 } scores
 select scores.Name, scores.Score
 order by scores.Score";
@@ -85,8 +85,8 @@ order by scores.Score";
         const string query = @"
 param(baseScore: int)
 from values {
-    { Name: 'literal', Score: 7 },
-    { Name: 'parameter', Score: $baseScore }
+    ( Name: 'literal', Score: 7 ),
+    ( Name: 'parameter', Score: $baseScore )
 } scores
 select scores.Name, scores.Score
 order by scores.Score";
@@ -109,7 +109,7 @@ order by scores.Score";
 select v.Score
 from #A.entities() a
 inner join values {
-    { Score: a.Population }
+    ( Score: a.Population )
 } v on a.Id = v.Score";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>

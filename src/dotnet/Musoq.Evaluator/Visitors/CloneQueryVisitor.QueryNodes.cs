@@ -192,7 +192,7 @@ public partial class CloneQueryVisitor
 
         var elseNode = Nodes.Pop();
 
-        Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, node.ReturnType));
+        Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, node.ReturnType).CopySpansFrom(node));
     }
 
     public override void Visit(WhenNode node)

@@ -375,7 +375,11 @@ public sealed partial class ExecutionCSharpRendererTests
                             ])
                     ])),
                 new ExecutionReturnTable(resultTable)
-            ]));
+            ]),
+            storedTableRepresentations:
+            [
+                new ExecutionStoredTableRepresentationPlan(0, resultShape)
+            ]);
     }
 
     private static ExecutionPlan CreateRankingWindowKeyExtractionScriptParameterCapturePlan()

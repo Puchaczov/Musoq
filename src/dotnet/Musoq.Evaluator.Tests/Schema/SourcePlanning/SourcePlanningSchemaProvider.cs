@@ -24,6 +24,8 @@ public sealed class SourcePlanningSchemaProvider : ISchemaProvider
 
     public IReadOnlyCollection<SourcePlanRequest> Requests => Recorder.Requests;
 
+    public IReadOnlyCollection<SourcePlanResult> PlanResults => Recorder.PlanResults;
+
     public IReadOnlyCollection<SourceExecutionPlan> ExecutionPlans => Recorder.ExecutionPlans;
 
     public ISchema GetSchema(string schema)

@@ -20,7 +20,8 @@ internal sealed partial class PhysicalLoweringImplementation
             runtimeContextId,
             DefaultSchemaFromIndex,
             CreateQueryColumnMetadata(desc),
-            desc.ColumnSpan);
+            desc.ColumnSpan,
+            desc.ArgumentDescriptions);
 
         return ExecutionPlanBuildResult.CreateSupported(new ExecutionPlan(
             identifier,

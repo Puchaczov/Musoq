@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive dead (Value) as (select Value from values {{ Value: 1 }} seed union all select d.Value + 1 from dead d where d.Value < 3), live (Value) as (select Value from values {{ Value: 42 }} row) select Value from live
+with recursive dead (Value) as (select Value from values {( Value: 1 )} seed union all select d.Value + 1 from dead d where d.Value < 3), live (Value) as (select Value from values {( Value: 42 )} row) select Value from live
 */
 
 // === Logical Plan ===

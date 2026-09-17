@@ -4,7 +4,7 @@ namespace Musoq.Evaluator.Tests;
 
 public sealed partial class GeneratedCodeSamplesShapeTests
 {
-    private const int ExpectedSampleFileCount = 327;
+    private const int ExpectedSampleFileCount = 373;
     private const int InlineInArrayAllocationBudget = 0;
     private const string CrossApplySampleFileName = "Q19_CrossApply.cs";
     private const string OuterApplySampleFileName = "Q20_OuterApply.cs";
@@ -324,7 +324,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [
         "Q273_SpecCoreCorrelatedScalarSetOperation.cs",
         "Q292_SpecCoreSetBranchLocalSlice.cs",
-        "Q321_SpecTableCoupleArguments.cs"
+        "Q321_SpecTableCoupleArguments.cs",
+        "Q340_StructuredSharedCteArgument.cs",
+        "Q341_StructuredSortedCteArgument.cs",
+        "Q344_StructuredSetCteArgument.cs",
+        "Q345_StructuredPagedCteArgument.cs"
     ];
 
     private const string ObjectsRowValueArrayCreationPattern = "new ObjectsRow(new object[]";

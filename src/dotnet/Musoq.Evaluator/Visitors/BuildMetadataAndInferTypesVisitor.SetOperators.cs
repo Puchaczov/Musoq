@@ -13,17 +13,6 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private string CreateSetOperatorPositionKey()
-    {
-        var key = _queryState.SetKey++;
-        return key.ToString(System.Globalization.CultureInfo.InvariantCulture).ToSetOperatorKey(key.ToString(System.Globalization.CultureInfo.InvariantCulture));
-    }
-
-    private string PreviousSetOperatorPositionKey()
-    {
-        return (_queryState.SetKey - 2).ToString(System.Globalization.CultureInfo.InvariantCulture).ToSetOperatorKey((_queryState.SetKey - 2).ToString(System.Globalization.CultureInfo.InvariantCulture));
-    }
-
     private void MakeSureBothSideFieldsAreOfAssignableTypes(QueryNode left, QueryNode right,
         string cachedSetOperatorKey)
     {
@@ -69,6 +58,10 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         for (var i = 0; i < leftFields.Length; i++)
         {
+            if (DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, leftFields[i].Expression) ||
+                DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, rightFields[i].Expression))
+                continue;
+
             var leftType = leftFields[i].Expression.ReturnType ?? typeof(object);
             var rightType = rightFields[i].Expression.ReturnType ?? typeof(object);
             var leftHasEnum = TryGetEnumExpressionType(leftFields[i].Expression, out var leftEnum);
@@ -79,7 +72,16 @@ public partial class BuildMetadataAndInferTypesVisitor
                 if (leftHasEnum && rightHasEnum)
                 {
                     if (!leftEnum.Equals(rightEnum))
+                    {
                         ReportEnumIdentityMismatch(leftEnum, rightEnum, rightFields[i]);
+                        continue;
+                    }
+
+                    if (IsNullableValueType(leftType) || IsNullableValueType(rightType))
+                    {
+                        leftFields[i] = PromoteEnumFieldToNullable(leftFields[i], leftEnum);
+                        rightFields[i] = PromoteEnumFieldToNullable(rightFields[i], rightEnum);
+                    }
                 }
                 else
                 {
@@ -89,8 +91,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                     {
                         var enumField = leftHasEnum ? leftFields[i] : rightFields[i];
                         var contextualNull = new NullNode(
-                            enumField.Expression.ReturnType ??
-                            EnumScalarTypeFacts.GetCarrierType(enumType.UnderlyingKind),
+                            MakeNullableEnumCarrierType(enumField.Expression.ReturnType, enumType),
                             ordinaryField.Expression.Span);
                         MarkEnumExpression(contextualNull, enumType);
                         var replacement = new FieldNode(
@@ -102,6 +103,11 @@ public partial class BuildMetadataAndInferTypesVisitor
                             rightFields[i] = replacement;
                         else
                             leftFields[i] = replacement;
+
+                        if (leftHasEnum)
+                            leftFields[i] = PromoteEnumFieldToNullable(leftFields[i], enumType);
+                        else
+                            rightFields[i] = PromoteEnumFieldToNullable(rightFields[i], enumType);
                     }
                     else
                     {
@@ -109,9 +115,12 @@ public partial class BuildMetadataAndInferTypesVisitor
                             DiagnosticCode.MQ3110_UnsupportedEnumOperator,
                             $"SET operands cannot combine enum type '{enumType.DisplayName}' with an ordinary '{ordinaryField.Expression.ReturnType?.Name ?? "unknown"}' value.",
                             ordinaryField);
+                        continue;
                     }
                 }
 
+                leftType = leftFields[i].Expression.ReturnType ?? typeof(object);
+                rightType = rightFields[i].Expression.ReturnType ?? typeof(object);
                 if (leftType == rightType ||
                     leftFields[i].Expression is NullNode ||
                     rightFields[i].Expression is NullNode)

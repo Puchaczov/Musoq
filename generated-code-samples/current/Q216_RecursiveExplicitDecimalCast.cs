@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive totals (Total, Depth) as (select 0::Decimal, 0 from values {{ Seed: 1 }} seed union all select (t.Total + 1)::Decimal, t.Depth + 1 from totals t where t.Depth < 2) select Total, Depth from totals order by Depth
+with recursive totals (Total, Depth) as (select 0::Decimal, 0 from values {( Seed: 1 )} seed union all select (t.Total + 1)::Decimal, t.Depth + 1 from totals t where t.Depth < 2) select Total, Depth from totals order by Depth
 */
 
 // === Logical Plan ===

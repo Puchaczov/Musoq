@@ -29,7 +29,7 @@ public sealed class CteColumnListParserTests
     {
         var lexer = new Lexer(
             "with recursive counter (Value) as (" +
-            "select Value from values {{ Value: 1 }} seed " +
+            "select Value from values {( Value: 1 )} seed " +
             "union all select c.Value + 1 from counter c where c.Value < 3) " +
             "select Value from counter",
             true);
@@ -46,7 +46,7 @@ public sealed class CteColumnListParserTests
     public void Recursive_WhenFollowedByAs_ShouldRemainAnOrdinaryCteName()
     {
         var lexer = new Lexer(
-            "with recursive as (select Value from values {{ Value: 1 }} seed) " +
+            "with recursive as (select Value from values {( Value: 1 )} seed) " +
             "select Value from recursive",
             true);
         var root = new Parser(lexer).ComposeAll();
@@ -62,7 +62,7 @@ public sealed class CteColumnListParserTests
     public void Recursive_WhenFollowedByColumnList_ShouldRemainAnOrdinaryCteName()
     {
         var lexer = new Lexer(
-            "with recursive (Exported) as (select Value from values {{ Value: 1 }} seed) " +
+            "with recursive (Exported) as (select Value from values {( Value: 1 )} seed) " +
             "select Exported from recursive",
             true);
         var root = new Parser(lexer).ComposeAll();

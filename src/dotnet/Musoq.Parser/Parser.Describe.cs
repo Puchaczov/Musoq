@@ -15,6 +15,9 @@ public partial class Parser
         if (IsSettingsOption())
             return ComposeDescSettings();
 
+        if (IsContextualKeyword("arguments"))
+            return ComposeDescArguments();
+
         if (IsContextualKeyword("query"))
             return ComposeDescQuery();
 

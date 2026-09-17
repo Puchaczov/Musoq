@@ -107,10 +107,10 @@ internal static partial class GeneratedCodeSamplesCatalog
                 "Q168_IsDistinctFromNullSafeComparison",
                 "Values",
                 @"from values {
-    { Label: 'same', LeftValue: 1, RightValue: 1 },
-    { Label: 'different', LeftValue: 1, RightValue: 2 },
-    { Label: 'both-null', LeftValue: null, RightValue: null },
-    { Label: 'left-null', LeftValue: null, RightValue: 3 }
+    ( Label: 'same', LeftValue: 1, RightValue: 1 ),
+    ( Label: 'different', LeftValue: 1, RightValue: 2 ),
+    ( Label: 'both-null', LeftValue: null, RightValue: null ),
+    ( Label: 'left-null', LeftValue: null, RightValue: 3 )
 } pairs
 select pairs.Label,
        pairs.LeftValue is distinct from pairs.RightValue as IsDifferent,

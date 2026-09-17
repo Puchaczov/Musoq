@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
@@ -127,6 +128,25 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Testing"));
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "TEST123"));
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "test_value"));
+    }
+
+    [TestMethod]
+    public void Like_ConstantAsciiPattern_ShouldRenderSpecializedOperator()
+    {
+        const string query = "select Name from #A.entities() where Name like 'test%'";
+        var inspection = InstanceCreator.CompileForInspection(
+            query,
+            System.Guid.NewGuid().ToString(),
+            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                ["#A"] = [new BasicEntity("Testing")]
+            }),
+            LoggerResolver,
+            TestCompilationOptions);
+
+        Assert.Contains(".StartsWith(\"test\", StringComparison.OrdinalIgnoreCase)", inspection.GeneratedCSharpCode);
+        Assert.Contains("Operators.LikeLegacyRegex(", inspection.GeneratedCSharpCode);
+        Assert.DoesNotContain("new Operators()", inspection.GeneratedCSharpCode);
     }
 
     [TestMethod]

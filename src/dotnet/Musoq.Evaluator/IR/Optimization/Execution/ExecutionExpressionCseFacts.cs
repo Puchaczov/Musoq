@@ -99,7 +99,8 @@ internal static partial class ExecutionExpressionCseFacts
             ExecutionRowStream or
             ExecutionScalarRowStream or
             ExecutionStoredTable or
-            ExecutionStoredTableRows);
+            ExecutionStoredTableRows or
+            ExecutionCteCollectionInput);
     }
 
     public static IEnumerable<HoistOccurrence> CollectHoistableOccurrences(
@@ -280,6 +281,15 @@ internal static partial class ExecutionExpressionCseFacts
             ExecutionArrayAccess => true,
             ExecutionIsNullCheck => true,
             ExecutionPatternMatch => true,
+            ExecutionStringMatch => true,
+            ExecutionPrepareLikeMatcher => true,
+            ExecutionPreparedLikeMatch => true,
+            ExecutionDynamicLikeMatch => true,
+            ExecutionLikeMatcherCacheSlot => false,
+            ExecutionPrepareRLikeMatcher => true,
+            ExecutionPreparedRLikeMatch => true,
+            ExecutionDynamicRLikeMatch => true,
+            ExecutionRLikeMatcherCacheSlot => false,
             ExecutionBetween => true,
             _ => false
         };
@@ -354,6 +364,21 @@ internal static partial class ExecutionExpressionCseFacts
             ExecutionPatternMatch patternMatch => 1 + Math.Max(
                 GetExpressionDepth(patternMatch.Expression),
                 GetExpressionDepth(patternMatch.Pattern)),
+            ExecutionStringMatch stringMatch => 1 + GetExpressionDepth(stringMatch.Input),
+            ExecutionPrepareLikeMatcher prepareLike => 1 + GetExpressionDepth(prepareLike.Pattern),
+            ExecutionPreparedLikeMatch preparedLike => 1 + Math.Max(
+                GetExpressionDepth(preparedLike.Input),
+                GetExpressionDepth(preparedLike.Matcher)),
+            ExecutionDynamicLikeMatch dynamicLike => 1 + Math.Max(
+                GetExpressionDepth(dynamicLike.Input),
+                Math.Max(GetExpressionDepth(dynamicLike.Pattern), GetExpressionDepth(dynamicLike.CacheSlot))),
+            ExecutionPrepareRLikeMatcher prepareRLike => 1 + GetExpressionDepth(prepareRLike.Pattern),
+            ExecutionPreparedRLikeMatch preparedRLike => 1 + Math.Max(
+                GetExpressionDepth(preparedRLike.Input),
+                GetExpressionDepth(preparedRLike.Matcher)),
+            ExecutionDynamicRLikeMatch dynamicRLike => 1 + Math.Max(
+                GetExpressionDepth(dynamicRLike.Input),
+                Math.Max(GetExpressionDepth(dynamicRLike.Pattern), GetExpressionDepth(dynamicRLike.CacheSlot))),
             ExecutionBetween between => 1 + Math.Max(
                 GetExpressionDepth(between.Expression),
                 Math.Max(GetExpressionDepth(between.Low), GetExpressionDepth(between.High))),

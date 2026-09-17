@@ -13,8 +13,8 @@ public partial class ValuesFromTests
 select entity.Name, policy.Approved
 from #A.Entities() entity
 left outer join values {
-    { Name: 'Newtonsoft.Json', Approved: true },
-    { Name: 'Legacy.Package', Approved: false }
+    ( Name: 'Newtonsoft.Json', Approved: true ),
+    ( Name: 'Legacy.Package', Approved: false )
 } policy on entity.Name = policy.Name
 order by entity.Name";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -48,8 +48,8 @@ order by entity.Name";
         const string query = @"
 select policy.Name, entity.Name
 from values {
-    { Name: 'Missing.Package' },
-    { Name: 'Newtonsoft.Json' }
+    ( Name: 'Missing.Package' ),
+    ( Name: 'Newtonsoft.Json' )
 } policy
 left outer join #A.Entities() entity on policy.Name = entity.Name
 order by policy.Name";
@@ -78,8 +78,8 @@ order by policy.Name";
 select entity.Name, policy.Flag
 from #A.Entities() entity
 cross apply values {
-    { Flag: 'A' },
-    { Flag: 'B' }
+    ( Flag: 'A' ),
+    ( Flag: 'B' )
 } policy
 order by entity.Name, policy.Flag";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -108,9 +108,9 @@ order by entity.Name, policy.Flag";
         const string query = @"
 select scores.Team, Sum(scores.Score)
 from values {
-    { Team: 'red', Score: 2 },
-    { Team: 'blue', Score: 1 },
-    { Team: 'red', Score: 3 }
+    ( Team: 'red', Score: 2 ),
+    ( Team: 'blue', Score: 1 ),
+    ( Team: 'red', Score: 3 )
 } scores
 group by scores.Team
 having Sum(scores.Score) > 2
@@ -132,9 +132,9 @@ order by Sum(scores.Score) desc";
         const string query = @"
 select distinct scores.Team
 from values {
-    { Team: 'red' },
-    { Team: 'blue' },
-    { Team: 'red' }
+    ( Team: 'red' ),
+    ( Team: 'blue' ),
+    ( Team: 'red' )
 } scores
 order by scores.Team";
 
@@ -151,9 +151,9 @@ order by scores.Team";
         const string query = @"
 select scores.Team, scores.Score, RowNumber() over (partition by scores.Team order by scores.Score desc) as rn
 from values {
-    { Team: 'red', Score: 2 },
-    { Team: 'blue', Score: 1 },
-    { Team: 'red', Score: 3 }
+    ( Team: 'red', Score: 2 ),
+    ( Team: 'blue', Score: 1 ),
+    ( Team: 'red', Score: 3 )
 } scores
 qualify RowNumber() over (partition by scores.Team order by scores.Score desc) = 1
 order by scores.Team";
@@ -182,9 +182,9 @@ select scores.Name,
        DenseRank() over (order by scores.Score) as dense_rnk,
        Lag(scores.Score, 1) over (order by scores.Score) as previous_score
 from values {
-    { Name: 'first', Score: 10 },
-    { Name: 'second', Score: 20 },
-    { Name: 'third', Score: 30 }
+    ( Name: 'first', Score: 10 ),
+    ( Name: 'second', Score: 20 ),
+    ( Name: 'third', Score: 30 )
 } scores
 order by scores.Score";
 
@@ -211,14 +211,14 @@ order by scores.Score";
         const string query = @"
 select packages.Name
 from values {
-    { Name: 'Newtonsoft.Json' },
-    { Name: 'Legacy.Package' }
+    ( Name: 'Newtonsoft.Json' ),
+    ( Name: 'Legacy.Package' )
 } packages
 union (Name)
 select approvals.Name
 from values {
-    { Name: 'Legacy.Package' },
-    { Name: 'Other.Package' }
+    ( Name: 'Legacy.Package' ),
+    ( Name: 'Other.Package' )
 } approvals";
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
@@ -237,15 +237,15 @@ from values {
         const string query = @"
 select packages.Name
 from values {
-    { Name: 'Newtonsoft.Json' },
-    { Name: 'Legacy.Package' },
-    { Name: 'Other.Package' }
+    ( Name: 'Newtonsoft.Json' ),
+    ( Name: 'Legacy.Package' ),
+    ( Name: 'Other.Package' )
 } packages
 where packages.Name in (
     select approvals.Name
     from values {
-        { Name: 'Legacy.Package' },
-        { Name: 'Other.Package' }
+        ( Name: 'Legacy.Package' ),
+        ( Name: 'Other.Package' )
     } approvals
 )
 order by packages.Name";

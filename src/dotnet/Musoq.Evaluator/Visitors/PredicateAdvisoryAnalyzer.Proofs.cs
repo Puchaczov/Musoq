@@ -13,7 +13,9 @@ internal static partial class PredicateAdvisoryAnalyzer
     {
         if (!TryCreateFact(resolver, node.Left, out var left) ||
             !TryCreateFact(resolver, node.Right, out var right) ||
-            !string.Equals(left.Column, right.Column, StringComparison.Ordinal))
+            !string.Equals(left.Column, right.Column, StringComparison.Ordinal) ||
+            IsNullSensitive(left) ||
+            IsNullSensitive(right))
             return;
 
         if (!FactsContradict(left, right))
@@ -33,6 +35,8 @@ internal static partial class PredicateAdvisoryAnalyzer
         if (!TryCreateFact(resolver, node.Left, out var left) ||
             !TryCreateFact(resolver, node.Right, out var right) ||
             !string.Equals(left.Column, right.Column, StringComparison.Ordinal) ||
+            IsNullSensitive(left) ||
+            IsNullSensitive(right) ||
             !((left.Kind == FactKind.IsNull && right.Kind == FactKind.IsNotNull) ||
               (left.Kind == FactKind.IsNotNull && right.Kind == FactKind.IsNull)))
             return;
@@ -41,6 +45,11 @@ internal static partial class PredicateAdvisoryAnalyzer
             DiagnosticCode.MQ5010_TautologicalCondition,
             "Predicate always evaluates to true because every value is either NULL or not NULL.",
             node.Span);
+    }
+
+    private static bool IsNullSensitive(PredicateFact fact)
+    {
+        return fact.Kind is FactKind.IsNull or FactKind.IsNotNull;
     }
 
     private static bool TryCreateFact(

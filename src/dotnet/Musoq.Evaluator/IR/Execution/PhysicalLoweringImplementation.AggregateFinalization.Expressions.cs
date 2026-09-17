@@ -19,7 +19,6 @@ internal sealed partial class PhysicalLoweringImplementation
         var groupKeyRead = TryCreateGroupKeyRead(expression, context);
         if (groupKeyRead != null)
             return LoweringAttempt<ExecutionExpression>.Built(groupKeyRead);
-
         var rewrittenExpression = AggregateRefRewriter.Rewrite(expression, context.BindingsByIdentifier);
         return ConvertAggregateFinalExpression(rewrittenExpression, context);
     }
@@ -52,13 +51,11 @@ internal sealed partial class PhysicalLoweringImplementation
         var appendBlock = CreateAppendBlock(appendRow);
         if (havingPredicate == null)
             return LoweringAttempt<ExecutionBlock>.Built(appendBlock);
-
         var rewrittenPredicate = AggregateRefRewriter.Rewrite(havingPredicate, context.BindingsByIdentifier);
         var condition = ConvertAggregateFinalExpression(rewrittenPredicate, context);
 
         if (!condition.IsBuilt)
             return LoweringAttempt<ExecutionBlock>.Unsupported(condition.UnsupportedReason);
-
         if (!IrExpressionNullSemantics.IsBoolean(condition.Value.ReturnType.ResolveClrType()))
         {
             return LoweringAttempt<ExecutionBlock>.Unsupported(
@@ -68,7 +65,7 @@ internal sealed partial class PhysicalLoweringImplementation
         return LoweringAttempt<ExecutionBlock>.Built(new ExecutionBlock([new ExecutionIf(condition.Value, appendBlock)]));
     }
 
-    private static LoweringAttempt<ExecutionExpression> ConvertAggregateFinalExpression(
+    internal static LoweringAttempt<ExecutionExpression> ConvertAggregateFinalExpression(
         IrExpression expression,
         AggregateFinalizationContext context)
     {
@@ -98,6 +95,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 return ConvertAggregateFinalMethodCall(methodCall, context);
             case StrictCast strictCast:
                 return ConvertAggregateFinalStrictCast(strictCast, context);
+            case PatternMatch patternMatch:
+                return AggregateFinalPatternMatchConversion.Convert(patternMatch, context);
             default:
                 return LoweringAttempt<ExecutionExpression>.Unsupported(
                     $"Execution IR {context.AggregateKind} final expression lowering cannot convert expression {IrExpressionPrinter.Print(expression)}.");

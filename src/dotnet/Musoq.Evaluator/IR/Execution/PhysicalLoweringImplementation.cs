@@ -26,7 +26,6 @@ internal sealed partial class PhysicalLoweringImplementation :
     private const ExecutionAppendMode SerialAppendMode = ExecutionAppendMode.Direct;
     private static readonly MethodInfo CreateNullableHashJoinKeyMethod = typeof(EvaluationHelper)
         .GetMethod(nameof(EvaluationHelper.CreateNullableHashJoinKey))!;
-
     private readonly PhysicalLoweringFacts _facts;
     private ExecutionShapeResolver _shapeResolver => _facts.ShapeResolver;
     private SchemaRegistry? _schemaRegistry => _facts.SchemaRegistry;
@@ -65,7 +64,8 @@ internal sealed partial class PhysicalLoweringImplementation :
         return result is { Supported: true, ExecutionPlan: { } executionPlan }
             ? result with
             {
-                ExecutionPlan = ExecutionPhaseBoundaryPlanner.AddRootBoundaries(unwrapped, executionPlan)
+                ExecutionPlan = ExecutionPlanRepresentationPlanner.Plan(
+                    ExecutionPhaseBoundaryPlanner.AddRootBoundaries(unwrapped, executionPlan))
             }
             : result;
     }

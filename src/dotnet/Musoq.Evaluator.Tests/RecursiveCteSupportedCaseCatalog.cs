@@ -34,7 +34,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "union-all-counter",
             Tags("union-all", "self-only", "predicate-termination", "single-root", "chain", "values"),
             "with recursive counter (Value) as (" +
-            "select Value from values {{ Value: 1 }} seed " +
+            "select Value from values {( Value: 1 )} seed " +
             "union all " +
             "select c.Value + 1 from counter c where c.Value < 4) " +
             "select Value from counter order by Value",
@@ -47,7 +47,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "union-all-predicate-termination",
             Tags("union-all", "state-depth", "scalar-expression", "predicate-termination"),
             "with recursive powers (Value, Depth) as (" +
-            "select Value, 0 from values {{ Value: 2 }} seed " +
+            "select Value, 0 from values {( Value: 2 )} seed " +
             "union all " +
             "select p.Value * 2, p.Depth + 1 from powers p where p.Depth < 3) " +
             "select Value, Depth from powers order by Depth",
@@ -60,7 +60,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "union-all-empty-anchor",
             Tags("union-all", "empty-anchor", "empty-frontier"),
             "with recursive counter (Value) as (" +
-            "select Value from values {{ Value: 1 }} seed where Value < 0 " +
+            "select Value from values {( Value: 1 )} seed where Value < 0 " +
             "union all " +
             "select c.Value + 1 from counter c where c.Value < 4) " +
             "select Value from counter order by Value",
@@ -73,7 +73,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "union-all-multiple-roots",
             Tags("union-all", "multiple-roots", "breadth-first"),
             "with recursive counter (Value) as (" +
-            "select Value from values {{ Value: 1 }, { Value: 10 }} seed " +
+            "select Value from values {( Value: 1 ), ( Value: 10 )} seed " +
             "union all " +
             "select c.Value + 1 from counter c where c.Value < 3) " +
             "select Value from counter order by Value",
@@ -86,7 +86,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "union-full-row-cycle",
             Tags("union", "full-row", "cycle", "dedup-termination", "values"),
             "with recursive cycle (Id) as (" +
-            "select Id from values {{ Id: 1 }} seed " +
+            "select Id from values {( Id: 1 )} seed " +
             "union " +
             "select (case when c.Id = 1 then 2 else 1 end) from cycle c) " +
             "select Id from cycle order by Id",
@@ -99,7 +99,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "union-single-key-cycle",
             Tags("union-keyed", "single-key", "cycle", "dedup-termination"),
             "with recursive cycle (Id) as (" +
-            "select Id from values {{ Id: 1 }} seed " +
+            "select Id from values {( Id: 1 )} seed " +
             "union (Id) " +
             "select (case when c.Id = 1 then 2 else 1 end) from cycle c) " +
             "select Id from cycle order by Id",
@@ -112,7 +112,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "union-composite-key",
             Tags("union-keyed", "composite-key", "cycle", "state-depth"),
             "with recursive states (Id, Branch, Depth) as (" +
-            "select Id, Branch, 0 from values {{ Id: 1, Branch: 'A' }} seed " +
+            "select Id, Branch, 0 from values {( Id: 1, Branch: 'A' )} seed " +
             "union (Id, Branch) " +
             "select (case when s.Id = 1 then 2 else 1 end), s.Branch, s.Depth + 1 from states s) " +
             "select Id, Branch, Depth from states order by Id",
@@ -125,7 +125,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "union-keyed-non-key-payload",
             Tags("union-keyed", "single-key", "path-payload", "first-representative"),
             "with recursive paths (Id, Depth, Path) as (" +
-            "select Id, 0, '1' from values {{ Id: 1 }} seed " +
+            "select Id, 0, '1' from values {( Id: 1 )} seed " +
             "union (Id) " +
             "select (case when p.Id = 1 then 2 else 1 end), p.Depth + 1, p.Path + '->' + (case when p.Id = 1 then '2' else '1' end) from paths p) " +
             "select Id, Depth, Path from paths order by Id",
@@ -138,7 +138,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "union-anchor-duplicates",
             Tags("union", "full-row", "anchor-duplicates"),
             "with recursive numbers (Id) as (" +
-            "select Id from values {{ Id: 1 }, { Id: 1 }} seed " +
+            "select Id from values {( Id: 1 ), ( Id: 1 )} seed " +
             "union " +
             "select n.Id + 1 from numbers n where n.Id < 2) " +
             "select Id from numbers order by Id",
@@ -151,7 +151,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "union-duplicate-generated-rows",
             Tags("union", "full-row", "duplicate-edge", "multiple-roots", "same-generation-duplicates"),
             "with recursive walk (Id) as (" +
-            "select Id from values {{ Id: 1 }, { Id: 2 }} seed " +
+            "select Id from values {( Id: 1 ), ( Id: 2 )} seed " +
             "union " +
             "select 3 from walk w where w.Id < 3) " +
             "select Id from walk order by Id",
@@ -164,7 +164,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "union-full-row-self-loop",
             Tags("union", "full-row", "self-loop", "dedup-termination"),
             "with recursive loop (Id) as (" +
-            "select Id from values {{ Id: 7 }} seed " +
+            "select Id from values {( Id: 7 )} seed " +
             "union select l.Id from loop l) " +
             "select Id from loop",
             new CompilationOptions(),
@@ -176,7 +176,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "union-nullable-composite-key",
             Tags("union-keyed", "composite-key", "nullable-key", "self-loop"),
             "with recursive states (Id, Code, Depth) as (" +
-            "select Id, Code, 0 from values {{ Id: 1, Code: null }, { Id: 2, Code: 'x' }} seed " +
+            "select Id, Code, 0 from values {( Id: 1, Code: null ), ( Id: 2, Code: 'x' )} seed " +
             "union (Id, Code) select s.Id, s.Code, s.Depth + 1 from states s where s.Depth < 1) " +
             "select Id, Code, Depth from states order by Id",
             new CompilationOptions(),
@@ -253,9 +253,9 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "prior-values-cte-edges",
             Tags("union-keyed", "earlier-cte", "values", "inner-join", "chain"),
             "with recursive edges (SourceId, TargetId) as (" +
-            "select SourceId, TargetId from values {{ SourceId: 1, TargetId: 2 }, { SourceId: 2, TargetId: 3 }} e), " +
+            "select SourceId, TargetId from values {( SourceId: 1, TargetId: 2 ), ( SourceId: 2, TargetId: 3 )} e), " +
             "reachable (Id, Depth) as (" +
-            "select Id, 0 from values {{ Id: 1 }} seed " +
+            "select Id, 0 from values {( Id: 1 )} seed " +
             "union (Id) " +
             "select e.TargetId, r.Depth + 1 from reachable r " +
             "inner join edges e on e.SourceId = r.Id) " +
@@ -300,10 +300,10 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "two-independent-recursive-ctes",
             Tags("union-all", "multiple-recursive", "independent-siblings", "outer-join"),
             "with recursive up (Value) as (" +
-            "select Value from values {{ Value: 1 }} seed union all " +
+            "select Value from values {( Value: 1 )} seed union all " +
             "select u.Value + 1 from up u where u.Value < 3), " +
             "down (Value) as (" +
-            "select Value from values {{ Value: 5 }} seed union all " +
+            "select Value from values {( Value: 5 )} seed union all " +
             "select d.Value - 1 from down d where d.Value > 3) " +
             "select u.Value as Up, d.Value as Down from up u " +
             "inner join down d on u.Value + d.Value = 6",
@@ -316,7 +316,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "recursive-depends-on-earlier-recursive",
             Tags("union-all", "multiple-recursive", "earlier-recursive-dependency", "chain"),
             "with recursive first (Value) as (" +
-            "select Value from values {{ Value: 1 }} seed union all " +
+            "select Value from values {( Value: 1 )} seed union all " +
             "select f.Value + 1 from first f where f.Value < 3), " +
             "second (Value) as (" +
             "select Value from first where Value = 2 union all " +
@@ -331,9 +331,9 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "unused-recursive-definition",
             Tags("union-all", "unused-recursive", "dead-cte", "ordinary-live-cte"),
             "with recursive dead (Value) as (" +
-            "select Value from values {{ Value: 1 }} seed union all " +
+            "select Value from values {( Value: 1 )} seed union all " +
             "select d.Value + 1 from dead d where d.Value < 3), " +
-            "live (Value) as (select Value from values {{ Value: 42 }} row) " +
+            "live (Value) as (select Value from values {( Value: 42 )} row) " +
             "select Value from live",
             new CompilationOptions(),
             [new("Value", typeof(int))],
@@ -344,7 +344,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "projection-pruned-recursive-state",
             Tags("union-keyed", "projection-pruning", "hidden-depth", "unused-payload"),
             "with recursive walk (Id, Depth, Path) as (" +
-            "select Id, 0, 'root' from values {{ Id: 1 }} seed union (Id) " +
+            "select Id, 0, 'root' from values {( Id: 1 )} seed union (Id) " +
             "select w.Id + 1, w.Depth + 1, w.Path + '->next' from walk w where w.Depth < 2) " +
             "select Id from walk order by Id",
             new CompilationOptions(),
@@ -356,7 +356,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "full-row-identity-retains-hidden-payload",
             Tags("union", "full-row", "projection-pruning", "hidden-identity-state"),
             "with recursive states (Id, Version) as (" +
-            "select Id, 0 from values {{ Id: 1 }} seed union " +
+            "select Id, 0 from values {( Id: 1 )} seed union " +
             "select s.Id, s.Version + 1 from states s where s.Version < 2) " +
             "select Id from states order by Id",
             new CompilationOptions(),
@@ -368,7 +368,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "recursive-outer-filter-order",
             Tags("union-all", "outer-filter", "outer-order", "state-depth"),
             "with recursive walk (Id, Depth) as (" +
-            "select Id, 0 from values {{ Id: 1 }} seed union all " +
+            "select Id, 0 from values {( Id: 1 )} seed union all " +
             "select w.Id + 1, w.Depth + 1 from walk w where w.Depth < 3) " +
             "select Id, Depth from walk where Depth > 0 order by Depth desc",
             new CompilationOptions(),
@@ -380,10 +380,10 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "recursive-outer-join",
             Tags("union-all", "outer-join", "values", "state-depth"),
             "with recursive walk (Id) as (" +
-            "select Id from values {{ Id: 1 }} seed union all " +
+            "select Id from values {( Id: 1 )} seed union all " +
             "select w.Id + 1 from walk w where w.Id < 3) " +
             "select w.Id, l.Name from walk w inner join " +
-            "values {{ Id: 1, Name: 'root' }, { Id: 2, Name: 'middle' }, { Id: 3, Name: 'leaf' }} l " +
+            "values {( Id: 1, Name: 'root' ), ( Id: 2, Name: 'middle' ), ( Id: 3, Name: 'leaf' )} l " +
             "on w.Id = l.Id",
             new CompilationOptions(),
             [new("w.Id", typeof(int)), new("l.Name", typeof(string))],
@@ -394,7 +394,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "recursive-outer-aggregate",
             Tags("union-all", "outer-aggregate", "state-depth"),
             "with recursive walk (Id, Depth) as (" +
-            "select Id, 0 from values {{ Id: 1 }} seed union all " +
+            "select Id, 0 from values {( Id: 1 )} seed union all " +
             "select w.Id + 1, w.Depth + 1 from walk w where w.Depth < 3) " +
             "select Count(Id) as NodeCount, Max(Depth) as MaxDepth from walk",
             new CompilationOptions(),
@@ -406,7 +406,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "recursive-outer-window-and-set",
             Tags("union-all", "outer-window", "outer-set-operation", "row-number"),
             "with recursive walk (Id) as (" +
-            "select Id from values {{ Id: 1 }} seed union all " +
+            "select Id from values {( Id: 1 )} seed union all " +
             "select w.Id + 1 from walk w where w.Id < 3) " +
             "select Id, RowNumber() over (order by Id) as Ordinal from walk " +
             "union all select Id, RowNumber() over (order by Id) from walk where Id = 3",
@@ -419,7 +419,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "recursive-nullable-columns",
             Tags("union-keyed", "nullable-value", "case", "state-depth"),
             "with recursive states (Id, ParentId, Depth) as (" +
-            "select Id, ParentId, 0 from values {{ Id: 1, ParentId: null }, { Id: 0, ParentId: 1 }} seed " +
+            "select Id, ParentId, 0 from values {( Id: 1, ParentId: null ), ( Id: 0, ParentId: 1 )} seed " +
             "where Id = 1 union (Id) " +
             "select s.Id + 1, case when s.Id < 0 then null else s.Id end, s.Depth + 1 " +
             "from states s where s.Depth < 2) " +
@@ -433,7 +433,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "recursive-explicit-decimal-cast",
             Tags("union-all", "explicit-cast", "decimal", "anchor-derived-type"),
             "with recursive totals (Total, Depth) as (" +
-            "select 0::Decimal, 0 from values {{ Seed: 1 }} seed union all " +
+            "select 0::Decimal, 0 from values {( Seed: 1 )} seed union all " +
             "select (t.Total + 1)::Decimal, t.Depth + 1 from totals t where t.Depth < 2) " +
             "select Total, Depth from totals order by Depth",
             new CompilationOptions(),
@@ -445,7 +445,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "recursive-case-and-scalar-expressions",
             Tags("union-all", "case", "scalar-expression", "string-state"),
             "with recursive labels (Value, Depth, Label) as (" +
-            "select 1, 0, 'one' from values {{ Seed: 1 }} seed union all " +
+            "select 1, 0, 'one' from values {( Seed: 1 )} seed union all " +
             "select l.Value + 1, l.Depth + 1, " +
             "case when l.Value = 1 then 'even' else 'odd' end " +
             "from labels l where l.Depth < 2) " +
@@ -460,7 +460,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             Tags("union-keyed", "wide-row", "decimal", "string-state", "scalar-expression"),
             "with recursive wide (Id, Depth, A, B, C, D, E, F, Name, Flag, Amount, Code) as (" +
             "select 1, 0, 10, 20, 30, 40, 50, 60, 'row', true, 1::Decimal, 'x' " +
-            "from values {{ Seed: 1 }} seed union (Id) " +
+            "from values {( Seed: 1 )} seed union (Id) " +
             "select w.Id + 1, w.Depth + 1, w.A, w.B, w.C, w.D, w.E, w.F, " +
             "w.Name + 'x', w.Flag, (w.Amount + 1)::Decimal, w.Code " +
             "from wide w where w.Depth < 2) " +
@@ -483,7 +483,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "recursive-default-limit-shape",
             Tags("union-all", "default-limits", "code-shape", "predicate-termination"),
             "with recursive counter (Value) as (" +
-            "select 1 from values {{ Seed: 1 }} seed union all " +
+            "select 1 from values {( Seed: 1 )} seed union all " +
             "select c.Value + 1 from counter c where c.Value < 3) " +
             "select Value from counter order by Value",
             new CompilationOptions(),
@@ -495,7 +495,7 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "recursive-override-limit-shape",
             Tags("union-all", "override-limits", "code-shape", "predicate-termination"),
             "with recursive counter (Value) as (" +
-            "select 1 from values {{ Seed: 1 }} seed union all " +
+            "select 1 from values {( Seed: 1 )} seed union all " +
             "select c.Value + 1 from counter c where c.Value < 3) " +
             "select Value from counter order by Value",
             new CompilationOptions().WithRecursiveCteLimits(new(7, 25)),
@@ -523,10 +523,10 @@ internal static partial class RecursiveCteSupportedCaseCatalog
             "recursive-cte-parallel-siblings",
             Tags("union-keyed", "ordinary-parallel-siblings", "earlier-cte", "sequential-fixed-point"),
             "with recursive seeds (Id) as (" +
-            "select Id from values {{ Id: 1 }} seed), " +
+            "select Id from values {( Id: 1 )} seed), " +
             "edges (SourceId, TargetId) as (" +
             "select SourceId, TargetId from values " +
-            "{{ SourceId: 1, TargetId: 2 }, { SourceId: 2, TargetId: 3 }} edge), " +
+            "{ ( SourceId: 1, TargetId: 2 ), ( SourceId: 2, TargetId: 3 ) } edge), " +
             "reachable (Id, Depth) as (" +
             "select Id, 0 from seeds union (Id) " +
             "select e.TargetId, r.Depth + 1 from reachable r " +

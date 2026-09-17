@@ -12,6 +12,7 @@ internal static class ExecutionIrOptimizationGroup
             new(new SingleUsePipelineFusionPass(), "Fuse single-use producer/consumer pipelines before later rewrites."),
             new(new CteReadOnceFusionPass(), "Fuse read-once CTE materializations into their single consumer."),
             new(new CteSidecarIndexLoweringPass(), "Lower CTE sidecar index lookups before target reuse."),
+            new(new LikeStrategyLoweringPass(), "Lower every LIKE expression to its explicit execution strategy."),
             new(new MethodTargetReusePass(), "Reuse method targets before CSE and capacity rewrites run."),
             new(new LoopInvariantCodeMotionPass(), "Hoist stable loop-invariant scalars before local field and expression CSE."),
             new(new FieldExpressionHoistingPass(), "Hoist repeated field reads into reusable locals."),

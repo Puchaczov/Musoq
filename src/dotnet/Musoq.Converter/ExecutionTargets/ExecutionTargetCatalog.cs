@@ -52,7 +52,8 @@ internal static class ExecutionTargetCatalog
                 request.TargetId,
                 [TargetDiagnostic.Error(
                     TargetDiagnosticCodes.UnsupportedLowering,
-                    $"Execution target '{request.TargetId}' does not support execution IR version {request.ExecutionIrVersion} with host ABI version {request.HostAbiVersion}.")]);
+                    $"Execution target '{request.TargetId}' does not support execution IR version {request.ExecutionIrVersion} with host ABI version {request.HostAbiVersion}; " +
+                    $"expected IR version {TargetContractVersions.ExecutionIr} with host ABI version {TargetContractVersions.HostAbi}.")]);
         }
 
         var descriptor = ResolveDescriptor(request.TargetId, "Execution target");

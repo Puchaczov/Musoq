@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema.Exceptions;
 
@@ -106,6 +107,22 @@ public class QueryExecutionException : InvalidOperationException
     public static QueryExecutionException ForDataSourceFailure(DataSourceLifecycleException innerException)
     {
         ArgumentNullException.ThrowIfNull(innerException);
+
+        // Structural input limits are engine-owned resource diagnostics.  A
+        // source-open boundary still records the source identity, but must not
+        // replace the more specific MQ7013 contract with the generic MQ7010
+        // lifecycle envelope.
+        var limit = FindStructuralLimit(innerException);
+        if (limit != null)
+        {
+            var limitEnvelope = MusoqErrorEnvelope.FromDiagnostic(limit.ToDiagnostic());
+            return new QueryExecutionException(
+                "CompiledQuery",
+                innerException.Operation,
+                limitEnvelope,
+                innerException);
+        }
+
         var envelope = MusoqErrorEnvelope.FromDiagnostic(innerException.ToDiagnostic());
         return new QueryExecutionException(
             "CompiledQuery",
@@ -114,9 +131,21 @@ public class QueryExecutionException : InvalidOperationException
             innerException);
     }
 
+    private static StructuralInputLimitExceededException? FindStructuralLimit(Exception exception)
+    {
+        var visited = new HashSet<Exception>();
+        for (Exception? current = exception; current != null && visited.Add(current); current = current.InnerException)
+            if (current is StructuralInputLimitExceededException limit)
+                return limit;
+
+        return null;
+    }
+
     public string FormatVerboseText()
     {
-        return FormatText() + Environment.NewLine + InnerException;
+        return FormatText() + Environment.NewLine +
+               "Trusted verbose details (may contain sensitive data):" + Environment.NewLine +
+               InnerException;
     }
 
     public static QueryExecutionException ForCancellationFailure(string phase, Exception innerException)

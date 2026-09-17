@@ -14,6 +14,18 @@ public sealed partial class ExecutionCSharpRenderer
 
     private LocalDeclarationStatementSyntax CreateScriptVariableDeclaration(ScriptVariableDefinition definition)
     {
+        if (StructuralCarrierSyntaxFactory.TryCreateVariableStorage(
+                _scriptVariableDefinitions,
+                definition,
+                out var structuralType,
+                out var structuralInitializer))
+        {
+            return CreateLocalDeclaration(
+                structuralType,
+                GetScriptVariableLocalName(definition.Name),
+                structuralInitializer);
+        }
+
         var declaration = CreateLocalDeclaration(
             CreateTypeSyntax(definition.VariableType),
             GetScriptVariableLocalName(definition.Name),
@@ -28,7 +40,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return definition.CanUseConstKeyword
             ? RenderLiteral(definition.Value)
-            : ScriptParameterSyntaxFactory.CreateDefaultArgumentExpression(definition.VariableType, definition.Value);
+            : ScriptParameterSyntaxFactory.CreateDefaultArgumentExpression(definition.VariableType, definition.Value, definition.StructuralType);
     }
 
     private string GetScriptVariableLocalName(string name)

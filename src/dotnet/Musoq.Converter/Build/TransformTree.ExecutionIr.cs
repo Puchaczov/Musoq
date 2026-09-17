@@ -232,8 +232,8 @@ public partial class TransformTree
             var optimizedPlan = ExecutionPhaseBoundaryPlanner.RepositionRootBoundaries(
                 planning.PhysicalPlan,
                 optimizationResult.OptimizedPlan);
+            optimizedPlan = ExecutionPlanRepresentationPlanner.Plan(optimizedPlan);
             context.CancellationToken.ThrowIfCancellationRequested();
-
             var artifacts = new ExecutionBuildArtifacts
             {
                 ExecutionPlanBuildResult = result with { ExecutionPlan = optimizedPlan },

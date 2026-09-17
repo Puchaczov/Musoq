@@ -2,8 +2,8 @@
 /*
 with policy as (
                   from values {
-                      { Name: 'Newtonsoft.Json', Approved: true },
-                      { Name: 'Legacy.Package', Approved: false }
+                      ( Name: 'Newtonsoft.Json', Approved: true ),
+                      ( Name: 'Legacy.Package', Approved: false )
                   } p
                   select p.Name, p.Approved
               )

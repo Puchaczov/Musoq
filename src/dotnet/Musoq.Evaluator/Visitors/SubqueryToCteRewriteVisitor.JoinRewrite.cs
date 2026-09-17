@@ -57,8 +57,9 @@ public partial class SubqueryToCteRewriteVisitor
 
         cteInnerExpressions.Add(new CteInnerExpressionNode(rewrite.CteBody, cteName));
 
-        var cteColumnRef = new AccessColumnNode(rewrite.CteColumnName, cteName, default);
-        Node joinExpression = new EqualityNode(rewrite.LeftSide, cteColumnRef);
+        var diagnosticSpan = rewrite.DiagnosticNode.SpanOrEmpty();
+        var cteColumnRef = new AccessColumnNode(rewrite.CteColumnName, cteName, diagnosticSpan);
+        Node joinExpression = new EqualityNode(rewrite.LeftSide, cteColumnRef).WithSpan(diagnosticSpan);
         if (rewrite.CorrelationJoinExpression != null)
         {
             if (subqueryInfo.RequiresLeftJoin &&
@@ -133,7 +134,12 @@ public partial class SubqueryToCteRewriteVisitor
             cteBody = subqueryBody;
         }
 
-        return new SubqueryJoinRewrite(cteBody, leftSide, cteColumnName, correlationJoinExpression);
+        return new SubqueryJoinRewrite(
+            cteBody,
+            leftSide,
+            cteColumnName,
+            correlationJoinExpression,
+            leafQuery.Select.Fields[0].Expression);
     }
 
     private SubqueryJoinRewrite PrepareExistsSubquery(
@@ -167,14 +173,20 @@ public partial class SubqueryToCteRewriteVisitor
             cteBody = ProjectExistsKey(subqueryBody, cteColumnName, cteInnerExpressions);
         }
 
-        return new SubqueryJoinRewrite(cteBody, leftSide, cteColumnName, correlationJoinExpression);
+        return new SubqueryJoinRewrite(
+            cteBody,
+            leftSide,
+            cteColumnName,
+            correlationJoinExpression,
+            subqueryInfo.PredicateNode);
     }
 
     private sealed record SubqueryJoinRewrite(
         Node CteBody,
         Node LeftSide,
         string CteColumnName,
-        Node? CorrelationJoinExpression);
+        Node? CorrelationJoinExpression,
+        Node DiagnosticNode);
 
     private sealed record PredicateSubqueryJoin(
         InMemoryTableFromNode CteRef,

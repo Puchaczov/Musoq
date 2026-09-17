@@ -3,7 +3,6 @@ using System.Linq;
 using Musoq.Evaluator.IR.Execution.Facts;
 
 namespace Musoq.Evaluator.IR.Execution;
-
 internal static partial class ExecutionIrAnalysis
 {
     internal static IEnumerable<ExecutionExpression> GetContextLayoutExpressions(ExecutionContextLayout? contextLayout) =>
@@ -63,6 +62,10 @@ internal static partial class ExecutionIrAnalysis
     {
         return expression switch
         {
+            ExecutionStructuralRecord structuralRecord => structuralRecord.Fields.Select(static field => field.Value),
+            ExecutionStructuralArray structuralArray => structuralArray.Elements,
+            ExecutionStructuralConversion conversion => [conversion.Input],
+            ExecutionCteCollectionInput cteCollection => [cteCollection.Rows],
             ExecutionBinary binary => [binary.Left, binary.Right],
             ExecutionMemberRead memberRead => [memberRead.Receiver],
             ExecutionUnary unary => [unary.Operand],
@@ -79,7 +82,8 @@ internal static partial class ExecutionIrAnalysis
             ExecutionRowPresence rowPresence => [rowPresence.PresenceSource],
             ExecutionInCheck inCheck => [inCheck.Expression, .. inCheck.Values],
             ExecutionCollectionInCheck collectionInCheck => [collectionInCheck.Expression, collectionInCheck.Collection],
-            ExecutionPatternMatch patternMatch => [patternMatch.Expression, patternMatch.Pattern],
+            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or
+                ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.GetChildren(expression),
             ExecutionBetween between => [between.Expression, between.Low, between.High],
             ExecutionCaseWhen caseWhen => caseWhen.ElseExpression == null
                 ? caseWhen.Branches.SelectMany(static branch => new[] { branch.Condition, branch.Result })

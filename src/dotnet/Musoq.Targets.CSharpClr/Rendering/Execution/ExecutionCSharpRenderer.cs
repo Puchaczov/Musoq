@@ -15,6 +15,8 @@ public sealed partial class ExecutionCSharpRenderer
     private int _dynamicResolverValueSequence;
     private IReadOnlyList<ScriptParameterDefinition> _scriptParameterDefinitions => _renderOptions.ScriptParameterDefinitions;
     private IReadOnlyList<ScriptVariableDefinition> _scriptVariableDefinitions => _renderOptions.ScriptVariableDefinitions;
+    internal IReadOnlyList<ScriptVariableDefinition> StructuralScriptVariableDefinitions => _scriptVariableDefinitions;
+    internal IReadOnlyList<ScriptParameterDefinition> StructuralScriptParameterDefinitions => _scriptParameterDefinitions;
     private IReadOnlyDictionary<string, string> _scriptParameterLocalNames => _renderOptions.ScriptParameterLocalNames;
     private IReadOnlyDictionary<string, string> _scriptVariableLocalNames => _renderOptions.ScriptVariableLocalNames;
     private QueryInstrumentationMode _instrumentationMode => _renderOptions.InstrumentationMode;

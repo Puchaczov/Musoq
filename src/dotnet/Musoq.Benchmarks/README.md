@@ -1,5 +1,16 @@
 # Musoq Benchmarks
 
+## Structured input preparation qualification
+
+`StructuredInputPreparationBenchmark` measures typed and structural record,
+array, nested, nullable, empty, retained-`let`, host-parameter, CTE, source
+invocation, and post-preparation enumeration paths at sizes 1, 3, 32, and
+1,024.  The benchmark uses `MemoryDiagnoser`; generated-code and decoded-IL
+hard gates live in `Musoq.Benchmarks.Tests` and never assert machine-dependent
+timings.  See `Baselines/StructuredInputPreparationQualification.md` for the
+commands and acceptance rules.
+
+
 ## Recursive CTE performance gate
 
 `RecursiveCteBenchmark` compares generated recursive execution with an equivalent typed handwritten semi-naive loop across chain, tree, diamond, cycle, duplicate-heavy keyed, wide-row, invariant-snapshot, indexed-edge, correlated-apply, and empty-anchor cases. Every scenario runs with both `ParallelizationMode.None` and `ParallelizationMode.Full`; the recursive fixed-point loop remains sequential in both modes. Schema metadata is reused by both operations, while source enumeration and recursive snapshots occur for each operation.
@@ -188,3 +199,38 @@ Local ShortRun result from 2026-07-05 on .NET 10.0.9, comparing original `HEAD`
 The serial allocation drop comes mostly from avoiding boxed `Temperature::Single` casts. The
 parallel speedup comes from consuming source chunks directly with thread-local aggregate groups
 instead of first bridging chunked input into a retained row list.
+
+## RLIKE qualification
+
+`RLikeConstantBenchmark`, `RLikeExecutionBenchmark`,
+`RLikeInputLengthBenchmark`, `RLikeApplyBenchmark`, and
+`RLikeCompilationBenchmark` measure compiled SQL across constant, dynamic,
+Unicode, complex-regex, input-length, and correlated-APPLY workloads. Run the
+complete directional cohort with:
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj `
+  -c Release --no-build -- `
+  --filter "*RLike*" --job short --memory --exporters json `
+  --artifacts "BenchmarkDotNet.Artifacts/qms-rlike-current"
+```
+
+Compare one complete baseline/current report per benchmark class with
+`gate-rlike`. The gate requires all 39 methods and keeps the fixed `1.03x` time
+and allocation ceilings:
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj `
+  -c Release --no-build -- gate-rlike `
+  --legacy-baseline <baseline-regex.json> --legacy-current <current-regex.json> `
+  --apply-baseline <baseline-apply.json> --apply-current <current-apply.json> `
+  --compilation-baseline <baseline-compilation.json> --compilation-current <current-compilation.json> `
+  --constant-baseline <baseline-constant.json> --constant-current <current-constant.json> `
+  --dynamic-baseline <baseline-dynamic.json> --dynamic-current <current-dynamic.json> `
+  --length-baseline <baseline-length.json> --length-current <current-length.json>
+```
+
+Ratios below `0.97x` are labeled improved, ratios through `1.03x` are labeled
+noise, and exceeded ratios are labeled failed. A documented author decision may
+accept a directional campaign despite a failed performance comparison, but the
+tool does not change the threshold or relabel the measurement.

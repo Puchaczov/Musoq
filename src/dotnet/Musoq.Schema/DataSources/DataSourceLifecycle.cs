@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -92,6 +92,63 @@ public static class DataSourceLifecycle
         }
     }
 
+    public static RowSource<TRow> OpenTypedRowSource<TSource, TRow>(
+        ISchema schema,
+        string sourceName,
+        TSource source,
+        SourceExecutionContext executionContext,
+        string schemaName,
+        string alias,
+        string sourceContextId)
+        where TSource : RowSource<TRow>
+    {
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(executionContext);
+
+        try
+        {
+            if (schema is ITypedSourceSchema typedSchema &&
+                typedSchema.TryGetTypedSourceRegistration(sourceName, out var registration) &&
+                registration.RowType != typeof(TRow))
+            {
+                throw new InvalidOperationException(
+                    $"Schema source '{sourceName}' produces row type '{registration.RowType.FullName}', " +
+                    $"but source was requested as '{typeof(TRow).FullName}'.");
+            }
+
+            var identity = executionContext.Plan.Identity;
+            var effectiveSchemaName = string.IsNullOrEmpty(identity.SchemaName) ? schemaName : identity.SchemaName;
+            var effectiveSourceName = string.IsNullOrEmpty(identity.MethodName) ? sourceName : identity.MethodName;
+            var effectiveAlias = string.IsNullOrEmpty(identity.Alias) ? alias : identity.Alias;
+            var effectiveContextId = string.IsNullOrEmpty(identity.SourceContextId)
+                ? sourceContextId
+                : identity.SourceContextId;
+            return new LifecycleRowSource<TRow>(
+                source,
+                effectiveSchemaName,
+                effectiveSourceName,
+                effectiveAlias,
+                effectiveContextId);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (DataSourceLifecycleException)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            throw DataSourceLifecycleException.ForOpen(
+                schemaName,
+                sourceName,
+                alias,
+                sourceContextId,
+                exception);
+        }
+    }
     public static RowSource<TRow> OpenQueryScopedRowSource<TRow, TMaterializer>(
         IQueryScopedRowSourceSchema schema,
         string sourceName,
@@ -187,6 +244,7 @@ public static class DataSourceLifecycle
     {
         IEnumerator<IReadOnlyList<T>>? enumerator = null;
         Exception? primaryFailure = null;
+        DataSourceLifecycleException? primaryLifecycleFailure = null;
         try
         {
             try
@@ -200,12 +258,13 @@ public static class DataSourceLifecycle
             catch (Exception exception)
             {
                 primaryFailure = exception;
-                throw DataSourceLifecycleException.ForRead(
+                primaryLifecycleFailure = DataSourceLifecycleException.ForRead(
                     schemaName,
                     sourceName,
                     alias,
                     sourceContextId,
                     exception);
+                throw primaryLifecycleFailure;
             }
 
             while (true)
@@ -223,12 +282,13 @@ public static class DataSourceLifecycle
                 catch (Exception exception)
                 {
                     primaryFailure = exception;
-                    throw DataSourceLifecycleException.ForRead(
+                    primaryLifecycleFailure = DataSourceLifecycleException.ForRead(
                         schemaName,
                         sourceName,
                         alias,
                         sourceContextId,
                         exception);
+                    throw primaryLifecycleFailure;
                 }
 
                 if (!hasNext)
@@ -247,12 +307,13 @@ public static class DataSourceLifecycle
                 catch (Exception exception)
                 {
                     primaryFailure = exception;
-                    throw DataSourceLifecycleException.ForRead(
+                    primaryLifecycleFailure = DataSourceLifecycleException.ForRead(
                         schemaName,
                         sourceName,
                         alias,
                         sourceContextId,
                         exception);
+                    throw primaryLifecycleFailure;
                 }
 
                 yield return current;
@@ -266,10 +327,13 @@ public static class DataSourceLifecycle
                 {
                     enumerator.Dispose();
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException exception)
                 {
                     if (primaryFailure == null)
                         throw;
+
+                    if (primaryLifecycleFailure != null)
+                        primaryLifecycleFailure.AttachRelatedFailure(exception);
                 }
                 catch (Exception exception)
                 {
@@ -282,6 +346,8 @@ public static class DataSourceLifecycle
                             sourceContextId,
                             exception);
                     }
+
+                    primaryLifecycleFailure?.AttachRelatedFailure(exception);
                 }
             }
         }
@@ -295,10 +361,31 @@ public static class DataSourceLifecycle
         string sourceContextId,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var enumerator = chunks.GetAsyncEnumerator(cancellationToken);
+        IAsyncEnumerator<IReadOnlyList<T>>? enumerator = null;
         Exception? primaryFailure = null;
+        DataSourceLifecycleException? primaryLifecycleFailure = null;
         try
         {
+            try
+            {
+                enumerator = chunks.GetAsyncEnumerator(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                primaryFailure = exception;
+                primaryLifecycleFailure = DataSourceLifecycleException.ForRead(
+                    schemaName,
+                    sourceName,
+                    alias,
+                    sourceContextId,
+                    exception);
+                throw primaryLifecycleFailure;
+            }
+
             while (true)
             {
                 bool hasNext;
@@ -314,12 +401,13 @@ public static class DataSourceLifecycle
                 catch (Exception exception)
                 {
                     primaryFailure = exception;
-                    throw DataSourceLifecycleException.ForRead(
+                    primaryLifecycleFailure = DataSourceLifecycleException.ForRead(
                         schemaName,
                         sourceName,
                         alias,
                         sourceContextId,
                         exception);
+                    throw primaryLifecycleFailure;
                 }
 
                 if (!hasNext)
@@ -338,12 +426,13 @@ public static class DataSourceLifecycle
                 catch (Exception exception)
                 {
                     primaryFailure = exception;
-                    throw DataSourceLifecycleException.ForRead(
+                    primaryLifecycleFailure = DataSourceLifecycleException.ForRead(
                         schemaName,
                         sourceName,
                         alias,
                         sourceContextId,
                         exception);
+                    throw primaryLifecycleFailure;
                 }
 
                 yield return current;
@@ -351,25 +440,35 @@ public static class DataSourceLifecycle
         }
         finally
         {
-            try
+            if (enumerator != null)
             {
-                await enumerator.DisposeAsync().ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                if (primaryFailure == null)
-                    throw;
-            }
-            catch (Exception exception)
-            {
-                if (primaryFailure == null)
+                try
                 {
-                    throw DataSourceLifecycleException.ForCleanup(
-                        schemaName,
-                        sourceName,
-                        alias,
-                        sourceContextId,
-                        exception);
+                    await enumerator.DisposeAsync().ConfigureAwait(false);
+                }
+                catch (OperationCanceledException exception)
+                {
+                    if (primaryFailure == null)
+                        throw;
+
+                    primaryLifecycleFailure?.AttachRelatedFailure(exception);
+                }
+                catch (Exception exception)
+                {
+                    if (primaryFailure == null)
+                    {
+                        if (cancellationToken.IsCancellationRequested)
+                            throw new OperationCanceledException(cancellationToken);
+
+                        throw DataSourceLifecycleException.ForCleanup(
+                            schemaName,
+                            sourceName,
+                            alias,
+                            sourceContextId,
+                            exception);
+                    }
+
+                    primaryLifecycleFailure?.AttachRelatedFailure(exception);
                 }
             }
         }
@@ -379,7 +478,7 @@ public static class DataSourceLifecycle
         ISchema inner,
         string schemaName,
         string alias,
-        string sourceContextId) : ISchema, IQueryScopedRowSourceSchema
+        string sourceContextId) : ISchema, IQueryScopedRowSourceSchema, ITypedSourceSchema
     {
         public string Name => inner.Name;
 
@@ -461,6 +560,13 @@ public static class DataSourceLifecycle
                 effectiveContextId);
         }
 
+        public bool TryGetTypedSourceRegistration(string name, out TypedSourceRegistration registration)
+        {
+            if (inner is ITypedSourceSchema typed && typed.TryGetTypedSourceRegistration(name, out registration!))
+                return true;
+            registration = null!;
+            return false;
+        }
         public SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext) =>
             inner.GetRawConstructors(metadataContext);
 

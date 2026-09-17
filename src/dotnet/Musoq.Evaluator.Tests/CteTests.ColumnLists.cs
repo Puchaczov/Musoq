@@ -113,7 +113,7 @@ public partial class CteTests
     {
         const string query =
             "with recursive counter (Id, id) as (" +
-            "select A, B from values {{ A: 1, B: 10 }} seed union all " +
+            "select A, B from values {( A: 1, B: 10 )} seed union all " +
             "select c.Id + 1, c.id + 10 from counter c where c.Id < 2) " +
             "select Id, id from counter";
 

@@ -8,35 +8,35 @@ public partial class CloneQueryVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var dataSource = Nodes.Pop();
-        Nodes.Push(new InterpretCallNode(dataSource, node.SchemaName, node.ReturnType));
+        Nodes.Push(new InterpretCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
 
     public override void Visit(ParseCallNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var dataSource = Nodes.Pop();
-        Nodes.Push(new ParseCallNode(dataSource, node.SchemaName, node.ReturnType));
+        Nodes.Push(new ParseCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
 
     public override void Visit(TryInterpretCallNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var dataSource = Nodes.Pop();
-        Nodes.Push(new TryInterpretCallNode(dataSource, node.SchemaName, node.ReturnType));
+        Nodes.Push(new TryInterpretCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
 
     public override void Visit(TryParseCallNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var dataSource = Nodes.Pop();
-        Nodes.Push(new TryParseCallNode(dataSource, node.SchemaName, node.ReturnType));
+        Nodes.Push(new TryParseCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
 
     public override void Visit(PartialInterpretCallNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var dataSource = Nodes.Pop();
-        Nodes.Push(new PartialInterpretCallNode(dataSource, node.SchemaName, node.ReturnType));
+        Nodes.Push(new PartialInterpretCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
 
     public override void Visit(InterpretAtCallNode node)
@@ -44,7 +44,7 @@ public partial class CloneQueryVisitor
         ArgumentNullException.ThrowIfNull(node);
         var offset = Nodes.Pop();
         var dataSource = Nodes.Pop();
-        Nodes.Push(new InterpretAtCallNode(dataSource, offset, node.SchemaName, node.ReturnType));
+        Nodes.Push(new InterpretAtCallNode(dataSource, offset, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
 
     private void CloneBinaryNodeWithSpan<T>(T node, string operationName, Func<Node, Node, Node> factory)

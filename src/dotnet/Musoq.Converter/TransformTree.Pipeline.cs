@@ -53,6 +53,14 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
         {
             context.CancellationToken.ThrowIfCancellationRequested();
             DiagnosticReplay.AddMissing(context.DiagnosticContext, cachedArtifacts.Phase.Diagnostics);
+            if (context.SourceText is { } sourceText)
+            {
+                RegexPatternAdvisoryAnalyzer.SuppressLexicalDiagnostics(
+                    cachedArtifacts.Phase.ParsedQuery,
+                    sourceText,
+                    context.DiagnosticContext);
+            }
+
             semanticArtifacts = cachedArtifacts with
             {
                 CteExecutionPlan = context.CompilationOptions.UseCteParallelization

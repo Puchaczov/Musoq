@@ -21,6 +21,9 @@ internal static partial class ExecutionNodeFacts
 
         switch (node)
         {
+            case ExecutionPrepareStructuralInput structuralInput:
+                yield return structuralInput.Target;
+                break;
             case ExecutionSourceScan sourceScan:
                 yield return sourceScan.Rows;
                 break;

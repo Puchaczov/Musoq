@@ -10,8 +10,9 @@ public sealed record ExecutionPlanBuildResult(
     {
         ArgumentNullException.ThrowIfNull(executionPlan);
         var prunedPlan = GeneratedRowContextPruner.Prune(executionPlan);
-        ExecutionBindingInvariantValidator.Validate(prunedPlan);
-        return new ExecutionPlanBuildResult(true, prunedPlan, null);
+        var planned = ExecutionPlanRepresentationPlanner.Plan(prunedPlan);
+        ExecutionBindingInvariantValidator.Validate(planned);
+        return new ExecutionPlanBuildResult(true, planned, null);
     }
 
     public static ExecutionPlanBuildResult CreateUnsupported(string reason)

@@ -7,11 +7,14 @@ namespace Musoq.Evaluator.Tests.Schema.SourcePlanning;
 public sealed class SourcePlanningRecorder
 {
     private readonly ConcurrentBag<SourcePlanRequest> _requests = [];
+    private readonly ConcurrentBag<SourcePlanResult> _planResults = [];
     private readonly ConcurrentBag<SourceExecutionPlan> _executionPlans = [];
     private int _expensivePayloadComputations;
     private int _sourceRowsProduced;
 
     public IReadOnlyCollection<SourcePlanRequest> Requests => _requests.ToArray();
+
+    public IReadOnlyCollection<SourcePlanResult> PlanResults => _planResults.ToArray();
 
     public IReadOnlyCollection<SourceExecutionPlan> ExecutionPlans => _executionPlans.ToArray();
 
@@ -29,6 +32,11 @@ public sealed class SourcePlanningRecorder
     public void RecordRequest(SourcePlanRequest request)
     {
         _requests.Add(request);
+    }
+
+    public void RecordPlanResult(SourcePlanResult result)
+    {
+        _planResults.Add(result);
     }
 
     public void RecordExecutionPlan(SourceExecutionPlan plan)

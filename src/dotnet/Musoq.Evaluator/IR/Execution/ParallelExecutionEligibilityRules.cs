@@ -46,6 +46,25 @@ internal static class ParallelExecutionEligibilityRules
             ExecutionPatternMatch patternMatch => Combine(
                 CanUseExpression(patternMatch.Expression, fieldReadEligibility),
                 CanUseExpression(patternMatch.Pattern, fieldReadEligibility)),
+            ExecutionStringMatch stringMatch => CanUseExpression(stringMatch.Input, fieldReadEligibility),
+            ExecutionPrepareLikeMatcher prepareLike => CanUseExpression(prepareLike.Pattern, fieldReadEligibility),
+            ExecutionPreparedLikeMatch preparedLike => Combine(
+                CanUseExpression(preparedLike.Input, fieldReadEligibility),
+                CanUseExpression(preparedLike.Matcher, fieldReadEligibility)),
+            ExecutionDynamicLikeMatch dynamicLike => Combine(
+                CanUseExpression(dynamicLike.Input, fieldReadEligibility),
+                CanUseExpression(dynamicLike.Pattern, fieldReadEligibility),
+                CanUseExpression(dynamicLike.CacheSlot, fieldReadEligibility)),
+            ExecutionLikeMatcherCacheSlot => ParallelExecutionEligibilityCheck.Enabled,
+            ExecutionPrepareRLikeMatcher prepareRLike => CanUseExpression(prepareRLike.Pattern, fieldReadEligibility),
+            ExecutionPreparedRLikeMatch preparedRLike => Combine(
+                CanUseExpression(preparedRLike.Input, fieldReadEligibility),
+                CanUseExpression(preparedRLike.Matcher, fieldReadEligibility)),
+            ExecutionDynamicRLikeMatch dynamicRLike => Combine(
+                CanUseExpression(dynamicRLike.Input, fieldReadEligibility),
+                CanUseExpression(dynamicRLike.Pattern, fieldReadEligibility),
+                CanUseExpression(dynamicRLike.CacheSlot, fieldReadEligibility)),
+            ExecutionRLikeMatcherCacheSlot => ParallelExecutionEligibilityCheck.Enabled,
             ExecutionBetween between => Combine(
                 CanUseExpression(between.Expression, fieldReadEligibility),
                 CanUseExpression(between.Low, fieldReadEligibility),
@@ -105,6 +124,19 @@ internal static class ParallelExecutionEligibilityRules
                                         inCheck.Values.Any(ContainsMethodCall),
             ExecutionPatternMatch patternMatch => ContainsMethodCall(patternMatch.Expression) ||
                                                   ContainsMethodCall(patternMatch.Pattern),
+            ExecutionStringMatch stringMatch => ContainsMethodCall(stringMatch.Input),
+            ExecutionPrepareLikeMatcher prepareLike => ContainsMethodCall(prepareLike.Pattern),
+            ExecutionPreparedLikeMatch preparedLike => ContainsMethodCall(preparedLike.Input) ||
+                                                        ContainsMethodCall(preparedLike.Matcher),
+            ExecutionDynamicLikeMatch dynamicLike => ContainsMethodCall(dynamicLike.Input) ||
+                                                      ContainsMethodCall(dynamicLike.Pattern) ||
+                                                      ContainsMethodCall(dynamicLike.CacheSlot),
+            ExecutionPrepareRLikeMatcher prepareRLike => ContainsMethodCall(prepareRLike.Pattern),
+            ExecutionPreparedRLikeMatch preparedRLike => ContainsMethodCall(preparedRLike.Input) ||
+                                                          ContainsMethodCall(preparedRLike.Matcher),
+            ExecutionDynamicRLikeMatch dynamicRLike => ContainsMethodCall(dynamicRLike.Input) ||
+                                                        ContainsMethodCall(dynamicRLike.Pattern) ||
+                                                        ContainsMethodCall(dynamicRLike.CacheSlot),
             ExecutionBetween between => ContainsMethodCall(between.Expression) ||
                                         ContainsMethodCall(between.Low) ||
                                         ContainsMethodCall(between.High),

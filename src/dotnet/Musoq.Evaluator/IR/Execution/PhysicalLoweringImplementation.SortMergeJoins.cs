@@ -38,7 +38,7 @@ internal sealed partial class PhysicalLoweringImplementation
             return TableBuildResult.Unsupported(sources.UnsupportedReason);
 
         var joinSources = sources.Source;
-        if (!CanUseAsOfProbeSource(joinSources.Right.Shape, joinSources.Right.Variable.Type.ResolveClrType()))
+        if (!CanUseAsOfProbeSource(joinSources.Right.Shape, joinSources.Right.Variable))
         {
             return TableBuildResult.Unsupported(
                 "Execution IR sort-merge join lowering received a right input that cannot be range-probed. Physical planning must select nested-loop before Execution IR lowering.");

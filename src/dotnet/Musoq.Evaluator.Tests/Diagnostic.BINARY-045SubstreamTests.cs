@@ -106,7 +106,7 @@ public sealed class DiagnosticBinary045SubstreamTests : BinaryInterpretationTest
 
         Assert.AreEqual(ParseErrorCode.InsufficientData, exception.ErrorCode);
         Assert.AreEqual("Body", exception.SchemaName);
-        Assert.AreEqual(1, exception.Position);
+        Assert.AreEqual(2, exception.Position);
     }
 
     [TestMethod]

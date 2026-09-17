@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Musoq.Schema.Optimization;
 
 namespace Musoq.Tests.Common.SourcePlanning;
@@ -27,8 +29,13 @@ public static class SourcePlanningRowExecution
         ArgumentNullException.ThrowIfNull(sourceRows);
         ArgumentNullException.ThrowIfNull(executionPlan);
         ArgumentNullException.ThrowIfNull(options);
+        var candidates = ApplyPredicateApplications(
+            sourceRows,
+            executionPlan.PredicateApplications,
+            SourcePredicateEvaluationPhase.CandidateMetadata,
+            options.CreateKeySelector);
         var query = ApplyPredicate(
-            options.ApplyProjectionWork(sourceRows, executionPlan),
+            options.ApplyProjectionWork(candidates, executionPlan),
             executionPlan.AcceptedPredicate,
             options.CreateKeySelector);
 
@@ -41,6 +48,28 @@ public static class SourcePlanningRowExecution
             query = query.Take((int)executionPlan.AcceptedTake.Value);
 
         return query;
+    }
+
+    public static IEnumerable<T> ApplyPredicateApplications<T>(
+        IEnumerable<T> sourceRows,
+        IReadOnlyList<SourcePredicateApplication> applications,
+        SourcePredicateEvaluationPhase phase,
+        Func<string, Func<T, object?>> createKeySelector)
+    {
+        ArgumentNullException.ThrowIfNull(sourceRows);
+        ArgumentNullException.ThrowIfNull(applications);
+        ArgumentNullException.ThrowIfNull(createKeySelector);
+
+        var phaseApplications = applications
+            .Where(application => application.Phase == phase)
+            .Select(application => new PreparedStringMatch<T>(
+                application.Predicate,
+                createKeySelector(application.Predicate.Column.Name)))
+            .ToArray();
+
+        return phaseApplications.Length == 0
+            ? sourceRows
+            : sourceRows.Where(row => EvaluateStringMatches(phaseApplications, row));
     }
 
     public static IEnumerable<T> ApplyAcceptedColumnWork<T>(
@@ -92,6 +121,7 @@ public static class SourcePlanningRowExecution
                 EvaluatePredicate(logical.Left, row, createKeySelector) ||
                 EvaluatePredicate(logical.Right, row, createKeySelector),
             SourcePredicateIn inPredicate => EvaluateIn(inPredicate, row, createKeySelector),
+            SourcePredicateStringMatch stringMatch => EvaluateStringMatch(stringMatch, row, createKeySelector),
             SourcePredicateNullCheck nullCheck =>
                 (EvaluateValue(nullCheck.Expression, row, createKeySelector) == null) ^ nullCheck.IsNegated,
             _ => throw new InvalidOperationException($"Unsupported source-planning predicate '{predicate.GetType().Name}'.")
@@ -127,6 +157,99 @@ public static class SourcePlanningRowExecution
         var value = EvaluateValue(inPredicate.Expression, row, createKeySelector);
         var contains = inPredicate.Values.Any(item => Equals(EvaluateValue(item, row, createKeySelector), value));
         return inPredicate.IsNegated ? !contains : contains;
+    }
+
+    private static bool EvaluateStringMatch<T>(
+        SourcePredicateStringMatch stringMatch,
+        T row,
+        Func<string, Func<T, object?>> createKeySelector)
+    {
+        var value = createKeySelector(stringMatch.Column.Name)(row) as string;
+        return EvaluateStringMatch(stringMatch, value);
+    }
+    private static bool EvaluateStringMatches<T>(
+        IReadOnlyList<PreparedStringMatch<T>> matches,
+        T row)
+    {
+        foreach (var match in matches)
+        {
+            if (!EvaluateStringMatch(match.Predicate, match.Selector(row) as string))
+                return false;
+        }
+
+        return true;
+    }
+
+    private static bool EvaluateStringMatch(
+        SourcePredicateStringMatch stringMatch,
+        string? value)
+    {
+        if (stringMatch.Comparison != SourceStringComparison.LikeIgnoreCase)
+            throw new InvalidOperationException($"Unsupported source string comparison '{stringMatch.Comparison}'.");
+
+        var matches = value != null && MatchesLike(value, stringMatch);
+
+        return stringMatch.IsNegated ? !matches : matches;
+    }
+
+    private static bool MatchesLike(string value, SourcePredicateStringMatch stringMatch)
+    {
+        var needle = stringMatch.Needle;
+        var ordinalCompatible = IsOrdinalIgnoreCaseLikeCompatible(needle);
+
+        return stringMatch.Kind switch
+        {
+            SourceStringMatchKind.Exact =>
+                value.Length == needle.Length &&
+                (ordinalCompatible && string.Equals(value, needle, StringComparison.OrdinalIgnoreCase) ||
+                 (!ordinalCompatible || !IsAscii(value.AsSpan())) && MatchesLikeLegacy(value, stringMatch.OriginalPattern)),
+            SourceStringMatchKind.Prefix =>
+                value.Length >= needle.Length &&
+                (ordinalCompatible && value.StartsWith(needle, StringComparison.OrdinalIgnoreCase) ||
+                 (!ordinalCompatible || !IsAscii(value.AsSpan(0, needle.Length))) && MatchesLikeLegacy(value, stringMatch.OriginalPattern)),
+            SourceStringMatchKind.Suffix =>
+                value.Length >= needle.Length &&
+                (ordinalCompatible && value.EndsWith(needle, StringComparison.OrdinalIgnoreCase) ||
+                 (!ordinalCompatible || !IsAscii(value.AsSpan(value.Length - needle.Length, needle.Length))) &&
+                 MatchesLikeLegacy(value, stringMatch.OriginalPattern)),
+            SourceStringMatchKind.Contains =>
+                value.Length >= needle.Length &&
+                (needle.Length == 0 ||
+                 ordinalCompatible && value.Contains(needle, StringComparison.OrdinalIgnoreCase) ||
+                 (!ordinalCompatible || !IsAscii(value.AsSpan())) && MatchesLikeLegacy(value, stringMatch.OriginalPattern)),
+            _ => throw new InvalidOperationException($"Unsupported source string-match kind '{stringMatch.Kind}'.")
+        };
+    }
+
+    private static bool IsAscii(ReadOnlySpan<char> value)
+    {
+        foreach (var character in value)
+        {
+            if (character > 0x7f)
+                return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsOrdinalIgnoreCaseLikeCompatible(string literal)
+    {
+        if (literal.AsSpan().IndexOfAny('I', 'i') < 0)
+            return true;
+
+        var textInfo = CultureInfo.CurrentCulture.TextInfo;
+        return textInfo.ToLower('I') == 'i' && textInfo.ToUpper('i') == 'I';
+    }
+
+    private static bool MatchesLikeLegacy(string value, string pattern)
+    {
+        var escaped = Regex.Replace(pattern, @"\.|\$|\^|\{|\[|\(|\||\)|\*|\+|\?|\\", static match => @"\" + match.Value);
+        var sqlPattern = escaped.Replace("_", ".", StringComparison.Ordinal).Replace("%", ".*", StringComparison.Ordinal);
+        return Regex.IsMatch(
+            value,
+            string.Concat(@"\A", sqlPattern, @"\z"),
+            RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.NonBacktracking,
+            TimeSpan.FromSeconds(2));
     }
 
     private static object? EvaluateValue<T>(
@@ -274,4 +397,8 @@ public static class SourcePlanningRowExecution
             return -innerComparer.Compare(x, y);
         }
     }
+
+    private readonly record struct PreparedStringMatch<T>(
+        SourcePredicateStringMatch Predicate,
+        Func<T, object?> Selector);
 }

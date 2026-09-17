@@ -6,6 +6,14 @@ namespace Musoq.Parser.Diagnostics;
 
 internal static partial class SyntaxDiagnosticEnhancer
 {
+    private static readonly DialectKeywordHelp AsOfRightJoinHelp = new(
+        "Musoq supports ASOF JOIN and ASOF LEFT JOIN, but not ASOF RIGHT JOIN.",
+        [
+            "Use ASOF LEFT JOIN when left-preserving semantics match the intended query.",
+            "Otherwise reverse the sources and inequality explicitly, then verify the result."
+        ],
+        "Core Spec - ASOF JOIN");
+
     private static readonly FrozenDictionary<string, DialectKeywordHelp> DialectKeywordHelpMap =
         new Dictionary<string, DialectKeywordHelp>(StringComparer.OrdinalIgnoreCase)
         {

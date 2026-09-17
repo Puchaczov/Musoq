@@ -1,14 +1,17 @@
+using System.Linq;
 namespace Musoq.Evaluator.IR.Execution;
-
 internal abstract partial class ExecutionIrRewriter
 {
     public virtual ExecutionExpression RewriteExpression(ExecutionExpression expression)
     {
         ArgumentNullException.ThrowIfNull(expression);
-
         return expression switch
         {
             ExecutionFieldRead fieldRead => RewriteFieldRead(fieldRead),
+            ExecutionStructuralRecord structuralRecord => RewriteStructuralRecord(structuralRecord),
+            ExecutionStructuralArray structuralArray => RewriteStructuralArray(structuralArray),
+            ExecutionStructuralConversion conversion => RewriteStructuralConversion(conversion),
+            ExecutionCteCollectionInput cteCollection => RewriteCteCollectionInput(cteCollection),
             ExecutionMemberRead memberRead => RewriteMemberRead(memberRead),
             ExecutionScriptParameterRead parameterRead => RewriteScriptParameterRead(parameterRead),
             ExecutionScriptVariableRead variableRead => RewriteScriptVariableRead(variableRead),
@@ -27,6 +30,10 @@ internal abstract partial class ExecutionIrRewriter
             ExecutionInCheck inCheck => RewriteInCheck(inCheck),
             ExecutionCollectionInCheck collectionInCheck => RewriteCollectionInCheck(collectionInCheck),
             ExecutionPatternMatch patternMatch => RewritePatternMatch(patternMatch),
+            ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or
+                ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or
+                ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot =>
+                PatternExpressionFacts.RewriteChildren(expression, RewriteExpression),
             ExecutionBetween between => RewriteBetween(between),
             ExecutionCaseWhen caseWhen => RewriteCaseWhen(caseWhen),
             ExecutionCoalesce coalesce => RewriteCoalesce(coalesce),
@@ -50,8 +57,32 @@ internal abstract partial class ExecutionIrRewriter
         };
     }
 
-    protected virtual ExecutionExpression RewriteFieldRead(ExecutionFieldRead expression) => expression;
+    protected virtual ExecutionExpression RewriteStructuralRecord(ExecutionStructuralRecord expression)
+    {
+        var fields = expression.Fields.Select(field =>
+            new ExecutionStructuralField(field.Name, RewriteExpression(field.Value), field.IsPresent)).ToArray();
+        return fields.SequenceEqual(expression.Fields) ? expression : new ExecutionStructuralRecord(expression.ReturnType, fields, expression.ConstructionPlan) { LimitBinding = expression.LimitBinding };
+    }
 
+    protected virtual ExecutionExpression RewriteStructuralArray(ExecutionStructuralArray expression)
+    {
+        var elements = RewriteExpressionList(expression.Elements);
+        return ReferenceEquals(elements, expression.Elements) ? expression : new ExecutionStructuralArray(expression.ReturnType, expression.ElementType, elements) { LimitBinding = expression.LimitBinding };
+    }
+
+    protected virtual ExecutionExpression RewriteStructuralConversion(ExecutionStructuralConversion expression)
+    {
+        var input = RewriteExpression(expression.Input);
+        return ReferenceEquals(input, expression.Input) ? expression : new ExecutionStructuralConversion(input, expression.TargetType) { LimitBinding = expression.LimitBinding };
+    }
+    protected virtual ExecutionExpression RewriteCteCollectionInput(ExecutionCteCollectionInput expression)
+    {
+        var rows = RewriteExpression(expression.Rows);
+        return ReferenceEquals(rows, expression.Rows)
+            ? expression
+            : expression with { Rows = rows };
+    }
+    protected virtual ExecutionExpression RewriteFieldRead(ExecutionFieldRead expression) => expression;
     protected virtual ExecutionExpression RewriteMemberRead(ExecutionMemberRead expression)
     {
         var receiver = RewriteExpression(expression.Receiver);
@@ -59,9 +90,7 @@ internal abstract partial class ExecutionIrRewriter
     }
 
     protected virtual ExecutionExpression RewriteScriptParameterRead(ExecutionScriptParameterRead expression) => expression;
-
     protected virtual ExecutionExpression RewriteScriptVariableRead(ExecutionScriptVariableRead expression) => expression;
-
     protected virtual ExecutionExpression RewriteLiteral(ExecutionLiteral expression) => expression;
 
     protected virtual ExecutionExpression RewriteBinary(ExecutionBinary expression)

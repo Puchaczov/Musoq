@@ -37,6 +37,38 @@ public sealed class DiagnosticDescriptorRegistryTests
     }
 
     [TestMethod]
+    public void EnvironmentDiagnosticGuidance_ShouldRequestObservationWithoutDestructiveRecovery()
+    {
+        var expectedPhases = new Dictionary<DiagnosticCode, DiagnosticPhase>
+        {
+            [DiagnosticCode.MQ3010_UnknownSchema] = DiagnosticPhase.Bind,
+            [DiagnosticCode.MQ3085_UnknownSource] = DiagnosticPhase.Bind,
+            [DiagnosticCode.MQ3067_MissingSourceRuntimeSetting] = DiagnosticPhase.Bind,
+            [DiagnosticCode.MQ3071_SourceContractError] = DiagnosticPhase.Bind,
+            [DiagnosticCode.MQ5013_SourceContractWarning] = DiagnosticPhase.Bind,
+            [DiagnosticCode.MQ7010_DataSourceOpenFailed] = DiagnosticPhase.DataSource,
+            [DiagnosticCode.MQ7011_DataSourceReadFailed] = DiagnosticPhase.DataSource
+        };
+
+        foreach (var (code, phase) in expectedPhases)
+        {
+            var descriptor = DiagnosticDescriptorRegistry.Get(code);
+
+            Assert.IsNotNull(descriptor, code.ToString());
+            Assert.AreEqual(phase, descriptor.DefaultPhase, code.ToString());
+            Assert.IsFalse(string.IsNullOrWhiteSpace(descriptor.Explanation), code.ToString());
+            Assert.IsNotEmpty(descriptor.SuggestedFixes, code.ToString());
+
+            var recoveryText = string.Join(" ", descriptor.SuggestedFixes.Prepend(descriptor.Explanation));
+            Assert.IsFalse(
+                recoveryText.Contains("reset", StringComparison.OrdinalIgnoreCase) ||
+                recoveryText.Contains("reinstall", StringComparison.OrdinalIgnoreCase) ||
+                recoveryText.Contains("force", StringComparison.OrdinalIgnoreCase),
+                $"{code} must retain non-destructive observation guidance.");
+        }
+    }
+
+    [TestMethod]
     public void DiagnosticBag_DeduplicatesIdenticalDiagnosticsAndOrdersBySourceAndOffset()
     {
         var bag = new DiagnosticBag();

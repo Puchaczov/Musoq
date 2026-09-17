@@ -1,7 +1,10 @@
+using Musoq.Schema.StructuralInputs;
+using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
+using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
@@ -35,14 +38,28 @@ public sealed partial class LogicalPlanBuilder
     public void Visit(SchemaFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var args = node is Musoq.Evaluator.Parser.SchemaFromNode semanticSource &&
-                   semanticSource.BoundInvocation is { } invocation
-            ? ConvertArguments(node.Parameters, invocation)
+        var invocation = node is Musoq.Evaluator.Parser.SchemaFromNode semanticSource
+            ? semanticSource.BoundInvocation
+            : null;
+        var args = invocation is { } bound
+            ? ConvertArguments(node.Parameters, bound)
             : ConvertArguments(node.Parameters);
         var schema = BuildOutputSchema(node.Alias);
-        _nodeStack.Push(new IrNodes.SchemaScanNode(node.Schema, node.Method, args, node.Alias, schema, node.Id));
+        _nodeStack.Push(new IrNodes.SchemaScanNode(
+            node.Schema,
+            node.Method,
+            args,
+            node.Alias,
+            schema,
+            node.Id,
+            invocation?.Signature.SourceConstructionType,
+            invocation?.Signature.SupportsExecutionContext ?? false,
+            invocation?.Signature.SourceStableId,
+            invocation?.Signature.SourceConstructor is { } constructor
+                ? ExecutionClrBindingFactory.FromClr(constructor)
+                : null,
+            CreateStructuralArgumentLimits(invocation)));
     }
-
     public void Visit(JoinSourcesTableFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
@@ -265,13 +282,65 @@ public sealed partial class LogicalPlanBuilder
         for (var index = 0; index < invocation.Arguments.Length; index++)
         {
             var argument = invocation.Arguments[index];
+            var parameter = invocation.Signature.Parameters[argument.ParameterIndex];
+            if (argument.Relation is { } relation)
+            {
+                if (parameter.StructuralType?.ElementType?.ClrType is not { } descriptorElementType)
+                    throw new InvalidOperationException(
+                        $"Datasource relation argument '{parameter.Name}' has no structural element type.");
+
+                var elementType = StructuralCollectionTypeResolver.ResolveElementType(parameter.ParameterType)
+                    ?? descriptorElementType;
+                result[index] = new CteCollectionInput(
+                    relation.Name,
+                    parameter.ParameterType,
+                    elementType,
+                    relation.Columns.Select(column => new CteCollectionInputField(
+                        column.ColumnName,
+                        column.ColumnIndex,
+                        column.ColumnType)));
+                continue;
+            }
+
             result[index] = argument.SourceArgumentIndex is { } sourceIndex
-                ? _converter.Convert(args.Args[sourceIndex])
-                : new Literal(
-                    argument.DefaultValue,
-                    invocation.Signature.Parameters[argument.ParameterIndex].ParameterType);
+                ? _converter.Convert(args.Args[sourceIndex], parameter.ParameterType)
+                : new Literal(argument.DefaultValue, parameter.ParameterType);
         }
 
         return result;
+    }
+
+    private static IReadOnlyList<ExecutionStructuralLimitPlan?>? CreateStructuralArgumentLimits(
+        BoundSchemaInvocation? invocation)
+    {
+        if (invocation == null)
+            return null;
+
+        var limits = new ExecutionStructuralLimitPlan?[invocation.Arguments.Length];
+        var hasLimits = false;
+        for (var index = 0; index < invocation.Arguments.Length; index++)
+        {
+            var parameter = invocation.Signature.Parameters[invocation.Arguments[index].ParameterIndex];
+            if (parameter.StructuralType == null || parameter.StructuralLimits is not { } limit)
+                continue;
+
+            limits[index] = new ExecutionStructuralLimitPlan(
+                limit.MaxDepth,
+                limit.MaxNodes,
+                limit.MaxStringBytes);
+            hasLimits = true;
+        }
+
+        return hasLimits ? limits : null;
+    }
+}
+
+internal static class StructuralCollectionTypeResolver
+{
+    public static Type? ResolveElementType(Type type)
+    {
+        return StructuralCollectionContract.TryGetElementType(type, out var elementType)
+            ? elementType
+            : null;
     }
 }

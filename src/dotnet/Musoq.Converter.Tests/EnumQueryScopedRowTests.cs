@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.Loader;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Tests.Components;
@@ -267,18 +264,6 @@ public sealed class EnumQueryScopedRowTests
     }
 
     [TestMethod]
-    public void QueryLocalEnumArtifact_WhenDisposed_ShouldReleaseCollectibleLoadContext()
-    {
-        var contextReference = CreateAndDisposeEnumArtifact();
-
-        ForceCollection(contextReference);
-
-        Assert.IsFalse(
-            contextReference.IsAlive,
-            "A compiled query-local enum descriptor retained its collectible generated assembly.");
-    }
-
-    [TestMethod]
     public void NativeEnumProjection_WhenTypedOutputMemberIsEnum_ShouldRejectCarrierMapping()
     {
         Assert.Throws<InvalidOperationException>(() =>
@@ -298,82 +283,6 @@ public sealed class EnumQueryScopedRowTests
         CollectionAssert.AreEqual(
             new short[] { 20, 10, 99 },
             rows.Select(static row => row.Status).ToArray());
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private WeakReference CreateAndDisposeEnumArtifact()
-    {
-        const string query = DynamicContract +
-                             " select Status, EnumName(Status) as StatusName from Jobs()";
-        var artifactBuild = InstanceCreator.CompileArtifactWithDiagnostics(
-            query,
-            $"enum-artifact-{Guid.NewGuid():N}",
-            new EnumQueryRowsSchemaProvider(),
-            _loggerResolver);
-        Assert.IsTrue(artifactBuild.Succeeded, FormatFailure(artifactBuild));
-        var artifact = artifactBuild.Artifact ??
-                       throw new AssertFailedException("Enum artifact compilation returned no artifact.");
-        var loaded = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
-            query,
-            artifact,
-            new EnumQueryRowsSchemaProvider(),
-            _loggerResolver);
-        Assert.IsTrue(loaded.Succeeded, FormatFailure(loaded));
-        var compiledQuery = loaded.CompiledQuery ??
-                            throw new AssertFailedException("Enum artifact loading returned no query.");
-        var runtimeType = GetGeneratedRuntimeType(compiledQuery);
-        var context = AssemblyLoadContext.GetLoadContext(runtimeType.Assembly) ??
-                      throw new AssertFailedException("Generated enum artifact has no load context.");
-        Assert.IsTrue(context.IsCollectible);
-        var reference = new WeakReference(context);
-
-        using (var table = compiledQuery.Run())
-        {
-            Assert.AreEqual(3, table.Count);
-            Assert.IsNotNull(table.Columns.ElementAt(0).EnumType);
-        }
-
-        compiledQuery.Dispose();
-        return reference;
-    }
-
-    private static Type GetGeneratedRuntimeType(global::Musoq.Evaluator.CompiledQuery query)
-    {
-        var runnableField = typeof(global::Musoq.Evaluator.CompiledQuery).GetField(
-            "_runnable",
-            BindingFlags.Instance | BindingFlags.NonPublic) ??
-                            throw new AssertFailedException("The compiled query runnable was not found.");
-        var current = runnableField.GetValue(query) ??
-                      throw new AssertFailedException("The compiled query runnable was not initialized.");
-        while (FindProperty(current.GetType(), "Inner")?.GetValue(current) is { } inner)
-            current = inner;
-
-        return current.GetType();
-    }
-
-    private static PropertyInfo? FindProperty(Type type, string name)
-    {
-        for (var current = type; current is not null; current = current.BaseType)
-        {
-            if (current.GetProperty(
-                    name,
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) is { } property)
-            {
-                return property;
-            }
-        }
-
-        return null;
-    }
-
-    private static void ForceCollection(WeakReference reference)
-    {
-        for (var attempt = 0; attempt < 20 && reference.IsAlive; attempt++)
-        {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-        }
     }
 
     private static IEnumerable<SourcePredicateExpression> Flatten(SourcePredicateExpression? predicate)

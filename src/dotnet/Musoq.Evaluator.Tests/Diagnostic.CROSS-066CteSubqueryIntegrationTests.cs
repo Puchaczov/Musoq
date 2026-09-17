@@ -160,9 +160,9 @@ public sealed class DiagnosticCross066CteSubqueryIntegrationTests : BasicEntityT
     {
         const string nestedSelfReference = """
             with recursive counter (Value) as (
-                select seed.Value from values {{ Value: 1 }} seed
+                select seed.Value from values {( Value: 1 )} seed
                 union all
-                select seed.Value from values {{ Value: 1 }} seed
+                select seed.Value from values {( Value: 1 )} seed
                 where exists (select c.Value from counter c)
             )
             select Value from counter
@@ -178,7 +178,7 @@ public sealed class DiagnosticCross066CteSubqueryIntegrationTests : BasicEntityT
 
         const string aggregateMember = """
             with recursive counter (Value) as (
-                select seed.Value from values {{ Value: 1 }} seed
+                select seed.Value from values {( Value: 1 )} seed
                 union all
                 select Count(c.Value) from counter c
             )

@@ -79,6 +79,7 @@ internal sealed class SemanticQueryValidationService(
         foreach (var field in groupBy.Fields)
             CollectColumnNames(field.Expression, groupByColumnNames);
 
+        var nonAggregatedFields = new List<(FieldNode Field, string ColumnName)>();
         foreach (var field in select.Fields)
         {
             if (IsConstantExpression(field.Expression))
@@ -96,16 +97,43 @@ internal sealed class SemanticQueryValidationService(
             if (nonGroupedColumns.Count <= 0)
                 continue;
 
-            var columnName = nonGroupedColumns[0];
-            var groupByNames = groupBy.Fields
-                .Select(f => f.Expression.ToString())
-                .ToArray();
+            nonAggregatedFields.Add((field, nonGroupedColumns[0]));
+        }
 
-            if (diagnosticReporter.TryReportNonAggregatedColumnInSelect(columnName, groupByNames, field))
+        var groupByNames = groupBy.Fields
+            .Select(f => f.Expression.ToString())
+            .ToArray();
+        var groupByFields = groupBy.Fields
+            .Select(field => (field.Expression, GetExpressionSpan(field.Expression)))
+            .ToArray();
+
+        foreach (var (field, columnName) in nonAggregatedFields)
+        {
+
+            if (diagnosticReporter.TryReportNonAggregatedColumnInSelect(
+                    columnName,
+                    groupByNames,
+                    groupByFields,
+                    field))
                 continue;
 
             throw new NonAggregatedColumnInSelectException(columnName, groupByNames,
                 field.SpanOrEmpty());
         }
+    }
+
+    private static TextSpan GetExpressionSpan(Node expression)
+    {
+        if (expression.HasSpan)
+            return expression.Span;
+
+        var childSpans = ParserNodeTraversalRegistry.EnumerateChildren(expression)
+            .Select(GetExpressionSpan)
+            .Where(static span => !span.IsEmpty)
+            .ToArray();
+        if (childSpans.Length == 0)
+            return TextSpan.Empty;
+
+        return childSpans[0].Through(childSpans[^1]);
     }
 }

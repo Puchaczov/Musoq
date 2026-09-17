@@ -15,7 +15,8 @@ public sealed record PhysicalDescNode(
     string SourceContextId,
     OutputSchema OutputSchema,
     OutputSchema? QueryOutputSchema = null,
-    TextSpan? ColumnSpan = null) : PhysicalNode(OutputSchema)
+    TextSpan? ColumnSpan = null,
+    IReadOnlyList<StructuralArgumentDescription>? ArgumentDescriptions = null) : PhysicalNode(OutputSchema)
 {
     public override IReadOnlyList<PhysicalNode> Children { get; } = Array.Empty<PhysicalNode>();
 }

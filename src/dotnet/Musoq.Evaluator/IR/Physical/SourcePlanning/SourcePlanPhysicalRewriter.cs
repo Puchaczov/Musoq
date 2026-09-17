@@ -24,6 +24,7 @@ internal static class SourcePlanPhysicalRewriter
                 entry.Value.ExecutionPlan.Identity,
                 entry.Value.ExecutionPlan.AcceptedColumns,
                 entry.Value.ExecutionPlan.AcceptedPredicate,
+                entry.Value.ExecutionPlan.PredicateApplications,
                 entry.Value.ExecutionPlan.Properties),
             StringComparer.Ordinal);
         var rewrittenPlan = RewriteNode(physicalPlan, sourcePlanResults, acceptedOperations);
@@ -269,6 +270,7 @@ internal static class SourcePlanPhysicalRewriter
                 Identity = accepted.Identity,
                 AcceptedColumns = accepted.AcceptedColumns,
                 AcceptedPredicate = accepted.AcceptedPredicate,
+                PredicateApplications = accepted.PredicateApplications,
                 AcceptedOrderBy = accepted.AcceptedOrderBy,
                 AcceptedSkip = accepted.AcceptedSkip,
                 AcceptedTake = accepted.AcceptedTake,
@@ -305,6 +307,7 @@ internal static class SourcePlanPhysicalRewriter
         SourceIdentity identity,
         IReadOnlyList<SourceColumnRef> acceptedColumns,
         SourcePredicateExpression? acceptedPredicate,
+        IReadOnlyList<SourcePredicateApplication> predicateApplications,
         IReadOnlyDictionary<string, object?> properties)
     {
         public SourceIdentity Identity { get; } = identity;
@@ -312,6 +315,8 @@ internal static class SourcePlanPhysicalRewriter
         public IReadOnlyList<SourceColumnRef> AcceptedColumns { get; } = acceptedColumns;
 
         public SourcePredicateExpression? AcceptedPredicate { get; } = acceptedPredicate;
+
+        public IReadOnlyList<SourcePredicateApplication> PredicateApplications { get; } = predicateApplications;
 
         public IReadOnlyDictionary<string, object?> Properties { get; } = properties;
 

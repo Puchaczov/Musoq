@@ -40,7 +40,7 @@ public sealed partial class Lexer : ILexer
         if (string.IsNullOrWhiteSpace(input))
             throw ParserValidationException.ForEmptyInput();
 
-        Input = input.Trim();
+        Input = input;
         _skipWhiteSpaces = skipWhiteSpaces;
         RecoverOnError = recoverOnError;
         Position = 0;

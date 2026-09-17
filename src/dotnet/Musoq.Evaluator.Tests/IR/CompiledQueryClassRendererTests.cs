@@ -32,7 +32,6 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
     public void Dispose()
     {
         DisposeWorkspace();
-        GC.SuppressFinalize(this);
     }
 
     private void DisposeWorkspace()

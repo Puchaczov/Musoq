@@ -12,8 +12,7 @@ public partial class Parser
             Consume(TokenType.Not);
             if (Current.TokenType == TokenType.Distinct)
                 return ComposeIsDistinctFrom(node, true);
-            ConsumeIsNullToken("IS NOT");
-            return new IsNullNode(node, true);
+            return new IsNullNode(node, true).WithSpan(node.Span.Through(ConsumeIsNullToken("IS NOT").Span));
         }
 
         return Current.TokenType switch
@@ -25,7 +24,7 @@ public partial class Parser
             TokenType.Word when IsContextualKeyword("missing") => ConsumeContextualRowPresence(node, false),
             TokenType.Identifier when IsContextualKeyword("present") => ConsumeContextualRowPresence(node, true),
             TokenType.Identifier when IsContextualKeyword("missing") => ConsumeContextualRowPresence(node, false),
-            TokenType.Null => ComposeAndSkip(_ => new IsNullNode(node, false), TokenType.Null),
+            TokenType.Null => new IsNullNode(node, false).WithSpan(node.Span.Through(ConsumeAndGetToken(TokenType.Null).Span)),
             _ => throw ParserDiagnosticFacts.MissingToken("IS must be followed by NULL, DISTINCT FROM, PRESENT, or MISSING.",
                 _lexer.AlreadyResolvedQueryPart, new TextSpan(Current.Span.Start, 0))
         };
@@ -39,12 +38,12 @@ public partial class Parser
         return new IsDistinctFromNode(left, ComposeEqualityOperators(), isNegated);
     }
 
-    private void ConsumeIsNullToken(string phrase)
+    private Token ConsumeIsNullToken(string phrase)
     {
         if (Current.TokenType != TokenType.Null)
             throw ParserDiagnosticFacts.MissingToken($"{phrase} must be followed by NULL or DISTINCT FROM.",
                 _lexer.AlreadyResolvedQueryPart, new TextSpan(Current.Span.Start, 0));
-        Consume(TokenType.Null);
+        return ConsumeAndGetToken(TokenType.Null);
     }
 
     private RowPresenceNode ConsumeContextualRowPresence(Node node, bool isPresent)

@@ -127,39 +127,18 @@ internal sealed partial class PhysicalLoweringImplementation
             setOperation.FieldTypes,
             ResolveSetOperationStrategy(strategy)));
 
-        var resultShape = left.RowShape with { Contexts = [], SupportsGeneratedFieldAccess = false };
-        return TableBuildResult.Success([..left.Shapes, ..right.Shapes], nodes, result, resultShape);
-    }
-
-    private static bool CanShareSetOperationCarrier(PhysicalNode left, PhysicalNode right)
-    {
-        if (!ContainsPhysicalNode<PhysicalWindowNode>(left) ||
-            !ContainsPhysicalNode<PhysicalWindowNode>(right) ||
-            !ContainsPhysicalNode<PhysicalCteRefNode>(left) ||
-            !ContainsPhysicalNode<PhysicalSchemaScanNode>(right))
-        {
-            return false;
-        }
-
-        var leftColumns = left.OutputSchema.Columns;
-        var rightColumns = right.OutputSchema.Columns;
-        if (leftColumns.Length != rightColumns.Length)
-            return false;
-
-        for (var index = 0; index < leftColumns.Length; index++)
-        {
-            var leftColumn = leftColumns[index];
-            var rightColumn = rightColumns[index];
-            if (leftColumn.Index != rightColumn.Index ||
-                !string.Equals(leftColumn.Name, rightColumn.Name, StringComparison.Ordinal) ||
-                leftColumn.Type != rightColumn.Type ||
-                !string.Equals(leftColumn.IntendedTypeName, rightColumn.IntendedTypeName, StringComparison.Ordinal))
+        var requiresResultShape = RequiresSetOperationResultShape(setOperation.OutputSchema, left.RowShape);
+        var resultShape = requiresResultShape
+            ? CreateSetOperationResultShape(resultShapeName, setOperation.OutputSchema) with
             {
-                return false;
+                Contexts = [],
+                SupportsGeneratedFieldAccess = false
             }
-        }
-
-        return true;
+            : left.RowShape with { Contexts = [], SupportsGeneratedFieldAccess = false };
+        var shapes = requiresResultShape
+            ? new List<RowShape>([..left.Shapes, ..right.Shapes, resultShape])
+            : new List<RowShape>([..left.Shapes, ..right.Shapes]);
+        return TableBuildResult.Success(shapes, nodes, result, resultShape);
     }
 
     private static bool ContainsPhysicalNode<TNode>(PhysicalNode node)
@@ -188,10 +167,15 @@ internal sealed partial class PhysicalLoweringImplementation
                 "Planner selected streaming UnionAll, but Execution IR lowering could not decompose both arms into supported streaming pipelines.");
 
         var resultTable = new ExecutionVariable(resultTableName, typeof(object));
-        var resultShape = CreateGeneratedShape(resultShapeName, leftPipeline.Project.Fields);
+        var resultShape = CreateSetOperationResultShape(resultShapeName, setOperation.OutputSchema);
+        var armNames = CreateStreamingSetOperationArmNames(
+            resultTableName,
+            resultShapeName,
+            leftPipeline.Source,
+            rightPipeline.Source);
         var left = BuildStreamingUnionAllArm(
             leftPipeline,
-            "left",
+            armNames.LeftTableName,
             resultTable,
             resultShape,
             cteIndexes,
@@ -205,7 +189,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var rightSchemaFromIndex = schemaFromIndex + CountSchemaScans(UnwrapSingleStatement(setOperation.Left));
         var right = BuildStreamingUnionAllArm(
             rightPipeline,
-            "right",
+            armNames.RightTableName,
             resultTable,
             resultShape,
             cteIndexes,

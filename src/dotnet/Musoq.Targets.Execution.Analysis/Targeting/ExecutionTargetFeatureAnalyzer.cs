@@ -114,8 +114,58 @@ internal static class ExecutionTargetFeatureAnalyzer
             case ExecutionAggregateCall aggregateCall:
                 sink.AddCallable(aggregateCall.Method.Descriptor);
                 break;
+            case ExecutionStringMatch stringMatch:
+                sink.Add(
+                    ExecutionTargetFeatureKind.StringMatchKind,
+                    $"string-match-kind:{ToStableToken(stringMatch.Kind.ToString())}",
+                    stringMatch.Kind.ToString());
+                sink.Add(
+                    ExecutionTargetFeatureKind.StringMatchComparison,
+                    $"string-match-comparison:{ToStableToken(stringMatch.Comparison.ToString())}",
+                    stringMatch.Comparison.ToString());
+                break;
+            case ExecutionPrepareLikeMatcher prepareLike:
+                AddLikeMatcherStrategy(sink, "prepare", "Prepare");
+                AddStringMatchComparison(sink, prepareLike.Comparison);
+                break;
+            case ExecutionPreparedLikeMatch:
+                AddLikeMatcherStrategy(sink, "prepared-match", "PreparedMatch");
+                break;
+            case ExecutionDynamicLikeMatch dynamicLike:
+                AddLikeMatcherStrategy(sink, "dynamic-match", "DynamicMatch");
+                AddStringMatchComparison(sink, dynamicLike.Comparison);
+                break;
+            case ExecutionLikeMatcherCacheSlot:
+                AddLikeMatcherStrategy(sink, "cache-slot", "CacheSlot");
+                break;
+            case ExecutionPrepareRLikeMatcher:
+                AddRLikeMatcherStrategy(sink, "prepare", "Prepare");
+                break;
+            case ExecutionPreparedRLikeMatch:
+                AddRLikeMatcherStrategy(sink, "prepared-match", "PreparedMatch");
+                break;
+            case ExecutionDynamicRLikeMatch:
+                AddRLikeMatcherStrategy(sink, "dynamic-match", "DynamicMatch");
+                break;
+            case ExecutionRLikeMatcherCacheSlot:
+                AddRLikeMatcherStrategy(sink, "cache-slot", "CacheSlot");
+                break;
         }
     }
+
+    private static void AddLikeMatcherStrategy(FeatureSink sink, string stableToken, string detail) =>
+        sink.Add(ExecutionTargetFeatureKind.LikeMatcherStrategy, $"like-matcher-strategy:{stableToken}", detail);
+
+    private static void AddRLikeMatcherStrategy(FeatureSink sink, string stableToken, string detail) =>
+        sink.Add(ExecutionTargetFeatureKind.RLikeMatcherStrategy, $"rlike-matcher-strategy:{stableToken}", detail);
+
+    private static void AddStringMatchComparison(
+        FeatureSink sink,
+        ExecutionStringMatchComparison comparison) =>
+        sink.Add(
+            ExecutionTargetFeatureKind.StringMatchComparison,
+            $"string-match-comparison:{ToStableToken(comparison.ToString())}",
+            comparison.ToString());
 
     private static string ConstantId(ExecutionConstantKind kind) => $"constant:{ToStableToken(kind.ToString())}";
 

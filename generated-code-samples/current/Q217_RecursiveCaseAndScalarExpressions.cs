@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive labels (Value, Depth, Label) as (select 1, 0, 'one' from values {{ Seed: 1 }} seed union all select l.Value + 1, l.Depth + 1, case when l.Value = 1 then 'even' else 'odd' end from labels l where l.Depth < 2) select Value, Depth, Label from labels order by Depth
+with recursive labels (Value, Depth, Label) as (select 1, 0, 'one' from values {( Seed: 1 )} seed union all select l.Value + 1, l.Depth + 1, case when l.Value = 1 then 'even' else 'odd' end from labels l where l.Depth < 2) select Value, Depth, Label from labels order by Depth
 */
 
 // === Logical Plan ===

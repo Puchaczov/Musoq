@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive walk (Id) as (select Id from values {{ Id: 1 }, { Id: 2 }} seed union select 3 from walk w where w.Id < 3) select Id from walk order by Id
+with recursive walk (Id) as (select Id from values {( Id: 1 ), ( Id: 2 )} seed union select 3 from walk w where w.Id < 3) select Id from walk order by Id
 */
 
 // === Logical Plan ===

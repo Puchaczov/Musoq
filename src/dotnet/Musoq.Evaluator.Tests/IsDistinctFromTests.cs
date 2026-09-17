@@ -15,11 +15,11 @@ public sealed class IsDistinctFromTests : BasicEntityTestBase
     {
         const string query = @"
 from values {
-    { Label: 'both-null', LeftValue: null, RightValue: null },
-    { Label: 'left-null', LeftValue: null, RightValue: 1 },
-    { Label: 'right-null', LeftValue: 1, RightValue: null },
-    { Label: 'equal', LeftValue: 1, RightValue: 1 },
-    { Label: 'different', LeftValue: 1, RightValue: 2 }
+    ( Label: 'both-null', LeftValue: null, RightValue: null ),
+    ( Label: 'left-null', LeftValue: null, RightValue: 1 ),
+    ( Label: 'right-null', LeftValue: 1, RightValue: null ),
+    ( Label: 'equal', LeftValue: 1, RightValue: 1 ),
+    ( Label: 'different', LeftValue: 1, RightValue: 2 )
 } pairs
 where pairs.LeftValue is distinct from pairs.RightValue
 select pairs.Label
@@ -37,11 +37,11 @@ order by pairs.Label";
     {
         const string query = @"
 from values {
-    { Label: 'both-null', LeftValue: null, RightValue: null },
-    { Label: 'left-null', LeftValue: null, RightValue: 1 },
-    { Label: 'right-null', LeftValue: 1, RightValue: null },
-    { Label: 'equal', LeftValue: 1, RightValue: 1 },
-    { Label: 'different', LeftValue: 1, RightValue: 2 }
+    ( Label: 'both-null', LeftValue: null, RightValue: null ),
+    ( Label: 'left-null', LeftValue: null, RightValue: 1 ),
+    ( Label: 'right-null', LeftValue: 1, RightValue: null ),
+    ( Label: 'equal', LeftValue: 1, RightValue: 1 ),
+    ( Label: 'different', LeftValue: 1, RightValue: 2 )
 } pairs
 where pairs.LeftValue is not distinct from pairs.RightValue
 select pairs.Label
@@ -59,9 +59,9 @@ order by pairs.Label";
     {
         const string query = @"
 from values {
-    { Label: 'alpha', LeftValue: 'Alpha', RightValue: 'Alpha' },
-    { Label: 'beta', LeftValue: 'Beta', RightValue: 'Gamma' },
-    { Label: 'both-null', LeftValue: null, RightValue: null }
+    ( Label: 'alpha', LeftValue: 'Alpha', RightValue: 'Alpha' ),
+    ( Label: 'beta', LeftValue: 'Beta', RightValue: 'Gamma' ),
+    ( Label: 'both-null', LeftValue: null, RightValue: null )
 } pairs
 where pairs.LeftValue is not distinct from pairs.RightValue
 select pairs.Label
@@ -79,7 +79,7 @@ order by pairs.Label";
     {
         const string query = @"
 from values {
-    { LeftValue: 1, Flag: true }
+    ( LeftValue: 1, Flag: true )
 } pairs
 where pairs.LeftValue is distinct from pairs.Flag
 select pairs.LeftValue";

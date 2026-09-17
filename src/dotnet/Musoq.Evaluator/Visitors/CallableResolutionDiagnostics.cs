@@ -60,9 +60,9 @@ internal static class CallableResolutionDiagnostics
             var suggestion = closeCandidates.Count == 1 ? closeCandidates[0] : null;
             var message = string.IsNullOrWhiteSpace(suggestion)
                 ? closeCandidates.Count > 1
-                    ? $"Unknown callable '{callableName}'. Possible matches: {FormatCandidates(closeCandidates)}."
-                    : $"Unknown callable '{callableName}'."
-                : $"Unknown callable '{callableName}'. Did you mean '{suggestion}'?";
+                    ? $"Unknown callable {DiagnosticSafety.QuoteForDisplay(callableName)}. Possible matches: {FormatCandidates(closeCandidates)}."
+                    : $"Unknown callable {DiagnosticSafety.QuoteForDisplay(callableName)}."
+                : $"Unknown callable {DiagnosticSafety.QuoteForDisplay(callableName)}. Did you mean {DiagnosticSafety.QuoteForDisplay(suggestion)}?";
             var arguments = Facts(
                 callableName,
                 argumentTypes,
@@ -88,7 +88,7 @@ internal static class CallableResolutionDiagnostics
         {
             return new CallableResolutionFailure(
                 DiagnosticCode.MQ3086_UnknownCallable,
-                $"Unknown callable '{callableName}' for the selected callable kind.",
+                $"Unknown callable {DiagnosticSafety.QuoteForDisplay(callableName)} for the selected callable kind.",
                 span,
                 Facts(callableName, argumentTypes, namedMethods));
         }
@@ -101,7 +101,7 @@ internal static class CallableResolutionDiagnostics
         {
             return new CallableResolutionFailure(
                 DiagnosticCode.MQ3087_InvalidCallableArity,
-                $"Callable '{callableName}' does not accept {argumentTypes.Count} argument(s); expected {FormatExpectedCounts(applicableMethods)}.",
+                $"Callable {DiagnosticSafety.QuoteForDisplay(callableName)} does not accept {argumentTypes.Count} argument(s); expected {FormatExpectedCounts(applicableMethods)}.",
                 span,
                 Facts(callableName, argumentTypes, applicableMethods, FormatExpectedCounts(applicableMethods)));
         }
@@ -116,7 +116,7 @@ internal static class CallableResolutionDiagnostics
             return new CallableResolutionFailure(
                 DiagnosticCode.MQ3088_NoMatchingCallableOverload,
                 AddParameterGuidance(
-                    $"No overload of callable '{callableName}' accepts argument types ({FormatTypes(argumentTypes)}).",
+                    $"No overload of callable {DiagnosticSafety.QuoteForDisplay(callableName)} accepts argument types ({FormatTypes(argumentTypes)}).",
                     argumentNodes,
                     arityCandidates.Select(static candidate => candidate.Method)),
                 span,
@@ -133,7 +133,7 @@ internal static class CallableResolutionDiagnostics
         {
             return new CallableResolutionFailure(
                 DiagnosticCode.MQ3089_AmbiguousCallableOverload,
-                $"Callable '{callableName}' is ambiguous for argument types ({FormatTypes(argumentTypes)}).",
+                $"Callable {DiagnosticSafety.QuoteForDisplay(callableName)} is ambiguous for argument types ({FormatTypes(argumentTypes)}).",
                 span,
                 Facts(callableName, argumentTypes, best.Select(static item => item.candidate.Method)));
         }
@@ -145,7 +145,7 @@ internal static class CallableResolutionDiagnostics
         return new CallableResolutionFailure(
             DiagnosticCode.MQ3088_NoMatchingCallableOverload,
             AddParameterGuidance(
-                $"No overload of callable '{callableName}' accepts argument types ({FormatTypes(argumentTypes)}).",
+                $"No overload of callable {DiagnosticSafety.QuoteForDisplay(callableName)} accepts argument types ({FormatTypes(argumentTypes)}).",
                 argumentNodes,
                 typeCandidates.Select(static item => item.candidate.Method)),
             span,
@@ -203,7 +203,7 @@ internal static class CallableResolutionDiagnostics
 
     private static string FormatCandidates(IEnumerable<string> candidates)
     {
-        return string.Join(", ", candidates.Select(static candidate => $"'{candidate}'"));
+        return string.Join(", ", candidates.Select(DiagnosticSafety.QuoteForDisplay));
     }
 
     private static string FormatExpectedCounts(IEnumerable<MethodInfo> methods)

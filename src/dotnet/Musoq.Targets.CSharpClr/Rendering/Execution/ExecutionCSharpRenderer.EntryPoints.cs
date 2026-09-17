@@ -96,8 +96,12 @@ public sealed partial class ExecutionCSharpRenderer
 
         statements.AddRange(CreateOpeningPhaseStatements(block, queryIdentifier));
         statements.AddRange(CreateExecutionStateDeclarations(plan, context));
-        statements.AddRange(CreateScriptParameterBindingStatements());
-        statements.AddRange(CreateScriptVariableBindingStatements());
+        if (!_renderOptions.IsMetadataOnly)
+        {
+            statements.AddRange(CreateScriptParameterBindingStatements());
+            statements.AddRange(CreateScriptVariableBindingStatements());
+        }
+        statements.AddRange(CreateLikeMatcherStateDeclarations(plan, context));
         statements.AddRange(CollectMethodCallCaches(block)
             .Select(cache => RenderCreateObject(new ExecutionCreateObject(cache))));
 

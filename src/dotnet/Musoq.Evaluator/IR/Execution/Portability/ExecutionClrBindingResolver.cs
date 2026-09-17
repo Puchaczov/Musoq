@@ -100,6 +100,39 @@ internal static class ExecutionClrBindingResolver
             $"Callable descriptor '{descriptor.StableName}' could not be bound to a CLR method.");
     }
 
+    public static ConstructorInfo ResolveConstructor(ExecutionPortableCallableDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        return ResolveConstructorCore(descriptor, null);
+    }
+
+    public static ConstructorInfo ResolveConstructor(
+        ExecutionPortableCallableDescriptor descriptor,
+        IReadOnlyDictionary<string, Assembly> semanticAssemblies)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(semanticAssemblies);
+        return ResolveConstructorCore(descriptor, semanticAssemblies);
+    }
+
+    private static ConstructorInfo ResolveConstructorCore(
+        ExecutionPortableCallableDescriptor descriptor,
+        IReadOnlyDictionary<string, Assembly>? semanticAssemblies)
+    {
+        if (descriptor.DeclaringType is not { } declaringTypeDescriptor)
+            throw Unsupported($"Callable '{descriptor.StableName}' has no declaring type.");
+
+        var declaringType = ResolveTypeCore(declaringTypeDescriptor, semanticAssemblies);
+        var match = declaringType
+            .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+            .Where(constructor => constructor.GetParameters().Length == descriptor.ParameterTypes.Count)
+            .FirstOrDefault(constructor => string.Equals(
+                ExecutionPortableSymbolFactory.FromConstructor(constructor).StableName,
+                descriptor.StableName,
+                StringComparison.Ordinal));
+        return match ?? throw Unsupported(
+            $"Callable descriptor '{descriptor.StableName}' could not be bound to a CLR constructor.");
+    }
     private static MethodInfo? TryCloseGenericMethod(
         MethodInfo method,
         ExecutionPortableCallableDescriptor descriptor,

@@ -7,6 +7,8 @@ public class ApplyFromNode : BinaryFromNode
     {
         ApplyType = applyType;
         WithOrdinality = withOrdinality;
+        Span = ComputeSpan(source, with);
+        FullSpan = Span;
     }
 
     public ApplyFromNode(FromNode source, FromNode with, ApplyType applyType, Type returnType, bool withOrdinality = false)
@@ -14,6 +16,8 @@ public class ApplyFromNode : BinaryFromNode
     {
         ApplyType = applyType;
         WithOrdinality = withOrdinality;
+        Span = ComputeSpan(source, with);
+        FullSpan = Span;
     }
 
     public ApplyType ApplyType { get; }

@@ -12,6 +12,7 @@ public sealed record AggregateNode(
     LogicalNode Input) : LogicalNode(OutputSchemaFactory.ForGroupedAggregate(
         GroupKeyNames,
         GroupKeyTypes,
+        GroupKeys,
         Bindings,
         AggregateOutputName.ColumnName))
 {

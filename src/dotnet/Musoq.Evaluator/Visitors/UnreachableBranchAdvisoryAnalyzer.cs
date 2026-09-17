@@ -70,9 +70,14 @@ internal static class UnreachableBranchAdvisoryAnalyzer
             var condition = pair.When is WhenNode when ? when.Expression : pair.When;
             if (TryEvaluate(condition, variables, out var value))
             {
-                if (value is bool boolValue && boolValue)
+                if (value is not bool boolValue)
                 {
-                    tailIsUnreachable = index + 1 < caseNode.WhenThenPairs.Length;
+                    continue;
+                }
+
+                if (boolValue)
+                {
+                    tailIsUnreachable = true;
                 }
                 else
                 {
@@ -88,6 +93,9 @@ internal static class UnreachableBranchAdvisoryAnalyzer
                     Report(context, pair.When, "A deterministic CASE WHEN condition is duplicated and cannot be selected.");
             }
         }
+
+        if (tailIsUnreachable && !tailWarningReported)
+            Report(context, caseNode.Else, "A CASE ELSE branch follows a condition that is always true.");
     }
 
     private static void AnalyzeCoalesce(

@@ -29,14 +29,14 @@ internal static class LikePatternAdvisoryAnalyzer
             return;
 
         var content = origin.Content;
-        if (content.IndexOf('%') >= 0 || content.IndexOf('_') >= 0)
+        if (ContainsWhitespace(content) || content.IndexOf('%') >= 0 || content.IndexOf('_') >= 0)
             return;
 
         var wildcard = content.IndexOf('*');
         if (wildcard < 0)
         {
             wildcard = content.IndexOf('?');
-            if (wildcard < 0 || ContainsWhitespace(content) ||
+            if (wildcard < 0 ||
                 content.IndexOf('.') < 0 && content.IndexOf('/') < 0 && content.IndexOf('\\') < 0)
             {
                 return;

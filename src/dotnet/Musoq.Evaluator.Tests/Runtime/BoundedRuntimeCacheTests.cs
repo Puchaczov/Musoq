@@ -69,6 +69,57 @@ public sealed class BoundedRuntimeCacheTests
     }
 
     [TestMethod]
+    public async Task GetOrAdd_WhenAnotherKeyFactoryIsBlocked_ShouldServeCachedValueWithoutTakingMutationLock()
+    {
+        var cache = new BoundedRuntimeCache<string, int>(8, StringComparer.Ordinal);
+        cache.GetOrAdd("cached", static _ => 7);
+        using var factoryEntered = new ManualResetEventSlim();
+        using var releaseFactory = new ManualResetEventSlim();
+        var blockedMiss = Task.Run(() => cache.GetOrAdd("blocked", _ =>
+        {
+            factoryEntered.Set();
+            releaseFactory.Wait();
+            return 11;
+        }));
+
+        Assert.IsTrue(factoryEntered.Wait(TimeSpan.FromSeconds(5)), "The cache miss factory did not start.");
+        var cachedHit = Task.Run(() => cache.GetOrAdd("cached", static _ => throw new AssertFailedException()));
+
+        try
+        {
+            Assert.AreEqual(7, await cachedHit.WaitAsync(TimeSpan.FromSeconds(5)));
+        }
+        finally
+        {
+            releaseFactory.Set();
+            await blockedMiss.WaitAsync(TimeSpan.FromSeconds(5));
+        }
+    }
+
+    [TestMethod]
+    public void GetOrAdd_WhenExistingValueIsStale_ShouldReplaceOnceAndPreserveFifoPosition()
+    {
+        var cache = new BoundedRuntimeCache<string, int>(2, StringComparer.Ordinal);
+        cache.GetOrAdd("a", static _ => 1);
+        cache.GetOrAdd("b", static _ => 2);
+        var replacementCalls = 0;
+
+        Parallel.For(0, 32, _ =>
+        {
+            cache.GetOrAdd(
+                "a",
+                _ => Interlocked.Increment(ref replacementCalls) + 1,
+                static value => value > 1);
+        });
+        cache.GetOrAdd("c", static _ => 3);
+
+        Assert.AreEqual(1, replacementCalls);
+        Assert.IsFalse(cache.TryGetValue("a", out _), "Replacing an entry must not make it newest.");
+        Assert.IsTrue(cache.TryGetValue("b", out _));
+        Assert.IsTrue(cache.TryGetValue("c", out _));
+    }
+
+    [TestMethod]
     public void TryGetValue_WhenReadersAndWritersRunConcurrently_ShouldRemainConsistent()
     {
         var cache = new BoundedRuntimeCache<int, int>(32);

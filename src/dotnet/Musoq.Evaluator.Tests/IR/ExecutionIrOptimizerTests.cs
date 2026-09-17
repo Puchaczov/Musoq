@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.IR.Optimization.Execution;
 using Musoq.Plugins;
@@ -21,18 +22,47 @@ public sealed class ExecutionIrOptimizerTests
 
         Assert.AreSame(initial, result.InitialPlan);
         Assert.AreSame(initial, result.OptimizedPlan);
-        Assert.HasCount(9, result.Trace.Entries);
+        Assert.HasCount(10, result.Trace.Entries);
         Assert.AreEqual("SingleUsePipelineFusion", result.Trace.Entries[0].PassName);
         Assert.AreEqual("CteReadOnceFusion", result.Trace.Entries[1].PassName);
         Assert.AreEqual("CteSidecarIndexLowering", result.Trace.Entries[2].PassName);
-        Assert.AreEqual("MethodTargetReuse", result.Trace.Entries[3].PassName);
-        Assert.AreEqual("LoopInvariantCodeMotion", result.Trace.Entries[4].PassName);
-        Assert.AreEqual("FieldExpressionHoisting", result.Trace.Entries[5].PassName);
-        Assert.AreEqual("ExpressionCseHoisting", result.Trace.Entries[6].PassName);
-        Assert.AreEqual("CapacityHints", result.Trace.Entries[7].PassName);
-        Assert.AreEqual("MethodTargetReuse", result.Trace.Entries[8].PassName);
+        Assert.AreEqual("LikeStrategyLowering", result.Trace.Entries[3].PassName);
+        Assert.AreEqual("MethodTargetReuse", result.Trace.Entries[4].PassName);
+        Assert.AreEqual("LoopInvariantCodeMotion", result.Trace.Entries[5].PassName);
+        Assert.AreEqual("FieldExpressionHoisting", result.Trace.Entries[6].PassName);
+        Assert.AreEqual("ExpressionCseHoisting", result.Trace.Entries[7].PassName);
+        Assert.AreEqual("CapacityHints", result.Trace.Entries[8].PassName);
+        Assert.AreEqual("MethodTargetReuse", result.Trace.Entries[9].PassName);
         Assert.IsFalse(result.Trace.Entries.Any(entry => entry.IsChanged));
         AssertTraceEntriesAreMeaningful(result.Trace.Entries);
+    }
+
+    [TestMethod]
+    public void Optimize_WhenConstantLikePatternIsPresent_ShouldLowerToStringMatch()
+    {
+        var patternMatch = new ExecutionPatternMatch(
+            new ExecutionLiteral("Google0@example.com", typeof(string)),
+            new ExecutionLiteral("Google%", typeof(string)),
+            PatternKind.Like,
+            typeof(bool));
+        var plan = new ExecutionPlan(
+            "compiled",
+            [],
+            new ExecutionBlock(
+            [
+                new ExecutionLet(Var("matched", typeof(bool)), patternMatch)
+            ]));
+
+        var result = new ExecutionIrOptimizer().Optimize(plan);
+        var optimizedPattern = ExecutionIrAnalysis
+            .CollectExpressions<ExecutionStringMatch>(result.OptimizedPlan.Body)
+            .Single();
+
+        Assert.AreEqual(ExecutionStringMatchKind.Prefix, optimizedPattern.Kind);
+        Assert.AreEqual(ExecutionStringMatchComparison.LikeIgnoreCase, optimizedPattern.Comparison);
+        Assert.AreEqual("Google%", optimizedPattern.OriginalPattern);
+        Assert.AreEqual("Google", optimizedPattern.Needle);
+        StringAssert.Contains(result.Trace.Entries[3].Reason, "direct=1");
     }
 
     [TestMethod]
@@ -93,6 +123,166 @@ public sealed class ExecutionIrOptimizerTests
         Assert.IsFalse(ContainsCandidateNode(result.OptimizedPlan.Body));
         Assert.IsFalse(ContainsMethodTargetCandidateExpression(result.OptimizedPlan.Body));
         Assert.IsFalse(ContainsCapacityHintCandidate(result.OptimizedPlan.Body));
+    }
+
+    [TestMethod]
+    public void Optimize_WhenLikeShapesVary_ShouldLowerEveryLikeToAnExplicitStrategy()
+    {
+        var value = new ExecutionLiteral("value", typeof(string));
+        var dynamicPattern = new ExecutionVariable("pattern", typeof(string));
+        var patterns = new ExecutionExpression[]
+        {
+            new ExecutionLiteral("value%", typeof(string)),
+            new ExecutionLiteral("v_lue", typeof(string)),
+            new ExecutionLiteral("v%lue", typeof(string)),
+            new ExecutionLiteral("Ż%", typeof(string)),
+            new ExecutionVariableRead(dynamicPattern)
+        };
+        var body = patterns
+            .Select((pattern, index) => (ExecutionNode)new ExecutionLet(
+                Var($"matched{index}", typeof(bool)),
+                new ExecutionPatternMatch(value, pattern, PatternKind.Like, typeof(bool))))
+            .ToArray();
+
+        var result = new ExecutionIrOptimizer().Optimize(new ExecutionPlan("compiled", [], new ExecutionBlock(body)));
+        var trace = result.Trace.Entries.Single(entry => entry.PassName == "LikeStrategyLowering");
+
+        Assert.HasCount(1, ExecutionIrAnalysis.CollectExpressions<ExecutionStringMatch>(result.OptimizedPlan.Body));
+        Assert.HasCount(3, ExecutionIrAnalysis.CollectExpressions<ExecutionPreparedLikeMatch>(result.OptimizedPlan.Body));
+        Assert.HasCount(1, ExecutionIrAnalysis.CollectExpressions<ExecutionDynamicLikeMatch>(result.OptimizedPlan.Body));
+        Assert.IsFalse(ExecutionIrAnalysis.CollectExpressions<ExecutionPatternMatch>(result.OptimizedPlan.Body)
+            .Any(static match => match.Kind == PatternKind.Like));
+        StringAssert.Contains(trace.Reason, "direct=1");
+        StringAssert.Contains(trace.Reason, "prepared=3");
+        StringAssert.Contains(trace.Reason, "dynamic=1");
+        StringAssert.Contains(trace.Reason, "serial-cache=1");
+    }
+
+    [TestMethod]
+    public void Optimize_WhenPreparedPatternsRepeat_ShouldPrepareEachDistinctPatternOnce()
+    {
+        var value = new ExecutionLiteral("value", typeof(string));
+        var patterns = new[] { "v_lue", "v_lue", "Ż%", "Ż%" };
+        var body = patterns
+            .Select((pattern, index) => (ExecutionNode)new ExecutionLet(
+                Var($"matched{index}", typeof(bool)),
+                new ExecutionPatternMatch(
+                    value,
+                    new ExecutionLiteral(pattern, typeof(string)),
+                    PatternKind.Like,
+                    typeof(bool))))
+            .ToArray();
+
+        var result = new ExecutionIrOptimizer().Optimize(new ExecutionPlan("compiled", [], new ExecutionBlock(body)));
+
+        Assert.HasCount(2, ExecutionIrAnalysis.CollectExpressions<ExecutionPrepareLikeMatcher>(result.OptimizedPlan.Body));
+        Assert.HasCount(4, ExecutionIrAnalysis.CollectExpressions<ExecutionPreparedLikeMatch>(result.OptimizedPlan.Body));
+    }
+
+    [TestMethod]
+    public void Optimize_WhenUserVariableCollidesWithLikeLocals_ShouldGenerateDistinctNames()
+    {
+        var pattern = Var("pattern", typeof(string));
+        var plan = new ExecutionPlan(
+            "compiled",
+            [],
+            new ExecutionBlock(
+            [
+                new ExecutionLet(Var("__likeCache0", typeof(string)), new ExecutionLiteral("occupied", typeof(string))),
+                new ExecutionLet(Var("__likeMatcher0", typeof(string)), new ExecutionLiteral("occupied", typeof(string))),
+                new ExecutionLet(
+                    Var("dynamicMatch", typeof(bool)),
+                    new ExecutionPatternMatch(
+                        new ExecutionLiteral("value", typeof(string)),
+                        new ExecutionVariableRead(pattern),
+                        PatternKind.Like,
+                        typeof(bool))),
+                new ExecutionLet(
+                    Var("preparedMatch", typeof(bool)),
+                    new ExecutionPatternMatch(
+                        new ExecutionLiteral("value", typeof(string)),
+                        new ExecutionLiteral("v_lue", typeof(string)),
+                        PatternKind.Like,
+                        typeof(bool)))
+            ]));
+
+        var result = new ExecutionIrOptimizer().Optimize(plan);
+        var names = ExecutionIrAnalysis.CollectDeclaredVariableNames(result.OptimizedPlan.Body).ToArray();
+
+        Assert.Contains("__likeCache1", names);
+        Assert.Contains("__likeMatcher1", names);
+        Assert.AreEqual(names.Length, names.Distinct(StringComparer.Ordinal).Count());
+    }
+
+    [TestMethod]
+    public void Optimize_WhenDynamicLikeRunsInParallelProjection_ShouldUseOneWorkerLocalCacheSlot()
+    {
+        var source = Var("source", typeof(object));
+        var rows = Var("rows", typeof(object));
+        var pattern = Var("pattern", typeof(string));
+        var table = Var("result", typeof(object));
+        var shape = new GeneratedRowShape("ResultRow0", []);
+        var match = new ExecutionPatternMatch(
+            new ExecutionLiteral("value", typeof(string)),
+            new ExecutionVariableRead(pattern),
+            PatternKind.Like,
+            typeof(bool));
+        var append = new ExecutionAppendRow(table, shape, []);
+        var parallel = new ExecutionParallelFilterProjectLoop(
+            source,
+            new ExecutionVariableRead(rows),
+            match,
+            append,
+            new ExecutionBlock([new ExecutionIf(match, new ExecutionBlock([append]))]),
+            1,
+            4);
+
+        var result = new ExecutionIrOptimizer().Optimize(
+            new ExecutionPlan("compiled", [shape], new ExecutionBlock([parallel])));
+        var slots = ExecutionIrAnalysis
+            .CollectExpressions<ExecutionLikeMatcherCacheSlot>(result.OptimizedPlan.Body)
+            .ToArray();
+
+        Assert.HasCount(1, slots);
+        Assert.IsTrue(slots[0].WorkerLocal);
+        Assert.HasCount(2, ExecutionIrAnalysis
+            .CollectExpressions<ExecutionDynamicLikeMatch>(result.OptimizedPlan.Body));
+    }
+
+    [TestMethod]
+    public void Optimize_WhenPreparedPatternRepeatsAcrossParallelTasks_ShouldPrepareOnceAtExecutionRoot()
+    {
+        var patternMatch = new ExecutionPatternMatch(
+            new ExecutionLiteral("value", typeof(string)),
+            new ExecutionLiteral("v_lue", typeof(string)),
+            PatternKind.Like,
+            typeof(bool));
+        var parallel = new ExecutionParallelBlock(
+            "like",
+            2,
+            [
+                new ExecutionParallelTask(
+                    "first",
+                    Var("firstOutput", typeof(object)),
+                    new ExecutionBlock([new ExecutionLet(Var("firstMatch", typeof(bool)), patternMatch)])),
+                new ExecutionParallelTask(
+                    "second",
+                    Var("secondOutput", typeof(object)),
+                    new ExecutionBlock([new ExecutionLet(Var("secondMatch", typeof(bool)), patternMatch)]))
+            ],
+            new ExecutionParallelMerge(ExecutionBlock.Empty));
+
+        var result = new ExecutionIrOptimizer().Optimize(
+            new ExecutionPlan("compiled", [], new ExecutionBlock([parallel])));
+
+        Assert.IsTrue(result.OptimizedPlan.Body.Nodes[0] is ExecutionLet
+        {
+            Value: ExecutionPrepareLikeMatcher
+        });
+        Assert.HasCount(1, ExecutionIrAnalysis
+            .CollectExpressions<ExecutionPrepareLikeMatcher>(result.OptimizedPlan.Body));
+        Assert.HasCount(2, ExecutionIrAnalysis
+            .CollectExpressions<ExecutionPreparedLikeMatch>(result.OptimizedPlan.Body));
     }
 
     private static void AssertTraceEntriesAreMeaningful(

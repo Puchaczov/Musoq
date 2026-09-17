@@ -40,7 +40,7 @@ internal static partial class RecursiveCteUnsupportedCaseCatalog
                 DiagnosticCode.MQ3075_UnsupportedRecursiveCteOperator, "counter c", "LeftAntiSemi join"),
             Unsupported("AsOfJoinRecursiveMember",
                 "with recursive counter (Value) as (" + Anchor + " union all " +
-                "select c.Value + 1 from counter c asof join values {{ Value: 1 }} seed " +
+                "select c.Value + 1 from counter c asof join values {( Value: 1 )} seed " +
                 "on c.Value >= seed.Value) select Value from counter",
                 DiagnosticCode.MQ3075_UnsupportedRecursiveCteOperator, "counter c", "AsOf join"),
             Unsupported("UnpivotRecursiveMember",
@@ -80,27 +80,27 @@ internal static partial class RecursiveCteUnsupportedCaseCatalog
                 DiagnosticCode.MQ3077_CteColumnListCountMismatch, "Value", "declares 2 column name"),
             Unsupported("RecursiveDuplicateColumnName",
                 "with recursive counter (Value, Value) as (" +
-                "select seed.Value, seed.Value from values {{ Value: 1 }} seed union all " +
+                "select seed.Value, seed.Value from values {( Value: 1 )} seed union all " +
                 "select c.Value + 1, c.Value + 1 from counter c where c.Value < 3) " +
                 "select Value from counter",
                 DiagnosticCode.MQ3078_DuplicateCteColumnName, "Value", "duplicate column name"),
             Unsupported("RecursiveCaseOnlyDuplicateColumnName",
                 "with recursive counter (Value, value) as (" +
-                "select seed.Value, seed.Value from values {{ Value: 1 }} seed union all " +
+                "select seed.Value, seed.Value from values {( Value: 1 )} seed union all " +
                 "select c.Value + 1, c.Value + 1 from counter c where c.Value < 3) " +
                 "select Value from counter",
                 DiagnosticCode.MQ3078_DuplicateCteColumnName, "value", "duplicate column name"),
             Unsupported("OrdinaryColumnListCountInsideRecursiveWith",
-                "with recursive seed (Value, Extra) as (select 1 from values {{ Seed: 1 }} s) " +
-                "select 1 from values {{ Seed: 1 }} live",
+                "with recursive seed (Value, Extra) as (select 1 from values {( Seed: 1 )} s) " +
+                "select 1 from values {( Seed: 1 )} live",
                 DiagnosticCode.MQ3077_CteColumnListCountMismatch, "Value", "declares 2 column name"),
             Unsupported("OrdinaryDuplicateColumnInsideRecursiveWith",
-                "with recursive seed (Value, Value) as (select 1, 2 from values {{ Seed: 1 }} s) " +
-                "select 1 from values {{ Seed: 1 }} live",
+                "with recursive seed (Value, Value) as (select 1, 2 from values {( Seed: 1 )} s) " +
+                "select 1 from values {( Seed: 1 )} live",
                 DiagnosticCode.MQ3078_DuplicateCteColumnName, "Value", "duplicate column name"),
             Unsupported("OrdinaryCaseOnlyDuplicateColumnName",
-                "with recursive seed (Value, value) as (select 1, 2 from values {{ Seed: 1 }} s) " +
-                "select 1 from values {{ Seed: 1 }} live",
+                "with recursive seed (Value, value) as (select 1, 2 from values {( Seed: 1 )} s) " +
+                "select 1 from values {( Seed: 1 )} live",
                 DiagnosticCode.MQ3078_DuplicateCteColumnName, "value", "duplicate column name"),
             Unsupported("UnknownRecursiveUnionKey",
                 "with recursive counter (Value) as (" + Anchor + " union (Missing) " + Member +
@@ -122,7 +122,7 @@ internal static partial class RecursiveCteUnsupportedCaseCatalog
                 DiagnosticCode.MQ3074_InvalidRecursiveCteReference, "third t", "forward CTE 'third'"),
             Unsupported("ScalarSubquerySelfReference",
                 "with recursive counter (Value) as (" + Anchor + " union all " +
-                "select (select c.Value from counter c) from values {{ Seed: 1 }} seed) " +
+                "select (select c.Value from counter c) from values {( Seed: 1 )} seed) " +
                 "select Value from counter",
                 DiagnosticCode.MQ3074_InvalidRecursiveCteReference, "counter c", "nested query"),
             Unsupported("ApplyAndSecondSelfReference",
@@ -181,7 +181,7 @@ internal static partial class RecursiveCteUnsupportedCaseCatalog
     private static string JoinMember(string join)
     {
         return "with recursive counter (Value) as (" + Anchor + " union all " +
-               "select c.Value + 1 from counter c " + join + " values {{ Value: 1 }} seed " +
+               "select c.Value + 1 from counter c " + join + " values {( Value: 1 )} seed " +
                "on c.Value = seed.Value) select Value from counter";
     }
 }

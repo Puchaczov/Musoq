@@ -466,22 +466,7 @@ public sealed partial class CSharpRenderer
             ])));
     }
 
-    private static InvocationExpressionSyntax CreateShapeShardedReturnExpression(
-        TableViaRowsResultInfo resultInfo,
-        ExecutionCSharpRenderer executionRenderer,
-        TypedProjectionLoop projectionLoop,
-        string parallelRowsName,
-        ExecutionRenderContext? renderContext = null)
-    {
-        return CreateQueryRowsShardInvocation(
-            nameof(QueryRows.FromShards),
-            CreateProjectShapeRowsParallelInvocation(
-                resultInfo,
-                executionRenderer,
-                projectionLoop,
-                parallelRowsName,
-                renderContext));
-    }
+
 
     private static InvocationExpressionSyntax CreateProjectShapeRowsParallelInvocation(
         TableViaRowsResultInfo resultInfo,
@@ -517,21 +502,7 @@ public sealed partial class CSharpRenderer
             projectionLoop.MaxDegreeOfParallelism));
     }
 
-    private static InvocationExpressionSyntax CreateProjectShapeRowsSerialInvocation(
-        TableViaRowsResultInfo resultInfo,
-        ExecutionCSharpRenderer executionRenderer,
-        TypedProjectionLoop projectionLoop,
-        string sourceRowsName,
-        ExecutionRenderContext? renderContext = null)
-    {
-        return CreateFinalProjectionInvocation(new FinalProjectionInvocationSpec(
-            FinalProjectionInvocationKind.TypedValuesSerial,
-            CreateSourceTypeSyntax(projectionLoop.Source),
-            SyntaxFactory.ParseTypeName(resultInfo.ShapeTypeName),
-            sourceRowsName,
-            CreatePredicateLambda(executionRenderer, projectionLoop, renderContext),
-            CreateShapeProjectionLambda(resultInfo, executionRenderer, projectionLoop, renderContext)));
-    }
+
 
     private static InvocationExpressionSyntax CreateOptionalRowShardedReturnExpression(
         TableViaRowsResultInfo resultInfo,
@@ -772,30 +743,7 @@ public sealed partial class CSharpRenderer
             .WithBody(body);
     }
 
-    private static ObjectCreationExpressionSyntax CreateLifecycleRowsExpression(
-        string rowTypeName,
-        ExpressionSyntax rowsExpression,
-        IReadOnlyList<StatementSyntax> closingPhaseStatements)
-    {
-        return SyntaxFactory.ObjectCreationExpression(
-                SyntaxFactory.GenericName("QueryEnumerable")
-                    .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                            SyntaxFactory.ParseTypeName(rowTypeName)))))
-            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
-            [
-                SyntaxFactory.Argument(SyntaxFactory.ParenthesizedLambdaExpression(rowsExpression)
-                    .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("_")))))),
-                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
-                SyntaxFactory.Argument(CreateClosingAction(closingPhaseStatements))
-                    .WithNameColon(SyntaxFactory.NameColon("onCompleted")),
-                SyntaxFactory.Argument(CreateExceptionClosingAction(closingPhaseStatements))
-                    .WithNameColon(SyntaxFactory.NameColon("onException")),
-                SyntaxFactory.Argument(CreateClosingAction(closingPhaseStatements))
-                    .WithNameColon(SyntaxFactory.NameColon("onDisposed"))
-            ])));
-    }
+
 
     private static ParenthesizedLambdaExpressionSyntax CreateClosingAction(
         IReadOnlyList<StatementSyntax> closingPhaseStatements)

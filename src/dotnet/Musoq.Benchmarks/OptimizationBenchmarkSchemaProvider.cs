@@ -4,7 +4,8 @@ namespace Musoq.Benchmarks;
 
 public sealed class OptimizationBenchmarkSchemaProvider(
     IReadOnlyDictionary<string, IReadOnlyList<OptimizationBenchmarkEntity>> rowsBySchema,
-    OptimizationBenchmarkPlanningMode mode = OptimizationBenchmarkPlanningMode.RejectAll)
+    OptimizationBenchmarkPlanningMode mode = OptimizationBenchmarkPlanningMode.RejectAll,
+    OptimizationBenchmarkRecorder? recorder = null)
     : ISchemaProvider
 {
     public ISchema GetSchema(string schema)
@@ -15,7 +16,11 @@ public sealed class OptimizationBenchmarkSchemaProvider(
             throw new KeyNotFoundException($"No optimization benchmark schema rows registered for '{schema}'.");
         }
 
-        return new OptimizationBenchmarkSchema(NormalizeSchemaName(schema), rows, mode);
+        return new OptimizationBenchmarkSchema(
+            NormalizeSchemaName(schema),
+            rows,
+            mode,
+            recorder ?? new OptimizationBenchmarkRecorder());
     }
 
     private static string NormalizeSchemaName(string schema)

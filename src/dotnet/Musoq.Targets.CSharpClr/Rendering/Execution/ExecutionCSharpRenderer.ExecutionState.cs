@@ -10,9 +10,7 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private const string ExecutionStateVariableName = "__musoqExecutionState";
 
-    private IEnumerable<StatementSyntax> CreateExecutionStateDeclarations(
-        ExecutionPlan plan,
-        ExecutionRenderContext context)
+    private IEnumerable<StatementSyntax> CreateExecutionStateDeclarations(ExecutionPlan plan, ExecutionRenderContext context)
     {
         if (context.Session.IncludeTableResults)
             yield return CreateTableResultsLocalDeclaration(CountExecutionTableSlots(plan.Body));
@@ -24,7 +22,10 @@ public sealed partial class ExecutionCSharpRenderer
             yield return CreateObjectLocalDeclaration(CteIndexResultsFieldName, CreateCteIndexResultsTypeSyntax());
 
         yield return CreateExecutionStateLocalDeclaration(context);
+
     }
+
+    private IEnumerable<StatementSyntax> CreateLikeMatcherStateDeclarations(ExecutionPlan plan, ExecutionRenderContext context) => plan.Body.Nodes.OfType<ExecutionLet>().Where(ExecutionLikeMatcherSyntaxFactory.IsStateDeclaration).Select(declaration => RenderLet(declaration, context));
 
     private static LocalDeclarationStatementSyntax CreateTableResultsLocalDeclaration(int slotCount)
     {

@@ -47,6 +47,7 @@ public sealed class CompileTimeCancellationContractTests
         var key = SemanticTemplateCache.CreateKey(
             CreateSemanticCacheInput(query, provider, options),
             CancellationToken.None);
+        Assert.IsNotNull(key);
         Assert.IsTrue(key.HasValue);
         Assert.IsTrue(SemanticTemplateCache.TryGet(key.Value, CancellationToken.None, out var snapshot));
         Assert.IsNotEmpty(snapshot.SourcePlanRequestsPerSchema);
@@ -75,7 +76,9 @@ public sealed class CompileTimeCancellationContractTests
             CreateSemanticCacheInput(query, provider, options),
             secondCancellation.Token);
 
+        Assert.IsNotNull(first);
         Assert.IsTrue(first.HasValue);
+        Assert.IsNotNull(second);
         Assert.IsTrue(second.HasValue);
         Assert.AreEqual(first.Value, second.Value);
     }

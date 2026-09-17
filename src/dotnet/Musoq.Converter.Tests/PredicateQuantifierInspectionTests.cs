@@ -18,9 +18,13 @@ public class PredicateQuantifierInspectionTests
 
         Assert.Contains("Filter [(d.Dummy LIKE 'single%' OR 'fallback' LIKE 'single%')]", result.LogicalPlanText);
         Assert.Contains("PhysicalFilter [(d.Dummy LIKE 'single%' OR 'fallback' LIKE 'single%')]", result.PhysicalPlanText);
-        Assert.Contains("If [(dummy LIKE 'single%' OR 'fallback' LIKE 'single%')]", result.ExecutionPlanText);
+        Assert.Contains(
+            "If [(STRING_MATCH(dummy, pattern='single%', needle='single', kind=Prefix, comparison=LikeIgnoreCase) OR " +
+            "STRING_MATCH('fallback', pattern='single%', needle='single', kind=Prefix, comparison=LikeIgnoreCase))]",
+            result.ExecutionPlanText);
         AssertNoResidualQuantifier(result);
-        Assert.AreEqual(6, CountOccurrences(result.GeneratedCSharpCode, ".Like("));
+        Assert.AreEqual(6, CountOccurrences(result.GeneratedCSharpCode, ".StartsWith("));
+        Assert.Contains("STRING_MATCH", result.ExecutionPlanText);
     }
 
     [TestMethod]
@@ -30,9 +34,17 @@ public class PredicateQuantifierInspectionTests
 
         Assert.Contains("Filter [(NOT d.Dummy RLIKE '^blocked' AND NOT 'fallback' RLIKE '^blocked')]", result.LogicalPlanText);
         Assert.Contains("PhysicalFilter [(NOT d.Dummy RLIKE '^blocked' AND NOT 'fallback' RLIKE '^blocked')]", result.PhysicalPlanText);
-        Assert.Contains("If [(NOT dummy RLIKE '^blocked' AND NOT 'fallback' RLIKE '^blocked')]", result.ExecutionPlanText);
+        Assert.Contains(
+            "Let [__rlikeMatcher0: PreparedRLikeMatcher = PREPARE_RLIKE('^blocked', " +
+            "strategy=regex, anchors=none, literal-span=none, fallback=RegexMetacharacter)]",
+            result.ExecutionPlanText);
+        Assert.Contains(
+            "If [(NOT PREPARED_RLIKE(dummy, __rlikeMatcher0) AND NOT PREPARED_RLIKE('fallback', __rlikeMatcher0))]",
+            result.ExecutionPlanText);
         AssertNoResidualQuantifier(result);
-        Assert.AreEqual(6, CountOccurrences(result.GeneratedCSharpCode, ".RLike("));
+        Assert.AreEqual(1, CountOccurrences(result.GeneratedCSharpCode, "Operators.PrepareRLike("));
+        Assert.AreEqual(6, CountOccurrences(result.GeneratedCSharpCode, "Operators.RLikePrepared("));
+        Assert.DoesNotContain("new Musoq.Evaluator.Operators().RLike", result.GeneratedCSharpCode);
     }
 
     private QueryInspectionResult CreateInspection(string query)

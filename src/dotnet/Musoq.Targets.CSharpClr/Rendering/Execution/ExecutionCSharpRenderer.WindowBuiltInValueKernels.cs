@@ -408,23 +408,7 @@ public sealed partial class ExecutionCSharpRenderer
             $"            : {defaultValue};" + Environment.NewLine;
     }
 
-    private static string CreateFrameStartSource(
-        ExecutionWindowFrame frame,
-        string partitionIndex,
-        string partitionCount)
-    {
-        return CreateWindowAggregateFrameStartExpression(frame.Start, partitionIndex, partitionCount)
-            .NormalizeWhitespace()
-            .ToFullString();
-    }
 
-    private static string CreateFrameEndSource(
-        ExecutionWindowFrame frame,
-        string partitionIndex,
-        string partitionCount)
-    {
-        return CreateWindowAggregateFrameEndExpression(frame.End, partitionIndex, partitionCount)
-            .NormalizeWhitespace()
-            .ToFullString();
-    }
+
+
 }

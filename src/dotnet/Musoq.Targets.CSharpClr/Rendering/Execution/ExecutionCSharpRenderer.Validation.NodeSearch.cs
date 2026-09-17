@@ -4,12 +4,7 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static bool ContainsAggregateNode(ExecutionBlock block)
-    {
-        return ExecutionIrAnalysis.CollectNodes<ExecutionCreateAggregateContext>(block).Any() ||
-               ExecutionIrAnalysis.CollectNodes<ExecutionCreateSingleKeyAggregateContext>(block).Any() ||
-               ExecutionIrAnalysis.CollectNodes<ExecutionCreateValueTupleAggregateContext>(block).Any();
-    }
+
 
     private static bool ContainsNode<TNode>(ExecutionBlock block)
         where TNode : ExecutionNode

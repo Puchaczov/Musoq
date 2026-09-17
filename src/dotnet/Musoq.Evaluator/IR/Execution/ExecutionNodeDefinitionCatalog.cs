@@ -14,6 +14,7 @@ internal static class ExecutionNodeDefinitionCatalog
     private static IEnumerable<ExecutionNodeDefinition> CreateDefinitions()
     {
         yield return Definition<ExecutionSourceScan>("source.scan", ExecutionRendererNodeFamily.TableControlFlow);
+        yield return Definition<ExecutionPrepareStructuralInput>("structural.prepare", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionInterpretSource>("source.interpret", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionEnumerableSource>("source.enumerable", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionCreateTable>("table.create", ExecutionRendererNodeFamily.TableControlFlow);

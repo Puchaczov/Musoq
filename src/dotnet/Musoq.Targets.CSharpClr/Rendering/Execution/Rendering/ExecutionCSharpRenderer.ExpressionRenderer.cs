@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Tables;
 
 namespace Musoq.Targets.CSharpClr;
-
 public sealed partial class ExecutionCSharpRenderer
 {
     private sealed class ExpressionRenderer(ExecutionCSharpRenderer renderer, ExecutionRenderContext context)
@@ -12,6 +11,11 @@ public sealed partial class ExecutionCSharpRenderer
             expression switch
             {
                 ExecutionFieldRead fieldRead => renderer.RenderFieldRead(fieldRead, context),
+                ExecutionStructuralArray structuralArray => StructuralInputSyntaxFactory.RenderArray(structuralArray, context, renderer),
+                ExecutionStructuralRecord structuralRecord when structuralRecord.ConstructionPlan is { } plan => StructuralInputSyntaxFactory.RenderConstruction(structuralRecord, plan, context, renderer),
+                ExecutionStructuralRecord => throw UnsupportedShape.Of("Structural record rendering requires a construction plan.", "the C# backend"),
+                ExecutionStructuralConversion conversion => StructuralInputSyntaxFactory.RenderConversion(conversion, context, renderer),
+                ExecutionCteCollectionInput cteCollection => StructuralInputSyntaxFactory.RenderCteCollection(cteCollection, context, renderer),
                 ExecutionMemberRead memberRead => renderer.RenderMemberRead(memberRead, context),
                 ExecutionScriptParameterRead parameterRead => CreateIdentifierName(renderer.GetScriptParameterLocalName(parameterRead.Name)),
                 ExecutionScriptVariableRead variableRead => CreateIdentifierName(renderer.GetScriptVariableLocalName(variableRead.Name)),
@@ -30,6 +34,7 @@ public sealed partial class ExecutionCSharpRenderer
                 ExecutionInCheck inCheck => renderer.RenderInCheck(inCheck, context),
                 ExecutionCollectionInCheck collectionInCheck => renderer.RenderCollectionInCheck(collectionInCheck, context),
                 ExecutionPatternMatch patternMatch => renderer.RenderPatternMatch(patternMatch, context),
+                ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot => ExecutionLikeMatcherSyntaxFactory.Render(expression, Render, context.Session),
                 ExecutionBetween between => renderer.RenderBetween(between, context),
                 ExecutionCaseWhen caseWhen => renderer.RenderCaseWhen(caseWhen, context),
                 ExecutionCoalesce coalesce => renderer.RenderCoalesce(coalesce, context),

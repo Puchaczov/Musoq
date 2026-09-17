@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
-using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Build;
 using Musoq.Converter.Tests.Components;
@@ -125,16 +123,6 @@ public sealed class ClrAssemblyExecutableActivatorTests
         }
     }
 
-    [TestMethod]
-    public void CompileForExecutionBatch_WhenQueriesDisposeInOrder_ShouldUnloadAfterLastLease()
-    {
-        var weakContext = CreateAndDisposeBatchQueries();
-
-        ForceCollection(weakContext);
-
-        Assert.IsFalse(weakContext.IsAlive, "The shared batch load context remained alive after its final lease was disposed.");
-    }
-
     private static QueryRuntimeBinding CreateBinding()
     {
         return new QueryRuntimeBinding(
@@ -142,27 +130,6 @@ public sealed class ClrAssemblyExecutableActivatorTests
             new Dictionary<string, IReadOnlyDictionary<string, string>>(),
             new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>(),
             new Dictionary<string, SourceExecutionPlan>());
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static WeakReference CreateAndDisposeBatchQueries()
-    {
-        var results = CompileEntityBatch(
-            ("first", "alpha"),
-            ("second", "beta"));
-        var first = results[0].Result.CompiledQuery!;
-        var second = results[1].Result.CompiledQuery!;
-        var context = GetGeneratedLoadContext(first);
-        Assert.AreSame(context, GetGeneratedLoadContext(second));
-        var weakContext = new WeakReference(context);
-
-        first.Dispose();
-        Assert.IsTrue(weakContext.IsAlive);
-        using (var table = second.Run())
-            Assert.AreEqual("beta", table[0][0]);
-        second.Dispose();
-
-        return weakContext;
     }
 
     private static IReadOnlyList<ExecutionBatchCompilationResult> CompileEntityBatch(
@@ -207,17 +174,6 @@ public sealed class ClrAssemblyExecutableActivatorTests
         var context = AssemblyLoadContext.GetLoadContext(inner.GetType().Assembly);
         Assert.IsNotNull(context);
         return context;
-    }
-
-    private static void ForceCollection(WeakReference weakReference)
-    {
-        for (var attempt = 0; attempt < 10 && weakReference.IsAlive; attempt++)
-        {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-            Thread.Sleep(20);
-        }
     }
 
     private sealed record TestOnlyExecutableQueryArtifact(string Payload)

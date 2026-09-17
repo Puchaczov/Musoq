@@ -47,7 +47,7 @@ public partial class BinaryOrTextualSchemaFeaturesTests
                 inner join textRows t on b.BinaryId = t.TextId
                 union all (Label, Score)
                 select 'Alpha' as Label, ToInt32(0::Short) as Score
-                from values { { Marker: 1 } } marker
+                from values { ( Marker: 1 ) } marker
             )
             select c.Label,
                    Sum(c.Score) as TotalScore,

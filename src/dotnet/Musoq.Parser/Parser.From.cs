@@ -74,7 +74,7 @@ public partial class Parser
             if (!string.IsNullOrWhiteSpace(alias))
                 RegisterFromAlias(alias);
 
-            var fromNode = new AliasedFromNode(method.Name, method.Arguments, alias, _fromPosition, method.TypeParameter);
+            var fromNode = new AliasedFromNode(method.Name, method.Arguments, alias, _fromPosition, method.TypeParameter).WithMethodSpan(method.FunctionToken.Span);
             if (!aliasSpan.IsEmpty)
                 fromNode.WithSpan(aliasSpan);
             return ParsedSource.Create(fromNode, SourceKind.Function, sourceStart, sourceEndSpan, aliasResult);

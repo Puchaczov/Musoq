@@ -44,6 +44,13 @@ internal sealed partial class SourcePredicateExpressionComparer : IEqualityCompa
             SourcePredicateNullCheck leftNull when right is SourcePredicateNullCheck rightNull =>
                 leftNull.IsNegated == rightNull.IsNegated &&
                 Equals(leftNull.Expression, rightNull.Expression),
+            SourcePredicateStringMatch leftMatch when right is SourcePredicateStringMatch rightMatch =>
+                string.Equals(leftMatch.Column.Name, rightMatch.Column.Name, StringComparison.OrdinalIgnoreCase) &&
+                leftMatch.Kind == rightMatch.Kind &&
+                string.Equals(leftMatch.OriginalPattern, rightMatch.OriginalPattern, StringComparison.Ordinal) &&
+                string.Equals(leftMatch.Needle, rightMatch.Needle, StringComparison.Ordinal) &&
+                leftMatch.Comparison == rightMatch.Comparison &&
+                leftMatch.IsNegated == rightMatch.IsNegated,
             SourcePredicateFlags leftFlags when right is SourcePredicateFlags rightFlags =>
                 leftFlags.MatchMode == rightFlags.MatchMode &&
                 Equals(leftFlags.Expression, rightFlags.Expression) &&
@@ -51,5 +58,4 @@ internal sealed partial class SourcePredicateExpressionComparer : IEqualityCompa
             _ => false
         };
     }
-
 }

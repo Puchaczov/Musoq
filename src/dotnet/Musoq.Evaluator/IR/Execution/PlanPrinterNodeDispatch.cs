@@ -40,6 +40,9 @@ public static partial class ExecutionPlanPrinter
 
         switch (node)
         {
+            case ExecutionPrepareStructuralInput structuralInput:
+                builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}PrepareStructuralInput [{structuralInput.Target.Name}: {structuralInput.Plan.TargetType.DisplayName} <- {FormatExpression(structuralInput.Input)}; lifetime {structuralInput.Plan.Lifetime}; shape {structuralInput.Plan.InputShape.CanonicalType}]");
+                break;
             case ExecutionSourceScan sourceScan:
                 var sourceDescription =
                     $"{prefix}SourceScan [{sourceScan.Source.Name}: {FormatType(sourceScan.Source.Type)}] -> {sourceScan.Rows.Name}" +

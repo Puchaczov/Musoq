@@ -50,6 +50,9 @@ public sealed partial class ExecutionCSharpRenderer
         for (var index = 0; index < nodes.Count; index++)
         {
             var node = nodes[index];
+            if (node is ExecutionLet declaration && ExecutionLikeMatcherSyntaxFactory.IsStateDeclaration(declaration))
+                continue;
+
             if (hashBuildHelpersByIndex.TryGetValue(index, out var hashBuildHelper))
             {
                 FlushPendingMethodNodes(statements, pending, context);
@@ -218,10 +221,7 @@ public sealed partial class ExecutionCSharpRenderer
         }
     }
 
-    private static IDisposable SuppressChunkLoopCancellationChecks(ExecutionRenderContext context)
-    {
-        return new ChunkLoopCancellationCheckScope(context, false);
-    }
+
 
     private sealed class ChunkLoopCancellationCheckScope : IDisposable
     {

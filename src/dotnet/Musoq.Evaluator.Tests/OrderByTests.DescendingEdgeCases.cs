@@ -154,7 +154,6 @@ public partial class OrderByTests
     }
 
     [TestMethod]
-    [FeatureEvidence("set-result-modifiers", FeatureEvidenceKind.RuntimePositive)]
     public void WhenOrderByDescAfterUnion_ShouldOrderTheCombinedResult()
     {
         var query = @"

@@ -12,6 +12,13 @@ public static partial class ExecutionPlanPrinter
     {
         return expression switch
         {
+            ExecutionStructuralRecord structuralRecord => $"({string.Join(", ", structuralRecord.Fields.Select(field => $"{field.Name}: {FormatExpression(field.Value)}"))}){FormatLimitBinding(structuralRecord.LimitBinding)}",
+            ExecutionStructuralArray structuralArray => $"array {{ {FormatExpressionList(structuralArray.Elements)} }}{FormatLimitBinding(structuralArray.LimitBinding)}",
+            ExecutionStructuralConversion conversion => $"convert<{conversion.TargetType.DisplayName}>({FormatExpression(conversion.Input)}){FormatLimitBinding(conversion.LimitBinding)}",
+            ExecutionCteCollectionInput cteCollection =>
+                $"cte-input<{cteCollection.ElementType.DisplayName}>({cteCollection.CteName})" +
+                $" [ownership {cteCollection.Ownership}; lifetime {cteCollection.Lifetime}; metrics {cteCollection.MetricsStrategy}; " +
+                $"limits {FormatLimitBinding(cteCollection.LimitBinding)}]",
             ExecutionFieldRead fieldRead => string.IsNullOrEmpty(fieldRead.Alias)
                 ? fieldRead.FieldName
                 : $"{fieldRead.Alias}.{fieldRead.FieldName}",
@@ -36,6 +43,30 @@ public static partial class ExecutionPlanPrinter
             ExecutionInCheck inCheck => FormatInCheck(inCheck),
             ExecutionCollectionInCheck collectionInCheck => FormatCollectionInCheck(collectionInCheck),
             ExecutionPatternMatch patternMatch => FormatPatternMatch(patternMatch),
+            ExecutionStringMatch stringMatch => RLikeExecutionPlanFormatting.FormatStringMatch(
+                stringMatch,
+                FormatExpression(stringMatch.Input),
+                FormatLiteral(stringMatch.OriginalPattern),
+                FormatLiteral(stringMatch.Needle)),
+            ExecutionPrepareLikeMatcher prepareLike =>
+                $"PREPARE_LIKE({FormatExpression(prepareLike.Pattern)}, comparison={prepareLike.Comparison})",
+            ExecutionPreparedLikeMatch preparedLike =>
+                $"PREPARED_LIKE({FormatExpression(preparedLike.Input)}, {FormatExpression(preparedLike.Matcher)})",
+            ExecutionDynamicLikeMatch dynamicLike =>
+                $"DYNAMIC_LIKE({FormatExpression(dynamicLike.Input)}, {FormatExpression(dynamicLike.Pattern)}, " +
+                $"cache={FormatExpression(dynamicLike.CacheSlot)}, comparison={dynamicLike.Comparison})",
+            ExecutionLikeMatcherCacheSlot cacheSlot =>
+                $"LIKE_MATCHER_CACHE_SLOT(capacity=2, scope={(cacheSlot.WorkerLocal ? "parallel-worker" : "serial")})",
+            ExecutionPrepareRLikeMatcher prepareRLike => RLikeExecutionPlanFormatting.FormatPrepareMatcher(
+                prepareRLike,
+                FormatExpression(prepareRLike.Pattern)),
+            ExecutionPreparedRLikeMatch preparedRLike =>
+                $"PREPARED_RLIKE({FormatExpression(preparedRLike.Input)}, {FormatExpression(preparedRLike.Matcher)})",
+            ExecutionDynamicRLikeMatch dynamicRLike =>
+                $"DYNAMIC_RLIKE({FormatExpression(dynamicRLike.Input)}, {FormatExpression(dynamicRLike.Pattern)}, " +
+                $"cache={FormatExpression(dynamicRLike.CacheSlot)}, strategy=runtime-classified)",
+            ExecutionRLikeMatcherCacheSlot cacheSlot =>
+                $"RLIKE_MATCHER_CACHE_SLOT(capacity=2, scope={(cacheSlot.WorkerLocal ? "parallel-worker" : "serial")})",
             ExecutionBetween between => FormatBetween(between),
             ExecutionCaseWhen caseWhen => FormatCaseWhen(caseWhen),
             ExecutionCoalesce coalesce => FormatCoalesce(coalesce),
@@ -62,6 +93,9 @@ public static partial class ExecutionPlanPrinter
             _ => $"UnknownExpression({expression.GetType().Name})"
         };
     }
+
+    private static string FormatLimitBinding(ExecutionStructuralLimitBinding? binding) =>
+        binding == null ? string.Empty : $" [limits {binding.Limits}; origin {binding.Origin}; path {binding.Path}]";
 
     private static string FormatStoredTableRead(int tableIndex)
     {

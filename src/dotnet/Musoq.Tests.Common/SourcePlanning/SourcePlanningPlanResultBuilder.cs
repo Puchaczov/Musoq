@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Schema.Optimization;
 
 namespace Musoq.Tests.Common.SourcePlanning;
@@ -20,7 +21,8 @@ public static class SourcePlanningPlanResultBuilder
         string? strategyPropertyName = null,
         SourcePlanningExecutionStrategy? strategy = null,
         string? projectionWorkPropertyName = null,
-        bool projectionWork = false)
+        bool projectionWork = false,
+        SourcePredicateEvaluationPhase predicateApplicationPhase = SourcePredicateEvaluationPhase.RowFiltering)
     {
         ArgumentNullException.ThrowIfNull(request);
         var properties = CreateProperties(
@@ -40,6 +42,9 @@ public static class SourcePlanningPlanResultBuilder
                 Identity = request.Identity,
                 AcceptedColumns = planAcceptedColumns,
                 AcceptedPredicate = planAcceptedPredicate,
+                PredicateApplications = CreatePredicateApplications(
+                    planAcceptedPredicate,
+                    predicateApplicationPhase),
                 AcceptedOrderBy = acceptedOrderBy,
                 AcceptedSkip = acceptedSkip,
                 AcceptedTake = acceptedTake,
@@ -95,6 +100,18 @@ public static class SourcePlanningPlanResultBuilder
         return left == null
             ? logical.Right
             : logical with { Left = left };
+    }
+
+    private static IReadOnlyList<SourcePredicateApplication> CreatePredicateApplications(
+        SourcePredicateExpression? predicate,
+        SourcePredicateEvaluationPhase phase)
+    {
+        var applications = SourcePredicateApplication.ForRowFiltering(predicate);
+        return phase == SourcePredicateEvaluationPhase.RowFiltering
+            ? applications
+            : applications
+                .Select(application => new SourcePredicateApplication(application.Predicate, phase))
+                .ToArray();
     }
 
     private static Dictionary<string, object?> CreateProperties(

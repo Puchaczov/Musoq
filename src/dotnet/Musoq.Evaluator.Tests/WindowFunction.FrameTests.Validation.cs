@@ -134,7 +134,6 @@ public partial class WindowFunctionFrameTests
     }
 
     [TestMethod]
-    [FeatureEvidence("range-window-frames", FeatureEvidenceKind.RuntimeNegativeDiagnostic)]
     public void WhenRangeFrameWithoutOrderBy_ShouldThrowMQ3052()
     {
         const string query = @"

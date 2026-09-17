@@ -116,7 +116,6 @@ public partial class WindowFunctionFrameTests
     }
 
     [TestMethod]
-    [FeatureEvidence("range-window-frames", FeatureEvidenceKind.RuntimePositive)]
     public void WhenRangeWithTiedValues_ShouldIncludeCompletePeerGroup()
     {
         var query = @"

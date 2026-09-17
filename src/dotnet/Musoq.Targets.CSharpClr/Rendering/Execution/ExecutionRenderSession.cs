@@ -36,6 +36,7 @@ internal sealed class ExecutionRenderSession
     internal Dictionary<int, int> StoredGeneratedRowsLoopNameCounts { get; set; } = [];
     internal int ChunkedLoopBreakTargetCount { get; set; }
     internal int EnumIntrinsicPatternCount { get; set; }
+    internal int StringMatchPatternCount { get; set; }
     internal bool IncludeCteIndexResults { get; set; }
     internal bool IncludeCteRowResults { get; set; }
     internal bool IncludeTableResults { get; set; } = true;

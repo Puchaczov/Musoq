@@ -97,7 +97,7 @@ public partial class Parser
 
     private CteExpressionNode ComposeCteExpression()
     {
-        Consume(TokenType.With);
+        var withToken = ConsumeAndGetToken(TokenType.With);
         var recursiveToken = IsContextualRecursiveKeyword() ? ConsumeAndGetToken() : null;
         var isRecursive = recursiveToken != null && Current.TokenType is not TokenType.As and not TokenType.LeftParenthesis;
 
@@ -147,7 +147,7 @@ public partial class Parser
 
             var outerSets = ComposeSetOperators(0);
 
-            return new CteExpressionNode(expressions.ToArray(), outerSets, isRecursive);
+            return (CteExpressionNode)new CteExpressionNode(expressions.ToArray(), outerSets, isRecursive).WithSpan(withToken.Span.Through(outerSets.Span));
         }
         finally
         {

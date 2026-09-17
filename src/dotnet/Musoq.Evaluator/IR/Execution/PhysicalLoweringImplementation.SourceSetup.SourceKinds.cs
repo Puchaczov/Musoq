@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Execution;
@@ -84,13 +85,33 @@ internal sealed partial class PhysicalLoweringImplementation
             var rowValues = rowShape.Fields
                 .Select(field => new ExecutionRowValue(
                     field.Name,
-                    ExecutionExpressionConverter.Convert(fields[field.Name].Value, RowShapeLookup.EmptySourceShapeLookup())))
+                    ExecutionExpressionConverter.Convert(
+                        FindValuesField(fields, field).Value,
+                        RowShapeLookup.EmptySourceShapeLookup())))
                 .ToArray();
 
             rows.Add(rowValues);
         }
 
         return rows;
+    }
+
+    private static ValuesScanField FindValuesField(
+        IReadOnlyDictionary<string, ValuesScanField> fields,
+        FieldBinding generatedField)
+    {
+        if (fields.TryGetValue(generatedField.Name, out var field))
+            return field;
+
+        var separator = generatedField.QualifiedName.LastIndexOf('.');
+        var unqualifiedName = separator >= 0
+            ? generatedField.QualifiedName[(separator + 1)..]
+            : generatedField.QualifiedName;
+        if (fields.TryGetValue(unqualifiedName, out field))
+            return field;
+
+        throw new InvalidOperationException(
+            $"VALUES field '{generatedField.Name}' has no authored value. Available: {string.Join(",", fields.Keys)}; qualified={generatedField.QualifiedName}.");
     }
 
     private string? ResolvePropertyEnumerableTypeName(PhysicalPropertySourceNode property)

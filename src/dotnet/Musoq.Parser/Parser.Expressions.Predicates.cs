@@ -80,7 +80,7 @@ public partial class Parser
     {
         Consume(operatorType);
         ThrowIfMissingRightOperand(Previous!.Value);
-        var right = ComposeBaseTypes();
+        var right = ComposeArithmeticExpression(0);
         if (left is AccessMethodNode quantifier
             && string.IsNullOrEmpty(quantifier.Alias)
             && IsPredicateQuantifierName(quantifier.Name))
@@ -253,9 +253,9 @@ public partial class Parser
                 args.Add(ComposeEqualityOperators());
             } while (Current.TokenType == TokenType.Comma);
 
-        Consume(TokenType.RightParenthesis);
+        var closingValueListParenthesis = ConsumeAndGetToken(TokenType.RightParenthesis);
 
-        return new InNode(left, new ArgsListNode(args.ToArray()));
+        return new InNode(left, new ArgsListNode(args.ToArray())).WithSpan(left.Span.Through(closingValueListParenthesis.Span));
     }
 
     private Node ComposeExistsPredicateOrIdentifier()
@@ -282,7 +282,10 @@ public partial class Parser
 
     private Node ComposeParenthesizedExpressionOrScalarSubquery()
     {
-        Consume(TokenType.LeftParenthesis);
+        var opening = ConsumeAndGetToken(TokenType.LeftParenthesis);
+
+        if (IsRecordLiteralStart())
+            return ComposeRecordLiteral(opening);
 
         if (Current.TokenType == TokenType.Select || Current.TokenType == TokenType.From || Current.TokenType == TokenType.Pivot || Current.TokenType == TokenType.Unpivot)
         {

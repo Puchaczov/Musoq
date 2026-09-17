@@ -33,7 +33,10 @@ public class UnknownColumnOrAliasException : Exception, IDiagnosticException
     ///     Initializes a new instance of UnknownColumnOrAliasException with diagnostic information.
     /// </summary>
     public UnknownColumnOrAliasException(string columnName, string context, TextSpan span)
-        : base($"Unknown column or alias '{columnName}'{(string.IsNullOrEmpty(context) ? "" : $" {context}")}.")
+        : base(
+            $"Unknown column or alias {DiagnosticSafety.QuoteForDisplay(columnName)}" +
+            (string.IsNullOrEmpty(context) ? string.Empty : $" {DiagnosticSafety.SanitizeForDisplay(context)}") +
+            ".")
     {
         ColumnName = columnName;
         Code = DiagnosticCode.MQ3001_UnknownColumn;

@@ -6,10 +6,7 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    internal IDisposable EnterTypedSinkRendering(ExecutionPlan plan)
-    {
-        return EnterTypedSinkRenderContext(plan);
-    }
+
 
     internal RenderContextScope EnterTypedSinkRenderContext(ExecutionPlan plan)
     {
@@ -23,10 +20,7 @@ public sealed partial class ExecutionCSharpRenderer
         return new RenderContextScope(new TypedSinkRenderingScope(this, plan, useQueryRunContext));
     }
 
-    internal IDisposable EnterQueryRunContextRendering()
-    {
-        return EnterQueryRunContextRenderContext();
-    }
+
 
     internal RenderContextScope EnterQueryRunContextRenderContext()
     {
@@ -68,8 +62,12 @@ public sealed partial class ExecutionCSharpRenderer
             queryIdentifier: plan.Identifier));
 
         statements.AddRange(CreateExecutionStateDeclarations(plan, context));
-        statements.AddRange(CreateScriptParameterBindingStatements());
-        statements.AddRange(CreateScriptVariableBindingStatements());
+        if (!_renderOptions.IsMetadataOnly)
+        {
+            statements.AddRange(CreateScriptParameterBindingStatements());
+            statements.AddRange(CreateScriptVariableBindingStatements());
+        }
+        statements.AddRange(CreateLikeMatcherStateDeclarations(plan, context));
         statements.AddRange(CollectMethodCallCaches(plan.Body)
             .Select(cache => RenderCreateObject(new ExecutionCreateObject(cache))));
 

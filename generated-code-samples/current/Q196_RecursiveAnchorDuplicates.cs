@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive numbers (Id) as (select Id from values {{ Id: 1 }, { Id: 1 }} seed union select n.Id + 1 from numbers n where n.Id < 2) select Id from numbers order by Id
+with recursive numbers (Id) as (select Id from values {( Id: 1 ), ( Id: 1 )} seed union select n.Id + 1 from numbers n where n.Id < 2) select Id from numbers order by Id
 */
 
 // === Logical Plan ===

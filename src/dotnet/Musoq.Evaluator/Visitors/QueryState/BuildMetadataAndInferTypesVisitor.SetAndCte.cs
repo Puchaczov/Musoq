@@ -73,14 +73,14 @@ public partial class BuildMetadataAndInferTypesVisitor
         for (var i = node.InnerExpression.Length - 1; i >= 0; --i)
             sets[i] = (CteInnerExpressionNode)PopSemanticNode();
 
-        PushSemanticNode(new CteExpressionNode(sets, set, node.IsRecursive));
+        PushSemanticNode(new CteExpressionNode(sets, set, node.IsRecursive).CopySpansFrom(node));
     }
 
     public override void Visit(CteInnerExpressionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var set = PopSemanticNode();
-
+        if (DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, node.Value)) _diagnosticRecoveryCteNames.Add(node.Name);
         var collector = new GetSelectFieldsVisitor(ResolveEnumTypeOrNull);
         var traverser = new GetSelectFieldsTraverseVisitor(collector);
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Musoq.Parser.Diagnostics;
 
@@ -34,27 +35,42 @@ public sealed class MusoqErrorEnvelope
         IReadOnlyList<DiagnosticRelatedLocation>? relatedLocations = null,
         string? correlationId = null)
     {
+        var resolvedSourceKind = sourceKind ?? DiagnosticSourceKindMapping.FromCode(code);
+        var providerOwned = resolvedSourceKind == DiagnosticSourceKind.DataSource;
+        var inputSuggestedFixes = suggestedFixes ?? Array.Empty<string>();
+        var inputActions = actions ?? Array.Empty<DiagnosticAction>();
+        var inputArguments = arguments ?? new Dictionary<string, string>(StringComparer.Ordinal);
+        var inputRelatedLocations = relatedLocations ?? Array.Empty<DiagnosticRelatedLocation>();
+
         Code = code;
         Severity = severity;
         Phase = phase;
-        Message = message ?? throw new ArgumentNullException(nameof(message));
+        Message = message == null
+            ? throw new ArgumentNullException(nameof(message))
+            : providerOwned ? DiagnosticSafety.SanitizeForDisplay(message) : message;
         Line = line;
         Column = column;
         Length = length;
-        Snippet = snippet;
-        Explanation = explanation;
-        SuggestedFixes = suggestedFixes ?? Array.Empty<string>();
-        DocsReference = docsReference;
-        Details = details;
-        Actions = actions ?? Array.Empty<DiagnosticAction>();
-        SourceKind = sourceKind ?? DiagnosticSourceKindMapping.FromCode(code);
+        Snippet = providerOwned ? SanitizeOptionalProviderText(snippet) : snippet;
+        Explanation = providerOwned ? SanitizeOptionalProviderText(explanation) : explanation;
+        SuggestedFixes = providerOwned
+            ? inputSuggestedFixes.Select(DiagnosticSafety.SanitizeForDisplay).ToArray()
+            : inputSuggestedFixes;
+        DocsReference = providerOwned ? SanitizeOptionalProviderText(docsReference) : docsReference;
+        Details = providerOwned ? SanitizeOptionalProviderText(details) : details;
+        Actions = providerOwned
+            ? inputActions.Select(SanitizeAction).ToArray()
+            : inputActions;
+        SourceKind = resolvedSourceKind;
         Offset = offset;
         EndOffset = endOffset;
         EndLine = endLine;
         EndColumn = endColumn;
-        Arguments = arguments ?? new Dictionary<string, string>(StringComparer.Ordinal);
-        RelatedLocations = relatedLocations ?? Array.Empty<DiagnosticRelatedLocation>();
-        CorrelationId = correlationId;
+        Arguments = providerOwned ? SanitizeArguments(inputArguments) : inputArguments;
+        RelatedLocations = providerOwned
+            ? inputRelatedLocations.Select(SanitizeRelatedLocation).ToArray()
+            : inputRelatedLocations;
+        CorrelationId = providerOwned ? SanitizeOptionalProviderText(correlationId) : correlationId;
     }
 
     /// <summary>Stable error code (e.g., MQ3022).</summary>
@@ -137,12 +153,12 @@ public sealed class MusoqErrorEnvelope
         var docsRef = diagnostic.DocsReference
                       ?? metadata?.DocsReference;
 
-        var fixes = BuildSuggestedFixes(diagnostic, metadata);
+        var fixes = BuildSuggestedFixes(diagnostic, metadata, queryText);
         var actions = diagnostic.SuggestedFixes.Count > 0
-            ? diagnostic.SuggestedFixes
+            ? DiagnosticSafety.SanitizeActions(diagnostic, queryText)
             : DiagnosticDescriptorRegistry.Get(diagnostic.Code)?.DefaultActions ?? [];
 
-        string? snippet = diagnostic.ContextSnippet;
+        string? snippet = DiagnosticSafety.GetSafeSnippet(diagnostic, queryText);
         var hasLocation = diagnostic.Location.IsValid;
         var hasEndLocation = diagnostic.EndLocation.IsValid;
         var spanLength = hasLocation && hasEndLocation && diagnostic.EndLocation.Offset >= diagnostic.Location.Offset
@@ -155,7 +171,8 @@ public sealed class MusoqErrorEnvelope
             var snippetSpan = hasEndLocation && diagnostic.EndLocation.Offset >= diagnostic.Location.Offset
                 ? diagnostic.Span
                 : new TextSpan(diagnostic.Location.Offset, 0);
-            snippet = sourceText.GetContextSnippet(snippetSpan);
+            snippet = DiagnosticSafety.GetSafeSnippet(diagnostic, queryText) ??
+                      sourceText.GetContextSnippet(snippetSpan);
         }
 
         int? line = hasLocation ? diagnostic.Location.Line : null;
@@ -169,12 +186,12 @@ public sealed class MusoqErrorEnvelope
             diagnostic.Code,
             diagnostic.Severity,
             diagnostic.Phase,
-            diagnostic.Message,
+            DiagnosticSafety.SanitizeText(diagnostic.Message, diagnostic, queryText) ?? string.Empty,
             line,
             column,
             spanLength,
             snippet,
-            explanation,
+            DiagnosticSafety.SanitizeText(explanation, diagnostic, queryText),
             fixes,
             docsRef,
             details: null,
@@ -184,8 +201,8 @@ public sealed class MusoqErrorEnvelope
             endOffset: endOffset,
             endLine: endLine,
             endColumn: endColumn,
-            arguments: diagnostic.Arguments,
-            relatedLocations: diagnostic.RelatedLocations,
+            arguments: DiagnosticSafety.SanitizeArguments(diagnostic, queryText),
+            relatedLocations: DiagnosticSafety.SanitizeRelatedLocations(diagnostic, queryText),
             correlationId: diagnostic.CorrelationId);
     }
 
@@ -237,12 +254,15 @@ public sealed class MusoqErrorEnvelope
         return FromException(exception, queryText, includeSensitiveDetails: true);
     }
 
-    private static string[] BuildSuggestedFixes(Diagnostic diagnostic, ErrorMetadata? metadata)
+    private static string[] BuildSuggestedFixes(
+        Diagnostic diagnostic,
+        ErrorMetadata? metadata,
+        string? queryText)
     {
         var fixes = new List<string>();
 
         foreach (var fix in diagnostic.SuggestedFixes)
-            fixes.Add(fix.Title);
+            fixes.Add(DiagnosticSafety.SanitizeText(fix.Title, diagnostic, queryText) ?? string.Empty);
 
         if (fixes.Count == 0 && metadata?.SuggestedFixes != null)
             fixes.AddRange(metadata.SuggestedFixes);
@@ -250,8 +270,48 @@ public sealed class MusoqErrorEnvelope
         return fixes.ToArray();
     }
 
+    private static DiagnosticAction SanitizeAction(DiagnosticAction action)
+    {
+        return new DiagnosticAction(
+            DiagnosticSafety.SanitizeForDisplay(action.Title),
+            action.Kind,
+            action.TextEdit == null
+                ? null
+                : new TextEdit(
+                    action.TextEdit.Span,
+                    DiagnosticSafety.SanitizeForDisplay(action.TextEdit.NewText)));
+    }
+
+    private static DiagnosticRelatedLocation SanitizeRelatedLocation(
+        DiagnosticRelatedLocation location)
+    {
+        return new DiagnosticRelatedLocation(
+            location.Location,
+            location.EndLocation,
+            SanitizeOptionalProviderText(location.Message),
+            location.SourceKind);
+    }
+
+    private static string? SanitizeOptionalProviderText(string? value)
+    {
+        return value == null ? null : DiagnosticSafety.SanitizeForDisplay(value);
+    }
+
+    private static IReadOnlyDictionary<string, string> SanitizeArguments(
+        IReadOnlyDictionary<string, string> arguments)
+    {
+        var sanitized = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var argument in arguments)
+        {
+            sanitized[DiagnosticSafety.SanitizeForDisplay(argument.Key)] =
+                DiagnosticSafety.SanitizeForDisplay(argument.Value);
+        }
+
+        return sanitized;
+    }
+
     private static string? GetExceptionDetails(Exception exception)
     {
-        return exception.InnerException?.Message ?? exception.StackTrace;
+        return exception.InnerException?.Message ?? exception.Message ?? exception.StackTrace;
     }
 }

@@ -44,19 +44,25 @@ public sealed class PredicateAdvisoryTests
     }
 
     [TestMethod]
-    public void ConstantConditionsAndColumnProofs_ReportOneSpecificWarning()
+    public void ConstantConditionsAndColumnProofs_RespectConservativeProofBoundaries()
     {
         var constantTrue = Analyze("select Name from #A.Entities() where 1 = 1");
         var constantFalse = Analyze("select Name from #A.Entities() where 1 = 2");
         var conflictingEquality = Analyze("select Name from #A.Entities() where Population = 1 and Population = 2");
         var conflictingRange = Analyze("select Name from #A.Entities() where Population > 10 and Population < 5");
         var complementaryNull = Analyze("select Name from #A.Entities() where Population is null or Population is not null");
+        var contradictoryNull = Analyze("select Name from #A.Entities() where Population is null and Population is not null");
 
         AssertCode(constantTrue, DiagnosticCode.MQ5010_TautologicalCondition);
         AssertCode(constantFalse, DiagnosticCode.MQ5011_ContradictoryCondition);
         AssertCode(conflictingEquality, DiagnosticCode.MQ5011_ContradictoryCondition);
         AssertCode(conflictingRange, DiagnosticCode.MQ5011_ContradictoryCondition);
-        AssertCode(complementaryNull, DiagnosticCode.MQ5010_TautologicalCondition);
+        Assert.IsFalse(complementaryNull.Warnings.Any(static item =>
+            item.Code == DiagnosticCode.MQ5010_TautologicalCondition ||
+            item.Code == DiagnosticCode.MQ5011_ContradictoryCondition));
+        Assert.IsFalse(contradictoryNull.Warnings.Any(static item =>
+            item.Code == DiagnosticCode.MQ5010_TautologicalCondition ||
+            item.Code == DiagnosticCode.MQ5011_ContradictoryCondition));
     }
 
     [TestMethod]
@@ -94,7 +100,7 @@ public sealed class PredicateAdvisoryTests
     [TestMethod]
     public void CrossJoin_ShouldNotAnalyzeSyntheticTrueAsAnOnPredicate()
     {
-        var result = Analyze("select r.Id, marker.Label from values { { Id: 1 } } r cross join values { { Label: 'x' } } marker");
+        var result = Analyze("select r.Id, marker.Label from values { ( Id: 1 ) } r cross join values { ( Label: 'x' ) } marker");
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
         Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5010_TautologicalCondition));

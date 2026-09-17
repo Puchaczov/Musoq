@@ -14,7 +14,7 @@ public static partial class EvaluationHelper
         new(RuntimeCacheOptions.DynamicAccessorCacheSize);
     private static readonly object MissingNestedValue = new();
 
-    internal static void ClearNestedValueAccessorCache() => NestedValueAccessors.Clear();
+
 
     internal static int GetNestedValueAccessorCacheCount(Type type)
     {

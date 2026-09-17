@@ -116,7 +116,7 @@ public sealed partial class ExecutionCSharpRenderer
         {
             typedRowBufferVariables[table.Name] = rowShape;
         }
-        else if (TypedStoredTableResultResolver.TryGetParallelTaskResultTable(task, out table))
+        else if (StoredTableBuildDiscovery.TryGetParallelTaskResultTable(task, out table))
         {
             typedRowBufferVariables.Remove(table.Name);
         }
@@ -161,7 +161,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         return task.RelatedTableIndex is { } tableIndex &&
                context.Session.TypedStoredTableResults.TryGetValue(tableIndex, out var typedResult) &&
-               TypedStoredTableResultResolver.TryGetParallelTaskResultTable(task, out table) &&
+               StoredTableBuildDiscovery.TryGetParallelTaskResultTable(task, out table) &&
                (rowShape = typedResult.RowShape) != null;
     }
 

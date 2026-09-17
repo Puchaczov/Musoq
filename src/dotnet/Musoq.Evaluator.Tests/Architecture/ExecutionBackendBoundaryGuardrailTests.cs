@@ -1029,6 +1029,8 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
         var detailsText = File.ReadAllText(detailsFile);
         StringAssert.Contains(detailsText, "TargetSourceAccessAbiDetails");
         StringAssert.Contains(detailsText, "TargetPluginInvocationAbiDetails");
+        StringAssert.Contains(detailsText, "TargetLikeMatcherAbiDetails");
+        StringAssert.Contains(detailsText, "TargetRLikeMatcherAbiDetails");
         Assert.IsFalse(detailsText.Contains("TargetClrOnlySymbolAbiDetails", StringComparison.Ordinal));
         StringAssert.Contains(File.ReadAllText(inventoryFile), "CreateCustom");
         StringAssert.Contains(detailsText, "ExecutionPortableSymbolPortability? SourcePortability");
@@ -1043,6 +1045,8 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
         StringAssert.Contains(builderText, "TargetHostAbiImportKind.PluginInvocation");
         StringAssert.Contains(builderText, "new TargetSourceAccessAbiDetails");
         StringAssert.Contains(builderText, "new TargetPluginInvocationAbiDetails");
+        StringAssert.Contains(builderText, "new TargetLikeMatcherAbiDetails");
+        StringAssert.Contains(builderText, "new TargetRLikeMatcherAbiDetails");
         Assert.IsFalse(File.Exists(Path.Combine(
             repositoryRoot,
             "src",

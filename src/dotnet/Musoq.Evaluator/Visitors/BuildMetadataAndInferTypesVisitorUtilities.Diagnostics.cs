@@ -27,7 +27,8 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
         var resolved = new FieldNode[leftFields.Length];
 
         for (var i = 0; i < leftFields.Length; i++)
-            resolved[i] = leftFields[i].Expression.ReturnType is NullNode.NullType
+            resolved[i] = leftFields[i].Expression is NullNode ||
+                          leftFields[i].Expression.ReturnType is NullNode.NullType
                 ? rightFields[i]
                 : leftFields[i];
 

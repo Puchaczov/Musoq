@@ -142,10 +142,6 @@ public static partial class InstanceCreator
                     {
                         FinalizeBatchGroup(group, results, batchId, compatibilityGroupCount, cancellationToken);
                     }
-                    catch (OperationCanceledException)
-                    {
-                        throw;
-                    }
                     finally
                     {
                         ExecutionBatchFinalizationBudget.Release();

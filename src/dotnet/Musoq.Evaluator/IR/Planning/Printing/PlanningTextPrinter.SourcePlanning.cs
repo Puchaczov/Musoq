@@ -38,6 +38,8 @@ internal static partial class PlanningTextPrinter
         {
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      source plan requested: columns={FormatColumnRefs(request.RequiredColumns)}, orderBy={request.OrderBy.Count}, skip={FormatHintValue(request.Skip)}, take={FormatHintValue(request.Take)}, predicate={FormatPredicate(request.Predicate)}");
             AppendSourceCapabilityDiagnostics(builder, request, plan);
+            if (sourcePlanning.SourceDescriptorsBySourceId.TryGetValue(sourceContextId, out var descriptor))
+                AppendSourceStringMatchDiagnostics(builder, request.Predicate, plan, descriptor.PredicateCapabilities);
         }
 
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      source plan accepted: columns={FormatColumnRefs(plan.AcceptedColumns)}, orderBy={plan.AcceptedOrderBy.Count}, skip={FormatHintValue(plan.AcceptedSkip)}, take={FormatHintValue(plan.AcceptedTake)}, predicate={FormatPredicate(plan.AcceptedPredicate)}");

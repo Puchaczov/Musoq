@@ -49,6 +49,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 field.OutputIndex,
                 resultType,
                 isNullable ? FieldNullability.Nullable : FieldNullability.Unknown,
+                field.Expression.EnumType,
                 matchedValue,
                 unmatchedValue));
         }
@@ -87,26 +88,6 @@ internal sealed partial class PhysicalLoweringImplementation
             defaults.TryGetValue(fieldRead.FieldName, out var value)
                 ? value
                 : null).RewriteExpression(expression);
-    }
-
-    private static GeneratedRowShape CreateNullExtendedGeneratedShape(
-        string typeName,
-        IReadOnlyList<NullExtendedProjectedValue> fields,
-        IReadOnlyDictionary<string, RowShape> sourceLookup,
-        string nullAlias)
-    {
-        var usedFieldNames = new HashSet<string>(StringComparer.Ordinal);
-
-        return new GeneratedRowShape(
-            typeName,
-            fields.Select(field => new FieldBinding(
-                field.OutputName,
-                field.OutputName,
-                field.OutputIndex,
-                field.ResultType,
-                field.Nullability,
-                new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)))).ToArray(),
-            CreateContextBindings(sourceLookup, [nullAlias]));
     }
 
     private static FullOuterNullExtendedProjectionBuildResult CreateFullOuterNullExtendedProjection(
@@ -153,6 +134,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 field.OutputIndex,
                 resultType,
                 isNullable ? FieldNullability.Nullable : FieldNullability.Unknown,
+                field.Expression.EnumType,
                 matchedValue,
                 leftOnlyValue,
                 rightOnlyValue));
@@ -191,27 +173,6 @@ internal sealed partial class PhysicalLoweringImplementation
             matchedAppendRow,
             leftOnlyAppendRow,
             rightOnlyAppendRow);
-    }
-
-    private static GeneratedRowShape CreateFullOuterNullExtendedGeneratedShape(
-        string typeName,
-        IReadOnlyList<FullOuterNullExtendedProjectedValue> fields,
-        IReadOnlyDictionary<string, RowShape> sourceLookup,
-        string leftAlias,
-        string rightAlias)
-    {
-        var usedFieldNames = new HashSet<string>(StringComparer.Ordinal);
-
-        return new GeneratedRowShape(
-            typeName,
-            fields.Select(field => new FieldBinding(
-                field.OutputName,
-                field.OutputName,
-                field.OutputIndex,
-                field.ResultType,
-                field.Nullability,
-                new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)))).ToArray(),
-            CreateContextBindings(sourceLookup, [leftAlias, rightAlias]));
     }
 
     private static ExecutionAppendRow CreateFullOuterNullExtendedAppendRow(

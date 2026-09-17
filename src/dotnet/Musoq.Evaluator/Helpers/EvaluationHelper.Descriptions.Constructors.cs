@@ -3,6 +3,7 @@ using System.Linq;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Visitors;
 using Musoq.Schema.Reflection;
+using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.Helpers;
 
@@ -29,7 +30,7 @@ public static partial class EvaluationHelper
             {
                 var param = signature.Parameters[index];
                 var suffix = param.HasDefaultValue
-                    ? $" = {SchemaSourceDefaultFormatter.Format(param.DefaultValue)}"
+                    ? $" = {StructuralSqlLiteralFormatter.Format(param.DefaultValue)}"
                     : string.Empty;
                 row.Add($"{param.Name}: {param.ParameterType.FullName}{suffix}");
             }

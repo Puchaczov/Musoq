@@ -77,36 +77,36 @@ public sealed partial class RewriteQueryVisitor
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
-        Nodes.Push(new CoalesceNode(left, right, node.ReturnType));
+        Nodes.Push(new CoalesceNode(left, right, node.ReturnType).CopySpansFrom(node));
     }
 
     public void Visit(ArrayIndexNode node)
     {
         var index = Nodes.Pop();
         var array = Nodes.Pop();
-        Nodes.Push(new ArrayIndexNode(array, index));
+        Nodes.Push(new ArrayIndexNode(array, index).CopySpansFrom(node));
     }
 
     public void Visit(AndNode node)
     {
-        LogicalOperationVisitorHelper.ProcessAndOperation(Nodes, QueryRewriteUtilities.RewriteNullableBoolExpressions);
+        LogicalOperationVisitorHelper.ProcessAndOperation(Nodes, QueryRewriteUtilities.RewriteNullableBoolExpressions, node.Span);
     }
 
     public void Visit(OrNode node)
     {
-        LogicalOperationVisitorHelper.ProcessOrOperation(Nodes, QueryRewriteUtilities.RewriteNullableBoolExpressions);
+        LogicalOperationVisitorHelper.ProcessOrOperation(Nodes, QueryRewriteUtilities.RewriteNullableBoolExpressions, node.Span);
     }
 
     public void Visit(EqualityNode node)
     {
-        ComparisonOperationVisitorHelper.ProcessEqualityOperation(Nodes);
+        ComparisonOperationVisitorHelper.ProcessEqualityOperation(Nodes, node.Span);
     }
 
     public void Visit(IsDistinctFromNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
-        Nodes.Push(new IsDistinctFromNode(left, right, node.IsNegated));
+        Nodes.Push(new IsDistinctFromNode(left, right, node.IsNegated).CopySpansFrom(node));
     }
 
     public void Visit(ShortCircuitingNodeLeft node)
@@ -123,54 +123,54 @@ public sealed partial class RewriteQueryVisitor
 
     public void Visit(GreaterOrEqualNode node)
     {
-        ComparisonOperationVisitorHelper.ProcessGreaterOrEqualOperation(Nodes);
+        ComparisonOperationVisitorHelper.ProcessGreaterOrEqualOperation(Nodes, node.Span);
     }
 
     public void Visit(LessOrEqualNode node)
     {
-        ComparisonOperationVisitorHelper.ProcessLessOrEqualOperation(Nodes);
+        ComparisonOperationVisitorHelper.ProcessLessOrEqualOperation(Nodes, node.Span);
     }
 
     public void Visit(GreaterNode node)
     {
-        ComparisonOperationVisitorHelper.ProcessGreaterOperation(Nodes);
+        ComparisonOperationVisitorHelper.ProcessGreaterOperation(Nodes, node.Span);
     }
 
     public void Visit(LessNode node)
     {
-        ComparisonOperationVisitorHelper.ProcessLessOperation(Nodes);
+        ComparisonOperationVisitorHelper.ProcessLessOperation(Nodes, node.Span);
     }
 
     public void Visit(DiffNode node)
     {
-        ComparisonOperationVisitorHelper.ProcessDiffOperation(Nodes);
+        ComparisonOperationVisitorHelper.ProcessDiffOperation(Nodes, node.Span);
     }
 
     public void Visit(NotNode node)
     {
-        LogicalOperationVisitorHelper.ProcessNotOperation(Nodes);
+        LogicalOperationVisitorHelper.ProcessNotOperation(Nodes, node.Span);
     }
 
     public void Visit(LikeNode node)
     {
-        ComparisonOperationVisitorHelper.ProcessLikeOperation(Nodes);
+        ComparisonOperationVisitorHelper.ProcessLikeOperation(Nodes, node.Span);
     }
 
     public void Visit(RLikeNode node)
     {
-        ComparisonOperationVisitorHelper.ProcessRLikeOperation(Nodes);
+        ComparisonOperationVisitorHelper.ProcessRLikeOperation(Nodes, node.Span);
     }
 
     public void Visit(InNode node)
     {
-        LogicalOperationVisitorHelper.ProcessInOperation(Nodes);
+        LogicalOperationVisitorHelper.ProcessInOperation(Nodes, node.Span);
     }
 
     public void Visit(CollectionInNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
-        Nodes.Push(new CollectionInNode(left, right));
+        Nodes.Push(new CollectionInNode(left, right).CopySpansFrom(node));
     }
 
     public void Visit(InQueryNode node)
@@ -192,9 +192,9 @@ public sealed partial class RewriteQueryVisitor
         var expression = Nodes.Pop();
 
 
-        var greaterOrEqual = new GreaterOrEqualNode(expression, min);
-        var lessOrEqual = new LessOrEqualNode(expression, max);
-        var andNode = new AndNode(greaterOrEqual, lessOrEqual);
+        var greaterOrEqual = new GreaterOrEqualNode(expression, min).WithSpan(node.Span);
+        var lessOrEqual = new LessOrEqualNode(expression, max).WithSpan(node.Span);
+        var andNode = new AndNode(greaterOrEqual, lessOrEqual).WithSpan(node.Span);
 
         Nodes.Push(andNode);
     }
@@ -261,7 +261,7 @@ public sealed partial class RewriteQueryVisitor
 
     public void Visit(ContainsNode node)
     {
-        LogicalOperationVisitorHelper.ProcessContainsOperation(Nodes);
+        LogicalOperationVisitorHelper.ProcessContainsOperation(Nodes, node.Span);
     }
 
     public void Visit(AccessRawIdentifierNode node)
@@ -273,7 +273,7 @@ public sealed partial class RewriteQueryVisitor
     public void Visit(IsNullNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        LogicalOperationVisitorHelper.ProcessIsNullOperation(Nodes, node.IsNegated);
+        LogicalOperationVisitorHelper.ProcessIsNullOperation(Nodes, node.IsNegated, node.Span);
     }
 
     public void Visit(RowPresenceNode node)
@@ -316,7 +316,7 @@ public sealed partial class RewriteQueryVisitor
             node.IsNotLike,
             node.ExcludeColumns,
             rewrittenReplaceItems ?? node.ReplaceItems,
-            node.RenameItems));
+            node.RenameItems).CopySpansFrom(node));
     }
 
     public void Visit(IdentifierNode node)
@@ -340,7 +340,8 @@ public sealed partial class RewriteQueryVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var defaultValue = node.HasDefaultValue ? Nodes.Pop() : null;
-        Nodes.Push(new ParameterDeclarationNode(node.Name, node.TypeName, node.IsNullable, defaultValue, node.Span));
+        Nodes.Push(StructuralNodeRebuildSupport.RebuildParameter(node, defaultValue));
+
     }
 
     public void Visit(ParameterReferenceNode node)

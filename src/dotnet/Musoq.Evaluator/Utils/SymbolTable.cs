@@ -9,6 +9,11 @@ public class SymbolTable
 {
     private readonly Dictionary<object, Symbol> _symbols = new();
 
+    internal IEnumerable<TSymbol> GetSymbols<TSymbol>() where TSymbol : Symbol
+    {
+        return _symbols.Values.OfType<TSymbol>();
+    }
+
     public void AddSymbol(object key, Symbol symbol)
     {
         _symbols.Add(key, symbol);

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
@@ -17,18 +18,6 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private static readonly Action<ILogger, string, string, string, Exception?> InterpretFunctionProcessingLog =
-        LoggerMessage.Define<string, string, string>(
-            LogLevel.Debug,
-            new EventId(1001, nameof(LogInterpretFunctionProcessing)),
-            "Visit(AliasedFromNode): Processing Interpret function '{Identifier}' with alias '{Alias}' -> _queryAlias='{QueryAlias}'");
-
-    private static readonly Action<ILogger, string, int, string, Exception?> InterpretTableRegistrationLog =
-        LoggerMessage.Define<string, int, string>(
-            LogLevel.Debug,
-            new EventId(1002, nameof(LogInterpretTableRegistration)),
-            "Visit(AliasedFromNode): Registered TableSymbol '{QueryAlias}' with {ColumnCount} columns in scope '{ScopeName}'");
-
     public override void Visit(AliasedFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
@@ -123,8 +112,12 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             LogInterpretTableRegistration(_logger, _sourceBinding.QueryAlias, interpretTable, _sourceBinding.CurrentScope.Name);
 
-            PushSemanticNode(new AliasedFromNode(node.Identifier, args, _sourceBinding.QueryAlias, returnType ?? node.ReturnType ?? typeof(object),
-                node.InSourcePosition, node.TypeParameter));
+            var semanticNode = new AliasedFromNode(node.Identifier, args, _sourceBinding.QueryAlias,
+                returnType ?? node.ReturnType ?? typeof(object), node.InSourcePosition, node.TypeParameter)
+                .CopySpansFrom(node);
+            if (node.MethodSpan is { } methodSpan)
+                semanticNode.WithMethodSpan(methodSpan);
+            PushSemanticNode(semanticNode);
             return;
         }
 
@@ -164,6 +157,8 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var schemaInfo = definition.SchemaMethodNode;
         var sourceSpan = node.Args.SpanOrEmpty().Through(node.SpanOrEmpty());
+        var isArgumentInventory = IsDescribingArguments && node.Args.Args.Length == 0;
+        var isSettingsInventory = IsDescribingSourceRuntimeSettings && node.Args.Args.Length == 0 && node.Args.Span.IsEmpty;
         var table = definition.TableName != null
             ? _sourceBinding.ExplicitlyDefinedTables.TryGetValue(definition.TableName, out var definedTable)
                 ? definedTable
@@ -215,49 +210,62 @@ public partial class BuildMetadataAndInferTypesVisitor
                     exception.InnerException);
             }
 
-        var bindingResult = SchemaSourceArgumentBinder.Bind(
-            aliasedSchemaFromNode.Parameters,
-            sourceMethods);
-        if (bindingResult.Failure is { } bindingFailure)
-            throw new CannotResolveMethodException(
-                bindingFailure.Message,
-                bindingFailure.Code,
-                bindingFailure.Span, bindingFailure.Arguments, bindingFailure.SuggestedFixes);
+        sourceMethods = TypedSourceBindingMetadata.PreferTypedSource(schema, schemaInfo.Method, sourceMethods);
+        BoundSchemaInvocation? boundInvocation = null;
+        if (!isArgumentInventory && !isSettingsInventory)
+        {
+            var bindingResult = SchemaSourceArgumentBinder.Bind(
+                aliasedSchemaFromNode.Parameters,
+                sourceMethods,
+                ResolveStructuralArgumentType,
+                ResolveCteRelation);
+            if (bindingResult.Failure is { } bindingFailure)
+                throw new CannotResolveMethodException(
+                    bindingFailure.Message,
+                    bindingFailure.Code,
+                    bindingFailure.Span, bindingFailure.Arguments, bindingFailure.SuggestedFixes);
 
-        var boundInvocation = bindingResult.Invocation;
-        if (boundInvocation != null)
-            aliasedSchemaFromNode.SetBoundInvocation(boundInvocation);
-
+            boundInvocation = bindingResult.Invocation;
+            if (boundInvocation != null)
+                aliasedSchemaFromNode.SetBoundInvocation(boundInvocation);
+        }
         var staticSchemaArguments = SchemaArgumentBinder.BindStaticArguments(
             aliasedSchemaFromNode.Parameters,
             _scriptParameters.DefinitionsByName,
             _scriptVariables.DefinitionsByName,
             boundInvocation);
+        if (boundInvocation?.Signature.SourceConstructionType != null)
+            staticSchemaArguments = [];
         aliasedSchemaFromNode.SetStaticMetadataArguments(
             staticSchemaArguments,
             _scriptParameters.HasRequiredSourceParameter(aliasedSchemaFromNode.Parameters));
         var metadataColumns = table?.Columns ?? GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey);
-        var sourceRuntimeSettings = ResolveSourceRuntimeSettings(
-            schema,
-            aliasedSchemaFromNode,
-            staticSchemaArguments,
-            metadataColumns,
-            queryId,
-            definition.ProfileName,
-            GetSourceRuntimeSettingsResolutionMode());
+        var sourceRuntimeSettings = isArgumentInventory
+            ? new Dictionary<string, string>()
+            : ResolveSourceRuntimeSettings(
+                schema,
+                aliasedSchemaFromNode,
+                staticSchemaArguments,
+                metadataColumns,
+                queryId,
+                definition.ProfileName,
+                GetSourceRuntimeSettingsResolutionMode());
 
-        table = GetSchemaSourceTable(
-            schema,
-            schemaInfo.Schema,
-            schemaInfo.Method,
-            aliasedSchemaFromNode.SpanOrEmpty(),
-            queryId,
-            metadataColumns,
-            sourceRuntimeSettings,
-            staticSchemaArguments,
-            aliasedSchemaFromNode.HasRequiredRuntimeArguments)
-            ?? table
-            ?? throw new InvalidOperationException($"Schema method '{schemaInfo.Method}' did not provide table metadata.");
+        if (!isArgumentInventory && !isSettingsInventory)
+        {
+            table = GetSchemaSourceTable(
+                schema,
+                schemaInfo.Schema,
+                schemaInfo.Method,
+                aliasedSchemaFromNode.SpanOrEmpty(),
+                queryId,
+                metadataColumns,
+                sourceRuntimeSettings,
+                staticSchemaArguments,
+                aliasedSchemaFromNode.HasRequiredRuntimeArguments)
+                ?? table;
+        }
+        table ??= new DynamicTable([]);
         var tableSymbol = new TableSymbol(
             _sourceBinding.QueryAlias,
             schema,
@@ -291,20 +299,4 @@ public partial class BuildMetadataAndInferTypesVisitor
         PushSemanticNode(aliasedSchemaFromNode);
     }
 
-    private static void LogInterpretFunctionProcessing(ILogger? logger, AliasedFromNode node, string queryAlias)
-    {
-        if (logger == null || !logger.IsEnabled(LogLevel.Debug))
-            return;
-
-        InterpretFunctionProcessingLog(logger, node.Identifier, node.Alias, queryAlias, null);
-    }
-
-    private static void LogInterpretTableRegistration(ILogger? logger, string queryAlias, ISchemaTable? interpretTable, string scopeName)
-    {
-        if (logger == null || !logger.IsEnabled(LogLevel.Debug))
-            return;
-
-        var columnCount = interpretTable?.Columns?.Length ?? 0;
-        InterpretTableRegistrationLog(logger, queryAlias, columnCount, scopeName, null);
-    }
 }

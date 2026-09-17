@@ -1,7 +1,7 @@
 # Musoq Core SQL Language Specification
 
-**Version:** 1.5.0
-**Status:** Specification  
+**Version:** 1.7.0
+**Status:** Implemented
 **Author:** Jakub Puchała
 
 ---
@@ -68,7 +68,7 @@ Musoq implements a subset of SQL with several extensions:
 | Aspect | Standard SQL | Musoq |
 |--------|-------------|-------|
 | Data sources | Tables in a database | Schema providers (`schema.method()`) |
-| Inline row sources | `VALUES (...)` table constructors in selected contexts | `FROM values { { Field: literal } } alias` creates a strongly typed inline source |
+| Inline row sources | `VALUES (...)` table constructors in selected contexts | `FROM values { (Field: literal) } alias` creates a strongly typed inline source |
 | Script parameters | Vendor-specific variables, prepared statement parameters, or host API bindings | Optional leading `param(...)` or `params(...)` block; references use `$name` |
 | Script variables | Host-language variables or SQL dialect variables | `let name: type = constantExpression` declarations; references use `$name` |
 | Pagination | `OFFSET` / `LIMIT` | `SKIP` / `TAKE` |
@@ -207,6 +207,8 @@ All keywords are **case-insensitive**. `SELECT`, `select`, and `SeLeCt` are all 
 | `TIE` | ASOF tie-break modifier (context-sensitive — only in `TIE BREAK BY`) |
 | `BREAK` | ASOF tie-break modifier (context-sensitive — only after `TIE`) |
 | `ORDINALITY` | APPLY ordinality modifier (context-sensitive — only after `WITH`) |
+| ARRAY | Contextual collection literal keyword before {; ordinary identifier elsewhere |
+| VALUES | Contextual inline source keyword before {; ordinary identifier elsewhere |
 
 `ANY`, `SOME`, and `ALL` are contextual SQL keywords. They act as quantified subquery operators only in comparison predicates such as `x > ANY (SELECT ...)` or `x = SOME (FROM ...)`. Lowercase `any(...)` and `all(...)` also remain contextual predicate-quantifier names when they appear as unqualified calls immediately before a supported pattern operator, for example `any(Name, Message) LIKE '%error%'`.
 
@@ -214,7 +216,7 @@ All keywords are **case-insensitive**. `SELECT`, `select`, and `SeLeCt` are all 
 
 `USING` is a contextual keyword inside `PIVOT` and `UNPIVOT` statements. `KEEP` is a contextual keyword inside an `UNPIVOT` statement. Outside those clause positions they remain ordinary identifiers.
 
-`SETTINGS` is a contextual keyword inside `COUPLE ... WITH SETTINGS ...` and `DESC SETTINGS`. `QUERY` is a contextual keyword inside `DESC QUERY`. `COLUMN` is a contextual keyword inside `DESC ... COLUMN ...`. Outside those clause positions they remain ordinary identifiers.
+`SETTINGS` is a contextual keyword inside `COUPLE ... WITH SETTINGS ...` and `DESC SETTINGS`. `QUERY` is a contextual keyword inside `DESC QUERY`. `COLUMN` is a contextual keyword inside `DESC ... COLUMN ...`. Outside those clause positions they remain ordinary identifiers. `ARGUMENTS` is contextual inside `DESC ARGUMENTS`; outside that clause it remains an ordinary identifier.
 
 `ENUM` and `FLAGS` are contextual only at statement boundaries. `ENUM name :
 type { ... }` and `FLAGS ENUM name : type { ... }` begin enum declarations;
@@ -905,7 +907,7 @@ where Id in $ids
 
 #### 4.3.2 Supported Parameter Types
 
-Script parameters support scalar Musoq primitive expression types and one-dimensional collection parameters whose element type is one of those scalar types:
+Script parameters support scalar Musoq primitive expression types and structural records and collections. Collection element types may be primitive, nullable, record, or recursively nested collection types. The recursive `?` and `[]` suffixes are part of the declared type and are evaluated from right to left:
 
 | Musoq Type | CLR Type |
 |------------|----------|
@@ -928,20 +930,29 @@ Script parameters support scalar Musoq primitive expression types and one-dimens
 | `timespan` | `System.TimeSpan` |
 | `guid` | `System.Guid` |
 
-The nullable form `type?` is supported for value types and accepts `null`.
+The nullable form `type?` is supported for value types and accepts `null`. For a structural declaration, `?` applies recursively to the immediately preceding scalar, record, or collection node; `int?[]` and `int[]?` therefore have different meanings.
 
-Collection parameters use array declaration syntax, for example `int[]` or `string[]`. Collection parameter declarations:
+Examples of recursive declarations are `int?[]` (array of nullable integers), `int[]?` (nullable array of integers), `(Id: string)?[]?` (nullable array of nullable records), and `int[][]` (array of integer arrays). Structural declarations may use a closed named-record shape:
 
-- MUST be one-dimensional arrays.
-- MUST use a supported scalar parameter type as the element type.
-- MUST NOT use a nullable collection suffix such as `int[]?`.
-- MUST NOT declare a default value.
-- Are supplied by the host as `T[]`, `List<T>`, or `IReadOnlyList<T>` values and are bound as typed read-only lists.
-- Are intended for `expr IN $name` and `expr NOT IN $name` membership predicates.
+```sql
+param(
+    patterns: (
+        Id: string,
+        Pattern: string,
+        Mode: string = 'literal'
+    )[],
+    emptyNumbers: int[] = array {},
+    nullableNumbers: int?[] = array { 1, null },
+    optionalRecords: (Id: string)?[]? = null,
+    matrix: int?[][] = array { array { 1, null }, array {} }
+)
+```
+
+Collection parameters are supplied by `T[]`, `List<T>`, `IReadOnlyList<T>`, and their read-only equivalents. Core snapshots supported collections at the execution boundary; a later host mutation cannot change the run. Arbitrary POCO discovery, JSON strings, non-string dictionary keys, and lazy-only `IEnumerable<T>` inputs are rejected. `IN $name` retains its scalar-element contract; structured collections are source arguments rather than implicit row sources.
 
 #### 4.3.3 Default Values
 
-Default values MUST be primitive constants or `null`.
+Default values may be scalar constants, `null`, record literals, or array literals whose values are valid for the declared shape. Defaults are normalized once during parameter preflight.
 
 ```sql
 param(
@@ -1093,11 +1104,11 @@ Rules:
 
 #### 4.4.2 Supported Types
 
-Script variables support the same primitive expression types as script parameters. See [§4.3.2](#432-supported-parameter-types) for the complete type table.
+Script variables support the same primitive and recursive structural types as script parameters. Inferred record arrays preserve field presence: an omitted field remains omitted and is not rewritten as an explicit `null`.
 
 #### 4.4.3 Initializers
 
-Initializers MUST be compile-time constants. They MAY use literals, `null`, supported unary/binary constant operators, comparisons, boolean operators, `IS NULL`, `BETWEEN`, and references to earlier script variables.
+Initializers MUST be compile-time constants. They MAY use literals, `null`, `array { ... }`, named records `(Field: expression, ...)`, supported unary/binary constant operators, comparisons, boolean operators, `IS NULL`, `BETWEEN`, and references to earlier script variables. Runtime parameters, datasource access, subqueries, forward references, and unsupported function evaluation remain invalid.
 
 ```sql
 let root: string = 'repo'
@@ -1144,6 +1155,55 @@ Script-variable mistakes are reported through the standard Musoq error envelope 
 
 ---
 
+### 4.5 Structured values and source inputs
+
+Musoq uses one named-record delimiter for expression values and inline table rows. Parentheses are disambiguated by lookahead: `(Name: expression)` is a record literal, while any other parenthesized expression keeps ordinary grouping and scalar-subquery behavior. `array` and `values` are contextual words; comments and supported trivia may occur between the word and its opening brace, and ordinary identifiers with either spelling remain valid outside the construct.
+
+```text
+record_literal ::= '(' named_field { ',' named_field } [ ',' ] ')'
+named_field    ::= field_name ':' expression
+array_literal  ::= ARRAY '{' [ expression { ',' expression } [ ',' ] ] '}'
+values_source  ::= VALUES '{' values_row { ',' values_row } [ ',' ] '}' alias
+values_row     ::= '(' values_field { ',' values_field } [ ',' ] ')'
+values_field   ::= field_name ':' values_expression
+```
+
+The final VALUES spelling is a breaking migration:
+
+```sql
+select p.Id
+from values { (Id: 'todo'), (Id: 'fixme'), } p
+```
+
+The former `values { { Id: 'todo' } } p` spelling is rejected; there is no compatibility parser or feature flag. VALUES still requires an alias, one or more rows, one or more fields per row, the same case-insensitive field set in every row (field order may differ), and the existing scalar constant-expression restrictions. Its numeric suffix, type inference, null, join, apply, grouping, ordering, set, window, paging, CTE, diagnostics, and typed-lowering behavior are unchanged.
+
+An array is an ordered, multiplicity-preserving collection value. It may contain primitive values, records, or nested arrays, including empty and trailing-comma forms:
+
+```sql
+let patterns = array {
+    (Id: 'todo', Pattern: 'TODO'),
+    (Pattern: 'FIXME', Id: 'fixme'),
+};
+
+select m.PatternId
+from #inputs.match('TODO FIXME', patterns: $patterns) m
+```
+
+Record fields are matched with `OrdinalIgnoreCase`; single-field records are valid, and arbitrary record equality, member access, and collection-to-table conversion are outside this feature. Empty or all-null arrays require an expected element type. Core never falls back to `object[]` to hide missing or incompatible type information.
+
+Structural source arguments use the same binder for literals, `let`, parameters, and CTE results. A receiving contract selects one accessible closed constructor (the sole public instance constructor or exactly one constructor marked with `StructuralInputConstructorAttribute`). Defaults are applied in this order: supplied value, declared field default, receiving constructor default, then a missing-required-field error. Explicit `null` never activates a default. Private/setter fallback, ref/out parameters, open or inaccessible types, cycles, JSON conversion, and arbitrary POCO discovery are rejected.
+
+A typed source registration is required for structural source calls. The planner owns normalization, materialization, reuse, and invocation; the renderer emits those decisions through portable Execution IR. Construction occurs once per source invocation, retains execution context and cancellation, and never moves into a provider's result loop. Host values and CTE results are captured per execution. Core-owned snapshots and provider-facing collections are not shared between runs or invocations.
+
+The default structural input limits are maximum depth 32 (the root is depth 1), 100,000 logical value nodes, and 67,108,864 UTF-16 payload bytes. Record, collection, scalar, null, and applied-default occurrences count as nodes; checked `length * 2` counts string payload. Limits are checked before storage grows during parameter preflight and whenever a receiver demands an inline, let, parameter, or CTE value. A receiver with stricter limits cannot reject an input that it does not demand.
+
+Complete CTE results may be passed as a source argument by a bare visible CTE name, optionally grouped with parentheses. `$name` remains a parameter or `let`, string literals remain strings, qualified columns remain scalar values, and a row alias never becomes a collection. Primitive collection receivers require exactly one CTE output column; record receivers match output columns by name, reject unexpected columns before pruning, preserve order and duplicates, and use constructor defaults for missing optional fields. Ambiguous scalar/CTE interpretations and newly introduced dependency cycles are errors. There is no `table(...)` syntax and no implicit singleton wrapping or unwrapping.
+
+The structural contract is also the source for metadata descriptions. `DESC ARGUMENTS` reports the selected receiving contract without evaluating values, opening a source, or enumerating a CTE. It returns `Overload`, `Path`, `Kind`, `Type`, `Required`, `Nullable`, `HasDefault`, `Default`, `MaxDepth`, `MaxNodes`, and `MaxStringBytes` in deterministic signature and nested-field order. An explicit null default has `HasDefault = true` and the four-character text `null` in its `Default` cell; an absent default has `HasDefault = false` and a database-null cell. This distinction is visible in metadata and does not change the fact that an explicitly supplied null never activates a default.
+
+This section is the implemented Core contract. The parenthesized VALUES migration and structural execution are qualified in the current tree. Qualification covers authored evaluation order, deterministic overload and scalar/CTE interpretation, host and receiver limits, planner-owned CTE representations (including set-operation producers), typed host capture, ownership and lifecycle, generated-code shape, and independent parser, binder, and compiled-execution populations. The former brace-row spelling remains rejected by the parser.
+
+---
 ## 5. SELECT Clause
 
 ### 5.1 Basic Syntax
@@ -1586,8 +1646,8 @@ inner join (
 
 ```sql
 from values {
-    { Name: 'Newtonsoft.Json', Approved: true, Score: 10ui },
-    { Name: 'Legacy.Package', Approved: false, Score: 20ui }
+    (Name: 'Newtonsoft.Json', Approved: true, Score: 10ui),
+    (Name: 'Legacy.Package', Approved: false, Score: 20ui)
 } packages
 select packages.Name, packages.Score
 ```
@@ -1599,8 +1659,8 @@ param(defaultScore: int)
 let boost: int = 5
 
 from values {
-    { Name: 'Pinned', Score: $defaultScore + $boost },
-    { Name: 'Fallback', Score: 0 }
+    (Name: 'Pinned', Score: $defaultScore + $boost),
+    (Name: 'Fallback', Score: 0)
 } packages
 select packages.Name, packages.Score
 ```
@@ -1627,8 +1687,8 @@ VALUES sources participate in joins, applies, grouping, ordering, set operators,
 ```sql
 with policy as (
     from values {
-        { Name: 'Newtonsoft.Json', Approved: true },
-        { Name: 'Legacy.Package', Approved: false }
+        (Name: 'Newtonsoft.Json', Approved: true),
+        (Name: 'Legacy.Package', Approved: false)
     } p
     select p.Name, p.Approved
 )
@@ -4619,7 +4679,33 @@ The result shape is:
 
 One row is returned for each projected output column in final projection order.
 
-### 16.8 General DESC Rules
+### 16.8 Describe Source Arguments
+
+Use `DESC ARGUMENTS` to inspect structural receiving contracts:
+
+```sql
+desc arguments #inputs.match
+desc arguments #inputs.match('TODO', patterns: array { (Id: 'todo', Pattern: 'TODO') })
+```
+
+The parameterized form needs declarations, not host values:
+
+```sql
+param(patterns: (Id: string, Pattern: string)[])
+desc arguments #inputs.match('TODO', patterns: $patterns)
+```
+
+A coupled source is described through its coupled alias:
+
+```sql
+table MatchRows { PatternId: string };
+couple #inputs.match with table MatchRows as Matches;
+desc arguments Matches
+```
+
+The result has exactly eleven columns: `Overload`, `Path`, `Kind`, `Type`, `Required`, `Nullable`, `HasDefault`, `Default`, `MaxDepth`, `MaxNodes`, and `MaxStringBytes`. Root collection rows carry the effective input limits. Element and field paths use `patterns[]`, `patterns[].Id`, and so on; `Required` is database null for element entries. Overload numbers are zero-based in deterministic canonical signature order. Concrete calls describe the selected receiving contract, while inventory `DESC FUNCTIONS` semantics are unchanged. Metadata callbacks may use safe metadata inputs, but descriptions never construct DTOs, open sources, enumerate CTEs, or require host values.
+
+### 16.9 General DESC Rules
 
 - `DESC`, `FUNCTIONS`, `SETTINGS`, and `COLUMN` are case-insensitive.
 - Optional trailing semicolons are accepted.
@@ -5100,13 +5186,12 @@ engine implementation details are not part of the language contract. Hosts and
 agents should classify a failure by its diagnostic code, phase, source domain,
 arguments, related locations, and actions.
 
-The complete machine-readable catalog is
-specs/diagnostic-catalog.json. It is generated from the
-Musoq.Parser.Diagnostics.DiagnosticDescriptorRegistry and a parser test compares
-every committed record with the registry. The JSON catalog is therefore the
-authoritative list of active codes, including exact message templates,
-severity, phase, category, explanations, documentation references, and
-suggested fixes.
+The authoritative list of active codes and their unified contract is the in-code
+`Musoq.Parser.Diagnostics.DiagnosticDescriptorRegistry`. It is built from the
+in-code `ErrorCatalog` and `ErrorMetadataCatalog`, which define exact message
+templates, severity, phase, category, explanations, documentation references,
+and suggested fixes. Parser tests validate that the registry and metadata
+catalogs remain complete and coherent.
 
 ### 23.1 Diagnostic envelope contract
 
@@ -5489,9 +5574,13 @@ source_arg     ::= expression
 
 values_source  ::= VALUES '{' values_row {',' values_row} [','] '}' alias
 
-values_row     ::= '{' values_field {',' values_field} [','] '}'
+values_row     ::= '(' values_field {',' values_field} [','] ')'
 
 values_field   ::= identifier ':' values_expression
+
+record_literal ::= '(' named_field {',' named_field} [','] ')'
+named_field    ::= identifier ':' expression
+array_literal  ::= ARRAY '{' [ expression {',' expression} [','] ] '}'
 
 values_expression ::= literal
                     | script_reference
@@ -5880,7 +5969,7 @@ Standalone intentional escapes and unknown preserved escapes do not produce
 | Feature | Standard SQL | Musoq |
 |---------|-------------|-------|
 | Data sources | `FROM table_name` | `FROM schema.method()` |
-| Inline row sources | `VALUES (...)` | `FROM values { { Field: literalOrStaticExpression } } alias`; scalar params/lets are allowed |
+| Inline row sources | `VALUES (...)` | `FROM values { (Field: literalOrStaticExpression) } alias`; scalar params/lets are allowed |
 | Script parameters | Vendor-specific | Optional leading `param(name: type = default)` or `params(name: type = default)` block; `param(...)` is canonical; scalar refs use `$name`, collection params use `type[]` and `IN $name` |
 | Script variables | Host-language or dialect-specific variables | `let name: type = constantExpression`; references use `$name` |
 | Pagination | `OFFSET n LIMIT m` | `SKIP n TAKE m` |

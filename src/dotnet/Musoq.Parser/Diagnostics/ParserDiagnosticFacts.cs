@@ -11,6 +11,12 @@ internal static class ParserDiagnosticFacts
     public static SyntaxException MissingToken(string message, string queryPart, TextSpan span) =>
         new(message, queryPart, DiagnosticCode.MQ2002_MissingToken, span);
 
+    public static SyntaxException MissingLeftOperand(string queryPart, TextSpan span) =>
+        new("A comparison operator is missing its left operand.", queryPart, DiagnosticCode.MQ2020_MissingOperand, span);
+
+    public static SyntaxException MissingGroupByColumn(string queryPart, TextSpan span) =>
+        new("GROUP BY requires at least one field.", queryPart, DiagnosticCode.MQ2006_MissingGroupByColumn, span);
+
     public static SyntaxException EmptyPredicateList(string message, string queryPart, TextSpan span) =>
         new(message, queryPart, DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed, span);
 

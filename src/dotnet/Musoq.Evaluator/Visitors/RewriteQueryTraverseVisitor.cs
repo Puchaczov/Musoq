@@ -193,7 +193,8 @@ public partial class RewriteQueryTraverseVisitor(IScopeAwareExpressionVisitor vi
 
 
             var interpretFromNode =
-                new InterpretFromNode(node.Alias, interpretCallNode, _currentApplyType.Value, node.ReturnType ?? typeof(object));
+                new InterpretFromNode(node.Alias, interpretCallNode, _currentApplyType.Value,
+                    node.ReturnType ?? typeof(object));
             interpretFromNode.Accept(Visitor);
             return;
         }

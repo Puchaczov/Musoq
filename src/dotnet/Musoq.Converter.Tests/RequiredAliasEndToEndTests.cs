@@ -241,8 +241,8 @@ public sealed class RequiredAliasEndToEndTests
                     Message: rest
                 };
                 select i.Name, l.Level from #apply.items() i cross apply Parse<LogLine>(i.Line) l", CreateApplyProvider),
-            new("derived-and-values", "select sub.Dummy, marker.Label from (select d.Dummy from #system.dual() d) sub cross join values { { Label: 'x' } } marker", static () => new SystemSchemaProvider()),
-            new("values-and-schema", "select seed.Value, d.Dummy from values { { Value: 1 } } seed cross join #system.dual() d", static () => new SystemSchemaProvider()),
+            new("derived-and-values", "select sub.Dummy, marker.Label from (select d.Dummy from #system.dual() d) sub cross join values { ( Label: 'x' ) } marker", static () => new SystemSchemaProvider()),
+            new("values-and-schema", "select seed.Value, d.Dummy from values { ( Value: 1 ) } seed cross join #system.dual() d", static () => new SystemSchemaProvider()),
             new("natural-cte", "with source as (select d.Dummy from #system.dual() d) select source.Dummy, rightSource.Dummy from source cross join #system.dual() rightSource", static () => new SystemSchemaProvider()),
             new("chained-apply", "select i.Name, n.Value, m.Value from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m", CreateApplyProvider)
         ];

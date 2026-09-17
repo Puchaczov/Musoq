@@ -12,7 +12,7 @@ public sealed partial class RewriteQueryVisitor
         ArgumentNullException.ThrowIfNull(node);
         Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder,
             QueryRewriteUtilities.RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName),
-            node.HasExplicitFieldName));
+            node.HasExplicitFieldName).CopySpansFrom(node));
     }
 
     public void Visit(FieldOrderedNode node)
@@ -20,7 +20,7 @@ public sealed partial class RewriteQueryVisitor
         ArgumentNullException.ThrowIfNull(node);
         Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder,
             QueryRewriteUtilities.RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName),
-            node.HasExplicitFieldName, node.Order, node.NullOrdering));
+            node.HasExplicitFieldName, node.Order, node.NullOrdering).CopySpansFrom(node));
     }
 
     public void Visit(SelectNode node)
@@ -28,7 +28,7 @@ public sealed partial class RewriteQueryVisitor
         ArgumentNullException.ThrowIfNull(node);
         var fields = FieldProcessingHelper.CreateFields(node.Fields, Nodes);
 
-        Nodes.Push(new SelectNode(fields.ToArray(), node.IsDistinct));
+        Nodes.Push(new SelectNode(fields.ToArray(), node.IsDistinct).CopySpansFrom(node));
     }
 
     public void Visit(GroupSelectNode node)
@@ -43,14 +43,14 @@ public sealed partial class RewriteQueryVisitor
         for (var i = node.Args.Length - 1; i >= 0; --i)
             args[i] = Nodes.Pop();
 
-        Nodes.Push(new ArgsListNode(args, node.ArgumentNames, default));
+        Nodes.Push(StructuralNodeRebuildSupport.Rebuild(node, args).CopySpansFrom(node));
     }
 
     public void Visit(WhereNode node)
     {
         var rewrittenNode = QueryRewriteUtilities.RewriteNullableBoolExpressions(Nodes.Pop());
 
-        Nodes.Push(new WhereNode(rewrittenNode));
+        Nodes.Push(new WhereNode(rewrittenNode).CopySpansFrom(node));
     }
 
     public void Visit(GroupByNode node)
@@ -71,19 +71,19 @@ public sealed partial class RewriteQueryVisitor
 
     public void Visit(HavingNode node)
     {
-        Nodes.Push(new HavingNode(Nodes.Pop()));
+        Nodes.Push(new HavingNode(Nodes.Pop()).CopySpansFrom(node));
     }
 
     public void Visit(SkipNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new SkipNode((IntegerNode)node.Expression));
+        Nodes.Push(new SkipNode((IntegerNode)node.Expression).CopySpansFrom(node));
     }
 
     public void Visit(TakeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new TakeNode((IntegerNode)node.Expression));
+        Nodes.Push(new TakeNode((IntegerNode)node.Expression).CopySpansFrom(node));
     }
 
     public void Visit(OrderByNode node)
@@ -94,7 +94,7 @@ public sealed partial class RewriteQueryVisitor
         for (var i = node.Fields.Length - 1; i >= 0; --i)
             fields[i] = (FieldOrderedNode)Nodes.Pop();
 
-        Nodes.Push(new OrderByNode(fields));
+        Nodes.Push(new OrderByNode(fields).CopySpansFrom(node));
     }
 
     public void Visit(CaseNode node)
@@ -111,30 +111,30 @@ public sealed partial class RewriteQueryVisitor
 
         var elseNode = Nodes.Pop();
 
-        Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, node.ReturnType));
+        Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, node.ReturnType).CopySpansFrom(node));
     }
 
     public void Visit(WhenNode node)
     {
         var expression = Nodes.Pop();
         var rewrittenExpression = QueryRewriteUtilities.RewriteNullableBoolExpressions(expression);
-        Nodes.Push(new WhenNode(rewrittenExpression));
+        Nodes.Push(new WhenNode(rewrittenExpression).CopySpansFrom(node));
     }
 
     public void Visit(ThenNode node)
     {
         var expression = Nodes.Pop();
-        Nodes.Push(new ThenNode(expression));
+        Nodes.Push(new ThenNode(expression).CopySpansFrom(node));
     }
 
     public void Visit(ElseNode node)
     {
         var expression = Nodes.Pop();
-        Nodes.Push(new ElseNode(expression));
+        Nodes.Push(new ElseNode(expression).CopySpansFrom(node));
     }
 
     public void Visit(QualifyNode node)
     {
-        Nodes.Push(new QualifyNode(Nodes.Pop()));
+        Nodes.Push(new QualifyNode(Nodes.Pop()).CopySpansFrom(node));
     }
 }

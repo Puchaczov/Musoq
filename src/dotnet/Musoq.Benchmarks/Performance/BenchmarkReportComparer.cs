@@ -71,10 +71,10 @@ internal static class BenchmarkReportComparer
         if (currentReportPaths.Count < minimumSamples)
             throw new ArgumentException($"At least {minimumSamples} current reports are required.", nameof(currentReportPaths));
 
-        if (!double.IsFinite(maximumTimeRatio) || maximumTimeRatio < 1)
+        if (!double.IsFinite(maximumTimeRatio) || maximumTimeRatio <= 0)
             throw new ArgumentOutOfRangeException(nameof(maximumTimeRatio));
 
-        if (!double.IsFinite(maximumAllocationRatio) || maximumAllocationRatio < 1)
+        if (!double.IsFinite(maximumAllocationRatio) || maximumAllocationRatio <= 0)
             throw new ArgumentOutOfRangeException(nameof(maximumAllocationRatio));
     }
 

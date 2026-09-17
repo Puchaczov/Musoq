@@ -16,9 +16,9 @@ public partial class SubqueryTests
         const string query = @"
             WITH allowed AS (
                 FROM values {
-                    { Country: 'POLAND' },
-                    { Country: 'FRANCE' },
-                    { Country: 'FRANCE' }
+                    ( Country: 'POLAND' ),
+                    ( Country: 'FRANCE' ),
+                    ( Country: 'FRANCE' )
                 } v
                 SELECT DISTINCT v.Country
             ),

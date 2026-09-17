@@ -54,5 +54,11 @@ internal static partial class SemanticErrorMetadataCatalog
             "More than one callable overload is equally valid for the supplied arguments.",
             ["Convert an argument explicitly or qualify the call so one overload is selected.", "Check the candidate signatures in the diagnostic."],
             "Core Spec - Method Resolution");
+
+        yield return Entry(
+            DiagnosticCode.MQ3116_AmbiguousRelationArgument,
+            "A complete CTE relation and a scalar column are both valid interpretations of the datasource argument.",
+            ["Qualify the column or rename the CTE argument."],
+            "Core Spec - FROM Arguments");
     }
 }

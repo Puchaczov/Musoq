@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive reachable (Id, Depth) as (select RootId, 0 from #graph.roots() union (Id) select e.TargetId, r.Depth + 1 from #graph.edges() e inner join values {{ Label: 'one-two' }, { Label: 'two-three' }} expected on e.Label = expected.Label inner join reachable r on e.SourceId = r.Id) select Id, Depth from reachable order by Id
+with recursive reachable (Id, Depth) as (select RootId, 0 from #graph.roots() union (Id) select e.TargetId, r.Depth + 1 from #graph.edges() e inner join values {( Label: 'one-two' ), ( Label: 'two-three' )} expected on e.Label = expected.Label inner join reachable r on e.SourceId = r.Id) select Id, Depth from reachable order by Id
 */
 
 // === Logical Plan ===

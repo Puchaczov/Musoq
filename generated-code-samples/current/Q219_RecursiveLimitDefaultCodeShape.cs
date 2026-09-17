@@ -1,6 +1,6 @@
 ﻿// === Parsed Query ===
 /*
-with recursive counter (Value) as (select 1 from values {{ Seed: 1 }} seed union all select c.Value + 1 from counter c where c.Value < 3) select Value from counter order by Value
+with recursive counter (Value) as (select 1 from values {( Seed: 1 )} seed union all select c.Value + 1 from counter c where c.Value < 3) select Value from counter order by Value
 */
 
 // === Logical Plan ===

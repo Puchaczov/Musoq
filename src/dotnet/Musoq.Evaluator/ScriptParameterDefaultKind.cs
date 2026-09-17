@@ -4,5 +4,6 @@ public enum ScriptParameterDefaultKind
 {
     None,
     Null,
-    Literal
+    Literal,
+    Structured
 }

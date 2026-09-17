@@ -36,13 +36,13 @@ public sealed class BuildConfigurationGuardrailTests
     }
 
     [TestMethod]
-    public void DotNetSdk_ShouldStayPinnedToNet10FeatureBand()
+    public void DotNetSdk_ShouldRequireRuntimeWithGcHijackFix()
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         using var globalJson = JsonDocument.Parse(File.ReadAllText(Path.Combine(repositoryRoot, "global.json")));
         var sdk = globalJson.RootElement.GetProperty("sdk");
 
-        Assert.AreEqual("10.0.300", sdk.GetProperty("version").GetString());
+        Assert.AreEqual("10.0.401", sdk.GetProperty("version").GetString());
         Assert.AreEqual("latestFeature", sdk.GetProperty("rollForward").GetString());
     }
 
@@ -63,14 +63,14 @@ public sealed class BuildConfigurationGuardrailTests
                 Text = File.ReadAllText(file)
             })
             .Where(entry => entry.Text.Contains("dotnet-version:", StringComparison.Ordinal))
-            .Where(entry => !entry.Text.Contains("dotnet-version: '10.0.x'", StringComparison.Ordinal) &&
-                            !entry.Text.Contains("dotnet-version: \"10.0.x\"", StringComparison.Ordinal))
+            .Where(entry => !entry.Text.Contains("dotnet-version: '10.0.401'", StringComparison.Ordinal) &&
+                            !entry.Text.Contains("dotnet-version: \"10.0.401\"", StringComparison.Ordinal))
             .Select(static entry => entry.File)
             .ToArray();
 
         Assert.IsEmpty(
             offenders,
-            "Workflows that install .NET must use the 10.0.x SDK feature band: " +
+            "Workflows that install .NET must use SDK 10.0.401 with runtime 10.0.12 or newer: " +
             string.Join(", ", offenders));
     }
 

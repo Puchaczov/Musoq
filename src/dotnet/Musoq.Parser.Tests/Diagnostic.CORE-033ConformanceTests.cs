@@ -27,8 +27,8 @@ public sealed class DiagnosticCore033ConformanceTests
             "cross join #C.Entities() c where a.Id > 0 group by a.Id " +
             "window w as (order by a.Id) select a.Id qualify RowNumber() over w > 0 " +
             "order by a.Id skip 0 take 1",
-            "from values { { Name: 'A', Score: (1 + 2), }, " +
-            "{ Name: r'B', Score: 3, }, } v select v.Name, v.Score",
+            "from values { ( Name: 'A', Score: (1 + 2), ), " +
+            "( Name: r'B', Score: 3, ), } v select v.Name, v.Score",
             "select d.Value from (select Value from #A.Entities()) d",
             "select * from #schema.method('arg', limit: 2) source",
             "select * from SomeFunction(1, 'two') source",

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -200,10 +200,11 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
                 if (token.IsCancellationRequested)
                     throw new OperationCanceledException("Query execution was cancelled before it started.", token);
 
+                var parameterSnapshot = CaptureParameterSnapshot(token);
                 EnsureDataSourceLifecycleProvider(admission.Runnable);
                 BeginExecution();
                 executionStarted = true;
-                context = CaptureExecutionContext(admission.Runnable, token, progressOptions);
+                context = CaptureExecutionContext(admission.Runnable, parameterSnapshot, token, progressOptions);
                 if (!admission.UseContext)
                     ApplyParameterSnapshot(context);
             }
@@ -290,10 +291,11 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
                 if (token.IsCancellationRequested)
                     throw new OperationCanceledException("Query execution was cancelled before it started.", token);
 
+                var parameterSnapshot = CaptureParameterSnapshot(token);
                 EnsureDataSourceLifecycleProvider(admission.Runnable);
                 BeginExecution();
                 executionStarted = true;
-                context = CaptureExecutionContext(admission.Runnable, token, progressOptions);
+                context = CaptureExecutionContext(admission.Runnable, parameterSnapshot, token, progressOptions);
                 if (!admission.UseContext)
                     ApplyParameterSnapshot(context);
             }
@@ -393,11 +395,12 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
                 if (admission.Runnable is not IProfiledRunnable profiled)
                     throw new InvalidOperationException("Query was not compiled with profiling instrumentation.");
 
+                var parameterSnapshot = CaptureParameterSnapshot(token);
                 EnsureDataSourceLifecycleProvider(admission.Runnable);
                 profiledRunnable = profiled;
                 BeginExecution();
                 executionStarted = true;
-                context = CaptureExecutionContext(admission.Runnable, token, progressOptions);
+                context = CaptureExecutionContext(admission.Runnable, parameterSnapshot, token, progressOptions);
                 ApplyParameterSnapshot(context);
             }
             EndAdmission();
@@ -514,12 +517,13 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
 
     private QueryExecutionContext CaptureExecutionContext(
         ITableRunnable runnable,
+        IReadOnlyDictionary<string, object?> parameters,
         CancellationToken token,
         QueryProgressOptions? progressOptions)
     {
         return QueryExecutionContext.Capture(
             runnable,
-            _parameters,
+            parameters,
             token,
             _phaseChangedHandlers,
             _dataSourceProgressHandlers,
@@ -527,6 +531,29 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
             progressOptions,
             runnable,
             runnable.GetType().FullName);
+    }
+
+    private IReadOnlyDictionary<string, object?> CaptureParameterSnapshot(CancellationToken token)
+    {
+        var parameters = _parameters.Snapshot();
+        if (_runnable is IMetadataOnlyRunnable { IsMetadataOnly: true })
+            return ParameterSnapshot.EmptyReadOnly;
+
+        if (_parameterizedRunnable is null)
+            return parameters;
+
+        try
+        {
+            return StructuralParameterSnapshotter.CaptureForExecution(
+                _parameterDefinitions ?? Array.Empty<ScriptParameterDefinition>(),
+                parameters,
+                token,
+                _parameterizedRunnable as IStructuralParameterSnapshotProvider);
+        }
+        catch (ScriptParameterBindingException exception)
+        {
+            throw QueryExecutionException.ForScriptParameterBinding(exception);
+        }
     }
 
     private void ApplyParameterSnapshot(QueryExecutionContext context)

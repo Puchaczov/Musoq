@@ -1,10 +1,10 @@
 using System.Collections.Immutable;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Musoq.Schema;
 using Musoq.Schema.Reflection;
+using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -16,10 +16,22 @@ internal sealed record SchemaSourceParameter(
     string Name,
     Type ParameterType,
     bool HasDefaultValue,
-    object? DefaultValue)
+    object? DefaultValue,
+    StructuralTypeDescriptor? StructuralType = null,
+    StructuralInputLimits? StructuralLimits = null)
 {
     public bool IsRequired => !HasDefaultValue;
 }
+/// <summary>
+///     Metadata for a complete CTE relation used as a datasource argument. A relation
+///     binding is deliberately separate from an ordinary expression so a failed
+///     structural conversion can never fall back to a scalar or string argument.
+/// </summary>
+internal sealed record CteRelationBinding(
+    string Name,
+    IReadOnlyList<ISchemaColumn> Columns,
+    StructuralTypeDescriptor Shape,
+    Type? ScalarType = null);
 
 /// <summary>
 ///     A reflected datasource signature with source-visible parameters only.
@@ -29,11 +41,17 @@ internal sealed class SchemaSourceSignature
     private SchemaSourceSignature(
         SchemaMethodInfo method,
         ImmutableArray<SchemaSourceParameter> parameters,
-        bool canBindNamedArguments)
+        bool canBindNamedArguments,
+        Type? sourceConstructionType,
+        bool supportsExecutionContext)
     {
         Method = method;
         Parameters = parameters;
         CanBindNamedArguments = canBindNamedArguments;
+        SourceConstructionType = sourceConstructionType;
+        SupportsExecutionContext = supportsExecutionContext;
+        SourceStableId = method.ConstructorInfo.SourceStableId;
+        SourceConstructor = method.ConstructorInfo.OriginConstructor;
     }
 
     public SchemaMethodInfo Method { get; }
@@ -42,6 +60,15 @@ internal sealed class SchemaSourceSignature
 
     public bool CanBindNamedArguments { get; }
 
+    public Type? SourceConstructionType { get; }
+
+    public bool SupportsExecutionContext { get; }
+
+    public string? SourceStableId { get; }
+
+    public System.Reflection.ConstructorInfo? SourceConstructor { get; }
+
+    public bool HasStructuralParameters => Parameters.Any(static parameter => parameter.StructuralType != null);
     public static SchemaSourceSignature Create(SchemaMethodInfo method)
     {
         ArgumentNullException.ThrowIfNull(method);
@@ -78,6 +105,7 @@ internal sealed class SchemaSourceSignature
 
         canBindNamedArguments &= reflectionOrderMatchesMetadata;
 
+        var structuralParameters = method.StructuralContract?.Parameters;
         var parameters = ImmutableArray.CreateBuilder<SchemaSourceParameter>(arguments.Length);
         for (var index = 0; index < arguments.Length; index++)
         {
@@ -89,17 +117,26 @@ internal sealed class SchemaSourceSignature
             var hasDefaultValue = reflected is not null &&
                                    reflected.IsOptional &&
                                    reflected.HasDefaultValue &&
-                                   SchemaSourceDefaultFormatter.IsUsable(reflected.DefaultValue) &&
-                                   SchemaSourceDefaultFormatter.IsCompatible(reflected.DefaultValue, argument.Type);
+                                   SchemaSourceDefaultCompatibility.IsUsable(reflected.DefaultValue) &&
+                                   SchemaSourceDefaultCompatibility.IsCompatible(reflected.DefaultValue, argument.Type);
 
             parameters.Add(new SchemaSourceParameter(
                 argument.Name,
                 argument.Type,
                 hasDefaultValue,
-                hasDefaultValue ? reflected!.DefaultValue : null));
+                hasDefaultValue ? reflected!.DefaultValue : null,
+                structuralParameters != null && index < structuralParameters.Count
+                    ? structuralParameters[index].Type
+                    : null,
+                method.StructuralContract?.Limits));
         }
 
-        return new SchemaSourceSignature(method, parameters.MoveToImmutable(), canBindNamedArguments);
+        return new SchemaSourceSignature(
+            method,
+            parameters.MoveToImmutable(),
+            canBindNamedArguments,
+            method.StructuralContract == null ? null : method.ConstructorInfo.OriginConstructor?.DeclaringType,
+            method.ConstructorInfo.SupportsInterCommunicator);
     }
 }
 
@@ -111,9 +148,13 @@ internal sealed class SchemaSourceSignature
 internal sealed record BoundSchemaArgument(
     int ParameterIndex,
     int? SourceArgumentIndex,
-    object? DefaultValue)
+    object? DefaultValue,
+    CteRelationBinding? Relation = null,
+    StructuralConstructionPlan? ConstructionPlan = null)
 {
-    public bool UsesDefault => SourceArgumentIndex is null;
+    public bool UsesDefault => SourceArgumentIndex is null && Relation is null;
+
+    public bool UsesRelation => Relation is not null;
 }
 
 internal sealed class BoundSchemaInvocation
@@ -121,11 +162,13 @@ internal sealed class BoundSchemaInvocation
     public BoundSchemaInvocation(
         SchemaSourceSignature signature,
         IEnumerable<BoundSchemaArgument> arguments,
-        bool usesNamedArguments)
+        bool usesNamedArguments,
+        int overloadIndex = 0)
     {
         Signature = signature;
         Arguments = arguments.ToImmutableArray();
         UsesNamedArguments = usesNamedArguments;
+        OverloadIndex = overloadIndex;
     }
 
     public SchemaSourceSignature Signature { get; }
@@ -134,10 +177,14 @@ internal sealed class BoundSchemaInvocation
 
     public bool UsesNamedArguments { get; }
 
+    public int OverloadIndex { get; }
+
     public bool HasDefaults => Arguments.Any(static argument => argument.UsesDefault);
+
+    public bool HasRelations => Arguments.Any(static argument => argument.UsesRelation);
 }
 
-internal static class SchemaSourceDefaultFormatter
+internal static class SchemaSourceDefaultCompatibility
 {
     public static bool IsUsable(object? value) =>
         !Equals(value, Missing.Value) && !Equals(value, DBNull.Value);
@@ -150,27 +197,4 @@ internal static class SchemaSourceDefaultFormatter
         return parameterType.IsInstanceOfType(value);
     }
 
-    public static string Format(object? value)
-    {
-        if (value is null)
-            return "null";
-
-        if (value is string text)
-            return $"'{Escape(text)}'";
-
-        if (value is char character)
-            return $"'{Escape(character.ToString())}'";
-
-        if (value is bool boolean)
-            return boolean ? "true" : "false";
-
-        return Convert.ToString(value, CultureInfo.InvariantCulture) ?? value.ToString()!;
-    }
-
-    private static string Escape(string value) => value
-        .Replace("\\", "\\\\", StringComparison.Ordinal)
-        .Replace("'", "''", StringComparison.Ordinal)
-        .Replace("\r", "\\r", StringComparison.Ordinal)
-        .Replace("\n", "\\n", StringComparison.Ordinal)
-        .Replace("\t", "\\t", StringComparison.Ordinal);
 }

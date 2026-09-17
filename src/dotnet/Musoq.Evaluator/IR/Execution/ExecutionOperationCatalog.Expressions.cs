@@ -8,6 +8,10 @@ internal static partial class ExecutionOperationCatalog
     private static IEnumerable<KeyValuePair<Type, ExecutionOperationId>> CreateExpressionOperations()
     {
         yield return Operation<ExecutionFieldRead>("expr.field-read");
+        yield return Operation<ExecutionStructuralRecord>("expr.structural-record");
+        yield return Operation<ExecutionStructuralArray>("expr.structural-array");
+        yield return Operation<ExecutionStructuralConversion>("expr.structural-conversion");
+        yield return Operation<ExecutionCteCollectionInput>("cte.collection-input");
         yield return Operation<ExecutionMemberRead>("expr.member-read");
         yield return Operation<ExecutionScriptParameterRead>("expr.script-parameter");
         yield return Operation<ExecutionScriptVariableRead>("expr.script-variable");
@@ -26,6 +30,15 @@ internal static partial class ExecutionOperationCatalog
         yield return Operation<ExecutionInCheck>("expr.in");
         yield return Operation<ExecutionCollectionInCheck>("expr.collection-in");
         yield return Operation<ExecutionPatternMatch>("expr.pattern");
+        yield return Operation<ExecutionStringMatch>("expr.string-match");
+        yield return Operation<ExecutionPrepareLikeMatcher>("expr.like.prepare-matcher");
+        yield return Operation<ExecutionPreparedLikeMatch>("expr.like.prepared-match");
+        yield return Operation<ExecutionDynamicLikeMatch>("expr.like.dynamic-match");
+        yield return Operation<ExecutionLikeMatcherCacheSlot>("expr.like.cache-slot");
+        yield return Operation<ExecutionPrepareRLikeMatcher>("expr.rlike.prepare-matcher");
+        yield return Operation<ExecutionPreparedRLikeMatch>("expr.rlike.prepared-match");
+        yield return Operation<ExecutionDynamicRLikeMatch>("expr.rlike.dynamic-match");
+        yield return Operation<ExecutionRLikeMatcherCacheSlot>("expr.rlike.cache-slot");
         yield return Operation<ExecutionBetween>("expr.between");
         yield return Operation<ExecutionCaseWhen>("expr.case");
         yield return Operation<ExecutionCoalesce>("expr.coalesce");

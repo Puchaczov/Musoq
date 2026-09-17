@@ -258,6 +258,28 @@ internal static partial class LogicalCteUsageFacts
             _references.Add(node.Name);
             return _references;
         }
+
+        protected override IReadOnlyList<string> VisitCteCollectionInput(CteCollectionInput node)
+        {
+            _references.Add(node.CteName);
+            return _references;
+        }
+        protected override IReadOnlyList<string> VisitStructuralRecordLiteral(StructuralRecordLiteral node)
+        {
+            foreach (var field in node.Fields) Visit(field.Value);
+            return _references;
+        }
+
+        protected override IReadOnlyList<string> VisitStructuralArrayLiteral(StructuralArrayLiteral node)
+        {
+            foreach (var element in node.Elements) Visit(element);
+            return _references;
+        }
+
+        protected override IReadOnlyList<string> VisitStructuralConversion(StructuralConversion node)
+        {
+            Visit(node.Value);
+            return _references;
+        }
     }
 }
-

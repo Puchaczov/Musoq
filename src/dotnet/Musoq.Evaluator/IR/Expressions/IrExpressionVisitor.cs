@@ -29,6 +29,10 @@ public abstract class IrExpressionVisitor<T>
             WindowFunctionRef node => VisitWindowFunctionRef(node),
             ArrayAccess node => VisitArrayAccess(node),
             CteTableRef node => VisitCteTableRef(node),
+            CteCollectionInput node => VisitCteCollectionInput(node),
+            StructuralRecordLiteral node => VisitStructuralRecordLiteral(node),
+            StructuralArrayLiteral node => VisitStructuralArrayLiteral(node),
+            StructuralConversion node => VisitStructuralConversion(node),
             _ => throw UnsupportedShape.Of($"IR expression type '{expression.GetType().Name}'")
         };
     }
@@ -54,4 +58,8 @@ public abstract class IrExpressionVisitor<T>
     protected abstract T VisitWindowFunctionRef(WindowFunctionRef node);
     protected abstract T VisitArrayAccess(ArrayAccess node);
     protected abstract T VisitCteTableRef(CteTableRef node);
+    protected virtual T VisitCteCollectionInput(CteCollectionInput node) => throw UnsupportedShape.Of("IR CTE collection input");
+    protected virtual T VisitStructuralRecordLiteral(StructuralRecordLiteral node) => throw UnsupportedShape.Of("IR structural record");
+    protected virtual T VisitStructuralArrayLiteral(StructuralArrayLiteral node) => throw UnsupportedShape.Of("IR structural array");
+    protected virtual T VisitStructuralConversion(StructuralConversion node) => throw UnsupportedShape.Of("IR structural conversion");
 }

@@ -28,8 +28,11 @@ internal sealed partial class PhysicalLoweringImplementation
             scope);
         if (!sources.IsBuilt)
             return TableBuildResult.Unsupported(sources.UnsupportedReason);
-        var joinSources = sources.Source;
-        if (!CanUseAsOfProbeSource(joinSources.Right.Shape, joinSources.Right.Variable.Type.ResolveClrType()))
+        var joinSources = sources.Source with
+        {
+            Right = PrepareAsOfProbeSource(sources.Source.Right)
+        };
+        if (!CanUseAsOfProbeSource(joinSources.Right.Shape, joinSources.Right.Variable))
         {
             return TableBuildResult.Unsupported(
                 $"Execution IR ASOF join lowering requires a non-dynamic source-entity or table-row right source. Found {joinSources.Right.Shape.GetType().Name} with row type {FormatTypeName(joinSources.Right.Variable.Type.ResolveClrType())}.");

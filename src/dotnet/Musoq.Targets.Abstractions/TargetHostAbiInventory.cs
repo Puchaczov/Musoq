@@ -196,6 +196,8 @@ internal sealed record TargetHostAbiInventory
             TargetRuntimeServiceRequirementKind.Diagnostics => TargetHostAbiImportKind.Diagnostics,
             TargetRuntimeServiceRequirementKind.Profiling => TargetHostAbiImportKind.Profiling,
             TargetRuntimeServiceRequirementKind.QueryRowSourceAccess => TargetHostAbiImportKind.QueryRowSourceAccess,
+            TargetRuntimeServiceRequirementKind.LikeMatcher => TargetHostAbiImportKind.LikeMatcher,
+            TargetRuntimeServiceRequirementKind.RLikeMatcher => TargetHostAbiImportKind.RLikeMatcher,
             _ => throw new ArgumentOutOfRangeException(nameof(service), service, "Unknown runtime service.")
         };
     }
@@ -212,6 +214,8 @@ internal sealed record TargetHostAbiInventory
             TargetHostAbiImportKind.Diagnostics => TargetRuntimeServiceRequirementKind.Diagnostics,
             TargetHostAbiImportKind.Profiling => TargetRuntimeServiceRequirementKind.Profiling,
             TargetHostAbiImportKind.QueryRowSourceAccess => TargetRuntimeServiceRequirementKind.QueryRowSourceAccess,
+            TargetHostAbiImportKind.LikeMatcher => TargetRuntimeServiceRequirementKind.LikeMatcher,
+            TargetHostAbiImportKind.RLikeMatcher => TargetRuntimeServiceRequirementKind.RLikeMatcher,
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown ABI import kind.")
         };
     }

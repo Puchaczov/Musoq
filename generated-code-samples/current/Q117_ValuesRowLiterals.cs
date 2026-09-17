@@ -1,8 +1,8 @@
 ﻿// === Parsed Query ===
 /*
 from values {
-                  { Name: 'Newtonsoft.Json', Approved: true, Score: 10ui },
-                  { Name: 'Legacy.Package', Approved: false, Score: 20ui }
+                  ( Name: 'Newtonsoft.Json', Approved: true, Score: 10ui ),
+                  ( Name: 'Legacy.Package', Approved: false, Score: 20ui )
               } packages
               where packages.Approved = false
               select packages.Name, packages.Score

@@ -172,7 +172,12 @@ public sealed partial class ExecutionCSharpRenderer
                 nameof(EvaluationHelper.GetSourceRuntimeSettingsDescription),
                 CreateDescSourceRuntimeSettingDescriptionsExpression(desc.RuntimeContextId),
                 SyntaxFactory.IdentifierName("token")),
-            DescType.Query => CreateEvaluationHelperInvocation(
+            DescType.Arguments => CreateEvaluationHelperInvocation(
+                nameof(EvaluationHelper.GetStructuralArgumentDescriptions),
+                SyntaxFactory.IdentifierName(DescSchemaVariableName),
+                CreateStringLiteral(desc.MethodName),
+                CreateStructuralArgumentDescriptionsExpression(desc),
+                SyntaxFactory.IdentifierName(DescRuntimeContextVariableName)),            DescType.Query => CreateEvaluationHelperInvocation(
                 nameof(EvaluationHelper.GetQueryDescription),
                 CreateDescQueryColumnsExpression(desc, context)),
             _ => throw UnsupportedShape.Of($"DESC type {desc.Type}")
@@ -204,6 +209,53 @@ public sealed partial class ExecutionCSharpRenderer
             .WithArgumentList(CreateArgumentList(arguments));
     }
 
+    private static ExpressionSyntax CreateStructuralArgumentDescriptionsExpression(ExecutionReturnDesc desc)
+    {
+        if (desc.ArgumentDescriptions == null)
+            return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+
+        var elementType = SyntaxFactory.ParseTypeName(
+            "global::Musoq.Evaluator.IR.Bindings.StructuralArgumentDescription");
+        var values = desc.ArgumentDescriptions.Select(description =>
+            (ExpressionSyntax)SyntaxFactory.ObjectCreationExpression(elementType)
+                .WithArgumentList(CreateArgumentList(
+                    CreateIntLiteral(description.Overload),
+                    CreateStringLiteral(description.Path),
+                    CreateStringLiteral(description.Kind),
+                    CreateStringLiteral(description.Type),
+                    CreateNullableBoolLiteral(description.Required),
+                    CreateBooleanLiteral(description.Nullable),
+                    CreateBooleanLiteral(description.HasDefault),
+                    CreateNullableStringLiteral(description.Default),
+                    CreateNullableIntLiteral(description.MaxDepth),
+                    CreateNullableIntLiteral(description.MaxNodes),
+                    CreateNullableLongLiteral(description.MaxStringBytes)))
+            );
+
+        return SyntaxFactory.ArrayCreationExpression(
+                SyntaxFactory.ArrayType(elementType)
+                    .WithRankSpecifiers(SyntaxFactory.SingletonList(
+                        SyntaxFactory.ArrayRankSpecifier(
+                            SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                SyntaxFactory.OmittedArraySizeExpression())))))
+            .WithInitializer(SyntaxFactory.InitializerExpression(
+                SyntaxKind.ArrayInitializerExpression,
+                SyntaxFactory.SeparatedList(values)));
+    }
+
+    private static ExpressionSyntax CreateNullableBoolLiteral(bool? value) =>
+        value.HasValue ? CreateBooleanLiteral(value.Value) : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+
+    private static ExpressionSyntax CreateNullableIntLiteral(int? value) =>
+        value.HasValue ? CreateIntLiteral(value.Value) : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+
+    private static ExpressionSyntax CreateNullableLongLiteral(long? value) =>
+        value.HasValue
+            ? SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(value.Value))
+            : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+
+    private static ExpressionSyntax CreateNullableStringLiteral(string? value) =>
+        value == null ? SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression) : CreateStringLiteral(value);
     private static void ValidateDesc(ExecutionReturnDesc desc)
     {
         if (desc.Type == DescType.Query)
@@ -229,7 +281,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool RequiresMethodName(DescType descType)
     {
-        return descType is DescType.Constructors or DescType.Table or DescType.Column or DescType.Settings;
+        return descType is DescType.Constructors or DescType.Arguments or DescType.Table or DescType.Column or DescType.Settings;
     }
 
     private static bool RequiresSchemaTable(DescType descType)

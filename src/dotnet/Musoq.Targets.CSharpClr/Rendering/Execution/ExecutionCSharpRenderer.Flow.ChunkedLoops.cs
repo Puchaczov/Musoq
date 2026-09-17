@@ -58,16 +58,7 @@ public sealed partial class ExecutionCSharpRenderer
             : RenderMaterializeExpandoList(materialize, context);
     }
 
-    private StatementSyntax[] RenderSourceLoopStream(ExecutionSourceLoop sourceLoop)
-    {
-        var context = CreateIsolatedRenderContext();
-        return sourceLoop switch
-        {
-            ExecutionForEach forEach => RenderForEachStream(forEach, context).ToArray(),
-            _ => throw new InvalidOperationException(
-                $"Source loop renderer cannot render loop '{sourceLoop.GetType().Name}'.")
-        };
-    }
+
 
     private IEnumerable<StatementSyntax> RenderChunkedForEach(
         ExecutionForEach forEach,

@@ -163,6 +163,7 @@ public enum DiagnosticCode
     MQ3113_UnsupportedEnumOutputTarget = 3113,
     MQ3114_EnumSourceCapabilityRequired = 3114,
     MQ3115_EnumDescriptorMismatch = 3115,
+    MQ3116_AmbiguousRelationArgument = 3116,
 
     // Schema Definition Errors (MQ4xxx)
     MQ4001_InvalidBinarySchemaField = 4001,
@@ -198,6 +199,7 @@ public enum DiagnosticCode
     MQ7010_DataSourceOpenFailed = 7010,
     MQ7011_DataSourceReadFailed = 7011,
     MQ7012_DataSourceCleanupFailed = 7012,
+    MQ7013_StructuralInputLimitExceeded = 7013,
 
     // Code Generation Errors (MQ8xxx)
     MQ8001_CodeGenerationFailed = 8001, MQ8002_CompiledArtifactIncompatible = 8002,

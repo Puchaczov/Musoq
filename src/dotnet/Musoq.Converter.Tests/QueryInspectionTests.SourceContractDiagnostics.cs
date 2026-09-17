@@ -85,7 +85,7 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
-    public void CompileWithDiagnostics_WhenSourceContractDiagnosticHasNoTableOrigin_ShouldReportUsefulMessageWithEmptySpan()
+    public void CompileWithDiagnostics_WhenSourceContractDiagnosticHasNoTableOrigin_ShouldReportUsefulMessageWithUnknownLocation()
     {
         var provider = new ContractDiagnosticSchemaProvider(ContractDiagnosticMode.GenericWarning);
         var result = InstanceCreator.CompileWithDiagnostics(
@@ -99,7 +99,9 @@ public partial class QueryInspectionTests
         Assert.IsTrue(result.Succeeded);
         Assert.Contains("The source reported a contract diagnostic without table-origin metadata.", warning.Message);
         Assert.Contains("sourceCode=GenericContractWarning", warning.Message);
-        Assert.AreEqual(TextSpan.Empty, warning.Span);
+        Assert.AreEqual(SourceLocation.None, warning.Location);
+        Assert.AreEqual(SourceLocation.None, warning.EndLocation);
+        AssertUnknownLocation(MusoqErrorEnvelope.FromDiagnostic(warning), "existing-generic-warning");
     }
 
     private static string CreateContractQuery(string columns, string projection = "Name")
@@ -122,7 +124,9 @@ public partial class QueryInspectionTests
         WarnUnsupportedEncoding,
         RequireUtf8Encoding,
         RequireAmountString,
-        GenericWarning
+        GenericWarning,
+        GenericError,
+        BothOrigin
     }
 
     private sealed class ContractDiagnosticSchemaProvider(ContractDiagnosticMode mode) : ISchemaProvider
@@ -196,6 +200,31 @@ public partial class QueryInspectionTests
                     SourceContractDiagnostic.Warning(
                         "The source reported a contract diagnostic without table-origin metadata.",
                         "GenericContractWarning")
+                ];
+            }
+
+            if (mode == ContractDiagnosticMode.GenericError)
+            {
+                return
+                [
+                    SourceContractDiagnostic.Error(
+                        "The source reported an error without table-origin metadata.",
+                        "GenericContractError")
+                ];
+            }
+
+            if (mode == ContractDiagnosticMode.BothOrigin &&
+                TryFindEncodingColumn(columns, out var bothOriginColumn, out var bothOriginEncoding))
+            {
+                return
+                [
+                    SourceContractDiagnostic.Warning(
+                        $"Encoding modifier '{bothOriginEncoding}' requires a table-origin precedence check.",
+                        "BothOrigin") with
+                    {
+                        ColumnName = bothOriginColumn.ColumnName,
+                        ModifierKey = ColumnReadModifiers.Encoding
+                    }
                 ];
             }
 

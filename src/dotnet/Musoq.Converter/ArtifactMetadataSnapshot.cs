@@ -32,6 +32,7 @@ internal static class ArtifactMetadataSnapshot
             Identity = plan.Identity,
             AcceptedColumns = CopyList(plan.AcceptedColumns.Select(CopyColumn)),
             AcceptedPredicate = CopyPredicate(plan.AcceptedPredicate),
+            PredicateApplications = CopyList(plan.PredicateApplications.Select(CopyPredicateApplication)),
             AcceptedOrderBy = CopyList(plan.AcceptedOrderBy.Select(CopyOrderBy)),
             AcceptedSkip = plan.AcceptedSkip,
             AcceptedTake = plan.AcceptedTake,
@@ -47,6 +48,13 @@ internal static class ArtifactMetadataSnapshot
     private static OrderByExpression CopyOrderBy(OrderByExpression orderBy)
     {
         return new OrderByExpression(CopyColumn(orderBy.Column), orderBy.Direction);
+    }
+
+    private static SourcePredicateApplication CopyPredicateApplication(SourcePredicateApplication application)
+    {
+        return new SourcePredicateApplication(
+            (SourcePredicateStringMatch)CopyPredicate(application.Predicate)!,
+            application.Phase);
     }
 
     private static SourcePredicateExpression? CopyPredicate(SourcePredicateExpression? predicate)
@@ -74,6 +82,13 @@ internal static class ArtifactMetadataSnapshot
             SourcePredicateNullCheck nullCheck => new SourcePredicateNullCheck(
                 CopyPredicate(nullCheck.Expression)!,
                 nullCheck.IsNegated),
+            SourcePredicateStringMatch stringMatch => new SourcePredicateStringMatch(
+                CopyColumn(stringMatch.Column),
+                stringMatch.Kind,
+                stringMatch.OriginalPattern,
+                stringMatch.Needle,
+                stringMatch.Comparison,
+                stringMatch.IsNegated),
             SourcePredicateFlags flags => new SourcePredicateFlags(
                 CopyPredicate(flags.Expression)!,
                 new SourcePredicateEnumLiteral(flags.Mask.Value, flags.Mask.EnumFingerprint),

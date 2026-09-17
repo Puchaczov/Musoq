@@ -12,6 +12,7 @@ public sealed record PhysicalSingleKeyAggregateNode(
     PhysicalNode Input) : PhysicalNode(OutputSchemaFactory.ForSingleKeyAggregate(
         GroupKeyName,
         GroupKeyType,
+        GroupKey,
         Bindings,
         AggregateOutputName.Identifier))
 {
