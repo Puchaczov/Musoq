@@ -23,13 +23,15 @@ public sealed class CompiledQueryRuntimeStateTests
         var firstRun = StartLongRunning(() => query.Run());
         Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
 
+        using var secondRunStarted = new ManualResetEventSlim();
         var secondRun = StartLongRunning(() =>
         {
+            secondRunStarted.Set();
             query.Parameters["value"] = 2;
             return query.Run();
         });
 
-        Assert.IsFalse(secondRun.Wait(TimeSpan.FromMilliseconds(100)));
+        Assert.IsTrue(secondRunStarted.Wait(TimeSpan.FromSeconds(5)));
         runnable.Release.Set();
 
         var firstResult = await firstRun;
@@ -50,12 +52,12 @@ public sealed class CompiledQueryRuntimeStateTests
         Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
 
         var dispose = StartLongRunning(query.Dispose);
-        Assert.IsFalse(dispose.Wait(TimeSpan.FromMilliseconds(100)));
 
         runnable.Release.Set();
         await run;
         await dispose;
 
+        Assert.IsFalse(runnable.DisposeObservedActiveRun);
         Assert.IsTrue(runnable.IsDisposed);
         Assert.ThrowsExactly<ObjectDisposedException>(() => query.Run());
     }
@@ -99,13 +101,13 @@ public sealed class CompiledQueryRuntimeStateTests
         Assert.IsTrue(runnable.SecondRunStarted.Wait(TimeSpan.FromSeconds(5)));
 
         var dispose = StartLongRunning(query.Dispose);
-        Assert.IsFalse(dispose.Wait(TimeSpan.FromMilliseconds(100)));
 
         runnable.Release.Set();
         await firstRun;
         await secondRun;
         await dispose;
 
+        Assert.IsFalse(runnable.DisposeObservedActiveRun);
         Assert.IsTrue(runnable.IsDisposed);
     }
 
@@ -127,6 +129,8 @@ public sealed class CompiledQueryRuntimeStateTests
     {
         internal readonly ManualResetEventSlim FirstRunStarted = new(false);
         internal readonly ManualResetEventSlim Release = new(false);
+        private int _activeRuns;
+        private int _disposeObservedActiveRun;
 
         public ISchemaProvider Provider { get; set; } = new ThrowingSchemaProvider();
 
@@ -155,19 +159,34 @@ public sealed class CompiledQueryRuntimeStateTests
 
         public bool IsDisposed { get; private set; }
 
+        public bool DisposeObservedActiveRun =>
+            Volatile.Read(ref _disposeObservedActiveRun) != 0;
+
         public Table Run(CancellationToken token)
         {
-            FirstRunStarted.Set();
-            Release.Wait(token);
+            var runNumber = Interlocked.Increment(ref _activeRuns);
+            if (runNumber == 1)
+                FirstRunStarted.Set();
 
-            var value = (int)Parameters["value"]!;
-            var table = new Table("result", [new Column("Value", typeof(int), 0)]);
-            table.Add(new ValueRow(value));
-            return table;
+            try
+            {
+                Release.Wait(token);
+
+                var value = (int)Parameters["value"]!;
+                var table = new Table("result", [new Column("Value", typeof(int), 0)]);
+                table.Add(new ValueRow(value));
+                return table;
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _activeRuns);
+            }
         }
 
         public void Dispose()
         {
+            if (Volatile.Read(ref _activeRuns) != 0)
+                Volatile.Write(ref _disposeObservedActiveRun, 1);
             if (IsDisposed)
                 return;
 
@@ -196,6 +215,7 @@ public sealed class CompiledQueryRuntimeStateTests
     {
         private int _activeRuns;
         private int _maximumConcurrentRuns;
+        private int _disposeObservedActiveRun;
 
         internal readonly ManualResetEventSlim FirstRunStarted = new(false);
         internal readonly ManualResetEventSlim SecondRunStarted = new(false);
@@ -227,6 +247,9 @@ public sealed class CompiledQueryRuntimeStateTests
         #pragma warning restore CS0067
 
         public bool IsDisposed { get; private set; }
+
+        public bool DisposeObservedActiveRun =>
+            Volatile.Read(ref _disposeObservedActiveRun) != 0;
 
         public int MaximumConcurrentRuns => Volatile.Read(ref _maximumConcurrentRuns);
 
@@ -260,6 +283,8 @@ public sealed class CompiledQueryRuntimeStateTests
 
         public void Dispose()
         {
+            if (Volatile.Read(ref _activeRuns) != 0)
+                Volatile.Write(ref _disposeObservedActiveRun, 1);
             IsDisposed = true;
         }
 

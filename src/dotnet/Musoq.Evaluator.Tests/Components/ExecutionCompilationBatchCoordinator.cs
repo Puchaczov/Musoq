@@ -22,6 +22,7 @@ internal readonly record struct ExecutionCompilationBatchResult(
 internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
 {
     internal const int MaximumBatchSize = 16;
+    private static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan CollectionWindow = TimeSpan.FromMilliseconds(2);
 
     private readonly object _gate = new();
@@ -33,6 +34,7 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
     private readonly Func<ExecutionBatchCompilationRequest, BuildResult> _singleCompiler;
     private readonly int _maximumBatchSize;
     private readonly TimeSpan _collectionWindow;
+    private readonly ManualResetEventSlim? _collectionGate;
     private readonly Action? _requestEnqueued;
     private long _nextKey;
     private bool _disposed;
@@ -44,6 +46,7 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
         Func<ExecutionBatchCompilationRequest, BuildResult> singleCompiler,
         int maximumBatchSize = MaximumBatchSize,
         TimeSpan? collectionWindow = null,
+        ManualResetEventSlim? collectionGate = null,
         Action? requestEnqueued = null)
     {
         _batchCompiler = batchCompiler ?? throw new ArgumentNullException(nameof(batchCompiler));
@@ -53,6 +56,7 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
 
         _maximumBatchSize = maximumBatchSize;
         _collectionWindow = collectionWindow ?? CollectionWindow;
+        _collectionGate = collectionGate;
         _requestEnqueued = requestEnqueued;
         _dispatcher = new Thread(Dispatch)
         {
@@ -109,9 +113,12 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
             _disposed = true;
         }
 
+        _collectionGate?.Set();
         _queueSignal.Set();
-        _dispatcher.Join();
-        _workIdle.Wait();
+        if (!_dispatcher.Join(ShutdownTimeout))
+            throw new TimeoutException("The batch coordinator dispatcher did not stop during disposal.");
+        if (!_workIdle.Wait(ShutdownTimeout))
+            throw new TimeoutException("The batch coordinator did not become idle during disposal.");
         _queueSignal.Dispose();
         _batchSlots.Dispose();
         _workIdle.Dispose();
@@ -148,6 +155,7 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
     private IReadOnlyList<PendingRequest> Collect(PendingRequest first)
     {
         var batch = new List<PendingRequest>(_maximumBatchSize) { first };
+        _collectionGate?.Wait();
         var deadline = Stopwatch.GetTimestamp() +
                        (long)(_collectionWindow.TotalSeconds * Stopwatch.Frequency);
 

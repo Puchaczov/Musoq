@@ -17,12 +17,20 @@ namespace Musoq.Converter.Tests;
 [DoNotParallelize]
 public sealed class QueryScopedRowCacheTests
 {
+    private const int FreshProviderThreshold = -1_000_001;
+    private const int MutatedMetadataThreshold = -1_000_002;
+    private const int CapabilityThreshold = -1_000_003;
+    private const int NarrowCarrierThreshold = -1_000_004;
+    private const int WideCarrierThreshold = -1_000_005;
+
     private readonly TestsLoggerResolver _loggerResolver = new();
 
     [TestMethod]
     public void IdenticalSqlAndShape_ShouldReuseArtifactAndBindFreshProviderState()
     {
-        var query = UniqueQuery("select r.Value from #queryrowcache.rows() r where r.Value >= {0}");
+        var query = QueryWithDeterministicThreshold(
+            "select r.Value from #queryrowcache.rows() r where r.Value >= {0}",
+            FreshProviderThreshold);
         var firstProvider = new QueryRowCacheSchemaProvider(NarrowState(11));
         var first = Compile(query, "QueryRowCacheFreshFirst", firstProvider);
         Assert.IsFalse(first.BuildItems!.StopAfterPlanning);
@@ -48,7 +56,9 @@ public sealed class QueryScopedRowCacheTests
     [TestMethod]
     public void MutatedMetadataForSameSqlAndProvider_ShouldReplaceCollidingExactCacheAlias()
     {
-        var query = UniqueQuery("select * from #queryrowcache.rows() r where {0} <= 0");
+        var query = QueryWithDeterministicThreshold(
+            "select * from #queryrowcache.rows() r where {0} <= 0",
+            MutatedMetadataThreshold);
         var state = NarrowState(7);
         var provider = new QueryRowCacheSchemaProvider(state);
         var first = Compile(query, $"QueryRowCacheShapeFirst_{Guid.NewGuid():N}", provider);
@@ -83,7 +93,9 @@ public sealed class QueryScopedRowCacheTests
     [TestMethod]
     public void ToggledCapability_ShouldNotReuseQueryScopedArtifactForLegacyTransfer()
     {
-        var query = UniqueQuery("select r.Value from #queryrowcache.rows() r where r.Value >= {0}");
+        var query = QueryWithDeterministicThreshold(
+            "select r.Value from #queryrowcache.rows() r where r.Value >= {0}",
+            CapabilityThreshold);
         var state = NarrowState(31);
         var provider = new QueryRowCacheSchemaProvider(state);
         var queryScoped = Compile(query, "QueryRowCacheCapabilityQueryScoped", provider);
@@ -118,7 +130,9 @@ public sealed class QueryScopedRowCacheTests
     {
         var narrowProvider = new QueryRowCacheSchemaProvider(NarrowState(3));
         var scanLocal = Compile(
-            UniqueQuery("select r.Value from #queryrowcache.rows() r where r.Value >= {0}"),
+            QueryWithDeterministicThreshold(
+                "select r.Value from #queryrowcache.rows() r where r.Value >= {0}",
+                NarrowCarrierThreshold),
             "QueryRowCacheStruct",
             narrowProvider);
         var scanLocalEntry = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(
@@ -128,7 +142,9 @@ public sealed class QueryScopedRowCacheTests
         var wideProvider = new QueryRowCacheSchemaProvider(
             new QueryRowCacheState(WideColumns(), [WideValues()]));
         var wide = Compile(
-            UniqueQuery("select r.G0, r.G1, r.G2, r.G3, r.G4 from #queryrowcache.rows() r where {0} <= 0"),
+            QueryWithDeterministicThreshold(
+                "select r.G0, r.G1, r.G2, r.G3, r.G4 from #queryrowcache.rows() r where {0} <= 0",
+                WideCarrierThreshold),
             "QueryRowCacheClass",
             wideProvider);
         var scanLocalTransfer = Transfer(scanLocal.BuildItems!);
@@ -179,9 +195,8 @@ public sealed class QueryScopedRowCacheTests
             .ToArray();
     }
 
-    private static string UniqueQuery(string format)
+    private static string QueryWithDeterministicThreshold(string format, int threshold)
     {
-        var threshold = -Random.Shared.Next(1, int.MaxValue);
         return string.Format(System.Globalization.CultureInfo.InvariantCulture, format, threshold);
     }
 

@@ -131,10 +131,9 @@ public partial class TypoAndUxDiagnosticProbeTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name FROM #test.people() WHERE City = \"London\""));
 
-        var msg = ex.Message;
-        // Should give some indication about the issue
-        Assert.IsNotNull(msg);
-        Assert.IsGreaterThan(0, msg.Length, "Should produce a non-empty error message");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ1001_UnknownToken, DiagnosticPhase.Parse);
+        AssertMessageContains(ex, "unrecognized");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -143,29 +142,34 @@ public partial class TypoAndUxDiagnosticProbeTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name FROM #test.people() SELECT Age FROM #test.people()"));
 
-        var msg = ex.Message;
-        Assert.IsNotNull(msg);
-        Assert.IsGreaterThan(0, msg.Length, "Should produce a non-empty error message");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
-    public void WhenUsingAsterikWithOtherColumns_ShouldWorkOrGiveError()
+    public void WhenUsingAsteriskWithOtherColumns_ShouldReturnBothProjections()
     {
-        // SELECT *, Name is unusual; test behavior
-        try
-        {
-            var vm = CompileQuery("SELECT *, Name FROM #test.people()");
-            var table = vm.Run(TokenSource.Token);
-            // If it works, verify it has results
-            Assert.IsGreaterThan(0, table.Count);
-        }
-        catch (MusoqQueryException ex)
-        {
-            // If it fails, error should be helpful
-            var msg = ex.Message;
-            Assert.IsNotNull(msg);
-            Assert.IsGreaterThan(0, msg.Length);
-        }
+        var vm = CompileQuery("SELECT *, Name FROM #test.people()");
+        var table = vm.Run(TokenSource.Token);
+
+        var columnNames = table.Columns.Select(static column => column.ColumnName).ToArray();
+        Assert.HasCount(9, columnNames);
+        Assert.AreEqual("Id", columnNames[0]);
+        Assert.IsTrue(columnNames[1].EndsWith(".Name", StringComparison.Ordinal));
+        Assert.AreEqual("Age", columnNames[2]);
+        Assert.AreEqual("City", columnNames[3]);
+        Assert.AreEqual("Salary", columnNames[4]);
+        Assert.AreEqual("BirthDate", columnNames[5]);
+        Assert.AreEqual("ManagerId", columnNames[6]);
+        Assert.AreEqual("Email", columnNames[7]);
+        Assert.IsTrue(columnNames[8].EndsWith(".Name", StringComparison.Ordinal));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [1, "Alice", 25, "London", 50000m, new DateTime(1999, 1, 15), null, "alice@test.com", "Alice"],
+            [2, "Bob", 35, "Paris", 60000m, new DateTime(1989, 6, 20), 1, "bob@test.com", "Bob"],
+            [3, "Charlie", 28, "London", 55000m, new DateTime(1996, 3, 10), 1, "charlie@test.com", "Charlie"],
+            [4, "Diana", 42, "Berlin", 75000m, new DateTime(1982, 11, 5), 2, "diana@test.com", "Diana"],
+            [5, "Eve", 31, "Paris", 62000m, new DateTime(1993, 8, 25), 2, "eve@test.com", "Eve"]);
     }
 
     [TestMethod]
@@ -182,41 +186,28 @@ public partial class TypoAndUxDiagnosticProbeTests
     }
 
     [TestMethod]
-    public void WhenUsingEqualsEqualsInsteadOfEquals_ShouldWork()
+    public void WhenUsingEqualsForEquality_ShouldReturnMatchingRow()
     {
-        // Some SQL systems use =, some ==; test Musoq behavior
-        try
-        {
-            var vm = CompileQuery("SELECT Name FROM #test.people() WHERE Age = 25");
-            var table = vm.Run(TokenSource.Token);
-            Assert.AreEqual(1, table.Count);
-        }
-        catch (MusoqQueryException)
-        {
-            // If = doesn't work, that's a gap
-            Assert.Fail("Simple equality comparison with = should work");
-        }
+        var vm = CompileQuery("SELECT Name FROM #test.people() WHERE Age = 25");
+        var table = vm.Run(TokenSource.Token);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Alice"]);
     }
 
     [TestMethod]
-    public void WhenUsingExclamationEqualsForNotEqual_ShouldGiveHelpfulError()
+    public void WhenUsingExclamationEqualsForNotEqual_ShouldReturnNonMatchingRows()
     {
-        try
-        {
-            var vm = CompileQuery("SELECT Name FROM #test.people() WHERE Age != 25");
-            var table = vm.Run(TokenSource.Token);
-            Assert.IsGreaterThan(0, table.Count);
-        }
-        catch (MusoqQueryException ex)
-        {
-            // If != doesn't work, should suggest <> or diff
-            var msg = ex.Message;
-            Assert.IsTrue(
-                msg.Contains("<>", StringComparison.OrdinalIgnoreCase) ||
-                msg.Contains("diff", StringComparison.OrdinalIgnoreCase) ||
-                msg.Contains("not equal", StringComparison.OrdinalIgnoreCase),
-                $"Should suggest alternative not-equal syntax. Got: {msg}");
-        }
+        var vm = CompileQuery("SELECT Name FROM #test.people() WHERE Age != 25");
+        var table = vm.Run(TokenSource.Token);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Bob"],
+            ["Charlie"],
+            ["Diana"],
+            ["Eve"]);
     }
 
 

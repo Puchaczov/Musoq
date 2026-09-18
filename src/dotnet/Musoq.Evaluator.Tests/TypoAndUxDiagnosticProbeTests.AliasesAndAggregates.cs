@@ -1,6 +1,8 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
+using Musoq.Parser.Diagnostics;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -9,36 +11,33 @@ public partial class TypoAndUxDiagnosticProbeTests
     [TestMethod]
     public void WhenUsingAsForTableAlias_ShouldWork()
     {
-        // Some SQL dialects use AS for table aliases
-        try
-        {
-            var vm = CompileQuery("SELECT a.Name FROM #test.people() AS a");
-            var table = vm.Run(TokenSource.Token);
-            Assert.AreEqual(5, table.Count);
-        }
-        catch (MusoqQueryException ex)
-        {
-            // If AS is not supported for tables, error should mention it
-            var msg = ex.Message;
-            Assert.IsNotNull(msg);
-        }
+        var vm = CompileQuery("SELECT a.Name FROM #test.people() AS a");
+        var table = vm.Run(TokenSource.Token);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice"],
+            ["Bob"],
+            ["Charlie"],
+            ["Diana"],
+            ["Eve"]);
     }
 
     [TestMethod]
-    public void WhenReferencingAliasBeforeIsDefined_ShouldGiveHelpfulError()
+    public void WhenReferencingAliasBeforeIsDefined_ShouldResolveAlias()
     {
-        // In SQL, the alias is defined after FROM — you can't use it in SELECT before FROM
-        // But Musoq might be flexible about evaluation order
-        try
-        {
-            var vm = CompileQuery("SELECT p.Name FROM #test.people() p");
-            var table = vm.Run(TokenSource.Token);
-            Assert.AreEqual(5, table.Count);
-        }
-        catch (MusoqQueryException)
-        {
-            Assert.Fail("Using table alias defined in FROM should work in SELECT");
-        }
+        var vm = CompileQuery("SELECT p.Name FROM #test.people() p");
+        var table = vm.Run(TokenSource.Token);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice"],
+            ["Bob"],
+            ["Charlie"],
+            ["Diana"],
+            ["Eve"]);
     }
 
     [TestMethod]
@@ -88,22 +87,18 @@ public partial class TypoAndUxDiagnosticProbeTests
     }
 
     [TestMethod]
-    public void WhenUsingNotEqualsFromCSharp_ShouldGiveHelpfulError()
+    public void WhenUsingNotEqualsFromCSharp_ShouldReturnNonMatchingRows()
     {
-        // C# style !=
-        try
-        {
-            var vm = CompileQuery("SELECT Name FROM #test.people() WHERE Age != 25");
-            var table = vm.Run(TokenSource.Token);
-            Assert.IsGreaterThan(0, table.Count);
-        }
-        catch (MusoqQueryException ex)
-        {
-            Assert.IsTrue(
-                ex.Message.Contains("<>", StringComparison.OrdinalIgnoreCase) ||
-                ex.Message.Contains("diff", StringComparison.OrdinalIgnoreCase),
-                $"Should suggest <> for not-equals. Got: {ex.Message}");
-        }
+        var vm = CompileQuery("SELECT Name FROM #test.people() WHERE Age != 25");
+        var table = vm.Run(TokenSource.Token);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Bob"],
+            ["Charlie"],
+            ["Diana"],
+            ["Eve"]);
     }
 
 
@@ -119,25 +114,25 @@ public partial class TypoAndUxDiagnosticProbeTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT `Name` FROM #test.people()"));
 
-        var msg = ex.Message;
-        Assert.IsNotNull(msg);
-        Assert.IsGreaterThan(0, msg.Length, "Should give error for backtick identifiers");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ1001_UnknownToken, DiagnosticPhase.Parse);
+        AssertMessageContains(ex, "unrecognized");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
-    public void WhenUsingSemicolonAtEnd_ShouldWorkOrGiveError()
+    public void WhenUsingSemicolonAtEnd_ShouldReturnRows()
     {
-        // Some SQL systems require semicolons; test behavior
-        try
-        {
-            var vm = CompileQuery("SELECT Name FROM #test.people();");
-            var table = vm.Run(TokenSource.Token);
-            Assert.AreEqual(5, table.Count);
-        }
-        catch (MusoqQueryException)
-        {
-            // If semicolons are rejected, that's fine — just verify it fails
-        }
+        var vm = CompileQuery("SELECT Name FROM #test.people();");
+        var table = vm.Run(TokenSource.Token);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice"],
+            ["Bob"],
+            ["Charlie"],
+            ["Diana"],
+            ["Eve"]);
     }
 
 

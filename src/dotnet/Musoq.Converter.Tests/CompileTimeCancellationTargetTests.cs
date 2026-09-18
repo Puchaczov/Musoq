@@ -147,7 +147,9 @@ public sealed class CompileTimeCancellationTargetTests
 
         try
         {
-            var firstCompleted = await Task.WhenAny(gate.Entered, operationTask);
+            var firstCompleted = await Task.WhenAny(
+                gate.Entered,
+                operationTask.WaitAsync(TestSynchronization.DeadlockTimeout));
             Assert.AreSame(
                 gate.Entered,
                 firstCompleted,
@@ -159,7 +161,7 @@ public sealed class CompileTimeCancellationTargetTests
 
             try
             {
-                _ = await operationTask;
+                _ = await operationTask.WaitAsync(TestSynchronization.DeadlockTimeout);
                 Assert.Fail("The cancelled target operation returned normally.");
             }
             catch (OperationCanceledException exception)
@@ -177,7 +179,7 @@ public sealed class CompileTimeCancellationTargetTests
             {
                 try
                 {
-                    _ = await operationTask;
+                    _ = await operationTask.WaitAsync(TestSynchronization.DeadlockTimeout);
                 }
                 catch (OperationCanceledException)
                 {

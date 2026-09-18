@@ -15,8 +15,9 @@ public class CryptoTests : PluginsTestBase
     {
         var result = Library.Sha384("hello");
 
-        Assert.IsNotNull(result);
-        Assert.AreEqual(96, result.Length);
+        Assert.AreEqual(
+            "59E1748777448C69DE6B800D7A33BBFB9FF1B463E44354C3553BCDB9C666FA90125A3C79F90397BDF5F6A13DE828684F",
+            result);
     }
 
     [TestMethod]
@@ -32,8 +33,9 @@ public class CryptoTests : PluginsTestBase
     {
         var result = Library.Sha384(string.Empty);
 
-        Assert.IsNotNull(result);
-        Assert.AreEqual(96, result.Length);
+        Assert.AreEqual(
+            "38B060A751AC96384CD9327EB1B1E36A21FDB71114BE07434C0CC7BF63F6E1DA274EDEBFE76F65FBD51AD2F14898B95B",
+            result);
     }
 
     [TestMethod]
@@ -60,8 +62,9 @@ public class CryptoTests : PluginsTestBase
         var bytes = "hello"u8.ToArray();
         var result = Library.Sha384(bytes);
 
-        Assert.IsNotNull(result);
-        Assert.AreEqual(96, result.Length);
+        Assert.AreEqual(
+            "59E1748777448C69DE6B800D7A33BBFB9FF1B463E44354C3553BCDB9C666FA90125A3C79F90397BDF5F6A13DE828684F",
+            result);
     }
 
     [TestMethod]
@@ -77,8 +80,9 @@ public class CryptoTests : PluginsTestBase
     {
         var result = Library.Sha384(Array.Empty<byte>());
 
-        Assert.IsNotNull(result);
-        Assert.AreEqual(96, result.Length);
+        Assert.AreEqual(
+            "38B060A751AC96384CD9327EB1B1E36A21FDB71114BE07434C0CC7BF63F6E1DA274EDEBFE76F65FBD51AD2F14898B95B",
+            result);
     }
 
     [TestMethod]
@@ -199,8 +203,9 @@ public class CryptoTests : PluginsTestBase
     {
         var result = Library.HmacSha256("message", "secret");
 
-        Assert.IsNotNull(result);
-        Assert.AreEqual(64, result.Length);
+        Assert.AreEqual(
+            "8b5f48702995c1598c573db1e21866a9b825d4a794d169d7060a03605796360b",
+            result);
     }
 
     [TestMethod]
@@ -232,8 +237,9 @@ public class CryptoTests : PluginsTestBase
     {
         var result = Library.HmacSha256(string.Empty, "secret");
 
-        Assert.IsNotNull(result);
-        Assert.AreEqual(64, result.Length);
+        Assert.AreEqual(
+            "f9e66e179b6747ae54108f82f8ade8b3c25d76fd30afde6c395822c530196169",
+            result);
     }
 
     [TestMethod]
@@ -241,8 +247,9 @@ public class CryptoTests : PluginsTestBase
     {
         var result = Library.HmacSha256("message", string.Empty);
 
-        Assert.IsNotNull(result);
-        Assert.AreEqual(64, result.Length);
+        Assert.AreEqual(
+            "eb08c1f56d5ddee07f7bdf80468083da06b64cf4fac64fe3a90883df5feacae4",
+            result);
     }
 
     [TestMethod]
@@ -290,8 +297,9 @@ public class CryptoTests : PluginsTestBase
     {
         var result = Library.HmacSha512("message", "secret");
 
-        Assert.IsNotNull(result);
-        Assert.AreEqual(128, result.Length);
+        Assert.AreEqual(
+            "1bba587c730eedba31f53abb0b6ca589e09de4e894ee455e6140807399759adaafa069eec7c01647bb173dcb17f55d22af49a18071b748c5c2edd7f7a829c632",
+            result);
     }
 
     [TestMethod]
@@ -323,8 +331,9 @@ public class CryptoTests : PluginsTestBase
     {
         var result = Library.HmacSha512(string.Empty, "secret");
 
-        Assert.IsNotNull(result);
-        Assert.AreEqual(128, result.Length);
+        Assert.AreEqual(
+            "b0e9650c5faf9cd8ae02276671545424104589b3656731ec193b25d01b07561c27637c2d4d68389d6cf5007a8632c26ec89ba80a01c77a6cdd389ec28db43901",
+            result);
     }
 
     [TestMethod]
@@ -332,8 +341,9 @@ public class CryptoTests : PluginsTestBase
     {
         var result = Library.HmacSha512("message", string.Empty);
 
-        Assert.IsNotNull(result);
-        Assert.AreEqual(128, result.Length);
+        Assert.AreEqual(
+            "08fce52f6395d59c2a3fb8abb281d74ad6f112b9a9c787bcea290d94dadbc82b2ca3e5e12bf2277c7fedbb0154d5493e41bb7459f63c8e39554ea3651b812492",
+            result);
     }
 
     [TestMethod]

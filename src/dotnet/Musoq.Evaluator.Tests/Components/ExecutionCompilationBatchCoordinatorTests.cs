@@ -25,6 +25,8 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
         var batchCalls = 0;
         var singleCalls = 0;
         var queries = new ConcurrentBag<CompiledQuery>();
+        using var collectionGate = new ManualResetEventSlim();
+        var enqueued = 0;
         using var coordinator = CreateCoordinator(
             requests =>
             {
@@ -38,21 +40,34 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
                 Interlocked.Increment(ref singleCalls);
                 return CreateSuccess(request, queries).Result;
             },
-            collectionWindow: TimeSpan.FromMilliseconds(100));
+            collectionWindow: TimeSpan.Zero,
+            collectionGate: collectionGate,
+            requestEnqueued: () =>
+            {
+                if (Interlocked.Increment(ref enqueued) == 8)
+                    collectionGate.Set();
+            });
 
-        var start = new Barrier(8);
-        var results = await Task.WhenAll(Enumerable.Range(0, 8).Select(index => Task.Run(() =>
+        var submissions = Enumerable.Range(0, 8).Select(index => Task.Run(() =>
+            coordinator.Submit($"query-{index}", new EmptySchemaProvider(), new TestsLoggerResolver(), new CompilationOptions())))
+            .ToArray();
+
+        try
         {
-            start.SignalAndWait();
-            return coordinator.Submit($"query-{index}", new EmptySchemaProvider(), new TestsLoggerResolver(), new CompilationOptions());
-        })));
+            var results = await Task.WhenAll(submissions).WaitAsync(TimeSpan.FromSeconds(30));
 
-        Assert.IsTrue(results.All(static result => result.WasBatched));
-        Assert.AreEqual(1, batchCalls);
-        Assert.AreEqual(0, singleCalls);
-        Assert.HasCount(8, queries);
-        foreach (var query in queries)
-            query.Dispose();
+            Assert.IsTrue(results.All(static result => result.WasBatched));
+            Assert.AreEqual(1, batchCalls);
+            Assert.AreEqual(0, singleCalls);
+            Assert.HasCount(8, queries);
+        }
+        finally
+        {
+            collectionGate.Set();
+            await Task.WhenAll(submissions).WaitAsync(TimeSpan.FromSeconds(30));
+            foreach (var query in queries)
+                query.Dispose();
+        }
     }
 
     [TestMethod]
@@ -60,6 +75,8 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
     {
         var batchCalls = 0;
         var queries = new ConcurrentBag<CompiledQuery>();
+        using var collectionGate = new ManualResetEventSlim();
+        var enqueued = 0;
         using var coordinator = CreateCoordinator(
             requests =>
             {
@@ -68,20 +85,33 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
             },
             request => CreateSuccess(request, queries).Result,
             maximumBatchSize: 16,
-            collectionWindow: TimeSpan.FromMilliseconds(100));
+            collectionWindow: TimeSpan.Zero,
+            collectionGate: collectionGate,
+            requestEnqueued: () =>
+            {
+                if (Interlocked.Increment(ref enqueued) == 16)
+                    collectionGate.Set();
+            });
 
-        var start = new Barrier(16);
-        var results = await Task.WhenAll(Enumerable.Range(0, 16).Select(index => Task.Run(() =>
+        var submissions = Enumerable.Range(0, 16).Select(index => Task.Run(() =>
+            coordinator.Submit($"query-{index}", new EmptySchemaProvider(), new TestsLoggerResolver(), new CompilationOptions())))
+            .ToArray();
+
+        try
         {
-            start.SignalAndWait();
-            return coordinator.Submit($"query-{index}", new EmptySchemaProvider(), new TestsLoggerResolver(), new CompilationOptions());
-        })));
+            var results = await Task.WhenAll(submissions).WaitAsync(TimeSpan.FromSeconds(30));
 
-        Assert.IsTrue(results.All(static result => result.WasBatched));
-        Assert.AreEqual(1, batchCalls);
-        Assert.HasCount(16, queries);
-        foreach (var query in queries)
-            query.Dispose();
+            Assert.IsTrue(results.All(static result => result.WasBatched));
+            Assert.AreEqual(1, batchCalls);
+            Assert.HasCount(16, queries);
+        }
+        finally
+        {
+            collectionGate.Set();
+            await Task.WhenAll(submissions).WaitAsync(TimeSpan.FromSeconds(30));
+            foreach (var query in queries)
+                query.Dispose();
+        }
     }
 
     [TestMethod]
@@ -101,7 +131,7 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
                 Interlocked.Increment(ref singleCalls);
                 return CreateSuccess(request, queries).Result;
             },
-            collectionWindow: TimeSpan.FromMilliseconds(1));
+            collectionWindow: TimeSpan.Zero);
 
         var result = coordinator.Submit(
             "single-query",
@@ -121,6 +151,8 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
     {
         var singleCalls = new ConcurrentBag<string>();
         var queries = new ConcurrentBag<CompiledQuery>();
+        using var collectionGate = new ManualResetEventSlim();
+        var enqueued = 0;
         using var coordinator = CreateCoordinator(
             requests => requests
                 .Select(request => request.Key.EndsWith("1", StringComparison.Ordinal)
@@ -134,21 +166,34 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
                 singleCalls.Add(request.Key);
                 return CreateSuccess(request, queries).Result;
             },
-            collectionWindow: TimeSpan.FromMilliseconds(100));
+            collectionWindow: TimeSpan.Zero,
+            collectionGate: collectionGate,
+            requestEnqueued: () =>
+            {
+                if (Interlocked.Increment(ref enqueued) == 2)
+                    collectionGate.Set();
+            });
 
-        var start = new Barrier(2);
-        var results = await Task.WhenAll(Enumerable.Range(0, 2).Select(index => Task.Run(() =>
+        var submissions = Enumerable.Range(0, 2).Select(index => Task.Run(() =>
+            coordinator.Submit($"query-{index}", new EmptySchemaProvider(), new TestsLoggerResolver(), new CompilationOptions())))
+            .ToArray();
+
+        try
         {
-            start.SignalAndWait();
-            return coordinator.Submit($"query-{index}", new EmptySchemaProvider(), new TestsLoggerResolver(), new CompilationOptions());
-        })));
+            var results = await Task.WhenAll(submissions).WaitAsync(TimeSpan.FromSeconds(30));
 
-        Assert.IsTrue(results.Single(result => !result.WasBatched).Result.Succeeded);
-        Assert.IsTrue(results.Single(result => result.WasBatched).Result.Succeeded);
-        Assert.HasCount(1, singleCalls);
-        StringAssert.EndsWith(singleCalls.Single(), "1");
-        foreach (var query in queries)
-            query.Dispose();
+            Assert.IsTrue(results.Single(result => !result.WasBatched).Result.Succeeded);
+            Assert.IsTrue(results.Single(result => result.WasBatched).Result.Succeeded);
+            Assert.HasCount(1, singleCalls);
+            StringAssert.EndsWith(singleCalls.Single(), "1");
+        }
+        finally
+        {
+            collectionGate.Set();
+            await Task.WhenAll(submissions).WaitAsync(TimeSpan.FromSeconds(30));
+            foreach (var query in queries)
+                query.Dispose();
+        }
     }
 
     [TestMethod]
@@ -261,6 +306,7 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
         Func<ExecutionBatchCompilationRequest, BuildResult> singleCompiler,
         TimeSpan collectionWindow,
         int maximumBatchSize = 8,
+        ManualResetEventSlim? collectionGate = null,
         Action? requestEnqueued = null)
     {
         return new ExecutionCompilationBatchCoordinator(
@@ -268,6 +314,7 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
             singleCompiler,
             maximumBatchSize,
             collectionWindow: collectionWindow,
+            collectionGate: collectionGate,
             requestEnqueued: requestEnqueued);
     }
 

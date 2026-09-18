@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -43,8 +44,7 @@ public class ToStringMethodsTests : PluginsTestBase
         var dto = new DateTimeOffset(2024, 6, 15, 10, 30, 0, TimeSpan.Zero);
         var result = Library.ToString(dto);
 
-        Assert.IsNotNull(result);
-        Assert.Contains("2024", result);
+        Assert.AreEqual(dto.ToString(CultureInfo.InvariantCulture), result);
     }
 
     [TestMethod]
@@ -70,7 +70,7 @@ public class ToStringMethodsTests : PluginsTestBase
         var dto = new DateTimeOffset(2024, 6, 15, 10, 30, 0, TimeSpan.Zero);
         var result = Library.ToString(dto, null);
 
-        Assert.IsNotNull(result);
+        Assert.AreEqual("15.06.2024 10:30:00 +00:00", result);
     }
 
     [TestMethod]
@@ -88,7 +88,7 @@ public class ToStringMethodsTests : PluginsTestBase
         var dto = new DateTimeOffset(2024, 6, 15, 10, 30, 0, TimeSpan.Zero);
         var result = Library.ToString(dto, null, null);
 
-        Assert.IsNotNull(result);
+        Assert.AreEqual("15.06.2024 10:30:00 +00:00", result);
     }
 
     #endregion
@@ -324,8 +324,7 @@ public class ToStringMethodsTests : PluginsTestBase
     {
         var result = Library.ToString(3.14f);
 
-        Assert.IsNotNull(result);
-        Assert.IsTrue(result.StartsWith("3.14") || result.StartsWith("3,14"));
+        Assert.AreEqual("3.14", result);
     }
 
     [TestMethod]
@@ -341,7 +340,7 @@ public class ToStringMethodsTests : PluginsTestBase
     {
         var result = Library.ToString(3.14159f, "F2");
 
-        Assert.IsNotNull(result);
+        Assert.AreEqual("3.14", result);
     }
 
     [TestMethod]
@@ -349,8 +348,7 @@ public class ToStringMethodsTests : PluginsTestBase
     {
         var result = Library.ToString(-3.14f);
 
-        Assert.IsNotNull(result);
-        Assert.Contains("-", result);
+        Assert.AreEqual("-3.14", result);
     }
 
     [TestMethod]
@@ -358,7 +356,7 @@ public class ToStringMethodsTests : PluginsTestBase
     {
         var result = Library.ToString(float.PositiveInfinity);
 
-        Assert.IsNotNull(result);
+        Assert.AreEqual("Infinity", result);
     }
 
     #endregion
@@ -370,7 +368,7 @@ public class ToStringMethodsTests : PluginsTestBase
     {
         var result = Library.ToString(3.14159265359);
 
-        Assert.IsNotNull(result);
+        Assert.AreEqual("3.14159265359", result);
     }
 
     [TestMethod]
@@ -386,7 +384,7 @@ public class ToStringMethodsTests : PluginsTestBase
     {
         var result = Library.ToString(1234.5678, "F2");
 
-        Assert.IsNotNull(result);
+        Assert.AreEqual("1234.57", result);
     }
 
     [TestMethod]
@@ -394,8 +392,7 @@ public class ToStringMethodsTests : PluginsTestBase
     {
         var result = Library.ToString(-1234.5678);
 
-        Assert.IsNotNull(result);
-        Assert.Contains("-", result);
+        Assert.AreEqual("-1234.5678", result);
     }
 
     [TestMethod]
@@ -403,7 +400,7 @@ public class ToStringMethodsTests : PluginsTestBase
     {
         var result = Library.ToString(double.NaN);
 
-        Assert.IsNotNull(result);
+        Assert.AreEqual("NaN", result);
     }
 
     #endregion
@@ -415,7 +412,7 @@ public class ToStringMethodsTests : PluginsTestBase
     {
         var result = Library.ToString(123.456m);
 
-        Assert.IsNotNull(result);
+        Assert.AreEqual("123.456", result);
     }
 
     [TestMethod]
@@ -431,7 +428,7 @@ public class ToStringMethodsTests : PluginsTestBase
     {
         var result = Library.ToString(1234.5678m, "C");
 
-        Assert.IsNotNull(result);
+        Assert.AreEqual("¤1,234.57", result);
     }
 
     [TestMethod]
@@ -439,8 +436,7 @@ public class ToStringMethodsTests : PluginsTestBase
     {
         var result = Library.ToString(-1234.5678m);
 
-        Assert.IsNotNull(result);
-        Assert.Contains("-", result);
+        Assert.AreEqual("-1234.5678", result);
     }
 
     [TestMethod]
@@ -448,7 +444,7 @@ public class ToStringMethodsTests : PluginsTestBase
     {
         var result = Library.ToString(decimal.MaxValue);
 
-        Assert.IsNotNull(result);
+        Assert.AreEqual("79228162514264337593543950335", result);
     }
 
     #endregion

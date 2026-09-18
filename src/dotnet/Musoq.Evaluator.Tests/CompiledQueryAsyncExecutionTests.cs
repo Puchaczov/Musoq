@@ -73,12 +73,12 @@ public sealed class CompiledQueryAsyncExecutionTests
         Assert.IsTrue(runnable.Started.Wait(TimeSpan.FromSeconds(5)));
 
         var dispose = Task.Run(query.Dispose);
-        Assert.IsFalse(dispose.Wait(TimeSpan.FromMilliseconds(100)));
 
         runnable.Release.TrySetResult(true);
         await execution;
         await dispose;
 
+        Assert.IsFalse(runnable.DisposedBeforeExecutionCompleted);
         await AssertThrowsAsync<ObjectDisposedException>(() => query.RunAsync().AsTask());
     }
 
@@ -123,6 +123,8 @@ public sealed class CompiledQueryAsyncExecutionTests
     {
         internal readonly ManualResetEventSlim Started = new(false);
         internal readonly TaskCompletionSource<bool> Release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _executionCompleted;
+        private int _disposedBeforeExecutionCompleted;
 
         public IDictionary<string, object?> Parameters { get; } = new Dictionary<string, object?>(StringComparer.Ordinal);
 
@@ -134,6 +136,9 @@ public sealed class CompiledQueryAsyncExecutionTests
 
         public int SynchronousRunCount { get; private set; }
 
+        public bool DisposedBeforeExecutionCompleted =>
+            Volatile.Read(ref _disposedBeforeExecutionCompleted) != 0;
+
         public override Table Run(CancellationToken token)
         {
             SynchronousRunCount++;
@@ -144,12 +149,21 @@ public sealed class CompiledQueryAsyncExecutionTests
         {
             AsyncRunCount++;
             Started.Set();
-            await Release.Task.WaitAsync(token);
-            return CreateTable((int)Parameters["value"]!);
+            try
+            {
+                await Release.Task.WaitAsync(token);
+                return CreateTable((int)Parameters["value"]!);
+            }
+            finally
+            {
+                Volatile.Write(ref _executionCompleted, 1);
+            }
         }
 
         public void Dispose()
         {
+            if (Volatile.Read(ref _executionCompleted) == 0)
+                Volatile.Write(ref _disposedBeforeExecutionCompleted, 1);
             Started.Dispose();
         }
     }

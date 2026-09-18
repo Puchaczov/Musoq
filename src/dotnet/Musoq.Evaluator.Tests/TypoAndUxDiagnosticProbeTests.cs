@@ -110,9 +110,8 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT City, Count(City) FROM #test.people() GROUP BY City HAVIG Count(City) > 1"));
 
-        var msg = ex.Message;
-        Assert.IsNotNull(msg);
-        Assert.IsGreaterThan(0, msg.Length, "Should produce a meaningful error message");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -125,9 +124,7 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
             CompileQuery("SELECT a.Name FROM #test.people() a INNER JION #test.orders() b ON a.Id = b.PersonId"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
-        var msg = ex.Message;
-        Assert.IsNotNull(msg);
-        Assert.IsGreaterThan(0, msg.Length, "Should produce a meaningful error for misspelled compound keyword");
+        AssertMessageContains(ex, "Identifier");
     }
 
 

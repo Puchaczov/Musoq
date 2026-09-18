@@ -13,12 +13,12 @@ public class DescParserFunctionTests : DescParserTestBase
     [TestMethod]
     public void DescFunctionsSchema_ShouldParse()
     {
-        var query = "desc functions #schema";
+        var desc = ParseDescNode("desc functions #schema");
+        var source = GetSchemaFromNode(desc);
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
-
-        parser.ComposeAll();
+        Assert.AreEqual(DescForType.FunctionsForSchema, desc.Type);
+        Assert.AreEqual("#schema", source.Schema);
+        Assert.AreEqual(string.Empty, source.Method);
     }
 
     [TestMethod]
@@ -26,10 +26,12 @@ public class DescParserFunctionTests : DescParserTestBase
     {
         var query = "desc functions #schema;";
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
+        var desc = ParseDescNode(query);
+        var source = GetSchemaFromNode(desc);
 
-        parser.ComposeAll();
+        Assert.AreEqual(DescForType.FunctionsForSchema, desc.Type);
+        Assert.AreEqual("#schema", source.Schema);
+        Assert.AreEqual(string.Empty, source.Method);
     }
 
     [TestMethod]
@@ -37,10 +39,12 @@ public class DescParserFunctionTests : DescParserTestBase
     {
         var query = "DESC FUNCTIONS #Schema";
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
+        var desc = ParseDescNode(query);
+        var source = GetSchemaFromNode(desc);
 
-        parser.ComposeAll();
+        Assert.AreEqual(DescForType.FunctionsForSchema, desc.Type);
+        Assert.AreEqual("#Schema", source.Schema);
+        Assert.AreEqual(string.Empty, source.Method);
     }
 
     [TestMethod]
@@ -48,10 +52,12 @@ public class DescParserFunctionTests : DescParserTestBase
     {
         var query = "DeSc FuNcTiOnS #MySchema";
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
+        var desc = ParseDescNode(query);
+        var source = GetSchemaFromNode(desc);
 
-        parser.ComposeAll();
+        Assert.AreEqual(DescForType.FunctionsForSchema, desc.Type);
+        Assert.AreEqual("#MySchema", source.Schema);
+        Assert.AreEqual(string.Empty, source.Method);
     }
 
     [TestMethod]
@@ -59,10 +65,12 @@ public class DescParserFunctionTests : DescParserTestBase
     {
         var query = "   desc    functions    #schema   ";
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
+        var desc = ParseDescNode(query);
+        var source = GetSchemaFromNode(desc);
 
-        parser.ComposeAll();
+        Assert.AreEqual(DescForType.FunctionsForSchema, desc.Type);
+        Assert.AreEqual("#schema", source.Schema);
+        Assert.AreEqual(string.Empty, source.Method);
     }
 
     [TestMethod]
@@ -74,10 +82,12 @@ public class DescParserFunctionTests : DescParserTestBase
             -- Another comment
         ";
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
+        var desc = ParseDescNode(query);
+        var source = GetSchemaFromNode(desc);
 
-        parser.ComposeAll();
+        Assert.AreEqual(DescForType.FunctionsForSchema, desc.Type);
+        Assert.AreEqual("#schema", source.Schema);
+        Assert.AreEqual(string.Empty, source.Method);
     }
 
     [TestMethod]
@@ -89,10 +99,12 @@ public class DescParserFunctionTests : DescParserTestBase
                     #schema
         ";
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
+        var desc = ParseDescNode(query);
+        var source = GetSchemaFromNode(desc);
 
-        parser.ComposeAll();
+        Assert.AreEqual(DescForType.FunctionsForSchema, desc.Type);
+        Assert.AreEqual("#schema", source.Schema);
+        Assert.AreEqual(string.Empty, source.Method);
     }
 
     [TestMethod]
@@ -100,10 +112,12 @@ public class DescParserFunctionTests : DescParserTestBase
     {
         var query = "desc functions #myComplexSchema123";
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
+        var desc = ParseDescNode(query);
+        var source = GetSchemaFromNode(desc);
 
-        parser.ComposeAll();
+        Assert.AreEqual(DescForType.FunctionsForSchema, desc.Type);
+        Assert.AreEqual("#myComplexSchema123", source.Schema);
+        Assert.AreEqual(string.Empty, source.Method);
     }
 
     [TestMethod]
@@ -133,11 +147,12 @@ public class DescParserFunctionTests : DescParserTestBase
     {
         var query = "desc functions schema";
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
+        var desc = ParseDescNode(query);
+        var source = GetSchemaFromNode(desc);
 
-        var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
+        Assert.AreEqual(DescForType.FunctionsForSchema, desc.Type);
+        Assert.AreEqual("#schema", source.Schema);
+        Assert.AreEqual(string.Empty, source.Method);
     }
 
     [TestMethod]
@@ -145,10 +160,12 @@ public class DescParserFunctionTests : DescParserTestBase
     {
         var query = "desc functions #schema.method";
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
+        var desc = ParseDescNode(query);
+        var source = GetSchemaFromNode(desc);
 
-        parser.ComposeAll();
+        Assert.AreEqual(DescForType.FunctionsForSchema, desc.Type);
+        Assert.AreEqual("#schema", source.Schema);
+        Assert.AreEqual(string.Empty, source.Method);
     }
 
     [TestMethod]
@@ -156,10 +173,12 @@ public class DescParserFunctionTests : DescParserTestBase
     {
         var query = "desc functions #schema.method()";
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
+        var desc = ParseDescNode(query);
+        var source = GetSchemaFromNode(desc);
 
-        parser.ComposeAll();
+        Assert.AreEqual(DescForType.FunctionsForSchema, desc.Type);
+        Assert.AreEqual("#schema", source.Schema);
+        Assert.AreEqual(string.Empty, source.Method);
     }
 
     [TestMethod]
@@ -167,10 +186,12 @@ public class DescParserFunctionTests : DescParserTestBase
     {
         var query = "desc functions #schema.method('arg1', 123, true)";
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
+        var desc = ParseDescNode(query);
+        var source = GetSchemaFromNode(desc);
 
-        parser.ComposeAll();
+        Assert.AreEqual(DescForType.FunctionsForSchema, desc.Type);
+        Assert.AreEqual("#schema", source.Schema);
+        Assert.AreEqual(string.Empty, source.Method);
     }
 
     [TestMethod]
@@ -178,10 +199,12 @@ public class DescParserFunctionTests : DescParserTestBase
     {
         var query = "desc functions #schema.method();";
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
+        var desc = ParseDescNode(query);
+        var source = GetSchemaFromNode(desc);
 
-        parser.ComposeAll();
+        Assert.AreEqual(DescForType.FunctionsForSchema, desc.Type);
+        Assert.AreEqual("#schema", source.Schema);
+        Assert.AreEqual(string.Empty, source.Method);
     }
 
     [TestMethod]
@@ -189,10 +212,12 @@ public class DescParserFunctionTests : DescParserTestBase
     {
         var query = "DESC FUNCTIONS #Schema.Method";
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
+        var desc = ParseDescNode(query);
+        var source = GetSchemaFromNode(desc);
 
-        parser.ComposeAll();
+        Assert.AreEqual(DescForType.FunctionsForSchema, desc.Type);
+        Assert.AreEqual("#Schema", source.Schema);
+        Assert.AreEqual(string.Empty, source.Method);
     }
 
     [TestMethod]

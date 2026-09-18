@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +15,7 @@ using static Musoq.Converter.Tests.TwoModeTestFixtures;
 namespace Musoq.Converter.Tests;
 
 [TestClass]
+[DoNotParallelize]
 public sealed class ParamsAliasConverterEquivalenceTests
 {
     private static readonly CompilationOptions CompilationOptions = new(ParallelizationMode.None);
@@ -112,9 +112,6 @@ where d.Dummy in $ids";
             CompilationOptions);
 
         AssertInspectionEquivalent(canonicalInspection, aliasInspection);
-
-        if (Debugger.IsAttached)
-            return;
 
         var cacheSuffix = Guid.NewGuid().ToString("N");
         var cacheParameter = "cacheValue" + cacheSuffix;

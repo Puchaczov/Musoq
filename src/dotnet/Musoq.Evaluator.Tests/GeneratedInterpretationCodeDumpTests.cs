@@ -34,8 +34,9 @@ public sealed class GeneratedInterpretationCodeDumpTests
     {
         var sample = GeneratedCodeSamplesCatalog.GetByFileName(fileName);
         var samplePath = GeneratedCodeSampleArtifacts.GetSamplePath(sample);
-        if (!File.Exists(samplePath))
-            return;
+        Assert.IsTrue(
+            File.Exists(samplePath),
+            $"Generated interpretation snapshot is missing: {samplePath}. Run the ignored refresh utility intentionally when snapshots change.");
 
         var expected = File.ReadAllText(samplePath);
         var actual = GeneratedCodeSampleArtifacts.Generate(sample, _loggerResolver);

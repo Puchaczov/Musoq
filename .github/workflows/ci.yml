@@ -7,6 +7,10 @@ on:
   push:
     branches:
       - master
+      - 'release/**'
+    tags:
+      - 'v*.*.*-alpha.*'
+      - '*/v*.*.*-alpha.*'
     paths-ignore:
       - '*.md'
       - 'LICENSE'

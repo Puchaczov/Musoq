@@ -75,9 +75,9 @@ public class ConversionMethodsTests : PluginsTestBase
     }
 
     [TestMethod]
-    public void ToHex_SByte_ReturnsValue()
+    public void ToHex_SByte_ReturnsExpectedValue()
     {
-        Assert.IsNotNull(Library.ToHex((sbyte)-1));
+        Assert.AreEqual("FFFF", Library.ToHex((sbyte)-1));
     }
 
     [TestMethod]

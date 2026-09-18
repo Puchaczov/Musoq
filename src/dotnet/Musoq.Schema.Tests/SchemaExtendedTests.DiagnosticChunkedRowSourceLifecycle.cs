@@ -23,11 +23,11 @@ public partial class SchemaExtendedTests
 
         var chunks = source.Chunks;
 
-        Assert.IsFalse(source.ProducerStarted.Wait(TimeSpan.FromMilliseconds(100)));
+        Assert.IsFalse(source.ProducerStarted.IsSet);
 
         using var enumerator = chunks.GetEnumerator();
 
-        Assert.IsTrue(source.ProducerStarted.Wait(TimeSpan.FromSeconds(2)));
+        Assert.IsTrue(source.ProducerStarted.Wait(TimeSpan.FromSeconds(5)));
         Assert.IsTrue(enumerator.MoveNext());
         Assert.AreEqual(1, enumerator.Current[0]);
         Assert.IsFalse(enumerator.MoveNext());

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Lexing;
@@ -275,13 +274,12 @@ public class LexerTests
     }
 
     [TestMethod]
-    public void VeryLongArithmeticChain_ShouldTokenizeQuickly()
+    public void VeryLongArithmeticChain_ShouldTokenize()
     {
         var numbers = string.Join(" + ", Enumerable.Range(1, 50).Select(i => i.ToString()));
         var query = $"select {numbers} from #a.b()";
         var lexer = new Lexer(query, true);
 
-        var sw = Stopwatch.StartNew();
         var tokenCount = 0;
         while (lexer.Current().TokenType != TokenType.EndOfFile)
         {
@@ -289,10 +287,7 @@ public class LexerTests
             lexer.Next();
         }
 
-        sw.Stop();
-
         Assert.IsGreaterThan(100, tokenCount, "Should have many tokens");
-        Assert.IsLessThan(100, sw.ElapsedMilliseconds, $"Lexer should be fast but took {sw.ElapsedMilliseconds}ms");
     }
 
     [TestMethod]

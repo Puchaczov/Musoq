@@ -54,7 +54,7 @@ public class DataUtilsExtendedTests : PluginsTestBase
     {
         var token = "eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYiJ9.sig";
         var result = Library.JwtDecode(token);
-        Assert.IsNotNull(result);
+        Assert.AreEqual("{\"a\":\"b\"}", result);
     }
 
     [TestMethod]
@@ -62,7 +62,7 @@ public class DataUtilsExtendedTests : PluginsTestBase
     {
         var token = "eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYmNkIn0.sig";
         var result = Library.JwtDecode(token);
-        Assert.IsNotNull(result);
+        Assert.AreEqual("{\"a\":\"bcd\"}", result);
     }
 
     #endregion
@@ -101,7 +101,7 @@ public class DataUtilsExtendedTests : PluginsTestBase
     {
         var token = "eyJhIjoiYiJ9.payload.sig";
         var result = Library.JwtGetHeader(token);
-        Assert.IsNotNull(result);
+        Assert.AreEqual("{\"a\":\"b\"}", result);
     }
 
     #endregion
@@ -650,7 +650,7 @@ public class DataUtilsExtendedTests : PluginsTestBase
     {
         var formatted = "<root>\n  <child>text</child>\n</root>";
         var result = Library.MinifyXml(formatted);
-        Assert.IsNotNull(result);
+        Assert.AreEqual("<root><child>text</child></root>", result);
     }
 
     [TestMethod]

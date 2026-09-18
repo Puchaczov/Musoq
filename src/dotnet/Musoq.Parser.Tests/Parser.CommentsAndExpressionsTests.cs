@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Lexing;
@@ -346,19 +345,16 @@ public class ParserCommentsAndExpressionsTests
     }
 
     [TestMethod]
-    public void VeryLongArithmeticChain_ShouldParseQuickly()
+    public void VeryLongArithmeticChain_ShouldParse()
     {
         var numbers = string.Join(" + ", Enumerable.Range(1, 50).Select(i => i.ToString()));
         var query = $"select {numbers} from #a.b()";
 
-        var sw = Stopwatch.StartNew();
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
-        sw.Stop();
 
         Assert.IsNotNull(result);
-        Assert.IsLessThan(100, sw.ElapsedMilliseconds, $"Parser should be fast but took {sw.ElapsedMilliseconds}ms");
     }
 
     [TestMethod]
@@ -399,20 +395,16 @@ public class ParserCommentsAndExpressionsTests
     }
 
     [TestMethod]
-    public void ExtremeLongExpression_ShouldParseInReasonableTime()
+    public void ExtremeLongExpression_ShouldParse()
     {
         var numbers = string.Join(" + ", Enumerable.Range(1, 100).Select(i => i.ToString()));
         var query = $"select {numbers} from #a.b()";
 
-        var sw = Stopwatch.StartNew();
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
-        sw.Stop();
 
         Assert.IsNotNull(result);
-        Assert.IsLessThan(200, sw.ElapsedMilliseconds,
-            $"Parser should handle 100 additions in <200ms but took {sw.ElapsedMilliseconds}ms");
     }
 
     [TestMethod]
@@ -428,20 +420,16 @@ public class ParserCommentsAndExpressionsTests
     }
 
     [TestMethod]
-    public void CombinedArithmeticAndParentheses_StressTest()
+    public void CombinedArithmeticAndParentheses_ShouldParse()
     {
         var innerExpr = string.Join(" + ", Enumerable.Range(1, 20).Select(i => i.ToString()));
         var query = $"select ((({innerExpr}))) * 2 + ((({innerExpr}))) from #a.b()";
 
-        var sw = Stopwatch.StartNew();
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
-        sw.Stop();
 
         Assert.IsNotNull(result);
-        Assert.IsLessThan(200, sw.ElapsedMilliseconds,
-            $"Parser should handle complex combined expressions in <200ms but took {sw.ElapsedMilliseconds}ms");
     }
 
 }

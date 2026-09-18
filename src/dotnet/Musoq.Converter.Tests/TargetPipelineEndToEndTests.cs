@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -11,6 +10,7 @@ using Musoq.Parser.Diagnostics;
 namespace Musoq.Converter.Tests;
 
 [TestClass]
+[DoNotParallelize]
 public sealed class TargetPipelineEndToEndTests
 {
     private readonly TestsLoggerResolver _loggerResolver = new();
@@ -106,9 +106,6 @@ public sealed class TargetPipelineEndToEndTests
     [TestMethod]
     public void CSharpClrTarget_WhenExecutionCompilationCacheIsWarm_ShouldActivateFromCachedArtifactAfterPlanning()
     {
-        if (Debugger.IsAttached)
-            return;
-
         var query = $"select d.Dummy from #system.dual() d where d.Dummy = 'single'";
         var provider = new SystemSchemaProvider();
         var options = new CompilationOptions();
@@ -140,9 +137,6 @@ public sealed class TargetPipelineEndToEndTests
     [TestMethod]
     public void CanonicalExecutionCache_WhenWhitespaceChanges_ShouldReuseArtifactButRebindCurrentProvider()
     {
-        if (Debugger.IsAttached)
-            return;
-
         var suffix = Guid.NewGuid().ToString("N");
         var first = InstanceCreator.CompileWithDiagnostics(
             "select i.Value from #artifact.items() i",
@@ -199,9 +193,6 @@ public sealed class TargetPipelineEndToEndTests
     [TestMethod]
     public async Task CanonicalExecutionCache_WhenEquivalentRendersStartTogether_ShouldSingleFlight()
     {
-        if (Debugger.IsAttached)
-            return;
-
         var suffix = Guid.NewGuid().ToString("N");
         var providers = new[]
         {
@@ -239,9 +230,6 @@ public sealed class TargetPipelineEndToEndTests
     [TestMethod]
     public void CanonicalExecutionCache_WhenGeneratedLiteralChanges_ShouldNotReuseArtifact()
     {
-        if (Debugger.IsAttached)
-            return;
-
         var suffix = Guid.NewGuid().ToString("N");
         var provider = new ArtifactSchemaProvider(new ArtifactSchema("literal"));
         var first = InstanceCreator.CompileWithDiagnostics(
@@ -270,9 +258,6 @@ public sealed class TargetPipelineEndToEndTests
     [TestMethod]
     public void CanonicalExecutionCache_WhenInstrumentationIsEnabled_ShouldStayIneligible()
     {
-        if (Debugger.IsAttached)
-            return;
-
         var result = InstanceCreator.CompileWithDiagnostics(
             "select i.Value from #artifact.items() i",
             $"CanonicalInstrumentation_{Guid.NewGuid():N}",
@@ -292,9 +277,6 @@ public sealed class TargetPipelineEndToEndTests
     [TestMethod]
     public async Task ExecutionCompilationCache_WhenIdenticalCompilationsStartTogether_ShouldEmitOnce()
     {
-        if (Debugger.IsAttached)
-            return;
-
         var query = $"select d.Dummy from #system.dual() d where d.Dummy = '{Guid.NewGuid():N}'";
         var results = await Task.WhenAll(
             Enumerable.Range(0, 4).Select(index => Task.Run(() => InstanceCreator.CompileWithDiagnostics(
@@ -312,9 +294,6 @@ public sealed class TargetPipelineEndToEndTests
     [TestMethod]
     public async Task ExecutionCompilationCache_WhenBindingsDifferConcurrently_ShouldKeepRowsIsolated()
     {
-        if (Debugger.IsAttached)
-            return;
-
         const string query = "select i.Value from #artifact.items() i";
         var results = await Task.WhenAll(
             Enumerable.Range(0, 8).Select(index => Task.Run(() =>
@@ -340,9 +319,6 @@ public sealed class TargetPipelineEndToEndTests
     [TestMethod]
     public void ExecutionCompilationCache_WhenSourceSettingsResolverChanges_ShouldNotReuseCachedExecution()
     {
-        if (Debugger.IsAttached)
-            return;
-
         const string query = "select i.Token from #settings.items() i";
         var first = InstanceCreator.CompileWithDiagnostics(
             query,

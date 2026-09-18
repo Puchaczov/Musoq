@@ -1,6 +1,7 @@
 using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Parser.Exceptions;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
@@ -104,20 +105,54 @@ public class ParserParametersTests
     }
 
     [TestMethod]
-    [DataRow("param(string author) select 1 from #test.rows()", DisplayName = "C# style parameter")]
-    [DataRow("param([string]$author) select 1 from #test.rows()", DisplayName = "PowerShell style parameter")]
-    [DataRow("def query(author: str = \"x\") select 1 from #test.rows()", DisplayName = "Python style parameter")]
-    [DataRow("declare @author string; select 1 from #test.rows()", DisplayName = "SQL variable declaration")]
-    public void Parser_UnsupportedParameterSyntax_ShouldReject(string query)
+    [DataRow(
+        "param(string author) select 1 from #test.rows()",
+        DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration,
+        "string author",
+        DisplayName = "C# style parameter")]
+    [DataRow(
+        "param([string]$author) select 1 from #test.rows()",
+        DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax,
+        "[string]$author",
+        DisplayName = "PowerShell style parameter")]
+    [DataRow(
+        "def query(author: str = \"x\") select 1 from #test.rows()",
+        DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax,
+        "def",
+        DisplayName = "Python style parameter")]
+    [DataRow(
+        "declare @author string; select 1 from #test.rows()",
+        DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax,
+        "declare",
+        DisplayName = "SQL variable declaration")]
+    public void Parser_UnsupportedParameterSyntax_ShouldReportStructuredDiagnostic(
+        string query,
+        DiagnosticCode expectedCode,
+        string offendingText)
     {
-        try
-        {
-            Parse(query);
-            Assert.Fail("Unsupported parameter syntax should not parse.");
-        }
-        catch (Exception ex) when (ex is SyntaxException or ParseException)
-        {
-        }
+        var result = ParseWithDiagnostics(query);
+
+        Assert.IsFalse(result.Success, result.FormatDiagnostics());
+
+        var diagnostic = result.Diagnostics.Single(diagnostic => diagnostic.Code == expectedCode);
+        Assert.AreEqual(expectedCode, diagnostic.Code);
+        Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
+        Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
+
+        var start = query.IndexOf(offendingText, StringComparison.Ordinal);
+        Assert.IsGreaterThanOrEqualTo(0, start);
+        Assert.AreEqual(new TextSpan(start, offendingText.Length), diagnostic.Span);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.ContextSnippet));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Explanation));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.DocsReference));
+        Assert.IsNotEmpty(diagnostic.SuggestedFixes);
+    }
+
+    private static ParseResult ParseWithDiagnostics(string query)
+    {
+        var lexer = new Lexer(query, true, recoverOnError: true);
+        return new Parser(lexer, lexer.Diagnostics).ParseWithDiagnostics();
     }
 
     private static RootNode Parse(string query)
