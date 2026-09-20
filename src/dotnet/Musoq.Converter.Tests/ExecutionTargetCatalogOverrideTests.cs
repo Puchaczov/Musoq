@@ -138,15 +138,21 @@ public sealed class ExecutionTargetCatalogOverrideTests
         var child = Task.Run(async () =>
         {
             started.SetResult();
-            await release.Task;
+            await TestSynchronization.WaitForSignalAsync(
+                release.Task,
+                "The catalog child context was not released");
             Assert.Throws<NotSupportedException>(() =>
                 ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
         });
 
-        await started.Task;
+        await TestSynchronization.WaitForSignalAsync(
+            started.Task,
+            "The catalog child context did not start");
         registration.Dispose();
         release.SetResult();
-        await child;
+        await TestSynchronization.WaitForSignalAsync(
+            child,
+            "The catalog child context did not finish");
     }
 
     [TestMethod]

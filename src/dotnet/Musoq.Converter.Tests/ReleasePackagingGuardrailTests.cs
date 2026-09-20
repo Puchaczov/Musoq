@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Converter.Tests;
@@ -106,7 +107,7 @@ public sealed class ReleasePackagingGuardrailTests
     }
 
     [TestMethod]
-    public void ReleaseScripts_ShouldPassBehavioralTests()
+    public async Task ReleaseScripts_ShouldPassBehavioralTests()
     {
         var scriptPath = Path.Combine(RepositoryRoot, "scripts", "release", "Test-ReleaseScripts.ps1");
         var startInfo = new ProcessStartInfo
@@ -124,14 +125,72 @@ public sealed class ReleasePackagingGuardrailTests
 
         using var process = Process.Start(startInfo)
             ?? throw new InvalidOperationException("Could not start PowerShell release-script tests.");
-        var standardOutput = process.StandardOutput.ReadToEnd();
-        var standardError = process.StandardError.ReadToEnd();
-        process.WaitForExit();
+
+        var standardOutputTask = process.StandardOutput.ReadToEndAsync();
+        var standardErrorTask = process.StandardError.ReadToEndAsync();
+        var exitTask = process.WaitForExitAsync();
+
+        try
+        {
+            await exitTask.WaitAsync(TestSynchronization.DeadlockTimeout);
+        }
+        catch (TimeoutException)
+        {
+            try
+            {
+                if (!process.HasExited)
+                    process.Kill(entireProcessTree: true);
+            }
+            catch (InvalidOperationException)
+            {
+            }
+
+            await exitTask.WaitAsync(TestSynchronization.DeadlockTimeout);
+            var timedOutOutput = await standardOutputTask.WaitAsync(TestSynchronization.DeadlockTimeout);
+            var timedOutError = await standardErrorTask.WaitAsync(TestSynchronization.DeadlockTimeout);
+            throw new AssertFailedException(
+                $"Release-script tests did not exit within {TestSynchronization.DeadlockTimeout}." +
+                $"{Environment.NewLine}{timedOutOutput}{Environment.NewLine}{timedOutError}");
+        }
+
+        var output = await Task.WhenAll(standardOutputTask, standardErrorTask)
+            .WaitAsync(TestSynchronization.DeadlockTimeout);
 
         Assert.AreEqual(
             0,
             process.ExitCode,
-            $"Release-script tests failed.{Environment.NewLine}{standardOutput}{Environment.NewLine}{standardError}");
+            $"Release-script tests failed.{Environment.NewLine}{output[0]}{Environment.NewLine}{output[1]}");
+    }
+
+    [TestMethod]
+    public void ReleaseWorkflows_ShouldSupportBranchSpecificQualification()
+    {
+        var ciWorkflow = File.ReadAllText(Path.Combine(
+            RepositoryRoot,
+            ".github",
+            "workflows",
+            "ci.yml"));
+        var publishWorkflow = File.ReadAllText(Path.Combine(
+            RepositoryRoot,
+            ".github",
+            "workflows",
+            "publish.yml"));
+
+        StringAssert.Contains(ciWorkflow, "- 'release/**'");
+        StringAssert.Contains(ciWorkflow, "- 'v*.*.*-alpha.*'");
+        StringAssert.Contains(ciWorkflow, "- '*/v*.*.*-alpha.*'");
+        Assert.IsFalse(
+            ciWorkflow.Contains("- '**'", StringComparison.Ordinal),
+            "CI must not run the full validation matrix on every arbitrary branch push.");
+
+        StringAssert.Contains(publishWorkflow, "requires_release_branch");
+        StringAssert.Contains(publishWorkflow, "Get-CiQualificationDecision");
+        StringAssert.Contains(publishWorkflow, "head_branch");
+        StringAssert.Contains(publishWorkflow, "event=push");
+        StringAssert.Contains(publishWorkflow, "AddMinutes(90)");
+        Assert.IsFalse(
+            publishWorkflow.Contains("$attempt -le 3", StringComparison.Ordinal),
+            "Publish must wait for tag-triggered alpha CI instead of using the old short retry window.");
     }
 
     private static string[] InternalTargetProjects { get; } =

@@ -64,14 +64,16 @@ public sealed class CompileTimeCancellationArtifactTests
                 var runnableType = Assembly.Load(loadedArtifact.AssemblyBytes)
                     .GetType(loadedArtifact.RunnableTypeName)!;
                 loaderEntered.TrySetResult(true);
-                loaderRelease.Task.GetAwaiter().GetResult();
+                loaderRelease.Task.WaitAsync(TestSynchronization.DeadlockTimeout).GetAwaiter().GetResult();
                 return new CompiledQueryArtifactLoadResult(runnableType, owner);
             },
             cancellation.Token));
 
         try
         {
-            var firstCompleted = await Task.WhenAny(loaderEntered.Task, operation);
+            var firstCompleted = await Task.WhenAny(
+                loaderEntered.Task,
+                operation.WaitAsync(TestSynchronization.DeadlockTimeout));
             Assert.AreSame(loaderEntered.Task, firstCompleted);
             Assert.IsFalse(operation.IsCompleted);
 
@@ -81,7 +83,7 @@ public sealed class CompileTimeCancellationArtifactTests
 
             try
             {
-                _ = await operation;
+                _ = await operation.WaitAsync(TestSynchronization.DeadlockTimeout);
                 Assert.Fail("The cancelled artifact load returned normally.");
             }
             catch (OperationCanceledException exception)
@@ -100,7 +102,7 @@ public sealed class CompileTimeCancellationArtifactTests
             {
                 try
                 {
-                    await operation;
+                    await operation.WaitAsync(TestSynchronization.DeadlockTimeout);
                 }
                 catch (OperationCanceledException exception)
                 {
@@ -200,7 +202,9 @@ public sealed class CompileTimeCancellationArtifactTests
 
         try
         {
-            var firstCompleted = await Task.WhenAny(fixture.Entered, operationTask);
+            var firstCompleted = await Task.WhenAny(
+                fixture.Entered,
+                operationTask.WaitAsync(TestSynchronization.DeadlockTimeout));
             Assert.AreSame(fixture.Entered, firstCompleted);
             Assert.IsFalse(operationTask.IsCompleted);
 
@@ -209,7 +213,7 @@ public sealed class CompileTimeCancellationArtifactTests
 
             try
             {
-                _ = await operationTask;
+                _ = await operationTask.WaitAsync(TestSynchronization.DeadlockTimeout);
                 Assert.Fail("The cancelled artifact validation returned normally.");
             }
             catch (OperationCanceledException exception)
@@ -226,7 +230,7 @@ public sealed class CompileTimeCancellationArtifactTests
             {
                 try
                 {
-                    await operationTask;
+                    await operationTask.WaitAsync(TestSynchronization.DeadlockTimeout);
                 }
                 catch (OperationCanceledException)
                 {

@@ -98,6 +98,7 @@ public sealed class GeneratedCodeProfiledSamplesSnapshotTests
     }
 
     [TestMethod]
+    [Ignore("Local profiled snapshot refresh utility. Run intentionally when generated-code changes are expected.")]
     public void Refresh_All_Local_Profiled_Generated_Samples()
     {
         foreach (var sample in GeneratedCodeProfiledSamplesCatalog.Samples)

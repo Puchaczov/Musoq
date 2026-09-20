@@ -52,7 +52,7 @@ When two files appear to disagree, the more specific one wins for its scope: per
 - **Required**: .NET 10.0.401 SDK or newer 10.0 feature band (pinned in [global.json](../global.json) with `rollForward: latestFeature`); this carries runtime 10.0.12, which fixes intermittent heap corruption under dynamic-code and parallel-GC workloads
 - **Recommended**: Visual Studio or VS Code with C# extension
 - **OS**: Works on Windows, Linux, and macOS
-- **Package Management**: Packable projects are packaged explicitly with `dotnet pack`; release versions and publication are tag-driven, as defined by the [Publish workflow](workflows/publish.yml) and [release scripts](../scripts/release/).
+- **Package Management**: Packable projects are packaged explicitly with `dotnet pack`; release versions and publication are tag-driven, as defined by the [release guide](../docs/releasing.md), [Publish workflow](workflows/publish.yml), and [release scripts](../scripts/release/).
 
 ### Core Development Workflow
 Bootstrap, build, and test the repository:

@@ -12,6 +12,8 @@ namespace Musoq.Evaluator.Tests;
 
 public sealed partial class ProjectionSensitiveWildcardTests
 {
+    private const int DeterministicThreshold = -1_000_000;
+
     private const string PipelineQuery =
         "select * exclude (Other) replace (Score + 1 as Score) from #wildcard.rows() a " +
         "where a.Other = 'source-column' order by a.Score desc";
@@ -111,9 +113,8 @@ public sealed partial class ProjectionSensitiveWildcardTests
     [TestMethod]
     public void RepeatedCompilation_ShouldReuseSemanticExecutionArtifactWithoutChangingResults()
     {
-        var threshold = -Random.Shared.Next(1, int.MaxValue);
         var queryText =
-            $"select * exclude (Other) from #wildcard.rows() a where a.Id > {threshold}";
+            $"select * exclude (Other) from #wildcard.rows() a where a.Id > {DeterministicThreshold}";
         var recorder = new ProjectionSensitiveWildcardRecorder();
         var provider = new ProjectionSensitiveWildcardSchemaProvider(recorder);
 

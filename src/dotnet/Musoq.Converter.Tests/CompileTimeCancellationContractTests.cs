@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,9 +17,6 @@ public sealed class CompileTimeCancellationContractTests
     [TestMethod]
     public void SemanticCacheSnapshot_ShouldClearTransientInvocationTokens()
     {
-        if (Debugger.IsAttached)
-            return;
-
         var query = $"select i.Value from #artifact.items() i where i.Value = '{Guid.NewGuid():N}'";
         var provider = new ArtifactSchemaProvider(new ArtifactSchema("snapshot"));
         var options = new CompilationOptions();
@@ -60,9 +56,6 @@ public sealed class CompileTimeCancellationContractTests
     [TestMethod]
     public void SemanticCacheKey_ShouldNotVaryWithInvocationToken()
     {
-        if (Debugger.IsAttached)
-            return;
-
         var query = $"select i.Value from #artifact.items() i where i.Value = '{Guid.NewGuid():N}'";
         var provider = new ArtifactSchemaProvider(new ArtifactSchema("key"));
         var options = new CompilationOptions();
@@ -86,9 +79,6 @@ public sealed class CompileTimeCancellationContractTests
     [TestMethod]
     public void ExecutionCacheKey_ShouldNotVaryWithInvocationToken()
     {
-        if (Debugger.IsAttached)
-            return;
-
         const string query = "select i.Value from #artifact.items() i";
         var provider = new ArtifactSchemaProvider(new ArtifactSchema("key"));
         var options = new CompilationOptions();
@@ -116,9 +106,6 @@ public sealed class CompileTimeCancellationContractTests
     [TestMethod]
     public void CanonicalExecutionContract_ShouldNotVaryWithInvocationToken()
     {
-        if (Debugger.IsAttached)
-            return;
-
         const string query = "select i.Value from #artifact.items() i";
         var provider = new ArtifactSchemaProvider(new ArtifactSchema("contract"));
         var options = new CompilationOptions();

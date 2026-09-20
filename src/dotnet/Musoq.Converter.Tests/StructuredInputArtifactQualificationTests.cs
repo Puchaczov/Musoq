@@ -16,6 +16,7 @@ using Musoq.Targets.Execution;
 namespace Musoq.Converter.Tests;
 
 [TestClass]
+[DoNotParallelize]
 public sealed class StructuredInputArtifactQualificationTests
 {
     private readonly TestsLoggerResolver _loggerResolver = new();
@@ -74,9 +75,6 @@ public sealed class StructuredInputArtifactQualificationTests
     [TestMethod]
     public void StructuredArtifact_CanonicalCacheReusesShapeButKeepsRunsIndependent()
     {
-        if (System.Diagnostics.Debugger.IsAttached)
-            return;
-
         var query =
             $"param(patterns: (Id: string, Pattern: string)[]) select m.PatternId from #inputs.match('TODO FIXME {Guid.NewGuid():N}', patterns: $patterns) m";
         InstanceCreator.ClearExecutionCompilationCacheForTests();

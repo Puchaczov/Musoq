@@ -4,6 +4,10 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
+    internal virtual DateTimeOffset CurrentLocalDateTime => DateTimeOffset.Now;
+
+    internal virtual DateTimeOffset CurrentUtcDateTime => DateTimeOffset.UtcNow;
+
     /// <summary>
     ///     Gets the current datetime
     /// </summary>
@@ -13,7 +17,7 @@ public partial class LibraryBase
     [NonDeterministic]
     public DateTimeOffset? GetDate()
     {
-        return DateTimeOffset.Now;
+        return CurrentLocalDateTime;
     }
 
     /// <summary>
@@ -25,6 +29,6 @@ public partial class LibraryBase
     [NonDeterministic]
     public DateTimeOffset? UtcGetDate()
     {
-        return DateTimeOffset.UtcNow;
+        return CurrentUtcDateTime;
     }
 }

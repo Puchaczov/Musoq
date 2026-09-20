@@ -18,15 +18,16 @@ namespace Musoq.Converter.Tests;
 [TestClass]
 public sealed class QueryScopedRowArchitectureTests
 {
+    private const int DeterministicThreshold = -1_000_000;
+
     private readonly TestsLoggerResolver _loggerResolver = new();
 
     [TestMethod]
     public void QueryRowTransfer_WhenCompiled_ShouldRemainIdenticalAcrossEveryPipelineBoundary()
     {
-        var threshold = -Random.Shared.Next(1, int.MaxValue);
         var query = string.Create(
             CultureInfo.InvariantCulture,
-            $"select p.Name, p.Value from #queryrows.items() p where p.Value > {threshold}");
+            $"select p.Name, p.Value from #queryrows.items() p where p.Value > {DeterministicThreshold}");
         var result = InstanceCreator.CompileWithDiagnostics(
             query,
             $"query-row-architecture-{Guid.NewGuid():N}",

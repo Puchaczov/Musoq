@@ -27,10 +27,8 @@ public partial class TypoAndUxDiagnosticProbeTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Len(Name) FROM #test.people()"));
 
-        var msg = ex.Message;
-        // Should either work or suggest the right function name
-        Assert.IsNotNull(msg);
-        Assert.IsGreaterThan(0, msg.Length, $"Error should be meaningful. Got: {msg}");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3086_UnknownCallable, DiagnosticPhase.Bind, "Len");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -137,9 +135,8 @@ public partial class TypoAndUxDiagnosticProbeTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery(""));
 
-        var msg = ex.Message;
-        Assert.IsNotNull(msg);
-        Assert.IsGreaterThan(0, msg.Length, "Empty query should give a meaningful error");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2016_IncompleteStatement, DiagnosticPhase.Parse);
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -148,9 +145,8 @@ public partial class TypoAndUxDiagnosticProbeTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("   \t\n  "));
 
-        var msg = ex.Message;
-        Assert.IsNotNull(msg);
-        Assert.IsGreaterThan(0, msg.Length, "Whitespace-only query should give a meaningful error");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2016_IncompleteStatement, DiagnosticPhase.Parse);
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -159,9 +155,8 @@ public partial class TypoAndUxDiagnosticProbeTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery(";"));
 
-        var msg = ex.Message;
-        Assert.IsNotNull(msg);
-        Assert.IsGreaterThan(0, msg.Length, "Semicolon-only should give a meaningful error");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]

@@ -19,7 +19,7 @@ jobs:
   validate-pack:
     name: Validate and pack
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     permissions:
       actions: read
       contents: read
@@ -76,6 +76,7 @@ jobs:
           "release_version=$($summary.version)" >> $env:GITHUB_OUTPUT
           "release_notes_path=release-notes/$($summary.tag).md" >> $env:GITHUB_OUTPUT
           "is_prerelease=$($summary.isPrerelease.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          "requires_release_branch=$($summary.requiresReleaseBranch.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
           "is_dry_run=$isDryRun" >> $env:GITHUB_OUTPUT
 
       - name: Require successful CI for exact release commit
@@ -86,7 +87,11 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.release.outputs.release_tag }}
+          REQUIRE_RELEASE_BRANCH: ${{ steps.release.outputs.requires_release_branch }}
         run: |
+          $commonScript = Join-Path $env:GITHUB_WORKSPACE 'scripts/release/Release.Common.ps1'
+          . $commonScript
+
           $releaseSha = (git rev-parse "$($env:RELEASE_TAG)^{commit}").Trim()
           if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($releaseSha)) {
             throw "Could not resolve release tag '$($env:RELEASE_TAG)' to a commit."
@@ -101,48 +106,73 @@ jobs:
             throw "Checked-out commit $checkedOutSha does not match release tag '$($env:RELEASE_TAG)' at $releaseSha."
           }
 
+          $requireReleaseBranch = [bool]::Parse($env:REQUIRE_RELEASE_BRANCH)
           $headers = @{
             Accept = 'application/vnd.github+json'
             Authorization = "Bearer $($env:GITHUB_TOKEN)"
             'X-GitHub-Api-Version' = '2022-11-28'
           }
-          $uri = "$($env:GITHUB_API_URL)/repos/$($env:GITHUB_REPOSITORY)/actions/workflows/$($env:CI_WORKFLOW)/runs?head_sha=$releaseSha&event=push&status=completed&per_page=100"
+          $uri = "$($env:GITHUB_API_URL)/repos/$($env:GITHUB_REPOSITORY)/actions/workflows/$($env:CI_WORKFLOW)/runs?head_sha=$releaseSha&event=push&per_page=100"
 
+          $deadline = [DateTimeOffset]::UtcNow.AddMinutes(90)
+          $pollSeconds = 15
           $successfulRun = $null
           $lastApiError = $null
-          for ($attempt = 1; $attempt -le 3; $attempt++) {
+          $lastDecisionReason = $null
+          while ([DateTimeOffset]::UtcNow -lt $deadline) {
+            $response = $null
             try {
-              $runs = Invoke-RestMethod -Method Get -Uri $uri -Headers $headers
+              $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $headers
               $lastApiError = $null
-              $successfulRun = @($runs.workflow_runs | Where-Object {
-                  $_.head_sha -eq $releaseSha -and
-                  $_.event -eq 'push' -and
-                  $_.conclusion -eq 'success'
-                }) | Sort-Object { [DateTimeOffset]$_.updated_at } -Descending | Select-Object -First 1
-
-              if ($null -ne $successfulRun) {
-                break
-              }
             }
             catch {
               $lastApiError = $_
+              Write-Host "Could not query CI workflow runs yet: $($_.Exception.Message)"
             }
 
-            if ($attempt -lt 3) {
-              Write-Host "CI success evidence is not available yet; retrying in 5 seconds (attempt $($attempt + 1) of 3)."
-              Start-Sleep -Seconds 5
+            if ($null -ne $response) {
+              $decision = Get-CiQualificationDecision `
+                -WorkflowRuns @($response.workflow_runs) `
+                -CommitSha $releaseSha `
+                -RequireReleaseBranch:$requireReleaseBranch
+              $lastDecisionReason = $decision.Reason
+
+              if ($decision.Status -eq 'Success') {
+                $successfulRun = $decision.Run
+                break
+              }
+
+              if ($decision.Status -eq 'Failure') {
+                $runDetails = if ($null -ne $decision.Run -and
+                    -not [string]::IsNullOrWhiteSpace([string]$decision.Run.html_url)) {
+                  " See $($decision.Run.html_url)."
+                }
+                else {
+                  ''
+                }
+
+                throw "$($decision.Reason)$runDetails"
+              }
+
+              Write-Host "$($decision.Reason) Polling again in $pollSeconds seconds."
             }
+
+            if ([DateTimeOffset]::UtcNow -ge $deadline) {
+              break
+            }
+
+            Start-Sleep -Seconds $pollSeconds
           }
 
           if ($null -eq $successfulRun) {
             if ($null -ne $lastApiError) {
-              throw "Could not query CI workflow runs for release commit $releaseSha. $($lastApiError.Exception.Message)"
+              throw "Could not query CI workflow runs for release commit $releaseSha before the qualification timeout. $($lastApiError.Exception.Message)"
             }
 
-            throw "No successful CI push run found for release tag '$($env:RELEASE_TAG)' at commit $releaseSha."
+            throw "No successful CI push run found for release tag '$($env:RELEASE_TAG)' at commit $releaseSha before the 90-minute qualification timeout. $lastDecisionReason"
           }
 
-          Write-Host "Using successful CI run $($successfulRun.id) for release commit $releaseSha."
+          Write-Host "Using successful CI run $($successfulRun.id) for release commit $releaseSha from '$($successfulRun.head_branch)'."
 
       - name: Restore
         run: dotnet restore src/dotnet/Musoq.sln --nologo --verbosity quiet

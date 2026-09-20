@@ -113,7 +113,7 @@ public class NumericOnlyTypeConversionTests
     [TestMethod]
     public void TryConvertToDecimalNumericOnly_Float_Converts()
     {
-        Assert.IsNotNull(_library.TryConvertToDecimalNumericOnly(42.5f));
+        Assert.AreEqual(42.5m, _library.TryConvertToDecimalNumericOnly(42.5f));
     }
 
     public static IEnumerable<object?[]> DoubleCases()
@@ -142,7 +142,7 @@ public class NumericOnlyTypeConversionTests
     [TestMethod]
     public void TryConvertToDoubleNumericOnly_Float_Valid_Converts()
     {
-        Assert.IsNotNull(_library.TryConvertToDoubleNumericOnly(42.5f));
+        Assert.AreEqual(42.5d, _library.TryConvertToDoubleNumericOnly(42.5f));
     }
 
     public static IEnumerable<object?[]> NumericCases()
@@ -163,11 +163,10 @@ public class NumericOnlyTypeConversionTests
     }
 
     [TestMethod]
-    [DataRow(42.5f, DisplayName = "Float")]
-    [DataRow(10000000000000000000, DisplayName = "Large ulong")]
-    [DataRow(1e20, DisplayName = "Large double")]
-    public void TryConvertNumericOnly_LargeOrFloatValue_Converts(object value)
+    public void TryConvertNumericOnly_LargeOrFloatValue_Converts()
     {
-        Assert.IsNotNull(_library.TryConvertNumericOnly(value));
+        Assert.AreEqual(42.5m, _library.TryConvertNumericOnly(42.5f));
+        Assert.AreEqual(10000000000000000000m, _library.TryConvertNumericOnly(10000000000000000000UL));
+        Assert.AreEqual(100000000000000000000m, _library.TryConvertNumericOnly(1e20));
     }
 }

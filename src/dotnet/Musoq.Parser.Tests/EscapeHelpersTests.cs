@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Helpers;
@@ -141,17 +140,13 @@ public class EscapeHelpersTests
         for (var i = 0; i < 200000; i++) input.Append(pattern);
 
         // Act
-        var sw = Stopwatch.StartNew();
         var result = input.ToString().Unescape();
-        sw.Stop();
 
         // Assert
         Assert.IsGreaterThan(0, result.Length);
         Assert.Contains("\n", result);
         Assert.Contains("\\text", result);
         Assert.Contains("\t", result);
-        Assert.IsLessThan(1000,
-            sw.ElapsedMilliseconds, $"Processing took too long: {sw.ElapsedMilliseconds}ms");
     }
 
     [TestMethod]

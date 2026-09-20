@@ -80,7 +80,7 @@ public partial class NumericOnlyTypeConverterExtendedTests
     public void TryConvertToDecimal_FloatValue_ReturnsConverted()
     {
         decimal? result = _converter.TryConvertToDecimal(42.5f);
-        Assert.IsNotNull(result);
+        Assert.AreEqual(42.5m, result);
     }
 
     [TestMethod]
@@ -108,7 +108,7 @@ public partial class NumericOnlyTypeConverterExtendedTests
     public void TryConvertToDecimal_DoubleValue_ReturnsConverted()
     {
         decimal? result = _converter.TryConvertToDecimal(42.5);
-        Assert.IsNotNull(result);
+        Assert.AreEqual(42.5m, result);
     }
 
     [TestMethod]

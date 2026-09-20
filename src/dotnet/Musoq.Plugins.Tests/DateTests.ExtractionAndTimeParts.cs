@@ -8,30 +8,30 @@ public partial class DateTests
     #region GetDate Tests
 
     [TestMethod]
-    public void GetDate_ReturnsCurrentDate()
+    public void GetDate_ReturnsConfiguredLocalClockValue()
     {
-        var before = DateTimeOffset.Now;
-        var result = Library.GetDate();
-        var after = DateTimeOffset.Now;
-
-        Assert.IsNotNull(result);
-        Assert.IsTrue(result >= before);
-        Assert.IsTrue(result <= after);
+        Assert.AreEqual(FixedLocalDateTime, Library.GetDate());
     }
 
     [TestMethod]
-    public void UtcGetDate_ReturnsCurrentUtcDate()
+    public void UtcGetDate_ReturnsConfiguredUtcClockValue()
     {
-        var before = DateTimeOffset.UtcNow;
-        var result = Library.UtcGetDate();
-        var after = DateTimeOffset.UtcNow;
-
-        Assert.IsNotNull(result);
-        Assert.IsTrue(result >= before);
-        Assert.IsTrue(result <= after);
+        Assert.AreEqual(FixedLocalDateTime.ToUniversalTime(), Library.UtcGetDate());
     }
 
     #endregion
+
+    private static readonly DateTimeOffset FixedLocalDateTime =
+        new(2031, 7, 8, 9, 10, 11, TimeSpan.FromHours(2));
+
+    protected override LibraryBase CreateLibrary() => new FixedClockLibrary();
+
+    private sealed class FixedClockLibrary : LibraryBase
+    {
+        internal override DateTimeOffset CurrentLocalDateTime => FixedLocalDateTime;
+
+        internal override DateTimeOffset CurrentUtcDateTime => FixedLocalDateTime.ToUniversalTime();
+    }
 
     #region Time Components Tests
 

@@ -45,7 +45,7 @@ public partial class LibraryBaseStrictConversionsDecimalTests
     {
         var result = Library.TryConvertNumericOnly(123.456);
 
-        Assert.IsNotNull(result);
+        Assert.AreEqual(123.456m, result);
     }
 
     #endregion

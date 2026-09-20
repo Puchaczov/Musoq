@@ -278,7 +278,9 @@ public sealed class CompileTimeCancellationTests
 
         try
         {
-            var firstCompleted = await Task.WhenAny(fixture.Entered, operationTask);
+            var firstCompleted = await Task.WhenAny(
+                fixture.Entered,
+                operationTask.WaitAsync(TestSynchronization.DeadlockTimeout));
             Assert.AreSame(
                 fixture.Entered,
                 firstCompleted,
@@ -288,7 +290,7 @@ public sealed class CompileTimeCancellationTests
             cancellation.Cancel();
             try
             {
-                await operationTask;
+                await operationTask.WaitAsync(TestSynchronization.DeadlockTimeout);
                 Assert.Fail("The cancelled operation returned normally.");
             }
             catch (OperationCanceledException exception)
@@ -305,7 +307,7 @@ public sealed class CompileTimeCancellationTests
                 cancellation.Cancel();
                 try
                 {
-                    await operationTask;
+                    await operationTask.WaitAsync(TestSynchronization.DeadlockTimeout);
                 }
                 catch (OperationCanceledException)
                 {

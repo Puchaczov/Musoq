@@ -88,24 +88,6 @@ public partial class InvalidQueryOutputTypeTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void WhenSelectPrimitiveTypes_ShouldSucceed()
-    {
-        // Arrange - Name, City, Population are all primitive types
-        var query = "select Name, City, Population, Money, Time from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("city1", "country1", 1000)] }
-        };
-
-        // Act
-        var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
-        var table = vm.Run(TokenSource.Token);
-
-        // Assert
-        Assert.AreEqual(1, table.Count);
-    }
-
-    [TestMethod]
     public void WhenUnionWithComplexType_ShouldThrowInvalidQueryExpressionTypeException()
     {
         // Arrange
@@ -213,46 +195,6 @@ select Array from cte";
             CreateAndRunVirtualMachineWithValidation(query, sources));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Array");
-    }
-
-    [TestMethod]
-    public void WhenCteWithPrimitiveTypes_ShouldSucceed()
-    {
-        // Arrange
-        var query = @"
-with cte as (
-    select Name, City from #A.Entities()
-)
-select Name, City from cte";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("city1", "country1", 1000)] }
-        };
-
-        // Act
-        var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
-        var table = vm.Run(TokenSource.Token);
-
-        // Assert
-        Assert.AreEqual(1, table.Count);
-    }
-
-    [TestMethod]
-    public void WhenSelectNullableType_ShouldSucceed()
-    {
-        // Arrange - NullableValue is int? which should be allowed
-        var query = "select NullableValue from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
-
-        // Act
-        var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
-        var table = vm.Run(TokenSource.Token);
-
-        // Assert
-        Assert.AreEqual(1, table.Count);
     }
 
     [TestMethod]

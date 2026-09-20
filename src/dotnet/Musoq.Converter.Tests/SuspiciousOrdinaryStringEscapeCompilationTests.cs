@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -12,6 +11,7 @@ using Musoq.Parser.Diagnostics;
 namespace Musoq.Converter.Tests;
 
 [TestClass]
+[DoNotParallelize]
 public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
 {
     private readonly TestsLoggerResolver _loggerResolver = new();
@@ -163,9 +163,6 @@ public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
     [TestMethod]
     public void CompileWithDiagnostics_WhenCanonicalExecutionCacheIsUsed_ShouldRetainWarning()
     {
-        if (Debugger.IsAttached)
-            return;
-
         var suffix = Guid.NewGuid().ToString("N");
         var first = InstanceCreator.CompileWithDiagnostics(
             $"select 'C:\\new\\test' as Path, 'token-{suffix}' as Token from #artifact.items() i",

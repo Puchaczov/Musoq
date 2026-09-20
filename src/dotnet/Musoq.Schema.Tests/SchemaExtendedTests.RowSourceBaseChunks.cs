@@ -15,11 +15,11 @@ public partial class SchemaExtendedTests
 
         var chunks = source.Chunks;
 
-        Assert.IsFalse(source.ProducerStarted.Wait(TimeSpan.FromMilliseconds(100)));
+        Assert.IsFalse(source.ProducerStarted.IsSet);
 
         using var enumerator = chunks.GetEnumerator();
 
-        Assert.IsTrue(source.ProducerStarted.Wait(TimeSpan.FromSeconds(2)));
+        Assert.IsTrue(source.ProducerStarted.Wait(TimeSpan.FromSeconds(5)));
         Assert.IsTrue(enumerator.MoveNext());
         Assert.AreEqual(42, enumerator.Current[0]);
         Assert.IsFalse(enumerator.MoveNext());
@@ -104,11 +104,19 @@ public partial class SchemaExtendedTests
         // Dispose must return while the producer is deliberately ignoring
         // cancellation. Releasing the producer only after disposal proves
         // that cleanup was handed off instead of waiting on producer progress.
-        enumerator.Dispose();
-        Assert.IsFalse(source.ProducerExited.IsSet);
+        try
+        {
+            enumerator.Dispose();
+            Assert.IsFalse(source.ProducerExited.IsSet);
+        }
+        finally
+        {
+            source.ReleaseProducer.Set();
+        }
 
-        source.ReleaseProducer.Set();
-        source.ProducerExited.Wait();
+        Assert.IsTrue(
+            source.ProducerExited.Wait(TimeSpan.FromSeconds(30)),
+            "The non-cooperative producer did not exit after it was released.");
     }
 
     private sealed class StartTrackingChunkedSource : RowSourceBase<int>

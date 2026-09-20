@@ -163,7 +163,8 @@ public sealed class CompiledQueryDeferredTableTests
     [TestMethod]
     public async Task Dispose_ShouldWaitUntilDeferredResultIsMaterialized()
     {
-        var owner = new TrackingLifetimeOwner();
+        var materialized = 0;
+        var owner = new TrackingLifetimeOwner(() => Volatile.Read(ref materialized) != 0);
         var query = new CompiledQuery(
             new DeferredTableRunnable((_, token) => QueryRows.DeferredTable("result", Columns, Rows, token)),
             owner);
@@ -171,16 +172,16 @@ public sealed class CompiledQueryDeferredTableTests
         var table = query.Run(CancellationToken.None);
         var dispose = Task.Run(query.Dispose);
 
-        Assert.IsFalse(dispose.Wait(TimeSpan.FromMilliseconds(100)));
         Assert.AreEqual(1, table.Count);
-
         await dispose;
+        Assert.IsFalse(owner.DisposedBeforeRelease);
         Assert.IsTrue(owner.IsDisposed);
         return;
 
-        static IEnumerable<TestRow> Rows(CancellationToken token)
+        IEnumerable<TestRow> Rows(CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
+            Volatile.Write(ref materialized, 1);
             yield return new TestRow("a");
         }
     }
@@ -188,7 +189,8 @@ public sealed class CompiledQueryDeferredTableTests
     [TestMethod]
     public async Task TableDispose_ShouldReleaseDeferredResultLifetime()
     {
-        var owner = new TrackingLifetimeOwner();
+        var tableDisposeStarted = 0;
+        var owner = new TrackingLifetimeOwner(() => Volatile.Read(ref tableDisposeStarted) != 0);
         var query = new CompiledQuery(
             new DeferredTableRunnable((_, token) => QueryRows.DeferredTable("result", Columns, Rows, token)),
             owner);
@@ -196,10 +198,11 @@ public sealed class CompiledQueryDeferredTableTests
         var table = query.Run(CancellationToken.None);
         var dispose = Task.Run(query.Dispose);
 
-        Assert.IsFalse(dispose.Wait(TimeSpan.FromMilliseconds(100)));
+        Volatile.Write(ref tableDisposeStarted, 1);
         table.Dispose();
 
         await dispose;
+        Assert.IsFalse(owner.DisposedBeforeRelease);
         Assert.IsTrue(owner.IsDisposed);
         return;
 
@@ -210,12 +213,15 @@ public sealed class CompiledQueryDeferredTableTests
         }
     }
 
-    private sealed class TrackingLifetimeOwner : IDisposable
+    private sealed class TrackingLifetimeOwner(Func<bool> releaseObserved) : IDisposable
     {
+        public bool DisposedBeforeRelease { get; private set; }
+
         public bool IsDisposed { get; private set; }
 
         public void Dispose()
         {
+            DisposedBeforeRelease = !releaseObserved();
             IsDisposed = true;
         }
     }

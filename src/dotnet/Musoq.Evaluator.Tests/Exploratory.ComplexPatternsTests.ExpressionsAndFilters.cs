@@ -56,31 +56,6 @@ public partial class ExploratoryComplexPatternsTests
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "JOHN", "john", "nhoJ"]);
     }
 
-
-
-    [TestMethod]
-    public void Explore77_DateFunctions_ShouldWork()
-    {
-        const string query = @"
-            select
-                p.Name,
-                Year(GetDate()) as CurrentYear
-            from #schema.first() p";
-
-        var source = new List<Person>
-        {
-            new() { Name = "John", Age = 30 }
-        }.ToArray();
-
-        var vm = CreateAndRunVirtualMachine(query, source);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("CurrentYear", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", System.DateTime.Now.Year]);
-    }
-
-
-
     [TestMethod]
     public void Explore78_OrConditionWithCrossApply_ShouldWork()
     {

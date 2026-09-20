@@ -76,8 +76,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var sample = GeneratedCodeSamplesCatalog.GetByFileName("Q01_SimpleSelectWhere.cs");
         var samplePath = GeneratedCodeSampleArtifacts.GetSamplePath(sample);
-        if (!File.Exists(samplePath))
-            return;
+        Assert.IsTrue(
+            File.Exists(samplePath),
+            $"Generated-code snapshot is missing: {samplePath}. Run the ignored refresh utility intentionally when snapshots change.");
 
         var expected = File.ReadAllText(samplePath);
         var actual = GeneratedCodeSampleArtifacts.Generate(sample, new TestsLoggerResolver());

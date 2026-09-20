@@ -139,6 +139,89 @@ function Test-AlphaReleaseVersion {
     return $Version -match '^[0-9]+\.[0-9]+\.[0-9]+-alpha(?:\.|$)'
 }
 
+function Get-CiQualificationDecision {
+    param(
+        [Parameter(Mandatory)]
+        [object[]] $WorkflowRuns,
+
+        [Parameter(Mandatory)]
+        [string] $CommitSha,
+
+        [switch] $RequireReleaseBranch
+    )
+
+    $matchingRuns = @($WorkflowRuns | Where-Object {
+        [string]$_.head_sha -eq $CommitSha -and
+        [string]$_.event -eq 'push'
+    })
+
+    $eligibleRuns = @(
+        if ($RequireReleaseBranch) {
+            $matchingRuns | Where-Object { [string]$_.head_branch -match '^release/.+' }
+        }
+        else {
+            $matchingRuns
+        }
+    )
+
+    $successfulRun = @($eligibleRuns |
+        Where-Object { [string]$_.conclusion -eq 'success' } |
+        Sort-Object { [DateTimeOffset]$_.updated_at } -Descending |
+        Select-Object -First 1)
+
+    if ($successfulRun.Count -eq 1) {
+        return [PSCustomObject]@{
+            Status = 'Success'
+            Run = $successfulRun[0]
+            Reason = "Found successful CI push run $($successfulRun[0].id)."
+        }
+    }
+
+    $activeStatuses = @('queued', 'in_progress', 'waiting', 'requested', 'pending')
+    $activeRuns = @($eligibleRuns | Where-Object {
+        $activeStatuses -contains ([string]$_.status).ToLowerInvariant()
+    })
+
+    if ($activeRuns.Count -gt 0 -or $matchingRuns.Count -eq 0) {
+        $reason = if ($RequireReleaseBranch) {
+            'Waiting for a CI push run for the exact commit from release/**.'
+        }
+        else {
+            'Waiting for a CI push run for the exact commit.'
+        }
+
+        return [PSCustomObject]@{
+            Status = 'Waiting'
+            Run = $null
+            Reason = $reason
+        }
+    }
+
+    if ($RequireReleaseBranch -and $eligibleRuns.Count -eq 0) {
+        return [PSCustomObject]@{
+            Status = 'Failure'
+            Run = $null
+            Reason = 'The exact commit has CI push evidence, but none of it came from a release/** branch.'
+        }
+    }
+
+    $terminalRun = @($eligibleRuns |
+        Sort-Object { [DateTimeOffset]$_.updated_at } -Descending |
+        Select-Object -First 1)
+    $terminalDescription = if ($terminalRun.Count -eq 1) {
+        "Latest eligible run $($terminalRun[0].id) concluded '$($terminalRun[0].conclusion)'."
+    }
+    else {
+        'All eligible CI push runs are terminal without a successful conclusion.'
+    }
+
+    return [PSCustomObject]@{
+        Status = 'Failure'
+        Run = if ($terminalRun.Count -eq 1) { $terminalRun[0] } else { $null }
+        Reason = $terminalDescription
+    }
+}
+
 function Get-PublishedPackageVersions {
     param(
         [Parameter(Mandatory)]
@@ -387,6 +470,8 @@ function New-ReleaseSummary {
         slug = $Release.Slug
         version = $Release.Version
         isPrerelease = $Release.IsPrerelease
+        isAlpha = $Release.AllowBreakingChanges
+        requiresReleaseBranch = -not $Release.AllowBreakingChanges
         packages = @($Release.Packages | ForEach-Object { $_.PackageId })
     }
 }

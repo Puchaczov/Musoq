@@ -14,6 +14,8 @@ namespace Musoq.Converter.Tests;
 [DoNotParallelize]
 public sealed class EnumQueryScopedRowTests
 {
+    private const int CacheSalt = 1_000_001;
+
     private const string DynamicContract =
         "enum JobStatus : int { Queued = 10, Running = 20, Finished = 30 };" +
         "flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };" +
@@ -226,9 +228,8 @@ public sealed class EnumQueryScopedRowTests
     [TestMethod]
     public void QueryLocalEnum_WhenCompiledTwice_ShouldReusePortableExecutionArtifact()
     {
-        var salt = Random.Shared.Next(1000, int.MaxValue);
         var query =
-            $"enum JobStatus : int {{ Queued = 10, Running = 20, Finished = 30, CacheSalt = {salt} }};" +
+            $"enum JobStatus : int {{ Queued = 10, Running = 20, Finished = 30, CacheSalt = {CacheSalt} }};" +
             "flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };" +
             "table Jobs { Status: JobStatus, Access: FileAccess };" +
             "couple #enumrows.dynamic with table Jobs as Jobs;" +

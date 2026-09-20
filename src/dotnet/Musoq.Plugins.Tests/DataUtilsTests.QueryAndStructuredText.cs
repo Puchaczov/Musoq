@@ -290,7 +290,7 @@ public partial class DataUtilsTests
         var formatted = "<root>\n  <child>value</child>\n</root>";
         var result = Library.MinifyXml(formatted);
 
-        Assert.IsNotNull(result);
+        Assert.AreEqual("<root><child>value</child></root>", result);
     }
 
     [TestMethod]

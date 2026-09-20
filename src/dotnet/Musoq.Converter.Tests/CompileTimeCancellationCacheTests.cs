@@ -100,9 +100,6 @@ public sealed class CompileTimeCancellationCacheTests
     [TestMethod]
     public void ExecutionCache_WhenOwnerCancelsBeforeCommit_ShouldNotPublishEntry()
     {
-        if (System.Diagnostics.Debugger.IsAttached)
-            return;
-
         var query = $"select d.Dummy from #system.dual() d where d.Dummy = '{Guid.NewGuid():N}'";
         var provider = new SystemSchemaProvider();
         var options = new CompilationOptions();
@@ -124,9 +121,6 @@ public sealed class CompileTimeCancellationCacheTests
     [TestMethod]
     public void ExecutionCache_WhenCanonicalAliasOwnerCancelsBeforeCommit_ShouldPreserveExistingEntry()
     {
-        if (System.Diagnostics.Debugger.IsAttached)
-            return;
-
         var suffix = Guid.NewGuid().ToString("N");
         const string firstQueryFormat = "select i.Value from #artifact.items() i where i.Value = '{0}'";
         const string secondQueryFormat = "select  i.Value  from  #artifact.items()  i  where  i.Value = '{0}'";
@@ -174,9 +168,6 @@ public sealed class CompileTimeCancellationCacheTests
     [TestMethod]
     public void ExecutionCache_WhenEvictingEntries_ShouldDisposeArtifactsOnce()
     {
-        if (System.Diagnostics.Debugger.IsAttached)
-            return;
-
         InstanceCreator.ClearExecutionCompilationCacheForTests();
         using var limit = InstanceCreator.SetExecutionCompilationCacheLimitForTests(1);
         var provider = new SystemSchemaProvider();
@@ -246,7 +237,9 @@ public sealed class CompileTimeCancellationCacheTests
             () => waiterRegistered.TrySetResult(true),
             cancellation.Token));
 
-        await waiterRegistered.Task;
+        await TestSynchronization.WaitForSignalAsync(
+            waiterRegistered.Task,
+            "The semantic-cache waiter did not register");
         var token = cancellation.Token;
         cancellation.Cancel();
 
@@ -278,7 +271,9 @@ public sealed class CompileTimeCancellationCacheTests
             () => waiterRegistered.TrySetResult(true),
             cancellation.Token));
 
-        await waiterRegistered.Task;
+        await TestSynchronization.WaitForSignalAsync(
+            waiterRegistered.Task,
+            "The execution-cache waiter did not register");
         var token = cancellation.Token;
         cancellation.Cancel();
 
@@ -309,7 +304,9 @@ public sealed class CompileTimeCancellationCacheTests
             () => waiterRegistered.TrySetResult(true),
             cancellation.Token));
 
-        await waiterRegistered.Task;
+        await TestSynchronization.WaitForSignalAsync(
+            waiterRegistered.Task,
+            "The canonical-cache waiter did not register");
         var token = cancellation.Token;
         cancellation.Cancel();
 
@@ -333,7 +330,9 @@ public sealed class CompileTimeCancellationCacheTests
     {
         try
         {
-            _ = await operation;
+            await TestSynchronization.WaitForSignalAsync(
+                operation,
+                "The cancelled cache waiter did not complete");
             Assert.Fail("The cancelled cache waiter returned normally.");
         }
         catch (OperationCanceledException exception)

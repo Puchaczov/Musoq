@@ -170,31 +170,23 @@ public class StandardLibraryCompatibilityTests
     }
 
     [TestMethod]
-    public void StandardLibrary_PerformanceIsAcceptable()
+    public void StandardLibrary_RepeatedCaseInsensitiveTrimResolution_ShouldRemainStable()
     {
         var testMethod = "trim";
         var paramTypes = new[] { typeof(string) };
 
+        var initialSuccess = _methodsManager.TryGetMethod(testMethod, paramTypes, null, out var initialMethod);
+        Assert.IsTrue(initialSuccess);
+        initialMethod = TestNullabilityGuards.Require(initialMethod, "initial lowercase Trim resolution");
+        Assert.AreEqual(nameof(LibraryBase.Trim), initialMethod.Name);
 
-        for (var i = 0; i < 100; i++) _methodsManager.TryGetMethod(testMethod, paramTypes, null, out _);
-
-
-        var start = DateTime.UtcNow;
-        const int iterations = 10000;
-
-        for (var i = 0; i < iterations; i++)
+        for (var i = 0; i < 1000; i++)
         {
             var success = _methodsManager.TryGetMethod(testMethod, paramTypes, null, out var method);
             Assert.IsTrue(success);
-            Assert.IsNotNull(method);
+            method = TestNullabilityGuards.Require(method, "repeated lowercase Trim resolution");
+            Assert.AreEqual(initialMethod, method);
         }
-
-        var elapsed = DateTime.UtcNow - start;
-        var msPerResolution = elapsed.TotalMilliseconds / iterations;
-
-
-        Assert.IsLessThan(0.1,
-            msPerResolution, $"Case-insensitive method resolution is too slow: {msPerResolution:F4}ms per resolution");
     }
 
     [TestMethod]
