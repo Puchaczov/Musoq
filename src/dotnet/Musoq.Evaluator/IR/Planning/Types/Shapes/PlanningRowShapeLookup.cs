@@ -23,13 +23,13 @@ internal static class PlanningRowShapeLookup
             : $"{column.Alias}.{columnName}";
 
         var field = sourceShape.Fields.FirstOrDefault(candidate =>
-            string.Equals(candidate.Name, columnName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.Name, column.ColumnName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.Name, sourceRelativeColumnName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.Name, originalQualifiedName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.QualifiedName, originalQualifiedName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.QualifiedName, qualifiedName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.QualifiedName, $"{sourceShape.Alias}.{originalQualifiedName}", StringComparison.OrdinalIgnoreCase));
+            string.Equals(candidate.Name, columnName, StringComparison.Ordinal) ||
+            string.Equals(candidate.Name, column.ColumnName, StringComparison.Ordinal) ||
+            string.Equals(candidate.Name, sourceRelativeColumnName, StringComparison.Ordinal) ||
+            string.Equals(candidate.Name, originalQualifiedName, StringComparison.Ordinal) ||
+            string.Equals(candidate.QualifiedName, originalQualifiedName, StringComparison.Ordinal) ||
+            string.Equals(candidate.QualifiedName, qualifiedName, StringComparison.Ordinal) ||
+            string.Equals(candidate.QualifiedName, $"{sourceShape.Alias}.{originalQualifiedName}", StringComparison.Ordinal));
 
         if (field != null)
             return field;
@@ -71,10 +71,10 @@ internal static class PlanningRowShapeLookup
 
         var rootName = GetRootFieldName(sourceRelativeColumnName);
         return sourceShape.Fields.FirstOrDefault(candidate =>
-            string.Equals(candidate.Name, rootName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.Name, $"{column.Alias}.{rootName}", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.QualifiedName, $"{sourceShape.Alias}.{rootName}", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.QualifiedName, $"{column.Alias}.{rootName}", StringComparison.OrdinalIgnoreCase));
+            string.Equals(candidate.Name, rootName, StringComparison.Ordinal) ||
+            string.Equals(candidate.Name, $"{column.Alias}.{rootName}", StringComparison.Ordinal) ||
+            string.Equals(candidate.QualifiedName, $"{sourceShape.Alias}.{rootName}", StringComparison.Ordinal) ||
+            string.Equals(candidate.QualifiedName, $"{column.Alias}.{rootName}", StringComparison.Ordinal));
     }
 
     private static PlanningField? ResolveUnqualifiedField(
@@ -84,8 +84,8 @@ internal static class PlanningRowShapeLookup
     {
         var matches = sourceShape.Fields
             .Where(candidate =>
-                string.Equals(GetUnqualifiedFieldName(candidate.Name), column.ColumnName, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(GetUnqualifiedFieldName(candidate.Name), sourceRelativeColumnName, StringComparison.OrdinalIgnoreCase))
+                string.Equals(GetUnqualifiedFieldName(candidate.Name), column.ColumnName, StringComparison.Ordinal) ||
+                string.Equals(GetUnqualifiedFieldName(candidate.Name), sourceRelativeColumnName, StringComparison.Ordinal))
             .Take(2)
             .ToArray();
 

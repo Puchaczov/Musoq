@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -54,24 +55,21 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     }
 
     [TestMethod]
-    public void TableColumnType_WhenExactReachableNativeEnum_ShouldNormalizeToCarrier()
+    public void TableColumnType_WhenExactReachableNativeEnum_ShouldRejectDeclaration()
     {
+        const string declaration = "Status: Musoq.Evaluator.Tests.TableContractNativeStatus";
+        const string query = "table Jobs { " + declaration + " };" +
+                             "couple #capture.any with table Jobs as Jobs;" +
+                             "select Status from Jobs()";
         var capturedContexts = new List<SourceMetadataContext>();
-        Analyze(
-            "table Jobs { Status: Musoq.Evaluator.Tests.TableContractNativeStatus };" +
-            "couple #capture.any with table Jobs as Jobs;" +
-            "select Status from Jobs()",
-            new CaptureMetadataContextSchemaProvider(capturedContexts.Add));
+        var exception = Assert.Throws<VisitorException>(() => Analyze(
+            query, new CaptureMetadataContextSchemaProvider(capturedContexts.Add)));
 
-        var column = capturedContexts
-            .Single(context => context.AllColumns.Any(candidate => candidate.ColumnName == "Status"))
-            .AllColumns
-            .Single(candidate => candidate.ColumnName == "Status");
-
-        Assert.AreEqual(typeof(short?), column.ColumnType);
-        Assert.AreEqual(typeof(TableContractNativeStatus?), column.SourceReadType);
-        Assert.IsNotNull(column.EnumType);
-        Assert.AreEqual(EnumTypeOrigin.NativeClr, column.EnumType.Origin);
+        Assert.AreEqual(DiagnosticCode.MQ2012_InvalidSchemaDefinition, exception.Code);
+        Assert.AreEqual(new TextSpan(query.IndexOf(declaration, StringComparison.Ordinal), declaration.Length), exception.Span);
+        Assert.Contains("cannot declare native CLR enum type", exception.Message);
+        Assert.Contains("underlying primitive type 'short'", exception.Message);
+        Assert.IsEmpty(capturedContexts);
     }
 
     [TestMethod]

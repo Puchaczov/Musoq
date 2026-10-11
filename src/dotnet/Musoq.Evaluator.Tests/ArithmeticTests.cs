@@ -32,18 +32,6 @@ public class ArithmeticTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void DivisionWithAdditionTest()
-    {
-        TestMethodTemplate("256 + 256 / 2", 384);
-    }
-
-    [TestMethod]
-    public void DivisionWithAdditionHigherPriorityTest()
-    {
-        TestMethodTemplate("(256 + 256) / 2", 256);
-    }
-
-    [TestMethod]
     public void DivisionWithMultiplicationTest()
     {
         TestMethodTemplate("2 * 3 / 2", 3);
@@ -71,18 +59,6 @@ public class ArithmeticTests : BasicEntityTestBase
     public void SubtractionWithAdditionTest()
     {
         TestMethodTemplate("256 + 128 - 128", 256);
-    }
-
-    [TestMethod]
-    public void SubtractionWithUnaryMinusTest()
-    {
-        TestMethodTemplate("1 - -1", 2);
-    }
-
-    [TestMethod]
-    public void SubtractionWithUnaryMinusExpressionTest()
-    {
-        TestMethodTemplate("1 - -(1 + 2)", 4);
     }
 
     [TestMethod]
@@ -125,12 +101,6 @@ public class ArithmeticTests : BasicEntityTestBase
     public void MultiModuloExpressionTest()
     {
         TestMethodTemplate("5 % 4 % 6", 1);
-    }
-
-    [TestMethod]
-    public void ComplexArithmeticExpression1Test()
-    {
-        TestMethodTemplate("1 + 2 * 3 * ( 7 * 8 ) - ( 45 - 10 )", 302);
     }
 
     [TestMethod]

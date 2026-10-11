@@ -37,16 +37,16 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(10, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Hello"), "Row 'Hello' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Привет"), "Row 'Привет' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "こんにちは"), "Row 'こんにちは' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "你好"), "Row '你好' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "مرحبا"), "Row 'مرحبا' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Cześć"), "Row 'Cześć' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "안녕하세요"), "Row '안녕하세요' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Bonjour"), "Row 'Bonjour' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "สวัสดี"), "Row 'สวัสดี' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "नमस्ते"), "Row 'नमस्ते' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Hello"), "Row 'Hello' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Привет"), "Row 'Привет' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "こんにちは"), "Row 'こんにちは' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "你好"), "Row '你好' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "مرحبا"), "Row 'مرحبا' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Cześć"), "Row 'Cześć' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "안녕하세요"), "Row '안녕하세요' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Bonjour"), "Row 'Bonjour' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "สวัสดี"), "Row 'สวัสดี' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "नमस्ते"), "Row 'नमस्ते' not found");
     }
 
     [TestMethod]
@@ -74,19 +74,19 @@ public partial class MultilingualTextTests
         Assert.AreEqual(4, table.Count);
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "Polska" && (long)row.Values[1] == 2L),
+                (string)row.ReadValues()[0] == "Polska" && (long)row.ReadValues()[1] == 2L),
             "Expected group 'Polska' with count 2");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "日本" && (long)row.Values[1] == 2L),
+                (string)row.ReadValues()[0] == "日本" && (long)row.ReadValues()[1] == 2L),
             "Expected group '日本' with count 2");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "Россия" && (long)row.Values[1] == 1L),
+                (string)row.ReadValues()[0] == "Россия" && (long)row.ReadValues()[1] == 1L),
             "Expected group 'Россия' with count 1");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "中国" && (long)row.Values[1] == 1L),
+                (string)row.ReadValues()[0] == "中国" && (long)row.ReadValues()[1] == 1L),
             "Expected group '中国' with count 1");
     }
 
@@ -113,11 +113,11 @@ public partial class MultilingualTextTests
         Assert.AreEqual(2, table.Count);
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "東京" && (string)row.Values[1] == "日本"),
+                (string)row.ReadValues()[0] == "東京" && (string)row.ReadValues()[1] == "日本"),
             "Row with '東京' not found");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "大阪" && (string)row.Values[1] == "日本"),
+                (string)row.ReadValues()[0] == "大阪" && (string)row.ReadValues()[1] == "日本"),
             "Row with '大阪' not found");
     }
 
@@ -142,11 +142,11 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(3, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "東京 - 日本"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京 - 日本"),
             "Row '東京 - 日本' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Kraków - Polska"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Kraków - Polska"),
             "Row 'Kraków - Polska' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Москва - Россия"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва - Россия"),
             "Row 'Москва - Россия' not found");
     }
 
@@ -174,15 +174,15 @@ public partial class MultilingualTextTests
         Assert.AreEqual(5, table.Count);
 
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Kraków"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Kraków"),
             "Row with 'Kraków' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "東京"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"),
             "Row with '東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Москва"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"),
             "Row with 'Москва' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "北京"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"),
             "Row with '北京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "서울"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "서울"),
             "Row with '서울' not found");
     }
 
@@ -211,13 +211,13 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Kraków"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Kraków"),
             "Row with 'Kraków' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "東京"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"),
             "Row with '東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Москва"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"),
             "Row with 'Москва' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "北京"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"),
             "Row with '北京' not found");
     }
 
@@ -250,13 +250,13 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Kraków"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Kraków"),
             "Row with 'Kraków' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "東京"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"),
             "Row with '東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Москва"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"),
             "Row with 'Москва' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "北京"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"),
             "Row with '北京' not found");
     }
 
@@ -291,13 +291,13 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "東京"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"),
             "Row '東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Москва"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"),
             "Row 'Москва' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "北京"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"),
             "Row '北京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Warszawa"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Warszawa"),
             "Row 'Warszawa' not found");
     }
 
@@ -323,9 +323,9 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "東京"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"),
             "Row with '東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Москва"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"),
             "Row with 'Москва' not found");
     }
 
@@ -352,11 +352,11 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(3, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "東京"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"),
             "Row with '東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Москва"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"),
             "Row with 'Москва' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "北京"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"),
             "Row with '北京' not found");
     }
 
@@ -379,7 +379,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("😀🎉🌍", table[0].Values[0]);
+        Assert.AreEqual("😀🎉🌍", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -402,7 +402,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("🌍", table[0].Values[0]);
+        Assert.AreEqual("🌍", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -429,15 +429,15 @@ public partial class MultilingualTextTests
         Assert.AreEqual(3, table.Count);
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "😀" && (long)row.Values[1] == 2L),
+                (string)row.ReadValues()[0] == "😀" && (long)row.ReadValues()[1] == 2L),
             "Expected group '😀' with count 2");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "🌍" && (long)row.Values[1] == 2L),
+                (string)row.ReadValues()[0] == "🌍" && (long)row.ReadValues()[1] == 2L),
             "Expected group '🌍' with count 2");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "🎉" && (long)row.Values[1] == 1L),
+                (string)row.ReadValues()[0] == "🎉" && (long)row.ReadValues()[1] == 1L),
             "Expected group '🎉' with count 1");
     }
 
@@ -463,13 +463,13 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "🇯🇵 東京"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "🇯🇵 東京"),
             "Row '🇯🇵 東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "🇷🇺 Москва"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "🇷🇺 Москва"),
             "Row '🇷🇺 Москва' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "🇵🇱 Kraków"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "🇵🇱 Kraków"),
             "Row '🇵🇱 Kraków' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "🇨🇳 北京"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "🇨🇳 北京"),
             "Row '🇨🇳 北京' not found");
     }
 
@@ -494,7 +494,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Wrocław Polska", table[0].Values[0]);
+        Assert.AreEqual("Wrocław Polska", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -517,7 +517,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Москва", table[0].Values[0]);
+        Assert.AreEqual("Москва", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -536,7 +536,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Cześć, Привет, こんにちは", table[0].Values[0]);
+        Assert.AreEqual("Cześć, Привет, こんにちは", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -561,9 +561,9 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "東京"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"),
             "Row with '東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Москва"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"),
             "Row with 'Москва' not found");
     }
 
@@ -587,7 +587,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Español", table[0].Values[0]);
+        Assert.AreEqual("Español", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -611,9 +611,9 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Programação"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Programação"),
             "Row with 'Programação' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Atenção"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Atenção"),
             "Row with 'Atenção' not found");
     }
 
@@ -637,7 +637,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Příliš žluťoučký kůň", table[0].Values[0]);
+        Assert.AreEqual("Příliš žluťoučký kůň", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -660,7 +660,7 @@ public partial class MultilingualTextTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("București", table[0].Values[0]);
+        Assert.AreEqual("București", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -685,13 +685,13 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Ångström"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Ångström"),
             "Row 'Ångström' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Malmö"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Malmö"),
             "Row 'Malmö' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Ærø"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Ærø"),
             "Row 'Ærø' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Ísland"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Ísland"),
             "Row 'Ísland' not found");
     }
 

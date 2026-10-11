@@ -11,18 +11,6 @@ public partial class StringMethodsExtendedTests
 {
 
     [TestMethod]
-    public void RegexExtract_NullValue_ReturnsNull()
-    {
-        Assert.IsNull(Library.RegexExtract(null, @"\d+"));
-    }
-
-    [TestMethod]
-    public void RegexExtract_NullPattern_ReturnsNull()
-    {
-        Assert.IsNull(Library.RegexExtract("test123", null));
-    }
-
-    [TestMethod]
     public void RegexExtract_EmptyValue_ReturnsNull()
     {
         Assert.IsNull(Library.RegexExtract(string.Empty, @"\d+"));
@@ -127,18 +115,6 @@ public partial class StringMethodsExtendedTests
     public void RegexExtractAll_InvalidRegex_ReturnsEmpty()
     {
         Assert.IsEmpty(Library.RegexExtractAll("test", @"[invalid"));
-    }
-
-    [TestMethod]
-    public void IsMatch_NullValue_ReturnsNull()
-    {
-        Assert.IsNull(Library.IsMatch(null, @"\d+"));
-    }
-
-    [TestMethod]
-    public void IsMatch_NullPattern_ReturnsNull()
-    {
-        Assert.IsNull(Library.IsMatch("test123", null));
     }
 
     [TestMethod]

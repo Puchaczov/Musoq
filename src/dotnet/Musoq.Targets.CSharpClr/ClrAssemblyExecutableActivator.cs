@@ -439,13 +439,10 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
     }
 
     private abstract class OwnedTableRunnableBase(ITableRunnable inner, IDisposable lifetimeOwner)
-        : ITableRunnable, IQueryProgressSource, IParameterizedRunnable, IMetadataOnlyRunnable,
-            IProfiledRunnable, IContextProfiledRunnable, IStructuralParameterSnapshotProvider, IDisposable
+        : ITableRunnable, IQueryProgressSource, IParameterizedRunnable, ITypedParameterizedRunnable, IMetadataOnlyRunnable,
+            IProfiledRunnable, IContextProfiledRunnable, IDisposable
     {
         private readonly IParameterizedRunnable? _parameterized = inner as IParameterizedRunnable;
-        private readonly IStructuralParameterSnapshotProvider? _structuralParameterSnapshotProvider =
-            inner as IStructuralParameterSnapshotProvider;
-        private readonly Dictionary<string, object?> _fallbackParameters = new(StringComparer.Ordinal);
         private int _disposed;
 
         ~OwnedTableRunnableBase()
@@ -487,26 +484,24 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
             set => Inner.Logger = value;
         }
 
-        public IDictionary<string, object?> Parameters => _parameterized?.Parameters ?? _fallbackParameters;
+        public TypedParameterSnapshot TypedParameters
+        {
+            get => (Inner as ITypedParameterizedRunnable)?.TypedParameters ?? TypedParameterSnapshot.Empty;
+            set
+            {
+                ArgumentNullException.ThrowIfNull(value);
+                if (Inner is ITypedParameterizedRunnable typed)
+                    typed.TypedParameters = value;
+                else if (value.Count != 0)
+                    throw new InvalidOperationException("The artifact does not support native typed parameters.");
+            }
+        }
 
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions =>
             _parameterized?.ParameterDefinitions ?? Array.Empty<ScriptParameterDefinition>();
 
         public IReadOnlyList<ScriptParameterContract> ParameterContracts =>
             _parameterized?.ParameterContracts ?? Array.Empty<ScriptParameterContract>();
-
-        public IReadOnlyDictionary<string, object?> CaptureParameterSnapshot(
-            IReadOnlyDictionary<string, object?> supplied,
-            CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(supplied);
-
-            return StructuralParameterSnapshotter.CaptureForExecution(
-                ParameterDefinitions,
-                supplied,
-                cancellationToken,
-                _structuralParameterSnapshotProvider);
-        }
 
         public bool IsMetadataOnly =>
             Inner is IMetadataOnlyRunnable { IsMetadataOnly: true };

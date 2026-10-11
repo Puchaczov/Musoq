@@ -12,7 +12,7 @@ internal sealed class NonEquiSchema(IReadOnlyList<NonEquiEntity> entities, int s
         return new NonEquiTable();
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
     {
         return EnsureSourceType<T, NonEquiEntity>(name, new ExpensiveRowSource(entities, simulatedWorkIterations));
     }

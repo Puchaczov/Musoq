@@ -5,7 +5,8 @@ namespace Musoq.Evaluator.IR.Execution;
 /// <summary>Identifies the physical representation selected for a stored CTE.</summary>
 public enum ExecutionStoredTableRepresentationKind
 {
-    GeneratedRowList
+    GeneratedRowList,
+    GeneratedColumnarBuffer
 }
 
 /// <summary>

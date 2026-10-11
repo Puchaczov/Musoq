@@ -18,7 +18,7 @@ public partial class SubqueryTests
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("HasMatch", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -56,7 +56,7 @@ public partial class SubqueryTests
             .Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("HasMatch", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,

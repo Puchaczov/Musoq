@@ -10,7 +10,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class JoinRowPresencePredicateTests : BasicEntityTestBase
+public partial class JoinRowPresencePredicateTests : BasicEntityTestBase
 {
 
     [TestMethod]
@@ -31,8 +31,8 @@ left join #B.entities() b on a.Id = b.Id";
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("State", typeof(string)),
-            ("a.Id", typeof(int)),
-            ("b.Id", typeof(int?)));
+            ("Id", typeof(int)),
+            ("Id", typeof(int?)));
         AssertRows(table, ("LeftOnly", 1, null), ("Matched", 2, 2));
     }
 
@@ -54,8 +54,8 @@ right join #B.entities() b on a.Id = b.Id";
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("State", typeof(string)),
-            ("a.Id", typeof(int?)),
-            ("b.Id", typeof(int)));
+            ("Id", typeof(int?)),
+            ("Id", typeof(int)));
         AssertRows(table, ("RightOnly", null, 1), ("Matched", 2, 2));
     }
 
@@ -81,8 +81,8 @@ full outer join #B.entities() b on a.Id = b.Id";
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("State", typeof(string)),
-            ("a.Id", typeof(int?)),
-            ("b.Id", typeof(int?)));
+            ("Id", typeof(int?)),
+            ("Id", typeof(int?)));
         AssertRows(table, ("LeftOnly", 1, null), ("Matched", 2, 2), ("RightOnly", null, 3));
     }
 
@@ -112,9 +112,9 @@ left join #B.entities() b on a.Id = b.Id";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int)),
+            ("Id", typeof(int)),
             ("State", typeof(string)),
-            ("b.NullableValue", typeof(int?)));
+            ("NullableValue", typeof(int?)));
         AssertRows(table, (1, "Present", null), (2, "Missing", null));
     }
 
@@ -159,13 +159,13 @@ where b is present";
 
         TableMaterializationTestHelper.AssertColumns(
             missing,
-            ("a.Id", typeof(int)),
-            ("b.Id", typeof(int?)));
+            ("Id", typeof(int)),
+            ("Id", typeof(int?)));
         AssertRows(missing, (1, null));
         TableMaterializationTestHelper.AssertColumns(
             present,
-            ("a.Id", typeof(int)),
-            ("b.Id", typeof(int?)));
+            ("Id", typeof(int)),
+            ("Id", typeof(int?)));
         AssertRows(present, (2, 2));
     }
 
@@ -193,13 +193,13 @@ where a is present";
 
         TableMaterializationTestHelper.AssertColumns(
             missing,
-            ("a.Id", typeof(int?)),
-            ("b.Id", typeof(int)));
+            ("Id", typeof(int?)),
+            ("Id", typeof(int)));
         AssertRows(missing, (null, 1));
         TableMaterializationTestHelper.AssertColumns(
             present,
-            ("a.Id", typeof(int?)),
-            ("b.Id", typeof(int)));
+            ("Id", typeof(int?)),
+            ("Id", typeof(int)));
         AssertRows(present, (2, 2));
     }
 
@@ -260,13 +260,13 @@ where b is present";
 
         TableMaterializationTestHelper.AssertColumns(
             missing,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         AssertRows(missing, ("A2", null));
         TableMaterializationTestHelper.AssertColumns(
             present,
-            ("a.Name", typeof(string)),
-            ("b.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         AssertRows(present, ("A1", "B1"));
     }
 
@@ -375,13 +375,13 @@ where b is present";
 
         TableMaterializationTestHelper.AssertColumns(
             missing,
-            ("a.Id", typeof(int)),
-            ("b.Id", typeof(int?)));
+            ("Id", typeof(int)),
+            ("Id", typeof(int?)));
         AssertRows(missing, (1, null), (2, null));
         TableMaterializationTestHelper.AssertColumns(
             present,
-            ("a.Id", typeof(int)),
-            ("b.Id", typeof(int?)));
+            ("Id", typeof(int)),
+            ("Id", typeof(int?)));
         AssertRows(present, (1, 10), (2, 10));
     }
 
@@ -426,9 +426,9 @@ where b is missing";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int)),
-            ("b.Id", typeof(int?)),
-            ("c.Id", typeof(int)));
+            ("Id", typeof(int)),
+            ("Id", typeof(int?)),
+            ("Id", typeof(int)));
         AssertThreeWayRows(table, (1, null, 1));
     }
 
@@ -449,9 +449,9 @@ where b is missing";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int)),
-            ("b.Id", typeof(int?)),
-            ("c.Id", typeof(int)));
+            ("Id", typeof(int)),
+            ("Id", typeof(int?)),
+            ("Id", typeof(int)));
         AssertThreeWayRows(table, (1, null, 1), (2, null, 2));
     }
 
@@ -569,8 +569,8 @@ left join #B.entities() b on a.Id = b.Id";
     {
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int?)),
-            ("b.Id", typeof(int?)));
+            ("Id", typeof(int?)),
+            ("Id", typeof(int?)));
     }
 
     private void AssertAlwaysPresentAliasRejected(string query, string alias)

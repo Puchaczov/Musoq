@@ -120,6 +120,19 @@ public sealed class PublicTypedEquivalenceTests
     }
 
     [TestMethod]
+    public void TypedExecution_WhenAggregatingNullableIntegers_ShouldPreserveConcreteDtoTypesAndValues()
+    {
+        var actual = MusoqApi
+            .Query("select Sum(Value) as Total, Avg(Value) as Average, Count(*) as Present from #input.rows()")
+            .Source("#input", "rows", new[] { new[] { new NullableIntegerInput(1), new NullableIntegerInput(2) } })
+            .CompileAndRun<NullableIntegerAggregateOutput>(CancellationToken.None)
+            .ToArray();
+
+        Assert.HasCount(1, actual);
+        Assert.AreEqual(new NullableIntegerAggregateOutput(3, 1.5m, 2L), actual[0]);
+    }
+
+    [TestMethod]
     public void TypedExecution_WhenQueryUsesWindowFunction_ShouldMatchEquivalentProjection()
     {
         var people = People();
@@ -302,7 +315,7 @@ public sealed class PublicTypedEquivalenceTests
             .Run(
                 new TypedQueryRunOptions(
                     CancellationToken.None,
-                    new Dictionary<string, object?> { ["minAge"] = minAge }),
+global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(new Dictionary<string, object?> { ["minAge"] = minAge })),
                 MusoqApi.Source("#A", "entities", Chunks(people)))
             .Select(static row => row.Name)
             .ToArray();
@@ -326,4 +339,6 @@ public sealed class PublicTypedEquivalenceTests
         StringAssert.Contains(exception.Message, "duplicate output alias 'Value'");
     }
 
+    public sealed record NullableIntegerInput(int? Value);
+    public readonly record struct NullableIntegerAggregateOutput(int? Total, decimal? Average, long Present);
 }

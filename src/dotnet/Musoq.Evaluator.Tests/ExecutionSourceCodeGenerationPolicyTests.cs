@@ -37,7 +37,7 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
             "PrivateEntity");
         AssertHasGuidance(exception);
         AssertMessageContains(exception, "public CLR contract");
-        AssertMessageContains(exception, "schema-indexed positional row (currently object[])");
+        AssertMessageContains(exception, "native query-scoped rows");
     }
 
     [TestMethod]
@@ -77,10 +77,10 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenDynamicColumnTypeIsNotReferenceable_ShouldReportGeneratedExecutionDiagnostic()
+    public void CompileForInspection_WhenColumnTypeIsNotReferenceable_ShouldReportGeneratedExecutionDiagnostic()
     {
         var exception = CompileExpectedFailure(
-            new UnsafeSchemaProvider(typeof(RuntimeDynamicRow), typeof(InaccessibleColumnType)),
+            new UnsafeSchemaProvider(typeof(PublicNamedRow), typeof(InaccessibleColumnType)),
             "select 1 from #unsafe.all() a where a.Name is not null");
 
         AssertErrorEnvelope(
@@ -176,7 +176,7 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenSourceEntityIsSchemaIndexedObjectArray_ShouldUseDirectPositionalAccess()
+    public void CompileForInspection_WhenColumnsHaveDeclaredIndexes_ShouldUseTypedMaterializedFields()
     {
         var inspection = InstanceCreator.CompileForInspection(
             "select a.Name, a.Age, a.[Address.City] from #positional.all() a",
@@ -199,12 +199,41 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GeneratedDictionaryAccess", StringComparison.Ordinal));
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetColumnValue", StringComparison.Ordinal));
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetNestedValue", StringComparison.Ordinal));
-        Assert.Contains("[2]", inspection.GeneratedCSharpCode);
-        Assert.Contains("[0]", inspection.GeneratedCSharpCode);
-        Assert.Contains("[3]", inspection.GeneratedCSharpCode);
-        Assert.Contains("position 0", inspection.ExecutionPlanText);
-        Assert.Contains("position 2", inspection.ExecutionPlanText);
-        Assert.Contains("position 3", inspection.ExecutionPlanText);
+        Assert.Contains("Read<string>(1)", inspection.GeneratedCSharpCode);
+        Assert.Contains("Read<int>(0)", inspection.GeneratedCSharpCode);
+        Assert.Contains("Read<string>(2)", inspection.GeneratedCSharpCode);
+        Assert.Contains("QuerySourceInvocation<", inspection.GeneratedCSharpCode);
+    }
+
+    [TestMethod]
+    public void CompileForExecution_WhenSourceRequiresErasedRows_ShouldReportNativeTransferDiagnostic()
+    {
+        const string query = "select a.Name from #unsafe.all() a";
+        var exception = Assert.Throws<MusoqQueryException>(() => InstanceCreator.CompileForExecution(
+            query, Guid.NewGuid().ToString(), new UnsafeSchemaProvider(typeof(object[])), _loggerResolver));
+        Assert.AreEqual(DiagnosticCode.MQ3071_SourceContractError, exception.PrimaryEnvelope.Code);
+        Assert.Contains("native query-scoped transfer", exception.Message);
+        Assert.Contains("System.Object[]", exception.Message);
+    }
+
+    [TestMethod]
+    public void CompileForInspection_WhenSourceRequiresErasedRows_ShouldPreserveTheContractDiagnostic()
+    {
+        const string query = "select a.Name from #unsafe.all() a";
+        var exception = Assert.Throws<MusoqQueryException>(() => InstanceCreator.CompileForInspection(
+            query, Guid.NewGuid().ToString(), new UnsafeSchemaProvider(typeof(object[])), _loggerResolver));
+        Assert.AreEqual(DiagnosticCode.MQ3071_SourceContractError, exception.PrimaryEnvelope.Code);
+        Assert.Contains("native query-scoped transfer", exception.Message);
+    }
+
+    [TestMethod]
+    public void CoupledPositionalSource_WithoutNativeAccessor_ShouldFailBeforeExecution()
+    {
+        const string sql = "table Contract { Name: string }; " +
+            "couple #unsafe.all with table Contract as Rows; select a.Name from Rows() a";
+        var exception = CompileExpectedFailure(new UnsafeSchemaProvider(typeof(PublicIndexedRow)), sql);
+        AssertErrorEnvelope(exception, DiagnosticCode.MQ3071_SourceContractError,
+            DiagnosticPhase.Bind, "native typed positional accessor");
     }
 
     private MusoqQueryException CompileExpectedFailure(Type entityType)
@@ -272,6 +301,16 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
             Columns.Where(column => column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase)).ToArray();
 
         public SchemaTableMetadata Metadata { get; } = new(entityType);
+    }
+
+    public sealed class PublicIndexedRow
+    {
+        public object this[int columnNumber] => "Ada";
+    }
+
+    public sealed class PublicNamedRow
+    {
+        public string Name { get; init; } = string.Empty;
     }
 
     private sealed class PrivateEntity

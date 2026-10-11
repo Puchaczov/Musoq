@@ -61,8 +61,8 @@ public class AliasTests : MultiSchemaTestBase
 
         Assert.AreEqual(2, table.Columns.Count());
 
-        Assert.AreEqual("first.FirstItem", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual("second.FirstItem", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual("FirstItem", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("FirstItem", table.Columns.ElementAt(1).ColumnName);
     }
 
     [TestMethod]
@@ -116,8 +116,8 @@ select p.[first.FirstItem], p.[second.FirstItem] from p";
 
         Assert.AreEqual(2, table.Columns.Count());
 
-        Assert.AreEqual("p.first.FirstItem", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual("p.second.FirstItem", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual("first.FirstItem", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("second.FirstItem", table.Columns.ElementAt(1).ColumnName);
     }
 
     [TestMethod]
@@ -145,8 +145,8 @@ select q.FirstItem, q.SecondItem from q";
 
         Assert.AreEqual(2, table.Columns.Count());
 
-        Assert.AreEqual("q.FirstItem", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual("q.SecondItem", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual("FirstItem", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("SecondItem", table.Columns.ElementAt(1).ColumnName);
     }
 
     [TestMethod]
@@ -175,8 +175,8 @@ select q.[p.first.FirstItem], q.[p.second.FirstItem] from q";
 
         Assert.AreEqual(2, table.Columns.Count());
 
-        Assert.AreEqual("q.p.first.FirstItem", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual("q.p.second.FirstItem", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual("p.first.FirstItem", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("p.second.FirstItem", table.Columns.ElementAt(1).ColumnName);
     }
 
     [TestMethod]

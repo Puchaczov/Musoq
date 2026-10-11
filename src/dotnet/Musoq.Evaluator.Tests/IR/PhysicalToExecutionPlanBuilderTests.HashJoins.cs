@@ -50,15 +50,15 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "  Body",
             "    SourceScan [p: Person] -> pRows",
             "    SourceScan [o: Order] -> oRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    CreateHash [oHash: int -> Order]",
             "    ChunkedForEach [o in oRows]",
             "      HashAdd [oHash[o.PersonAge] += o]",
             "    ChunkedForEach [p in pRows]",
             "      HashProbe [oHash[p.Age] -> oHashMatches]",
             "        ForEach [o in oHashMatches]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: o.Description)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }

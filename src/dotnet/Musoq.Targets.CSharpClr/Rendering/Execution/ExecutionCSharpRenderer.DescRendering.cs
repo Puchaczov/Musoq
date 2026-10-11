@@ -188,6 +188,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionReturnDesc desc,
         ExecutionRenderContext context)
     {
+        if (desc.QueryDescriptions is { } descriptions)
+            return CreateQueryDescriptionArray(descriptions);
         if (desc.QueryColumnMetadata == null)
             throw new ArgumentException("DESC QUERY execution rendering requires query column metadata.", nameof(desc));
 
@@ -195,6 +197,21 @@ public sealed partial class ExecutionCSharpRenderer
             throw new InvalidOperationException("DESC QUERY static column metadata was not registered.");
 
         return SyntaxFactory.IdentifierName(fieldName);
+    }
+
+    private static ExpressionSyntax CreateQueryDescriptionArray(IReadOnlyList<Musoq.Schema.QueryColumnDescription> columns)
+    {
+        var elements = columns.Select(column => (ExpressionSyntax)SyntaxFactory.ObjectCreationExpression(
+                SyntaxFactory.ParseTypeName("global::Musoq.Schema.QueryColumnDescription"))
+            .WithArgumentList(CreateArgumentList(CreateStringLiteral(column.Name),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(column.Index)),
+                CreateStringLiteral(column.TypeName))));
+        return SyntaxFactory.ArrayCreationExpression(SyntaxFactory.ArrayType(
+                SyntaxFactory.ParseTypeName("global::Musoq.Schema.QueryColumnDescription"))
+            .WithRankSpecifiers(SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(
+                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression())))))
+            .WithInitializer(SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression,
+                SyntaxFactory.SeparatedList(elements)));
     }
 
     private static InvocationExpressionSyntax CreateEvaluationHelperInvocation(
@@ -260,7 +277,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         if (desc.Type == DescType.Query)
         {
-            if (desc.QueryColumnMetadata == null)
+            if (desc.QueryColumnMetadata == null && desc.QueryDescriptions == null)
                 throw new ArgumentException("DESC QUERY execution rendering requires query column metadata.", nameof(desc));
 
             return;

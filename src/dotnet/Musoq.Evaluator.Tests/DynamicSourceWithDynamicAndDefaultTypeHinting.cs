@@ -34,8 +34,8 @@ public class DynamicSourceWithDynamicAndDefaultTypeHinting : DynamicQueryTestsBa
         Assert.AreEqual(typeof(double), table.Columns.ElementAt(1).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, table[0].Values[0]);
-        Assert.AreEqual(2.99d, table[0].Values[1]);
+        Assert.AreEqual(2, table[0].ReadValues()[0]);
+        Assert.AreEqual(2.99d, table[0].ReadValues()[1]);
     }
 
     private static ExpandoObject CreateExpandoObject(MultiformType multiform)
@@ -47,24 +47,9 @@ public class DynamicSourceWithDynamicAndDefaultTypeHinting : DynamicQueryTestsBa
 
     [DynamicObjectPropertyTypeHint("AsInt", typeof(int))]
     [DynamicObjectPropertyDefaultTypeHint(typeof(double))]
-    public class MultiformType(double value) : DynamicObject
+    public sealed class MultiformType(double value)
     {
-        public override bool TryGetMember(GetMemberBinder binder, out object? result)
-        {
-            if (binder.Name == "AsInt")
-            {
-                result = (int)value;
-                return true;
-            }
-
-            if (binder.Name == "AsDouble")
-            {
-                result = value;
-                return true;
-            }
-
-            result = null;
-            return false;
-        }
+        public int AsInt { get; } = (int)value;
+        public double AsDouble { get; } = value;
     }
 }

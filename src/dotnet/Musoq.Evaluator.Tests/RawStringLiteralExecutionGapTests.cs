@@ -21,9 +21,9 @@ select paths.Path, paths.Empty, paths.Quoted";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.AreEqual(@"C:\new\test", table[0][0]);
-        Assert.AreEqual(string.Empty, table[0][1]);
-        Assert.AreEqual("a'b", table[0][2]);
+        Assert.AreEqual(@"C:\new\test", table[0].ReadValue(0));
+        Assert.AreEqual(string.Empty, table[0].ReadValue(1));
+        Assert.AreEqual("a'b", table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -39,8 +39,8 @@ select
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.AreEqual(true, table[0][0]);
-        Assert.AreEqual(true, table[0][1]);
+        Assert.AreEqual(true, table[0].ReadValue(0));
+        Assert.AreEqual(true, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -55,6 +55,6 @@ select paths.Path";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.AreEqual(@"C:\A", table[0][0]);
+        Assert.AreEqual(@"C:\A", table[0].ReadValue(0));
     }
 }

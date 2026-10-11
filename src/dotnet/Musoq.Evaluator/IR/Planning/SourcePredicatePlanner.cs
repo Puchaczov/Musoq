@@ -16,7 +16,9 @@ internal static partial class SourcePredicatePlanner
 
     public static SourcePredicatePlanningResult Plan(
         IReadOnlyDictionary<SchemaFromNode, WhereNode> rawWhereNodes,
-        IReadOnlyDictionary<string, ISchemaColumn[]> inferredColumns)
+        IReadOnlyDictionary<string, ISchemaColumn[]> inferredColumns,
+        Musoq.Evaluator.IR.Logical.LogicalNode? logicalPlan = null,
+        IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>? sourceColumns = null)
     {
         ArgumentNullException.ThrowIfNull(rawWhereNodes);
         ArgumentNullException.ThrowIfNull(inferredColumns);
@@ -28,7 +30,7 @@ internal static partial class SourcePredicatePlanner
                 []);
         }
 
-        var converter = CreateExpressionConverter(inferredColumns);
+        var boundaries = SourcePredicateTransferBoundaryPlanner.Plan(logicalPlan);
         var plans = new Dictionary<string, SourcePredicatePlan>(StringComparer.Ordinal);
         var pushedPredicates = new Dictionary<string, IrExpression[]>(StringComparer.Ordinal);
         var decisions = new List<PlanningDecision>();
@@ -38,10 +40,15 @@ internal static partial class SourcePredicatePlanner
             if (string.IsNullOrWhiteSpace(sourceNode.Id))
                 continue;
 
+            var scopedColumns = ResolveScopedColumns(sourceNode, inferredColumns, sourceColumns);
+            var converter = CreateExpressionConverter(scopedColumns);
             var pushedWhereNode = CreatePushedWhereNode(sourceNode, rawWhereNode);
-            var conversionResult = CreatePushedPredicates(
-                converter,
-                pushedWhereNode.Expression);
+            PredicateConversionResult conversionResult;
+            if (boundaries.TryGetValue(sourceNode.Id, out var boundary))
+                conversionResult = new PredicateConversionResult([], $"{boundary.Origin} predicate remains after null extension on {boundary.JoinKind} {boundary.Side} input.");
+            else
+                conversionResult = CreatePushedPredicates(converter, pushedWhereNode.Expression,
+                    rawWhereNode.Expression, sourceNode.Alias, scopedColumns);
             var reason = CreatePredicateReason(
                 rawWhereNode,
                 pushedWhereNode,
@@ -82,12 +89,22 @@ internal static partial class SourcePredicatePlanner
 
     private static PredicateConversionResult CreatePushedPredicates(
         ExpressionConverter converter,
-        Node expression)
+        Node expression,
+        Node originalExpression,
+        string alias,
+        IReadOnlyDictionary<string, ISchemaColumn[]> inferredColumns)
     {
         try
         {
+            if (!PredicateMovementPlanner.IsTransferSafe(converter.Convert(originalExpression)))
+                return new PredicateConversionResult([], "The complete WHERE predicate is unstable or potentially throwing; its evaluation boundary is retained.");
             var predicate = converter.Convert(expression);
-            return new PredicateConversionResult(ExtractNonNeutralPredicates(predicate).ToArray(), null);
+            return new PredicateConversionResult(ExtractNonNeutralPredicates(predicate).Where(candidate =>
+                PredicateMovementPlanner.IsTransferSafe(candidate) &&
+                ColumnRefExtractor.Extract(candidate).All(column =>
+                    string.Equals(column.Alias, alias, StringComparison.OrdinalIgnoreCase) &&
+                    inferredColumns.TryGetValue(alias, out var columns) && columns.Any(binding =>
+                        string.Equals(binding.ColumnName, column.ColumnName, StringComparison.OrdinalIgnoreCase)))).ToArray(), null);
         }
         catch (NotSupportedException ex)
         {

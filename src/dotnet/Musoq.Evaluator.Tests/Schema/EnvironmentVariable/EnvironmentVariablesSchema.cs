@@ -17,7 +17,7 @@ public class EnvironmentVariablesSchema : SchemaBase
         AddSource<EnvironmentVariablesSource>("all");
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
     {
         return EnsureSourceType<T, EnvironmentVariableEntity>(name, new EnvironmentVariablesSource(executionContext));
     }

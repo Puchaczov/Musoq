@@ -94,7 +94,7 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
                 "base schema");
         }
 
-        foreach (var field in node.Fields)
+        foreach (var field in InterpretationTextFieldTypeResolver.EnumerateDefinitions(node.Fields))
         {
             if (field.FieldType == TextFieldType.SchemaReference)
             {
@@ -113,6 +113,9 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
 
             if (field.FieldType == TextFieldType.Repeat)
             {
+                if (field.RepeatElement != null)
+                    continue;
+
                 if (string.IsNullOrWhiteSpace(field.PrimaryValue))
                     throw InvalidTextSchema(
                         $"Text repeat field '{field.Name}' must specify a referenced text schema.",

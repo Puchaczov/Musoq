@@ -19,6 +19,7 @@ public sealed record ExecutionCreateAsOfIndex : ExecutionNode
         this.Candidate = Candidate;
         this.Candidates = Candidates;
         this.EqualityKeys = ExecutionIrCollections.Freeze(EqualityKeys);
+        EqualityShape = AsOfEqualityKeyShape.Select(this.EqualityKeys);
         this.CandidateKey = CandidateKey;
         this.ComparisonKind = ComparisonKind;
         this.ComparisonKeyType = ComparisonKeyType;
@@ -29,6 +30,7 @@ public sealed record ExecutionCreateAsOfIndex : ExecutionNode
     public ExecutionVariable Candidate { get; init; }
     public ExecutionExpression Candidates { get; init; }
     public IReadOnlyList<ExecutionAsOfEqualityKey> EqualityKeys { get; init; }
+    public AsOfEqualityKeyShape EqualityShape { get; init; }
     public ExecutionExpression CandidateKey { get; init; }
     public BinaryOpKind ComparisonKind { get; init; }
     public ExecutionTypeRef ComparisonKeyType { get; init; }

@@ -42,6 +42,22 @@ public partial class LogicalPlanBuilderTests
         Assert.AreEqual("Name", colRef.ColumnName);
     }
 
+    [TestMethod]
+    public void WhenExplicitAliasesAreDuplicated_ShouldPreserveNamesAndColumnBindings()
+    {
+        var select = CreateSelect(
+            Field(Column("Left"), 0, "Same"),
+            Field(Column("Right"), 1, "Same"));
+        var root = new RootNode(new SingleSetNode(CreateQuery(select, CreateSchemaFrom())));
+
+        var project = (ProjectNode)Build(root);
+
+        Assert.AreEqual("Same", project.OutputSchema.Columns[0].Name);
+        Assert.AreEqual("Same", project.OutputSchema.Columns[1].Name);
+        Assert.AreEqual("Left", ((ColumnRef)project.Fields[0].Expression).ColumnName);
+        Assert.AreEqual("Right", ((ColumnRef)project.Fields[1].Expression).ColumnName);
+    }
+
     #endregion
 
     #region Traverse visitor Result property

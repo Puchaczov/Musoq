@@ -33,7 +33,7 @@ public class BinaryOrTextualSwitchTests : BinaryOrTextualEvaluatorTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Type", typeof(byte)),
+            ("Type", typeof(byte)),
             ("p.Payload.Case", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)0x01, "Login"]);
     }
@@ -110,7 +110,7 @@ public class BinaryOrTextualSwitchTests : BinaryOrTextualEvaluatorTestBase
         var loginData = new byte[] { 0x01, 0x04, 0x2A, 0x00, 0x00, 0x00 };
         var table = RunQuery(query, loginData);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Type", typeof(byte)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Type", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)0x01]);
     }
 
@@ -217,7 +217,7 @@ public class BinaryOrTextualSwitchTests : BinaryOrTextualEvaluatorTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("p.Payload.Code", typeof(byte?)),
-            ("p.Tail", typeof(byte)));
+            ("Tail", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)0x07, (byte)0x09]);
     }
 

@@ -38,8 +38,8 @@ public sealed class SourceRuntimeSettingsLifecycleTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("left-token", table[0][0]);
-        Assert.AreEqual("right-token", table[0][1]);
+        Assert.AreEqual("left-token", table[0].ReadValue(0));
+        Assert.AreEqual("right-token", table[0].ReadValue(1));
         Assert.IsTrue(provider.Schema.MetadataSettings.Any(settings => settings["TOKEN"] == "left-token"));
         Assert.IsTrue(provider.Schema.MetadataSettings.Any(settings => settings["TOKEN"] == "right-token"));
         Assert.IsTrue(provider.Schema.PlanSettings.Any(settings => settings["TOKEN"] == "left-token"));
@@ -89,8 +89,8 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             new TestsLoggerResolver(),
             options);
 
-        Assert.AreEqual("first-token", first.Run()[0][0]);
-        Assert.AreEqual("second-token", second.Run()[0][0]);
+        Assert.AreEqual("first-token", first.Run()[0].ReadValue(0));
+        Assert.AreEqual("second-token", second.Run()[0].ReadValue(0));
         Assert.IsGreaterThanOrEqualTo(2, resolver.ResolveCount);
     }
 
@@ -166,8 +166,8 @@ public sealed class SourceRuntimeSettingsLifecycleTests
         initialSettings["TOKEN"] = "second-token";
         var second = CompileWithInitialSettings(query, provider, initialSettings);
 
-        Assert.AreEqual("first-token", first.Run()[0][0]);
-        Assert.AreEqual("second-token", second.Run()[0][0]);
+        Assert.AreEqual("first-token", first.Run()[0].ReadValue(0));
+        Assert.AreEqual("second-token", second.Run()[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -227,7 +227,7 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             table,
             ["OPTIONAL_TOKEN", false, false, "All", "Default", "Optional token override."],
             ["TOKEN", true, true, "All", "Missing", "Token used by the settings source."]);
-        Assert.IsFalse(table.Rows.SelectMany(row => row.Values).Any(value => Equals(value, "blue-token")));
+        Assert.IsFalse(table.Rows.SelectMany(row => row.ReadValues()).Any(value => Equals(value, "blue-token")));
     }
 
     [TestMethod]
@@ -251,8 +251,8 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             table,
             ["OPTIONAL_TOKEN", false, false, "All", "Provided", "Optional token override."],
             ["TOKEN", true, true, "All", "Provided", "Token used by the settings source."]);
-        Assert.IsFalse(table.Rows.SelectMany(row => row.Values).Any(value => Equals(value, "optional-value")));
-        Assert.IsFalse(table.Rows.SelectMany(row => row.Values).Any(value => Equals(value, "token-value")));
+        Assert.IsFalse(table.Rows.SelectMany(row => row.ReadValues()).Any(value => Equals(value, "optional-value")));
+        Assert.IsFalse(table.Rows.SelectMany(row => row.ReadValues()).Any(value => Equals(value, "token-value")));
     }
 
     [TestMethod]
@@ -279,11 +279,11 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             new TestsLoggerResolver(),
             options);
 
-        Assert.AreEqual("token-value", compiled.Run()[0][0]);
+        Assert.AreEqual("token-value", compiled.Run()[0].ReadValue(0));
         Assert.IsTrue(provider.Schema.MetadataSettings.Any(settings => settings.ContainsKey("EXTRA_TOKEN")));
         Assert.IsTrue(provider.Schema.PlanSettings.Any(settings => settings.ContainsKey("EXTRA_TOKEN")));
         Assert.IsTrue(provider.Schema.ExecutionSettings.Any(settings => settings.ContainsKey("EXTRA_TOKEN")));
-        Assert.IsFalse(desc.Run().Rows.Any(row => Equals(row["Name"], "EXTRA_TOKEN")));
+        Assert.IsFalse(desc.Run().Rows.Any(row => Equals(row.GetValue<string>(0), "EXTRA_TOKEN")));
     }
 
     [TestMethod]
@@ -301,7 +301,7 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             new TestsLoggerResolver(),
             new CompilationOptions(sourceRuntimeSettingsResolver: resolver));
 
-        Assert.AreEqual(string.Empty, compiled.Run()[0][0]);
+        Assert.AreEqual(string.Empty, compiled.Run()[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -324,7 +324,7 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             table,
             ["OPTIONAL_TOKEN", false, false, "All", "Default", "Optional token override."],
             ["TOKEN", true, true, "All", "Provided", "Token used by the settings source."]);
-        Assert.IsFalse(table.Rows.SelectMany(row => row.Values).Any(value => Equals(value, "super-secret-token")));
+        Assert.IsFalse(table.Rows.SelectMany(row => row.ReadValues()).Any(value => Equals(value, "super-secret-token")));
     }
 
     [TestMethod]
@@ -345,7 +345,7 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             ["OPTIONAL_TOKEN", false, false, "All", "Default", "Optional token override."],
             ["TOKEN", true, true, "All", "Provided", "Token used by the settings source."]);
         Assert.AreEqual("blue", resolver.ProfileNames.Single());
-        Assert.IsFalse(table.Rows.SelectMany(row => row.Values).Any(value => Equals(value, "blue-token")));
+        Assert.IsFalse(table.Rows.SelectMany(row => row.ReadValues()).Any(value => Equals(value, "blue-token")));
     }
 
     private static void AssertDescSettingsRows(Table table, params object?[][] rows)
@@ -486,10 +486,10 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             return SourcePlanResult.RejectAll(request);
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             ExecutionSettings.Add(executionContext.SourceRuntimeSettings);
             return EnsureSourceType<T, SettingsEntity>(

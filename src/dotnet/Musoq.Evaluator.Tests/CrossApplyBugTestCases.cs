@@ -86,7 +86,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
 
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Valid", table[0].Values[0]);
+        Assert.AreEqual("Valid", table[0].ReadValues()[0]);
     }
 
     [TestMethod]

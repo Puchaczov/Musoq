@@ -4,7 +4,6 @@ internal static class RuntimeCacheOptions
 {
     public const int PatternCacheSize = 512;
 
-    public const int DynamicAccessorCacheSize = 512;
 
     public const int XmlDocumentationCacheSize = 128;
 
@@ -22,5 +21,5 @@ internal static class RuntimeCacheOptions
 
     public const int IsIndexableCacheSize = 512;
 
-    public static readonly TimeSpan DefaultRegexTimeout = TimeSpan.FromMilliseconds(250);
+    public static readonly TimeSpan DefaultRegexTimeout = TimeSpan.FromSeconds(2);
 }

@@ -41,12 +41,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var sample = samples[WindowRunningProductFramedPluginSampleFileName];
 
         Assert.Contains(
-            "new Musoq.Evaluator.Tests.Schema.Basic.Library().WindowRunningProduct()",
+            "Musoq.Evaluator.Tests.Schema.Basic.Library.RunningProductKernel.Reset(ref resultRunningProductsState);",
             sample);
         Assert.Contains(
-            "resultRunningProductsFunction.Accumulate((decimal?)ko3iko.Population);",
+            "Musoq.Evaluator.Tests.Schema.Basic.Library.RunningProductKernel.Set(ref resultRunningProductsState, (decimal?)((decimal?)ko3iko.Population));",
             sample);
-        Assert.Contains("resultRunningProductsFunction.GetValue();", sample);
+        Assert.Contains("Musoq.Evaluator.Tests.Schema.Basic.Library.RunningProductKernel.Get(in resultRunningProductsState);", sample);
         Assert.Contains("var resultRunningProducts = new decimal[resultWindowRows.Count];", sample);
         Assert.IsFalse(sample.Contains("resultRunningProductsFunction.SetArguments(Array.Empty<object?>());", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("resultRunningProductsFunction.AccumulateValue", StringComparison.Ordinal));
@@ -59,19 +59,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     }
 
     [TestMethod]
-    public void NonDeterministicPluginWindowValue_WhenCompiledForInspection_ShouldNotReuseLibraryTarget()
+    public void NonDeterministicPluginWindowValue_WhenCompiledForInspection_ShouldReuseOnlyTheLibraryReceiver()
     {
         var result = CompileBasicQueryForInspection(
             "select Sum(Rand()) over () as total from #A.entities()");
 
-        Assert.Contains(
-            "new Musoq.Plugins.LibraryBase().Rand()",
-            result.GeneratedCSharpCode);
-        Assert.IsFalse(
-            result.GeneratedCSharpCode.Contains(
-                "var resultSumsLibraryBase0 = new Musoq.Plugins.LibraryBase();",
-                StringComparison.Ordinal),
-            "Non-deterministic LibraryBase methods should keep their existing per-invocation target shape.");
+        Assert.Contains("var __compiled1LibraryBase0 = new Musoq.Plugins.LibraryBase();", result.GeneratedCSharpCode);
+        Assert.Contains("__compiled1LibraryBase0.Rand()", result.GeneratedCSharpCode);
+        Assert.DoesNotContain("new Musoq.Plugins.LibraryBase().Rand()", result.GeneratedCSharpCode);
     }
 
     [TestMethod]
@@ -97,7 +92,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     public void ParallelSingleKeyAggregateHelper_WhenAggregateInputUsesLibraryTarget_ShouldReceiveTargetParameter()
     {
         var result = CompileBasicQueryForInspection(
-            "select a.Country, AggregateValues(GetElementAt(a.Country, 0)) from #A.entities() a group by a.Country");
+            "select a.Country, Count(ToUpper(a.Country)) from #A.entities() a group by a.Country");
 
         Assert.Contains(
             "var libraryBase0 = new Musoq.Plugins.LibraryBase();",
@@ -266,8 +261,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("ForEach [ko3iko in ko3ikoRows]", simple);
         Assert.Contains("Let [population: decimal = ko3iko.Population]", simple);
         Assert.Contains("If [(population > 500000)]", simple);
-        Assert.Contains("yield return new ResultShape0(ko3iko.City, ko3iko.Country, population);", simple);
-        Assert.Contains("yield return new ResultRow0(__musoqShapeRow.City, __musoqShapeRow.Country, __musoqShapeRow.Population);", simple);
+        Assert.Contains("yield return new ResultRow0(ko3iko.City, ko3iko.Country, population);", simple);
+        Assert.Contains("yield return __musoqShapeRow;", simple);
         Assert.DoesNotContain("private Table ComputeTable_compiled_0(", simple);
         Assert.IsFalse(simple.Contains(ParallelFilterProjectLoopPattern, StringComparison.Ordinal));
         Assert.IsFalse(simple.Contains(ParallelProjectionRowsPattern, StringComparison.Ordinal));

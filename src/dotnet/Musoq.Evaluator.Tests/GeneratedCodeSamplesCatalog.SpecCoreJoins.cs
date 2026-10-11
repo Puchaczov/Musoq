@@ -37,6 +37,11 @@ internal static partial class GeneratedCodeSamplesCatalog
                 "Join",
                 "select a.Name, b.Name from #A.entities() a full outer join #B.entities() b on a.Id < b.Id"),
             Basic(
+                "Q376_FullOuterJoinVolatilePredicate",
+                "Join",
+                "select a.Id, b.Id from #A.entities() a full outer join #B.entities() b " +
+                "on a.Id < b.Id and a.NextValue() = 1"),
+            Basic(
                 "Q285_SpecCoreAsOfLeftJoinRowPresence",
                 "Join",
                 "select a.Name, b.Name from #A.entities() a asof left join #B.entities() b " +

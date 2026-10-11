@@ -66,13 +66,13 @@ internal static class GeneratedRowNamingPolicy
     {
         var names = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal)
         {
-            nameof(Row.Contexts),
-            nameof(Row.Values),
+            "Item",
             nameof(Row.Count),
             nameof(Row.HasColumn),
             nameof(Row.AssignValue),
-            nameof(Row.FitsTheIndex),
-            nameof(Row.CheckWithKey),
+            nameof(Row.GetValue),
+            nameof(Row.VisitColumn),
+            nameof(Row.VisitColumns),
             nameof(Row.Equals),
             nameof(Row.GetHashCode)
         };

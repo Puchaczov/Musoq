@@ -103,22 +103,23 @@ public static class SourcePlanningRowExecution
     {
         return predicate == null
             ? sourceRows
-            : sourceRows.Where(row => EvaluatePredicate(predicate, row, createKeySelector));
+            : sourceRows.Where(row => EvaluatePredicate(predicate, row, createKeySelector) == true);
     }
 
-    private static bool EvaluatePredicate<T>(
+    private static bool? EvaluatePredicate<T>(
         SourcePredicateExpression predicate,
         T row,
         Func<string, Func<T, object?>> createKeySelector)
     {
         return predicate switch
         {
+            SourcePredicateLiteral { Value: bool value } => value,
             SourcePredicateComparison comparison => EvaluateComparison(comparison, row, createKeySelector),
             SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.And } logical =>
-                EvaluatePredicate(logical.Left, row, createKeySelector) &&
+                EvaluatePredicate(logical.Left, row, createKeySelector) &
                 EvaluatePredicate(logical.Right, row, createKeySelector),
             SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.Or } logical =>
-                EvaluatePredicate(logical.Left, row, createKeySelector) ||
+                EvaluatePredicate(logical.Left, row, createKeySelector) |
                 EvaluatePredicate(logical.Right, row, createKeySelector),
             SourcePredicateIn inPredicate => EvaluateIn(inPredicate, row, createKeySelector),
             SourcePredicateStringMatch stringMatch => EvaluateStringMatch(stringMatch, row, createKeySelector),
@@ -128,19 +129,24 @@ public static class SourcePlanningRowExecution
         };
     }
 
-    private static bool EvaluateComparison<T>(
+    private static bool? EvaluateComparison<T>(
         SourcePredicateComparison comparison,
         T row,
         Func<string, Func<T, object?>> createKeySelector)
     {
         var left = EvaluateValue(comparison.Left, row, createKeySelector);
         var right = EvaluateValue(comparison.Right, row, createKeySelector);
-        var valueComparison = CompareValues(left, right);
+        if (left == null || right == null)
+            return null;
+
+        var valueComparison = ComparePredicateValues(left, right);
+        if (left is double.NaN or float.NaN || right is double.NaN or float.NaN)
+            return comparison.Operator == SourcePredicateComparisonOperator.NotEqual;
 
         return comparison.Operator switch
         {
-            SourcePredicateComparisonOperator.Equal => Equals(left, right),
-            SourcePredicateComparisonOperator.NotEqual => !Equals(left, right),
+            SourcePredicateComparisonOperator.Equal => valueComparison == 0,
+            SourcePredicateComparisonOperator.NotEqual => valueComparison != 0,
             SourcePredicateComparisonOperator.GreaterThan => valueComparison > 0,
             SourcePredicateComparisonOperator.GreaterOrEqual => valueComparison >= 0,
             SourcePredicateComparisonOperator.LessThan => valueComparison < 0,
@@ -149,13 +155,27 @@ public static class SourcePlanningRowExecution
         };
     }
 
-    private static bool EvaluateIn<T>(
+    private static bool? EvaluateIn<T>(
         SourcePredicateIn inPredicate,
         T row,
         Func<string, Func<T, object?>> createKeySelector)
     {
         var value = EvaluateValue(inPredicate.Expression, row, createKeySelector);
-        var contains = inPredicate.Values.Any(item => Equals(EvaluateValue(item, row, createKeySelector), value));
+        bool? contains = false;
+        foreach (var item in inPredicate.Values)
+        {
+            var candidate = EvaluateValue(item, row, createKeySelector);
+            if (value == null || candidate == null)
+            {
+                contains = null;
+                continue;
+            }
+            if (value is double.NaN or float.NaN || candidate is double.NaN or float.NaN ||
+                ComparePredicateValues(value, candidate) != 0)
+                continue;
+            contains = true;
+            break;
+        }
         return inPredicate.IsNegated ? !contains : contains;
     }
 
@@ -261,6 +281,7 @@ public static class SourcePlanningRowExecution
         {
             SourcePredicateColumn column => createKeySelector(column.Column.Name)(row),
             SourcePredicateLiteral literal => literal.Value,
+            _ when CanEvaluatePredicate(expression) => EvaluatePredicate(expression, row, createKeySelector),
             _ => throw new InvalidOperationException($"Unsupported source-planning value expression '{expression.GetType().Name}'.")
         };
     }
@@ -336,6 +357,45 @@ public static class SourcePlanningRowExecution
             ? strategy
             : SourcePlanningExecutionStrategy.NaiveSort;
     }
+
+    /// <summary>Whether this fixture can faithfully execute the complete predicate.</summary>
+    public static bool CanEvaluatePredicate(SourcePredicateExpression? predicate)
+    {
+        return predicate switch
+        {
+            null => true,
+            SourcePredicateLiteral { Value: bool } => true,
+            SourcePredicateComparison comparison => Enum.IsDefined(comparison.Operator) && CanEvaluateValue(comparison.Left) && CanEvaluateValue(comparison.Right),
+            SourcePredicateLogical logical => Enum.IsDefined(logical.Operator) && CanEvaluatePredicate(logical.Left) && CanEvaluatePredicate(logical.Right),
+            SourcePredicateIn membership => CanEvaluateValue(membership.Expression) && membership.Values.All(CanEvaluateValue),
+            SourcePredicateNullCheck check => CanEvaluateValue(check.Expression),
+            SourcePredicateStringMatch { Comparison: SourceStringComparison.LikeIgnoreCase } => true,
+            _ => false
+        };
+    }
+
+    private static bool CanEvaluateValue(SourcePredicateExpression expression) =>
+        expression is SourcePredicateColumn or SourcePredicateLiteral || CanEvaluatePredicate(expression);
+
+    // Predicate comparison deliberately does not use the ordering comparer: null sorting
+    // and SQL UNKNOWN admission are different contracts.
+    private static int ComparePredicateValues(object left, object right)
+    {
+        if (IsNumeric(left) && IsNumeric(right))
+        {
+            if (left is double || right is double)
+                return Convert.ToDouble(left, CultureInfo.InvariantCulture).CompareTo(Convert.ToDouble(right, CultureInfo.InvariantCulture));
+            if (left is float || right is float)
+                return Convert.ToSingle(left, CultureInfo.InvariantCulture).CompareTo(Convert.ToSingle(right, CultureInfo.InvariantCulture));
+            return Convert.ToDecimal(left, CultureInfo.InvariantCulture).CompareTo(Convert.ToDecimal(right, CultureInfo.InvariantCulture));
+        }
+        if (left is string leftString && right is string rightString)
+            return string.Compare(leftString, rightString, StringComparison.Ordinal);
+        return Comparer<object>.Default.Compare(left, right);
+    }
+
+    private static bool IsNumeric(object value) =>
+        value is byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal;
 
     private static int CompareValues(object? x, object? y)
     {

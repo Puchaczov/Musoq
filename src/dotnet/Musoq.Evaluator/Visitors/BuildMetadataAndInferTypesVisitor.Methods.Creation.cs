@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Linq;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Parser;
@@ -17,6 +18,9 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         var isAggregateMethod = method.GetCustomAttribute<AggregateFunctionAttribute>() != null;
 
+        if (isAggregateMethod && method.IsGenericMethodDefinition)
+            return AggregateDeclarationSpecialization.Bind(method, args.Args.Select(static argument => argument.ReturnType).ToArray());
+
         if (!isAggregateMethod && method.IsGenericMethod && TryReduceDimensions(method, args, out var reducedMethod))
             method = reducedMethod;
 
@@ -25,6 +29,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             TryConstructGenericMethod(method, args, entityType, out var constructedMethod))
             method = constructedMethod;
 
+        if (method.ContainsGenericParameters)
+            throw new CannotResolveMethodException($"Method '{method.Name}' has generic type parameters that cannot be inferred from its SQL arguments.", args.SpanOrEmpty());
         return method;
     }
 
@@ -139,6 +145,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         accessMethod.FilterExpressionText = node.FilterExpressionText;
         accessMethod.IsPivotGenerated = node.IsPivotGenerated;
         accessMethod.IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper;
+        accessMethod.IsCompilerGenerated = node.IsCompilerGenerated;
         var identifier = CreateAggregateIdentifier(accessMethod, node.IsDistinct);
         var displayName = CreateAggregateDisplayName(accessMethod, node.IsDistinct);
         var refreshArgs = new List<Node> { new AggregateIdentifierNode(identifier, displayName) };
@@ -156,6 +163,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         refreshMethodNode.FilterExpressionText = node.FilterExpressionText;
         refreshMethodNode.IsPivotGenerated = node.IsPivotGenerated;
         refreshMethodNode.IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper;
+        refreshMethodNode.IsCompilerGenerated = true;
 
         _methodResolution.RefreshMethods.Add(refreshMethodNode);
         var result = func(

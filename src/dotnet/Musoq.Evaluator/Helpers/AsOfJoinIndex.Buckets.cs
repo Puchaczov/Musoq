@@ -3,8 +3,9 @@ using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Evaluator.Helpers;
 
-public sealed partial class AsOfJoinIndex<T, TKey>
+public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
     where T : class
+    where TEquality : notnull
 {
     private interface IAsOfJoinBucket
     {

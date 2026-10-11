@@ -25,7 +25,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count);
-        var values = new HashSet<string> { (string)table[0][0], (string)table[1][0] };
+        var values = new HashSet<string> { (string)table[0].ReadValue(0), (string)table[1].ReadValue(0) };
         Assert.Contains("Test1", values, "Expected Test1 to be in results");
         Assert.Contains("Test2", values, "Expected Test2 to be in results");
     }
@@ -43,7 +43,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test1", table[0][0]);
+        Assert.AreEqual("Test1", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -59,7 +59,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(7, Convert.ToInt32(table[0][0]));
+        Assert.AreEqual(7, Convert.ToInt32(table[0].ReadValue(0)));
     }
 
     [TestMethod]
@@ -75,9 +75,9 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("C", table[0][0]);
-        Assert.AreEqual("B", table[1][0]);
-        Assert.AreEqual("A", table[2][0]);
+        Assert.AreEqual("C", table[0].ReadValue(0));
+        Assert.AreEqual("B", table[1].ReadValue(0));
+        Assert.AreEqual("A", table[2].ReadValue(0));
     }
 
     [TestMethod]
@@ -129,7 +129,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test1", table[0][0]);
+        Assert.AreEqual("Test1", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -152,8 +152,8 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("B", table[0][0]);
-        Assert.AreEqual("C", table[1][0]);
+        Assert.AreEqual("B", table[0].ReadValue(0));
+        Assert.AreEqual("C", table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -170,7 +170,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Common", table[0][0]);
+        Assert.AreEqual("Common", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -187,7 +187,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Common", table[0][0]);
+        Assert.AreEqual("Common", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -255,6 +255,6 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test", table[0][0]);
+        Assert.AreEqual("Test", table[0].ReadValue(0));
     }
 }

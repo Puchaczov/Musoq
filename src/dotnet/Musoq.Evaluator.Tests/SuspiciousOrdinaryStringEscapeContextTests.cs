@@ -173,10 +173,10 @@ public sealed class SuspiciousOrdinaryStringEscapeContextTests
             SourceMetadataContext metadataContext,
             params object?[] parameters) => new ContextTable();
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters) => new OneRowSource<T>();
+            TArguments parameters) => new OneRowSource<T>();
 
         private static MethodsAggregator CreateLibrary()
         {

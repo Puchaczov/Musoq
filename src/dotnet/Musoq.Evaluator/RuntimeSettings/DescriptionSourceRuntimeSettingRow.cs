@@ -11,7 +11,6 @@ internal sealed class DescriptionSourceRuntimeSettingRow(
     string status,
     string description) : Row
 {
-    private object[]? _values;
 
     public string Name { get; } = name;
 
@@ -27,30 +26,28 @@ internal sealed class DescriptionSourceRuntimeSettingRow(
 
     public override int Count => 6;
 
-    public override object this[int columnNumber] => columnNumber switch
-    {
-        0 => Name,
-        1 => Required,
-        2 => Secret,
-        3 => Phases,
-        4 => Status,
-        5 => Description,
-        _ => throw new ArgumentOutOfRangeException(nameof(columnNumber), columnNumber, "Column index is outside row bounds.")
-    };
+    public override void VisitColumns<TVisitor>(ref TVisitor visitor) => TypedColumnVisit.All(this, ref visitor);
 
-    public override object this[string name] => name switch
+    public override void VisitColumn<TVisitor>(int columnIndex, ref TVisitor visitor)
     {
-        "Name" => Name,
-        "Required" => Required,
-        "Secret" => Secret,
-        "Phases" => Phases,
-        "Status" => Status,
-        "Description" => Description,
-        _ => throw new KeyNotFoundException(name)
-    };
+        switch (columnIndex)
+        {
+            case 0: TypedColumnVisit.Apply(columnIndex, Name, ref visitor); return;
+            case 1: TypedColumnVisit.Apply(columnIndex, Required, ref visitor); return;
+            case 2: TypedColumnVisit.Apply(columnIndex, Secret, ref visitor); return;
+            case 3: TypedColumnVisit.Apply(columnIndex, Phases, ref visitor); return;
+            case 4: TypedColumnVisit.Apply(columnIndex, Status, ref visitor); return;
+            case 5: TypedColumnVisit.Apply(columnIndex, Description, ref visitor); return;
+            default: throw new ArgumentOutOfRangeException(nameof(columnIndex));
+        }
+    }
+
+
+
+
 
     public override bool HasColumn(string name) =>
         name is "Name" or "Required" or "Secret" or "Phases" or "Status" or "Description";
 
-    public override object[] Values => _values ??= [Name, Required, Secret, Phases, Status, Description];
+
 }

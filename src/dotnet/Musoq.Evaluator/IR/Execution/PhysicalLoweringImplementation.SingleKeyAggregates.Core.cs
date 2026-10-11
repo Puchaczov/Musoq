@@ -34,7 +34,7 @@ internal sealed partial class PhysicalLoweringImplementation
             aggregateScopeName,
             "groups",
             typeof(object));
-        var nullGroup = pipeline.GroupKeyType.IsValueType
+        var nullGroup = pipeline.GroupKeyType.IsValueType && Nullable.GetUnderlyingType(pipeline.GroupKeyType) is null
             ? null
             : CreateAggregateGroupVariable(aggregateScopeName, "nullGroup");
         var currentGroup = CreateAggregateGroupVariable(aggregateScopeName, "group");

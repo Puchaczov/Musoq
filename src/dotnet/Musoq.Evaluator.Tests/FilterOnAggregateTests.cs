@@ -9,6 +9,19 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class FilterOnAggregateTests : BasicEntityTestBase
 {
+    [TestMethod]
+    [TestProperty("CandidateId", "P1-090")]
+    public void FilteredCount_InlineValues_ShouldCountMatchingRowsAsInt64()
+    {
+        const string query = "select Count(N) filter (where N > 1) as FilteredCount from values { (N: 1), (N: 2), (N: 3) } v";
+
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("FilteredCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [2L]);
+    }
+
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreateCitySources()
     {

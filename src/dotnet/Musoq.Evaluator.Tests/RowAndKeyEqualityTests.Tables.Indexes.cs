@@ -8,39 +8,27 @@ public partial class RowAndKeyEqualityTests
     #region IndexedList Additional Coverage Tests
 
     [TestMethod]
-    public void Table_ContainsWithKey_ReturnsFalseForNonExistingKey()
+    public void TypedTableQuery_WhenAJoinKeyIsAbsent_ShouldReturnNoRows()
     {
-        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
-        var row = new TestRow([42]);
-        table.Add(row);
-
-        var key = new Key([999], [0]);
-        var result = table.Contains(key, row);
-
-        Assert.IsFalse(result);
+        const string query = "select a.One as One from #schema.first() a inner join #schema.first() b on a.Position = b.Position where b.Position = 999";
+        using var compiled = CreateAndRunVirtualMachine<ContextInput, ContextLibrary>(query, ContextRows());
+        using var table = compiled.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(table, ("One", typeof(int)));
+        Assert.AreEqual(0, table.Count);
+        foreach (var row in table)
+            Assert.Fail($"Unexpected row: {row.GetValue<int>(0)}");
     }
 
     [TestMethod]
-    public void Table_ContainsWithKey_ReturnsFalseForNonMatchingValue()
+    public void TypedTableQuery_WhenTheKeyMatchesButTheValueDoesNot_ShouldReturnNoRows()
     {
-        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
-        var row = new TestRow([42]);
-        table.Add(row);
-
-        var key = new Key([42], [0]);
-        var searchRow = new TestRow([100]);
-        var result = table.Contains(key, searchRow);
-
-        Assert.IsFalse(result);
-    }
-
-    [TestMethod]
-    public void Row_Equals_WithNullValue_HandlesCorrectly()
-    {
-        var row1 = new TestRow([null!, "test"]);
-        var row2 = new TestRow([null!, "test"]);
-
-        Assert.IsTrue(row1.Equals(row2));
+        const string query = "select a.One as One from #schema.first() a inner join #schema.first() b on a.Position = b.Position where a.One = 100";
+        using var compiled = CreateAndRunVirtualMachine<ContextInput, ContextLibrary>(query, ContextRows());
+        using var table = compiled.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(table, ("One", typeof(int)));
+        Assert.AreEqual(0, table.Count);
+        foreach (var row in table)
+            Assert.Fail($"Unexpected row: {row.GetValue<int>(0)}");
     }
 
     [TestMethod]
@@ -66,36 +54,8 @@ public partial class RowAndKeyEqualityTests
     {
         var row = new TestRow([null!, "test"]);
 
-
         var hash = row.GetHashCode();
         Assert.AreEqual(hash, row.GetHashCode());
-    }
-
-    [TestMethod]
-    public void Key_Equals_DifferentLengths_ReturnsFalse()
-    {
-        var key1 = new Key([1], [0]);
-        var key2 = new Key([1, 2], [0, 1]);
-
-        Assert.IsFalse(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void Key_Equals_NullValues_HandleCorrectly()
-    {
-        var key1 = new Key([null], [0]);
-        var key2 = new Key([null], [0]);
-
-        Assert.IsTrue(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void Key_Equals_NullVsNonNull_ReturnsFalse()
-    {
-        var key1 = new Key([null], [0]);
-        var key2 = new Key(["test"], [0]);
-
-        Assert.IsFalse(key1.Equals(key2));
     }
 
     [TestMethod]
@@ -112,8 +72,8 @@ public partial class RowAndKeyEqualityTests
         var values = new object[] { 1, "test", 3.14 };
         var row = new TestRow(values);
 
-        Assert.HasCount(3, row.Values);
-        Assert.AreEqual(1, row.Values[0]);
+        Assert.HasCount(3, row.ReadValues());
+        Assert.AreEqual(1, row.ReadValues()[0]);
     }
 
     #endregion

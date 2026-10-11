@@ -184,9 +184,9 @@ internal static class ExecutionBindingInvariantValidator
         return declared switch
         {
             PositionalAccess => actual is not
-                (ClrPropertyAccess or ReflectedMemberAccess or ExpandoDictionaryAccess or RuntimeDynamicMemberAccess),
+                (ClrPropertyAccess or ReflectedMemberAccess or RuntimeDynamicMemberAccess),
             NestedPositionalAccess => actual is not
-                (NestedClrPropertyAccess or ReflectedMemberAccess or ExpandoDictionaryAccess or RuntimeDynamicMemberAccess),
+                (NestedClrPropertyAccess or ReflectedMemberAccess or RuntimeDynamicMemberAccess),
             _ => true
         };
     }

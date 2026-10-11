@@ -236,7 +236,7 @@ internal sealed class FieldExpressionHoistingPass : IExecutionIrOptimizationPass
 
             var variableName = candidate;
             var suffix = 1;
-            while (!usedNames.Add(variableName))
+            while (ExecutionSymbolicNamePolicy.IsReservedIdentifier(variableName) || !usedNames.Add(variableName))
             {
                 variableName = string.Concat(candidate, suffix.ToString(CultureInfo.InvariantCulture));
                 suffix++;
@@ -251,4 +251,3 @@ internal sealed class FieldExpressionHoistingPass : IExecutionIrOptimizationPass
         IReadOnlyList<ExecutionLet> Lets,
         ExecutionNode Node);
 }
-

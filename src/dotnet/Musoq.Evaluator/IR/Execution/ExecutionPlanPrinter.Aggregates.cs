@@ -39,20 +39,7 @@ public static partial class ExecutionPlanPrinter
         return $"TypedAggregateSet [Set({arguments}){filter}]";
     }
 
-    private static string FormatCompositeKey(ExecutionCompositeKey compositeKey)
-    {
-        var builder = new StringBuilder("CompositeKey(");
-        for (var index = 0; index < compositeKey.Parts.Count; index++)
-        {
-            if (index > 0)
-                builder.Append(", ");
 
-            builder.Append(FormatExpression(compositeKey.Parts[index]));
-        }
-
-        builder.Append(')');
-        return builder.ToString();
-    }
 
     private static string FormatAggregateArguments(IReadOnlyList<ExecutionExpression> arguments)
     {

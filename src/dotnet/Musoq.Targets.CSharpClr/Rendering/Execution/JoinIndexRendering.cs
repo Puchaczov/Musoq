@@ -76,7 +76,8 @@ public sealed partial class ExecutionCSharpRenderer
         var typeArguments = new List<TypeSyntax>
         {
             CreateVariableTypeSyntax(createIndex.Candidate),
-            CreateTypeSyntax(createIndex.ComparisonKeyType)
+            CreateTypeSyntax(createIndex.ComparisonKeyType),
+            CreateTypeSyntax(createIndex.EqualityShape.KeyType)
         };
         if (createIndex.TieBreak != null)
             typeArguments.Add(CreateTypeSyntax(createIndex.TieBreak.Key.ReturnType));
@@ -87,7 +88,7 @@ public sealed partial class ExecutionCSharpRenderer
         var arguments = new List<ExpressionSyntax>
         {
             RenderExpression(createIndex.Candidates, context),
-            CreateAsOfEqualityKeySelector(createIndex.EqualityKeys, static key => key.Right, candidateName, context),
+            CreateNativeAsOfEqualitySelector(createIndex.EqualityKeys, createIndex.EqualityShape, candidateName, context),
             CreateAsOfKeySelector(createIndex.CandidateKey, candidateName, createIndex.ComparisonKeyType.RequireClrType(), context),
             CreateBinaryOpKindExpression(createIndex.ComparisonKind)
         };
@@ -115,10 +116,15 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionAsOfProbe asOfProbe,
         ExecutionRenderContext context)
     {
+        if (asOfProbe.Index is null)
+            throw new InvalidOperationException("ASOF probes require a planner-selected typed index.");
+        var equalityName = asOfProbe.Match.Name + "Equality";
+        var equalityStatements = CreateNativeAsOfEqualityStatements(asOfProbe.EqualityKeys.Select(key => key.Left).ToArray(),
+            asOfProbe.EqualityShape, equalityName, context);
         var matchDeclaration = CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             asOfProbe.Match.Name,
-            CreateAsOfMatchInvocation(asOfProbe, context));
+            CreateAsOfIndexFindInvocation(asOfProbe, equalityName, context));
         var condition = SyntaxFactory.BinaryExpression(
             SyntaxKind.NotEqualsExpression,
             CreateIdentifierName(asOfProbe.Match.Name),
@@ -127,142 +133,24 @@ public sealed partial class ExecutionCSharpRenderer
             ? RenderBlock(asOfProbe.NoMatchBody, context)
             : null;
 
-        return StatementEmitter.CreateBlock(matchDeclaration, StatementEmitter.CreateIf(condition, RenderBlock(asOfProbe.Body, context), elseStatement));
-    }
-
-    private InvocationExpressionSyntax CreateAsOfMatchInvocation(
-        ExecutionAsOfProbe asOfProbe,
-        ExecutionRenderContext context)
-    {
-        if (asOfProbe.Index is not null)
-            return CreateAsOfIndexFindInvocation(asOfProbe, context);
-
-        var candidateName = asOfProbe.Candidate.Name;
-        var typeArguments = new List<TypeSyntax> { CreateVariableTypeSyntax(asOfProbe.Match) };
-        if (asOfProbe.TieBreak != null)
-            typeArguments.Add(CreateTypeSyntax(asOfProbe.TieBreak.Key.ReturnType));
-
-        var method = SyntaxFactory.GenericName(nameof(EvaluationHelper.FindAsOfMatch))
-            .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments)));
-        var arguments = new List<ExpressionSyntax>
-        {
-            RenderExpression(asOfProbe.Candidates, context),
-            CreateAsOfEqualityPredicate(asOfProbe, candidateName, context),
-            CreateAsOfKeySelector(asOfProbe.CandidateKey, candidateName, typeof(object), context),
-            CreateObjectCastExpression(RenderExpression(asOfProbe.ProbeKey, context)),
-            CreateBinaryOpKindExpression(asOfProbe.ComparisonKind)
-        };
-        if (asOfProbe.TieBreak != null)
-        {
-            arguments.Add(CreateAsOfKeySelector(asOfProbe.TieBreak.Key, candidateName, asOfProbe.TieBreak.Key.ReturnType.RequireClrType(), context));
-            arguments.Add(CreateBooleanLiteral(asOfProbe.TieBreak.Descending));
-            arguments.Add(CreateNullOrderingExpression(asOfProbe.TieBreak.NullOrdering));
-        }
-
-        return SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    method))
-            .WithArgumentList(CreateArgumentList(arguments));
+        equalityStatements.Add(matchDeclaration);
+        equalityStatements.Add(StatementEmitter.CreateIf(condition, RenderBlock(asOfProbe.Body, context), elseStatement));
+        return SyntaxFactory.Block(equalityStatements);
     }
 
     private InvocationExpressionSyntax CreateAsOfIndexFindInvocation(
         ExecutionAsOfProbe asOfProbe,
+        string equalityName,
         ExecutionRenderContext context)
     {
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(asOfProbe.Index!.Name),
-                    SyntaxFactory.IdentifierName(nameof(AsOfJoinIndex<object, object>.Find))))
+                    SyntaxFactory.IdentifierName("Find")))
             .WithArgumentList(CreateArgumentList(
-                CreateAsOfEqualityKeyExpression(asOfProbe.EqualityKeys, static key => key.Left, context),
-                CreateAsOfComparisonKeyExpression(asOfProbe.ProbeKey, asOfProbe.ComparisonKeyType?.RequireClrType() ?? typeof(object), context)));
-    }
-
-    private ExpressionSyntax CreateAsOfEqualityPredicate(
-        ExecutionAsOfProbe asOfProbe,
-        string candidateName,
-        ExecutionRenderContext context)
-    {
-        if (asOfProbe.EqualityKeys.Count == 0)
-            return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
-
-        var condition = asOfProbe.EqualityKeys
-            .Select(key => CreateAsOfEqualityCondition(key, context))
-            .Aggregate(static (left, right) => SyntaxFactory.BinaryExpression(SyntaxKind.LogicalAndExpression, left, right));
-
-        return SyntaxFactory.SimpleLambdaExpression(
-            SyntaxFactory.Parameter(SyntaxFactory.Identifier(EscapeIdentifier(candidateName))),
-            condition);
-    }
-
-    private ExpressionSyntax CreateAsOfEqualityCondition(
-        ExecutionAsOfEqualityKey key,
-        ExecutionRenderContext context)
-    {
-        var left = CreateObjectCastExpression(RenderExpression(key.Left, context));
-        var right = CreateObjectCastExpression(RenderExpression(key.Right, context));
-        var equality = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
-                    SyntaxFactory.IdentifierName(nameof(object.Equals))))
-            .WithArgumentList(CreateArgumentList(left, right));
-
-        if (!CanBeNull(key.Left.ReturnType) && !CanBeNull(key.Right.ReturnType))
-            return equality;
-
-        return SyntaxFactory.BinaryExpression(
-            SyntaxKind.LogicalAndExpression,
-            SyntaxFactory.BinaryExpression(
-                SyntaxKind.NotEqualsExpression,
-                left,
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-            SyntaxFactory.BinaryExpression(
-                SyntaxKind.LogicalAndExpression,
-                SyntaxFactory.BinaryExpression(
-                    SyntaxKind.NotEqualsExpression,
-                    right,
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-                equality));
-    }
-
-    private ExpressionSyntax CreateAsOfEqualityKeySelector(
-        IReadOnlyList<ExecutionAsOfEqualityKey> equalityKeys,
-        Func<ExecutionAsOfEqualityKey, ExecutionExpression> keySelector,
-        string candidateName,
-        ExecutionRenderContext context)
-    {
-        if (equalityKeys.Count == 0)
-            return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
-
-        return SyntaxFactory.ParenthesizedLambdaExpression(CreateAsOfEqualityKeyExpression(equalityKeys, keySelector, context))
-            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.Parameter(SyntaxFactory.Identifier(EscapeIdentifier(candidateName))))));
-    }
-
-    private ExpressionSyntax CreateAsOfEqualityKeyExpression(
-        IReadOnlyList<ExecutionAsOfEqualityKey> equalityKeys,
-        Func<ExecutionAsOfEqualityKey, ExecutionExpression> keySelector,
-        ExecutionRenderContext context)
-    {
-        if (equalityKeys.Count == 0)
-            return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
-
-        if (equalityKeys.Count == 1)
-            return CreateObjectCastExpression(RenderExpression(keySelector(equalityKeys[0]), context));
-
-        return SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.CreateAsOfEqualityKey))))
-            .WithArgumentList(CreateArgumentList(equalityKeys
-                .Select<ExecutionAsOfEqualityKey, ExpressionSyntax>(key =>
-                    CreateObjectCastExpression(RenderExpression(keySelector(key), context)))
-                .ToArray()));
+                CreateIdentifierName(equalityName),
+                CreateAsOfComparisonKeyExpression(asOfProbe.ProbeKey, asOfProbe.ComparisonKeyType!.RequireClrType(), context)));
     }
 
     private ParenthesizedLambdaExpressionSyntax CreateAsOfKeySelector(
@@ -282,9 +170,11 @@ public sealed partial class ExecutionCSharpRenderer
         Type comparisonKeyType,
         ExecutionRenderContext context)
     {
-        return comparisonKeyType == typeof(object)
-            ? CreateObjectCastExpression(RenderExpression(key, context))
-            : RenderExpression(key, context);
+        if (comparisonKeyType == typeof(object))
+            throw new InvalidOperationException("ASOF comparison keys must remain concrete.");
+        var expression = RenderExpression(key, context);
+        return key.ReturnType.RequireClrType() == comparisonKeyType ? expression :
+            SyntaxFactory.CastExpression(CreateTypeSyntax(comparisonKeyType), SyntaxFactory.ParenthesizedExpression(expression));
     }
 
     private LocalDeclarationStatementSyntax RenderCreateRangeIndex(
@@ -331,37 +221,6 @@ public sealed partial class ExecutionCSharpRenderer
             invocation);
     }
 
-    private StatementSyntax RenderRangeProbe(
-        ExecutionRangeProbe rangeProbe,
-        ExecutionRenderContext context)
-    {
-        var loop = StatementEmitter.CreateForeach(
-            EscapeIdentifier(rangeProbe.Match.Name),
-            CreateRangeIndexFindInvocation(rangeProbe, context),
-            RenderBlock(rangeProbe.Body, context));
-        if (rangeProbe.MatchFound == null)
-            return loop;
-
-        var statements = new List<StatementSyntax>
-        {
-            CreateLocalDeclaration(
-                CreateTypeSyntax(typeof(bool)),
-                rangeProbe.MatchFound.Name,
-                SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)),
-            loop
-        };
-        if (rangeProbe.NoMatchBody is { Nodes.Count: > 0 } noMatchBody)
-        {
-            statements.Add(StatementEmitter.CreateIf(
-                SyntaxFactory.PrefixUnaryExpression(
-                    SyntaxKind.LogicalNotExpression,
-                    SyntaxFactory.IdentifierName(rangeProbe.MatchFound.Name)),
-                RenderBlock(noMatchBody, context)));
-        }
-
-        return SyntaxFactory.Block(statements);
-    }
-
     private InvocationExpressionSyntax CreateRangeIndexFindInvocation(
         ExecutionRangeProbe rangeProbe,
         ExecutionRenderContext context)
@@ -377,11 +236,16 @@ public sealed partial class ExecutionCSharpRenderer
         }
 
         arguments.Add(RenderExpression(rangeProbe.ProbeKey, context));
+        SimpleNameSyntax findMethod = rangeProbe.PartitionKeys is { Count: > 0 }
+            ? SyntaxFactory.GenericName(nameof(RangeJoinIndex<object, object>.Find))
+                .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(
+                    CreateTypeSyntax(rangeProbe.PartitionKeyType!))))
+            : SyntaxFactory.IdentifierName(nameof(RangeJoinIndex<object, object>.Find));
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(rangeProbe.Index.Name),
-                    SyntaxFactory.IdentifierName(nameof(RangeJoinIndex<object, object>.Find))))
+                    findMethod))
             .WithArgumentList(CreateArgumentList(arguments));
     }
 
@@ -415,7 +279,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         if (partitionKeyType.RequireClrType() == typeof(object))
-            return CreateAsOfEqualityKeyExpression(partitionKeys, keySelector, context);
+            throw new InvalidOperationException("Range partition keys require a concrete typed carrier.");
 
         if (partitionKeys.Count == 1)
             return RenderExpression(keySelector(partitionKeys[0]), context);
@@ -425,9 +289,14 @@ public sealed partial class ExecutionCSharpRenderer
         if (Nullable.GetUnderlyingType(partitionKeyType.RequireClrType()) == null)
             return tuple;
 
-        var nullCondition = partitionKeys
+        var nullableKeys = partitionKeys
             .Select(keySelector)
             .Where(static key => CanBeNull(key.ReturnType))
+            .ToArray();
+        if (nullableKeys.Length == 0)
+            return tuple;
+
+        var nullCondition = nullableKeys
             .Select(key => (ExpressionSyntax)SyntaxFactory.BinaryExpression(
                 SyntaxKind.EqualsExpression,
                 RenderExpression(key, context),

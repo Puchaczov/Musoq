@@ -1,13 +1,19 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Musoq.Plugins;
 
 internal static class NullableAggregateCore
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SetSum<T>(ref bool hasValue, ref T sum, T? value)
         where T : struct, INumber<T>
     {
-        SetSum(ref hasValue, ref sum, value, static _ => true);
+        if (!value.HasValue)
+            return;
+        var current = value.GetValueOrDefault();
+        sum = hasValue ? checked(sum + current) : current;
+        hasValue = true;
     }
 
     public static void SetSum<T>(ref bool hasValue, ref T sum, T? value, Func<T, bool> shouldInclude)
@@ -63,6 +69,7 @@ internal static class NullableAggregateCore
         targetHasValue = true;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T? GetNullable<T>(bool hasValue, T value)
         where T : struct
     {

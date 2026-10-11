@@ -20,13 +20,14 @@ public partial class ExpressionIrTests
             false,
             method);
 
-        var result = _converter.Convert(node);
+        var result = Assert.IsInstanceOfType<MethodCall>(_converter.Convert(node));
 
-        Assert.IsInstanceOfType<MethodCall>(result);
         Assert.IsNotNull(result.EnumType);
         Assert.AreEqual(EnumTypeOrigin.NativeClr, result.EnumType.Origin);
         Assert.AreEqual(EnumUnderlyingKind.Int16, result.EnumType.UnderlyingKind);
-        Assert.AreEqual(typeof(TableContractNativeStatus), result.ReturnType);
+        Assert.AreEqual(typeof(short), result.ReturnType);
+        Assert.AreSame(method, result.Method);
+        Assert.AreEqual(typeof(TableContractNativeStatus), result.Method.ReturnType);
     }
 
     [TestMethod]

@@ -58,13 +58,16 @@ public class BuildTests
     }
 
     [TestMethod]
-    public void LoadTypedArtifact_WhenArtifactVersionIsUnsupported_ShouldReject()
+    [DataRow(0)]
+    [DataRow(1)]
+    [DataRow(2)]
+    public void LoadTypedArtifact_WhenArtifactVersionIsUnsupported_ShouldReject(int version)
     {
-        var artifact = new VersionedArtifact(CompileDualArtifact(), 0);
+        var artifact = new VersionedArtifact(CompileDualArtifact(), version);
 
         var exception = Assert.Throws<InvalidOperationException>(() => LoadDualArtifact(artifact));
 
-        StringAssert.Contains(exception.Message, "Typed query artifact version '0' is not supported");
+        StringAssert.Contains(exception.Message, $"Typed query artifact version '{version}' is not supported");
     }
 
     [TestMethod]

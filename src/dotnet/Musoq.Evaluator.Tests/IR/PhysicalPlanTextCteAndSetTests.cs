@@ -40,7 +40,7 @@ public sealed class PhysicalPlanTextCteAndSetTests : BasicEntityTestBase
                 "PhysicalCte",
                 "  Definition [cte]",
                 "    PhysicalMultiStatement",
-                "      PhysicalProject [ko3iko.Name as Name, ko3iko.City as City]",
+                "      PhysicalProject [ko3iko.Name as Name]",
                 "        PhysicalSchemaScan [#A.Entities() as ko3iko]",
                 "  Query",
                 "    PhysicalMultiStatement",

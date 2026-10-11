@@ -17,10 +17,10 @@ public sealed class WeatherMeasurementSchema(IReadOnlyList<WeatherMeasurementEnt
         return new WeatherMeasurementTable();
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         return EnsureSourceType<T, WeatherMeasurementEntity>(name, new WeatherMeasurementRowSource(rows));
     }

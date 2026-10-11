@@ -113,7 +113,7 @@ public partial class StarModifierTests : BasicEntityTestBase
 
         var populationIdx = table.Columns.Select((c, i) => (c, i))
             .First(x => x.c.ColumnName.Contains("Population")).i;
-        Assert.AreEqual(200m, table[0].Values[populationIdx]);
+        Assert.AreEqual(200m, table[0].ReadValues()[populationIdx]);
     }
 
     [TestMethod]
@@ -142,8 +142,8 @@ public partial class StarModifierTests : BasicEntityTestBase
         var moneyIdx = table.Columns.Select((c, i) => (c, i))
             .First(x => x.c.ColumnName.Contains("Money")).i;
 
-        Assert.AreEqual(200m, table[0].Values[populationIdx]);
-        Assert.AreEqual(60m, table[0].Values[moneyIdx]);
+        Assert.AreEqual(200m, table[0].ReadValues()[populationIdx]);
+        Assert.AreEqual(60m, table[0].ReadValues()[moneyIdx]);
     }
 
     [TestMethod]
@@ -248,7 +248,7 @@ public partial class StarModifierTests : BasicEntityTestBase
 
         var populationIdx = table.Columns.Select((c, i) => (c, i))
             .First(x => x.c.ColumnName.Contains("Population")).i;
-        Assert.AreEqual(200m, table[0].Values[populationIdx]);
+        Assert.AreEqual(200m, table[0].ReadValues()[populationIdx]);
     }
 
     [TestMethod]
@@ -277,7 +277,7 @@ public partial class StarModifierTests : BasicEntityTestBase
 
         var populationIdx = table.Columns.Select((c, i) => (c, i))
             .First(x => x.c.ColumnName.Contains("Population")).i;
-        Assert.AreEqual(300m, table[0].Values[populationIdx]);
+        Assert.AreEqual(300m, table[0].ReadValues()[populationIdx]);
     }
 
     [TestMethod]

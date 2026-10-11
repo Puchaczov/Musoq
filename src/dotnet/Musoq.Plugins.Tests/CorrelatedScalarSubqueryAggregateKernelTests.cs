@@ -66,7 +66,7 @@ public sealed class CorrelatedScalarSubqueryAggregateKernelTests
     {
         var result = new CorrelatedScalarSubqueryResult<int>(17, 2);
 
-        var exception = Assert.ThrowsExactly<InvalidOperationException>(
+        var exception = Assert.Throws<InvalidOperationException>(
             () => CorrelatedScalarSubqueryResultExtractor.GetValue<int>(result));
 
         Assert.AreEqual("Scalar subquery returned more than one row.", exception.Message);

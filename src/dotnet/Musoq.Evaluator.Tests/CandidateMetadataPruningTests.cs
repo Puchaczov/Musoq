@@ -28,7 +28,7 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         var optimized = Run(query, CandidatePayloadMode.CandidateMetadata, out var optimizedRecorder);
 
         AssertEquivalent(baseline, optimized);
-        CollectionAssert.AreEqual(new[] { 0, 5 }, optimized.Select(row => (int)row[0]).ToArray());
+        CollectionAssert.AreEqual(new[] { 0, 5 }, optimized.Select(row => (int)row.ReadValue(0)).ToArray());
         Assert.AreEqual(DefaultRows.Count, baselineRecorder.PayloadOpens);
         Assert.AreEqual(2, optimizedRecorder.PayloadOpens);
         Assert.AreEqual(2, optimizedRecorder.PayloadDecodes);
@@ -61,7 +61,7 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         var optimized = Run(query, CandidatePayloadMode.CandidateMetadata, out var recorder);
 
         AssertEquivalent(baseline, optimized);
-        CollectionAssert.AreEqual(new[] { 2 }, optimized.Select(row => (int)row[0]).ToArray());
+        CollectionAssert.AreEqual(new[] { 2 }, optimized.Select(row => (int)row.ReadValue(0)).ToArray());
         Assert.AreEqual(1, recorder.PayloadOpens);
     }
 
@@ -88,7 +88,7 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         var optimized = Run(query, rows, CandidatePayloadMode.CandidateMetadata, out var recorder);
 
         AssertEquivalent(baseline, optimized);
-        CollectionAssert.AreEqual(new[] { expectedId }, optimized.Select(row => (int)row[0]).ToArray());
+        CollectionAssert.AreEqual(new[] { expectedId }, optimized.Select(row => (int)row.ReadValue(0)).ToArray());
         Assert.AreEqual(1, recorder.PayloadOpens);
     }
 
@@ -112,7 +112,7 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
             var optimized = Run(query, rows, CandidatePayloadMode.CandidateMetadata, out var recorder);
 
             AssertEquivalent(baseline, optimized);
-            CollectionAssert.AreEqual(new[] { 1, 2 }, optimized.Select(row => (int)row[0]).ToArray());
+            CollectionAssert.AreEqual(new[] { 1, 2 }, optimized.Select(row => (int)row.ReadValue(0)).ToArray());
             Assert.AreEqual(2, recorder.PayloadOpens);
         }
         finally
@@ -131,7 +131,7 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         var optimized = Run(query, CandidatePayloadMode.CandidateMetadata, out var recorder);
 
         AssertEquivalent(baseline, optimized);
-        CollectionAssert.AreEqual(new[] { 1, 2, 3, 4, 6 }, optimized.Select(row => (int)row[0]).ToArray());
+        CollectionAssert.AreEqual(new[] { 1, 2, 3, 4, 6 }, optimized.Select(row => (int)row.ReadValue(0)).ToArray());
         Assert.AreEqual(5, recorder.PayloadOpens);
     }
 
@@ -143,7 +143,7 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
             CandidatePayloadMode.RowFiltering,
             out var recorder);
 
-        CollectionAssert.AreEqual(new[] { 0, 5 }, table.Select(row => (int)row[0]).ToArray());
+        CollectionAssert.AreEqual(new[] { 0, 5 }, table.Select(row => (int)row.ReadValue(0)).ToArray());
         Assert.AreEqual(DefaultRows.Count, recorder.PayloadOpens);
         Assert.AreEqual(DefaultRows.Count, recorder.PayloadDecodes);
         Assert.AreEqual(DefaultRows.Count, recorder.RowMaterializations);
@@ -159,7 +159,7 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         var optimized = Run(query, CandidatePayloadMode.CandidateMetadata, out var recorder);
 
         AssertEquivalent(baseline, optimized);
-        CollectionAssert.AreEqual(new[] { 0, 2, 5, 6 }, optimized.Select(row => (int)row[0]).ToArray());
+        CollectionAssert.AreEqual(new[] { 0, 2, 5, 6 }, optimized.Select(row => (int)row.ReadValue(0)).ToArray());
         Assert.AreEqual(5, recorder.PayloadOpens);
     }
 
@@ -173,7 +173,7 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         var optimized = Run(query, CandidatePayloadMode.CandidateMetadata, out var recorder);
 
         AssertEquivalent(baseline, optimized);
-        CollectionAssert.AreEqual(new[] { 0, 4, 5 }, optimized.Select(row => (int)row[0]).ToArray());
+        CollectionAssert.AreEqual(new[] { 0, 4, 5 }, optimized.Select(row => (int)row.ReadValue(0)).ToArray());
         Assert.AreEqual(DefaultRows.Count, recorder.PayloadOpens);
         Assert.IsEmpty(recorder.ExecutionPlans.Single().PredicateApplications);
     }
@@ -217,13 +217,14 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    [DataRow(CandidatePayloadFault.Open, 1, 0, 0)]
-    [DataRow(CandidatePayloadFault.Decode, 1, 1, 0)]
+    [DataRow(CandidatePayloadFault.Open, 1, 0, 0, DiagnosticCode.MQ7011_DataSourceReadFailed)]
+    [DataRow(CandidatePayloadFault.Decode, 1, 1, 0, DiagnosticCode.MQ7014_MalformedRuntimeInput)]
     public void MatchingPayloadFailure_ShouldPreserveContextAndDispose(
         CandidatePayloadFault fault,
         int expectedOpens,
         int expectedDecodes,
-        int expectedMaterializations)
+        int expectedMaterializations,
+        DiagnosticCode expectedDiagnosticCode)
     {
         var rows = new[]
         {
@@ -239,7 +240,7 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
             TableMaterializationTestHelper.Materialize(compiled.Run()));
 
         Assert.IsNotNull(exception.Envelope);
-        Assert.AreEqual(DiagnosticCode.MQ7011_DataSourceReadFailed, exception.Envelope.Code);
+        Assert.AreEqual(expectedDiagnosticCode, exception.Envelope.Code);
         Assert.AreEqual("#candidate", exception.Envelope.Arguments["schema"]);
         Assert.AreEqual("items", exception.Envelope.Arguments["source"]);
         Assert.AreEqual("c", exception.Envelope.Arguments["alias"]);
@@ -329,8 +330,8 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
     {
         Assert.AreEqual(expected.Count, actual.Count);
         CollectionAssert.AreEqual(
-            expected.Select(row => row.Values).SelectMany(static values => values).ToArray(),
-            actual.Select(row => row.Values).SelectMany(static values => values).ToArray());
+            expected.Select(row => row.ReadValues()).SelectMany(static values => values).ToArray(),
+            actual.Select(row => row.ReadValues()).SelectMany(static values => values).ToArray());
         Assert.AreEqual(ComputeHash(expected), ComputeHash(actual));
     }
 
@@ -339,7 +340,7 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         var text = new StringBuilder();
         foreach (var row in table)
         {
-            foreach (var value in row.Values)
+            foreach (var value in row.ReadValues())
             {
                 var formatted = Convert.ToString(value, CultureInfo.InvariantCulture) ?? "<null>";
                 text.Append(formatted.Length).Append(':').Append(formatted).Append('|');

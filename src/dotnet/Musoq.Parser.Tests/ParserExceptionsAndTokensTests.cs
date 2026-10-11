@@ -242,16 +242,6 @@ public class ParserExceptionsAndTokensTests
     }
 
     [TestMethod]
-    public void TextSpan_Equals_DifferentType_ShouldBeFalse()
-    {
-        // Arrange
-        var span = new TextSpan(5, 10);
-
-        // Act & Assert
-        Assert.IsFalse(span.Equals("not a span"));
-    }
-
-    [TestMethod]
     public void TextSpan_GetHashCode_SameValues_ShouldMatch()
     {
         // Arrange

@@ -205,8 +205,14 @@ internal static class ExecutionPortableSymbolFactory
             .ToArray();
         var returnType = FromType(method.ReturnType);
         var genericArity = method.IsGenericMethod ? method.GetGenericArguments().Length : 0;
+        ExecutionPortableTypeDescriptor[] genericArguments = [];
+        if (method.IsConstructedGenericMethod)
+            genericArguments = method.GetGenericArguments().Select(FromType).ToArray();
+        var specialization = string.Empty;
+        if (genericArguments.Length > 0)
+            specialization = $"<{string.Join(",", genericArguments.Select(static argument => argument.StableName))}>";
         var stableName =
-            $"method:{declaringType.StableName}.{method.Name}#g{genericArity}({string.Join(",", parameters.Select(static parameter => parameter.StableName))}):{returnType.StableName}";
+            $"method:{declaringType.StableName}.{method.Name}#g{genericArity}{specialization}({string.Join(",", parameters.Select(static parameter => parameter.StableName))}):{returnType.StableName}";
         var callableKind = ExecutionPortableSymbolCatalog.ClassifyCallable(method, out var callableReason);
         var portability = callableKind == ExecutionPortableCallableKind.ClrMethod
             ? ExecutionPortableSymbolPortability.ClrOnly
@@ -225,6 +231,7 @@ internal static class ExecutionPortableSymbolFactory
             ParameterTypes = parameters,
             IsStatic = method.IsStatic,
             GenericArity = genericArity,
+            GenericArguments = genericArguments,
             IntrinsicKind = ExecutionPortableSymbolCatalog.ClassifyIntrinsicCallable(method),
             InvocationMode = method.IsDefined(typeof(ExtensionAttribute), inherit: false)
                 ? ExecutionCallableInvocationMode.Extension

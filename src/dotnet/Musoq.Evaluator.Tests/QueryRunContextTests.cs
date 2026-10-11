@@ -10,41 +10,28 @@ namespace Musoq.Evaluator.Tests;
 public sealed class QueryRunContextTests
 {
     [TestMethod]
-    public void Constructor_WhenParametersAreProvided_ShouldSnapshotValues()
+    public void Constructor_WhenTypedParametersAreCaptured_ShouldOwnTheOriginalValues()
     {
-        var parameters = new Dictionary<string, object?> { ["name"] = "Ada" };
-        var context = new QueryRunContext(CancellationToken.None, parameters);
-
-        parameters["name"] = "Grace";
-        parameters["extra"] = 42;
-
-        Assert.AreEqual("Ada", context.RuntimeParameters["name"]);
-        Assert.IsFalse(context.RuntimeParameters.ContainsKey("extra"));
+        var values = new TypedParameterValues();
+        values.Set("name", "Ada");
+        var context = new QueryRunContext(CancellationToken.None, values.Capture());
+        values.Set("name", "Grace");
+        values.Set("extra", 42);
+        Assert.AreEqual("Ada", context.TypedParameters.GetRequired<string>("name"));
+        Assert.IsFalse(context.TypedParameters.Contains("extra"));
     }
 
     [TestMethod]
-    public void Parameters_WhenCaptured_ShouldNotExposeMutableDictionary()
+    public void TypedOptions_WhenValuesAreMutated_ShouldKeepTheCapturedSlots()
     {
-        var parameters = new Dictionary<string, object?> { ["name"] = "Ada" };
-        var context = new QueryRunContext(CancellationToken.None, parameters);
-
-        Assert.AreNotSame(parameters, context.RuntimeParameters);
-        Assert.Throws<NotSupportedException>(() =>
-            ((IDictionary<string, object?>)context.RuntimeParameters)["name"] = "Grace");
-    }
-
-    [TestMethod]
-    public void TypedQueryRunOptions_WhenObjectInitializerParametersAreMutated_ShouldKeepSnapshot()
-    {
-        var parameters = new Dictionary<string, object?> { ["name"] = "Ada" };
-        var options = new TypedQueryRunOptions { Parameters = parameters };
-
-        parameters["name"] = "Grace";
-
-        Assert.IsNotNull(options.Parameters);
-        Assert.AreEqual("Ada", options.Parameters["name"]);
-        Assert.Throws<NotSupportedException>(() =>
-            ((IDictionary<string, object?>)options.Parameters)["name"] = "Grace");
+        var values = new TypedParameterValues();
+        values.Set("name", "Ada");
+        var options = new TypedQueryRunOptions { TypedParameters = values.Capture() };
+        values.Set("name", "Grace");
+        Assert.AreEqual("Ada", options.TypedParameters.GetRequired<string>("name"));
+        Assert.AreEqual(1, options.TypedParameters.Count);
+        Assert.IsNull(typeof(QueryRunContext).GetProperty("RuntimeParameters"));
+        Assert.IsNull(typeof(TypedQueryRunOptions).GetProperty("Parameters"));
     }
 
     [TestMethod]
@@ -109,7 +96,7 @@ public sealed class QueryRunContextTests
     public void Capture_WhenOptionsAreProvided_ShouldSnapshotOptions()
     {
         var parameters = new Dictionary<string, object?> { ["limit"] = 10 };
-        var options = new TypedQueryRunOptions(CancellationToken.None, parameters);
+        var options = new TypedQueryRunOptions(CancellationToken.None, global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(parameters));
         var sender = new object();
         var context = QueryRunContext.Capture(options, sender, "query");
 
@@ -117,7 +104,7 @@ public sealed class QueryRunContextTests
 
         Assert.AreSame(sender, context.Sender);
         Assert.AreEqual("query", context.QueryId);
-        Assert.AreEqual(10, context.RuntimeParameters["limit"]);
+        Assert.AreEqual(10, context.TypedParameters.GetRequired<int>("limit"));
     }
 
     [TestMethod]

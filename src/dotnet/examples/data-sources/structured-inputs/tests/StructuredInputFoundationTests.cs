@@ -1,3 +1,4 @@
+using Musoq.Tests.Common;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
@@ -127,8 +128,8 @@ public sealed class StructuredInputFoundationTests
         using var compiled = build.CompiledQuery!;
         var table = compiled.Run();
         Assert.AreEqual(2, table.Rows.Count);
-        Assert.AreEqual("todo", table.Rows[0][0]);
-        Assert.AreEqual("TODO", table.Rows[0][1]);
+        Assert.AreEqual("todo", table.Rows[0].ReadValue(0));
+        Assert.AreEqual("TODO", table.Rows[0].ReadValue(1));
         Assert.AreEqual(1, StructuredInputSourceCounters.MatchConstructed);
     }
     [TestMethod]
@@ -216,9 +217,9 @@ public sealed class StructuredInputFoundationTests
         using var compiled = build.CompiledQuery!;
         var table = compiled.Run();
         Assert.AreEqual(1, table.Rows.Count);
-        Assert.IsTrue((bool)table.Rows[0][0]!);
-        Assert.AreEqual(2, table.Rows[0][1]);
-        Assert.AreEqual(3, table.Rows[0][2]);
+        Assert.IsTrue((bool)table.Rows[0].ReadValue(0)!);
+        Assert.AreEqual(2, table.Rows[0].ReadValue(1));
+        Assert.AreEqual(3, table.Rows[0].ReadValue(2));
         Assert.AreEqual(1, StructuredInputSourceCounters.ConfigureConstructed);
     }
     [TestMethod]
@@ -239,8 +240,8 @@ public sealed class StructuredInputFoundationTests
         using var compiled = build.CompiledQuery!;
         var table = compiled.Run();
         Assert.AreEqual(1, table.Rows.Count);
-        Assert.AreEqual("issue", table.Rows[0][0]);
-        Assert.AreEqual("ISSUE-42", table.Rows[0][1]);
+        Assert.AreEqual("issue", table.Rows[0].ReadValue(0));
+        Assert.AreEqual("ISSUE-42", table.Rows[0].ReadValue(1));
         Assert.AreEqual(1, StructuredInputSourceCounters.MatchConstructed);
     }
     [TestMethod]
@@ -260,7 +261,7 @@ public sealed class StructuredInputFoundationTests
         using var compiled = build.CompiledQuery!;
         var definition = compiled.ParameterDefinitions.Single();
         Assert.IsTrue(definition.Contract.IsStructured, definition.Contract.CanonicalTypeName);
-        compiled.Parameters["patterns"] = new List<Dictionary<string, object?>>
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", new List<Dictionary<string, object?>>
         {
             new(StringComparer.OrdinalIgnoreCase)
             {
@@ -273,12 +274,12 @@ public sealed class StructuredInputFoundationTests
                 ["Id"] = "fixme",
                 ["Mode"] = "literal"
             }
-        };
+        });
 
         var table = compiled.Run();
         Assert.AreEqual(2, table.Rows.Count);
-        Assert.AreEqual("todo", table.Rows[0][0]);
-        Assert.AreEqual("fixme", table.Rows[1][0]);
+        Assert.AreEqual("todo", table.Rows[0].ReadValue(0));
+        Assert.AreEqual("fixme", table.Rows[1].ReadValue(0));
         Assert.AreEqual(1, StructuredInputSourceCounters.MatchConstructed);
     }
 
@@ -322,19 +323,19 @@ public sealed class StructuredInputFoundationTests
             Assert.Fail(build.CaughtException?.ToString() ?? string.Join(Environment.NewLine, build.Diagnostics.Select(static diagnostic => diagnostic.ToString())));
 
         using var compiled = build.CompiledQuery!;
-        compiled.Parameters["patterns"] = new List<Dictionary<string, object?>>
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", new List<Dictionary<string, object?>>
         {
             new(StringComparer.OrdinalIgnoreCase)
             {
                 ["Id"] = "issue",
                 ["Pattern"] = "ISSUE-[0-9]+"
             }
-        };
+        });
 
         var table = compiled.Run();
         Assert.AreEqual(1, table.Rows.Count);
-        Assert.AreEqual("issue", table.Rows[0][0]);
-        Assert.AreEqual("ISSUE-42", table.Rows[0][1]);
+        Assert.AreEqual("issue", table.Rows[0].ReadValue(0));
+        Assert.AreEqual("ISSUE-42", table.Rows[0].ReadValue(1));
         Assert.AreEqual(1, StructuredInputSourceCounters.MatchConstructed);
     }
 
@@ -357,7 +358,7 @@ public sealed class StructuredInputFoundationTests
         var hostRecords = new List<Dictionary<string, object?>> { hostRecord };
         var rows = compiled.Run(new TypedQueryRunOptions(
             CancellationToken.None,
-            new Dictionary<string, object?> { ["patterns"] = hostRecords }));
+global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(new Dictionary<string, object?> { ["patterns"] = hostRecords }, compiled.ParameterDefinitions)));
 
         hostRecord["Pattern"] = "MUTATED";
         var materialized = rows.ToArray();
@@ -367,54 +368,40 @@ public sealed class StructuredInputFoundationTests
         Assert.AreEqual(1, StructuredInputSourceCounters.MatchConstructed);
     }
     [TestMethod]
-    public void Sql_StructuredParameterRejectsLazyAndNonStringHostCollections()
+    public void Sql_NativeStructuredParameterRejectsUnexpectedNumericKeysBeforeOpeningTheProvider()
     {
-        var query =
-            "param(patterns: (Id: string, Pattern: string)[]) " +
+        const string sql = "param(patterns: (Id: string, Pattern: string)[]) " +
             "select m.PatternId from #inputs.match('TODO', patterns: $patterns) m";
-        var hosts = new object?[]
+        using var compiled = InstanceCreator.CompileForExecution(sql, "structured-input-invalid-native-json",
+            new StructuredInputsSchemaProvider(), new NullLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false));
+        using var document = System.Text.Json.JsonDocument.Parse("[{\"1\":\"todo\"}]");
+        compiled.TypedParameters.SetJson("patterns", document.RootElement);
+        StructuredInputSourceCounters.Reset();
+        var error = Assert.Throws<QueryExecutionException>(() =>
         {
-            Enumerable.Repeat(
-                new Dictionary<string, object?>
-                {
-                    ["Id"] = "todo",
-                    ["Pattern"] = "TODO"
-                },
-                1),
-            new List<Dictionary<int, object?>>
-            {
-                new() { [1] = "todo" }
-            }
-        };
-
-        foreach (var host in hosts)
-        {
-            StructuredInputSourceCounters.Reset();
-            var build = InstanceCreator.CompileWithDiagnostics(
-                query,
-                "structured-input-invalid-host",
-                new StructuredInputsSchemaProvider(),
-                new NullLoggerResolver(),
-                new CompilationOptions(usePrimitiveTypeValidation: false));
-            if (!build.Succeeded)
-                Assert.Fail(build.CaughtException?.ToString() ?? string.Join(Environment.NewLine, build.Diagnostics.Select(static diagnostic => diagnostic.ToString())));
-
-            using var compiled = build.CompiledQuery!;
-            compiled.Parameters["patterns"] = host;
-            Exception? actual = null;
-            try
-            {
-                _ = compiled.Run();
-            }
-            catch (Exception exception)
-            {
-                actual = exception;
-            }
-            Assert.IsNotNull(actual, actual?.ToString());
-            Assert.IsInstanceOfType<QueryExecutionException>(actual, actual?.ToString());
-            Assert.AreEqual(0, StructuredInputSourceCounters.MatchConstructed);
-        }
+            using var result = compiled.Run();
+            _ = result.Count;
+        });
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ7006_UnknownScriptParameter, error.Envelope!.Code);
+        StringAssert.Contains(error.Message, "$patterns[0].1");
+        Assert.AreEqual(0, StructuredInputSourceCounters.MatchConstructed);
     }
+
+    [TestMethod]
+    public void Sql_NativeStructuredParameterRejectsErasedClrInputsBeforeExecution()
+    {
+        const string sql = "param(patterns: (Id: string, Pattern: string)[]) " +
+            "select m.PatternId from #inputs.match('TODO', patterns: $patterns) m";
+        using var compiled = InstanceCreator.CompileForExecution(sql, "structured-input-reject-erased-host",
+            new StructuredInputsSchemaProvider(), new NullLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false));
+        var host = Enumerable.Repeat(new Dictionary<string, object?> { ["Id"] = "todo", ["Pattern"] = "TODO" }, 1);
+        StructuredInputSourceCounters.Reset();
+        Assert.Throws<ArgumentException>(() => compiled.TypedParameters.Set("patterns", host));
+        Assert.AreEqual(0, StructuredInputSourceCounters.MatchConstructed);
+    }
+
     [TestMethod]
     public void Sql_ParamsAliasAndStructuredDefaultProduceTypedInput()
     {
@@ -432,7 +419,7 @@ public sealed class StructuredInputFoundationTests
         using var compiled = build.CompiledQuery!;
         Assert.IsTrue(compiled.ParameterDefinitions.Single().Contract.IsStructured);
         var table = compiled.Run();
-        CollectionAssert.AreEqual(new[] { 1, 2, 2 }, table.Rows.Select(static row => (int)row[0]!).ToArray());
+        CollectionAssert.AreEqual(new[] { 1, 2, 2 }, table.Rows.Select(static row => (int)row.ReadValue(0)!).ToArray());
         Assert.AreEqual(1, StructuredInputSourceCounters.NumbersConstructed);
     }
     [TestMethod]
@@ -452,7 +439,11 @@ public sealed class StructuredInputFoundationTests
         using var compiled = build.CompiledQuery!;
         var definition = compiled.ParameterDefinitions.Single();
         Assert.IsTrue(definition.Contract.IsStructured, definition.Contract.CanonicalTypeName);
-        var exception = Assert.Throws<QueryExecutionException>(() => compiled.Run());
+        var exception = Assert.Throws<QueryExecutionException>(() =>
+        {
+            using var result = compiled.Run();
+            _ = result.Count;
+        });
         StringAssert.Contains(exception.ToString(), "requiredPatterns");
         Assert.AreEqual(0, StructuredInputSourceCounters.NumbersConstructed);
     }
@@ -476,8 +467,8 @@ public sealed class StructuredInputFoundationTests
         using var compiled = build.CompiledQuery!;
         var table = compiled.Run();
         Assert.AreEqual(2, table.Rows.Count);
-        Assert.AreEqual("todo", table.Rows[0][0]);
-        Assert.AreEqual("fixme", table.Rows[1][0]);
+        Assert.AreEqual("todo", table.Rows[0].ReadValue(0));
+        Assert.AreEqual("fixme", table.Rows[1].ReadValue(0));
         Assert.AreEqual(1, StructuredInputSourceCounters.MatchConstructed);
     }
 
@@ -500,7 +491,7 @@ public sealed class StructuredInputFoundationTests
 
         using var compiled = build.CompiledQuery!;
         var table = compiled.Run();
-        CollectionAssert.AreEqual(new[] { 1, 2, 2 }, table.Rows.Select(static row => (int)row[0]!).ToArray());
+        CollectionAssert.AreEqual(new[] { 1, 2, 2 }, table.Rows.Select(static row => (int)row.ReadValue(0)!).ToArray());
         Assert.AreEqual(1, StructuredInputSourceCounters.NumbersConstructed);
     }
 
@@ -520,7 +511,8 @@ public sealed class StructuredInputFoundationTests
         StringAssert.Contains(inspection.ExecutionPlanText, "ownership=ConstructFresh");
         StringAssert.Contains(inspection.GeneratedCSharpCode, "__musoqPrepareCte_");
         StringAssert.Contains(inspection.GeneratedCSharpCode, "__musoqStructuralNodes");
-        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("__musoqCheckStructural_", StringComparison.Ordinal));
+        StringAssert.Contains(inspection.GeneratedCSharpCode, "private static string __musoqCheckStructural_");
+        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("private static Musoq.Examples.DataSources.StructuredInputs.PatternInput[] __musoqCheckStructural_", StringComparison.Ordinal));
         Assert.IsTrue(
             inspection.GeneratedCSharpCode.IndexOf("__musoqStructuralNodes", StringComparison.Ordinal) <
             inspection.GeneratedCSharpCode.IndexOf("PatternInput[rows.Count]", StringComparison.Ordinal),
@@ -540,8 +532,8 @@ public sealed class StructuredInputFoundationTests
         Assert.IsTrue(build.Succeeded, string.Join(Environment.NewLine, build.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())));
 
         using var table = build.CompiledQuery!.Run();
-        Assert.AreEqual("decimal", table.Rows.Single()[0]);
-        Assert.AreEqual(42, table.Rows.Single()[1]);
+        Assert.AreEqual("decimal", table.Rows.Single().ReadValue(0));
+        Assert.AreEqual(42, table.Rows.Single().ReadValue(1));
         Assert.AreEqual(1, StructuredInputSourceCounters.OverloadConstructed);
     }
 

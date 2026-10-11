@@ -22,7 +22,7 @@ public partial class ExploratoryComplexPatternsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("AgeMultiplied", typeof(decimal)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("AgeMultiplied", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", 45m]);
     }
 
@@ -45,7 +45,7 @@ public partial class ExploratoryComplexPatternsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("FirstTwo", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("FirstTwo", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "Jo"]);
     }
 
@@ -69,7 +69,7 @@ public partial class ExploratoryComplexPatternsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("t.Value", typeof(string)), ("Replaced", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)), ("Replaced", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["apple", "Xpple"], ["banana", "bXnXnX"]);
@@ -98,7 +98,7 @@ public partial class ExploratoryComplexPatternsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)), ("Trimmed", typeof(string)),
+            ("Name", typeof(string)), ("Trimmed", typeof(string)),
             ("LeftTrimmed", typeof(string)), ("RightTrimmed", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["  John  ", "John", "John  ", "  John"]);
     }

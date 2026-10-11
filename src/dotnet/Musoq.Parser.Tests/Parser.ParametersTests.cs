@@ -12,6 +12,19 @@ namespace Musoq.Parser.Tests;
 public class ParserParametersTests
 {
     [TestMethod]
+    [DataRow("$values[1]")]
+    [DataRow("$values[-1]")]
+    [DataRow("$values[$position + 1]")]
+    public void Parser_IndexedParameter_ShouldParsePostfixExpression(string expression)
+    {
+        var root = Parse($"select {expression} as Selected from #test.rows()");
+        var statements = (StatementsArrayNode)root.Expression;
+        var query = ((SingleSetNode)statements.Statements[0].Node).Query;
+        var access = (ArrayIndexNode)query.Select.Fields[0].Expression;
+        Assert.AreEqual("values", ((ParameterReferenceNode)access.Array).Name);
+    }
+
+    [TestMethod]
     public void Lexer_ParameterReference_ShouldReturnParameterReferenceToken()
     {
         var lexer = new Lexer("$author", true);

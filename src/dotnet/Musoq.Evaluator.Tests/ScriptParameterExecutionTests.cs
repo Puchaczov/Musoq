@@ -30,8 +30,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_1", table[0][0]);
-        Assert.AreEqual("VALUE_1", table[0][1]);
+        Assert.AreEqual("KEY_1", table[0].ReadValue(0));
+        Assert.AreEqual("VALUE_1", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -47,8 +47,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_1", table[0][0]);
-        Assert.AreEqual("VALUE_1", table[0][1]);
+        Assert.AreEqual("KEY_1", table[0].ReadValue(0));
+        Assert.AreEqual("VALUE_1", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -62,12 +62,12 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         Assert.AreEqual("key", vm.RequiredParameters[0].Name);
         Assert.AreEqual(typeof(string), vm.ParameterDefinitions[0].ParameterType);
 
-        vm.Parameters["key"] = "KEY_2";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_2", table[0][0]);
-        Assert.AreEqual("VALUE_2", table[0][1]);
+        Assert.AreEqual("KEY_2", table[0].ReadValue(0));
+        Assert.AreEqual("VALUE_2", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -76,12 +76,12 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(value: string) select $value from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
-        vm.Parameters["value"] = "Ada";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", "Ada");
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Ada", table[0][0]);
-        Assert.AreEqual("Ada", table[1][0]);
+        Assert.AreEqual("Ada", table[0].ReadValue(0));
+        Assert.AreEqual("Ada", table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -90,13 +90,13 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(key: string, Key: string) select $key, $Key from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
-        vm.Parameters["key"] = "lower";
-        vm.Parameters["Key"] = "upper";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "lower");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "Key", "upper");
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("lower", table[0][0]);
-        Assert.AreEqual("upper", table[0][1]);
+        Assert.AreEqual("lower", table[0].ReadValue(0));
+        Assert.AreEqual("upper", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -219,8 +219,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_1", table[0][0]);
-        Assert.AreEqual("VALUE_1", table[0][1]);
+        Assert.AreEqual("KEY_1", table[0].ReadValue(0));
+        Assert.AreEqual("VALUE_1", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -230,12 +230,12 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             "param(key: string = 'KEY_1') select Key, Value from #EnvironmentVariables.All() where Key = $key";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
-        vm.Parameters["key"] = "KEY_2";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_2", table[0][0]);
-        Assert.AreEqual("VALUE_2", table[0][1]);
+        Assert.AreEqual("KEY_2", table[0].ReadValue(0));
+        Assert.AreEqual("VALUE_2", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -274,7 +274,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(key: string) select Key, Value from #Parameterized.Items() where Key = $key";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["Key"] = "KEY_1";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "Key", "KEY_1");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
@@ -290,8 +290,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(key: string) select Key, Value from #Parameterized.Items() where Key = $key";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["key"] = "KEY_1";
-        vm.Parameters["extra"] = "ignored";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "extra", "ignored");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
@@ -307,7 +307,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "select Key, Value from #Parameterized.Items()";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["extra"] = "ignored";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "extra", "ignored");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
@@ -323,7 +323,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(key: string = 'KEY_1') select Key, Value from #Parameterized.Items() where Key = $key";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["Key"] = "KEY_2";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "Key", "KEY_2");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
@@ -339,7 +339,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(limit: int) select Key, Value from #Parameterized.Items()";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["limit"] = "100";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", "100");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
@@ -355,7 +355,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(limit: int) select Key, Value from #Parameterized.Items()";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["limit"] = null;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", null);
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
@@ -371,7 +371,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(limit: int = 10) select Key, Value from #Parameterized.Items()";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["limit"] = "10";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", "10");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
@@ -388,12 +388,12 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             "param(key: string = 'KEY_2') select Key, Value from #Parameterized.Items($key)";
         var vm = CompileWithProvider(query, new ParameterizedEnvironmentSchemaProvider());
 
-        vm.Parameters["key"] = "KEY_1";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_1", table[0][0]);
-        Assert.AreEqual("VALUE_1", table[0][1]);
+        Assert.AreEqual("KEY_1", table[0].ReadValue(0));
+        Assert.AreEqual("VALUE_1", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -404,12 +404,12 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
-        vm.Parameters["key"] = "KEY_2";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_2", table[0][0]);
-        Assert.AreEqual("VALUE_2", table[0][1]);
+        Assert.AreEqual("KEY_2", table[0].ReadValue(0));
+        Assert.AreEqual("VALUE_2", table[0].ReadValue(1));
         Assert.AreEqual(1, provider.OpenCount);
     }
 
@@ -437,7 +437,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             "param(limit: int) select Key, Value from #Parameterized.Items($limit)";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["limit"] = null;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", null);
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
@@ -455,7 +455,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             "param(limit: int) select Key, Value from #Parameterized.Items($limit)";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["limit"] = "42";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", "42");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
@@ -473,8 +473,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             "param(key: string) select Key, Value from #Parameterized.Items($key)";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["key"] = "KEY_1";
-        vm.Parameters["extra"] = "ignored";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "extra", "ignored");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
@@ -493,15 +493,15 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
-        vm.Parameters["key"] = "KEY_1";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
         var first = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
-        vm.Parameters["key"] = "KEY_2";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
         var second = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
 
-        Assert.AreEqual("KEY_1", first[0][0]);
-        Assert.AreEqual("VALUE_1", first[0][1]);
-        Assert.AreEqual("KEY_2", second[0][0]);
-        Assert.AreEqual("VALUE_2", second[0][1]);
+        Assert.AreEqual("KEY_1", first[0].ReadValue(0));
+        Assert.AreEqual("VALUE_1", first[0].ReadValue(1));
+        Assert.AreEqual("KEY_2", second[0].ReadValue(0));
+        Assert.AreEqual("VALUE_2", second[0].ReadValue(1));
         Assert.AreEqual(2, provider.OpenCount);
     }
 
@@ -516,8 +516,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_2", table[0][0]);
-        Assert.AreEqual("VALUE_2", table[0][1]);
+        Assert.AreEqual("KEY_2", table[0].ReadValue(0));
+        Assert.AreEqual("VALUE_2", table[0].ReadValue(1));
         Assert.AreEqual(1, provider.OpenCount);
     }
 
@@ -527,18 +527,18 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(key: string) select Key, Value from #EnvironmentVariables.All() where Key = $key";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
-        vm.Parameters["key"] = "KEY_1";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
         var firstTable = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
 
-        vm.Parameters["key"] = "KEY_2";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
         var secondTable = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
 
         Assert.AreEqual(1, firstTable.Count);
-        Assert.AreEqual("KEY_1", firstTable[0][0]);
-        Assert.AreEqual("VALUE_1", firstTable[0][1]);
+        Assert.AreEqual("KEY_1", firstTable[0].ReadValue(0));
+        Assert.AreEqual("VALUE_1", firstTable[0].ReadValue(1));
         Assert.AreEqual(1, secondTable.Count);
-        Assert.AreEqual("KEY_2", secondTable[0][0]);
-        Assert.AreEqual("VALUE_2", secondTable[0][1]);
+        Assert.AreEqual("KEY_2", secondTable[0].ReadValue(0));
+        Assert.AreEqual("VALUE_2", secondTable[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -555,8 +555,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsNull(table[0][0]);
-        Assert.IsNull(table[1][0]);
+        Assert.IsNull(table[0].ReadValue(0));
+        Assert.IsNull(table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -564,13 +564,13 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
     {
         const string query = "param(limit: int? = null) select $limit from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
-        vm.Parameters["limit"] = 42;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", 42);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(42, table[0][0]);
-        Assert.AreEqual(42, table[1][0]);
+        Assert.AreEqual(42, table[0].ReadValue(0));
+        Assert.AreEqual(42, table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -608,28 +608,28 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(10, table[0][0]);
-        Assert.AreEqual(11u, table[0][1]);
-        Assert.AreEqual(12L, table[0][2]);
-        Assert.AreEqual(13UL, table[0][3]);
-        Assert.AreEqual((short)14, table[0][4]);
-        Assert.AreEqual((ushort)15, table[0][5]);
-        Assert.AreEqual((sbyte)16, table[0][6]);
-        Assert.AreEqual((byte)17, table[0][7]);
-        Assert.AreEqual(18.5f, (float)table[0][8], 0.0001f);
-        Assert.AreEqual(19.5d, (double)table[0][9], 0.0001d);
-        Assert.AreEqual(20.5m, table[0][10]);
-        Assert.IsTrue((bool)table[0][11]);
-        Assert.AreEqual('x', table[0][12]);
-        Assert.AreEqual("hello", table[0][13]);
-        Assert.AreEqual(Guid.Parse(guidText), table[0][14]);
+        Assert.AreEqual(10, table[0].ReadValue(0));
+        Assert.AreEqual(11u, table[0].ReadValue(1));
+        Assert.AreEqual(12L, table[0].ReadValue(2));
+        Assert.AreEqual(13UL, table[0].ReadValue(3));
+        Assert.AreEqual((short)14, table[0].ReadValue(4));
+        Assert.AreEqual((ushort)15, table[0].ReadValue(5));
+        Assert.AreEqual((sbyte)16, table[0].ReadValue(6));
+        Assert.AreEqual((byte)17, table[0].ReadValue(7));
+        Assert.AreEqual(18.5f, (float)table[0].ReadValue(8), 0.0001f);
+        Assert.AreEqual(19.5d, (double)table[0].ReadValue(9), 0.0001d);
+        Assert.AreEqual(20.5m, table[0].ReadValue(10));
+        Assert.IsTrue((bool)table[0].ReadValue(11));
+        Assert.AreEqual('x', table[0].ReadValue(12));
+        Assert.AreEqual("hello", table[0].ReadValue(13));
+        Assert.AreEqual(Guid.Parse(guidText), table[0].ReadValue(14));
         Assert.AreEqual(
             DateTime.Parse(dateTimeText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-            table[0][15]);
+            table[0].ReadValue(15));
         Assert.AreEqual(
             DateTimeOffset.Parse(dateTimeOffsetText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-            table[0][16]);
-        Assert.AreEqual(TimeSpan.Parse(timeSpanText, CultureInfo.InvariantCulture), table[0][17]);
+            table[0].ReadValue(16));
+        Assert.AreEqual(TimeSpan.Parse(timeSpanText, CultureInfo.InvariantCulture), table[0].ReadValue(17));
     }
 
     private CompiledQuery CompileWithProvider(string query, ISchemaProvider provider)
@@ -727,11 +727,12 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             return new EnvironmentVariableEntityTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
+            var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             onOpen();
             var key = parameters.Length > 0 ? parameters[0] as string : null;
             var rows = (key == null

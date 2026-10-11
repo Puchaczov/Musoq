@@ -2,6 +2,7 @@ namespace Musoq.Evaluator;
 
 internal enum RLikeLiteralMatchKind
 {
+    Regex = -1,
     Exact,
     Prefix,
     Suffix,

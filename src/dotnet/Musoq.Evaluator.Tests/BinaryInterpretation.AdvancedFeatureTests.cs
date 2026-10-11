@@ -198,7 +198,7 @@ public class BinaryInterpretationAdvancedFeatureTests : BinaryInterpretationTest
         Assert.IsNull(GetPropertyValue<string>(result, "ErrorField"));
         Assert.IsNull(GetPropertyValue<string>(result, "ErrorMessage"));
 
-        var parsedFields = GetPropertyValue<Dictionary<string, object?>>(result, "ParsedFields");
+        var parsedFields = PartialPayloadAssertions.CompletedValues(GetPropertyValue<object>(result, "ParsedFields"));
         Assert.IsTrue(parsedFields.ContainsKey("Value"));
         Assert.AreEqual(0x12345678, parsedFields["Value"]);
     }

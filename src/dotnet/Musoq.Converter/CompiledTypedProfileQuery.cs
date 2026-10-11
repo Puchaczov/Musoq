@@ -38,7 +38,7 @@ public sealed class CompiledTypedProfileQuery<TOut> : IProfiledTypedRunnable<TOu
         remove => _runState.RemoveQueryProgress(value);
     }
 
-    public IDictionary<string, object?> Parameters => _runState.Parameters;
+    public TypedParameterValues TypedParameters => _runState.TypedParameters;
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions => _runState.ParameterDefinitions;
 
@@ -63,7 +63,8 @@ public sealed class CompiledTypedProfileQuery<TOut> : IProfiledTypedRunnable<TOu
         ArgumentNullException.ThrowIfNull(options);
 
         var compiledQuery = _factory.CreateCompiledQuery(_schemaProvider);
-        ApplyParameters(compiledQuery, options.Parameters);
+        if (options.TypedParameters.Count != 0)
+            compiledQuery.TypedParameters.ReplaceWith(options.TypedParameters);
         if (options.PhaseChanged != null)
             compiledQuery.PhaseChanged += options.PhaseChanged;
         if (options.DataSourceProgress != null)
@@ -89,11 +90,10 @@ public sealed class CompiledTypedProfileQuery<TOut> : IProfiledTypedRunnable<TOu
         }
     }
 
-    private static TypedQueryProfileResult<TOut> CreateTypedProfileResult(QueryProfileResult profileResult)
+    private TypedQueryProfileResult<TOut> CreateTypedProfileResult(QueryProfileResult profileResult)
     {
-        var projector = TableTypedRowProjector<TOut>.Create(profileResult.Result);
         return new TypedQueryProfileResult<TOut>(
-            ProjectRows(profileResult.Result, projector),
+            ProjectRows(profileResult.Result, _factory.Projector),
             profileResult.Profile,
             profileResult.ProfileText,
             isSourceExecutionComplete: true);
@@ -103,15 +103,6 @@ public sealed class CompiledTypedProfileQuery<TOut> : IProfiledTypedRunnable<TOu
     {
         foreach (var row in table)
             yield return projector.Project(row);
-    }
-
-    private static void ApplyParameters(CompiledQuery compiledQuery, IReadOnlyDictionary<string, object?>? parameters)
-    {
-        if (parameters != null)
-        {
-            foreach (var parameter in parameters)
-                compiledQuery.Parameters[parameter.Key] = parameter.Value;
-        }
     }
 
 }

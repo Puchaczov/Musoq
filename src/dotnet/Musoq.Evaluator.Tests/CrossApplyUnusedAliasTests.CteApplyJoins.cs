@@ -46,9 +46,9 @@ public partial class CrossApplyUnusedAliasTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("c.City", typeof(string)),
-            ("t.Money", typeof(decimal)),
-            ("j.Month", typeof(string)));
+            ("City", typeof(string)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["City1", 1000m, "March"]);
@@ -97,9 +97,9 @@ public partial class CrossApplyUnusedAliasTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("c.City", typeof(string)),
-            ("t.Money", typeof(decimal)),
-            ("j.Month", typeof(string)));
+            ("City", typeof(string)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["City1", 1000m, "March"],

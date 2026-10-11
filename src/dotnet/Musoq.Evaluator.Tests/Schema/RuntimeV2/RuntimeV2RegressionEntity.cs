@@ -22,7 +22,7 @@ public sealed class RuntimeV2RegressionEntity
 
     public int Salary { get; init; }
 
-    public object? Amount { get; init; }
+    public double? Amount { get; init; }
 
     public static IReadOnlyList<RuntimeV2RegressionEntity> EmptyRows { get; } = [];
 }

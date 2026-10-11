@@ -24,8 +24,8 @@ public sealed class AsyncQueryRowsTests
             cancellation.Token);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual(2, table[1][0]);
+        Assert.AreEqual(1, table[0].ReadValue(0));
+        Assert.AreEqual(2, table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -38,7 +38,7 @@ public sealed class AsyncQueryRowsTests
             CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(3, table[2][0]);
+        Assert.AreEqual(3, table[2].ReadValue(0));
     }
 
     private static async IAsyncEnumerable<Row> CreateRows(
@@ -61,10 +61,11 @@ public sealed class AsyncQueryRowsTests
 
     private sealed class ValueRow(int value) : Row
     {
+        public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            => TypedColumnVisit.Apply(0, value, ref visitor);
+
         public override int Count => 1;
 
-        public override object this[int columnNumber] => columnNumber == 0
-            ? value
-            : throw new System.IndexOutOfRangeException();
+
     }
 }

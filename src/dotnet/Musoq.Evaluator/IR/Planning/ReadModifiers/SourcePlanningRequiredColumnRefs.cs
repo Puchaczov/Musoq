@@ -19,15 +19,15 @@ internal static partial class SourcePlanningPlanner
         }
 
         var columnsByName = ResolveColumns(context, scan)
-            .GroupBy(static column => column.ColumnName, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(static group => group.Key, static group => group.First(), StringComparer.OrdinalIgnoreCase);
+            .GroupBy(static column => column.ColumnName, StringComparer.Ordinal)
+            .ToDictionary(static group => group.Key, static group => group.First(), StringComparer.Ordinal);
 
         return usages
             .Select(static usage => usage.ColumnName)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(static columnName => columnName, StringComparer.OrdinalIgnoreCase)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(static columnName => columnName, StringComparer.Ordinal)
             .Select(columnName => columnsByName.TryGetValue(columnName, out var column)
-                ? new SourceColumnRef(column.ColumnName, column.ReadModifiers)
+                ? new SourceColumnRef(column.ColumnName, column.ReadModifiers) { ValueTypeName = column.ColumnType.AssemblyQualifiedName }
                 : new SourceColumnRef(columnName))
             .ToArray();
     }

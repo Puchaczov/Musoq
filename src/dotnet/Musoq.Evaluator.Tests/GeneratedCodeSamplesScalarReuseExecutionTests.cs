@@ -15,8 +15,8 @@ public sealed class GeneratedCodeSamplesScalarReuseExecutionTests
         using var table = query.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Rows.All(row => row[0] is int));
-        Assert.AreEqual(100, table[0][0]);
+        Assert.IsTrue(table.Rows.All(row => row.ReadValue(0) is int));
+        Assert.AreEqual(100, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -26,8 +26,8 @@ public sealed class GeneratedCodeSamplesScalarReuseExecutionTests
         using var table = query.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Rows.All(row => row[0] is int));
-        Assert.AreEqual(1L, table[0][1]);
+        Assert.IsTrue(table.Rows.All(row => row.ReadValue(0) is int));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -37,8 +37,8 @@ public sealed class GeneratedCodeSamplesScalarReuseExecutionTests
         using var table = query.Run();
 
         Assert.AreEqual(6, table.Count);
-        Assert.AreEqual(10, table[0][0]);
-        Assert.AreEqual(101, table[0][1]);
+        Assert.AreEqual(10, table[0].ReadValue(0));
+        Assert.AreEqual(101, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -48,7 +48,7 @@ public sealed class GeneratedCodeSamplesScalarReuseExecutionTests
         using var table = query.Run();
 
         Assert.AreEqual(6, table.Count);
-        Assert.IsTrue(table.Rows.All(row => row[0] is int));
+        Assert.IsTrue(table.Rows.All(row => row.ReadValue(0) is int));
     }
 
     private static CompiledQuery Compile(string fileName)

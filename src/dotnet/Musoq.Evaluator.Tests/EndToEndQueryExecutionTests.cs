@@ -14,29 +14,6 @@ public partial class EndToEndQueryExecutionTests : BasicEntityTestBase
 {
 
     [TestMethod]
-    public void Query_IsNullInWhere_ShouldWork()
-    {
-        var query = "select Name from #A.Entities() where NullableValue is null";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("HasValue") { NullableValue = 5 },
-                    new BasicEntity("NoValue") { NullableValue = null }
-                ]
-            }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("NoValue", table[0][0]);
-    }
-
-
-
-    [TestMethod]
     public void Query_ChainedExcept_ShouldWork()
     {
         var query = @"
@@ -115,7 +92,7 @@ public partial class EndToEndQueryExecutionTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A", table[0][0]);
+        Assert.AreEqual("A", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -131,7 +108,7 @@ public partial class EndToEndQueryExecutionTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("B", table[0][0]);
+        Assert.AreEqual("B", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -147,7 +124,7 @@ public partial class EndToEndQueryExecutionTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("C", table[0][0]);
+        Assert.AreEqual("C", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -163,7 +140,7 @@ public partial class EndToEndQueryExecutionTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Other", table[0][0]);
+        Assert.AreEqual("Other", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -185,7 +162,7 @@ public partial class EndToEndQueryExecutionTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("B", table[0][0]);
+        Assert.AreEqual("B", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -206,7 +183,7 @@ public partial class EndToEndQueryExecutionTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("HasValue", table[0][0]);
+        Assert.AreEqual("HasValue", table[0].ReadValue(0));
     }
 
 
@@ -283,7 +260,7 @@ public partial class EndToEndQueryExecutionTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("B", table[0][0]);
+        Assert.AreEqual("B", table[0].ReadValue(0));
     }
 
     [TestMethod]

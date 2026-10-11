@@ -54,10 +54,10 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.Magic", typeof(int)),
-            ("h.Version", typeof(byte)),
-            ("h.Flags", typeof(byte)),
-            ("h.Length", typeof(short)));
+            ("Magic", typeof(int)),
+            ("Version", typeof(byte)),
+            ("Flags", typeof(byte)),
+            ("Length", typeof(short)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [0x474E5089, (byte)1, (byte)0xFF, (short)4096]);
     }
 
@@ -99,9 +99,9 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("l.A", typeof(byte)),
-            ("l.B", typeof(byte)),
-            ("l.C", typeof(byte)));
+            ("A", typeof(byte)),
+            ("B", typeof(byte)),
+            ("C", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)1, (byte)2, (byte)3]);
     }
 
@@ -141,9 +141,9 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("d.Value", typeof(int)),
-            ("d.Doubled", typeof(int)),
-            ("d.IsPositive", typeof(bool)));
+            ("Value", typeof(int)),
+            ("Doubled", typeof(int)),
+            ("IsPositive", typeof(bool)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [25, 50, true]);
     }
 
@@ -190,9 +190,9 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("o.HasExtra", typeof(byte)),
-            ("o.ExtraData", typeof(int?)),
-            ("o.Value", typeof(int)));
+            ("HasExtra", typeof(byte)),
+            ("ExtraData", typeof(int?)),
+            ("Value", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)1, 0x12345678, 42]);
     }
 
@@ -234,9 +234,9 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("o.HasExtra", typeof(byte)),
-            ("o.ExtraData", typeof(int?)),
-            ("o.Value", typeof(int)));
+            ("HasExtra", typeof(byte)),
+            ("ExtraData", typeof(int?)),
+            ("Value", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)0, null, 42]);
     }
 
@@ -282,9 +282,9 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.Name", typeof(string)),
-            ("r.Type", typeof(byte)),
-            ("r.ExtendedInfo", typeof(short?)));
+            ("Name", typeof(string)),
+            ("Type", typeof(byte)),
+            ("ExtendedInfo", typeof(short?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["extended.bin", (byte)1, (short)0x1234]);
     }
 
@@ -330,8 +330,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.Version", typeof(byte)),
-            ("h.Size", typeof(int)));
+            ("Version", typeof(byte)),
+            ("Size", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)2, 1024]);
     }
 
@@ -405,8 +405,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("v.Version", typeof(byte)),
-            ("v.Data", typeof(int)));
+            ("Version", typeof(byte)),
+            ("Data", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)5, 12345]);
     }
 
@@ -455,9 +455,9 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("i.HeaderSize", typeof(int)),
-            ("i.DataOffset", typeof(int)),
-            ("i.Data", typeof(int)));
+            ("HeaderSize", typeof(int)),
+            ("DataOffset", typeof(int)),
+            ("Data", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [8, 16, 42]);
     }
 
@@ -500,9 +500,9 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("c.HasData", typeof(byte)),
-            ("c.DataOffset", typeof(int)),
-            ("c.Data", typeof(int?)));
+            ("HasData", typeof(byte)),
+            ("DataOffset", typeof(int)),
+            ("Data", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)1, 10, 999]);
     }
 

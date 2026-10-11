@@ -21,9 +21,6 @@ public sealed partial class ExecutionCSharpRenderer
         if (accessMode == ExecutionRowAccessMode.Direct)
             return [CreateLocalDeclaration(CreateIndexedItemTypeSyntax(item, source), item.Name, itemAccess)];
 
-        if (accessMode == ExecutionRowAccessMode.ExpandoAdapter)
-            return [CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), item.Name, itemAccess)];
-
         throw UnsupportedShape.Of($"Indexed row access mode {accessMode}");
     }
 
@@ -40,32 +37,6 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateVariableTypeSyntax(item);
     }
 
-    private static ForStatementSyntax CreateIndexedForLoop(
-        string indexVariableName,
-        ExecutionVariable buffer,
-        StatementSyntax body)
-    {
-        return StatementEmitter.CreateForLoop(
-            indexVariableName,
-            0,
-            SyntaxFactory.BinaryExpression(
-                SyntaxKind.LessThanExpression,
-                SyntaxFactory.IdentifierName(indexVariableName),
-                CreateBufferCountExpression(buffer)),
-            SyntaxFactory.PrefixUnaryExpression(
-                SyntaxKind.PreIncrementExpression,
-                SyntaxFactory.IdentifierName(indexVariableName)),
-            body);
-    }
-
-    private static MemberAccessExpressionSyntax CreateBufferCountExpression(ExecutionVariable buffer)
-    {
-        return SyntaxFactory.MemberAccessExpression(
-            SyntaxKind.SimpleMemberAccessExpression,
-            SyntaxFactory.IdentifierName(buffer.Name),
-            SyntaxFactory.IdentifierName("Count"));
-    }
-
     private static Type CreateWindowResultElementType(ExecutionVariable results)
     {
         return results.Type.RequireClrType().GetElementType() ??
@@ -78,23 +49,6 @@ public sealed partial class ExecutionCSharpRenderer
         ExpressionSyntax value)
     {
         return CreateArrayAssignment(array.Name, indexVariableName, value, GetArrayElementType(array));
-    }
-
-    private static ExpressionStatementSyntax CreateArrayAssignment(
-        string arrayName,
-        string indexVariableName,
-        ExpressionSyntax value,
-        Type elementType)
-    {
-        return SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression,
-                CreateElementAccess(
-                    SyntaxFactory.IdentifierName(arrayName),
-                    SyntaxFactory.IdentifierName(indexVariableName)),
-                SyntaxFactory.CastExpression(
-                    CreateTypeSyntax(elementType),
-                    SyntaxFactory.ParenthesizedExpression(value))));
     }
 
     private static ExpressionStatementSyntax CreateIntArrayAssignment(
@@ -123,9 +77,4 @@ public sealed partial class ExecutionCSharpRenderer
             .WithArgumentList(CreateArgumentList(arguments));
     }
 
-    private static ArrayCreationExpressionSyntax CreateWindowOrderDescendingArray(
-        IReadOnlyList<ExecutionWindowOrderKey> orderKeys)
-    {
-        return CreateArrayCreation("bool", orderKeys.Select(key => CreateBooleanLiteral(key.Descending)));
-    }
 }

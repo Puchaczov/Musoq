@@ -204,7 +204,7 @@ public sealed class DiagnosticREC100EnumSemanticsTests : GenericEntityTestBase
 
         Assert.HasCount(2, table);
         foreach (var row in table)
-            CollectionAssert.AreEqual(new object?[] { (short)20, "Running", true }, row.Values);
+            CollectionAssert.AreEqual(new object?[] { (short)20, "Running", true }, row.ReadValues());
 
         var status = table.Columns.Single(column => column.ColumnName == "StatusValue");
         Assert.AreEqual(typeof(short), status.ColumnType);
@@ -222,7 +222,7 @@ public sealed class DiagnosticREC100EnumSemanticsTests : GenericEntityTestBase
             Rows).Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        CollectionAssert.AreEqual(new object?[] { "ReadWrite", true, true, 3u }, table[0].Values);
+        CollectionAssert.AreEqual(new object?[] { "ReadWrite", true, true, 3u }, table[0].ReadValues());
         Assert.AreEqual(typeof(uint), table.Columns.Single(column => column.ColumnName == "AccessValue").ColumnType);
     }
 

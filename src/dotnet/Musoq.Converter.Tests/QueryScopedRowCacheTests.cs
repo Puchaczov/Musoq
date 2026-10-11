@@ -37,7 +37,7 @@ public sealed class QueryScopedRowCacheTests
 
         var firstRuntime = GetGeneratedRuntime(first.CompiledQuery!);
         using (var table = first.CompiledQuery!.Run())
-            Assert.AreEqual(11, table[0][0]);
+            Assert.AreEqual(11, table[0].ReadValue(0));
 
         var secondProvider = new QueryRowCacheSchemaProvider(NarrowState(22));
         var second = Compile(query, "QueryRowCacheFreshSecond", secondProvider);
@@ -47,7 +47,7 @@ public sealed class QueryScopedRowCacheTests
         Assert.AreEqual(firstRuntime.Type.Module.ModuleVersionId, secondRuntime.Type.Module.ModuleVersionId);
         Assert.AreNotSame(firstRuntime.Context, secondRuntime.Context);
         using (var table = second.CompiledQuery!.Run())
-            Assert.AreEqual(22, table[0][0]);
+            Assert.AreEqual(22, table[0].ReadValue(0));
 
         first.CompiledQuery.Dispose();
         second.CompiledQuery.Dispose();
@@ -65,7 +65,7 @@ public sealed class QueryScopedRowCacheTests
         var firstTransfer = Transfer(first.BuildItems!);
         var firstEntry = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(first.BuildItems!, provider);
         using (var table = first.CompiledQuery!.Run())
-            Assert.AreEqual(7, table[0][0]);
+            Assert.AreEqual(7, table[0].ReadValue(0));
         first.CompiledQuery.Dispose();
 
         state.Configure(
@@ -80,13 +80,13 @@ public sealed class QueryScopedRowCacheTests
         Assert.AreNotEqual(firstTransfer.Shape!.Fingerprint, secondTransfer.Shape!.Fingerprint);
         Assert.AreNotEqual(firstEntry, secondEntry);
         using (var table = second.CompiledQuery!.Run())
-            Assert.AreEqual("changed", table[0][0]);
+            Assert.AreEqual("changed", table[0].ReadValue(0));
         second.CompiledQuery.Dispose();
 
         var third = Compile(query, $"QueryRowCacheShapeThird_{Guid.NewGuid():N}", provider);
         Assert.IsTrue(third.BuildItems!.StopAfterPlanning, "The updated semantic contract was not installed under the colliding exact key.");
         using (var table = third.CompiledQuery!.Run())
-            Assert.AreEqual("changed", table[0][0]);
+            Assert.AreEqual("changed", table[0].ReadValue(0));
         third.CompiledQuery.Dispose();
     }
 
@@ -117,7 +117,7 @@ public sealed class QueryScopedRowCacheTests
         Assert.AreEqual(SourceTransferMode.DeclaredRows, Transfer(legacy.BuildItems!).Mode);
         Assert.AreNotEqual(queryScopedEntry, legacyEntry);
         using (var table = legacy.CompiledQuery!.Run())
-            Assert.AreEqual(31, table[0][0]);
+            Assert.AreEqual(31, table[0].ReadValue(0));
         legacy.CompiledQuery.Dispose();
 
         var repeatedLegacy = Compile(query, "QueryRowCacheCapabilityLegacyRepeated", provider);

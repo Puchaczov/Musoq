@@ -163,7 +163,7 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][1]);
+        Assert.IsNull(table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -181,7 +181,7 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][1]);
+        Assert.IsNull(table[0].ReadValue(1));
     }
 
     #endregion

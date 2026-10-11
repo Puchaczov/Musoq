@@ -49,25 +49,17 @@ internal static class ExecutionSourceCodeGenerationPolicy
                 continue;
             }
 
-            if (IsSupportedDictionary(entityType))
-                continue;
-
-            if (IsSupportedDynamicObject(entityType))
+            foreach (var column in used)
             {
-                foreach (var column in used)
-                {
-                    if (CanReferenceType(column.ColumnType))
-                        continue;
+                if (CanReferenceType(column.ColumnType))
+                    continue;
 
-                    AddViolation(
-                        source,
-                        entityType,
-                        column.ColumnName,
-                        $"column '{column.ColumnName}' reaches non-referenceable type '{column.ColumnType.FullName ?? column.ColumnType.Name}'");
-                }
-
-                continue;
+                AddViolation(source, entityType, column.ColumnName,
+                    $"column '{column.ColumnName}' reaches non-referenceable type '{column.ColumnType.FullName ?? column.ColumnType.Name}'");
             }
+
+            if (entityType == typeof(QueryScopedRowContract) || IsSupportedDictionary(entityType) || IsSupportedDynamicObject(entityType))
+                continue;
 
             // A coupled/table source supplies a generated column contract rather than
             // CLR member paths. The public source row remains part of the typed source
@@ -133,7 +125,13 @@ internal static class ExecutionSourceCodeGenerationPolicy
     public static bool IsSupportedDictionary(Type type)
     {
         return type == DynamicEntityBoundary.ExpandoType ||
-               DynamicEntityBoundary.IsAssignableToStringObjectDictionary(type);
+               DynamicEntityBoundary.IsAssignableToStringObjectDictionary(type) ||
+               type.GetInterfaces().Prepend(type).Any(candidate =>
+                   candidate.IsGenericType &&
+                   (candidate.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>) ||
+                    candidate.GetGenericTypeDefinition() == typeof(IDictionary<,>)) &&
+                   candidate.GetGenericArguments()[0] == typeof(string) &&
+                   ConcreteValueShape.FindUnresolvedValueType(candidate.GetGenericArguments()[1]) is null);
     }
 
     public static bool IsSupportedDynamicObject(Type type)

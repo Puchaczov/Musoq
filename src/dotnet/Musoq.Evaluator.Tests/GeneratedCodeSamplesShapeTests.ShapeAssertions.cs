@@ -139,7 +139,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains($"{rowTypeName} ", generatedCode, sample.FileName);
         Assert.Contains("var __storedTable0Rows = _cteRowResults.Slot0;", generatedCode, sample.FileName);
         Assert.Contains($"{rowTypeName} c = __storedTable0Rows[__storedTable0Index];", generatedCode, sample.FileName);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(", generatedCode, sample.FileName);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(", generatedCode, sample.FileName);
         Assert.Contains($"HashJoinBucket<{rowTypeName}>", sample.Content, sample.FileName);
         Assert.IsFalse(
             generatedCode.Contains($"EvaluationHelper.CastGeneratedRows<{rowTypeName}>", StringComparison.Ordinal),
@@ -155,7 +155,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains($"HashJoinBucket<{payloadTypeName}>", sample.Content, sample.FileName);
         Assert.Contains("var cHash = _cteIndexResults.Slot0;", generatedCode, sample.FileName);
         Assert.Contains($"{payloadTypeName} cte0SidecarPayload0", generatedCode, sample.FileName);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(", generatedCode, sample.FileName);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(", generatedCode, sample.FileName);
         Assert.IsFalse(generatedCode.Contains("var __storedTable0Rows = _cteRowResults.Slot0;", StringComparison.Ordinal), sample.FileName);
         Assert.IsFalse(generatedCode.Contains("_tableResults[0]", StringComparison.Ordinal), sample.FileName);
         Assert.IsFalse(generatedCode.Contains("EvaluationHelper.CastGeneratedRows<Cte0Row0>", StringComparison.Ordinal), sample.FileName);
@@ -180,7 +180,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private static void AssertTypedCteAsOfSample(GeneratedCodeSampleFile sample)
     {
         Assert.Contains(
-            "EvaluationHelper.CreateAsOfIndex<Cte0Row0, decimal>(_cteRowResults.Slot0",
+            "EvaluationHelper.CreateAsOfIndex<Cte0Row0, decimal, bool>(_cteRowResults.Slot0",
             sample.Content,
             sample.FileName);
         Assert.IsFalse(sample.Content.Contains("EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tables.Row>", StringComparison.Ordinal), sample.FileName);
@@ -221,8 +221,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
     private static void AssertDynamicCteAsOfTypedSample(GeneratedCodeSampleFile sample)
     {
-        Assert.Contains("EvaluationHelper.CreateAsOfIndex<Cte0Row0, int>(_cteRowResults.Slot0", sample.Content, sample.FileName);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(l.Name, r.Name));", sample.Content, sample.FileName);
+        Assert.Contains("EvaluationHelper.CreateAsOfIndex<Cte0Row0, int, string>(_cteRowResults.Slot0", sample.Content, sample.FileName);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(l.Field1, r.Name));", sample.Content, sample.FileName);
         Assert.IsFalse(sample.Content.Contains("_tableResults[0]", StringComparison.Ordinal), sample.FileName);
         Assert.IsFalse(sample.Content.Contains("new Table(\"cte0\"", StringComparison.Ordinal), sample.FileName);
         Assert.IsFalse(sample.Content.Contains("EvaluationHelper.CastGeneratedRows<Cte0Row0>(_tableResults[0].Rows)", StringComparison.Ordinal), sample.FileName);
@@ -259,7 +259,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         string resultName)
     {
         Assert.Contains(
-            $"{resultName}Function.Accumulate((decimal?)ko3iko.Population);",
+            $"Musoq.Evaluator.Tests.Schema.Basic.Library.RunningProductKernel.Set(ref {resultName}State, (decimal?)((decimal?)ko3iko.Population));",
             content,
             $"{fileName}: window value conversion should use direct numeric conversion");
         Assert.IsFalse(
@@ -292,10 +292,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         string kernelName)
     {
         Assert.Contains(kernelName, content);
-        Assert.Contains(
-            $"var {resultName}Value = ((decimal?)ko3iko.Population);",
-            content,
-            $"{fileName}: window value conversion should use direct numeric conversion");
+        Assert.Contains($".Reset(ref {resultName}State)", content);
+        Assert.Contains($".Set(ref {resultName}State, (decimal?)", content);
+        Assert.Contains($".Get(in {resultName}State)", content);
+        Assert.Contains("decimal?", content);
         Assert.IsFalse(
             content.Contains($"{resultName}Function", StringComparison.Ordinal),
             $"{fileName}: aggregate kernel should not instantiate the plugin window function");

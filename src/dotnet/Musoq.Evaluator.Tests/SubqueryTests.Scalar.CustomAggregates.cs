@@ -18,7 +18,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("CountryRows", typeof(long?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -46,7 +46,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("CountryCities", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -75,7 +75,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("CountryRows", typeof(long?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,

@@ -17,7 +17,7 @@ public abstract partial class TextInterpreterBase<TOut>
         var maximum = quantifier == "?" ? 1 : int.MaxValue;
 
         if (quantifier is not ("+" or "*" or "?"))
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.GeneralError,
                 SchemaName,
                 fieldName,
@@ -29,7 +29,7 @@ public abstract partial class TextInterpreterBase<TOut>
             ParsePosition++;
 
         if (quantifier == "+" && ParsePosition == start)
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.ExpectedWhitespace,
                 SchemaName,
                 fieldName,

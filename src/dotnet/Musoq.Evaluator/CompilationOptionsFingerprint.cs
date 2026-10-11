@@ -33,6 +33,8 @@ public static class CompilationOptionsFingerprint
         Append(builder, nameof(options.RecursiveCteLimits.MaxRows), options.RecursiveCteLimits.MaxRows);
         Append(builder, nameof(options.RecursiveCteLimits.MaxSnapshotRows), options.RecursiveCteLimits.MaxSnapshotRows);
 
+        Append(builder, nameof(options.RegexMatchTimeout), options.RegexMatchTimeout.Ticks);
+
         var bytes = Encoding.UTF8.GetBytes(builder.ToString());
         return $"{FormatVersion}:{Convert.ToHexString(SHA256.HashData(bytes))}";
     }

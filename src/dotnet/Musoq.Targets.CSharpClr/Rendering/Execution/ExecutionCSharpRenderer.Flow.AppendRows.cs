@@ -11,18 +11,19 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private StatementSyntax RenderAppendRow(ExecutionAppendRow appendRow, ExecutionRenderContext context)
     {
-        appendRow = NormalizeLazyContextSegments(appendRow);
-
         if (context.Session.FinalShapeYieldSink is { } finalShapeYieldSink &&
             string.Equals(appendRow.Table.Name, finalShapeYieldSink.TableName, StringComparison.Ordinal))
         {
-            return CreateFinalShapeOutputStatement(CreateFinalShapeCreation(finalShapeYieldSink.ShapeTypeName, appendRow), context);
+            return CreateFinalShapeOutputStatement(CreateFinalShapeCreation(finalShapeYieldSink.ShapeTypeName, appendRow, context), context);
         }
 
         if (TryGetFinalShapeSourceBuffer(appendRow.Table.Name, context, out var finalShapeSourceBuffer))
             return CreateRowBufferAddStatement(
                 appendRow.Table.Name,
-                CreateFinalShapeCreation(finalShapeSourceBuffer.ShapeTypeName, appendRow));
+                CreateFinalShapeCreation(finalShapeSourceBuffer.ShapeTypeName, appendRow, context));
+
+        if (TryGetColumnarStoredTableResult(appendRow.Table.Name, context, out var columnarResult))
+            return CreateColumnarBufferAddStatement(appendRow, columnarResult, context);
 
         if (TryGetTypedRowBufferShape(appendRow.Table.Name, context, out _))
             return CreateRowBufferAddStatement(appendRow.Table.Name, CreateGeneratedRowCreation(appendRow, context));
@@ -31,6 +32,24 @@ public sealed partial class ExecutionCSharpRenderer
             appendRow.Table.Name,
             CreateGeneratedRowCreation(appendRow, context),
             appendRow.AppendMode);
+    }
+
+    private StatementSyntax CreateColumnarBufferAddStatement(
+        ExecutionAppendRow appendRow,
+        TypedStoredTableResult result,
+        ExecutionRenderContext context)
+    {
+        var valuesByName = appendRow.Values.ToDictionary(static value => value.FieldName, StringComparer.Ordinal);
+        var values = result.RowShape.Fields
+            .OrderBy(static field => field.OutputIndex)
+            .Select(field => RenderExpression(valuesByName[field.Name].Value, context));
+        var add = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(appendRow.Table.Name),
+                    SyntaxFactory.IdentifierName("Add")))
+            .WithArgumentList(CreateArgumentList(values));
+        return SyntaxFactory.ExpressionStatement(add);
     }
 
     private StatementSyntax RenderAppendExistingRow(ExecutionAppendExistingRow appendRow, ExecutionRenderContext context)
@@ -70,13 +89,6 @@ public sealed partial class ExecutionCSharpRenderer
             appendRow.Contexts,
             appendRow.ContextLayout,
             context);
-    }
-
-    private ExpressionSyntax RenderRowConstructorValue(
-        ExecutionExpression expression,
-        Type targetType)
-    {
-        return RenderRowConstructorValue(expression, targetType, CreateIsolatedRenderContext());
     }
 
     private ExpressionSyntax RenderRowConstructorValue(
@@ -147,9 +159,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return segment.Kind switch
         {
-            ExecutionContextSegmentKind.Single => SyntaxFactory.CastExpression(
-                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
-                RenderContextSegmentValue(segment.Value, context)),
+            ExecutionContextSegmentKind.Single => RenderContextSegmentValue(segment.Value, context),
             ExecutionContextSegmentKind.Array => RenderExpression(segment.Value, context),
             ExecutionContextSegmentKind.Row => RenderExpression(segment.Value, context),
             _ => throw UnsupportedShape.Of($"Execution context segment kind {segment.Kind}")
@@ -160,9 +170,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionExpression value,
         ExecutionRenderContext context)
     {
-        return value is ExecutionFieldRead { AccessStrategy: ContextAccess or GeneratedRowContextAccess } fieldRead
-            ? RenderExpression(fieldRead with { ReturnType = ExecutionClrBindingFactory.FromClr(typeof(object)) }, context)
-            : RenderExpression(value, context);
+        return RenderExpression(value, context);
     }
 
     private static ExpressionStatementSyntax CreateTableAddStatement(

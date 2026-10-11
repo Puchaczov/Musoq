@@ -116,7 +116,7 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("c.Token", typeof(string)),
+            ("Token", typeof(string)),
             ("Uses", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -134,7 +134,7 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
             .Run(TestContext.CancellationToken));
 
         Assert.IsFalse(
-            descTable.Rows.SelectMany(static row => row.Values).Any(value => Equals(value, "prod-token")),
+            descTable.Rows.SelectMany(static row => row.ReadValues()).Any(value => Equals(value, "prod-token")),
             "DESC SETTINGS must not expose resolved setting values.");
         Assert.IsTrue(resolver.ProfileNames.Contains("prod"));
     }
@@ -317,11 +317,12 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
             return new Cross067Table(metadataContext.AllColumns.ToArray());
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
+            var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             Arguments.Add(parameters.ToArray());
             var rows = name.Equals("sales", StringComparison.OrdinalIgnoreCase)
                 ? CreateSalesRows()
@@ -382,7 +383,7 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
             Columns.Where(column =>
                 column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase)).ToArray();
 
-        public SchemaTableMetadata Metadata { get; } = new(typeof(Cross067Entity));
+        public SchemaTableMetadata Metadata { get; } = new(typeof(Cross067Entity)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
     }
 
     private sealed class Cross067RowSource(IReadOnlyList<Cross067Entity> rows)

@@ -63,7 +63,7 @@ internal static class ExecutionStringMatchSyntaxFactory
                     variable,
                     asciiStart,
                     asciiLength);
-            var fallback = CreateLegacyFallback(match, variable);
+            var fallback = CreateLegacyFallback(match, variable, match.RegexMatchTimeout ?? session.RegexMatchTimeout);
             var compatibleCultureMatch = Or(direct, And(Not(asciiCheck), fallback));
             selectedMatch = match.Needle.AsSpan().IndexOfAny('I', 'i') < 0
                 ? compatibleCultureMatch
@@ -73,19 +73,19 @@ internal static class ExecutionStringMatchSyntaxFactory
                     fallback);
         }
 
-        var successfulMatch = And(lengthCheck, Parenthesize(selectedMatch));
         if (match.Comparison == ExecutionStringMatchComparison.Ordinal)
         {
             return Parenthesize(SyntaxFactory.SwitchExpression(
                 Parenthesize(input),
                 SyntaxFactory.SeparatedList([
-                    SyntaxFactory.SwitchExpressionArm(stringPattern, successfulMatch),
+                    SyntaxFactory.SwitchExpressionArm(stringPattern, direct),
                     SyntaxFactory.SwitchExpressionArm(
                         SyntaxFactory.DiscardPattern(),
                         SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))
                 ])));
         }
 
+        var successfulMatch = And(lengthCheck, Parenthesize(selectedMatch));
         return Parenthesize(SyntaxFactory.ConditionalExpression(
             inputIsString,
             successfulMatch,
@@ -173,7 +173,8 @@ internal static class ExecutionStringMatchSyntaxFactory
 
     private static ExpressionSyntax CreateLegacyFallback(
         ExecutionStringMatch match,
-        IdentifierNameSyntax variable)
+        IdentifierNameSyntax variable,
+        TimeSpan timeout)
     {
         if (match is { Kind: ExecutionStringMatchKind.Prefix, Needle.Length: 1 })
         {
@@ -182,14 +183,16 @@ internal static class ExecutionStringMatchSyntaxFactory
                 nameof(Operators.LikeLegacyRegexSingleAsciiPrefix),
                 variable,
                 ExecutionSyntaxFactory.CreateStringLiteral(match.OriginalPattern),
-                ExecutionSyntaxFactory.CreateStringLiteral(match.Needle));
+                ExecutionSyntaxFactory.CreateStringLiteral(match.Needle),
+                RegexTimeoutSyntax.Create(timeout));
         }
 
         return InvokeStatic(
             nameof(Operators),
             nameof(Operators.LikeLegacyRegex),
             variable,
-            ExecutionSyntaxFactory.CreateStringLiteral(match.OriginalPattern));
+            ExecutionSyntaxFactory.CreateStringLiteral(match.OriginalPattern),
+            RegexTimeoutSyntax.Create(timeout));
     }
 
     private static bool RequiresLegacyUnicodeFallback(string needle)

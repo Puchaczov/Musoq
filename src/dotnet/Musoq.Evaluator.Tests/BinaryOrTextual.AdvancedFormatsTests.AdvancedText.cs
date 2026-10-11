@@ -48,8 +48,8 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         // Assert
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("kv.Key", typeof(string)),
-            ("kv.Value", typeof(string)));
+            ("Key", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["debug", "true"],
@@ -97,9 +97,9 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         // Assert
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("r.Id", typeof(string)),
-            ("r.Name", typeof(string)),
-            ("r.Amount", typeof(string)));
+            ("Id", typeof(string)),
+            ("Name", typeof(string)),
+            ("Amount", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["001", "Product A", "100.50"],
@@ -147,9 +147,9 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         // Assert
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("e.Timestamp", typeof(string)),
-            ("e.Level", typeof(string)),
-            ("e.Message", typeof(string)));
+            ("Timestamp", typeof(string)),
+            ("Level", typeof(string)),
+            ("Message", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["2024-01-01 10:00:00", "INFO", "Application started"],
@@ -195,9 +195,9 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         // Assert
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("r.Id", typeof(string)),
-            ("r.Name", typeof(string)),
-            ("r.Amount", typeof(string)));
+            ("Id", typeof(string)),
+            ("Name", typeof(string)),
+            ("Amount", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["00001", "John Smith", "0000100.50"],
@@ -243,8 +243,8 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         // Assert
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("s.Code", typeof(string)),
-            ("s.Status", typeof(string)));
+            ("Code", typeof(string)),
+            ("Status", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["200", "OK"],

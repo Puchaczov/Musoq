@@ -128,10 +128,10 @@ public class RuntimeReferenceDiscoveryBenchmark : BenchmarkBase
             };
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments parameters)
         {
             return name switch
             {

@@ -8,11 +8,13 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private static ExecutionExpression ConvertProjectedExpression(
+    private ExecutionExpression ConvertProjectedExpression(
         ProjectedField field,
         IReadOnlyDictionary<string, RowShape> sourceLookup)
     {
-        var expression = ExecutionExpressionConverter.Convert(field.Expression, sourceLookup);
+        var expression = _shapeResolver.InlineRecords.Bind(ExecutionExpressionConverter.Convert(field.Expression, sourceLookup));
+        if (_shapeResolver.ScriptValues.HasGeneratedStorage || _shapeResolver.InlineRecords.Carriers.Any())
+            expression = new NativeScriptGenericBinding(_shapeResolver.ScriptValues).RewriteExpression(expression);
         if (expression is not ExecutionFieldRead fieldRead ||
             fieldRead.AccessStrategy != null ||
             string.IsNullOrWhiteSpace(fieldRead.Alias))

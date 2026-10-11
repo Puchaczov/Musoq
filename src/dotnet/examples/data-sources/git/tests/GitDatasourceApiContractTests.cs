@@ -1,3 +1,4 @@
+using Musoq.Tests.Common;
 using Musoq.Evaluator;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
@@ -45,7 +46,7 @@ public sealed class GitDatasourceApiContractTests : GitExampleTestBase
         var profile = compiled.RunWithProfile(cancellation.Token);
 
         Assert.AreEqual(1, profile.Result.Count);
-        Assert.AreEqual("b2c3d4e", profile.Result[0][0]);
+        Assert.AreEqual("b2c3d4e", profile.Result[0].ReadValue(0));
 
         var runtimeSettingsRequest = resolver.Requests.Single();
         Assert.AreEqual("#git", runtimeSettingsRequest.Identity.SchemaName);
@@ -89,7 +90,7 @@ public sealed class GitDatasourceApiContractTests : GitExampleTestBase
 
         var rowSource = recorder.RowSourceCalls.Single();
         Assert.AreEqual(typeof(GitCommitRow), rowSource.RequestedRowType);
-        Assert.AreEqual("musoq", rowSource.Parameters.Single());
+        Assert.AreEqual("musoq", rowSource.Parameters);
         Assert.AreEqual(runtimeSettings.Identity, rowSource.Execution.Plan.Identity);
         AssertRequiredColumn(rowSource.Execution.Plan.AcceptedColumns, nameof(GitCommitRow.ShortSha));
         Assert.IsInstanceOfType<SourcePredicateComparison>(rowSource.Execution.Plan.AcceptedPredicate);
@@ -158,18 +159,18 @@ public sealed class GitDatasourceApiContractTests : GitExampleTestBase
             "select ShortSha from #git.commits($repo) order by AuthoredAt";
 
         var compiled = Compile(query, provider);
-        compiled.Parameters["repo"] = "docs";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "repo", "docs");
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
         Assert.IsTrue(recorder.GetTableCalls.Any(call =>
             call.Parameters.Count == 1 &&
             Equals(call.Parameters[0], "musoq")));
-        Assert.AreEqual("docs", recorder.GetTableCalls.Last().Parameters.Single());
+        Assert.AreEqual("musoq", recorder.GetTableCalls.Last().Parameters.Single());
         Assert.AreEqual("musoq", recorder.RuntimeSettingsCalls.Last().Parameters.Single());
         Assert.IsFalse(recorder.DescribeSourceCalls.Last().Parameters.Contains("docs"));
         Assert.IsFalse(recorder.PlanCalls.Last().Parameters.Contains("docs"));
-        Assert.AreEqual("docs", recorder.RowSourceCalls.Single().Parameters.Single());
+        Assert.AreEqual("docs", recorder.RowSourceCalls.Single().Parameters);
     }
 
     [TestMethod]

@@ -64,11 +64,11 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(800, table[0][0]);
-        Assert.AreEqual(600, table[0][1]);
-        Assert.AreEqual((byte)8, table[0][2]);
-        Assert.AreEqual((byte)6, table[0][3]);
-        Assert.AreEqual("IHDR", table[0][4]);
+        Assert.AreEqual(800, table[0].ReadValue(0));
+        Assert.AreEqual(600, table[0].ReadValue(1));
+        Assert.AreEqual((byte)8, table[0].ReadValue(2));
+        Assert.AreEqual((byte)6, table[0].ReadValue(3));
+        Assert.AreEqual("IHDR", table[0].ReadValue(4));
     }
 
     /// <summary>
@@ -140,11 +140,11 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("BM", table[0][0]);
-        Assert.AreEqual(1024, table[0][1]);
-        Assert.AreEqual(768, table[0][2]);
-        Assert.AreEqual((short)24, table[0][3]);
-        Assert.AreEqual(0, table[0][4]);
+        Assert.AreEqual("BM", table[0].ReadValue(0));
+        Assert.AreEqual(1024, table[0].ReadValue(1));
+        Assert.AreEqual(768, table[0].ReadValue(2));
+        Assert.AreEqual((short)24, table[0].ReadValue(3));
+        Assert.AreEqual(0, table[0].ReadValue(4));
     }
 
     /// <summary>
@@ -205,12 +205,12 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("RIFF", table[0][0]);
-        Assert.AreEqual("WAVE", table[0][1]);
-        Assert.AreEqual((short)1, table[0][2]);
-        Assert.AreEqual((short)2, table[0][3]);
-        Assert.AreEqual(44100, table[0][4]);
-        Assert.AreEqual((short)16, table[0][5]);
+        Assert.AreEqual("RIFF", table[0].ReadValue(0));
+        Assert.AreEqual("WAVE", table[0].ReadValue(1));
+        Assert.AreEqual((short)1, table[0].ReadValue(2));
+        Assert.AreEqual((short)2, table[0].ReadValue(3));
+        Assert.AreEqual(44100, table[0].ReadValue(4));
+        Assert.AreEqual((short)16, table[0].ReadValue(5));
     }
 
     /// <summary>
@@ -271,11 +271,11 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x04034b50, table[0][0]);
-        Assert.AreEqual((short)8, table[0][1]);
-        Assert.AreEqual(100, table[0][2]);
-        Assert.AreEqual(200, table[0][3]);
-        Assert.AreEqual("hello.txt", table[0][4]);
+        Assert.AreEqual(0x04034b50, table[0].ReadValue(0));
+        Assert.AreEqual((short)8, table[0].ReadValue(1));
+        Assert.AreEqual(100, table[0].ReadValue(2));
+        Assert.AreEqual(200, table[0].ReadValue(3));
+        Assert.AreEqual("hello.txt", table[0].ReadValue(4));
     }
 
     /// <summary>
@@ -325,12 +325,12 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("GIF", table[0][0]);
-        Assert.AreEqual("89a", table[0][1]);
-        Assert.AreEqual((short)640, table[0][2]);
-        Assert.AreEqual((short)480, table[0][3]);
-        Assert.AreEqual((byte)0xF7, table[0][4]);
-        Assert.AreEqual((byte)0, table[0][5]);
+        Assert.AreEqual("GIF", table[0].ReadValue(0));
+        Assert.AreEqual("89a", table[0].ReadValue(1));
+        Assert.AreEqual((short)640, table[0].ReadValue(2));
+        Assert.AreEqual((short)480, table[0].ReadValue(3));
+        Assert.AreEqual((byte)0xF7, table[0].ReadValue(4));
+        Assert.AreEqual((byte)0, table[0].ReadValue(5));
     }
 
     /// <summary>
@@ -393,11 +393,11 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)2, table[0][0]);
-        Assert.AreEqual((byte)1, table[0][1]);
-        Assert.AreEqual((short)2, table[0][2]);
-        Assert.AreEqual((short)62, table[0][3]);
-        Assert.AreEqual(0x400000L, table[0][4]);
+        Assert.AreEqual((byte)2, table[0].ReadValue(0));
+        Assert.AreEqual((byte)1, table[0].ReadValue(1));
+        Assert.AreEqual((short)2, table[0].ReadValue(2));
+        Assert.AreEqual((short)62, table[0].ReadValue(3));
+        Assert.AreEqual(0x400000L, table[0].ReadValue(4));
     }
 
     /// <summary>
@@ -469,12 +469,12 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         Assert.AreEqual(1, table.Count);
 
 
-        Assert.StartsWith("documents/report.txt", (string)table[0][0]);
-        Assert.StartsWith("0000644", (string)table[0][1]);
-        Assert.StartsWith("00000001234", (string)table[0][2]);
-        Assert.AreEqual((byte)'0', table[0][3]);
-        Assert.StartsWith("ustar", (string)table[0][4]);
-        Assert.StartsWith("developer", (string)table[0][5]);
+        Assert.StartsWith("documents/report.txt", (string)table[0].ReadValue(0));
+        Assert.StartsWith("0000644", (string)table[0].ReadValue(1));
+        Assert.StartsWith("00000001234", (string)table[0].ReadValue(2));
+        Assert.AreEqual((byte)'0', table[0].ReadValue(3));
+        Assert.StartsWith("ustar", (string)table[0].ReadValue(4));
+        Assert.StartsWith("developer", (string)table[0].ReadValue(5));
     }
 
     #endregion

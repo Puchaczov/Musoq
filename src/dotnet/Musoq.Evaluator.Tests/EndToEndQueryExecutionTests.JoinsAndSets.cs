@@ -80,7 +80,7 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["PersonA", "PersonB"], ["PersonC", null]);
     }
 
@@ -103,7 +103,7 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["PersonA", "PersonB"], [null, "PersonC"]);
     }
 
@@ -123,7 +123,7 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["A1", "B1"], ["A1", "B2"], ["A2", "B1"], ["A2", "B2"]);
@@ -149,7 +149,7 @@ public partial class EndToEndQueryExecutionTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)), ("b.Name", typeof(string)), ("c.Name", typeof(string)));
+            ("Name", typeof(string)), ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["A", "B", "C"]);
     }
 
@@ -172,7 +172,7 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["PersonA", "PersonB"], ["PersonB", "PersonA"]);
     }
 

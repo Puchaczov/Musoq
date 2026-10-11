@@ -475,3 +475,63 @@ function New-ReleaseSummary {
         packages = @($Release.Packages | ForEach-Object { $_.PackageId })
     }
 }
+
+function Get-NuGetGlobalPackagesFolder {
+    $output = & dotnet nuget locals global-packages --list 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to resolve the local NuGet global packages folder. $($output -join [Environment]::NewLine)"
+    }
+
+    $globalPackagesLine = @($output | ForEach-Object { [string]$_ } | Where-Object { $_ -match '^global-packages:\s*' } | Select-Object -First 1)
+    if ($globalPackagesLine.Count -ne 1) {
+        throw 'The local NuGet global packages folder could not be resolved.'
+    }
+
+    $globalPackagesMatch = [System.Text.RegularExpressions.Regex]::Match(
+        $globalPackagesLine[0],
+        '^global-packages:\s*(?<path>.+)$')
+    if (-not $globalPackagesMatch.Success) {
+        throw 'The local NuGet global packages folder could not be resolved.'
+    }
+
+    return [System.IO.Path]::GetFullPath($globalPackagesMatch.Groups['path'].Value.Trim())
+}
+
+function Get-PackageSmokeSources {
+    param(
+        [Parameter(Mandatory)]
+        [string] $PackageDirectory,
+
+        [string] $GlobalPackagesFolder,
+
+        [switch] $Offline
+    )
+
+    $sources = [System.Collections.Generic.List[object]]::new()
+    $sources.Add([PSCustomObject]@{
+        Key = 'candidate-packages'
+        Value = $PackageDirectory
+        ProtocolVersion = $null
+    })
+
+    if ($Offline) {
+        if ([string]::IsNullOrWhiteSpace($GlobalPackagesFolder)) {
+            throw 'Offline package smoke requires the local NuGet global packages folder.'
+        }
+
+        $sources.Add([PSCustomObject]@{
+            Key = 'global-packages-cache'
+            Value = $GlobalPackagesFolder
+            ProtocolVersion = $null
+        })
+        return @($sources.ToArray())
+    }
+
+    $sources.Add([PSCustomObject]@{
+        Key = 'nuget.org'
+        Value = 'https://api.nuget.org/v3/index.json'
+        ProtocolVersion = '3'
+    })
+
+    return @($sources.ToArray())
+}

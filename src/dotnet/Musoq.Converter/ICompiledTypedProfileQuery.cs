@@ -11,7 +11,7 @@ public interface ICompiledTypedProfileQuery<TOut>
 
     event DataSourceEventHandler DataSourceProgress;
 
-    IDictionary<string, object?> Parameters { get; }
+    TypedParameterValues TypedParameters { get; }
 
     IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; }
 

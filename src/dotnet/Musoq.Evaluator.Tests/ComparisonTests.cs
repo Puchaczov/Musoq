@@ -34,7 +34,7 @@ public class ComparisonTests : BasicEntityTestBase
         Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("WARSAW", table[0].Values[0]);
+        Assert.AreEqual("WARSAW", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -63,8 +63,8 @@ public class ComparisonTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "WARSAW"), "First entry should be 'WARSAW'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "CZESTOCHOWA"),
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "WARSAW"), "First entry should be 'WARSAW'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "CZESTOCHOWA"),
             "Second entry should be 'CZESTOCHOWA'");
     }
 
@@ -93,8 +93,8 @@ public class ComparisonTests : BasicEntityTestBase
         Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "KATOWICE"), "Collection should contain KATOWICE");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "BERLIN"), "Collection should contain BERLIN");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "KATOWICE"), "Collection should contain KATOWICE");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "BERLIN"), "Collection should contain BERLIN");
     }
 
     [TestMethod]
@@ -123,8 +123,8 @@ public class ComparisonTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "KATOWICE"), "First entry should be 'KATOWICE'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "BERLIN"), "Second entry should be 'BERLIN'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "KATOWICE"), "First entry should be 'KATOWICE'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "BERLIN"), "Second entry should be 'BERLIN'");
     }
 
 
@@ -154,8 +154,8 @@ public class ComparisonTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "KATOWICE"), "First entry should be 'KATOWICE'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "BERLIN"), "Second entry should be 'BERLIN'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "MUNICH"), "Third entry should be 'MUNICH'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "KATOWICE"), "First entry should be 'KATOWICE'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "BERLIN"), "Second entry should be 'BERLIN'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "MUNICH"), "Third entry should be 'MUNICH'");
     }
 }

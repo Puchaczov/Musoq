@@ -64,7 +64,7 @@ internal sealed record CteReferenceIndex(
         CteRefNode cteRef,
         CancellationToken cancellationToken)
     {
-        var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var columns = new HashSet<string>(StringComparer.Ordinal);
         foreach (var column in cteRef.OutputSchema.Columns)
         {
             cancellationToken.ThrowIfCancellationRequested();

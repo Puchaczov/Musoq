@@ -50,7 +50,6 @@ internal static partial class ExecutionOperationCatalog
         yield return Operation<ExecutionRowContextsRead>("expr.row-contexts");
         yield return Operation<ExecutionNullContextArray>("expr.null-context-array");
         yield return Operation<ExecutionContextArray>("expr.context-array");
-        yield return Operation<ExecutionCompositeKey>("expr.composite-key");
         yield return Operation<ExecutionValueTupleKey>("expr.tuple-key");
         yield return Operation<ExecutionWindowValueRead>("window.value-read");
         yield return Operation<ExecutionAggregateCall>("aggregate.call");

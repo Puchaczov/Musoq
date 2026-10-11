@@ -70,7 +70,7 @@ public class SchemaEdgeCaseFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0xFF, table[0][0]);
+        Assert.AreEqual((byte)0xFF, table[0].ReadValue(0));
     }
 
     #endregion
@@ -107,9 +107,9 @@ public class SchemaEdgeCaseFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(byte.MaxValue, table[0][0]);
-        Assert.AreEqual(short.MaxValue, table[0][1]);
-        Assert.AreEqual(int.MaxValue, table[0][2]);
+        Assert.AreEqual(byte.MaxValue, table[0].ReadValue(0));
+        Assert.AreEqual(short.MaxValue, table[0].ReadValue(1));
+        Assert.AreEqual(int.MaxValue, table[0].ReadValue(2));
     }
 
     #endregion
@@ -141,9 +141,9 @@ public class SchemaEdgeCaseFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0, table[0][0]);
-        Assert.AreEqual((short)0, table[0][1]);
-        Assert.AreEqual(0, table[0][2]);
+        Assert.AreEqual((byte)0, table[0].ReadValue(0));
+        Assert.AreEqual((short)0, table[0].ReadValue(1));
+        Assert.AreEqual(0, table[0].ReadValue(2));
     }
 
     #endregion
@@ -178,10 +178,10 @@ public class SchemaEdgeCaseFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)0, table[0][0]);
-        Assert.IsNull(table[0][1]);
-        Assert.AreEqual((byte)1, table[1][0]);
-        Assert.AreEqual(42, table[1][1]);
+        Assert.AreEqual((byte)0, table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
+        Assert.AreEqual((byte)1, table[1].ReadValue(0));
+        Assert.AreEqual(42, table[1].ReadValue(1));
     }
 
     #endregion
@@ -213,8 +213,8 @@ public class SchemaEdgeCaseFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("", table[0][0]);
-        Assert.AreEqual((byte)0xAB, table[0][1]);
+        Assert.AreEqual("", table[0].ReadValue(0));
+        Assert.AreEqual((byte)0xAB, table[0].ReadValue(1));
     }
 
     #endregion
@@ -254,8 +254,8 @@ public class SchemaEdgeCaseFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)0x0A, table[0][1]);
-        Assert.AreEqual((byte)0x0C, table[1][1]);
+        Assert.AreEqual((byte)0x0A, table[0].ReadValue(1));
+        Assert.AreEqual((byte)0x0C, table[1].ReadValue(1));
     }
 
     #endregion
@@ -292,8 +292,8 @@ public class SchemaEdgeCaseFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("database", table[0][0]);
-        Assert.AreEqual("server", table[1][0]);
+        Assert.AreEqual("database", table[0].ReadValue(0));
+        Assert.AreEqual("server", table[1].ReadValue(0));
     }
 
     #endregion
@@ -323,7 +323,7 @@ public class SchemaEdgeCaseFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)42, table[0][0]);
+        Assert.AreEqual((short)42, table[0].ReadValue(0));
     }
 
     #endregion
@@ -360,9 +360,9 @@ public class SchemaEdgeCaseFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((sbyte)-128, table[0][0]);
-        Assert.AreEqual((short)-32768, table[0][1]);
-        Assert.AreEqual(-1, table[0][2]);
+        Assert.AreEqual((sbyte)-128, table[0].ReadValue(0));
+        Assert.AreEqual((short)-32768, table[0].ReadValue(1));
+        Assert.AreEqual(-1, table[0].ReadValue(2));
     }
 
     #endregion
@@ -392,8 +392,8 @@ public class SchemaEdgeCaseFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("end", table[0][0]);
-        Assert.AreEqual("", table[0][1]);
+        Assert.AreEqual("end", table[0].ReadValue(0));
+        Assert.AreEqual("", table[0].ReadValue(1));
     }
 
     #endregion
@@ -428,8 +428,8 @@ public class SchemaEdgeCaseFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)80, table[0][0]);
-        Assert.AreEqual(200, table[0][1]);
+        Assert.AreEqual((short)80, table[0].ReadValue(0));
+        Assert.AreEqual(200, table[0].ReadValue(1));
     }
 
     #endregion
@@ -466,8 +466,8 @@ public class SchemaEdgeCaseFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)0x32, table[0][0]);
-        Assert.AreEqual((byte)0xC8, table[1][0]);
+        Assert.AreEqual((byte)0x32, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0xC8, table[1].ReadValue(0));
     }
 
     #endregion
@@ -504,9 +504,9 @@ public class SchemaEdgeCaseFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(byte.MaxValue, table[0][0]);
-        Assert.AreEqual(ushort.MaxValue, table[0][1]);
-        Assert.AreEqual(uint.MaxValue, table[0][2]);
+        Assert.AreEqual(byte.MaxValue, table[0].ReadValue(0));
+        Assert.AreEqual(ushort.MaxValue, table[0].ReadValue(1));
+        Assert.AreEqual(uint.MaxValue, table[0].ReadValue(2));
     }
 
     #endregion
@@ -538,8 +538,8 @@ public class SchemaEdgeCaseFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0, table[0][0]);
-        Assert.AreEqual((byte)0xAA, table[0][1]);
+        Assert.AreEqual((byte)0, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0xAA, table[0].ReadValue(1));
     }
 
     #endregion

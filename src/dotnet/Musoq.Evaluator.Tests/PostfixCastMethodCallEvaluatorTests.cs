@@ -130,7 +130,7 @@ public sealed class PostfixCastMethodCallEvaluatorTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("ChainedValue", typeof(int?)),
-            ("ParenthesizedValue", typeof(int)));
+            ("ParenthesizedValue", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [1, 2]);
     }
 
@@ -198,25 +198,27 @@ public sealed class PostfixCastMethodCallEvaluatorTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void MethodCallPostfixCast_IncompatibleArrayResult_ShouldThrowInvalidCastException()
+    public void MethodCallPostfixCast_IncompatibleArrayResult_ShouldReportConcreteConversionDiagnostic()
     {
-        var vm = CreateAndRunVirtualMachine(
+        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(
             "select JustReturnArrayOfString()::int from #A.entities()",
-            CreateSingleSource(new BasicEntity("POLAND", 500)));
+            CreateSingleSource(new BasicEntity("POLAND", 500))));
 
-        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run().Count);
-        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
+        Assert.AreEqual(DiagnosticCode.MQ3027_InvalidExpressionType, exception.PrimaryEnvelope.Code);
+        Assert.Contains("Cast from 'String[]' to 'Int32'", exception.Message);
+        Assert.Contains("no concrete conversion operation", exception.Message);
     }
 
     [TestMethod]
-    public void MethodCallPostfixCast_IncompatibleEntityResult_ShouldThrowInvalidCastException()
+    public void MethodCallPostfixCast_IncompatibleEntityResult_ShouldReportConcreteConversionDiagnostic()
     {
-        var vm = CreateAndRunVirtualMachine(
+        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(
             "select NothingToDo(Self)::Guid from #A.entities()",
-            CreateSingleSource(new BasicEntity("POLAND", 500)));
+            CreateSingleSource(new BasicEntity("POLAND", 500))));
 
-        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run().Count);
-        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
+        Assert.AreEqual(DiagnosticCode.MQ3027_InvalidExpressionType, exception.PrimaryEnvelope.Code);
+        Assert.Contains("Cast from 'BasicEntity' to 'Guid'", exception.Message);
+        Assert.Contains("no concrete conversion operation", exception.Message);
     }
 
     [TestMethod]
@@ -531,8 +533,8 @@ public sealed class PostfixCastMethodCallEvaluatorTests : BasicEntityTestBase
             ("FirstValue", typeof(int?)),
             ("SecondValue", typeof(int?)));
         Assert.AreEqual(1, table.Count);
-        var first = Convert.ToInt32(table[0][0]);
-        var second = Convert.ToInt32(table[0][1]);
+        var first = Convert.ToInt32(table[0].ReadValue(0));
+        var second = Convert.ToInt32(table[0].ReadValue(1));
         Assert.AreEqual(first + 1, second);
     }
 

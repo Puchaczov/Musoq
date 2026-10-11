@@ -101,7 +101,7 @@ public partial class TextInterpretationTests
 
         var result = InvokeParse(interpreter, "[a~]b]tail");
 
-        Assert.AreEqual("a~]b", GetPropertyValue<string>(result, "Value"));
+        Assert.AreEqual("a]b", GetPropertyValue<string>(result, "Value"));
         Assert.AreEqual("tail", GetPropertyValue<string>(result, "Tail"));
     }
 }

@@ -51,9 +51,6 @@ public sealed partial class ExecutionCSharpRenderer
             case ExecutionMaterializeFilteredList { GeneratedRowShape: not null } materialize:
                 materializedRowTypeNames[materialize.Buffer.Name] = materialize.GeneratedRowShape.TypeName;
                 break;
-            case ExecutionMaterializeExpandoList materialize:
-                materializedRowTypeNames[materialize.Buffer.Name] = materialize.Shape.TypeName;
-                break;
         }
     }
 }

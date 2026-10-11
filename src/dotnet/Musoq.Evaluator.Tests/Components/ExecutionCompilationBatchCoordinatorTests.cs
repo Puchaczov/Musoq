@@ -254,7 +254,7 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
             using var query = item.result.Result.CompiledQuery!;
             using var table = query.Run();
             Assert.AreEqual(1, table.Count);
-            Assert.AreEqual(item.expected, table[0][0]);
+            Assert.AreEqual(item.expected, table[0].ReadValue(0));
         }
     }
 

@@ -4,10 +4,6 @@ using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Lexing;
 
-/// <summary>
-///     High-performance lexer that uses direct character scanning instead of regex matching.
-///     Provides 17-42x speedup over previous regex-based lexer for most queries.
-/// </summary>
 public sealed partial class Lexer
 {
 
@@ -140,7 +136,6 @@ public sealed partial class Lexer
             return AssignToken(new CommentToken(Input[start..Position], new TextSpan(start, Position - start)));
         }
 
-
         if (Position + 1 < Input.Length &&
             FastCharacterClassifier.IsDigit(Input[Position + 1]) &&
             !PreviousTokenCanEndExpression() &&
@@ -159,7 +154,6 @@ public sealed partial class Lexer
                 _ => numToken
             });
         }
-
 
         Position++;
         return AssignToken(new HyphenToken(new TextSpan(start, 1)));
@@ -237,6 +231,13 @@ public sealed partial class Lexer
     private Token ScanSquareBracket()
     {
         var start = Position;
+        var previous = _currentToken.TokenType == TokenType.WhiteSpace ? _lastToken : _currentToken;
+        if (previous.TokenType is TokenType.ParameterReference or TokenType.RightSquareBracket)
+        {
+            Position++;
+            return AssignToken(new LeftSquareBracketToken(new TextSpan(start, 1)));
+        }
+
         var end = start + 1;
         while (end < Input.Length && Input[end] is not ']' and not '[')
             end++;

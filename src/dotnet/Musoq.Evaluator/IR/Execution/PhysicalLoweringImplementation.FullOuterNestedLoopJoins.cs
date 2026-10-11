@@ -47,24 +47,25 @@ internal sealed partial class PhysicalLoweringImplementation
             return TableBuildResult.Unsupported(rightOnlyAppendBlocks.UnsupportedReason);
 
         var leftHasMatch = new ExecutionVariable($"{resultTableName}LeftHasMatch", typeof(bool));
-        var rightHasMatch = new ExecutionVariable($"{resultTableName}RightHasMatch", typeof(bool));
-        var matchedBody = CreateOuterHashJoinMatchedBody(
+        var rightMatched = new ExecutionVariable($"{resultTableName}RightMatched", typeof(bool[]));
+        var rightIndex = new ExecutionVariable($"{joinSources.Right.Variable.Name}Index", typeof(int));
+        var matchedBody = CreateFullOuterJoinMatchedBody(
             join.OnPredicate,
             pipeline.Filter,
             leftHasMatch,
+            rightMatched,
+            rightIndex,
             projection.MatchedAppendRow,
-            sourceLookup);
-        var rightMatchFlagBody = CreateFullOuterNestedLoopMatchFlagBody(
-            join.OnPredicate,
-            rightHasMatch,
             sourceLookup);
         var nodes = CreateJoinPrelude(joinSources, resultTable, projection.ResultShape);
         var leftRows = CreateFullOuterReusableRows(joinSources.Left, nodes);
         var rightRows = CreateFullOuterReusableRows(joinSources.Right, nodes);
-        var leftPhaseInnerLoop = CreateSourceLoop(
+        nodes.Add(new ExecutionCreateBooleanArray(rightMatched, rightRows.Variable));
+        var leftPhaseInnerLoop = ExecutionRowStreams.CreateForEachIndexed(
             joinSources.Right.Shape,
-            rightRows,
+            rightRows.Variable,
             joinSources.Right.Variable,
+            rightIndex,
             matchedBody);
         var leftPhase = CreateSourceLoop(
             joinSources.Left.Shape,
@@ -81,23 +82,21 @@ internal sealed partial class PhysicalLoweringImplementation
                         typeof(bool)),
                     leftOnlyAppendBlocks.UnmatchedAppendBlock)
             ]));
-        var rightPhaseInnerLoop = CreateSourceLoop(
-            joinSources.Left.Shape,
-            leftRows,
-            joinSources.Left.Variable,
-            rightMatchFlagBody);
-        var rightPhase = CreateSourceLoop(
+        var rightPhase = ExecutionRowStreams.CreateForEachIndexed(
             joinSources.Right.Shape,
-            rightRows,
+            rightRows.Variable,
             joinSources.Right.Variable,
+            rightIndex,
             new ExecutionBlock(
             [
-                new ExecutionLet(rightHasMatch, new ExecutionLiteral(false, typeof(bool))),
-                rightPhaseInnerLoop,
                 new ExecutionIf(
                     new ExecutionUnary(
                         UnaryOpKind.Not,
-                        new ExecutionVariableRead(rightHasMatch),
+                        new ExecutionArrayAccess(
+                            new ExecutionVariableRead(rightMatched),
+                            new ExecutionVariableRead(rightIndex),
+                            typeof(bool),
+                            typeof(bool)),
                         typeof(bool)),
                     rightOnlyAppendBlocks.UnmatchedAppendBlock)
             ]));
@@ -114,18 +113,7 @@ internal sealed partial class PhysicalLoweringImplementation
             pipeline.Project.IsDistinct);
     }
 
-    private static ExecutionBlock CreateFullOuterNestedLoopMatchFlagBody(
-        IrExpression? joinCondition,
-        ExecutionVariable hasMatch,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
-    {
-        return CreateConditionalJoinBlock(
-            joinCondition,
-            sourceLookup,
-            new ExecutionBlock([new ExecutionAssign(hasMatch, new ExecutionLiteral(true, typeof(bool)))]));
-    }
-
-    private static ExecutionExpression CreateFullOuterReusableRows(
+    private static ExecutionVariableRead CreateFullOuterReusableRows(
         JoinSource source,
         List<ExecutionNode> nodes)
     {

@@ -41,7 +41,7 @@ public partial class DistinctComprehensiveTests
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Country", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Germany"], ["Poland"]);
     }
 

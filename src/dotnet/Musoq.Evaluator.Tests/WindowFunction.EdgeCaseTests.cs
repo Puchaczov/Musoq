@@ -157,7 +157,7 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("RowNum", typeof(long)), ("RunSum", typeof(decimal)));
+            ("Name", typeof(string)), ("RowNum", typeof(long)), ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             Enumerable.Range(1, 100)
@@ -201,7 +201,7 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
-            table, ("Name", typeof(string)), ("RunSum", typeof(decimal)));
+            table, ("Name", typeof(string)), ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Charlie", 300m], ["Bob", 500m], ["Alice", 600m]);
@@ -297,7 +297,7 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("Product", typeof(decimal)), ("RunningSum", typeof(decimal)));
+            ("Name", typeof(string)), ("Product", typeof(decimal)), ("RunningSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 2m, 2m], ["Bob", 6m, 5m], ["Charlie", 24m, 9m]);

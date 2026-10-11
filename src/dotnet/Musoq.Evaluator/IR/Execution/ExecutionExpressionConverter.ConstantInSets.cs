@@ -21,7 +21,7 @@ public static partial class ExecutionExpressionConverter
         }
 
         var elementType = inCheck.Expression.ReturnType;
-        if (!CanUseConstantInElementType(elementType, values))
+        if (!ConstantMembershipEligibility.CanUse(elementType, values, inCheck.SqlSemantics))
             return null;
 
         var kind = SelectConstantInSetKind(elementType, values);
@@ -80,17 +80,6 @@ public static partial class ExecutionExpressionConverter
                    TypeCode.UInt16 or
                    TypeCode.UInt32 or
                    TypeCode.UInt64;
-    }
-
-    private static bool CanUseConstantInElementType(Type elementType, IReadOnlyList<object?> values)
-    {
-        if (elementType.IsByRef || elementType.IsPointer || elementType == typeof(void))
-            return false;
-
-        if (!elementType.IsValueType || Nullable.GetUnderlyingType(elementType) != null)
-            return true;
-
-        return values.All(static value => value != null);
     }
 
     private static bool CanHoistLiteral(object? value)

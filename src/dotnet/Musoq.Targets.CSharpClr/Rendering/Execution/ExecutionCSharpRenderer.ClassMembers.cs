@@ -6,11 +6,6 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    internal static bool CanUseGeneratedFinalRowSink(ExecutionPlan plan, string finalTableName)
-    {
-        return FinalGeneratedRowSinkPolicy.CanUse(plan, finalTableName);
-    }
-
     public IReadOnlyList<MemberDeclarationSyntax> RenderClassMembers(
         ExecutionPlan plan,
         string? finalShapeTableName = null,
@@ -18,7 +13,24 @@ public sealed partial class ExecutionCSharpRenderer
         IReadOnlyList<FieldBinding>? finalShapeFields = null,
         bool omitFinalShapeClass = false)
     {
+        return RenderFinalOutputClassMembers(plan, finalShapeTableName, finalShapeTypeName, finalShapeFields,
+            omitFinalShapeClass, FinalProjectionSinkTarget.TableRows);
+    }
+
+    internal IReadOnlyList<MemberDeclarationSyntax> RenderFinalOutputClassMembers(
+        ExecutionPlan plan,
+        string? finalShapeTableName,
+        string? finalShapeTypeName,
+        IReadOnlyList<FieldBinding>? finalShapeFields,
+        bool omitFinalShapeClass,
+        FinalProjectionSinkTarget target)
+    {
         ArgumentNullException.ThrowIfNull(plan);
+        FinalOutputPlan? output = null;
+        if (TableViaRowsResultInfoResolver.TryResolveRenderPlan(plan, out var renderPlan))
+            output = target == FinalProjectionSinkTarget.TypedRows
+                ? renderPlan.FinalSinkPlans.TypedOutput
+                : renderPlan.FinalSinkPlans.TableOutput;
         var context = InitializeRenderContext(plan);
 
         return RenderClassMembers(
@@ -27,7 +39,8 @@ public sealed partial class ExecutionCSharpRenderer
             finalShapeTypeName,
             finalShapeFields,
             context,
-            omitFinalShapeClass);
+            omitFinalShapeClass,
+            output);
     }
 
     private IReadOnlyList<MemberDeclarationSyntax> RenderClassMembers(
@@ -36,32 +49,37 @@ public sealed partial class ExecutionCSharpRenderer
         string? finalShapeTypeName,
         IReadOnlyList<FieldBinding>? finalShapeFields,
         ExecutionRenderContext context,
-        bool omitFinalShapeClass)
+        bool omitFinalShapeClass,
+        FinalOutputPlan? output)
     {
         var session = context.Session;
-        session.UseDirectTypedStoredRowsAlias = CanUseGeneratedFinalRowSink(plan, finalShapeTableName ?? string.Empty);
+        session.ReuseStoredRows = finalShapeTableName != null && output?.ReuseStoredRows == true;
         if (finalShapeTableName != null)
         {
-            var usesGeneratedRowCarrier = CanUseGeneratedFinalRowSink(plan, finalShapeTableName);
+            var usesGeneratedRowCarrier = output?.UsesGeneratedRow == true;
             var sinkTypeName = usesGeneratedRowCarrier && plan.FinalResult is { } finalResult
                 ? finalResult.Shape.TypeName
                 : finalShapeTypeName ?? string.Empty;
-            var sourceBuffers = finalShapeTypeName != null && finalShapeFields != null
-                ? CreateFinalShapeSourceBuffers(plan.Body, finalShapeTableName, finalShapeTypeName, finalShapeFields)
-                : null;
+            IReadOnlyDictionary<string, FinalShapeSourceBuffer>? sourceBuffers = null;
+            if (output != null && finalShapeTypeName != null && finalShapeFields != null)
+                sourceBuffers = CreateFinalShapeSourceBuffers(output, finalShapeFields);
             session.FinalShapeYieldSink = new FinalShapeYieldSink(
                 finalShapeTableName,
                 sinkTypeName,
                 finalShapeFields ?? [],
                 null,
-                usesGeneratedRowCarrier ? null : sourceBuffers,
+                sourceBuffers,
                 usesGeneratedRowCarrier);
         }
 
         session.TypedStoredTableResults = CreateTypedStoredTableResults(plan);
+        session.ColumnarStoredTableResultsByTableName = CreateColumnarStoredTableResultsByTableName(
+            plan,
+            session.TypedStoredTableResults);
         session.IncludeCteIndexResults = PlanUsesCteIndexResults(plan);
         session.IncludeCteRowResults = session.TypedStoredTableResults.Count > 0;
         session.IncludeTableResults = PlanUsesTableResults(plan, session.TypedStoredTableResults);
+        session.RegexMatchTimeout = plan.RegexMatchTimeout;
         session.OperatorCatalog = ExecutionPlanOperatorCatalog.Create(plan);
         session.TypedRowBufferVariables = CreateTypedRowBufferVariables(plan.Body, finalShapeTableName);
         session.SingleKeyAggregateUpdateHelpersByBlock = CollectSingleKeyAggregateUpdateHelpersByBlock(plan.Body);
@@ -72,6 +90,7 @@ public sealed partial class ExecutionCSharpRenderer
                 .ToDictionary(static pair => pair.Key, static pair => pair.Value);
 
             var members = new List<MemberDeclarationSyntax>();
+            members.AddRange(StructuralCarrierSyntaxFactory.CreateMembers(plan.StructuralCarriers));
             members.AddRange(StructuralCarrierSyntaxFactory.CreateMembers(
                 _scriptVariableDefinitions,
                 _scriptParameterDefinitions,
@@ -123,16 +142,13 @@ public sealed partial class ExecutionCSharpRenderer
                         if (renderedAggregateGroups.Add(GetAggregateGroupTypeName(aggregateGroup, context)))
                             members.Add(RenderAggregateGroupClass(aggregateGroup, context));
                         break;
-                    case ExpandoAdapterShape expando:
-                        members.Add(RenderExpandoAdapterClass(expando));
-                        break;
                 }
             }
 
             if (plan.FinalResult != null &&
                 !omitFinalShapeClass &&
                 (session.FinalShapeYieldSink is null || !session.FinalShapeYieldSink.UsesGeneratedRowCarrier))
-                members.Add(RenderFinalSelectShapeClass(plan.FinalResult));
+                members.Add(RenderFinalSelectShapeClass(plan.FinalResult, output));
 
             members.AddRange(CreateCteIndexResultMembers(plan));
             members.AddRange(CreateCteRowResultMembers(session.TypedStoredTableResults)); members.AddRange(StructuralCtePreparationMembers.CreateMembers(plan.Body, context, this)); members.AddRange(StructuralInputLimitSyntaxFactory.CreateMembers(plan.Body));

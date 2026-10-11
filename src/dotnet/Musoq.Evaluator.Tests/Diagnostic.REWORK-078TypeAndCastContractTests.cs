@@ -165,7 +165,7 @@ public sealed class DiagnosticRework078TypeAndCastContractTests : GenericEntityT
             "select e.Id from #schema.first() e where e.DateValue = '2024-06-15T13:45:30'",
             [CreateEntity()]).Run();
 
-        TableMaterializationTestHelper.AssertColumns(table, ("e.Id", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [7]);
     }
 
@@ -233,7 +233,7 @@ public sealed class DiagnosticRework078TypeAndCastContractTests : GenericEntityT
     [DataRow("InvalidText", "DateTimeOffset")]
     [DataRow("InvalidText", "TimeSpan")]
     [DataRow("InvalidText", "Guid")]
-    [DataRow("ObjectValue", "Guid")]
+    [DataRow("NumericValue", "Guid")]
     public void InvalidRuntimeCastMatrix_ShouldExposeSanitizedInternalFailure(string sourceProperty, string targetType)
     {
         var query = $"select e.{sourceProperty}::{targetType} from #schema.first() e";
@@ -273,7 +273,7 @@ public sealed class DiagnosticRework078TypeAndCastContractTests : GenericEntityT
             DurationText = "01:02:03",
             GuidText = "12345678-1234-1234-1234-123456789012",
             InvalidText = "not-a-value",
-            ObjectValue = 42,
+            NumericValue = 42,
             Nested = new NestedContractEntity
             {
                 Name = "nested",
@@ -317,7 +317,7 @@ public sealed class DiagnosticRework078TypeAndCastContractTests : GenericEntityT
 
         public string InvalidText { get; init; } = string.Empty;
 
-        public object? ObjectValue { get; init; }
+        public int NumericValue { get; init; }
 
         public NestedContractEntity Nested { get; init; } = new();
 

@@ -40,14 +40,14 @@ public sealed class ExecutionStrategyPlannerTests
     }
 
     [TestMethod]
-    public void Plan_WhenFilterProjectHasDynamicSourceShape_ShouldSkipStrategy()
+    public void Plan_WhenFilterProjectHasDynamicSourceShape_ShouldRejectErasedSourceContract()
     {
         var project = CreateMethodProject(CreateScan(), nameof(StableMethod));
 
-        var result = Plan(project, CreateShapeResolver(typeof(IReadOnlyDictionary<string, object>)));
-
-        AssertReason(result, "ParallelFilterProject", "Source shape is dynamic");
-        Assert.IsFalse(result.Strategies.CanUseParallelFilterProject(project));
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
+            () => Plan(project, CreateShapeResolver(typeof(IReadOnlyDictionary<string, object>))));
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
+        Assert.Contains("native query-scoped rows", error.Message);
     }
 
     [TestMethod]
@@ -157,12 +157,12 @@ public sealed class ExecutionStrategyPlannerTests
 
     private static ExecutionStrategyPlanningResult Plan(PhysicalNode node, CompilationOptions options)
     {
-        return ExecutionStrategyPlanner.Plan(node, options, null, CreatePlanningShapeResolver(typeof(Person)));
+        return ExecutionStrategyPlanner.Plan(node, options, null, CreatePlanningShapeResolver(typeof(Person)), AuthorizedSourcePlanningFixture.Describe(node));
     }
 
     private static ExecutionStrategyPlanningResult Plan(PhysicalNode node, ExecutionShapeResolver shapeResolver)
     {
-        return ExecutionStrategyPlanner.Plan(node, new CompilationOptions(), null, new ExecutionPlanningShapeResolverAdapter(shapeResolver));
+        return ExecutionStrategyPlanner.Plan(node, new CompilationOptions(), null, new ExecutionPlanningShapeResolverAdapter(shapeResolver), AuthorizedSourcePlanningFixture.Describe(node));
     }
 
     private static IPlanningShapeResolver CreatePlanningShapeResolver(Type entityType)
@@ -217,7 +217,7 @@ public sealed class ExecutionStrategyPlannerTests
             [
                 new ColumnSchema("Name", typeof(string), 0),
                 new ColumnSchema("Age", typeof(int), 1)
-            ]));
+            ]), SourceContextId: "p");
     }
 
     private static PhysicalProjectNode CreateMethodProject(PhysicalNode input, string methodName)
@@ -283,17 +283,20 @@ public sealed class ExecutionStrategyPlannerTests
             AggregateKernelDescriptor.Create(getMethod));
     }
 
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     public static string StableMethod(string value)
     {
         return value;
     }
 
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [NonDeterministic]
     public static string NonDeterministicMethod(string value)
     {
         return value;
     }
 
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     public static string StatsMethod([InjectQueryStats] object stats, string value)
     {
         return value;

@@ -1,3 +1,4 @@
+using Musoq.Tests.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,8 +25,8 @@ public sealed class StructuredInputCteTests
         using var compiled = Compile(query, "structured-input-cte-filter");
         var table = compiled.Run();
         Assert.AreEqual(4, table.Rows.Count);
-        Assert.AreEqual("todo", table.Rows[0][0]);
-        Assert.AreEqual("todo", table.Rows[1][0]);
+        Assert.AreEqual("todo", table.Rows[0].ReadValue(0));
+        Assert.AreEqual("todo", table.Rows[1].ReadValue(0));
         Assert.AreEqual(1, StructuredInputSourceCounters.MatchConstructed);
     }
 
@@ -53,7 +54,7 @@ public sealed class StructuredInputCteTests
             "select n.Value from #inputs.numbers((numbers)) n";
         using var compiled = Compile(query, "structured-input-cte-grouped");
         var table = compiled.Run();
-        CollectionAssert.AreEqual(new[] { 1, 2 }, table.Rows.Select(static row => (int)row[0]!).ToArray());
+        CollectionAssert.AreEqual(new[] { 1, 2 }, table.Rows.Select(static row => (int)row.ReadValue(0)!).ToArray());
         Assert.AreEqual(1, StructuredInputSourceCounters.NumbersConstructed);
     }
 
@@ -77,14 +78,14 @@ public sealed class StructuredInputCteTests
 
         StringAssert.Contains(inspection.ExecutionPlanText, "StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0LeftRow0>]");
         StringAssert.Contains(inspection.GeneratedCSharpCode, "var cte0 = new List<Cte0LeftRow0>");
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "new Cte0LeftRow0((string)cte0RightRow.q_Id");
+        StringAssert.Contains(inspection.GeneratedCSharpCode, "new Cte0LeftRow0((string)cte0RightRow.Id");
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("CastGeneratedRows<Cte0LeftRow0>", StringComparison.Ordinal));
 
         using var compiled = Compile(query, "structured-input-cte-union-all-typed-execution");
         using var table = compiled.Run();
         CollectionAssert.AreEqual(
             new[] { "todo:TODO", "fixme:FIXME" },
-            table.Rows.Select(static row => $"{row[0]}:{row[1]}").ToArray());
+            table.Rows.Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray());
         Assert.AreEqual(1, StructuredInputSourceCounters.MatchConstructed);
     }
 

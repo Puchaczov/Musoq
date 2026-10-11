@@ -45,9 +45,9 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0xAB, table[0][0]);
+        Assert.AreEqual((byte)0xAB, table[0].ReadValue(0));
         // h.Child is the InnerData interpreter object
-        Assert.IsNotNull(table[0][1]);
+        Assert.IsNotNull(table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -86,8 +86,8 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0xAB, table[0][0]);
-        Assert.AreEqual(0x12345678, table[0][1]); // The nested Value field
+        Assert.AreEqual((byte)0xAB, table[0].ReadValue(0));
+        Assert.AreEqual(0x12345678, table[0].ReadValue(1)); // The nested Value field
     }
 
     [TestMethod]
@@ -131,9 +131,9 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0xFF, table[0][0]); // h.Flags
-        Assert.AreEqual((byte)0xAB, table[0][1]); // h.Middle.Id
-        Assert.AreEqual(0x12345678, table[0][2]); // h.Middle.Inner.Value
+        Assert.AreEqual((byte)0xFF, table[0].ReadValue(0)); // h.Flags
+        Assert.AreEqual((byte)0xAB, table[0].ReadValue(1)); // h.Middle.Id
+        Assert.AreEqual(0x12345678, table[0].ReadValue(2)); // h.Middle.Inner.Value
     }
 
     [TestMethod]
@@ -172,8 +172,8 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)3, table[0][0]);
-        var items = (object[])table[0][1];
+        Assert.AreEqual((byte)3, table[0].ReadValue(0));
+        var items = (object[])table[0].ReadValue(1);
         Assert.HasCount(3, items);
     }
 

@@ -41,7 +41,7 @@ public partial class RowAndKeyEqualityTests
         var row = new TestRow([42]);
         table.Add(row);
 
-        var result = table.Contains(row, (a, b) => (int)a.Values[0] == (int)b.Values[0]);
+        var result = table.Contains(row, (a, b) => (int)a.ReadValues()[0] == (int)b.ReadValues()[0]);
 
         Assert.IsTrue(result);
     }
@@ -52,21 +52,21 @@ public partial class RowAndKeyEqualityTests
         var table = new Table("Test", [new Column("Col1", typeof(int), 0)]) { new TestRow([42]) };
 
         var searchRow = new TestRow([100]);
-        var result = table.Contains(searchRow, (a, b) => (int)a.Values[0] == (int)b.Values[0]);
+        var result = table.Contains(searchRow, (a, b) => (int)a.ReadValues()[0] == (int)b.ReadValues()[0]);
 
         Assert.IsFalse(result);
     }
 
     [TestMethod]
-    public void Table_TryGetIndexedValues_ReturnsFalseForMissingKey()
+    public void TypedTableQuery_WhenTheLookupKeyIsAbsent_ShouldReturnNoRows()
     {
-        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
-        var key = new Key(["missing"], [0]);
-
-        var result = table.TryGetIndexedValues(key, out var values);
-
-        Assert.IsFalse(result);
-        Assert.IsEmpty(values);
+        const string query = "select s.Position as Position from #schema.first() s where s.Position = 999";
+        using var compiled = CreateAndRunVirtualMachine<ContextInput, ContextLibrary>(query, ContextRows());
+        using var table = compiled.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(table, ("Position", typeof(int)));
+        Assert.AreEqual(0, table.Count);
+        foreach (var row in table)
+            Assert.Fail($"Unexpected row: {row.GetValue<int>(0)}");
     }
 
     [TestMethod]
@@ -115,19 +115,19 @@ public partial class RowAndKeyEqualityTests
         var row = new TestRow([42]);
         table.Add(row);
 
-
         Assert.AreEqual(row, table[0]);
     }
 
     [TestMethod]
-    public void Table_ContainsKey_ReturnsFalseForNonExistingKey()
+    public void TypedTableQuery_WhenNoRowMatchesTheKey_ShouldReturnNoRows()
     {
-        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
-        var key = new Key(["missing"], [0]);
-
-        var result = table.ContainsKey(key);
-
-        Assert.IsFalse(result);
+        const string query = "select s.One as One from #schema.first() s where s.One = 999";
+        using var compiled = CreateAndRunVirtualMachine<ContextInput, ContextLibrary>(query, ContextRows());
+        using var table = compiled.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(table, ("One", typeof(int)));
+        Assert.AreEqual(0, table.Count);
+        foreach (var row in table)
+            Assert.Fail($"Unexpected row: {row.GetValue<int>(0)}");
     }
 
     [TestMethod]
@@ -168,62 +168,6 @@ public partial class RowAndKeyEqualityTests
         var row = new TestRow([1, 2]);
 
         Assert.Throws<NotSupportedException>(() => table.Add(row));
-    }
-
-    #endregion
-
-    #region Key Additional Tests
-
-    [TestMethod]
-    public void Key_GetHashCode_SameForEqualKeys()
-    {
-        var key1 = new Key([1, "test"], [0, 1]);
-        var key2 = new Key([1, "test"], [0, 1]);
-
-        Assert.AreEqual(key1.GetHashCode(), key2.GetHashCode());
-    }
-
-    [TestMethod]
-    public void Key_Equals_WithObject_ReturnsTrueForEqual()
-    {
-        var key1 = new Key([1, "test"], [0, 1]);
-        object key2 = new Key([1, "test"], [0, 1]);
-
-        Assert.IsTrue(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void Key_Equals_WithObject_ReturnsFalseForNull()
-    {
-        var key = new Key([1], [0]);
-
-        Assert.IsFalse(key.Equals((object)null!));
-    }
-
-    [TestMethod]
-    public void Key_Equals_WithObject_ReturnsFalseForDifferentType()
-    {
-        var key = new Key([1], [0]);
-
-        Assert.IsFalse(key.Equals("not a key"));
-    }
-
-    [TestMethod]
-    public void Key_DoesRowMatchKey_ReturnsTrueForMatch()
-    {
-        var key = new Key([1], [0]);
-        var row = new TestRow([1, "test"]);
-
-        Assert.IsTrue(key.DoesRowMatchKey(row));
-    }
-
-    [TestMethod]
-    public void Key_DoesRowMatchKey_ReturnsFalseForNoMatch()
-    {
-        var key = new Key([2], [0]);
-        var row = new TestRow([1, "test"]);
-
-        Assert.IsFalse(key.DoesRowMatchKey(row));
     }
 
     #endregion
@@ -298,30 +242,27 @@ public partial class RowAndKeyEqualityTests
     }
 
     [TestMethod]
-    public void Table_ContainsKey_ReturnsFalse_WhenKeyNotFound()
+    public void TypedTableQuery_WhenAMaterializedKeyIsAbsent_ShouldReturnNoRows()
     {
-        var columns = new[] { new Column("Col1", typeof(int), 0) };
-        var table = new Table("Test", columns) { new TestRow([1]) };
-
-        var key = new Key([999], [0]);
-
-
-        Assert.IsFalse(table.ContainsKey(key));
+        const string query = "with rows as (select s.Position as Position from #schema.first() s) select r.Position as Position from rows r where r.Position = 999";
+        using var compiled = CreateAndRunVirtualMachine<ContextInput, ContextLibrary>(query, ContextRows());
+        using var table = compiled.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(table, ("Position", typeof(int)));
+        Assert.AreEqual(0, table.Count);
+        foreach (var row in table)
+            Assert.Fail($"Unexpected row: {row.GetValue<int>(0)}");
     }
 
     [TestMethod]
-    public void Table_TryGetIndexedValues_ReturnsFalse_WhenNoIndex()
+    public void TypedTableQuery_WhenACompositeLookupDoesNotMatch_ShouldReturnNoRows()
     {
-        var columns = new[] { new Column("Col1", typeof(int), 0) };
-        var table = new Table("Test", columns) { new TestRow([42]) };
-
-        var key = new Key([42], [0]);
-
-
-        var result = table.TryGetIndexedValues(key, out var values);
-
-        Assert.IsFalse(result);
-        Assert.IsNotNull(values);
+        const string query = "select s.One as One from #schema.first() s where s.Position = 1 and s.One = 42";
+        using var compiled = CreateAndRunVirtualMachine<ContextInput, ContextLibrary>(query, ContextRows());
+        using var table = compiled.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(table, ("One", typeof(int)));
+        Assert.AreEqual(0, table.Count);
+        foreach (var row in table)
+            Assert.Fail($"Unexpected row: {row.GetValue<int>(0)}");
     }
 
     [TestMethod]
@@ -331,7 +272,7 @@ public partial class RowAndKeyEqualityTests
 
         var row = table[0];
 
-        Assert.AreEqual(100, row[0]);
+        Assert.AreEqual(100, row.ReadValue(0));
     }
 
     #endregion

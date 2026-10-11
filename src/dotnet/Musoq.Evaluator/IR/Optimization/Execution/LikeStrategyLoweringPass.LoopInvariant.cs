@@ -110,8 +110,6 @@ internal sealed partial class LikeStrategyLoweringPass
         protected override ExecutionNode RewriteMaterializeFilteredList(ExecutionMaterializeFilteredList node) =>
             RewriteWithMatcherHoistingDisabled(() => base.RewriteMaterializeFilteredList(node));
 
-        protected override ExecutionNode RewriteMaterializeExpandoList(ExecutionMaterializeExpandoList node) =>
-            RewriteWithMatcherHoistingDisabled(() => base.RewriteMaterializeExpandoList(node));
 
         protected override ExecutionNode RewriteWindowKernelPlan(ExecutionWindowKernelPlan node) =>
             RewriteWithMatcherHoistingDisabled(() => base.RewriteWindowKernelPlan(node));
@@ -226,7 +224,7 @@ internal sealed partial class LikeStrategyLoweringPass
         private static bool ContainsConditionalExpression(ExecutionExpression expression) =>
             ExecutionIrAnalysis.FlattenExpressions(expression).Any(static current =>
                 current is ExecutionBinary { Kind: BinaryOpKind.And or BinaryOpKind.Or } or
-                    ExecutionCaseWhen or ExecutionCoalesce);
+                    ExecutionCaseWhen or ExecutionCoalesce or ExecutionInCheck { UsesSqlNullSemantics: true });
 
         private static ExecutionBlock InsertMatcherPreparations(ExecutionBlock body, Region region)
         {
@@ -275,7 +273,7 @@ internal sealed partial class LikeStrategyLoweringPass
         private static int FindLoopPreludeInsertionIndex(IReadOnlyList<ExecutionNode> nodes)
         {
             var index = 0;
-            while (index < nodes.Count && nodes[index] is ExecutionAdaptExpando or ExecutionMethodTargetDeclarationCandidate)
+            while (index < nodes.Count && nodes[index] is ExecutionMethodTargetDeclarationCandidate)
                 index++;
             return index;
         }

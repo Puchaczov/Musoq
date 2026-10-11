@@ -12,7 +12,7 @@ public partial class SchemaParser
     {
         Consume(TokenType.Repeat);
 
-        var schemaName = ComposeIdentifierOrWord();
+        var element = ComposeTextFieldType($"{name}Element");
 
         string? untilDelimiter = null;
         if (Current.TokenType == TokenType.Until)
@@ -25,8 +25,11 @@ public partial class SchemaParser
                 untilDelimiter = ComposeStringLiteral();
         }
 
-        return new TextFieldDefinitionNode(
-            name, TextFieldType.Repeat, schemaName, untilDelimiter);
+        if (element.FieldType == TextFieldType.SchemaReference && element.Modifiers == TextFieldModifier.None)
+            return new TextFieldDefinitionNode(name, TextFieldType.Repeat, element.PrimaryValue, untilDelimiter);
+
+        return new TextFieldDefinitionNode(name, TextFieldType.Repeat,
+            secondaryValue: untilDelimiter, repeatElement: element);
     }
 
     private TextFieldDefinitionNode ComposeSwitchField(string name)

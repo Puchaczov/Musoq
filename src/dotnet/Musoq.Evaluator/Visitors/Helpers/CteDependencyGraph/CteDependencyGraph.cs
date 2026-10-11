@@ -42,6 +42,8 @@ public class CteDependencyGraph
     /// </summary>
     public CteGraphNode OuterQuery { get; }
 
+    internal bool HasReachableDependencyCycle { get; init; }
+
     /// <summary>
     ///     Gets CTEs that are not reachable from the outer query (dead code).
     /// </summary>

@@ -54,7 +54,7 @@ public sealed class LikeQueryContextConformanceTests : BasicEntityTestBase
             [Row(10, "prefix", "Al%"), Row(11, "exact", "Beta")]);
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Id", typeof(int)), ("b.Id", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, 10], [2, 11], [3, 10]);
     }
 
@@ -68,7 +68,7 @@ public sealed class LikeQueryContextConformanceTests : BasicEntityTestBase
             [Row(10, "prefix", "Al%")]);
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Id", typeof(int)), ("b.Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("Id", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, 10], [2, null]);
     }
 
@@ -117,8 +117,8 @@ public sealed class LikeQueryContextConformanceTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
             Row(1, "Alice"), Row(2, "Bob"), Row(3, "Ada"))).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("Matches", typeof(int)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table, [1, 1], [2, 1], [3, 2]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("Matches", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1, 1L], [2, 1L], [3, 2L]);
     }
 
     [TestMethod]

@@ -17,7 +17,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("var cte0Seen = new HashSet<int>();", nullableCode);
         Assert.Contains("Total: decimal? <- field Total", decimalExecution);
         Assert.Contains("StrictCastRuntime.ToDecimal(0)", decimalCode);
-        Assert.Contains("(decimal?)(decimal)(t.Total + 1)", decimalCode);
+        Assert.Contains("(decimal?)(t.Total + 1)", decimalCode);
         Assert.IsFalse(nullableCode.Contains("HashSet<object", StringComparison.Ordinal));
         Assert.IsFalse(decimalCode.Contains("HashSet<object", StringComparison.Ordinal));
     }

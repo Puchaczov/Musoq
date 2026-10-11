@@ -74,18 +74,18 @@ internal sealed partial class PhysicalLoweringImplementation
         var rows = CreateSourceRowsExpression(source, shape, cteIndexes, cteShapesByName, sourceRowsScope, scope);
         var schemaSourceCount = source is PhysicalSchemaScanNode ? 1 : 0;
 
-        return SourceBuildResult.Success(new JoinSource(source, shape, variable, setup, rows, [shape], schemaSourceCount, GeneratedRowShape: source is PhysicalCteRefNode cteRef ? ResolveCteGeneratedRowShape(cteRef, cteShapesByName) : null));
+        return SourceBuildResult.Success(new JoinSource(
+            source,
+            shape,
+            variable,
+            setup,
+            rows,
+            [shape],
+            schemaSourceCount,
+            GeneratedRowShape: source is PhysicalCteRefNode cteRef
+                ? ResolveCteGeneratedRowShape(cteRef, cteShapesByName)
+                : SourceGeneratedRowShapeResolver.Resolve(shape)));
     }
 
-    private static ExecutionRowAccessMode ResolveWindowRowAccessMode(
-        RowShape sourceShape)
-    {
-        if (sourceShape is ExpandoAdapterShape ||
-            RowShapeLookup.ResolveSourceRuntimeType(sourceShape) == typeof(object))
-        {
-            return ExecutionRowAccessMode.ExpandoAdapter;
-        }
 
-        return ExecutionRowAccessMode.Direct;
-    }
 }

@@ -9,17 +9,7 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private InvocationExpressionSyntax CreateCompositeKeyInvocation(
-        ExecutionCompositeKey compositeKey,
-        ExecutionRenderContext context)
-    {
-        return SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(WindowFunctionHelpers)),
-                    SyntaxFactory.IdentifierName(nameof(WindowFunctionHelpers.CompositeKey))))
-            .WithArgumentList(CreateArgumentList(compositeKey.Parts.Select(part => RenderExpression(part, context)).ToArray()));
-    }
+
 
     private TupleExpressionSyntax CreateValueTupleKeyExpression(
         ExecutionValueTupleKey valueTupleKey,
@@ -38,31 +28,6 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.ParseExpression(
             $"({string.Join(", ", Enumerable.Range(0, keyCount).Select(CreateGroupKeyVariableName))})");
     }
-
-    private static ArrayCreationExpressionSyntax CreateSizedArrayCreation(
-        string elementTypeName,
-        ExpressionSyntax size)
-    {
-        return SyntaxFactory.ArrayCreationExpression(
-            SyntaxFactory.ArrayType(SyntaxFactory.IdentifierName(elementTypeName))
-                .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                    SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList(size)))));
-    }
-
-    private static ArrayCreationExpressionSyntax CreateSizedArrayCreation(
-        Type elementType,
-        ExpressionSyntax size)
-    {
-        return SyntaxFactory.ArrayCreationExpression(
-            SyntaxFactory.ArrayType(CreateTypeSyntax(elementType))
-                .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                    SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList(size)))));
-    }
-
-    private static ArrayCreationExpressionSyntax CreateSizedArrayCreation(
-        ExecutionTypeRef elementType,
-        ExpressionSyntax size) =>
-        CreateSizedArrayCreation(elementType.RequireClrType(), size);
 
     private static ArrayCreationExpressionSyntax CreateWindowKeyArrayCreation(
         ExecutionVariable keyArray,
@@ -120,10 +85,10 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return shape switch
         {
-            SourceEntityShape source => (CanReferenceType(source.EntityType) ||
+            SourceEntityShape source => !DynamicEntityBoundary.IsNameIndexedSource(source.EntityType.RequireClrType()) &&
+                                        (CanReferenceType(source.EntityType) ||
                                          source.Fields.Count == 0) &&
                                         CanRenderFieldTypes(source.Fields),
-            ExpandoAdapterShape expando => CanRenderExpandoAdapterShape(expando),
             GeneratedRowShape generated => CanRenderGeneratedRowShape(generated),
             ValuesRowShape values => CanRenderGeneratedRowShape(values.GeneratedShape),
             GeneratedRecordShape generated => CanRenderGeneratedRecordShape(generated),
@@ -132,13 +97,6 @@ public sealed partial class ExecutionCSharpRenderer
             TableRowShape => true,
             _ => false
         };
-    }
-
-    private static bool CanRenderExpandoAdapterShape(ExpandoAdapterShape shape)
-    {
-        return CanRenderIdentifier(shape.TypeName) &&
-               CanRenderFieldNames(shape.Fields.Select(field => field.Name)) &&
-               CanRenderFieldTypes(shape.Fields);
     }
 
     private static bool CanRenderGeneratedRowShape(GeneratedRowShape shape)
@@ -165,8 +123,13 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool CanRenderFieldTypes(IEnumerable<FieldBinding> fields)
     {
-        return fields.All(field => CanReferenceType(field.Type));
+        return fields.All(field => field.GeneratedTypeName is { } generatedType
+            ? CanRenderGeneratedTypeName(generatedType)
+            : CanReferenceType(field.Type));
     }
+
+    private static bool CanRenderGeneratedTypeName(string name)
+        => !SyntaxFactory.ParseTypeName(name).ContainsDiagnostics;
 
     private static bool CanRenderFieldNames(IEnumerable<string> fieldNames)
     {
@@ -211,29 +174,6 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private static bool CanReferenceType(ExecutionTypeRef type) => CanReferenceType(type.RequireClrType());
-
-    private static bool IsValueTupleType(Type type, int arity)
-    {
-        return type.IsGenericType &&
-               type.GetGenericArguments().Length == arity &&
-               type.Namespace == typeof(ValueTuple).Namespace &&
-               type.Name.StartsWith("ValueTuple`", StringComparison.Ordinal);
-    }
-
-    private static Type CreateValueTupleType(Type[] keyTypes)
-    {
-        return keyTypes.Length switch
-        {
-            2 => typeof(ValueTuple<,>).MakeGenericType(keyTypes.ToArray()),
-            3 => typeof(ValueTuple<,,>).MakeGenericType(keyTypes.ToArray()),
-            4 => typeof(ValueTuple<,,,>).MakeGenericType(keyTypes.ToArray()),
-            5 => typeof(ValueTuple<,,,,>).MakeGenericType(keyTypes.ToArray()),
-            6 => typeof(ValueTuple<,,,,,>).MakeGenericType(keyTypes.ToArray()),
-            7 => typeof(ValueTuple<,,,,,,>).MakeGenericType(keyTypes.ToArray()),
-            _ => throw new NotSupportedException(
-                $"ValueTuple window keys support 2 to 7 key parts, but got {keyTypes.Length.ToString(CultureInfo.InvariantCulture)}.")
-        };
-    }
 
     private static bool CanReferencePublicType(Type type)
     {

@@ -8,15 +8,6 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private static Type ResolveValuesColumnType(string columnName, IReadOnlyList<Node> expressions, ValuesFromNode node)
-    {
-        return CommonColumnTypeResolver.Resolve(
-            columnName,
-            expressions,
-            ValuesSourceSpanHelpers.GetColumnExpressionSpan(expressions, node),
-            CommonColumnTypeDiagnosticKind.Values);
-    }
-
     private static ValuesRowNode[] RetypeValuesNulls(ValuesRowNode[] rows, IReadOnlyList<ISchemaColumn> columns)
     {
         var result = new ValuesRowNode[rows.Length];

@@ -56,7 +56,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var buildOnlyAppendBlock = ReferenceEquals(context.Sides.Build, context.Sources.Left)
             ? leftOnlyAppendBlocks.UnmatchedAppendBlock
             : rightOnlyAppendBlocks.UnmatchedAppendBlock;
-        var matchedBody = CreateFullOuterHashJoinMatchedBody(
+        var matchedBody = CreateFullOuterJoinMatchedBody(
             context.Join.Residual,
             context.Pipeline.Filter,
             probeHasMatch,
@@ -206,7 +206,7 @@ internal sealed partial class PhysicalLoweringImplementation
             ]));
     }
 
-    private ExecutionBlock CreateFullOuterHashJoinMatchedBody(
+    private ExecutionBlock CreateFullOuterJoinMatchedBody(
         IrExpression? joinCondition,
         PhysicalFilterNode? filter,
         ExecutionVariable probeHasMatch,

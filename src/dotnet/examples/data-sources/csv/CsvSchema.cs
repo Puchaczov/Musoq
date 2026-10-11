@@ -28,7 +28,7 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
         _enableQueryScopedRows = enableQueryScopedRows;
 
         AddTable<CsvFileTable>(File);
-        AddSource<CsvFileSource>(File);
+        AddSource<CsvFileDeclaration>(File);
     }
 
     public override ISchemaTable GetTableByName(
@@ -52,7 +52,7 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
             columns));
 
         return dynamicColumns.Length > 0
-            ? new CsvFileTable(columns, typeof(IReadOnlyDictionary<string, object?>))
+            ? new CsvFileTable(columns, typeof(QueryScopedRowContract))
             : new CsvFileTable(columns);
     }
 
@@ -82,15 +82,16 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
             columns));
 
         var diagnostics = CsvContractDiagnostics.Describe(columns, parameters);
+        if (!_enableQueryScopedRows)
+            diagnostics = diagnostics.Append(SourceContractDiagnostic.Error(
+                "CSV sources require a native typed positional accessor through query-scoped rows.", "CsvNativeTransferRequired")).ToArray();
         if (_recorder?.DescribeSourceContractDiagnostics.Count > 0)
             diagnostics = diagnostics.Concat(_recorder.DescribeSourceContractDiagnostics).ToArray();
 
         return new SourceDescriptor
         {
             Identity = context.Identity,
-            RowType = dynamicMetadata
-                ? typeof(IReadOnlyDictionary<string, object?>)
-                : typeof(CsvRow),
+            RowType = typeof(QueryScopedRowContract),
             Columns = columns,
             ContractDiagnostics = diagnostics,
             TransferCapabilities = _enableQueryScopedRows
@@ -126,15 +127,29 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
 
         _recorder?.PlanCalls.Add(new CsvPlanCall(name, request, parameters.ToArray()));
         var result = _recorder?.PlanResultFactory?.Invoke(request) ?? CsvSourcePlan.Create(request);
-        return _recorder?.PlanContractDiagnostics.Count > 0
-            ? result with { ContractDiagnostics = result.ContractDiagnostics.Concat(_recorder.PlanContractDiagnostics).ToArray() }
-            : result;
+        if (_recorder?.PlanContractDiagnostics.Count > 0)
+            result = result with { ContractDiagnostics = result.ContractDiagnostics.Concat(_recorder.PlanContractDiagnostics).ToArray() };
+        if (result.ExecutionPlan is null)
+            return result;
+        try
+        {
+            var properties = result.ExecutionPlan.Properties.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+            properties[CsvNativeExecutionPlan.PropertyName] = CsvNativeExecutionPlan.Bind(result);
+            return result with { ExecutionPlan = result.ExecutionPlan with { Properties = properties } };
+        }
+        catch (InvalidOperationException exception)
+        {
+            return result with
+            {
+                ContractDiagnostics = result.ContractDiagnostics.Append(SourceContractDiagnostic.Error(exception.Message, "CsvNativeBinding")).ToArray()
+            };
+        }
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments parameters)
     {
         EnsureFile(name);
         ArgumentNullException.ThrowIfNull(executionContext);
@@ -142,19 +157,18 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
         _recorder?.RowSourceCalls.Add(new CsvRowSourceCall(
             name,
             CsvSourceExecutionSnapshot.From(executionContext),
-            parameters.ToArray(),
+            CsvSourceOptions.FromNative(parameters),
             typeof(T)));
 
-        return EnsureSourceType<T, CsvRow>(
-            name,
-            CreateFileSource(executionContext, parameters));
+        throw new InvalidOperationException("CSV sources require native query-scoped rows.");
     }
 
-    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer>(
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        params object?[] parameters)
+        TArguments parameters)
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
         EnsureFile(name);
         ArgumentNullException.ThrowIfNull(request);
@@ -167,12 +181,12 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
         _recorder?.QueryRowSourceCalls.Add(new CsvQueryRowSourceCall(
             name,
             CsvSourceExecutionSnapshot.From(request.ExecutionContext),
-            parameters.ToArray(),
+            CsvSourceOptions.FromNative(parameters),
             typeof(TRow),
             request.Shape.Fingerprint));
 
         return new CsvQueryRowSource<TRow, TMaterializer>(
-            CsvSourceOptions.FromParameters(parameters),
+            CsvSourceOptions.FromNative(parameters),
             request);
     }
 
@@ -222,33 +236,6 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
         return columns.All(column => discoveredNames.Contains(column.ColumnName))
             ? discovered
             : [];
-    }
-
-    private static CsvFileSource CreateFileSource(
-        SourceExecutionContext executionContext,
-        object?[] parameters)
-    {
-        return parameters.Length switch
-        {
-            0 => new CsvFileSource(executionContext),
-            1 => new CsvFileSource(RequireString(parameters[0], "path"), executionContext),
-            2 => new CsvFileSource(
-                RequireString(parameters[0], "path"),
-                RequireBoolean(parameters[1], "hasHeader"),
-                executionContext),
-            3 => new CsvFileSource(
-                RequireString(parameters[0], "path"),
-                RequireBoolean(parameters[1], "hasHeader"),
-                RequireInt32(parameters[2], "skipRows"),
-                executionContext),
-            4 => new CsvFileSource(
-                RequireString(parameters[0], "path"),
-                RequireBoolean(parameters[1], "hasHeader"),
-                RequireInt32(parameters[2], "skipRows"),
-                RequireString(parameters[3], "delimiter"),
-                executionContext),
-            _ => throw new ArgumentException("CSV file source accepts at most four parameters.")
-        };
     }
 
     private static string RequireString(object? value, string parameterName)

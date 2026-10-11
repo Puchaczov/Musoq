@@ -83,7 +83,7 @@ public class DistinctTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count);
 
-        var names = table.Select(row => row.Values[0]?.ToString()).OrderBy(n => n).ToList();
+        var names = table.Select(row => row.ReadValues()[0]?.ToString()).OrderBy(n => n).ToList();
         CollectionAssert.AreEqual(new[] { "ABBA", "BABBA", "CECCA" }, names);
     }
 
@@ -153,7 +153,7 @@ public class DistinctTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("SAME", table[0].Values[0]);
+        Assert.AreEqual("SAME", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -178,7 +178,7 @@ public class DistinctTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count);
 
-        var cities = table.Select(row => row.Values[0]?.ToString()).OrderBy(n => n).ToList();
+        var cities = table.Select(row => row.ReadValues()[0]?.ToString()).OrderBy(n => n).ToList();
         CollectionAssert.AreEqual(new[] { "cracow", "warsaw" }, cities);
     }
 
@@ -203,9 +203,9 @@ public class DistinctTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("CECCA", table[0].Values[0]);
-        Assert.AreEqual("BABBA", table[1].Values[0]);
-        Assert.AreEqual("ABBA", table[2].Values[0]);
+        Assert.AreEqual("CECCA", table[0].ReadValues()[0]);
+        Assert.AreEqual("BABBA", table[1].ReadValues()[0]);
+        Assert.AreEqual("ABBA", table[2].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -290,7 +290,7 @@ public class DistinctTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("ONLY", table[0].Values[0]);
+        Assert.AreEqual("ONLY", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -337,8 +337,8 @@ public class DistinctTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("BABBA", table[0].Values[0]);
-        Assert.AreEqual("CECCA", table[1].Values[0]);
+        Assert.AreEqual("BABBA", table[0].ReadValues()[0]);
+        Assert.AreEqual("CECCA", table[1].ReadValues()[0]);
     }
 
     [TestMethod]

@@ -19,7 +19,6 @@ public sealed partial class ExecutionCSharpRenderer
             return
             [
                 SyntaxFactory.ParseStatement("var token = queryContext.CancellationToken;"),
-                SyntaxFactory.ParseStatement("var __musoqRuntimeParameters = queryContext.RuntimeParameters;"),
                 SyntaxFactory.ParseStatement("var __musoqProgressContext = queryContext.QueryProgress == null ? null : queryContext;"),
                 SyntaxFactory.ParseStatement("Action<string, QueryPhase> OnPhaseChanged = queryContext.NotifyPhaseChanged;"),
                 SyntaxFactory.ParseStatement("DataSourceEventHandler OnDataSourceProgress = queryContext.NotifyDataSourceProgress;"),

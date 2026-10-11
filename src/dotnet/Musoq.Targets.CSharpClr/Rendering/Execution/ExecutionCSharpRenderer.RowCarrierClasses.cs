@@ -7,11 +7,6 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static ClassDeclarationSyntax RenderExpandoAdapterClass(ExpandoAdapterShape shape)
-    {
-        return RenderRowCarrierClass(shape.TypeName, shape.Fields, field => field.Name);
-    }
-
     private static MemberDeclarationSyntax RenderGeneratedRecordClass(GeneratedRecordShape shape)
     {
         if (shape.EmitAsValueType)

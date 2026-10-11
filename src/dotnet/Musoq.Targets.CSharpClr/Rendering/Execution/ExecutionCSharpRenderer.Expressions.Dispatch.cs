@@ -180,26 +180,8 @@ public sealed partial class ExecutionCSharpRenderer
             .WithArgumentList(CreateArgumentList(rows));
     }
 
-    private ExpressionSyntax RenderArrayAccess(
-        ExecutionArrayAccess arrayAccess,
-        ExecutionRenderContext context)
-    {
-        var arrayExpression = RenderExpression(arrayAccess.Array, context);
-        while (arrayExpression is CastExpressionSyntax castExpression)
-            arrayExpression = castExpression.Expression;
-
-        var invocation = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
-                    SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetIndexedElement))))
-            .WithArgumentList(CreateArgumentList(
-                arrayExpression,
-                RenderExpression(arrayAccess.Index, context),
-                SyntaxFactory.TypeOfExpression(CreateTypeSyntax(arrayAccess.ElementType))));
-
-        return CastIfNeeded(invocation, arrayAccess.ReturnType);
-    }
+    private ExpressionSyntax RenderArrayAccess(ExecutionArrayAccess access, ExecutionRenderContext context) =>
+        new ArrayAccessSyntax(this, context).Render(access);
 
     private static ObjectCreationExpressionSyntax RenderIndexedHashRowCreate(ExecutionIndexedHashRowCreate indexedRowCreate)
     {

@@ -1,3 +1,4 @@
+using Musoq.Evaluator.IR.CodeGeneration;
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -69,7 +70,9 @@ public sealed partial class ExecutionCSharpRendererTests
                 finalResult.TableName,
                 finalResult.Shape.TypeName,
                 finalResult.Shape.Fields,
-                bufferFinalShapes: true)
+                outputPlan: FinalOutputPlanner.Plan(plan, new TableViaRowsResultInfo(
+                    finalResult.TableName, finalResult.Shape.TypeName, finalResult.Shape.TypeName,
+                    finalResult.Shape.Fields, finalResult.ColumnMetadata.Fields)) with { BufferFinalRows = true })
             .NormalizeWhitespace()
             .ToFullString();
 
@@ -101,7 +104,9 @@ public sealed partial class ExecutionCSharpRendererTests
                 finalResult.TableName,
                 finalResult.Shape.TypeName,
                 finalResult.Shape.Fields,
-                bufferFinalShapes: true)
+                outputPlan: FinalOutputPlanner.Plan(plan, new TableViaRowsResultInfo(
+                    finalResult.TableName, finalResult.Shape.TypeName, finalResult.Shape.TypeName,
+                    finalResult.Shape.Fields, finalResult.ColumnMetadata.Fields)) with { BufferFinalRows = true })
             .NormalizeWhitespace()
             .ToFullString();
         var typedSinkExpression = renderer
@@ -189,7 +194,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var code = method.NormalizeWhitespace().ToFullString();
 
         Assert.Contains("foreach (var t in source.Rows)", code);
-        Assert.Contains("result.Add(new ResultRow0((string)t[0]));", code);
+        Assert.Contains("result.Add(new ResultRow0(t.GetValue<string>(0)));", code);
         Assert.IsFalse(code.Contains("new ObjectsRow(new object[]", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("__tResolver.Contexts[0]", StringComparison.Ordinal));
     }

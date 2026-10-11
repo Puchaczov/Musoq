@@ -194,14 +194,14 @@ public sealed class CsvDatasourceApiContractTests : CsvExampleTestBase
             "select Name from Rows($path)";
 
         var compiled = Compile(query, provider);
-        compiled.Parameters["path"] = path;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "path", path);
         var table = compiled.Run();
 
         Assert.AreEqual(0, table.Count);
         Assert.AreEqual(0, recorder.GetTableCalls.Last().Parameters.Count);
         Assert.AreEqual(0, recorder.DescribeSourceCalls.Last().Parameters.Count);
         Assert.AreEqual(0, recorder.PlanCalls.Last().Parameters.Count);
-        Assert.AreEqual(path, recorder.QueryRowSourceCalls.Single().Parameters.Single());
+        Assert.AreEqual(path, recorder.QueryRowSourceCalls.Single().Parameters.Path);
     }
 
     [TestMethod]
@@ -234,6 +234,13 @@ public sealed class CsvDatasourceApiContractTests : CsvExampleTestBase
         StringAssert.Contains(warnings[0].Message, "column=Name");
         StringAssert.Contains(warnings[0].Message, "modifier=encoding");
         Assert.AreEqual(CreateExpectedSpan(query, "encoding 'windows-1250'"), warnings[0].Span);
+    }
+
+    private static void AssertStaticParameters(CsvSourceOptions parameters, string path)
+    {
+        Assert.AreEqual(path, parameters.Path);
+        Assert.IsTrue(parameters.HasHeader);
+        Assert.AreEqual(3, parameters.SkipRows);
     }
 
     private static void AssertStaticParameters(IReadOnlyList<object?> parameters, string path)

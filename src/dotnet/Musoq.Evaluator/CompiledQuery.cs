@@ -20,7 +20,7 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
     private readonly ManualResetEventSlim _admissionsCompleted = new(true);
     private readonly ManualResetEventSlim _activeRunsCompleted = new(true);
     private readonly ManualResetEventSlim _resultLifetimesCompleted = new(true);
-    private readonly SynchronizedParameterDictionary _parameters;
+    private TypedParameterValues? _typedParameters;
     private ITableRunnable? _runnable;
     private IParameterizedRunnable? _parameterizedRunnable;
     private IReadOnlyList<ScriptParameterDefinition>? _parameterDefinitions;
@@ -50,10 +50,8 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
                               _parameterDefinitions.Select(static definition => definition.Contract).ToArray();
         _requiredParameters = _parameterDefinitions.Where(definition => definition.IsRequired).ToArray();
         _lifetimeOwner = lifetimeOwner;
-        _parameters = new SynchronizedParameterDictionary(
-            _runtimeGate,
-            _parameterizedRunnable?.Parameters,
-            () => Volatile.Read(ref _activeRuns) != 0);
+        if (runnable is ITypedParameterizedRunnable typed && typed.TypedParameters.Count != 0)
+            TypedParameters.ReplaceWith(typed.TypedParameters);
     }
 
     public event QueryPhaseEventHandler PhaseChanged
@@ -124,16 +122,24 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
         }
     }
 
-    public IDictionary<string, object?> Parameters
+    /// <summary>Gets concrete parameter slots for the next execution.</summary>
+    public TypedParameterValues TypedParameters
     {
         get
         {
             lock (_runtimeGate)
             {
                 EnsureNotDisposed();
-                return _parameters;
+                return _typedParameters ??= new TypedParameterValues(_runtimeGate, EnsureTypedParametersMutable);
             }
         }
+    }
+
+    private void EnsureTypedParametersMutable()
+    {
+        EnsureNotDisposed();
+        if (Volatile.Read(ref _activeRuns) != 0)
+            throw new InvalidOperationException("Parameters cannot change while a query is executing.");
     }
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions
@@ -179,7 +185,15 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
         return RunCore(token, progressOptions);
     }
 
-    private Table RunCore(CancellationToken token, QueryProgressOptions? progressOptions)
+    /// <summary>Executes with independently captured native parameter slots and callbacks.</summary>
+    public Table Run(TypedQueryRunOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(options.TypedParameters);
+        return RunCore(options.CancellationToken, options.QueryProgressOptions, options);
+    }
+
+    private Table RunCore(CancellationToken token, QueryProgressOptions? progressOptions, TypedQueryRunOptions? options = null)
     {
         var admission = BeginAdmission();
         var gateAcquired = false;
@@ -200,11 +214,12 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
                 if (token.IsCancellationRequested)
                     throw new OperationCanceledException("Query execution was cancelled before it started.", token);
 
-                var parameterSnapshot = CaptureParameterSnapshot(token);
+                var parameterSnapshot = options?.TypedParameters ?? CaptureParameterSnapshot(token);
+                ValidateRequiredParameters(parameterSnapshot);
                 EnsureDataSourceLifecycleProvider(admission.Runnable);
                 BeginExecution();
                 executionStarted = true;
-                context = CaptureExecutionContext(admission.Runnable, parameterSnapshot, token, progressOptions);
+                context = CaptureExecutionContext(admission.Runnable, parameterSnapshot, token, progressOptions, options);
                 if (!admission.UseContext)
                     ApplyParameterSnapshot(context);
             }
@@ -270,7 +285,15 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
         return RunAsyncCore(token, progressOptions);
     }
 
-    private async ValueTask<Table> RunAsyncCore(CancellationToken token, QueryProgressOptions? progressOptions)
+    /// <summary>Asynchronously executes with independently captured native parameter slots.</summary>
+    public ValueTask<Table> RunAsync(TypedQueryRunOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(options.TypedParameters);
+        return RunAsyncCore(options.CancellationToken, options.QueryProgressOptions, options);
+    }
+
+    private async ValueTask<Table> RunAsyncCore(CancellationToken token, QueryProgressOptions? progressOptions, TypedQueryRunOptions? options = null)
     {
         var admission = BeginAdmission();
         var gateAcquired = false;
@@ -291,11 +314,12 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
                 if (token.IsCancellationRequested)
                     throw new OperationCanceledException("Query execution was cancelled before it started.", token);
 
-                var parameterSnapshot = CaptureParameterSnapshot(token);
+                var parameterSnapshot = options?.TypedParameters ?? CaptureParameterSnapshot(token);
+                ValidateRequiredParameters(parameterSnapshot);
                 EnsureDataSourceLifecycleProvider(admission.Runnable);
                 BeginExecution();
                 executionStarted = true;
-                context = CaptureExecutionContext(admission.Runnable, parameterSnapshot, token, progressOptions);
+                context = CaptureExecutionContext(admission.Runnable, parameterSnapshot, token, progressOptions, options);
                 if (!admission.UseContext)
                     ApplyParameterSnapshot(context);
             }
@@ -396,6 +420,7 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
                     throw new InvalidOperationException("Query was not compiled with profiling instrumentation.");
 
                 var parameterSnapshot = CaptureParameterSnapshot(token);
+                ValidateRequiredParameters(parameterSnapshot);
                 EnsureDataSourceLifecycleProvider(admission.Runnable);
                 profiledRunnable = profiled;
                 BeginExecution();
@@ -517,53 +542,46 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
 
     private QueryExecutionContext CaptureExecutionContext(
         ITableRunnable runnable,
-        IReadOnlyDictionary<string, object?> parameters,
+        TypedParameterSnapshot parameters,
         CancellationToken token,
-        QueryProgressOptions? progressOptions)
+        QueryProgressOptions? progressOptions,
+        TypedQueryRunOptions? options = null)
     {
         return QueryExecutionContext.Capture(
             runnable,
             parameters,
             token,
-            _phaseChangedHandlers,
-            _dataSourceProgressHandlers,
-            _queryProgressHandlers,
+            _phaseChangedHandlers + options?.PhaseChanged,
+            _dataSourceProgressHandlers + options?.DataSourceProgress,
+            _queryProgressHandlers + options?.QueryProgress,
             progressOptions,
             runnable,
             runnable.GetType().FullName);
     }
 
-    private IReadOnlyDictionary<string, object?> CaptureParameterSnapshot(CancellationToken token)
+    private TypedParameterSnapshot CaptureParameterSnapshot(CancellationToken token)
     {
-        var parameters = _parameters.Snapshot();
+        token.ThrowIfCancellationRequested();
+        return _typedParameters?.Capture(token) ?? TypedParameterSnapshot.Empty;
+    }
+
+    private void ValidateRequiredParameters(TypedParameterSnapshot snapshot)
+    {
         if (_runnable is IMetadataOnlyRunnable { IsMetadataOnly: true })
-            return ParameterSnapshot.EmptyReadOnly;
-
-        if (_parameterizedRunnable is null)
-            return parameters;
-
-        try
+            return;
+        foreach (var definition in RequiredParameters)
         {
-            return StructuralParameterSnapshotter.CaptureForExecution(
-                _parameterDefinitions ?? Array.Empty<ScriptParameterDefinition>(),
-                parameters,
-                token,
-                _parameterizedRunnable as IStructuralParameterSnapshotProvider);
-        }
-        catch (ScriptParameterBindingException exception)
-        {
-            throw QueryExecutionException.ForScriptParameterBinding(exception);
+            if (snapshot.Contains(definition.Name))
+                continue;
+            throw QueryExecutionException.ForScriptParameterBinding(
+                ScriptParameterBindingException.MissingRequired(definition.Name));
         }
     }
 
     private void ApplyParameterSnapshot(QueryExecutionContext context)
     {
-        if (_parameterizedRunnable is null)
-            return;
-
-        _parameterizedRunnable.Parameters.Clear();
-        foreach (var parameter in context.Parameters)
-            _parameterizedRunnable.Parameters[parameter.Key] = parameter.Value;
+        if (_runnable is ITypedParameterizedRunnable typed)
+            typed.TypedParameters = context.TypedParameters;
     }
 
     private void BeginExecution()
@@ -578,7 +596,6 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
         {
             if (Interlocked.Decrement(ref _activeRuns) == 0)
             {
-                _parameters.SynchronizeCompatibilityTarget();
                 _activeRunsCompleted.Set();
             }
         }

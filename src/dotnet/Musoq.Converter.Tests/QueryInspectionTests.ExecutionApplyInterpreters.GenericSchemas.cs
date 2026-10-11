@@ -37,9 +37,9 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("generic", table[0][0]);
-        Assert.AreEqual((byte)0x0A, table[0][1]);
-        Assert.AreEqual((byte)0x0C, table[2][1]);
+        Assert.AreEqual("generic", table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x0A, table[0].ReadValue(1));
+        Assert.AreEqual((byte)0x0C, table[2].ReadValue(1));
     }
 
     [TestMethod]
@@ -75,11 +75,11 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("nested-generic", table[0][0]);
-        Assert.AreEqual((byte)0x0A, table[0][1]);
-        Assert.AreEqual((short)0x1234, table[0][2]);
-        Assert.AreEqual((byte)0x0B, table[1][1]);
-        Assert.AreEqual((short)0x5678, table[1][2]);
+        Assert.AreEqual("nested-generic", table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x0A, table[0].ReadValue(1));
+        Assert.AreEqual((short)0x1234, table[0].ReadValue(2));
+        Assert.AreEqual((byte)0x0B, table[1].ReadValue(1));
+        Assert.AreEqual((short)0x5678, table[1].ReadValue(2));
     }
 
     [TestMethod]
@@ -96,7 +96,7 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanContains("InterpretSource [ExtendedHeader.Interpret(i.Content) -> hRows]", result.ExecutionPlanText);
-        Assert.Contains("h.Version: byte <- field h_Version", result.ExecutionPlanText);
+        Assert.Contains("Version: byte <- field Version", result.ExecutionPlanText);
         Assert.Contains("Payload: byte[] <- property Payload", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("Statement0Row0", StringComparison.Ordinal));
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
@@ -127,8 +127,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("packet", table[0][0]);
-        Assert.AreEqual((byte)7, table[0][1]);
+        Assert.AreEqual("packet", table[0].ReadValue(0));
+        Assert.AreEqual((byte)7, table[0].ReadValue(1));
     }
 
 }

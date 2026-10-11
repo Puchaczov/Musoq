@@ -68,7 +68,7 @@ foreach (var testCase in cases)
 
     using var compiled = build.CompiledQuery;
     if (string.Equals(testCase.Host, "patterns", StringComparison.Ordinal))
-        compiled.Parameters["patterns"] = CreateHostPatterns();
+        compiled.TypedParameters.SetJson("patterns", System.Text.Json.JsonSerializer.SerializeToElement(CreateHostPatterns()));
 
     using var table = compiled.Run();
     var columns = table.Columns.Count();
@@ -84,11 +84,8 @@ foreach (var testCase in cases)
         var firstRow = table.Rows[0];
         if (testCase.First.Length > columns)
             throw new InvalidOperationException($"Example '{testCase.Name}' specifies more first-row values than columns.");
-        for (var index = 0; index < testCase.First.Length; index++)
-        {
-            if (!Matches(testCase.First[index], firstRow[index]))
-                throw new InvalidOperationException($"Example '{testCase.Name}' first-row column {index} was '{firstRow[index]}', which does not match the manifest.");
-        }
+        var comparison = new ManifestValueVisitor(testCase.First, testCase.Name);
+        firstRow.VisitColumns(ref comparison);
     }
 
     if (testCase.Counter is not null && ReadCounter(testCase.Counter) != 1)
@@ -149,33 +146,6 @@ static int ReadTotalCounter()
            StructuredInputSourceCounters.ThrowingConstructed;
 }
 
-static bool Matches(JsonElement expected, object? actual)
-{
-    return expected.ValueKind switch
-    {
-        JsonValueKind.Null => actual is null,
-        JsonValueKind.True => actual is true,
-        JsonValueKind.False => actual is false,
-        JsonValueKind.String => string.Equals(expected.GetString(), actual?.ToString(), StringComparison.Ordinal),
-        JsonValueKind.Number when expected.TryGetInt64(out var integer) => actual switch
-        {
-            byte value => value == integer,
-            short value => value == integer,
-            int value => value == integer,
-            long value => value == integer,
-            _ => false
-        },
-        JsonValueKind.Number when expected.TryGetDecimal(out var decimalValue) => actual switch
-        {
-            float value => (decimal)value == decimalValue,
-            double value => (decimal)value == decimalValue,
-            decimal value => value == decimalValue,
-            _ => false
-        },
-        _ => false
-    };
-}
-
 static string FindRepositoryRoot()
 {
     var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -200,4 +170,23 @@ sealed class NullLoggerResolver : ILoggerResolver
 {
     public ILogger ResolveLogger() => NullLogger.Instance;
     public ILogger<T> ResolveLogger<T>() => NullLogger<T>.Instance;
+}
+
+sealed class ManifestValueVisitor(JsonElement[] expected, string name) : Musoq.Schema.IColumnValueVisitor
+{
+    public void Visit<T>(int columnIndex, in T value)
+    {
+        if (columnIndex >= expected.Length) return;
+        var actual = JsonSerializer.SerializeToElement(value);
+        var item = expected[columnIndex];
+        var matches = item.ValueKind == actual.ValueKind && (item.ValueKind switch
+        {
+            JsonValueKind.Null or JsonValueKind.True or JsonValueKind.False => true,
+            JsonValueKind.String => string.Equals(item.GetString(), actual.GetString(), StringComparison.Ordinal),
+            JsonValueKind.Number => item.GetDecimal() == actual.GetDecimal(),
+            _ => false
+        });
+        if (!matches)
+            throw new InvalidOperationException($"Example '{name}' first-row column {columnIndex} was '{actual}', which does not match the manifest.");
+    }
 }

@@ -7,6 +7,7 @@ using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Benchmarks;
 
@@ -129,6 +130,12 @@ public class StreamingChunkParallelProjectionBenchmark
         IReadOnlyList<StreamingBenchmarkRow> rows,
         int chunkSize) : SchemaBase("bench", CreateLibrary())
     {
+        public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
+            => base.DescribeSource(name, context, parameters) with
+            {
+                ExecutionPermissions = SourceExecutionPermissions.ConcurrentRowProcessing
+            };
+
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
@@ -140,10 +147,10 @@ public class StreamingChunkParallelProjectionBenchmark
             throw new NotSupportedException(name);
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments parameters)
         {
             if (string.Equals(name, "rows", StringComparison.OrdinalIgnoreCase))
             {
@@ -203,13 +210,13 @@ public class StreamingChunkParallelProjectionBenchmark
 
     public sealed class StreamingBenchmarkLibrary : LibraryBase
     {
-        [BindableMethod]
+        [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
         public bool ExpensivePredicate(int value)
         {
             return (Mix(value) & 3) != 0;
         }
 
-        [BindableMethod]
+        [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
         public int ExpensiveCompute(int value)
         {
             return Mix(value ^ unchecked((int)0x9E3779B9));

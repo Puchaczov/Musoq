@@ -57,7 +57,7 @@ public class BugProbeInlineSchemaOuterRefTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello", table[0][0]);
+        Assert.AreEqual("Hello", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -86,6 +86,6 @@ public class BugProbeInlineSchemaOuterRefTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)3, table[0][0]);
+        Assert.AreEqual((byte)3, table[0].ReadValue(0));
     }
 }

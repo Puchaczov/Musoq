@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
+using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.Tests.Components;
 
 namespace Musoq.Evaluator.Tests;
@@ -130,6 +131,40 @@ public sealed class GeneratedCodeSamplesSnapshotTests
             Assert.IsGreaterThan(previous, current, marker);
             previous = current;
         }
+    }
+
+    [TestMethod]
+    public void Q44JoinWindowSample_WhenGenerated_ShouldUseColumnarStoredTableBuffer()
+    {
+        var sample = GeneratedCodeSamplesCatalog.GetByFileName("Q44_WindowFrameWithJoin.cs");
+        var generated = GeneratedCodeSampleArtifacts.Generate(sample, _loggerResolver);
+
+        StringAssert.Contains(generated, "StoredTableColumnBuffer0");
+        StringAssert.Contains(generated, "private sealed class StoredTableColumn<T>");
+        StringAssert.Contains(generated, "GeneratedColumnarBuffer<Statement0Row0>");
+        Assert.IsFalse(generated.Contains("MaterializeGeneratedRows<Statement0Row0>", StringComparison.Ordinal));
+
+        var buildItems = InstanceCreator.CreateForAnalyze(
+            sample.Query,
+            "Q44ColumnarRepresentationTest",
+            sample.CreateSchemaProvider(),
+            _loggerResolver);
+        var plan = buildItems.OptimizedExecutionPlan;
+        Assert.IsNotNull(plan);
+        var representation = plan.StoredTableRepresentations.Single(static item => item.TableIndex == 0);
+        Assert.AreEqual(ExecutionStoredTableRepresentationKind.GeneratedColumnarBuffer, representation.Kind);
+
+        var unsupportedSample = GeneratedCodeSamplesCatalog.GetByFileName("Q229_PerformanceWindowCteSetOperation.cs");
+        var unsupportedBuildItems = InstanceCreator.CreateForAnalyze(
+            unsupportedSample.Query,
+            "UnsupportedColumnarRepresentationTest",
+            unsupportedSample.CreateSchemaProvider(),
+            _loggerResolver);
+        var unsupportedPlan = unsupportedBuildItems.OptimizedExecutionPlan;
+        Assert.IsNotNull(unsupportedPlan);
+        Assert.IsTrue(unsupportedPlan.StoredTableRepresentations.Count > 0);
+        Assert.IsTrue(unsupportedPlan.StoredTableRepresentations.All(static item =>
+            item.Kind == ExecutionStoredTableRepresentationKind.GeneratedRowList));
     }
 
     [TestMethod]

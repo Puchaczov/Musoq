@@ -53,8 +53,8 @@ public sealed class DiagnosticTable034TableContractTests : UnknownQueryTestsBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("source.Name", typeof(string)),
-            ("source.name", typeof(int?)));
+            ("Name", typeof(string)),
+            ("name", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["upper", 42]);
     }
 
@@ -79,8 +79,8 @@ public sealed class DiagnosticTable034TableContractTests : UnknownQueryTestsBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("upper.UpperValue", typeof(string)),
-            ("lower.LowerValue", typeof(int?)));
+            ("UpperValue", typeof(string)),
+            ("LowerValue", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["upper", 42]);
     }
 

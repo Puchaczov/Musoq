@@ -38,7 +38,7 @@ public partial class SubqueryTests
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("HasMatch", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -62,7 +62,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["NULL_PART"], ["PL_LOW"]);
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("PhysicalSortMergeJoin [LeftAntiSemi]", inspection.PhysicalPlanText);
@@ -91,7 +91,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["PL_MATCH"]);
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("PhysicalSortMergeJoin [LeftSemi]", inspection.PhysicalPlanText);
@@ -116,7 +116,7 @@ public partial class SubqueryTests
             ORDER BY a.Name";
         var table = CreateAndRunVirtualMachine(query, CreateRangeMatrixSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ExpectedRangeSemiRows(predicate));
@@ -143,7 +143,7 @@ public partial class SubqueryTests
             ORDER BY a.Name";
         var table = CreateAndRunVirtualMachine(query, CreateRangeMatrixSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ExpectedRangeAntiRows(predicate));
@@ -172,7 +172,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("MatchCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,

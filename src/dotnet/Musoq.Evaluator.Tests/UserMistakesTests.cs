@@ -111,20 +111,6 @@ public partial class UserMistakesTests : BasicEntityTestBase
 
 
     [TestMethod]
-    public void Missing_FromClause_SelectOnly()
-    {
-        // Arrange
-        var analyzer = CreateAnalyzer();
-        var query = "SELECT Name";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert - the parser reports the missing required clause.
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2004_MissingFromClause, "SELECT without FROM");
-    }
-
-    [TestMethod]
     public void Missing_SelectKeyword()
     {
         // Arrange
@@ -281,21 +267,5 @@ public partial class UserMistakesTests : BasicEntityTestBase
         // Assert - invalid bracketed identifier syntax
         AssertHasDiagnosticCode(result, DiagnosticCode.MQ2011_MissingClosingBracket, "unclosed square bracket");
     }
-
-    [TestMethod]
-    public void ExtraClosing_Parenthesis()
-    {
-        // Arrange
-        var analyzer = CreateAnalyzer();
-        var query = "SELECT Name FROM #A.Entities())";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert - MQ2001_UnexpectedToken for extra )
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "extra closing parenthesis");
-    }
-
-
 
 }

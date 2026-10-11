@@ -1,3 +1,4 @@
+using Musoq.Tests.Common;
 using System.Text;
 using Microsoft.Extensions.Logging.Abstractions;
 using Musoq.Parser.Diagnostics;
@@ -24,12 +25,12 @@ public sealed class CsvFileSourceStreamingTests : CsvExampleTestBase
         var table = Run(query);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Ada", table[0][0]);
-        Assert.AreEqual(12.50m, table[0][1]);
-        Assert.AreEqual(new DateTime(2023, 12, 31), table[0][2]);
-        Assert.AreEqual("Bob", table[1][0]);
-        Assert.AreEqual(2.40m, table[1][1]);
-        Assert.AreEqual(new DateTime(2024, 1, 1), table[1][2]);
+        Assert.AreEqual("Ada", table[0].ReadValue(0));
+        Assert.AreEqual(12.50m, table[0].ReadValue(1));
+        Assert.AreEqual(new DateTime(2023, 12, 31), table[0].ReadValue(2));
+        Assert.AreEqual("Bob", table[1].ReadValue(0));
+        Assert.AreEqual(2.40m, table[1].ReadValue(1));
+        Assert.AreEqual(new DateTime(2024, 1, 1), table[1].ReadValue(2));
     }
 
     [TestMethod]
@@ -44,10 +45,10 @@ public sealed class CsvFileSourceStreamingTests : CsvExampleTestBase
         var table = Run(query);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual("Ada", table[0][1]);
-        Assert.AreEqual(2, table[1][0]);
-        Assert.AreEqual("Bob", table[1][1]);
+        Assert.AreEqual(1, table[0].ReadValue(0));
+        Assert.AreEqual("Ada", table[0].ReadValue(1));
+        Assert.AreEqual(2, table[1].ReadValue(0));
+        Assert.AreEqual("Bob", table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -62,8 +63,8 @@ public sealed class CsvFileSourceStreamingTests : CsvExampleTestBase
         var table = Run(query);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Jane \"JJ\"", table[0][0]);
-        Assert.AreEqual("Line 1\nLine 2", table[0][1]);
+        Assert.AreEqual("Jane \"JJ\"", table[0].ReadValue(0));
+        Assert.AreEqual("Line 1\nLine 2", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -78,12 +79,12 @@ public sealed class CsvFileSourceStreamingTests : CsvExampleTestBase
         var table = Run(query);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Ada", table[0][0]);
-        Assert.IsNull(table[0][1]);
-        Assert.IsNull(table[0][2]);
-        Assert.AreEqual("Bob", table[1][0]);
-        Assert.AreEqual(12.5m, table[1][1]);
-        Assert.IsNull(table[1][2]);
+        Assert.AreEqual("Ada", table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
+        Assert.IsNull(table[0].ReadValue(2));
+        Assert.AreEqual("Bob", table[1].ReadValue(0));
+        Assert.AreEqual(12.5m, table[1].ReadValue(1));
+        Assert.IsNull(table[1].ReadValue(2));
     }
 
     [TestMethod]
@@ -130,8 +131,8 @@ public sealed class CsvFileSourceStreamingTests : CsvExampleTestBase
         var table = Run(query);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Ada", table[0][0]);
-        Assert.AreEqual(12, table[0][1]);
+        Assert.AreEqual("Ada", table[0].ReadValue(0));
+        Assert.AreEqual(12, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -146,7 +147,7 @@ public sealed class CsvFileSourceStreamingTests : CsvExampleTestBase
         var table = Run(query);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Lodz", table[0][0]);
+        Assert.AreEqual("Lodz", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -214,13 +215,16 @@ public sealed class CsvFileSourceStreamingTests : CsvExampleTestBase
             [Column("Name", 0, typeof(string))],
             new Dictionary<string, string>(),
             NullLogger.Instance);
-        var source = new CsvFileSource(path, true, context);
+        var schema = new CsvSchema();
+        var shape = new QueryRowShape([new QueryRowField(0, 0, "Name", typeof(string), true)]);
+        var source = schema.GetQueryScopedRowSource<NativeCsvTestRow, NativeCsvTestMaterializer, SourceArguments<string, SourceArguments<bool, EmptySourceArguments>>>(
+            CsvSchema.File, new QueryScopedRowSourceRequest(context, shape), SourceArguments.Create(path, SourceArguments.Create(true, SourceArguments.Empty)));
 
         Assert.Throws<OperationCanceledException>(() => source.Chunks.SelectMany(static chunk => chunk).ToArray());
     }
 
     [TestMethod]
-    public void Source_WhenCsvHasMalformedQuotes_ShouldThrowFormatException()
+    public void Source_WhenCsvHasMalformedQuotes_ShouldReportOwnedInputDiagnostic()
     {
         var path = WriteTempCsv("Name\n\"Ada\n");
         var context = new SourceExecutionContext(
@@ -230,8 +234,12 @@ public sealed class CsvFileSourceStreamingTests : CsvExampleTestBase
             [Column("Name", 0, typeof(string))],
             new Dictionary<string, string>(),
             NullLogger.Instance);
-        var source = new CsvFileSource(path, true, context);
+        var schema = new CsvSchema();
+        var shape = new QueryRowShape([new QueryRowField(0, 0, "Name", typeof(string), true)]);
+        var source = schema.GetQueryScopedRowSource<NativeCsvTestRow, NativeCsvTestMaterializer, SourceArguments<string, SourceArguments<bool, EmptySourceArguments>>>(
+            CsvSchema.File, new QueryScopedRowSourceRequest(context, shape), SourceArguments.Create(path, SourceArguments.Create(true, SourceArguments.Empty)));
 
-        Assert.Throws<FormatException>(() => source.Chunks.SelectMany(static chunk => chunk).ToArray());
+        var error = Assert.Throws<Musoq.Schema.Diagnostics.DataSourceInputException>(() => source.Chunks.SelectMany(static chunk => chunk).ToArray());
+        Assert.AreEqual(Musoq.Schema.Diagnostics.DataSourceInputFailureReason.UnterminatedQuotedField, error.Reason);
     }
 }

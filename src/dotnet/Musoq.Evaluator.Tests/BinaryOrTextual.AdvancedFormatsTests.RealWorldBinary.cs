@@ -46,10 +46,10 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("s.B1", typeof(byte)),
-            ("s.B2", typeof(byte)),
-            ("s.B3", typeof(byte)),
-            ("s.B4", typeof(byte)));
+            ("B1", typeof(byte)),
+            ("B2", typeof(byte)),
+            ("B3", typeof(byte)),
+            ("B4", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)0x89, (byte)0x50, (byte)0x4E, (byte)0x47]);
     }
 
@@ -88,9 +88,9 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("t.Type", typeof(byte)),
-            ("t.Length", typeof(short)),
-            ("t.Value", typeof(byte[])));
+            ("Type", typeof(byte)),
+            ("Length", typeof(short)),
+            ("Value", typeof(byte[])));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             [(byte)0x01, (short)5, new byte[] { 0x10, 0x20, 0x30, 0x40, 0x50 }]);
@@ -135,11 +135,11 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("m.Sync", typeof(short)),
-            ("m.MsgType", typeof(byte)),
-            ("m.PayloadLen", typeof(short)),
-            ("m.Payload", typeof(byte[])),
-            ("m.Checksum", typeof(short)));
+            ("Sync", typeof(short)),
+            ("MsgType", typeof(byte)),
+            ("PayloadLen", typeof(short)),
+            ("Payload", typeof(byte[])),
+            ("Checksum", typeof(short)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             [(short)0x1234, (byte)0x01, (short)3, new byte[] { 1, 2, 3 }, (short)6]);
@@ -204,12 +204,12 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.Version", typeof(short)),
-            ("h.Flags", typeof(short)),
-            ("h.IsCompressed", typeof(bool)),
-            ("h.HasIndex", typeof(bool)),
-            ("h.IsEncrypted", typeof(bool)),
-            ("h.RecordCount", typeof(int)));
+            ("Version", typeof(short)),
+            ("Flags", typeof(short)),
+            ("IsCompressed", typeof(bool)),
+            ("HasIndex", typeof(bool)),
+            ("IsEncrypted", typeof(bool)),
+            ("RecordCount", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(short)1, (short)0x03, true, true, false, 100]);
     }
 
@@ -277,7 +277,7 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("m.VertexCount", typeof(int)),
+            ("VertexCount", typeof(int)),
             ("m.Vertices[0].Position.X", typeof(float)),
             ("m.Vertices[0].Position.Y", typeof(float)),
             ("m.Vertices[0].Color", typeof(byte)),
@@ -325,8 +325,8 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("r.RecordType", typeof(byte)),
-            ("r.IntValue", typeof(int?)));
+            ("RecordType", typeof(byte)),
+            ("IntValue", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)2, 12345]);
     }
 
@@ -370,7 +370,7 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("r.Category", typeof(byte)),
+            ("Category", typeof(byte)),
             ("TotalValue", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,

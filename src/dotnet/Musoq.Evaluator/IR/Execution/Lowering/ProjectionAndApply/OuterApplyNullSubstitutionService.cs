@@ -44,7 +44,6 @@ internal static class OuterApplyNullSubstitutionService
             ExecutionRowStream => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionScalarRowStream => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionStoredTableRows => OuterApplyNullSubstitutionResult.Known(expression),
-            ExecutionCompositeKey compositeKey => SubstituteCompositeKey(compositeKey, rightAlias),
             ExecutionValueTupleKey valueTupleKey => SubstituteValueTupleKey(valueTupleKey, rightAlias),
             ExecutionWindowValueRead => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionAggregateCall aggregateCall => SubstituteAggregateCall(aggregateCall, rightAlias),
@@ -99,8 +98,7 @@ internal static class OuterApplyNullSubstitutionService
 
         return binary.Kind switch
         {
-            BinaryOpKind.And => SubstituteAnd(left, right),
-            BinaryOpKind.Or => SubstituteOr(left, right),
+            BinaryOpKind.And or BinaryOpKind.Or => SubstituteBooleanBinary(binary.Kind, left, right),
             _ when left.IsUnknown || right.IsUnknown => OuterApplyNullSubstitutionResult.Unknown(),
             _ => OuterApplyNullSubstitutionResult.Known(binary with
             {
@@ -110,54 +108,31 @@ internal static class OuterApplyNullSubstitutionService
         };
     }
 
-    private static OuterApplyNullSubstitutionResult SubstituteAnd(
-        OuterApplyNullSubstitutionResult left,
-        OuterApplyNullSubstitutionResult right)
-    {
-        if (left.IsUnknown || right.IsUnknown)
-            return OuterApplyNullSubstitutionResult.Unknown();
-
-        var leftExpression = NormalizeBooleanOperand(left.Expression);
-        if (!leftExpression.IsBuilt)
-            return OuterApplyNullSubstitutionResult.Unsupported(leftExpression.UnsupportedReason);
-
-        var rightExpression = NormalizeBooleanOperand(right.Expression);
-        if (!rightExpression.IsBuilt)
-            return OuterApplyNullSubstitutionResult.Unsupported(rightExpression.UnsupportedReason);
-
-        return OuterApplyNullSubstitutionResult.Known(new ExecutionBinary(
-            BinaryOpKind.And,
-            leftExpression.Value,
-            rightExpression.Value,
-            typeof(bool)));
-    }
-
-    private static OuterApplyNullSubstitutionResult SubstituteOr(
+    private static OuterApplyNullSubstitutionResult SubstituteBooleanBinary(
+        BinaryOpKind kind,
         OuterApplyNullSubstitutionResult left,
         OuterApplyNullSubstitutionResult right)
     {
         if (left.IsUnknown && right.IsUnknown)
             return OuterApplyNullSubstitutionResult.Unknown();
 
-        if (left.IsUnknown)
-            return right;
+        var leftExpression = left.IsUnknown ? new ExecutionLiteral(null, typeof(bool?)) : left.Expression;
+        var rightExpression = right.IsUnknown ? new ExecutionLiteral(null, typeof(bool?)) : right.Expression;
+        var leftType = leftExpression.ReturnType.ResolveClrType();
+        var rightType = rightExpression.ReturnType.ResolveClrType();
+        if ((leftType != typeof(bool) && leftType != typeof(bool?)) ||
+            (rightType != typeof(bool) && rightType != typeof(bool?)))
+        {
+            return OuterApplyNullSubstitutionResult.Unsupported(
+                "Execution IR null substitution expected boolean operands.");
+        }
 
-        if (right.IsUnknown)
-            return left;
-
-        var leftExpression = NormalizeBooleanOperand(left.Expression);
-        if (!leftExpression.IsBuilt)
-            return OuterApplyNullSubstitutionResult.Unsupported(leftExpression.UnsupportedReason);
-
-        var rightExpression = NormalizeBooleanOperand(right.Expression);
-        if (!rightExpression.IsBuilt)
-            return OuterApplyNullSubstitutionResult.Unsupported(rightExpression.UnsupportedReason);
-
+        var resultType = leftType == typeof(bool?) || rightType == typeof(bool?) ? typeof(bool?) : typeof(bool);
         return OuterApplyNullSubstitutionResult.Known(new ExecutionBinary(
-            BinaryOpKind.Or,
-            leftExpression.Value,
-            rightExpression.Value,
-            typeof(bool)));
+            kind,
+            leftExpression,
+            rightExpression,
+            resultType));
     }
 
     private static OuterApplyNullSubstitutionResult SubstituteUnary(
@@ -168,9 +143,14 @@ internal static class OuterApplyNullSubstitutionService
         if (!operand.IsBuilt)
             return operand;
 
-        return operand.IsUnknown
-            ? OuterApplyNullSubstitutionResult.Unknown()
-            : OuterApplyNullSubstitutionResult.Known(unary with { Operand = operand.Expression });
+        if (operand.IsUnknown)
+            return OuterApplyNullSubstitutionResult.Unknown();
+
+        return OuterApplyNullSubstitutionResult.Known(unary with
+        {
+            Operand = operand.Expression,
+            ReturnType = unary.Kind == UnaryOpKind.Not ? operand.Expression.ReturnType : unary.ReturnType
+        });
     }
 
     private static OuterApplyNullSubstitutionResult SubstituteMethodCall(
@@ -216,27 +196,23 @@ internal static class OuterApplyNullSubstitutionService
     }
 
     private static OuterApplyNullSubstitutionResult SubstituteInCheck(
-        ExecutionInCheck inCheck,
-        string rightAlias)
+        ExecutionInCheck inCheck, string rightAlias)
     {
         var expression = SubstituteRightAlias(inCheck.Expression, rightAlias);
-        if (!expression.IsBuilt)
-            return expression;
-
-        if (expression.IsUnknown)
-            return OuterApplyNullSubstitutionResult.Unknown();
-
-        var values = SubstituteArguments(inCheck.Values, rightAlias);
-        if (!values.IsBuilt)
-            return OuterApplyNullSubstitutionResult.Unsupported(values.UnsupportedReason);
-
-        if (values.Expressions.Count == 0 && values.HasUnknown)
-            return OuterApplyNullSubstitutionResult.Unknown();
-
+        if (!expression.IsBuilt) return expression;
+        var values = new List<ExecutionExpression>();
+        foreach (var value in inCheck.Values)
+        {
+            var substituted = SubstituteRightAlias(value, rightAlias);
+            if (!substituted.IsBuilt) return substituted;
+            values.Add(substituted.IsUnknown ? CreateNullLiteral(value.ReturnType) : substituted.Expression);
+        }
         return OuterApplyNullSubstitutionResult.Known(inCheck with
         {
-            Expression = expression.Expression,
-            Values = values.Expressions
+            Expression = expression.IsUnknown ? CreateNullLiteral(inCheck.Expression.ReturnType) : expression.Expression,
+            Values = values,
+            ConstantSet = null,
+            TypedBinding = inCheck.TypedBinding ?? ExecutionMembershipBindingResolver.Bind(inCheck)
         });
     }
 
@@ -253,7 +229,7 @@ internal static class OuterApplyNullSubstitutionService
             return pattern;
 
         return expression.IsUnknown || pattern.IsUnknown
-            ? OuterApplyNullSubstitutionResult.Unknown()
+            ? OuterApplyNullSubstitutionResult.Known(new ExecutionLiteral(false, typeof(bool)))
             : OuterApplyNullSubstitutionResult.Known(patternMatch with
             {
                 Expression = expression.Expression,
@@ -270,7 +246,7 @@ internal static class OuterApplyNullSubstitutionService
             return input;
 
         return input.IsUnknown
-            ? OuterApplyNullSubstitutionResult.Unknown()
+            ? OuterApplyNullSubstitutionResult.Known(new ExecutionLiteral(false, typeof(bool)))
             : OuterApplyNullSubstitutionResult.Known(stringMatch with { Input = input.Expression });
     }
 
@@ -299,7 +275,7 @@ internal static class OuterApplyNullSubstitutionService
             return matcher;
 
         return input.IsUnknown || matcher.IsUnknown
-            ? OuterApplyNullSubstitutionResult.Unknown()
+            ? OuterApplyNullSubstitutionResult.Known(new ExecutionLiteral(false, typeof(bool)))
             : OuterApplyNullSubstitutionResult.Known(preparedLike with
             {
                 Input = input.Expression,
@@ -322,7 +298,7 @@ internal static class OuterApplyNullSubstitutionService
             return cacheSlot;
 
         return input.IsUnknown || pattern.IsUnknown || cacheSlot.IsUnknown
-            ? OuterApplyNullSubstitutionResult.Unknown()
+            ? OuterApplyNullSubstitutionResult.Known(new ExecutionLiteral(false, typeof(bool)))
             : OuterApplyNullSubstitutionResult.Known(dynamicLike with
             {
                 Input = input.Expression,
@@ -356,7 +332,7 @@ internal static class OuterApplyNullSubstitutionService
             return matcher;
 
         return input.IsUnknown || matcher.IsUnknown
-            ? OuterApplyNullSubstitutionResult.Unknown()
+            ? OuterApplyNullSubstitutionResult.Known(new ExecutionLiteral(false, typeof(bool)))
             : OuterApplyNullSubstitutionResult.Known(preparedRLike with
             {
                 Input = input.Expression,
@@ -379,7 +355,7 @@ internal static class OuterApplyNullSubstitutionService
             return cacheSlot;
 
         return input.IsUnknown || pattern.IsUnknown || cacheSlot.IsUnknown
-            ? OuterApplyNullSubstitutionResult.Unknown()
+            ? OuterApplyNullSubstitutionResult.Known(new ExecutionLiteral(false, typeof(bool)))
             : OuterApplyNullSubstitutionResult.Known(dynamicRLike with
             {
                 Input = input.Expression,
@@ -509,18 +485,7 @@ internal static class OuterApplyNullSubstitutionService
         };
     }
 
-    private static OuterApplyNullSubstitutionResult SubstituteCompositeKey(
-        ExecutionCompositeKey compositeKey,
-        string rightAlias)
-    {
-        var parts = SubstituteArguments(compositeKey.Parts, rightAlias);
-        if (!parts.IsBuilt)
-            return OuterApplyNullSubstitutionResult.Unsupported(parts.UnsupportedReason);
 
-        return parts.HasUnknown
-            ? OuterApplyNullSubstitutionResult.Unknown()
-            : OuterApplyNullSubstitutionResult.Known(compositeKey with { Parts = parts.Expressions });
-    }
 
     private static OuterApplyNullSubstitutionResult SubstituteValueTupleKey(
         ExecutionValueTupleKey valueTupleKey,

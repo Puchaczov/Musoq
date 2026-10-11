@@ -101,7 +101,7 @@ public sealed class StructuredInputInvalidResourceTests
             "param(values: int[]) select s.Value from #inputs.strict(values: $values) s";
         StructuredInputSourceCounters.Reset();
         using var parameterCompiled = Compile(parameterQuery, "structured-limit-parameter");
-        parameterCompiled.Parameters["values"] = new[] { 1, 2, 3 };
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(parameterCompiled.TypedParameters, parameterCompiled.ParameterDefinitions, "values", new[] { 1, 2, 3 });
         var parameterException = Assert.ThrowsExactly<QueryExecutionException>(() =>
         {
             using var table = parameterCompiled.Run();

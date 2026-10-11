@@ -5,7 +5,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBase
+public partial class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBase
 {
     [TestMethod]
     public void WhenWhereExpressionIsNotRewritten_ShouldPass()

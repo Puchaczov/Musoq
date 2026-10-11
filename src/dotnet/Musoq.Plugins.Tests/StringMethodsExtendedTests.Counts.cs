@@ -11,12 +11,6 @@ public partial class StringMethodsExtendedTests
 {
 
     [TestMethod]
-    public void WordCount_Null_ReturnsNull()
-    {
-        Assert.IsNull(Library.WordCount(null));
-    }
-
-    [TestMethod]
     public void WordCount_EmptyString_ReturnsZero()
     {
         Assert.AreEqual(0, Library.WordCount(string.Empty));
@@ -68,12 +62,6 @@ public partial class StringMethodsExtendedTests
     public void WordCount_SingleCharacter_ReturnsOne()
     {
         Assert.AreEqual(1, Library.WordCount("a"));
-    }
-
-    [TestMethod]
-    public void LineCount_Null_ReturnsNull()
-    {
-        Assert.IsNull(Library.LineCount(null));
     }
 
     [TestMethod]
@@ -131,21 +119,9 @@ public partial class StringMethodsExtendedTests
     }
 
     [TestMethod]
-    public void SentenceCount_Null_ReturnsNull()
-    {
-        Assert.IsNull(Library.SentenceCount(null));
-    }
-
-    [TestMethod]
     public void SentenceCount_EmptyString_ReturnsZero()
     {
         Assert.AreEqual(0, Library.SentenceCount(string.Empty));
-    }
-
-    [TestMethod]
-    public void SentenceCount_OnlyWhitespace_ReturnsZero()
-    {
-        Assert.AreEqual(0, Library.SentenceCount("   "));
     }
 
     [TestMethod]

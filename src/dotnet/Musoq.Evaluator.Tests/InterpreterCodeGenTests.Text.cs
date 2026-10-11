@@ -33,8 +33,8 @@ public partial class InterpreterCodeGenTests
 
         // Assert
         Assert.Contains("public sealed class KeyValue : TextInterpreterBase<KeyValue>", code);
-        Assert.Contains("public string? Key { get; init; }", code);
-        Assert.Contains("public string? Value { get; init; }", code);
+        Assert.Contains("public string? Key { get; set; }", code);
+        Assert.Contains("public string? Value { get; set; }", code);
         Assert.Contains("ReadUntil(data, \":\"", code);
         Assert.Contains("ExpectLiteral(data, \": \"", code);
         Assert.Contains("ReadRest(data", code);

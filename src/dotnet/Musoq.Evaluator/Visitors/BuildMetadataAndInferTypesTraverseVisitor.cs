@@ -15,18 +15,6 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionV
 
     public Scope Scope { get; private set; } = new(null, -1, "Root");
 
-    public override void Visit(GroupSelectNode node)
-    {
-        ArgumentNullException.ThrowIfNull(node);
-        node.Accept(Visitor);
-    }
-
-    public override void Visit(RowPresenceNode node)
-    {
-        ArgumentNullException.ThrowIfNull(node);
-        node.Accept(Visitor);
-    }
-
     public override void Visit(DotNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
@@ -42,6 +30,9 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionV
 
         if (ident != null && node == theMostOuter && Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
         {
+            if (TryVisitNamedObjectKey(theMostOuter, ident))
+                return;
+
             if (theMostOuter.Expression is AccessObjectArrayNode arrayNode)
             {
                 var tableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(ident.Name);

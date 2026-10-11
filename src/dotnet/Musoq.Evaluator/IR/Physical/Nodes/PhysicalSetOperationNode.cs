@@ -11,5 +11,7 @@ public sealed record PhysicalSetOperationNode(
     int[] FieldIndexes,
     Type[] FieldTypes) : PhysicalNode(OutputSchemaFactory.ForSetOperation(Left.OutputSchema, Right.OutputSchema))
 {
+    public bool ResultIsDistinct => Kind is SetOpKind.Union or SetOpKind.Intersect;
+
     public override IReadOnlyList<PhysicalNode> Children { get; } = [Left, Right];
 }

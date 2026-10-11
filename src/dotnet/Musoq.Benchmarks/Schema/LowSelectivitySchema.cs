@@ -15,7 +15,7 @@ public class LowSelectivitySchema(IEnumerable<NonEquiEntity> entitiesA, IEnumera
         return new NonEquiTable();
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
     {
         var entities = name.Equals("A", StringComparison.OrdinalIgnoreCase) ? _entitiesA : _entitiesB;
 

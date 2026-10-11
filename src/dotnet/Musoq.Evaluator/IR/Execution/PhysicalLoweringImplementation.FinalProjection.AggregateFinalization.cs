@@ -224,6 +224,8 @@ internal sealed partial class PhysicalLoweringImplementation
             BinaryOp binary => CanFinalizeAggregateExpression(binary.Left, groupKeys, bindings, bindingsByIdentifier) &&
                                CanFinalizeAggregateExpression(binary.Right, groupKeys, bindings, bindingsByIdentifier),
             UnaryOp unary => CanFinalizeAggregateExpression(unary.Operand, groupKeys, bindings, bindingsByIdentifier),
+            IsNullCheck check => CanFinalizeAggregateExpression(check.Expression, groupKeys, bindings, bindingsByIdentifier),
+            InCheck membership => AggregateFinalMembershipConversion.CanConvert(membership, groupKeys, bindings, bindingsByIdentifier),
             PatternMatch patternMatch => AggregateFinalPatternMatchConversion.CanConvert(patternMatch, groupKeys, bindings, bindingsByIdentifier),
             AggregateRef aggregateRef => TryResolveAggregateBinding(aggregateRef.Identifier, bindingsByIdentifier, out _),
             ColumnRef columnRef => TryResolveAggregateBinding(

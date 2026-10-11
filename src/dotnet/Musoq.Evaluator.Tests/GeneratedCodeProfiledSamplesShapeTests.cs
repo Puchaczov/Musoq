@@ -151,7 +151,7 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         AssertContainsAll(
             sample,
             [
-                "ProfiledOperatorEnumerable<ResultShape0>.Create",
+                "ProfiledOperatorEnumerable<ResultRow0>.Create",
                 "profileRecorder?.GetCurrentOperatorScopeDepth() ?? 0"
             ],
             FullSimpleSelectWhereFileName);
@@ -160,7 +160,7 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
             OperatorScopePattern.IsMatch(sample),
             $"{FullSimpleSelectWhereFileName} should contain generated __op...Scope variables.");
 
-        var appendRow = ResolveOperator(sample, FullSimpleSelectWhereFileName, "AppendShape", "ResultShape0(Name: ko3iko.Name");
+        var appendRow = ResolveOperator(sample, FullSimpleSelectWhereFileName, "AppendShape", "ResultRow0(Name: ko3iko.Name");
         var loop = ResolveOperator(sample, FullSimpleSelectWhereFileName, "ChunkedForEach", "ko3iko in ko3ikoRows");
         var let = ResolveOperator(sample, FullSimpleSelectWhereFileName, "Let", "population: decimal");
         var branch = ResolveOperator(sample, FullSimpleSelectWhereFileName, "If", "population > 0");
@@ -181,33 +181,33 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         AssertContainsAll(
             sourceBoundaries,
             [
-                "yield return new ResultShape0(ko3iko.Name, population);",
-                "yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.Population);"
+                "yield return new ResultRow0(ko3iko.Name, population);",
+                "yield return __musoqShapeRow;"
             ],
             SourceBoundariesSimpleSelectWhereFileName);
         AssertDoesNotContainAny(
             sourceBoundaries,
             [
-                "var __musoqFinalShapeRows = new List<ResultShape0>();",
+                "var __musoqFinalShapeRows = new List<ResultRow0>();",
                 "__musoqFinalShapeRows.Add(",
                 "return __musoqFinalShapeRows;",
-                "ProfiledOperatorEnumerable<ResultShape0>.Create"
+                "ProfiledOperatorEnumerable<ResultRow0>.Create"
             ],
             SourceBoundariesSimpleSelectWhereFileName);
 
         AssertContainsAll(
             full,
             [
-                "ProfiledOperatorEnumerable<ResultShape0>.Create",
+                "ProfiledOperatorEnumerable<ResultRow0>.Create",
                 "profileRecorder?.GetCurrentOperatorScopeDepth() ?? 0",
-                "yield return new ResultShape0(ko3iko.Name, population);",
-                "yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.Population);"
+                "yield return new ResultRow0(ko3iko.Name, population);",
+                "yield return __musoqShapeRow;"
             ],
             FullSimpleSelectWhereFileName);
         AssertDoesNotContainAny(
             full,
             [
-                "var __musoqFinalShapeRows = new List<ResultShape0>();",
+                "var __musoqFinalShapeRows = new List<ResultRow0>();",
                 "__musoqFinalShapeRows.Add(",
                 "return __musoqFinalShapeRows;",
                 "catch (Exception __profileException)when"
@@ -216,7 +216,7 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
     }
 
     [TestMethod]
-    public void RegularProfiledSelectSamples_WhenCheckedIn_ShouldUseDeferredShapeRows()
+    public void RegularProfiledSelectSamples_WhenCheckedIn_ShouldKeepDeferredEnumerationAndFinalRows()
     {
         var samples = ReadProfiledSamples(RegularProfiledSelectSampleFileNames);
 
@@ -230,12 +230,15 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                     "QueryRows.DeferredTable<ResultRow0>",
                     "public Table RunWithProfile(CancellationToken token, QueryProfileRecorder profileRecorder)",
                     "private IEnumerable<ResultRow0> ComputeRows_compiled_0(",
-                    "private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(",
+                    "ComputeShapeRows_compiled_0(",
                     "CancellationToken token, QueryProfileRecorder profileRecorder",
                     "foreach (var __musoqShapeRow in",
-                    "yield return new ResultRow0(",
-                    "private sealed class ResultShape0"
+                    "private sealed class ResultRow0"
                 ],
+                sample.FileName);
+
+            Assert.IsTrue(
+                Regex.IsMatch(generatedCode, @"yield return (?:__musoqShapeRow;|new ResultRow0\()"),
                 sample.FileName);
 
             AssertDoesNotContainAny(
@@ -256,7 +259,7 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         var sample = ReadProfiledSample(FullSimpleSelectWhereFileName);
 
         Assert.Contains(
-            "GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>",
+            "SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>",
             sample,
             FullSimpleSelectWhereFileName);
         Assert.Contains(
@@ -268,11 +271,11 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
             sample,
             FullSimpleSelectWhereFileName);
         Assert.Contains(
-            "yield return new ResultShape0(ko3iko.Name, population);",
+            "yield return new ResultRow0(ko3iko.Name, population);",
             sample,
             FullSimpleSelectWhereFileName);
         Assert.Contains(
-            "yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.Population);",
+            "yield return __musoqShapeRow;",
             sample,
             FullSimpleSelectWhereFileName);
         AssertDoesNotContainAny(sample, RetiredHelperPatterns, FullSimpleSelectWhereFileName);
@@ -303,7 +306,7 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
     public void FullSimpleSelectWhereSample_WhenCheckedIn_ShouldBatchCounterOnlyRows()
     {
         var sample = ReadProfiledSample(FullSimpleSelectWhereFileName);
-        var appendRow = ResolveOperator(sample, FullSimpleSelectWhereFileName, "AppendShape", "ResultShape0(Name: ko3iko.Name");
+        var appendRow = ResolveOperator(sample, FullSimpleSelectWhereFileName, "AppendShape", "ResultRow0(Name: ko3iko.Name");
         var loop = ResolveOperator(sample, FullSimpleSelectWhereFileName, "ChunkedForEach", "ko3iko in ko3ikoRows");
 
         AssertContainsLoopRowCounters(sample, FullSimpleSelectWhereFileName, loop);
@@ -341,7 +344,7 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         var hashAdd = ResolveOperator(sample, InnerJoinFullFileName, "HashAdd", "bHash[b.Id] += b");
         var hashProbe = ResolveOperator(sample, InnerJoinFullFileName, "HashProbe", "bHash[a.Id] -> bHashMatches");
         var matchLoop = ResolveOperator(sample, InnerJoinFullFileName, "ForEach", "b in bHashMatches");
-        var appendRow = ResolveOperator(sample, InnerJoinFullFileName, "AppendShape", "ResultShape0(a.Name: a.Name");
+        var appendRow = ResolveOperator(sample, InnerJoinFullFileName, "AppendShape", "ResultRow0(Name: a.Name");
 
         AssertContainsAll(
             sample,
@@ -352,7 +355,7 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                 "HashProbe [bHash[a.Id] -> bHashMatches]",
                 "var bHash = new Dictionary<int, HashJoinBucket<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>>();",
                 "foreach (var b in bHashMatches)",
-                "__musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Country));",
+                "__musoqFinalShapeRows.Add(new ResultRow0(a.Name, b.Country));",
                 "CancellationToken token",
                 "token.ThrowIfCancellationRequested();"
             ],
@@ -373,12 +376,12 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         var hashAdd = ResolveOperator(sample, InnerJoinFullFileName, "HashAdd", "bHash[b.Id] += b");
         var hashProbe = ResolveOperator(sample, InnerJoinFullFileName, "HashProbe", "bHash[a.Id] -> bHashMatches");
         var matchLoop = ResolveOperator(sample, InnerJoinFullFileName, "ForEach", "b in bHashMatches");
-        var appendRow = ResolveOperator(sample, InnerJoinFullFileName, "AppendShape", "ResultShape0(a.Name: a.Name");
+        var appendRow = ResolveOperator(sample, InnerJoinFullFileName, "AppendShape", "ResultRow0(Name: a.Name");
 
         var shapeRowsMethod = ExtractMethod(
             sample,
             InnerJoinFullFileName,
-            "private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0_Profiled(");
+            "private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0_Profiled(");
 
         AssertContainsCounterOutputRows(shapeRowsMethod, InnerJoinFullFileName, hashAdd, "1");
         AssertContainsCounterInputRows(shapeRowsMethod, InnerJoinFullFileName, hashProbe, "1");

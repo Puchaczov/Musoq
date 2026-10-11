@@ -14,6 +14,25 @@ namespace Musoq.Evaluator.Tests.IR;
 public sealed class ExecutionIrOptimizerTests
 {
     [TestMethod]
+    public void Optimize_WithoutOptions_ShouldPreserveExplicitPlanMatchBudget()
+    {
+        var budget = TimeSpan.FromMilliseconds(321);
+        var pattern = new ExecutionPatternMatch(new ExecutionLiteral("value", typeof(string)),
+            new ExecutionLiteral("v%", typeof(string)), PatternKind.Like, typeof(bool));
+        var plan = new ExecutionPlan("compiled", [],
+            new ExecutionBlock([new ExecutionLet(Var("matched", typeof(bool)), pattern)]))
+        {
+            RegexMatchTimeout = budget
+        };
+
+        var result = new ExecutionIrOptimizer().Optimize(plan);
+        var match = ExecutionIrAnalysis.CollectExpressions<ExecutionStringMatch>(result.OptimizedPlan.Body).Single();
+
+        Assert.AreEqual(budget, result.OptimizedPlan.RegexMatchTimeout);
+        Assert.AreEqual(budget, match.RegexMatchTimeout);
+    }
+
+    [TestMethod]
     public void Optimize_WhenDefaultLocalPassesRun_ShouldReturnInitialPlanAsOptimizedPlan()
     {
         var initial = new ExecutionPlan("compiled", [], ExecutionBlock.Empty);

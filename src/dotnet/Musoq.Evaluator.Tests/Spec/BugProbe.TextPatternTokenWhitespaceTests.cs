@@ -43,8 +43,8 @@ public class BugProbeTextPatternTokenWhitespaceTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("123", table[0][0]);
-        Assert.AreEqual("abc", table[0][1]);
+        Assert.AreEqual("123", table[0].ReadValue(0));
+        Assert.AreEqual("abc", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -74,8 +74,8 @@ public class BugProbeTextPatternTokenWhitespaceTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("192.168.1.1", table[0][0]);
-        Assert.AreEqual(":8080", table[0][1]);
+        Assert.AreEqual("192.168.1.1", table[0].ReadValue(0));
+        Assert.AreEqual(":8080", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -108,9 +108,9 @@ public class BugProbeTextPatternTokenWhitespaceTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("hello", table[0][0]);
-        Assert.AreEqual("world", table[0][1]);
-        Assert.AreEqual("rest", table[0][2]);
+        Assert.AreEqual("hello", table[0].ReadValue(0));
+        Assert.AreEqual("world", table[0].ReadValue(1));
+        Assert.AreEqual("rest", table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -141,8 +141,8 @@ public class BugProbeTextPatternTokenWhitespaceTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("key", table[0][0]);
-        Assert.AreEqual("value", table[0][1]);
+        Assert.AreEqual("key", table[0].ReadValue(0));
+        Assert.AreEqual("value", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -173,7 +173,7 @@ public class BugProbeTextPatternTokenWhitespaceTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("hello", table[0][0]);
-        Assert.AreEqual("world", table[0][1]);
+        Assert.AreEqual("hello", table[0].ReadValue(0));
+        Assert.AreEqual("world", table[0].ReadValue(1));
     }
 }

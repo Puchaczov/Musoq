@@ -127,7 +127,7 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
 
         var table = RunBinaryQuery(query, new BinaryEntity { Name = "positioned.bin", Content = data });
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(expectedValue, table[0][0]);
+        Assert.AreEqual(expectedValue, table[0].ReadValue(0));
     }
 
     private void AssertInterpretAtFailure(
@@ -438,30 +438,30 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
         ]);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("01-valid.bin", table[0][0]);
-        Assert.AreEqual("03-valid.bin", table[2][0]);
+        Assert.AreEqual("01-valid.bin", table[0].ReadValue(0));
+        Assert.AreEqual("03-valid.bin", table[2].ReadValue(0));
         AssertPrefix(table[0], testCase.ExpectedPrefixFields, testCase.ExpectedSuccessConsumed);
         AssertPrefix(table[2], testCase.ExpectedPrefixFields, testCase.ExpectedSuccessConsumed);
 
         var failing = table[1];
-        var fields = (Dictionary<string, object?>)failing[1]!;
+        var fields = PartialPayloadAssertions.CompletedValues(failing.ReadValue(1)!);
         foreach (var field in testCase.ExpectedPrefixFields)
             Assert.IsTrue(fields.ContainsKey(field), field);
 
         if (testCase.ExpectedErrorField == null)
         {
-            Assert.IsNull(failing[2]);
-            Assert.IsNull(failing[3]);
-            Assert.AreEqual(testCase.ExpectedSuccessConsumed, failing[4]);
+            Assert.IsNull(failing.ReadValue(2));
+            Assert.IsNull(failing.ReadValue(3));
+            Assert.AreEqual(testCase.ExpectedSuccessConsumed, failing.ReadValue(4));
             return;
         }
 
-        Assert.AreEqual(testCase.ExpectedErrorField, failing[2]);
-        var message = (string)failing[3]!;
+        Assert.AreEqual(testCase.ExpectedErrorField, failing.ReadValue(2));
+        var message = (string)failing.ReadValue(3)!;
         StringAssert.Contains(message, testCase.ExpectedErrorCode!);
         if (testCase.ExpectedErrorPosition is int expectedPosition)
             StringAssert.Contains(message, $"at position {expectedPosition}");
-        Assert.AreEqual(testCase.ExpectedFailureConsumed, failing[4]);
+        Assert.AreEqual(testCase.ExpectedFailureConsumed, failing.ReadValue(4));
     }
 
     private void AssertTextPartial(PartialTextCase testCase)
@@ -484,34 +484,34 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
         AssertPrefix(table[2], testCase.ExpectedPrefixFields, testCase.ExpectedSuccessConsumed);
 
         var failing = table[1];
-        var fields = (Dictionary<string, object?>)failing[1]!;
+        var fields = PartialPayloadAssertions.CompletedValues(failing.ReadValue(1)!);
         foreach (var field in testCase.ExpectedPrefixFields)
             Assert.IsTrue(fields.ContainsKey(field), field);
 
         if (testCase.ExpectedErrorField == null)
         {
-            Assert.IsNull(failing[2]);
-            Assert.IsNull(failing[3]);
-            Assert.AreEqual(testCase.ExpectedSuccessConsumed, failing[4]);
+            Assert.IsNull(failing.ReadValue(2));
+            Assert.IsNull(failing.ReadValue(3));
+            Assert.AreEqual(testCase.ExpectedSuccessConsumed, failing.ReadValue(4));
             return;
         }
 
-        Assert.AreEqual(testCase.ExpectedErrorField, failing[2]);
-        var message = (string)failing[3]!;
+        Assert.AreEqual(testCase.ExpectedErrorField, failing.ReadValue(2));
+        var message = (string)failing.ReadValue(3)!;
         StringAssert.Contains(message, testCase.ExpectedErrorCode!);
         if (testCase.ExpectedErrorPosition is int expectedPosition)
             StringAssert.Contains(message, $"at position {expectedPosition}");
-        Assert.AreEqual(testCase.ExpectedFailureConsumed, failing[4]);
+        Assert.AreEqual(testCase.ExpectedFailureConsumed, failing.ReadValue(4));
     }
 
     private static void AssertPrefix(Row row, IReadOnlyList<string> expectedFields, int expectedConsumed)
     {
-        var fields = (Dictionary<string, object?>)row[1]!;
+        var fields = PartialPayloadAssertions.CompletedValues(row.ReadValue(1)!);
         foreach (var field in expectedFields)
             Assert.IsTrue(fields.ContainsKey(field), field);
-        Assert.IsNull(row[2]);
-        Assert.IsNull(row[3]);
-        Assert.AreEqual(expectedConsumed, row[4]);
+        Assert.IsNull(row.ReadValue(2));
+        Assert.IsNull(row.ReadValue(3));
+        Assert.AreEqual(expectedConsumed, row.ReadValue(4));
     }
 
     private Table RunBinaryQuery(string query, params BinaryEntity[] entities)

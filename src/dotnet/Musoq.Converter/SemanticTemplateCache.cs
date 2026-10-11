@@ -61,7 +61,7 @@ internal static class SemanticTemplateCache
             providerType.AssemblyQualifiedName ?? providerType.FullName ?? providerType.Name,
             InstanceCreator.CreateSemanticProviderContractSignatureForCache(
                 input.SchemaProvider,
-                cancellationToken),
+                cancellationToken) + "|provider-instance=" + SemanticProviderIdentity.Get(input.SchemaProvider),
             CompilationOptionsFingerprint.Compute(input.CompilationOptions),
             input.ExecutionTarget,
             input.ResultMode,

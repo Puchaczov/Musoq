@@ -24,7 +24,9 @@ internal static partial class PlanningPropertyDeriver
         var requiredColumnsByAlias = requiredColumnUsageResult.RequiredColumnsByAlias;
         var sourcePredicatePlanningResult = SourcePredicatePlanner.Plan(
             context.UsedWhereNodes,
-            context.InferredColumns);
+            context.InferredColumns,
+            context.LogicalPlan,
+            context.UsedSchemaColumns);
         context.CancellationToken.ThrowIfCancellationRequested();
         var pushedPredicates = sourcePredicatePlanningResult.PushedPredicatesBySourceId;
         var preliminaryDecisions = new List<PlanningDecision>();

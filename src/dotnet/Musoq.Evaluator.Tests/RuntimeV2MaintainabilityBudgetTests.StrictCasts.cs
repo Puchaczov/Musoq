@@ -83,7 +83,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             strictCasts.Select(static cast => cast.TargetTypeName).ToArray());
         Assert.Contains("StrictCastRuntime.ToInt32", inspection.GeneratedCSharpCode);
         Assert.Contains("StrictCastRuntime.ToSingle", inspection.GeneratedCSharpCode);
-        Assert.Contains("StrictCastRuntime.ToString", inspection.GeneratedCSharpCode);
+        Assert.Contains("StrictCastRuntime.ToReferenceString", inspection.GeneratedCSharpCode);
         Assert.DoesNotContain("System.Reflection", inspection.GeneratedCSharpCode);
         Assert.DoesNotContain("Convert.ChangeType", inspection.GeneratedCSharpCode);
     }
@@ -231,9 +231,17 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
     private static void AssertHasStrictCastOverload(string methodName, Type argumentType)
     {
-        var method = typeof(StrictCastRuntime).GetMethod(methodName, [argumentType]);
+        var methods = typeof(StrictCastRuntime).GetMethods()
+            .Where(candidate => candidate.Name == methodName && candidate.GetParameters().Length == 1);
+        var concreteType = Nullable.GetUnderlyingType(argumentType) ?? argumentType;
+        var method = methods
+            .Select(candidate => candidate.IsGenericMethodDefinition
+                ? candidate.MakeGenericMethod(concreteType)
+                : candidate)
+            .SingleOrDefault(candidate => candidate.GetParameters()[0].ParameterType == argumentType);
 
         Assert.IsNotNull(method, $"Expected typed strict-cast overload {methodName}({argumentType.Name}).");
+        Assert.AreEqual(argumentType, method.GetParameters()[0].ParameterType);
         Assert.AreEqual(typeof(float?), method.ReturnType);
     }
 }

@@ -5,13 +5,6 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private enum StreamingPluginWindowMode
-    {
-        Running,
-        RunningPeers,
-        WholePartition
-    }
-
     internal enum GeneratedRowContextConstructor
     {
         NoContext,

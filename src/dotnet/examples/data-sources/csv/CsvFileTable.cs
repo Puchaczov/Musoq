@@ -40,14 +40,17 @@ public sealed class CsvFileTable : ISchemaTable
     }
 
     internal CsvFileTable(ISchemaColumn[] columns)
-        : this(columns, typeof(CsvRow))
+        : this(columns, typeof(QueryScopedRowContract))
     {
     }
 
     internal CsvFileTable(ISchemaColumn[] columns, Type rowType)
     {
         Columns = columns ?? throw new ArgumentNullException(nameof(columns));
-        Metadata = new SchemaTableMetadata(rowType ?? throw new ArgumentNullException(nameof(rowType)));
+        Metadata = new SchemaTableMetadata(rowType ?? throw new ArgumentNullException(nameof(rowType)))
+        {
+            TypeOrigin = TableSchemaTypeOrigin.TableDefined
+        };
     }
 
     public ISchemaColumn[] Columns { get; }

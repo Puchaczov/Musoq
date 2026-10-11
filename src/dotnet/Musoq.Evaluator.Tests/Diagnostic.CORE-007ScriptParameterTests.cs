@@ -38,7 +38,7 @@ public sealed class DiagnosticCore007ScriptParameterTests : EnvironmentVariables
             "param(keys: string[]) select Key from #Parameterized.Items() where Key not in $keys";
         var provider = new CountingSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["keys"] = null;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", null);
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
@@ -56,14 +56,14 @@ public sealed class DiagnosticCore007ScriptParameterTests : EnvironmentVariables
             "param(keys: string[]) select Key from #Parameterized.Items() where Key in $keys";
         var provider = new CountingSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["keys"] = new[] { 1, 2 };
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new[] { 1, 2 });
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
         AssertRuntimeEnvelope(
             exception,
             DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
-            "Script parameter 'keys' expected a value of type 'IReadOnlyList<string>' but received 'int[]'.");
+            "Script parameter 'keys' expected a value of type 'IReadOnlyList<string>' but received 'IReadOnlyList<int>'.");
         Assert.AreEqual(0, provider.OpenCount);
     }
 
@@ -120,10 +120,10 @@ public sealed class DiagnosticCore007ScriptParameterTests : EnvironmentVariables
             return new EnvironmentVariableEntityTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             onOpen();
             return EnsureSourceType<T, EnvironmentVariableEntity>(

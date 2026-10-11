@@ -59,15 +59,15 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "ABCAACBA"),
+                (string)row.ReadValues()[0] == "ABCAACBA"),
             "Row with ABCAACBA not found");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "AAeqwgQEW"),
+                (string)row.ReadValues()[0] == "AAeqwgQEW"),
             "Row with AAeqwgQEW not found");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "dadsqqAA"),
+                (string)row.ReadValues()[0] == "dadsqqAA"),
             "Row with dadsqqAA not found");
     }
 
@@ -94,7 +94,7 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("XXX", table[0].Values[0]);
+        Assert.AreEqual("XXX", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -145,10 +145,10 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "12@hostname.com"), "Missing 12@hostname.com");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "david.jones@proseware.com"),
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "12@hostname.com"), "Missing 12@hostname.com");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "david.jones@proseware.com"),
             "Missing david.jones@proseware.com");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "ma@hostname.com"), "Missing ma@hostname.com");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "ma@hostname.com"), "Missing ma@hostname.com");
     }
 
     [TestMethod]
@@ -177,7 +177,7 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("ma@hostname.comcom", table[0].Values[0]);
+        Assert.AreEqual("ma@hostname.comcom", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -202,8 +202,8 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "test123"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "testValue"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "test123"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "testValue"));
     }
 
     [TestMethod]
@@ -227,7 +227,7 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("match", table[0].Values[0]);
+        Assert.AreEqual("match", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -251,7 +251,7 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("test", table[0].Values[0]);
+        Assert.AreEqual("test", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -276,8 +276,8 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(2, table.Count(row => row.Values[0] == null));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "other"));
+        Assert.AreEqual(2, table.Count(row => row.ReadValues()[0] == null));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "other"));
     }
 
     [TestMethod]
@@ -302,8 +302,8 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "test123"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "testValue"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "test123"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "testValue"));
     }
 
     [TestMethod]
@@ -327,7 +327,7 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("abc", table[0].Values[0]);
+        Assert.AreEqual("abc", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -351,7 +351,7 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("test", table[0].Values[0]);
+        Assert.AreEqual("test", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -376,8 +376,8 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(2, table.Count(row => row.Values[0] == null));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "other"));
+        Assert.AreEqual(2, table.Count(row => row.ReadValues()[0] == null));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "other"));
     }
 
     [TestMethod]
@@ -405,7 +405,7 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("david.jones@proseware.com", table[0].Values[0]);
+        Assert.AreEqual("david.jones@proseware.com", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -433,7 +433,7 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("david.jones@proseware.com", table[0].Values[0]);
+        Assert.AreEqual("david.jones@proseware.com", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -478,7 +478,7 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
         Assert.AreEqual("''", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
-        Assert.AreEqual(string.Empty, table[0][0]);
+        Assert.AreEqual(string.Empty, table[0].ReadValue(0));
     }
 
 }

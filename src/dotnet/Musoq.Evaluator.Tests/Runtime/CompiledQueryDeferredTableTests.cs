@@ -67,7 +67,7 @@ public sealed class CompiledQueryDeferredTableTests
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual(1, factoryCalls);
         Assert.AreEqual(2, enumeratedRows);
-        Assert.AreEqual("a", table[0][0]);
+        Assert.AreEqual("a", table[0].ReadValue(0));
 
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual(1, factoryCalls);
@@ -263,10 +263,11 @@ public sealed class CompiledQueryDeferredTableTests
 
     private sealed class TestRow(string value) : Row
     {
+        public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            => TypedColumnVisit.Apply(0, value, ref visitor);
+
         public override int Count => 1;
 
-        public override object this[int columnNumber] => columnNumber == 0
-            ? value
-            : throw new IndexOutOfRangeException();
+
     }
 }

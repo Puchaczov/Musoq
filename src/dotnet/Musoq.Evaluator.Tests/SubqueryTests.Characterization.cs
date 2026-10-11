@@ -33,8 +33,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("m.City", typeof(string)),
-            ("m.HasMatch", typeof(string)));
+            ("City", typeof(string)),
+            ("HasMatch", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["BERLIN", "Y"],
@@ -64,8 +64,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.City", typeof(string)));
+            ("City", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["BERLIN", "MUNICH"],
@@ -90,7 +90,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateCharacterizationSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW"]);
 
         var inspection = CompileSubqueryForInspection(query);
@@ -118,8 +118,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("d.City", typeof(string)));
+            ("City", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["BERLIN", "MUNICH"],
@@ -155,8 +155,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("d.City", typeof(string)));
+            ("City", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["BERLIN", "MUNICH"],
@@ -183,7 +183,7 @@ public partial class SubqueryTests
         var table = CreateAndRunVirtualMachine(query, CreateCharacterizationSources()).Run(TestContext.CancellationToken);
         var inspection = CompileSubqueryForInspection(query);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["BERLIN"], ["PARIS"], ["WARSAW"]);
         Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_2 -> PredicateSemiJoin", inspection.PlanningText);
     }

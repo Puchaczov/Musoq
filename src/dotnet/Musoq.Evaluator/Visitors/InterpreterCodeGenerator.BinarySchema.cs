@@ -39,15 +39,18 @@ public partial class InterpreterCodeGenerator
         if (!string.IsNullOrEmpty(schema.Extends)) builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"/// Extends schema '{schema.Extends}'.");
         builder.AppendLine("/// </summary>");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
-            $"public sealed class {fullClassName} : BytesInterpreterBase<{fullClassName}>{genericConstraints}");
+            $"public sealed class {fullClassName} : BytesInterpreterBase<{fullClassName}>, global::Musoq.Plugins.IJsonPayload{genericConstraints}");
         builder.AppendLine("{");
+        builder.Append(PartialPayloadCodeEmitter.Members(fullClassName));
+        builder.Append(PartialPayloadCodeEmitter.JsonMembers(plan.Fields.Where(static field => field.EmitsProperty)
+            .Select(static field => (field.Name, field.PropertyName ?? throw new InvalidOperationException("An emitted payload field requires a property name.")))));
 
         foreach (var field in plan.Fields)
         {
             if (!field.EmitsProperty) continue;
 
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    /// <summary>Gets the {field.Name} field value.</summary>");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public {field.PropertyClrType} {field.PropertyName} {{ get; init; }}");
+            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public {field.PropertyClrType} {field.PropertyName} {{ get; set; }}");
             builder.AppendLine();
         }
 
@@ -60,11 +63,12 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine("    {");
         builder.AppendLine("        InitializeParsePosition(data, offset);");
         builder.AppendLine("        SetCurrentField(null);");
+        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        var __parsedValue = new {fullClassName}();");
+        builder.AppendLine("        RecordParsedValue(__parsedValue);");
         builder.AppendLine();
 
         _discardCounter = 0;
 
-        var fieldInitializers = new List<string>();
         foreach (var field in plan.Fields)
         {
             AppendGeneratedLine(builder, $"        SetCurrentField(\"{EscapeString(field.Name)}\");");
@@ -81,20 +85,12 @@ public partial class InterpreterCodeGenerator
 
             if (field.EmitsProperty)
             {
-                AppendGeneratedLine(builder, $"        RecordParsedField(\"{EscapeString(field.Name)}\", {field.LocalVariableName});");
-                fieldInitializers.Add($"{field.PropertyName} = {field.LocalVariableName}");
+                AppendGeneratedLine(builder, $"        __parsedValue.{field.PropertyName} = {field.LocalVariableName};");
+                AppendGeneratedLine(builder, $"        RecordParsedField(\"{EscapeString(field.Name)}\");");
             }
         }
 
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        return new {fullClassName}");
-        builder.AppendLine("        {");
-        for (var i = 0; i < fieldInitializers.Count; i++)
-        {
-            var comma = i < fieldInitializers.Count - 1 ? "," : "";
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"            {fieldInitializers[i]}{comma}");
-        }
-
-        builder.AppendLine("        };");
+        builder.AppendLine("        return __parsedValue;");
         builder.AppendLine("    }");
 
         builder.AppendLine("}");

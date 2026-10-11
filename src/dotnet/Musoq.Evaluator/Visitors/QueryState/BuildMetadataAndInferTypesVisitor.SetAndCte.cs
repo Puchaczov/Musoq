@@ -202,12 +202,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         for (var index = 0; index < projectedColumns.Length; index++)
         {
             var projected = projectedColumns[index];
-            exportedColumns[index] = new SchemaColumn(
-                node.Columns[index].Name,
-                projected.ColumnIndex,
-                projected.ColumnType,
-                projected.SourceReadType,
-                projected.EnumType);
+            exportedColumns[index] = StructuralProjectionColumns.Rename(projected, node.Columns[index].Name);
         }
 
         return exportedColumns;

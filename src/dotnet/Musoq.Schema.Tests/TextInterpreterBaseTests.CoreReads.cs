@@ -177,7 +177,7 @@ public partial class TextInterpreterBaseTests
     {
         var interpreter = new TestTextInterpreter();
         var result = interpreter.TestReadBetween("[content\\]more]".AsSpan(), "[", "]", escaped: true);
-        Assert.AreEqual("content\\]more", result);
+        Assert.AreEqual("content]more", result);
     }
 
     [TestMethod]
@@ -185,7 +185,7 @@ public partial class TextInterpreterBaseTests
     {
         var interpreter = new TestTextInterpreter();
         var result = interpreter.TestReadBetween("[test\\]]".AsSpan(), "[", "]", escaped: true);
-        Assert.AreEqual("test\\]", result);
+        Assert.AreEqual("test]", result);
     }
 
     [TestMethod]
@@ -203,7 +203,7 @@ public partial class TextInterpreterBaseTests
         var interpreter = new TestTextInterpreter();
 
         var result = interpreter.TestReadBetween("[test\\\\\\]end]".AsSpan(), "[", "]", escaped: true);
-        Assert.AreEqual("test\\\\]end", result);
+        Assert.AreEqual("test\\]end", result);
     }
 
     [TestMethod]
@@ -211,7 +211,7 @@ public partial class TextInterpreterBaseTests
     {
         var interpreter = new TestTextInterpreter();
         var result = interpreter.TestReadBetween("<<content\\>>more>>".AsSpan(), "<<", ">>", escaped: true);
-        Assert.AreEqual("content\\>>more", result);
+        Assert.AreEqual("content>>more", result);
     }
 
     [TestMethod]

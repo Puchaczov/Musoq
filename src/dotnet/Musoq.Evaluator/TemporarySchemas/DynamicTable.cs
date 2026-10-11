@@ -35,7 +35,7 @@ public class DynamicTable : ISchemaTable
                     ? ColumnStability.Volatile
                     : ColumnStability.Stable);
         }).Cast<ISchemaColumn>().ToArray();
-        Metadata = new SchemaTableMetadata(metadata ?? typeof(object));
+        Metadata = new SchemaTableMetadata(metadata ?? typeof(object)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
     }
 
     public ISchemaColumn[] Columns { get; }

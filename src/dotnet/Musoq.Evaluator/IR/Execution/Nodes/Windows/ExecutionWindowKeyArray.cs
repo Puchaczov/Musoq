@@ -4,4 +4,7 @@ public sealed record ExecutionWindowKeyArray(
     ExecutionVariable Variable,
     bool ShouldExtract,
     ExecutionWindowKeyShape? Shape = null,
-    bool ShouldMaterialize = true);
+    bool ShouldMaterialize = true)
+{
+    public bool IsShared { get; init; }
+}

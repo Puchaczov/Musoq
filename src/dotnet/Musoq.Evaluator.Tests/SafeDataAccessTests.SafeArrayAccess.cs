@@ -283,140 +283,140 @@ public partial class SafeDataAccessTests
 
     #endregion
 
-    #region SafeArrayAccess - GetIndexedElement Tests
+    #region SafeArrayAccess - TypedIndexedAccess Tests
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_NullIndexable_ReturnsDefault()
+    public void SafeArrayAccess_TypedIndexedAccess_NullIndexable_ReturnsDefault()
     {
         // Arrange & Act
-        var result = SafeArrayAccess.GetIndexedElement(null, 0, typeof(string));
+        var result = SafeArrayAccess.GetTypedListElement<string[], string>(null, 0);
 
         // Assert - reference types return null
         Assert.IsNull(result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_NullIndex_ReturnsDefault()
+    public void SafeArrayAccess_TypedIndexedAccess_NullIndex_ReturnsDefault()
     {
         // Arrange
         var array = new[] { 1, 2, 3 };
 
         // Act
-        var result = SafeArrayAccess.GetIndexedElement(array, null, typeof(string));
+        var result = SafeArrayAccess.GetTypedListElement<int[], int>(array, null);
 
-        // Assert - reference types return null
-        Assert.IsNull(result);
+        // Assert - the declared element type determines the default.
+        Assert.AreEqual(0, result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_String_ValidIndex_ReturnsChar()
+    public void SafeArrayAccess_TypedIndexedAccess_String_ValidIndex_ReturnsChar()
     {
         // Arrange
         var str = "Hello";
 
         // Act
-        var result = SafeArrayAccess.GetIndexedElement(str, 0, typeof(char));
+        var result = SafeArrayAccess.GetTypedStringCharacter(str, 0);
 
         // Assert
         Assert.AreEqual('H', result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_Array_ValidIndex_ReturnsElement()
+    public void SafeArrayAccess_TypedIndexedAccess_Array_ValidIndex_ReturnsElement()
     {
         // Arrange
         var array = new[] { 100, 200, 300 };
 
         // Act
-        var result = SafeArrayAccess.GetIndexedElement(array, 1, typeof(int));
+        var result = SafeArrayAccess.GetTypedListElement<int[], int>(array, 1);
 
         // Assert
         Assert.AreEqual(200, result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_Array_NegativeIndex_ReturnsFromEnd()
+    public void SafeArrayAccess_TypedIndexedAccess_Array_NegativeIndex_ReturnsFromEnd()
     {
         // Arrange
         var array = new[] { 100, 200, 300 };
 
         // Act
-        var result = SafeArrayAccess.GetIndexedElement(array, -1, typeof(int));
+        var result = SafeArrayAccess.GetTypedListElement<int[], int>(array, -1);
 
         // Assert
         Assert.AreEqual(300, result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_Array_OutOfBounds_ReturnsDefault()
+    public void SafeArrayAccess_TypedIndexedAccess_Array_OutOfBounds_ReturnsDefault()
     {
         // Arrange
         var array = new[] { 1, 2 };
 
         // Act
-        var result = SafeArrayAccess.GetIndexedElement(array, 100, typeof(int));
+        var result = SafeArrayAccess.GetTypedListElement<int[], int>(array, 100);
 
         // Assert
         Assert.AreEqual(0, result); // Default for int
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_EmptyArray_ReturnsDefault()
+    public void SafeArrayAccess_TypedIndexedAccess_EmptyArray_ReturnsDefault()
     {
         // Arrange
         var array = Array.Empty<int>();
 
         // Act
-        var result = SafeArrayAccess.GetIndexedElement(array, 0, typeof(int));
+        var result = SafeArrayAccess.GetTypedListElement<int[], int>(array, 0);
 
         // Assert
         Assert.AreEqual(0, result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_Dictionary_ValidKey_ReturnsValue()
+    public void SafeArrayAccess_TypedIndexedAccess_Dictionary_ValidKey_ReturnsValue()
     {
         // Arrange
         var dict = new Dictionary<string, int> { { "key1", 42 } };
 
         // Act
-        var result = SafeArrayAccess.GetIndexedElement(dict, "key1", typeof(int));
+        var result = SafeArrayAccess.GetTypedDictionaryValue<Dictionary<string, int>, string, int>(dict, "key1");
 
         // Assert
         Assert.AreEqual(42, result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_Dictionary_MissingKey_ReturnsDefault()
+    public void SafeArrayAccess_TypedIndexedAccess_Dictionary_MissingKey_ReturnsDefault()
     {
         // Arrange
         var dict = new Dictionary<string, string> { { "key1", "value1" } };
 
         // Act
-        var result = SafeArrayAccess.GetIndexedElement(dict, "missing", typeof(string));
+        var result = SafeArrayAccess.GetTypedDictionaryValue<Dictionary<string, string>, string, string>(dict, "missing");
 
         // Assert
         Assert.IsNull(result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_List_ValidIndex_ReturnsElement()
+    public void SafeArrayAccess_TypedIndexedAccess_List_ValidIndex_ReturnsElement()
     {
         // Arrange
         var list = new List<string> { "a", "b", "c" };
 
         // Act
-        var result = SafeArrayAccess.GetIndexedElement(list, 1, typeof(string));
+        var result = SafeArrayAccess.GetTypedListElement<List<string>, string>(list, 1);
 
         // Assert
         Assert.AreEqual("b", result);
     }
 
     [TestMethod]
-    public void SafeArrayAccess_GetIndexedElement_NullableType_ReturnsNull()
+    public void SafeArrayAccess_TypedIndexedAccess_NullableType_ReturnsNull()
     {
         // Arrange & Act
-        var result = SafeArrayAccess.GetIndexedElement(null, 0, typeof(int?));
+        var result = SafeArrayAccess.GetTypedListElement<int?[], int?>(null, 0);
 
         // Assert
         Assert.IsNull(result);

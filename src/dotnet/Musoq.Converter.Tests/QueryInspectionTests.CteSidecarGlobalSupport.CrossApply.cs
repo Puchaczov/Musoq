@@ -18,10 +18,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual("x", table[0][1]);
-        Assert.AreEqual("single", table[1][0]);
-        Assert.AreEqual("y", table[1][1]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual("x", table[0].ReadValue(1));
+        Assert.AreEqual("single", table[1].ReadValue(0));
+        Assert.AreEqual("y", table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -49,10 +49,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.IsNull(table[0][1]);
-        Assert.AreEqual("right", table[1][0]);
-        Assert.IsNull(table[1][1]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
+        Assert.AreEqual("right", table[1].ReadValue(0));
+        Assert.IsNull(table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -65,7 +65,7 @@ public partial class QueryInspectionTests
 
         var table = compiled.Run();
         var rows = Enumerable.Range(0, table.Count)
-            .Select(index => $"{table[index][0]}:{table[index][1]}:{table[index][2]}")
+            .Select(index => $"{table[index].ReadValue(0)}:{table[index].ReadValue(1)}:{table[index].ReadValue(2)}")
             .ToArray();
 
         CollectionAssert.AreEqual(

@@ -45,13 +45,6 @@ internal sealed partial class PhysicalLoweringImplementation
             generatedRowShape);
     }
 
-    private static ExecutionNode CreateMaterializeExpandoListNode(
-        ExecutionExpression source,
-        ExecutionVariable buffer,
-        ExpandoAdapterShape shape,
-        ExecutionExpression? predicate)
-    {
-        return ExecutionRowStreams.CreateMaterializeExpandoList(source, buffer, shape, predicate);
-    }
+
 
 }

@@ -15,78 +15,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     [TestMethod]
     public void ExecutionNodeTypes_ShouldHaveExplicitCoverageInventory()
     {
-        string[] expectedNodeTypes =
-        [
-            "ExecutionAdaptExpando",
-            "ExecutionAggregateCapturedValueSet",
-            "ExecutionAggregateSet",
-            "ExecutionAppendExistingRow",
-            "ExecutionAppendRecord",
-            "ExecutionAppendRow", "ExecutionArrayAssign",
-            "ExecutionAsOfProbe",
-            "ExecutionAssign",
-            "ExecutionBreak",
-            "ExecutionComputeOffsetWindow",
-            "ExecutionComputePluginWindow",
-            "ExecutionComputeRankingWindow",
-            "ExecutionContinue",
-            "ExecutionContinueIf",
-            "ExecutionCreateAggregateContext",
-            "ExecutionCreateAggregateLibrary",
-            "ExecutionCreateAsOfIndex", "ExecutionCreateBooleanArray",
-            "ExecutionCreateBoundedRecordList",
-            "ExecutionCreateGeneratedRow", "ExecutionCreateHash", "ExecutionCreateHashPayload", "ExecutionCreateKeySet",
-            "ExecutionCreateObject",
-            "ExecutionCreateRangeIndex",
-            "ExecutionCreateRecordList",
-            "ExecutionCreateSingleKeyAggregateContext",
-            "ExecutionCreateTable",
-            "ExecutionCreateValueTupleAggregateContext",
-            "ExecutionCreateValuesRows", "ExecutionCteFusedProducerCandidate", "ExecutionCteIndexOnlyStorageCandidate", "ExecutionCteReadOnceFusionCandidate", "ExecutionCteSidecarAppendRewriteCandidate", "ExecutionCteSidecarIndexBuildCandidate", "ExecutionCteSidecarIndexLoadCandidate", "ExecutionCteSidecarIndexStoreCandidate",
-            "ExecutionDistinctTable",
-            "ExecutionEnsureAggregateGroup",
-            "ExecutionEnsureTableCapacity",
-            "ExecutionEnumerableSource",
-            "ExecutionForEach",
-            "ExecutionForEachIndexed", "ExecutionForEachWithOrdinality", "ExecutionFusedCteProducer",
-            "ExecutionGetOrAddSingleKeyAggregateGroup",
-            "ExecutionGetOrAddValueTupleAggregateGroup",
-            "ExecutionHashAdd",
-            "ExecutionHashProbe",
-            "ExecutionHoistCandidateLet", "ExecutionIf",
-            "ExecutionInterpretSource", "ExecutionKeySetAdd", "ExecutionKeySetProbe",
-            "ExecutionLet",
-            "ExecutionLoadCteIndex",
-            "ExecutionMaterializeExpandoList",
-            "ExecutionMaterializeFilteredList",
-            "ExecutionMaterializeList",
-            "ExecutionMaterializeRecordListToTable",
-            "ExecutionMethodTargetDeclarationCandidate",
-            "ExecutionOrderRecordList",
-            "ExecutionParallelBlock",
-            "ExecutionParallelFilterProjectLoop",
-            "ExecutionParallelSingleKeyAggregateLoop", "ExecutionPhaseBoundary",
-            "ExecutionPrepareStructuralInput",
-            "ExecutionProjectTable",
-            "ExecutionRangeProbe",
-            "ExecutionRecursiveCte",
-            "ExecutionRecursiveCteAppend",
-            "ExecutionRecursiveCteSnapshotRowGuard",
-            "ExecutionRelatedCtePhase",
-            "ExecutionReturnDesc",
-            "ExecutionReturnTable",
-            "ExecutionScopedBlock", "ExecutionSetOperation", "ExecutionSingleUsePipelineFusionCandidate", "ExecutionSkipTable",
-            "ExecutionSliceTable",
-            "ExecutionSortTable",
-            "ExecutionSourceScan",
-            "ExecutionStoreCteIndex",
-            "ExecutionStoreTable",
-            "ExecutionTakeTable",
-            "ExecutionTopNTable",
-            "ExecutionTopOffsetTable",
-            "ExecutionWindowAggregateKernel",
-            "ExecutionWindowKernelPlan"
-        ];
+
 
         var actualNodeTypes = typeof(ExecutionNode).Assembly
             .GetTypes()
@@ -96,9 +25,9 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             .ToArray();
 
         Assert.IsTrue(
-            expectedNodeTypes.SequenceEqual(actualNodeTypes, StringComparer.Ordinal),
+            ExpectedExecutionNodeTypes.SequenceEqual(actualNodeTypes, StringComparer.Ordinal),
             "ExecutionNode inventory changed. Expected: " +
-            string.Join(", ", expectedNodeTypes) +
+            string.Join(", ", ExpectedExecutionNodeTypes) +
             ". Actual: " +
             string.Join(", ", actualNodeTypes));
     }

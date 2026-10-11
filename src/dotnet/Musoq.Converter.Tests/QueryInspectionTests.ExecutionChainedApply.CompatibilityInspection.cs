@@ -56,7 +56,7 @@ public partial class QueryInspectionTests
         Assert.Contains("StoreTable [cte0_statement0 -> _cteRowResults.Slot1", result.ExecutionPlanText);
         Assert.Contains("TableRow [e]", result.ExecutionPlanText);
         Assert.Contains("n.Value: int <- field n_Value", result.ExecutionPlanText);
-        Assert.Contains("m.Value: int <- field m_Value", result.ExecutionPlanText);
+        Assert.Contains("Value: int <- field Value_1", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
 

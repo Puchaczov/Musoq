@@ -5,6 +5,9 @@ namespace Musoq.Plugins;
 public static class MaxComparableAggregateKernel<T>
     where T : struct, IComparable<T>
 {
+    /// <summary>Initializes independently owned kernel state.</summary>
+    public static void Reset(ref State state) => state = default;
+
     public struct State
     {
         public bool HasValue;

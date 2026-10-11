@@ -317,10 +317,10 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
             return base.TryPlanSource(name, request, parameters);
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             OpenCount++;
             if (Operation == BoundaryOperation.Open)

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -10,9 +11,13 @@ using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Diagnostics;
+using Musoq.Plugins;
 using Musoq.Schema;
+using Musoq.Schema.Diagnostics;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Exceptions;
+using Musoq.Schema.Managers;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -46,6 +51,92 @@ public sealed class DataSourceLifecycleDiagnosticTests
     }
 
     [TestMethod]
+    public void OpenSchema_WhenProviderRejectsInput_ShouldPreserveTypedInputDiagnostic()
+    {
+        var original = new InvalidDataException("private path and source payload");
+        var inputFailure = new DataSourceInputException(
+            DataSourceInputFailureReason.MalformedJson,
+            new DataSourceInputLocation(line: 2, column: 4, characterOffset: 13),
+            original);
+
+        var exception = Assert.Throws<DataSourceLifecycleException>(() =>
+            DataSourceLifecycle.OpenSchema(new ThrowingProvider(inputFailure), "#fault", "items", "rows", "ctx-open-input"));
+        var diagnostic = exception.ToDiagnostic();
+
+        Assert.AreEqual(DiagnosticCode.MQ7014_MalformedRuntimeInput, exception.Code);
+        Assert.AreEqual("malformed-json", diagnostic.Arguments["inputReason"]);
+        Assert.AreEqual(2L, diagnostic.InputLocation?.Line);
+        Assert.AreEqual(13L, diagnostic.InputLocation?.CharacterOffset);
+        Assert.AreSame(inputFailure, exception.InnerException);
+        Assert.AreSame(original, inputFailure.InnerException);
+        Assert.DoesNotContain("private path", diagnostic.Message);
+        Assert.DoesNotContain("source payload", diagnostic.Message);
+    }
+
+    [TestMethod]
+    public void CompileWithDiagnostics_WhenMetadataRejectsInput_ShouldReportSafeRuntimeDiagnostic()
+    {
+        var inputFailure = new DataSourceInputException(
+            DataSourceInputFailureReason.UnterminatedQuotedField,
+            new DataSourceInputLocation(byteOffset: 23),
+            new InvalidDataException("private CSV path and payload"));
+
+        var result = InstanceCreator.CompileWithDiagnostics(
+            "select Name from #fault.items() i",
+            "metadata-input-diagnostic",
+            new ThrowingProvider(inputFailure),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false));
+
+        Assert.IsFalse(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
+        var diagnostic = result.Errors.Single();
+        Assert.AreEqual(
+            DiagnosticCode.MQ7014_MalformedRuntimeInput,
+            diagnostic.Code,
+            string.Join(Environment.NewLine, result.Diagnostics));
+        Assert.AreEqual(DiagnosticPhase.Runtime, diagnostic.Phase);
+        Assert.AreEqual(DiagnosticSourceKind.DataSource, diagnostic.SourceKind);
+        Assert.AreEqual("unterminated-quoted-field", diagnostic.Arguments["inputReason"]);
+        Assert.AreEqual(23L, diagnostic.InputLocation?.ByteOffset);
+        Assert.DoesNotContain("private CSV path", diagnostic.Message);
+        Assert.DoesNotContain("payload", diagnostic.Message);
+    }
+
+    [TestMethod]
+    public void CompileWithDiagnostics_WhenSourceMetadataRejectsInput_ShouldReportSafeRuntimeDiagnostic()
+    {
+        var inputFailure = new DataSourceInputException(
+            DataSourceInputFailureReason.UnterminatedQuotedField,
+            new DataSourceInputLocation(byteOffset: 23),
+            new InvalidDataException("private CSV path and unterminated payload"));
+        var provider = new FaultProvider
+        {
+            Mode = FaultMode.Metadata,
+            Exception = inputFailure
+        };
+
+        var result = InstanceCreator.CompileWithDiagnostics(
+            "select Name from #test.entities() e",
+            "source-metadata-input-diagnostic",
+            provider,
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false));
+
+        Assert.IsFalse(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
+        var diagnostic = result.Errors.Single();
+        Assert.AreEqual(
+            DiagnosticCode.MQ7014_MalformedRuntimeInput,
+            diagnostic.Code,
+            string.Join(Environment.NewLine, result.Diagnostics));
+        Assert.AreEqual(DiagnosticPhase.Runtime, diagnostic.Phase);
+        Assert.AreEqual(DiagnosticSourceKind.DataSource, diagnostic.SourceKind);
+        Assert.AreEqual("unterminated-quoted-field", diagnostic.Arguments["inputReason"]);
+        Assert.AreEqual(23L, diagnostic.InputLocation?.ByteOffset);
+        Assert.DoesNotContain("private CSV path", diagnostic.Message);
+        Assert.DoesNotContain("unterminated payload", diagnostic.Message);
+    }
+
+    [TestMethod]
     public void Read_WhenMoveNextThrows_ShouldUseReadDiagnosticAndPreserveInnerException()
     {
         var original = new IOException("secret-read-argument");
@@ -61,6 +152,114 @@ public sealed class DataSourceLifecycleDiagnosticTests
         Assert.AreEqual(DiagnosticCode.MQ7011_DataSourceReadFailed, exception.Code);
         Assert.AreSame(original, exception.InnerException);
         Assert.AreEqual("read", exception.Operation);
+    }
+
+    [TestMethod]
+    public void Read_WhenInvalidDataIsRejected_ShouldUseGenericMalformedInputDiagnostic()
+    {
+        var original = new InvalidDataException("private path and record payload");
+        var source = new TestRowSource(new ThrowingEnumerable(original));
+
+        var exception = Assert.Throws<DataSourceLifecycleException>(() =>
+        {
+            foreach (var _ in DataSourceLifecycle.Read(source, "#fault", "items", "rows", "ctx-invalid-sync"))
+            {
+            }
+        });
+        var diagnostic = exception.ToDiagnostic();
+
+        Assert.AreEqual(DiagnosticCode.MQ7014_MalformedRuntimeInput, exception.Code);
+        Assert.AreSame(original, exception.InnerException);
+        Assert.AreEqual(RuntimeInputFailureReason.MalformedInput, exception.InputReason);
+        Assert.AreEqual(DiagnosticPhase.Runtime, diagnostic.Phase);
+        Assert.AreEqual(DiagnosticSourceKind.DataSource, diagnostic.SourceKind);
+        Assert.AreEqual("ctx-invalid-sync", diagnostic.Arguments["sourceContextId"]);
+        Assert.IsNull(diagnostic.InputLocation);
+        Assert.DoesNotContain("private path", exception.Message);
+        Assert.DoesNotContain("record payload", exception.Message);
+    }
+
+    [TestMethod]
+    public void Read_WhenSchemaInputFailureIsRaised_ShouldPreserveReasonAndLocation()
+    {
+        var inputFailure = new DataSourceInputException(
+            DataSourceInputFailureReason.UnterminatedQuotedField,
+            new DataSourceInputLocation(byteOffset: 23),
+            new InvalidDataException("private CSV path and contents"));
+        var source = new TestRowSource(new ThrowingEnumerable(new IOException("wrapped provider failure", inputFailure)));
+
+        var exception = Assert.Throws<DataSourceLifecycleException>(() =>
+        {
+            foreach (var _ in DataSourceLifecycle.Read(source, "#fault", "items", "rows", "ctx-schema-input-sync"))
+            {
+            }
+        });
+        var diagnostic = exception.ToDiagnostic();
+
+        Assert.AreEqual(DiagnosticCode.MQ7014_MalformedRuntimeInput, exception.Code);
+        Assert.AreEqual("unterminated-quoted-field", diagnostic.Arguments["inputReason"]);
+        Assert.AreEqual(23L, diagnostic.InputLocation?.ByteOffset);
+        Assert.DoesNotContain("private CSV path", diagnostic.Message);
+        Assert.DoesNotContain("contents", diagnostic.Message);
+    }
+
+    [TestMethod]
+    public async Task ReadAsync_WhenTypedInputFailureIsRaised_ShouldPreserveReasonAndByteOffset()
+    {
+        var typedFailure = new RuntimeInputDiagnosticException(
+            RuntimeInputFailureReason.UnterminatedQuotedField,
+            DiagnosticSourceKind.DataSource,
+            new DiagnosticInputLocation(byteOffset: 23),
+            new InvalidDataException("private CSV path and contents"));
+
+        var exception = await AssertThrowsAsync<DataSourceLifecycleException>(async () =>
+        {
+            await foreach (var _ in DataSourceLifecycle.ReadAsync(
+                               new ThrowingAsyncEnumerable(typedFailure),
+                               "#fault",
+                               "items",
+                               "rows",
+                               "ctx-invalid-async"))
+            {
+            }
+        });
+        var diagnostic = exception.ToDiagnostic();
+
+        Assert.AreEqual(DiagnosticCode.MQ7014_MalformedRuntimeInput, exception.Code);
+        Assert.AreEqual("The final quoted field is not terminated.", exception.Message);
+        Assert.AreEqual("ctx-invalid-async", diagnostic.Arguments["sourceContextId"]);
+        Assert.AreEqual("unterminated-quoted-field", diagnostic.Arguments["inputReason"]);
+        Assert.AreEqual(23L, diagnostic.InputLocation?.ByteOffset);
+        Assert.DoesNotContain("private CSV path", diagnostic.Message);
+        Assert.DoesNotContain("contents", diagnostic.Message);
+    }
+
+    [TestMethod]
+    public async Task ReadAsync_WhenSchemaInputFailureIsRaised_ShouldPreserveReasonAndLocation()
+    {
+        var inputFailure = new DataSourceInputException(
+            DataSourceInputFailureReason.MalformedJson,
+            new DataSourceInputLocation(line: 4, column: 2, characterOffset: 18),
+            new InvalidDataException("private JSON path and payload"));
+        var exception = await AssertThrowsAsync<DataSourceLifecycleException>(async () =>
+        {
+            await foreach (var _ in DataSourceLifecycle.ReadAsync(
+                               new ThrowingAsyncEnumerable(new IOException("wrapped read failure", inputFailure)),
+                               "#fault",
+                               "items",
+                               "rows",
+                               "ctx-schema-input-async"))
+            {
+            }
+        });
+        var diagnostic = exception.ToDiagnostic();
+
+        Assert.AreEqual(DiagnosticCode.MQ7014_MalformedRuntimeInput, exception.Code);
+        Assert.AreEqual("malformed-json", diagnostic.Arguments["inputReason"]);
+        Assert.AreEqual(4L, diagnostic.InputLocation?.Line);
+        Assert.AreEqual(18L, diagnostic.InputLocation?.CharacterOffset);
+        Assert.DoesNotContain("private JSON path", diagnostic.Message);
+        Assert.DoesNotContain("payload", diagnostic.Message);
     }
 
     [TestMethod]
@@ -161,6 +360,30 @@ public sealed class DataSourceLifecycleDiagnosticTests
     }
 
     [TestMethod]
+    public void CompiledQuery_WhenDeferredSourceMaterializationFindsInvalidData_ShouldExposeMalformedInputEnvelope()
+    {
+        var original = new InvalidDataException("private source path and record data");
+        var provider = CreateCompiledFaultProvider(FaultMode.Read, original);
+
+        var exception = Assert.Throws<QueryExecutionException>(() => Materialize(provider));
+        var envelope = exception.Envelope ?? throw new AssertFailedException("Expected a datasource envelope.");
+
+        Assert.AreEqual(DiagnosticCode.MQ7014_MalformedRuntimeInput, envelope.Code);
+        Assert.AreEqual(DiagnosticPhase.Runtime, envelope.Phase);
+        Assert.AreEqual(DiagnosticSourceKind.DataSource, envelope.SourceKind);
+        Assert.AreEqual("#test", envelope.Arguments["schema"]);
+        Assert.AreEqual("entities", envelope.Arguments["source"]);
+        Assert.AreEqual("e", envelope.Arguments["alias"]);
+        Assert.AreEqual("read", envelope.Arguments["operation"]);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Arguments["sourceContextId"]));
+        Assert.IsNull(envelope.InputLocation);
+        Assert.IsNull(envelope.Details);
+        Assert.DoesNotContain("private source path", exception.Message);
+        Assert.DoesNotContain("record data", exception.Message);
+        Assert.AreSame(original, exception.InnerException?.InnerException);
+    }
+
+    [TestMethod]
     public void CompiledQuery_WhenSourceCleanupFails_ShouldExposeSourceContext()
     {
         var original = new IOException("secret-cleanup-argument");
@@ -169,6 +392,38 @@ public sealed class DataSourceLifecycleDiagnosticTests
         var exception = Assert.Throws<QueryExecutionException>(() => Materialize(provider));
 
         AssertLifecycleEnvelope(exception, DiagnosticCode.MQ7012_DataSourceCleanupFailed, "cleanup", original);
+    }
+
+    [TestMethod]
+    public void CompileWithDiagnostics_WhenQueryScopedRowsAreAdvertisedWithoutImplementation_ShouldReportContractError()
+    {
+        const string query = """
+            param(path: string = 'orders.csv')
+            select c.Customer as Customer, Count(*) as Orders, Sum(c.Amount::int) as Total
+            from #separatedvalues.comma($path, true, 0) c
+            group by c.Customer order by c.Customer
+            """;
+
+        var result = InstanceCreator.CompileWithDiagnostics(
+            query,
+            "query-scoped-capability-mismatch",
+            new QueryScopedCapabilityMismatchSchemaProvider(),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false));
+
+        Assert.IsFalse(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
+        var sourceContractErrors = result.Errors
+            .Where(item => item.Code == DiagnosticCode.MQ3071_SourceContractError)
+            .ToArray();
+        Assert.AreEqual(1, sourceContractErrors.Length, string.Join(Environment.NewLine, result.Diagnostics));
+        var error = sourceContractErrors[0];
+        Assert.Contains("origin=DescribeSource", error.Message);
+        Assert.Contains("sourceCode=QueryScopedRowsMissingRuntimeImplementation", error.Message);
+        Assert.Contains("QueryScopedRows", error.Message);
+        Assert.Contains("IQueryScopedRowSourceSchema", error.Message);
+        Assert.IsTrue(result.Warnings.Any(item =>
+            item.Code == DiagnosticCode.MQ5013_SourceContractWarning &&
+            item.Message.Contains("sourceCode=ExistingSourceDiagnostic", StringComparison.Ordinal)));
     }
 
     private static FaultProvider CreateCompiledFaultProvider(FaultMode mode, Exception exception)
@@ -219,6 +474,7 @@ public sealed class DataSourceLifecycleDiagnosticTests
     private enum FaultMode
     {
         None,
+        Metadata,
         Open,
         Read,
         Cleanup
@@ -254,10 +510,21 @@ public sealed class DataSourceLifecycleDiagnosticTests
 
         public Exception Exception { get; set; } = new InvalidOperationException();
 
-        public override RowSource<T> GetRowSource<T>(
+        public override ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext metadataContext,
+            params object?[] parameters)
+        {
+            if (Mode == FaultMode.Metadata)
+                throw Exception;
+
+            return base.GetTableByName(name, metadataContext, parameters);
+        }
+
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             return Mode switch
             {
@@ -268,7 +535,7 @@ public sealed class DataSourceLifecycleDiagnosticTests
                 FaultMode.Cleanup => EnsureSourceType<T, BasicEntity>(
                     name,
                     new EntityFaultRowSource(new CleanupEntityEnumerable(Exception))),
-                _ => base.GetRowSource<T>(name, executionContext, parameters)
+                _ => base.GetRowSource<T, TArguments>(name, executionContext, nativeArguments)
             };
         }
     }
@@ -395,5 +662,81 @@ public sealed class DataSourceLifecycleDiagnosticTests
         public ValueTask<bool> MoveNextAsync() => ValueTask.FromException<bool>(exception);
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    }
+
+    private sealed class QueryScopedCapabilityMismatchSchemaProvider : ISchemaProvider
+    {
+        public ISchema GetSchema(string schema)
+        {
+            return new QueryScopedCapabilityMismatchSchema();
+        }
+    }
+
+    private sealed class QueryScopedCapabilityMismatchSchema : SchemaBase
+    {
+        public QueryScopedCapabilityMismatchSchema()
+            : base("separatedvalues", CreateLibrary())
+        {
+            AddTable<OrderCsvTable>("comma");
+            AddSource<OrderCsvRowSource>("comma");
+        }
+
+        public override SourceDescriptor DescribeSource(
+            string name,
+            SourceDescribeContext context,
+            params object?[] parameters)
+        {
+            var descriptor = base.DescribeSource(name, context, parameters);
+            return descriptor with
+            {
+                TransferCapabilities = SourceTransferCapabilities.QueryScopedRows,
+                ContractDiagnostics =
+                [
+                    .. descriptor.ContractDiagnostics,
+                    SourceContractDiagnostic.Warning("Existing datasource warning.", "ExistingSourceDiagnostic")
+                ]
+            };
+        }
+
+        private static MethodsAggregator CreateLibrary()
+        {
+            var methods = new MethodsManager();
+            methods.RegisterLibraries(new LibraryBase());
+            return new MethodsAggregator(methods);
+        }
+    }
+
+    private sealed class OrderCsvTable(string path, bool hasHeader, int skipRows) : ISchemaTable
+    {
+        public (string Path, bool HasHeader, int SkipRows) SourceArguments { get; } = (path, hasHeader, skipRows);
+
+        public ISchemaColumn[] Columns { get; } =
+        [
+            new Musoq.Schema.DataSources.SchemaColumn(nameof(OrderCsvRow.Customer), 0, typeof(string)),
+            new Musoq.Schema.DataSources.SchemaColumn(nameof(OrderCsvRow.Amount), 1, typeof(string))
+        ];
+
+        public SchemaTableMetadata Metadata { get; } = new(typeof(OrderCsvRow));
+
+        public ISchemaColumn? GetColumnByName(string name)
+        {
+            return Columns.SingleOrDefault(column =>
+                string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public ISchemaColumn[] GetColumnsByName(string name)
+        {
+            return Columns.Where(column =>
+                string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
+        }
+    }
+
+    public sealed record OrderCsvRow(string Customer, string Amount);
+
+    private sealed class OrderCsvRowSource(string path, bool hasHeader, int skipRows) : RowSource<OrderCsvRow>
+    {
+        public (string Path, bool HasHeader, int SkipRows) SourceArguments { get; } = (path, hasHeader, skipRows);
+
+        public override IEnumerable<IReadOnlyList<OrderCsvRow>> Chunks => [];
     }
 }

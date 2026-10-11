@@ -122,7 +122,7 @@ public sealed class DiagnosticREC119ReachabilityAndPrecedenceTests
         for (var rowIndex = 0; rowIndex < convenienceTable.Count; rowIndex++)
         {
             for (var columnIndex = 0; columnIndex < convenienceTable.Columns.Count(); columnIndex++)
-                Assert.AreEqual(convenienceTable[rowIndex][columnIndex], diagnosticTable[rowIndex][columnIndex]);
+                Assert.AreEqual(convenienceTable[rowIndex].ReadValue(columnIndex), diagnosticTable[rowIndex].ReadValue(columnIndex));
         }
     }
 

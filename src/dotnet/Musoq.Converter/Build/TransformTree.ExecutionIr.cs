@@ -20,6 +20,9 @@ public partial class TransformTree
         SemanticScopeArtifact scopeArtifact)
     {
         context.CancellationToken.ThrowIfCancellationRequested();
+        if (!TypedBoundaryValidation.ValidateSources(context.OutputType,
+                ResolveSupportedExecutionPlan(execution.ExecutionPlanBuildResult), context.DiagnosticContext))
+            return null;
         var renderRequest = CreateTargetRenderRequest(
             context,
             semantic,
@@ -206,11 +209,7 @@ public partial class TransformTree
         if (planning.PhysicalPlan == null)
             return new ExecutionStageBuildResult(new ExecutionBuildArtifacts(), context);
 
-        var executionScope = semantic.ScopeArtifact.CreateScope();
-        var shapeResolver = new ExecutionShapeResolver(
-            executionScope,
-            semantic.PipelineInferredColumns ?? new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal),
-            schemaRegistry: context.SchemaRegistry);
+        var shapeResolver = ExecutionShapeResolverFactory.Create(semantic, context.SchemaRegistry);
         var builder = new PhysicalToExecutionPlanBuilder(
             shapeResolver,
             context.SchemaRegistry,

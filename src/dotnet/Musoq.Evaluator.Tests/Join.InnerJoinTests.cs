@@ -23,7 +23,7 @@ public class JoinInnerJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("a.Id", typeof(int)), ("b.Id", typeof(int)));
+            ("Id", typeof(int)), ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 2, 2 });
     }
 
@@ -42,7 +42,7 @@ public class JoinInnerJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("A.Id", typeof(int)), ("B.Id", typeof(int)));
+            ("Id", typeof(int)), ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 2, 2 });
     }
 
@@ -66,7 +66,7 @@ inner join #C.entities() population on 1 = 1";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("countries.Country", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
@@ -115,9 +115,9 @@ inner join #C.entities() population on cities.City = population.City";
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("countries.Country", typeof(string)),
-            ("cities.City", typeof(string)),
-            ("population.Population", typeof(decimal)));
+            ("Country", typeof(string)),
+            ("City", typeof(string)),
+            ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsUnordered(table,
             new object?[] { "Poland", "Krakow", 400m },
             new object?[] { "Poland", "Wroclaw", 500m },
@@ -161,7 +161,7 @@ select p.Id, x.Id from p inner join x on p.Country = x.Country";
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("p.Id", typeof(int)), ("x.Id", typeof(int)));
+            ("Id", typeof(int)), ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(table,
             new object?[] { 0, 0 }, new object?[] { 0, 1 }, new object?[] { 0, 2 },
             new object?[] { 0, 3 }, new object?[] { 1, 4 });
@@ -193,7 +193,7 @@ select p.Id, x.Id from p p inner join x on p.Country = x.Country";
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("p.Id", typeof(int)), ("x.Id", typeof(int)));
+            ("Id", typeof(int)), ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(table,
             new object?[] { 0, 0 }, new object?[] { 1, 1 }, new object?[] { 2, 2 });
     }
@@ -229,7 +229,7 @@ select p.Country, x.Country from p inner join x on p.Country = x.Country where p
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("p.Country", typeof(string)), ("x.Country", typeof(string)));
+            ("Country", typeof(string)), ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table,
             new object?[] { "Poland", "Poland" });
     }
@@ -266,7 +266,7 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("p.Country", typeof(string)), ("p.Count(p.Country)", typeof(long)));
+            ("Country", typeof(string)), ("p.Count(p.Country)", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(table,
             new object?[] { "Poland", 2L });
     }
@@ -427,7 +427,7 @@ inner join #A.entities() t2 on t.Trim(t.Country) = t2.Trim(t2.Country)
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table,
-            ("t.Country", typeof(string)), ("t2.City", typeof(string)));
+            ("Country", typeof(string)), ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table,
             new object?[] { " Poland ", " Krakow" },
             new object?[] { "Germany ", " Berlin" });

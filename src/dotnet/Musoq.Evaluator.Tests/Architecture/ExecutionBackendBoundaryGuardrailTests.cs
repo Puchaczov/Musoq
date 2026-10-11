@@ -765,6 +765,7 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
 
         var violations = Directory
             .GetFiles(Path.Combine(repositoryRoot, "src", "dotnet"), "*.cs", SearchOption.AllDirectories)
+            .Where(path => !RepositorySourceScan.IsGeneratedCodeSample(repositoryRoot, path))
             .Select(path => (Path: path, RelativePath: RepositorySourceScan.ToRelative(repositoryRoot, path)))
             .Where(item => !allowedFiles.Contains(item.RelativePath))
             .Where(item => File.ReadAllText(item.Path).Contains(forbiddenConstruction, StringComparison.Ordinal))
@@ -1100,7 +1101,6 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
             productionFiles,
             "Activator.CreateInstance",
             "src/dotnet/Musoq.Evaluator/Build/InterpreterCompilationUnit.cs",
-            "src/dotnet/Musoq.Evaluator/Helpers/SafeArrayAccess.cs",
             "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.WindowAggregateKernels.cs",
             "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.Diagnostics.CoreAndSymbols.cs",
             "src/dotnet/Musoq.Targets.CSharpClr/ClrAssemblyExecutableActivator.cs");
@@ -1123,7 +1123,6 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
             productionFiles,
             "Activator.CreateInstance",
             "src/dotnet/Musoq.Evaluator/Build/InterpreterCompilationUnit.cs",
-            "src/dotnet/Musoq.Evaluator/Helpers/SafeArrayAccess.cs",
             "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.WindowAggregateKernels.cs",
             "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.Diagnostics.CoreAndSymbols.cs",
             "src/dotnet/Musoq.Targets.CSharpClr/ClrAssemblyExecutableActivator.cs");

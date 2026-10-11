@@ -58,7 +58,7 @@ public class TypedExecutionTests
     {
         var query = Compile<PropertyDto>(
             "param(expected: string) select d.Dummy as Dummy from #system.dual() d where d.Dummy = $expected");
-        query.Parameters["expected"] = "single";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "expected", "single");
 
         var rows = query.Run(CancellationToken.None).ToArray();
 
@@ -73,7 +73,7 @@ public class TypedExecutionTests
             "param(expected: string) select d.Dummy as Dummy from #system.dual() d where d.Dummy = $expected");
         var parameters = new Dictionary<string, object?> { ["expected"] = "single" };
 
-        var rows = query.Run(new TypedQueryRunOptions(CancellationToken.None, parameters));
+        var rows = query.Run(new TypedQueryRunOptions(CancellationToken.None, global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(parameters)));
         parameters["expected"] = "missing";
 
         var materialized = rows.ToArray();
@@ -89,7 +89,7 @@ public class TypedExecutionTests
             "param(expected: string) select d.Dummy as Dummy from #system.dual() d where d.Dummy = $expected");
         var parameters = new Dictionary<string, object?> { ["expected"] = "single" };
 
-        var rows = query.Run(new TypedQueryRunOptions { Parameters = parameters });
+        var rows = query.Run(new TypedQueryRunOptions { TypedParameters= global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(parameters)});
         parameters["expected"] = "missing";
 
         var materialized = rows.ToArray();

@@ -15,14 +15,10 @@ public sealed partial class ExecutionShapeResolver
     {
         var resolvedColumns = ResolveColumns(entityType, columns);
 
-        if (IsDynamicEntity(entityType))
-        {
-            var dynamicFields = CreateFieldBindings(
-                alias,
-                resolvedColumns,
-                column => new ExpandoDictionaryAccess(column.ColumnName));
-            return new ExpandoAdapterShape(alias, CreateDynamicTypeName(alias), entityType, dynamicFields);
-        }
+        if (DynamicEntityBoundary.IsNameIndexedSource(entityType))
+            throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(
+                $"Source '{alias}' requires native query-scoped rows; erased dictionary transfer is unsupported.",
+                Musoq.Parser.TextSpan.Empty);
 
         if (!CanUseSourceEntityShape(entityType))
             return CreateReflectedSourceShape(alias, entityType, resolvedColumns);
@@ -108,11 +104,5 @@ public sealed partial class ExecutionShapeResolver
                string.Equals(columns[0].ColumnName, nameof(PrimitiveTypeEntity<object>.Value), StringComparison.Ordinal);
     }
 
-    private static string CreateDynamicTypeName(string alias)
-    {
-        if (string.IsNullOrWhiteSpace(alias))
-            return "DynamicRow0";
 
-        return $"{alias}DynamicRow0";
-    }
 }

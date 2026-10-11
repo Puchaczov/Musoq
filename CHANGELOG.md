@@ -4,6 +4,37 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.11-alpha.2
+
+See the curated package release notes for [Musoq.Parser](release-notes/parser/v17.0.11-alpha.2.md), [Musoq.Plugins](release-notes/plugins/v17.0.11-alpha.2.md), [Musoq.Schema](release-notes/schema/v17.0.11-alpha.2.md), [Musoq.Evaluator](release-notes/evaluator/v17.0.11-alpha.2.md), and [Musoq.Converter](release-notes/converter/v17.0.11-alpha.2.md).
+
+### Musoq.Parser
+
+- Added structured runtime-input diagnostic locations and safe diagnostic exceptions, including MQ7014 for malformed runtime input and MQ7101-MQ7115 for interpretation failures.
+
+### Musoq.Plugins
+
+- Routed current local and UTC date reads through internal clock accessors so tests can control time deterministically while preserving the default system-clock behavior.
+
+### Musoq.Schema
+
+- Preserved runtime-input failure reasons and byte or character offsets through interpretation and datasource lifecycle diagnostics, with safe messages and source context.
+
+### Musoq.Evaluator
+
+- Reject a source at compile time with MQ3071 when it advertises QueryScopedRows but its described runtime schema does not implement IQueryScopedRowSourceSchema. Preserve descriptor diagnostics and the runtime guard for execution-only mismatches.
+- Carry generated row shapes through join and window lowering so generated-row buffers remain available to direct-index rendering.
+
+### Musoq.Converter
+
+- Include the bundled C# renderer fix for generated rows in direct-index paths while continuing to reject untyped object rows and support ExpandoAdapter.
+- Align the package dependency on Musoq.Evaluator 17.0.11-alpha.2.
+
+### Compatibility and verification
+
+- This full-train alpha aligns Musoq.Parser, Musoq.Plugins, Musoq.Schema, Musoq.Evaluator, and Musoq.Converter at 17.0.11-alpha.2. Parser and Schema add structured diagnostic APIs; no datasource provider interface contract change is intended.
+- Release validation and local package verification are recorded in the curated package notes.
+
 ## 17.0.11-alpha.1
 
 See the curated full-train release notes for [Musoq 17.0.11-alpha.1](release-notes/v17.0.11-alpha.1.md).

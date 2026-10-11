@@ -197,9 +197,9 @@ internal static class WindowRangeFrameSyntax
             CreateBooleanLiteral(IsNullsFirst(orderKey)));
     }
 
-    internal static StatementSyntax CreateStreamingPluginPeerRowsLoop(
+    internal static StatementSyntax CreateStreamingPeerRowsLoop(
         string resultName,
-        string functionName,
+        string resultExpression,
         string orderKeysName,
         string partitionIndicesName,
         string partitionStartName,
@@ -222,7 +222,7 @@ internal static class WindowRangeFrameSyntax
             itemDeclarations + Environment.NewLine +
             $"        {accumulate}" + Environment.NewLine +
             "    }" + Environment.NewLine +
-            $"    var {peerValueName} = {functionName}.GetValue();" + Environment.NewLine +
+            $"    var {peerValueName} = {resultExpression};" + Environment.NewLine +
             $"    for (int {peerIndexName} = {partitionIndexName}; {peerIndexName} <= {peerEndName}; ++{peerIndexName})" + Environment.NewLine +
             "    {" + Environment.NewLine +
             $"        var {currentIndexName} = {partitionIndicesName}[{partitionStartName} + {peerIndexName}];" + Environment.NewLine +

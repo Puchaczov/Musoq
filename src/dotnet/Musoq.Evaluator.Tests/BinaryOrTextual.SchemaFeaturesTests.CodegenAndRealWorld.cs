@@ -37,8 +37,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0, table[0][0]);
-        Assert.IsNull(table[0][1]);
+        Assert.AreEqual((byte)0, table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -78,9 +78,9 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x42, table[0][0]);
-        Assert.AreEqual((short)10, table[0][1]);
-        Assert.AreEqual((short)20, table[0][2]);
+        Assert.AreEqual((byte)0x42, table[0].ReadValue(0));
+        Assert.AreEqual((short)10, table[0].ReadValue(1));
+        Assert.AreEqual((short)20, table[0].ReadValue(2));
     }
 
     #endregion
@@ -121,9 +121,9 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x01, table[0][0]);
-        Assert.AreEqual((byte)0x03, table[0][1]);
-        var value = (byte[])table[0][2];
+        Assert.AreEqual((byte)0x01, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x03, table[0].ReadValue(1));
+        var value = (byte[])table[0].ReadValue(2);
         Assert.HasCount(3, value);
         Assert.AreEqual((byte)0xAA, value[0]);
     }
@@ -157,9 +157,9 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("2024-01-15T10:30:00", table[0][0]);
-        Assert.AreEqual("INFO", table[0][1]);
-        Assert.AreEqual("Application started successfully", table[0][2]);
+        Assert.AreEqual("2024-01-15T10:30:00", table[0].ReadValue(0));
+        Assert.AreEqual("INFO", table[0].ReadValue(1));
+        Assert.AreEqual("Application started successfully", table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -192,8 +192,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        var names = new HashSet<string> { (string)table[0][0], (string)table[1][0] };
-        var values = new HashSet<string> { (string)table[0][1], (string)table[1][1] };
+        var names = new HashSet<string> { (string)table[0].ReadValue(0), (string)table[1].ReadValue(0) };
+        var values = new HashSet<string> { (string)table[0].ReadValue(1), (string)table[1].ReadValue(1) };
         Assert.Contains("PATH", names);
         Assert.Contains("HOME", names);
         Assert.Contains("/usr/bin:/usr/local/bin", values);

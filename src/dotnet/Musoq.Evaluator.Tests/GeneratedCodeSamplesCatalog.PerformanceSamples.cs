@@ -94,10 +94,10 @@ internal static partial class GeneratedCodeSamplesCatalog
             throw new NotSupportedException(name);
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             if (string.Equals(name, "entities", StringComparison.OrdinalIgnoreCase))
                 return EnsureSourceType<T, PerformanceJoinEntity>(

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.IR.Planning;
 
@@ -11,13 +12,15 @@ internal static class ExecutionStrategyPlanner
         PhysicalNode physicalPlan,
         CompilationOptions compilationOptions,
         CteExecutionPlan? cteExecutionPlan,
-        IPlanningShapeResolver shapeResolver)
+        IPlanningShapeResolver shapeResolver,
+        IReadOnlyDictionary<string, SourceDescriptor>? sourceDescriptors = null)
     {
         ArgumentNullException.ThrowIfNull(physicalPlan);
         ArgumentNullException.ThrowIfNull(compilationOptions);
         ArgumentNullException.ThrowIfNull(shapeResolver);
         var identityMap = PhysicalNodeIdentityMap.Build(physicalPlan);
-        var state = new ExecutionStrategyPlanningState(compilationOptions, cteExecutionPlan, shapeResolver, identityMap);
+        var state = new ExecutionStrategyPlanningState(compilationOptions, cteExecutionPlan, shapeResolver, identityMap,
+            new ParallelSourcePermissionPolicy(physicalPlan, sourceDescriptors));
         state.Visit(physicalPlan);
 
         return new ExecutionStrategyPlanningResult(state.CreatePlan(), state.Decisions);
@@ -27,12 +30,13 @@ internal static class ExecutionStrategyPlanner
         CompilationOptions compilationOptions,
         CteExecutionPlan? cteExecutionPlan,
         IPlanningShapeResolver shapeResolver,
-        PhysicalNodeIdentityMap identityMap)
+        PhysicalNodeIdentityMap identityMap,
+        ParallelSourcePermissionPolicy permissions)
     {
         private readonly ParallelStrategyPlanner _parallelStrategyPlanner = new(
             compilationOptions,
             cteExecutionPlan,
-            shapeResolver);
+            shapeResolver, permissions);
         private readonly Dictionary<PhysicalCteNode, CteStrategyDecision> _cteStrategies = new(ReferenceComparer<PhysicalCteNode>.Instance);
         private readonly Dictionary<PhysicalCteNode, CteSidecarIndexPlan> _cteSidecarIndexPlans = new(ReferenceComparer<PhysicalCteNode>.Instance);
         private readonly Dictionary<PhysicalSetOperationNode, SetOperationStrategyDecision> _setOperationStrategies = new(ReferenceComparer<PhysicalSetOperationNode>.Instance);

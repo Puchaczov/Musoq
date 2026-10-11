@@ -38,6 +38,8 @@ public sealed record ExecutionColumnMetadataField
     {
     }
 
+    public string? GeneratedTypeName { get; init; }
+
     public string Name { get; init; }
 
     public int Index { get; init; }

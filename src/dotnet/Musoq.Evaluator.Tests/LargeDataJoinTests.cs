@@ -48,11 +48,11 @@ public class LargeDataJoinTests : MultiSchemaTestBase
 
         Assert.AreEqual(size, table.Count);
 
-        var matchedRow = table.Single(r => (string)r[0] == (size - 1).ToString());
-        Assert.AreEqual((size - 1).ToString(), matchedRow[1]);
+        var matchedRow = table.Single(r => (string)r.ReadValue(0) == (size - 1).ToString());
+        Assert.AreEqual((size - 1).ToString(), matchedRow.ReadValue(1));
 
-        var unmatchedRow = table.Single(r => (string)r[0] == "0");
-        Assert.IsNull(unmatchedRow[1]);
+        var unmatchedRow = table.Single(r => (string)r.ReadValue(0) == "0");
+        Assert.IsNull(unmatchedRow.ReadValue(1));
     }
 
     [TestMethod]
@@ -72,11 +72,11 @@ public class LargeDataJoinTests : MultiSchemaTestBase
 
         Assert.AreEqual(size, table.Count);
 
-        var matchedRow = table.Single(r => (string)r[1] == (size / 2).ToString());
-        Assert.AreEqual((size / 2).ToString(), matchedRow[0]);
+        var matchedRow = table.Single(r => (string)r.ReadValue(1) == (size / 2).ToString());
+        Assert.AreEqual((size / 2).ToString(), matchedRow.ReadValue(0));
 
-        var unmatchedRow = table.Single(r => (string)r[1] == (size + size / 2 - 1).ToString());
-        Assert.IsNull(unmatchedRow[0]);
+        var unmatchedRow = table.Single(r => (string)r.ReadValue(1) == (size + size / 2 - 1).ToString());
+        Assert.IsNull(unmatchedRow.ReadValue(0));
     }
 
     protected CompiledQuery CreateAndRunVirtualMachine(

@@ -9,15 +9,15 @@ internal sealed partial class PhysicalLoweringImplementation
     private static ValuesRowShape CreateValuesRowShape(PhysicalValuesScanNode values)
     {
         var usedFieldNames = new HashSet<string>(StringComparer.Ordinal);
-        var fields = values.OutputSchema.Columns.Select(column => new FieldBinding(
-            column.Name,
-            $"{values.Alias}.{column.Name}",
-            column.Index,
-            column.Type,
-            FieldNullability.Unknown,
-            new GeneratedFieldAccess(CreateGeneratedFieldName(column.Name, column.Index, usedFieldNames)),
-            sourceReadType: column.SourceReadType,
-            enumType: column.EnumType)).ToArray();
+        var fields = values.OutputSchema.Columns.Select(column =>
+        {
+            var isUntypedNull = column.Type == typeof(object) && values.Rows.Count > 0 && values.Rows.All(row =>
+                row.Fields[column.Index].Value is Musoq.Evaluator.IR.Expressions.Literal { Value: null });
+            return new FieldBinding(column.Name, $"{values.Alias}.{column.Name}", column.Index,
+                isUntypedNull ? typeof(DBNull) : column.Type, FieldNullability.Unknown,
+                new GeneratedFieldAccess(CreateGeneratedFieldName(column.Name, column.Index, usedFieldNames)),
+                sourceReadType: isUntypedNull ? typeof(DBNull) : column.SourceReadType, enumType: column.EnumType);
+        }).ToArray();
 
         return new ValuesRowShape(
             values.Alias,

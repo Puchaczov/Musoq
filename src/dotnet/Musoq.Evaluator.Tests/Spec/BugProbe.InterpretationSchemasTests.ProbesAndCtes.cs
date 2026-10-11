@@ -185,9 +185,9 @@ public partial class BugProbeInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((ushort)256, table[0][0]);
-        Assert.AreEqual((byte)5, table[0][1]);
-        Assert.AreEqual("Hello", table[0][2]);
+        Assert.AreEqual((ushort)256, table[0].ReadValue(0));
+        Assert.AreEqual((byte)5, table[0].ReadValue(1));
+        Assert.AreEqual("Hello", table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -232,9 +232,9 @@ public partial class BugProbeInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)3, table[0][0]);
-        Assert.AreEqual("XYZ", table[0][1]);
-        Assert.AreEqual(42, table[0][2]);
+        Assert.AreEqual((byte)3, table[0].ReadValue(0));
+        Assert.AreEqual("XYZ", table[0].ReadValue(1));
+        Assert.AreEqual(42, table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -278,9 +278,9 @@ public partial class BugProbeInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(42, table[0][0]);
-        Assert.AreEqual((ushort)256, table[0][1]);
-        Assert.AreEqual((byte)5, table[0][2]);
-        Assert.AreEqual("Hello", table[0][3]);
+        Assert.AreEqual(42, table[0].ReadValue(0));
+        Assert.AreEqual((ushort)256, table[0].ReadValue(1));
+        Assert.AreEqual((byte)5, table[0].ReadValue(2));
+        Assert.AreEqual("Hello", table[0].ReadValue(3));
     }
 }

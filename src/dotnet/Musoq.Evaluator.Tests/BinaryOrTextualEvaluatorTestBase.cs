@@ -180,7 +180,7 @@ public abstract class BinaryOrTextualEvaluatorTestBase
             return new BinaryEntityTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
         {
             return EnsureSourceType<T, BinaryEntity>(name, new EntitySource<BinaryEntity>(
                 [_entities],
@@ -210,7 +210,7 @@ public abstract class BinaryOrTextualEvaluatorTestBase
             return new TextEntityTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
         {
             return EnsureSourceType<T, TextEntity>(name, new EntitySource<TextEntity>(
                 [_entities],

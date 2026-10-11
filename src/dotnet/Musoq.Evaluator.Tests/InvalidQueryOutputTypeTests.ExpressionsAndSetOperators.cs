@@ -19,7 +19,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        var name = (string)table[0][0];
+        var name = (string)table[0].ReadValue(0);
         Assert.IsTrue(name == "a" || name == "b", "Result should be one of the input values");
     }
 
@@ -36,7 +36,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        var name = (string)table[0][0];
+        var name = (string)table[0].ReadValue(0);
         Assert.IsTrue(name == "a" || name == "b", "Result should be one of the input values");
     }
 
@@ -53,7 +53,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        var name = (string)table[0][0];
+        var name = (string)table[0].ReadValue(0);
         Assert.IsTrue(name == "a" || name == "b" || name == "c", "Result should be one of the input values");
     }
 
@@ -72,8 +72,8 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1100m, table[0][0]);
-        Assert.AreEqual(2000m, table[0][1]);
+        Assert.AreEqual(1100m, table[0].ReadValue(0));
+        Assert.AreEqual(2000m, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -89,7 +89,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("city1 - country1", table[0][0]);
+        Assert.AreEqual("city1 - country1", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -105,7 +105,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Large", table[0][0]);
+        Assert.AreEqual("Large", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -138,7 +138,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2L, table[0][0]);
+        Assert.AreEqual(2L, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -154,7 +154,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(300m, table[0][0]);
+        Assert.AreEqual(300m, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -170,7 +170,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(150m, table[0][0]);
+        Assert.AreEqual(150m, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -186,8 +186,8 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(100m, table[0][0]);
-        Assert.AreEqual(200m, table[0][1]);
+        Assert.AreEqual(100m, table[0].ReadValue(0));
+        Assert.AreEqual(200m, table[0].ReadValue(1));
     }
 
 
@@ -236,7 +236,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("a", table[0][0]);
+        Assert.AreEqual("a", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -253,7 +253,7 @@ public partial class InvalidQueryOutputTypeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("b", table[0][0]);
+        Assert.AreEqual("b", table[0].ReadValue(0));
     }
 
 
@@ -275,7 +275,7 @@ select City, TotalPop from totals";
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1500m, table[0][1]);
+        Assert.AreEqual(1500m, table[0].ReadValue(1));
     }
 
     [TestMethod]

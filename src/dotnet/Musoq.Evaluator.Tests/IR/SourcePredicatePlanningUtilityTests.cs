@@ -24,7 +24,8 @@ public sealed class SourcePredicatePlanningUtilityTests
                 new InCheck(
                     Column("s", "Name", typeof(string)),
                     [Literal("Alpha"), Literal("beta")],
-                    typeof(bool)),
+                    typeof(bool))
+                { SqlSemantics = true },
                 new IsNullCheck(Column("s", "Name", typeof(string)), false, typeof(bool)),
                 typeof(bool)),
             typeof(bool));

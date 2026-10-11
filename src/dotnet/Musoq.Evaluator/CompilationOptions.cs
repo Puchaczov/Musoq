@@ -42,7 +42,7 @@ namespace Musoq.Evaluator;
 /// <param name="forceTableResultMaterialization">
 ///     Whether table-mode query results should be materialized before Run returns. Defaults to false.
 /// </param>
-public class CompilationOptions(
+public partial class CompilationOptions(
     ParallelizationMode? parallelizationMode = ParallelizationMode.Full,
     bool useHashJoin = true,
     bool useSortMergeJoin = true,
@@ -188,7 +188,8 @@ public class CompilationOptions(
         bool? forceTableResultMaterialization = null,
         bool? loopInvariantCodeMotion = null,
         bool? stabilityAwareScalarReuse = null,
-        RecursiveCteExecutionLimits? recursiveCteLimits = null)
+        RecursiveCteExecutionLimits? recursiveCteLimits = null,
+        TimeSpan? regexMatchTimeout = null)
     {
         return new CompilationOptions(
             ParallelizationMode,
@@ -206,7 +207,8 @@ public class CompilationOptions(
         {
             UseLoopInvariantCodeMotion = loopInvariantCodeMotion ?? UseLoopInvariantCodeMotion,
             UseStabilityAwareScalarReuse = stabilityAwareScalarReuse ?? UseStabilityAwareScalarReuse,
-            RecursiveCteLimits = recursiveCteLimits ?? RecursiveCteLimits
+            RecursiveCteLimits = recursiveCteLimits ?? RecursiveCteLimits,
+            RegexMatchTimeout = regexMatchTimeout ?? RegexMatchTimeout
         };
     }
 }

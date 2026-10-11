@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
@@ -22,10 +22,18 @@ internal static class SetOperationStrategyPlanner
                 "UnionAll uses generated append lowering because at least one arm is not a directly streamable row-source pipeline with optional filters, projected expressions, and no post-operations.");
         }
 
-        if (TryGetNanSensitiveKeyType(node.FieldIndexes, node.FieldTypes, out var nanSensitiveType))
+        if (SetOperationEqualityTypes.FindNanSensitiveType(
+                node.FieldTypes.Take(node.FieldIndexes.Length)) is { } nanSensitiveType)
         {
             return SetOperationStrategyDecision.GeneratedEqualityLoop(
                 $"Set operation key type '{FormatType(nanSensitiveType)}' uses NaN-sensitive equality semantics, so Execution IR emits an explicit generated equality loop instead of HashSet lowering.");
+        }
+
+        if (node.Kind == SetOpKind.Intersect && SetOperationEqualityTypes.FindNanSensitiveType(
+                node.OutputSchema.Columns.Select(static column => column.Type)) is { } nanSensitiveOutputType)
+        {
+            return SetOperationStrategyDecision.GeneratedEqualityLoop(
+                $"INTERSECT removes identical complete output rows; output type '{FormatType(nanSensitiveOutputType)}' requires NaN-sensitive generated equality for both membership and duplicate removal.");
         }
 
         if (CanUseHashSetSetOperation(node.FieldIndexes))
@@ -73,27 +81,6 @@ internal static class SetOperationStrategyPlanner
     private static bool CanUseHashSetSetOperation(int[] fieldIndexes)
     {
         return fieldIndexes.Length >= 1;
-    }
-
-    private static bool TryGetNanSensitiveKeyType(
-        IReadOnlyList<int> fieldIndexes,
-        IReadOnlyList<Type> fieldTypes,
-        out Type nanSensitiveType)
-    {
-        for (var index = 0; index < fieldIndexes.Count && index < fieldTypes.Count; index++)
-        {
-            var type = fieldTypes[index];
-            var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
-
-            if (underlyingType != typeof(float) && underlyingType != typeof(double))
-                continue;
-
-            nanSensitiveType = type;
-            return true;
-        }
-
-        nanSensitiveType = typeof(object);
-        return false;
     }
 
     private static string FormatType(Type type)

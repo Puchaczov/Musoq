@@ -50,8 +50,8 @@ public class BugProbeConditionalArrayCollisionTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((byte)2, table[0][1]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((byte)2, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -88,9 +88,9 @@ public class BugProbeConditionalArrayCollisionTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual(2, table[1][0]);
-        Assert.AreEqual(3, table[2][0]);
+        Assert.AreEqual(1, table[0].ReadValue(0));
+        Assert.AreEqual(2, table[1].ReadValue(0));
+        Assert.AreEqual(3, table[2].ReadValue(0));
     }
 
     /// <summary>
@@ -126,7 +126,7 @@ public class BugProbeConditionalArrayCollisionTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Bye", table[0][0]);
-        Assert.AreEqual("Hi!", table[1][0]);
+        Assert.AreEqual("Bye", table[0].ReadValue(0));
+        Assert.AreEqual("Hi!", table[1].ReadValue(0));
     }
 }

@@ -10,7 +10,7 @@ public sealed class GeneratedCodeSamplesScalarReuseShapeTests
     [TestMethod]
     [DataRow("Q252_StableFilterProjectionReuse.cs", "Population")]
     [DataRow("Q254_SharedStableWindowInputs.cs", "resultWindowRows")]
-    [DataRow("Q256_ParallelAggregateSharedArguments.cs", "ParallelSingleKeyAggregate")]
+    [DataRow("Q256_ParallelAggregateSharedArguments.cs", "TypedAggregateSet")]
     [DataRow("Q257_PivotPredicateDispatch.cs", "ResultAggregateGroup")]
     [DataRow("Q260_StableAsOfProbeKeys.cs", "CreateAsOfIndex")]
     [DataRow("Q261_StableRangeJoinKeys.cs", "CreateRangeJoinIndex")]

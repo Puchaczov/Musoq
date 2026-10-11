@@ -216,7 +216,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         var statements = new List<StatementSyntax>
         {
-            CreateLocalDeclaration(CreateTypeSyntax(getOrAddGroup.KeyType), keyVariableName, RenderExpression(getOrAddGroup.Key))
+            CreateLocalDeclaration(CreateTypeSyntax(getOrAddGroup.KeyType), keyVariableName, RenderExpression(getOrAddGroup.Key, context))
         };
 
         if (getOrAddGroup.NullGroup is null)

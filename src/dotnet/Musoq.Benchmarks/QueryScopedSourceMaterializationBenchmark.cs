@@ -11,8 +11,8 @@ using Musoq.Schema.Optimization;
 namespace Musoq.Benchmarks;
 
 /// <summary>
-/// Compares like-for-like legacy, query-scoped struct, and query-scoped class
-/// materialization through the example CSV datasource assembly.
+/// Measures native query-scoped struct and class materialization with independent
+/// input-derived correctness oracles through the example CSV datasource assembly.
 /// </summary>
 [MemoryDiagnoser]
 [DisassemblyDiagnoser(printSource: true, exportCombinedDisassemblyReport: true)]
@@ -108,24 +108,6 @@ public class QueryScopedSourceMaterializationBenchmark
             File.Delete(_failurePath);
     }
 
-    [Benchmark(Baseline = true, Description = "Legacy CSV rows")]
-    public long LegacyRows() => RunLegacy(_path, _context, _shape.Fields.Count).Consumer;
-
-    [Benchmark(Description = "Legacy CSV selective projection")]
-    public long LegacySelectiveProjection() =>
-        RunLegacy(_path, _selectiveContext, _selectiveShape.Fields.Count).Consumer;
-
-    [Benchmark(Description = "Legacy CSV high rejection")]
-    public long LegacyHighRejection() =>
-        RunLegacy(_path, _rejectionContext, _shape.Fields.Count).Consumer;
-
-    [Benchmark(Description = "Legacy CSV aggregation")]
-    public long LegacyAggregation() => RunLegacy(_path, _context, _shape.Fields.Count).Checksum;
-
-    [Benchmark(Description = "Legacy CSV early take")]
-    public long LegacyEarlyTake() =>
-        RunLegacy(_path, _earlyTakeContext, _shape.Fields.Count).Consumer;
-
     [Benchmark(Description = "Query-scoped CSV struct rows")]
     public long QueryScopedStructRows() => RunStringStructQueryScoped(_shape, _context).Consumer;
 
@@ -162,10 +144,6 @@ public class QueryScopedSourceMaterializationBenchmark
     public long QueryScopedClassEarlyTake() =>
         RunStringClassQueryScoped(_shape, _earlyTakeContext).Consumer;
 
-    [Benchmark(Description = "Legacy numeric CSV rows")]
-    public long LegacyNumericRows() =>
-        RunLegacy(_numericPath, _numericContext, _numericShape.Fields.Count).Consumer;
-
     [Benchmark(Description = "Query-scoped numeric CSV struct rows")]
     public long QueryScopedNumericStructRows() =>
         RunNumericStructQueryScoped(
@@ -179,24 +157,6 @@ public class QueryScopedSourceMaterializationBenchmark
             _numericShape,
             _numericContext,
             _numericPath).Consumer;
-
-    [Benchmark(Description = "Legacy object-array materialization")]
-    public long LegacyObjectArrayMaterialization()
-    {
-        var checksum = 0L;
-        for (var row = 0; row < Rows; row++)
-        {
-            var values = new object?[FieldCount];
-            for (var column = 0; column < FieldCount; column++)
-                values[column] = _materializationValues[column];
-
-            var materialized = new CsvRow(values);
-            for (var column = 0; column < FieldCount; column++)
-                checksum += ((string?)materialized[column])?.Length ?? 0;
-        }
-
-        return checksum;
-    }
 
     [Benchmark(Description = "Query-scoped struct materialization")]
     public int QueryScopedStructMaterialization()
@@ -222,23 +182,6 @@ public class QueryScopedSourceMaterializationBenchmark
             64 => MaterializeStringRows<BenchmarkClassRow64, BenchmarkClassMaterializer64>(_materializationValues),
             _ => throw UnsupportedFieldCount()
         };
-    }
-
-    [Benchmark(Description = "Legacy numeric object-array materialization")]
-    public long LegacyNumericObjectArrayMaterialization()
-    {
-        var checksum = 0L;
-        for (var row = 0; row < Rows; row++)
-        {
-            var values = new object?[FieldCount];
-            for (var column = 0; column < FieldCount; column++)
-                values[column] = _numericMaterializationValues[column];
-
-            for (var column = 0; column < FieldCount; column++)
-                checksum += (int?)values[column] ?? 0;
-        }
-
-        return checksum;
     }
 
     [Benchmark(Description = "Query-scoped numeric struct materialization")]
@@ -305,43 +248,12 @@ public class QueryScopedSourceMaterializationBenchmark
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
     {
         var request = new QueryScopedRowSourceRequest(context, shape);
-        var source = _queryScopedSchema.GetQueryScopedRowSource<TRow, TMaterializer>(
-            CsvSchema.File,
-            request,
-            path ?? _path,
-            true);
+        var source = global::Musoq.Schema.QuerySourceInvocation<TRow, TMaterializer>.Open(_queryScopedSchema, CsvSchema.File, request, global::Musoq.Schema.SourceArguments.Create(path ?? _path, global::Musoq.Schema.SourceArguments.Create(true, global::Musoq.Schema.SourceArguments.Empty)));
         var outcome = new BenchmarkOutcomeBuilder();
         foreach (var chunk in source.Chunks)
         {
             foreach (var row in chunk)
                 outcome.Add(row.Checksum);
-        }
-
-        return outcome.Build();
-    }
-
-    private static BenchmarkOutcome RunLegacy(
-        string path,
-        SourceExecutionContext context,
-        int projectedFieldCount)
-    {
-        var source = new CsvFileSource(path, hasHeader: true, context);
-        var outcome = new BenchmarkOutcomeBuilder();
-        var numeric = Nullable.GetUnderlyingType(context.AllColumns.First().ColumnType) == typeof(int);
-        foreach (var chunk in source.Chunks)
-        {
-            foreach (var row in chunk)
-            {
-                var checksum = 0;
-                for (var index = 0; index < projectedFieldCount; index++)
-                {
-                    checksum += numeric
-                        ? (int?)row[index] ?? 0
-                        : ((string?)row[index])?.Length ?? 0;
-                }
-
-                outcome.Add(checksum);
-            }
         }
 
         return outcome.Build();
@@ -404,9 +316,20 @@ public class QueryScopedSourceMaterializationBenchmark
         SourceExecutionPlan plan,
         IReadOnlyCollection<ISchemaColumn> columns)
     {
+        var required = columns.Where(column => plan.AcceptedColumns.Count == 0 ||
+            plan.AcceptedColumns.Any(accepted => accepted.Name == column.ColumnName)).Select(column =>
+                new SourceColumnRef(column.ColumnName, column.ReadModifiers) { ValueTypeName = column.ColumnType.AssemblyQualifiedName }).ToArray();
+        var schema = new CsvSchemaProvider().GetSchema(CsvSchema.SchemaName);
+        var result = schema.TryPlanSource(CsvSchema.File, new SourcePlanRequest
+        {
+            Identity = identity, RequiredColumns = required, Predicate = plan.AcceptedPredicate,
+            OrderBy = plan.AcceptedOrderBy, Skip = plan.AcceptedSkip, Take = plan.AcceptedTake
+        });
+        if (result.ContractDiagnostics.Any(diagnostic => diagnostic.Severity == SourceContractDiagnosticSeverity.Error))
+            throw new InvalidOperationException("Native benchmark planning failed.");
         return new SourceExecutionContext(
             identity.SourceContextId,
-            plan,
+            result.ExecutionPlan,
             CancellationToken.None,
             columns,
             new Dictionary<string, string>(StringComparer.Ordinal),
@@ -419,7 +342,7 @@ public class QueryScopedSourceMaterializationBenchmark
         QueryRowShape shape,
         SourceExecutionContext context)
     {
-        var legacy = RunLegacy(path, context, shape.Fields.Count);
+        var expected = CalculateExpectedOutcome(scenario, shape, context);
         var structRows = shape.Fields[0].FieldType == typeof(string)
             ? RunStringStructQueryScoped(shape, context, path)
             : RunNumericStructQueryScoped(shape, context, path);
@@ -427,23 +350,49 @@ public class QueryScopedSourceMaterializationBenchmark
             ? RunStringClassQueryScoped(shape, context, path)
             : RunNumericClassQueryScoped(shape, context, path);
 
-        if (legacy != structRows || legacy != classRows)
+        if (expected != structRows || expected != classRows)
         {
             throw new InvalidOperationException(
                 $"Query-row correctness oracle failed for {scenario}: " +
-                $"legacy={legacy}, struct={structRows}, class={classRows}.");
+                $"expected={expected}, struct={structRows}, class={classRows}.");
         }
+    }
+
+    private BenchmarkOutcome CalculateExpectedOutcome(string scenario, QueryRowShape shape, SourceExecutionContext context)
+    {
+        var result = new BenchmarkOutcomeBuilder();
+        var count = checked((int)(context.Plan.AcceptedTake ?? Rows));
+        var numeric = shape.Fields[0].FieldType == typeof(int?);
+        for (var row = 0; row < count; row++)
+        {
+            if (scenario == "high rejection string" && row != 1999)
+                continue;
+            var checksum = 0;
+            for (var column = 0; column < shape.Fields.Count; column++)
+            {
+                if (numeric)
+                {
+                    if (column == 0 || (row + column) % 17 != 0) checksum += row * FieldCount + column;
+                    continue;
+                }
+                if (row % 13 != 0 || column != FieldCount - 1)
+                    checksum += $"value-{row.ToString(CultureInfo.InvariantCulture)}-{column.ToString(CultureInfo.InvariantCulture)}".Length;
+            }
+            result.Add(checksum);
+        }
+        return result.Build();
     }
 
     private void VerifyFailureBehavior()
     {
-        var legacy = CaptureFailure(() => RunLegacy(_failurePath, _context, _shape.Fields.Count));
+        var expected = new BenchmarkFailure(typeof(Musoq.Schema.Diagnostics.DataSourceInputException).FullName!,
+            new Musoq.Schema.Diagnostics.DataSourceInputException(Musoq.Schema.Diagnostics.DataSourceInputFailureReason.UnterminatedQuotedField).Message);
         var structRows = CaptureFailure(() => RunStringStructQueryScoped(_shape, _context, _failurePath));
         var classRows = CaptureFailure(() => RunStringClassQueryScoped(_shape, _context, _failurePath));
-        if (legacy != structRows || legacy != classRows)
+        if (expected != structRows || expected != classRows)
         {
             throw new InvalidOperationException(
-                $"Query-row failure oracle failed: legacy={legacy}, struct={structRows}, class={classRows}.");
+                $"Query-row failure oracle failed: expected={expected}, struct={structRows}, class={classRows}.");
         }
     }
 
@@ -456,7 +405,7 @@ public class QueryScopedSourceMaterializationBenchmark
         }
         catch (Exception exception)
         {
-            return new BenchmarkFailure(exception.GetType().FullName ?? exception.GetType().Name, exception.Message);
+            return new BenchmarkFailure(exception.GetBaseException().GetType().FullName ?? exception.GetBaseException().GetType().Name, exception.GetBaseException().Message);
         }
     }
 

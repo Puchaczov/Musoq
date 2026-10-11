@@ -22,7 +22,7 @@ public partial class TextInterpreterBaseTests
         var ex = Assert.Throws<ParseException>(() =>
             interpreter.TestValidate(false, "testField", "validation failed"));
         Assert.AreEqual("testField", ex.FieldName);
-        Assert.Contains("validation failed", ex.Message);
+        Assert.AreEqual("validation failed", ex.Details);
     }
 
     #endregion

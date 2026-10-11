@@ -114,7 +114,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "ComputeSumWindowKernel[WholePartition]",
             sample);
         Assert.Contains(
-            "resultSums1Sum += (decimal)ko3iko.Population;",
+            "Musoq.Plugins.SumAggregateKernel<decimal>.Set(ref resultSums1State, (decimal?)ko3iko.Population);",
             sample);
         Assert.IsFalse(sample.Contains("resultSums1Function", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("resultSums1Values", StringComparison.Ordinal));
@@ -131,12 +131,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("var resultRanks0OrderKeys = new WindowResultRanks0OrderKeysKey[resultWindowRows.Count];", sample);
         Assert.Contains("WindowFunctionHelpers.SortStructPartitionSetInPlace(resultRanks0Partitions, resultRanks0OrderKeys, false);", sample);
         Assert.Contains("WindowKernelPlan [hash partition/per-partition sort; kernels 2;", sample);
-        Assert.Contains("long resultRanks0WindowPlanRank = 1L;", sample);
-        Assert.Contains("long resultRanks0WindowPlanDenseRank = 1L;", sample);
-        Assert.Contains("resultRanks0[resultRanks0WindowPlanCurrentIndex] = resultRanks0WindowPlanRank;", sample);
-        Assert.Contains("resultDenseRanks1[resultRanks0WindowPlanCurrentIndex] = resultRanks0WindowPlanDenseRank;", sample);
+        Assert.Contains("long resultRanks0DenseRank = 1L;", sample);
+        Assert.Contains("resultRanks0[resultRanks0CurrentIndex] = Musoq.Plugins.RankKernel.Get(in resultRanks0Context);", sample);
+        Assert.Contains("resultDenseRanks1[resultRanks0CurrentIndex] = Musoq.Plugins.DenseRankKernel.Get(in resultDenseRanks1Context);", sample);
         Assert.Contains("public bool PeerEquals(WindowResultRanks0OrderKeysKey other)", sample);
-        Assert.Contains("resultRanks0OrderKeys[resultRanks0WindowPlanCurrentIndex].PeerEquals(resultRanks0OrderKeys[resultRanks0WindowPlanPreviousIndex])", sample);
+        Assert.Contains("resultRanks0OrderKeys[resultRanks0CurrentIndex].PeerEquals(resultRanks0OrderKeys[resultRanks0CandidateIndex])", sample);
         Assert.IsFalse(sample.Contains("System.Collections.Generic.EqualityComparer<WindowResultRanks0OrderKeysKey>.Default.Equals", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("for (int resultDenseRanks1PartitionSetIndex", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("WindowFunctionHelpers.ComputeRank", StringComparison.Ordinal));
@@ -205,7 +204,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("var resultLagsOrderKeys = new WindowResultLagsOrderKeysKey[resultWindowRows.Count];", lag);
         Assert.Contains("WindowFunctionHelpers.SortStructPartitionSetInPlace(resultLagsPartitions, resultLagsOrderKeys, false);", lag);
         Assert.Contains("var resultLags = new decimal? [resultWindowRows.Count];", lag);
-        Assert.Contains("resultLagsSourcePartitionIndex >= 0", lag);
+        Assert.Contains("Musoq.Plugins.LagKernel<decimal>.Get(in resultLagsContext", lag);
         Assert.IsFalse(lag.Contains("WindowFunctionHelpers.ComputeLag", StringComparison.Ordinal));
         Assert.IsFalse(lag.Contains("new bool[]", StringComparison.Ordinal));
         Assert.IsFalse(lag.Contains("object[] resultLags", StringComparison.Ordinal));
@@ -213,7 +212,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("var resultLeadsOrderKeys = new WindowResultLeadsOrderKeysKey[resultWindowRows.Count];", lead);
         Assert.Contains("WindowFunctionHelpers.SortStructPartitionSetInPlace(resultLeadsPartitions, resultLeadsOrderKeys, false);", lead);
         Assert.Contains("var resultLeads = new decimal? [resultWindowRows.Count];", lead);
-        Assert.Contains("resultLeadsSourcePartitionIndex < resultLeadsPartitionCount", lead);
+        Assert.Contains("Musoq.Plugins.LeadKernel<decimal>.Get(in resultLeadsContext", lead);
         Assert.IsFalse(lead.Contains("WindowFunctionHelpers.ComputeLead", StringComparison.Ordinal));
         Assert.IsFalse(lead.Contains("new bool[]", StringComparison.Ordinal));
         Assert.IsFalse(lead.Contains("object[] resultLeads", StringComparison.Ordinal));
@@ -250,7 +249,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "resultRunningProducts");
 
         Assert.Contains(
-            "new Musoq.Evaluator.Tests.Schema.Basic.Library().WindowRunningProduct()",
+            "Musoq.Evaluator.Tests.Schema.Basic.Library.RunningProductKernel.Reset(ref resultRunningProductsState);",
             samples[WindowRunningProductPluginSampleFileName]);
     }
 

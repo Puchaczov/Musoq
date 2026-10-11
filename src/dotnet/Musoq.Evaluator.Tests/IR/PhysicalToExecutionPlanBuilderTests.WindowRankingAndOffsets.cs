@@ -38,10 +38,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    SourceScan [p: Person] -> pRows",
             "    MaterializeChunked [pRows -> resultWindowRows]",
             "    ComputeRankWindow [resultRanks <- resultWindowRows order by p.Age DESC]",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
-            "      AppendShape [result <- ResultShape0(Rank: resultRanks[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(Rank: resultRanks[windowIndex])]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -76,10 +76,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    SourceScan [p: Person] -> pRows",
             "    MaterializeChunked [pRows -> resultWindowRows]",
             "    ComputeDenseRankWindow [resultDenseRanks <- resultWindowRows partition by p.Age order by p.Name ASC]",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
-            "      AppendShape [result <- ResultShape0(DenseRank: resultDenseRanks[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(DenseRank: resultDenseRanks[windowIndex])]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -96,7 +96,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             [new Literal(1, typeof(int)), new Literal(0, typeof(int))]);
         var window = new PhysicalWindowNode([registration], materialize);
         var project = new PhysicalProjectNode(
-            [new ProjectedField("PrevAge", new WindowFunctionRef(0, typeof(object)), 0)],
+            [new ProjectedField("PrevAge", new WindowFunctionRef(0, typeof(int?)), 0)],
             window);
         var builder = CreateBuilder();
 
@@ -110,16 +110,16 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      Name: string <- property Name",
             "      Age: int <- property Age",
             "    Generated [ResultRow0]",
-            "      PrevAge: object <- field PrevAge",
+            "      PrevAge: int? <- field PrevAge",
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
             "    MaterializeChunked [pRows -> resultWindowRows]",
-            "    ComputeLagWindow [resultLags <- resultWindowRows value p.Age order by p.Name ASC offset 1 default 0]",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    ComputeLagWindow [resultLags <- resultWindowRows value p.Age order by p.Name ASC frame range between unbounded preceding and current row args 1, 0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
-            "      AppendShape [result <- ResultShape0(PrevAge: resultLags[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(PrevAge: resultLags[windowIndex])]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -136,7 +136,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             [new Literal(1, typeof(int)), new Literal("missing", typeof(string))]);
         var window = new PhysicalWindowNode([registration], materialize);
         var project = new PhysicalProjectNode(
-            [new ProjectedField("NextName", new WindowFunctionRef(0, typeof(object)), 0)],
+            [new ProjectedField("NextName", new WindowFunctionRef(0, typeof(string)), 0)],
             window);
         var builder = CreateBuilder();
 
@@ -150,16 +150,16 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      Name: string <- property Name",
             "      Age: int <- property Age",
             "    Generated [ResultRow0]",
-            "      NextName: object <- field NextName",
+            "      NextName: string <- field NextName",
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
             "    MaterializeChunked [pRows -> resultWindowRows]",
-            "    ComputeLeadWindow [resultLeads <- resultWindowRows value p.Name partition by p.Age order by p.Name ASC offset 1 default 'missing']",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    ComputeLeadWindow [resultLeads <- resultWindowRows value p.Name partition by p.Age order by p.Name ASC frame range between unbounded preceding and current row args 1, 'missing']",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
-            "      AppendShape [result <- ResultShape0(NextName: resultLeads[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(NextName: resultLeads[windowIndex])]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -181,7 +181,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("RowNum", new WindowFunctionRef(0, typeof(long)), 0),
-                new ProjectedField("PrevAge", new WindowFunctionRef(1, typeof(object)), 1)
+                new ProjectedField("PrevAge", new WindowFunctionRef(1, typeof(int?)), 1)
             ],
             window);
         var builder = CreateBuilder();
@@ -197,30 +197,33 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      Age: int <- property Age",
             "    Generated [ResultRow0]",
             "      RowNum: long <- field RowNum",
-            "      PrevAge: object <- field PrevAge",
+            "      PrevAge: int? <- field PrevAge",
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
             "    MaterializeChunked [pRows -> resultWindowRows]",
             "    ComputeRowNumberWindow [resultRowNumbers0 <- resultWindowRows order by p.Age ASC]",
-            "    ComputeLagWindow [resultLags1 <- resultWindowRows value p.Age order by p.Age ASC offset 1 default NULL]",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    ComputeLagWindow [resultLags1 <- resultWindowRows value p.Age order by p.Age ASC frame range between unbounded preceding and current row args 1, NULL]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
-            "      AppendShape [result <- ResultShape0(RowNum: resultRowNumbers0[windowIndex], PrevAge: resultLags1[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(RowNum: resultRowNumbers0[windowIndex], PrevAge: resultLags1[windowIndex])]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
 
         var rowNumber = CollectNodes<ExecutionComputeRankingWindow>(plan.Body).Single();
-        var lag = CollectNodes<ExecutionComputeOffsetWindow>(plan.Body).Single();
+        var lag = CollectNodes<ExecutionComputePluginWindow>(plan.Body).Single();
+        Assert.IsNotNull(lag.LibraryGet);
 
         Assert.IsNotNull(rowNumber.OrderKeyArray);
         Assert.IsNotNull(lag.OrderKeyArray);
         Assert.IsTrue(rowNumber.OrderKeyArray.ShouldExtract);
         Assert.IsFalse(lag.OrderKeyArray.ShouldExtract);
         Assert.AreEqual(rowNumber.OrderKeyArray.Variable, lag.OrderKeyArray.Variable);
-        Assert.AreEqual(typeof(int[]), rowNumber.OrderKeyArray.Variable.Type.ResolveClrType());
-        Assert.AreEqual(typeof(int), rowNumber.OrderKeyArray.Shape?.ElementType.ResolveClrType());
+        Assert.AreEqual("WindowResultRowNumbers0OrderKeysKey[]", rowNumber.OrderKeyArray.Variable.GeneratedRowTypeName);
+        Assert.AreEqual(typeof(int), rowNumber.OrderKeyArray.Shape!.GeneratedParts![0].Type.ResolveClrType());
+        Assert.IsTrue(rowNumber.OrderKeyArray.Shape.IsGeneratedOrderKey);
+        Assert.AreEqual(typeof(int), rowNumber.OrderKeyArray.Shape.RawValueType!.ResolveClrType());
         Assert.IsTrue(rowNumber.OrderKeyArray.Shape?.IsTyped);
     }
 

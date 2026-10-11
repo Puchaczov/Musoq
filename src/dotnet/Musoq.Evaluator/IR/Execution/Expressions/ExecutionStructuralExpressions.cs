@@ -37,6 +37,7 @@ public sealed record ExecutionStructuralRecord : ExecutionExpression
 
     /// <summary>Gets the indexed constructor plan when this record targets a CLR receiver.</summary>
     public ExecutionStructuralConstructionPlan? ConstructionPlan { get; }
+    public string? GeneratedTypeName { get; init; }
 
     /// <summary>Gets receiver-limit metadata when this value is demanded by a source.</summary>
     public ExecutionStructuralLimitBinding? LimitBinding { get; init; }
@@ -60,6 +61,7 @@ public sealed record ExecutionStructuralArray : ExecutionExpression
     public ExecutionTypeRef ElementType { get; }
 
     public IReadOnlyList<ExecutionExpression> Elements { get; }
+    public string? GeneratedElementTypeName { get; init; }
 
     /// <summary>Gets receiver-limit metadata when this value is demanded by a source.</summary>
     public ExecutionStructuralLimitBinding? LimitBinding { get; init; }

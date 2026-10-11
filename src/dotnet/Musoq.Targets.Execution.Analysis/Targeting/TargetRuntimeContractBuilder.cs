@@ -210,11 +210,6 @@ internal static class TargetRuntimeContractBuilder
                 Kind = nameof(ValuesRowShape),
                 Name = values.Name
             },
-            ExpandoAdapterShape expando => new TargetRowShapeContract(
-                nameof(ExpandoAdapterShape),
-                expando.Name,
-                expando.RuntimeType.Descriptor,
-                CreateFields(expando.Fields)),
             TableRowShape table => new TargetRowShapeContract(
                 nameof(TableRowShape),
                 table.Name,

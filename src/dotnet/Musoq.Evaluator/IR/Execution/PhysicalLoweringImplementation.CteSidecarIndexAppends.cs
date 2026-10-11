@@ -43,11 +43,7 @@ internal sealed partial class PhysicalLoweringImplementation
         if (ValueTupleTypeShape.IsValueTuple(spec.KeyType))
             return new ExecutionValueTupleKey(keyParts, spec.KeyType);
 
-        return new ExecutionMethodCall(
-            CreateNullableHashJoinKeyMethod,
-            keyParts,
-            null,
-            typeof(object));
+        throw new InvalidOperationException("Composite CTE sidecar keys require a typed tuple.");
     }
 
     private static string CreateCteSidecarIndexVariableName(string tableName, CteSidecarIndexSpec spec)

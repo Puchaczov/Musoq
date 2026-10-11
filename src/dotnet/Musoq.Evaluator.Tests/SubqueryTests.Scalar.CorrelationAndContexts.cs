@@ -21,7 +21,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("MatchCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -49,7 +49,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("TotalPopulation", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -79,7 +79,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("MatchCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -106,8 +106,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.City", typeof(string)));
+            ("City", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["WARSAW", "KRAKOW"],
@@ -122,7 +122,7 @@ public partial class SubqueryTests
             inspection.GeneratedCSharpCode.Contains("_tableResults[2]", StringComparison.Ordinal),
             inspection.GeneratedCSharpCode);
         Assert.Contains("a_sq_1Hash", inspection.GeneratedCSharpCode);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(a_sq_1.a_City, b.City));", inspection.GeneratedCSharpCode);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a_sq_1.a_City, b.City));", inspection.GeneratedCSharpCode);
         Assert.IsFalse(
             inspection.GeneratedCSharpCode.Contains("AppendHashJoinRows(bRows, a_sq_1Hash, result, token);", StringComparison.Ordinal),
             inspection.GeneratedCSharpCode);
@@ -160,7 +160,7 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["PARIS"], ["WARSAW"], ["BERLIN"]);
     }
 
@@ -181,8 +181,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("m.City", typeof(string)),
-            ("m.MatchCity", typeof(string)));
+            ("City", typeof(string)),
+            ("MatchCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["WARSAW", "KRAKOW"],
@@ -229,7 +229,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Country", typeof(string)),
+            ("Country", typeof(string)),
             ("TotalPopulation", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -253,7 +253,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("RowNo", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["BERLIN", 1L]);
     }
@@ -275,7 +275,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("RowNo", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,

@@ -29,7 +29,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsTrue((bool?)table[0][0]);
+        Assert.IsTrue((bool?)table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -49,7 +49,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual("AB", table[0][0]);
+        Assert.AreEqual("AB", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -69,7 +69,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual("EF", table[0][0]);
+        Assert.AreEqual("EF", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -89,7 +89,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0m, table[0][0]);
+        Assert.AreEqual(0m, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -109,7 +109,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0.9m, table[0][0]);
+        Assert.AreEqual(0.9m, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -131,7 +131,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(20m, table[0][0]);
+        Assert.AreEqual(20m, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -152,7 +152,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsGreaterThan((decimal)table[0][0] - 7.071m, 0.001m);
+        Assert.IsGreaterThan((decimal)table[0].ReadValue(0) - 7.071m, 0.001m);
     }
 
     [TestMethod]
@@ -181,8 +181,8 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => !(bool)entry[0]), "First entry should be false");
-        Assert.IsTrue(table.Any(entry => (bool)entry[0]), "Second entry should be true");
+        Assert.IsTrue(table.Any(entry => !(bool)entry.ReadValue(0)), "First entry should be false");
+        Assert.IsTrue(table.Any(entry => (bool)entry.ReadValue(0)), "Second entry should be true");
     }
 
     [TestMethod]
@@ -211,8 +211,8 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
-        Assert.IsTrue(table.Any(row => (decimal)row[0] == 2m) &&
-                      table.Any(row => (decimal)row[0] == 1m),
+        Assert.IsTrue(table.Any(row => (decimal)row.ReadValue(0) == 2m) &&
+                      table.Any(row => (decimal)row.ReadValue(0) == 1m),
             "Expected rows with values 2 and 1");
     }
 
@@ -248,13 +248,13 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
         Assert.IsTrue(table.Any(row =>
-                (decimal)row[0] == 2m &&
-                (decimal)row[1] == 1m),
+                (decimal)row.ReadValue(0) == 2m &&
+                (decimal)row.ReadValue(1) == 1m),
             "Row with values (2,1) not found");
 
         Assert.IsTrue(table.Any(row =>
-                (decimal)row[0] == 1m &&
-                (decimal)row[1] == 2m),
+                (decimal)row.ReadValue(0) == 1m &&
+                (decimal)row.ReadValue(1) == 2m),
             "Row with values (1,2) not found");
     }
 
@@ -276,7 +276,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(new TimeSpan(0, 12, 15), table[0][0]);
+        Assert.AreEqual(new TimeSpan(0, 12, 15), table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -297,7 +297,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(new DateTime(2012, 1, 13), table[0][0]);
+        Assert.AreEqual(new DateTime(2012, 1, 13), table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -318,7 +318,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(new DateTime(2012, 1, 13, 0, 12, 15), table[0][0]);
+        Assert.AreEqual(new DateTime(2012, 1, 13, 0, 12, 15), table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -339,7 +339,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(TimeSpan.FromDays(1), table[0][0]);
+        Assert.AreEqual(TimeSpan.FromDays(1), table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -360,7 +360,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][0]);
+        Assert.IsNull(table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -381,7 +381,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(new TimeSpan(0, 24, 30), table[0][0]);
+        Assert.AreEqual(new TimeSpan(0, 24, 30), table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -405,7 +405,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         Assert.AreEqual(typeof(string[]), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        var result = (string[])table[0].Values[0];
+        var result = (string[])table[0].ReadValues()[0];
         Assert.HasCount(2, result);
         Assert.AreEqual("123", result[0]);
         Assert.AreEqual("456", result[1]);
@@ -431,7 +431,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test", table[0][0]);
+        Assert.AreEqual("Test", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -456,7 +456,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test", table[0][0]);
+        Assert.AreEqual("Test", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -479,7 +479,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test", table[0][0]);
+        Assert.AreEqual("Test", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -503,6 +503,6 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test", table[0][0]);
+        Assert.AreEqual("Test", table[0].ReadValue(0));
     }
 }

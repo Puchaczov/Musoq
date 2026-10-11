@@ -100,7 +100,7 @@ public class JoinBenchmark
             return new MyTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
         {
             return EnsureSourceType<T, MyEntity>(name, new EntitySource<MyEntity>(BenchmarkSourceChunks.Create(entities), new Dictionary<string, int>
             {

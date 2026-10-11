@@ -45,15 +45,15 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             string.Empty,
             "  Body",
             "    SourceScan [p: Person] -> pRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    CreateSingleKeyAggregateContext [groups: string -> ResultAggregateGroup]",
             "    ChunkedForEach [p in pRows]",
             "      GetOrAddSingleKeyAggregateGroup [group = groups[p.Name] by p.Name; typed: ResultAggregateGroup]",
             "      TypedAggregateSet [Set(group.__agg0, 1)]",
             "    EnsureShapeCapacity [result <- Candidate(result <- groupsToFinalize.Count)]",
             "    ForEach [finalGroup in groupsToFinalize]",
-            "      AppendShape [result <- ResultShape0(Name: finalGroup.p.Name, Count: Count('p.Count'))]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(Name: finalGroup.p.Name, Count: Count('p.Count'))]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -211,6 +211,6 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
 
         StringAssert.Contains(planText, "StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]");
         StringAssert.Contains(planText, "Generated [Statement0Row0]");
-        StringAssert.Contains(planText, "AppendShape [result <- ResultShape0(Name: pScore.p.Name, Bucket: CASE WHEN (pScore.p.Count > 1) THEN 'Many' ELSE 'One' END)]");
+        StringAssert.Contains(planText, "AppendShape [result <- ResultRow0(Name: pScore.p.Name, Bucket: CASE WHEN (pScore.p.Count > 1) THEN 'Many' ELSE 'One' END)]");
     }
 }

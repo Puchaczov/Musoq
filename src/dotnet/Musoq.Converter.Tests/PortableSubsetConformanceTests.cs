@@ -14,6 +14,29 @@ namespace Musoq.Converter.Tests;
 [TestClass]
 public sealed class PortableSubsetConformanceTests
 {
+    [TestMethod]
+    [DataRow("'x' NOT IN ('y')", "bool:True")]
+    [DataRow("'x' NOT IN ('x')", "bool:False")]
+    [DataRow("NULL IN (NULL)", "null")]
+    [DataRow("NULL NOT IN (NULL)", "null")]
+    [DataRow("(NULL IN (NULL)) IS NULL", "bool:True")]
+    [DataRow("NULL CONTAINS (NULL)", "bool:True")]
+    [DataRow("NOT (NULL CONTAINS (NULL))", "bool:False")]
+    [DataRow("'x' NOT IN ('y',NULL)", "null")]
+    [DataRow("'x' CONTAINS ('y',NULL)", "bool:False")]
+    [DataRow("NOT ('x' CONTAINS ('y',NULL))", "bool:True")]
+    [DataRow("1 IN (1L,2L)", "bool:True")]
+    public void MembershipSemantics_ShouldMatchIndependentExpectedValueOnBothTargets(string expression, string expected)
+    {
+        var query = $"select {expression} as Value from #system.dual() d";
+        using var registration = RegisterPortableTarget();
+        var portable = CompilePortable(query);
+        var portableResult = PortableSubsetInterpreter.Execute(portable, CreateContext(portable, EmptyValues, EmptyValues));
+        Assert.AreEqual(expected, NormalizePortable(portableResult.Rows.Single().Fields.Single().Value));
+        using var csharp = CompileCSharp(query);
+        Assert.AreEqual(expected, NormalizeClr(csharp.Run().Single().ReadValue(0)));
+    }
+
     private static readonly IReadOnlyDictionary<string, PortableValue> EmptyValues =
         new Dictionary<string, PortableValue>(StringComparer.Ordinal);
 
@@ -94,7 +117,7 @@ public sealed class PortableSubsetConformanceTests
             },
             EmptyValues);
         var csharp = CompileCSharp(query);
-        csharp.Parameters[parameterName] = parameterValue;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(csharp.TypedParameters, csharp.ParameterDefinitions, parameterName, parameterValue);
 
         var portableException = CaptureException(() => PortableSubsetInterpreter.Execute(portable, context));
         var csharpException = CaptureException(() => csharp.Run());
@@ -220,7 +243,7 @@ public sealed class PortableSubsetConformanceTests
             CreateContext(portable, parameters, scriptVariables));
         using var csharp = CompileCSharp(query);
         foreach (var parameter in parameters)
-            csharp.Parameters[parameter.Key] = ToClrParameter(parameter.Value);
+            global::Musoq.Tests.Common.NativeParameterTestInputs.Set(csharp.TypedParameters, csharp.ParameterDefinitions, parameter.Key, ToClrParameter(parameter.Value));
         var csharpResult = csharp.Run();
 
         Assert.AreEqual(csharpResult.Rows.Count, portableResult.Rows.Count);
@@ -232,7 +255,7 @@ public sealed class PortableSubsetConformanceTests
             for (var columnIndex = 0; columnIndex < csharpRow.Count; columnIndex++)
             {
                 Assert.AreEqual(
-                    NormalizeClr(csharpRow[columnIndex]),
+                    NormalizeClr(csharpRow.ReadValue(columnIndex)),
                     NormalizePortable(portableRow.Fields[columnIndex].Value),
                     $"Row {rowIndex}, column {columnIndex} differs.");
             }

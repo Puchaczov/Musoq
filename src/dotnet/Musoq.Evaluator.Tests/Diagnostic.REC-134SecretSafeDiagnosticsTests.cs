@@ -248,7 +248,7 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
                    new TestsLoggerResolver(),
                    options))
         {
-            var selectedValue = selected.Run()[0][0];
+            var selectedValue = selected.Run()[0].ReadValue(0);
             Assert.AreEqual(sentinel, selectedValue, caseId);
         }
 
@@ -260,7 +260,7 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
             options);
         var table = described.Run();
         var renderedValues = table.Rows
-            .SelectMany(static row => row.Values)
+            .SelectMany(static row => row.ReadValues())
             .Select(static value => value?.ToString() ?? string.Empty)
             .ToArray();
 
@@ -384,10 +384,10 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
             SourceMetadataContext metadataContext,
             params object?[] parameters) => new SecretFailureTable();
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters) =>
+            TArguments parameters) =>
             throw new InvalidOperationException($"provider substrate failure {sentinel}");
 
         private static MethodsAggregator CreateLibrary()

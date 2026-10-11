@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -100,9 +101,10 @@ public sealed partial class ExecutionCSharpRenderer
         return ExecutionNodeFacts.TryGetWindowComputation(ranking, out var window) &&
                CanRenderWindowComputationCommon(window, requireOrderKeys: true) &&
                ranking.Results.Type.RequireClrType() ==
+               (ranking.LibraryGet?.RequireClrMethod().ReturnType.MakeArrayType() ??
                (ranking.Function is ExecutionRankingWindowFunction.PercentRank or ExecutionRankingWindowFunction.CumeDist
                    ? typeof(double[])
-                   : typeof(long[]));
+                   : typeof(long[])));
     }
 
     private static bool CanRenderOffsetWindow(ExecutionComputeOffsetWindow offset)
@@ -119,8 +121,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return ExecutionNodeFacts.TryGetWindowComputation(plugin, out var window) &&
                CanRenderWindowComputationCommon(window, requireOrderKeys: false) &&
-               CanRenderPluginWindowResults(plugin) &&
-               (IsBuiltInDirectPluginWindow(plugin) || CanRenderStreamingPluginWindow(plugin)) &&
+               plugin.LibraryGet is not null && plugin.ContextBuffers is not null &&
                CanRenderExpression(plugin.Value) &&
                CanRenderExpressions(plugin.Arguments);
     }
@@ -203,7 +204,10 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool CanRenderAsOfProbe(ExecutionAsOfProbe asOfProbe)
     {
-        return CanRenderExpression(asOfProbe.Candidates) &&
+        return asOfProbe.Index != null &&
+               asOfProbe.ComparisonKeyType != null &&
+               CanRenderStrictKeyType(asOfProbe.ComparisonKeyType) &&
+               CanRenderExpression(asOfProbe.Candidates) &&
                CanRenderExpression(asOfProbe.ProbeKey) &&
                CanRenderExpression(asOfProbe.CandidateKey) &&
                CanRenderOptionalExpression(asOfProbe.TieBreak?.Key) &&
@@ -321,8 +325,8 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return accessMode switch
         {
-            ExecutionRowAccessMode.Direct => item.Type.RequireClrType() != typeof(object),
-            ExecutionRowAccessMode.ExpandoAdapter => true,
+            ExecutionRowAccessMode.Direct => item.Type.RequireClrType() != typeof(object) ||
+                                             !string.IsNullOrWhiteSpace(item.GeneratedRowTypeName),
             _ => false
         };
     }

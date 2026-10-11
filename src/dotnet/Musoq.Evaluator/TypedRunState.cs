@@ -8,7 +8,7 @@ namespace Musoq.Evaluator;
 public sealed class TypedRunState
 {
     private readonly object _runtimeGate = new();
-    private readonly SynchronizedParameterDictionary _parameters;
+    private TypedParameterValues? _typedParameters;
     private readonly IReadOnlyList<ScriptParameterDefinition> _parameterDefinitions;
     private readonly IReadOnlyList<ScriptParameterContract> _parameterContracts;
     private readonly IReadOnlyList<ScriptParameterDefinition> _requiredParameters;
@@ -18,11 +18,10 @@ public sealed class TypedRunState
 
     public TypedRunState(
         IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions = null,
-        IDictionary<string, object?>? parameters = null)
+        TypedParameterSnapshot? parameters = null)
     {
-        _parameters = new SynchronizedParameterDictionary(
-            _runtimeGate,
-            parameters);
+        if (parameters is not null)
+            TypedParameters.ReplaceWith(parameters);
         _parameterDefinitions = parameterDefinitions?.ToArray() ?? Array.Empty<ScriptParameterDefinition>();
         _parameterContracts = _parameterDefinitions
             .Select(static definition => definition.Contract)
@@ -32,7 +31,11 @@ public sealed class TypedRunState
             .ToArray();
     }
 
-    public IDictionary<string, object?> Parameters => _parameters;
+    /// <summary>Gets typed slots for the next execution.</summary>
+    public TypedParameterValues TypedParameters
+    {
+        get { lock (_runtimeGate) return _typedParameters ??= new TypedParameterValues(_runtimeGate, null); }
+    }
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions => _parameterDefinitions;
 
@@ -74,10 +77,18 @@ public sealed class TypedRunState
     {
         return new TypedQueryRunOptions(
             token,
-            _parameters.Snapshot(),
+            CaptureTypedParameters(),
             PhaseChangedHandlers,
             DataSourceProgressHandlers,
             QueryProgressHandlers,
-            null);
+            null)
+        {
+            TypedParameters = CaptureTypedParameters()
+        };
+    }
+
+    private TypedParameterSnapshot CaptureTypedParameters()
+    {
+        lock (_runtimeGate) return _typedParameters?.Capture() ?? TypedParameterSnapshot.Empty;
     }
 }

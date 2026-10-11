@@ -28,7 +28,7 @@ public class WindowFunctionMultipleWindowTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("RowNum", typeof(long)),
-            ("RunSum", typeof(decimal)));
+            ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 1L, 100m],
@@ -90,8 +90,8 @@ public class WindowFunctionMultipleWindowTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("City", typeof(string)),
-            ("CityTotal", typeof(decimal)),
-            ("GrandTotal", typeof(decimal)));
+            ("CityTotal", typeof(decimal?)),
+            ("GrandTotal", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "LA", 400m, 600m],
@@ -146,7 +146,7 @@ public class WindowFunctionMultipleWindowTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("DoubledRunSum", typeof(decimal)));
+            ("DoubledRunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 200m],
@@ -173,7 +173,7 @@ public class WindowFunctionMultipleWindowTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("RunSum", typeof(decimal)));
+            ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Charlie", 600m],

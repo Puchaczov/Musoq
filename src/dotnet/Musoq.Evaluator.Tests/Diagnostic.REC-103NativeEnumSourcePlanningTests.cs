@@ -16,7 +16,7 @@ using SchemaConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntityTestBase
+public sealed partial class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntityTestBase
 {
     private const string NativeStatusTypeName =
         "Musoq.Evaluator.Tests.REC103NativeStatus";
@@ -108,15 +108,18 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         yield return [new REC103Candidate(
             "REC-103-T01",
             REC103CandidateKind.MetadataNativeStatus,
-            $"table Jobs {{ Status: {NativeStatusTypeName} }};couple #rec103.native with table Jobs as Jobs;select Status from Jobs()")];
+            $"table Jobs {{ Status: {NativeStatusTypeName} }};couple #rec103.native with table Jobs as Jobs;select Status from Jobs()",
+            DiagnosticCode.MQ2012_InvalidSchemaDefinition)];
         yield return [new REC103Candidate(
             "REC-103-T02",
             REC103CandidateKind.MetadataNativeNullable,
-            $"table Jobs {{ Status: {NativeStatusTypeName}? }};couple #rec103.native with table Jobs as Jobs;select Status from Jobs()")];
+            $"table Jobs {{ Status: {NativeStatusTypeName}? }};couple #rec103.native with table Jobs as Jobs;select Status from Jobs()",
+            DiagnosticCode.MQ2012_InvalidSchemaDefinition)];
         yield return [new REC103Candidate(
             "REC-103-T03",
             REC103CandidateKind.MetadataNativeFlags,
-            $"table Jobs {{ Access: {NativeAccessTypeName} }};couple #rec103.native with table Jobs as Jobs;select Access from Jobs()")];
+            $"table Jobs {{ Access: {NativeAccessTypeName} }};couple #rec103.native with table Jobs as Jobs;select Access from Jobs()",
+            DiagnosticCode.MQ2012_InvalidSchemaDefinition)];
         yield return [new REC103Candidate(
             "REC-103-T04",
             REC103CandidateKind.MetadataQueryLocal,
@@ -134,12 +137,12 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         yield return [new REC103Candidate(
             "REC-103-T07",
             REC103CandidateKind.MetadataDuplicateModifier,
-            $"table Jobs {{ Status: {NativeStatusTypeName} encoding 'utf-8' encoding 'windows-1250' }};couple #rec103.native with table Jobs as Jobs;select Status from Jobs()",
+            "table Jobs { Status: short encoding 'utf-8' encoding 'windows-1250' };couple #rec103.native with table Jobs as Jobs;select Status from Jobs()",
             DiagnosticCode.MQ2012_InvalidSchemaDefinition)];
         yield return [new REC103Candidate(
             "REC-103-T08",
             REC103CandidateKind.MetadataModifierSeparation,
-            $"table Jobs {{ Status: {NativeStatusTypeName} encoding 'utf-8' }};couple #rec103.native with table Jobs as Jobs;select Status from Jobs()")];
+            "enum JobStatus : short { Queued = 10s, Running = 20s };table Jobs { Status: JobStatus encoding 'utf-8' };couple #rec103.native with table Jobs as Jobs;select Status from Jobs()")];
 
         yield return [new REC103Candidate(
             "REC-103-D01",
@@ -209,13 +212,13 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
                 AssertNativeMixedProjection(candidate.Query);
                 break;
             case REC103CandidateKind.MetadataNativeStatus:
-                AssertNativeMetadata(candidate.Query, "Status", typeof(REC103NativeStatus?), EnumTypeOrigin.NativeClr);
+                AssertNativeTableMetadataRejection(candidate.Query, typeof(REC103NativeStatus));
                 break;
             case REC103CandidateKind.MetadataNativeNullable:
-                AssertNativeMetadata(candidate.Query, "Status", typeof(REC103NativeStatus?), EnumTypeOrigin.NativeClr);
+                AssertNativeTableMetadataRejection(candidate.Query, typeof(REC103NativeStatus));
                 break;
             case REC103CandidateKind.MetadataNativeFlags:
-                AssertNativeMetadata(candidate.Query, "Access", typeof(REC103NativeAccess?), EnumTypeOrigin.NativeClr);
+                AssertNativeTableMetadataRejection(candidate.Query, typeof(REC103NativeAccess));
                 break;
             case REC103CandidateKind.MetadataQueryLocal:
                 AssertQueryLocalMetadata(candidate.Query);
@@ -259,17 +262,16 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
     }
 
     [TestMethod]
-    public void NativeSourceBoundary_Control_ShouldExposePrimitiveCarrierAndNativeDescriptor()
+    public void PrimitiveTableBoundary_Control_ShouldExposePrimitiveReadType()
     {
         var provider = CompileMetadata(
-            $"table Jobs {{ Status: {NativeStatusTypeName} }};" +
+            "table Jobs { Status: short };" +
             "couple #rec103.native with table Jobs as Jobs;select Status from Jobs()");
         var column = FindCapturedColumn(provider, "Status");
 
         Assert.AreEqual(typeof(short?), column.ColumnType);
-        Assert.AreEqual(typeof(REC103NativeStatus?), column.SourceReadType);
-        AssertNativeDescriptor(column, typeof(REC103NativeStatus), EnumTypeOrigin.NativeClr);
-        Assert.AreEqual(Enum.GetNames<REC103NativeStatus>().Length, column.EnumType!.Members.Count);
+        Assert.AreEqual(typeof(short?), column.SourceReadType);
+        Assert.IsNull(column.EnumType);
         Assert.IsFalse(provider.Schema.RowSourceRequested);
     }
 
@@ -281,8 +283,8 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        CollectionAssert.AreEqual(new object?[] { (short)20, 3u }, table[0].Values);
-        Assert.IsFalse(table.SelectMany(static row => row.Values).Any(static value => value is Enum));
+        CollectionAssert.AreEqual(new object?[] { (short)20, 3u }, table[0].ReadValues());
+        Assert.IsFalse(table.SelectMany(static row => row.ReadValues()).Any(static value => value is Enum));
 
         var status = table.Columns.Single(static column => column.ColumnName == "Status");
         var access = table.Columns.Single(static column => column.ColumnName == "Access");
@@ -313,12 +315,12 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
     public void MetadataAndModifier_Control_ShouldKeepEnumIdentitySeparateFromReadModifiers()
     {
         var provider = CompileMetadata(
-            $"table Jobs {{ Status: {NativeStatusTypeName} encoding 'utf-8' }};" +
+            "enum JobStatus : short { Queued = 10s, Running = 20s };table Jobs { Status: JobStatus encoding 'utf-8' };" +
             "couple #rec103.native with table Jobs as Jobs;select Status from Jobs()");
         var column = FindCapturedColumn(provider, "Status");
 
         Assert.AreEqual("utf-8", column.ReadModifiers[ColumnReadModifiers.Encoding]);
-        AssertNativeDescriptor(column, typeof(REC103NativeStatus), EnumTypeOrigin.NativeClr);
+        AssertQueryLocalDescriptor(column, "JobStatus", EnumUnderlyingKind.Int16, isFlags: false);
         Assert.IsFalse(column.EnumType!.Members.Any(static member =>
             member.Name.Equals("utf-8", StringComparison.OrdinalIgnoreCase)));
         Assert.IsFalse(provider.Schema.RowSourceRequested);
@@ -337,7 +339,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         Assert.AreEqual(8, cases.Count(static candidate => candidate.CaseId.Contains("-N", StringComparison.Ordinal)));
         Assert.AreEqual(8, cases.Count(static candidate => candidate.CaseId.Contains("-T", StringComparison.Ordinal)));
         Assert.AreEqual(8, cases.Count(static candidate => candidate.CaseId.Contains("-D", StringComparison.Ordinal)));
-        Assert.HasCount(4, cases.Where(static candidate => candidate.ExpectedCode.HasValue));
+        Assert.HasCount(7, cases.Where(static candidate => candidate.ExpectedCode.HasValue));
     }
 
     private void AssertNativeStatusProjection(string query, REC103NativeEntity[] rows)
@@ -346,7 +348,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.AreEqual((short)20, table[0].Values[0]);
+        Assert.AreEqual((short)20, table[0].ReadValues()[0]);
         AssertNativeOutputColumn(table, "Status", typeof(short), typeof(REC103NativeStatus));
     }
 
@@ -356,7 +358,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.AreEqual(3u, table[0].Values[0]);
+        Assert.AreEqual(3u, table[0].ReadValues()[0]);
         AssertNativeOutputColumn(table, "Access", typeof(uint), typeof(REC103NativeAccess));
     }
 
@@ -366,7 +368,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.IsNull(table[0].Values[0]);
+        Assert.IsNull(table[0].ReadValues()[0]);
         AssertNativeOutputColumn(table, "OptionalStatus", typeof(short?), typeof(REC103NativeStatus));
     }
 
@@ -376,7 +378,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        CollectionAssert.AreEqual(new object?[] { (short)99, null, false }, table[0].Values);
+        CollectionAssert.AreEqual(new object?[] { (short)99, null, false }, table[0].ReadValues());
         AssertNativeOutputColumn(table, "Status", typeof(short), typeof(REC103NativeStatus));
     }
 
@@ -386,7 +388,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        CollectionAssert.AreEqual(new object?[] { 8u, null, false, false, false }, table[0].Values);
+        CollectionAssert.AreEqual(new object?[] { 8u, null, false, false, false }, table[0].ReadValues());
     }
 
     private void AssertNativeCteProjection(string query)
@@ -395,7 +397,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.AreEqual((short)20, table[0].Values[0]);
+        Assert.AreEqual((short)20, table[0].ReadValues()[0]);
         AssertNativeOutputColumn(table, "Status", typeof(short), typeof(REC103NativeStatus));
     }
 
@@ -405,7 +407,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.AreEqual((short)20, table[0].Values[0]);
+        Assert.AreEqual((short)20, table[0].ReadValues()[0]);
         Assert.IsNotNull(table.Columns.Single().EnumType);
     }
 
@@ -415,7 +417,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        CollectionAssert.AreEqual(new object?[] { (short)20, 7 }, table[0].Values);
+        CollectionAssert.AreEqual(new object?[] { (short)20, 7 }, table[0].ReadValues());
         AssertNativeOutputColumn(table, "Status", typeof(short), typeof(REC103NativeStatus));
         Assert.IsNull(table.Columns.Single(static column => column.ColumnName == "Number").EnumType);
     }
@@ -426,7 +428,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.AreEqual((short)20, table[0].Values[0]);
+        Assert.AreEqual((short)20, table[0].ReadValues()[0]);
         AssertQueryLocalOutputColumn(table, "Status", typeof(short?), "JobStatus");
     }
 
@@ -436,7 +438,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        CollectionAssert.AreEqual(new object?[] { 3u, "ReadWrite", true }, table[0].Values);
+        CollectionAssert.AreEqual(new object?[] { 3u, "ReadWrite", true }, table[0].ReadValues());
         AssertQueryLocalOutputColumn(table, "Access", typeof(uint?), "FileAccess");
     }
 
@@ -446,7 +448,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        CollectionAssert.AreEqual(new object?[] { (short)20, 3u }, table[0].Values);
+        CollectionAssert.AreEqual(new object?[] { (short)20, 3u }, table[0].ReadValues());
         AssertQueryLocalOutputColumn(table, "Status", typeof(short?), "JobStatus");
         AssertQueryLocalOutputColumn(table, "Access", typeof(uint?), "FileAccess");
     }
@@ -457,7 +459,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.AreEqual((short)20, table[0].Values[0]);
+        Assert.AreEqual((short)20, table[0].ReadValues()[0]);
         AssertQueryLocalOutputColumn(table, "Status", typeof(short?), "JobStatus");
     }
 
@@ -467,7 +469,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.AreEqual((short)20, table[0].Values[0]);
+        Assert.AreEqual((short)20, table[0].ReadValues()[0]);
         AssertQueryLocalOutputColumn(table, "Status", typeof(short?), "JobStatus");
     }
 
@@ -477,7 +479,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.AreEqual((short)20, table[0].Values[0]);
+        Assert.AreEqual((short)20, table[0].ReadValues()[0]);
         AssertQueryLocalOutputColumn(table, "Status", typeof(short?), "JobStatus");
     }
 
@@ -487,24 +489,15 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        CollectionAssert.AreEqual(new object?[] { (short)20, "Running", true, true }, table[0].Values);
+        CollectionAssert.AreEqual(new object?[] { (short)20, "Running", true, true }, table[0].ReadValues());
     }
 
-    private void AssertNativeMetadata(
-        string query,
-        string columnName,
-        Type sourceReadType,
-        EnumTypeOrigin expectedOrigin)
+    private void AssertNativeTableMetadataRejection(string query, Type enumType)
     {
-        var provider = CompileMetadata(query);
-        var column = FindCapturedColumn(provider, columnName);
-        var sourceEnumType = Nullable.GetUnderlyingType(sourceReadType) ?? sourceReadType;
-        var carrierType = EnumScalarTypeFacts.GetCarrierType(column.EnumType!.UnderlyingKind);
-        var nullableCarrierType = typeof(Nullable<>).MakeGenericType(carrierType);
-
-        Assert.AreEqual(nullableCarrierType, column.ColumnType);
-        Assert.AreEqual(sourceReadType, column.SourceReadType);
-        AssertNativeDescriptor(column, sourceEnumType, expectedOrigin);
+        var provider = new REC103MetadataSchemaProvider();
+        var columnName = enumType == typeof(REC103NativeAccess) ? "Access" : "Status";
+        var suffix = query.Contains($"{enumType.FullName}?", StringComparison.Ordinal) ? "?" : string.Empty;
+        AssertNativeTableRejection(query, provider, $"{columnName}: {enumType.FullName}{suffix}", enumType);
         Assert.IsFalse(provider.Schema.RowSourceRequested);
     }
 
@@ -525,7 +518,7 @@ public sealed class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntit
         var column = FindCapturedColumn(provider, "Status");
 
         Assert.AreEqual("utf-8", column.ReadModifiers[ColumnReadModifiers.Encoding]);
-        AssertNativeDescriptor(column, typeof(REC103NativeStatus), EnumTypeOrigin.NativeClr);
+        AssertQueryLocalDescriptor(column, "JobStatus", EnumUnderlyingKind.Int16, isFlags: false);
         Assert.IsFalse(provider.Schema.RowSourceRequested);
     }
 
@@ -718,7 +711,7 @@ public sealed class REC103MetadataSchemaProvider : ISchemaProvider
     }
 }
 
-public sealed class REC103MetadataSchema : SchemaBase
+public sealed class REC103MetadataSchema : SchemaBase, IQueryScopedRowSourceSchema
 {
     public REC103MetadataSchema()
         : base("rec103", new MethodsAggregator(new MethodsManager()))
@@ -761,13 +754,29 @@ public sealed class REC103MetadataSchema : SchemaBase
         return new REC103MetadataTable(columns);
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         RowSourceRequested = true;
         throw new NotSupportedException("REC-103 metadata-only provider must not execute rows.");
+    }
+
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
+        string name,
+        QueryScopedRowSourceRequest request,
+        TArguments parameters)
+        where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments
+    {
+        RowSourceRequested = true;
+        return new EmptyQueryScopedRowSource<TRow>();
+    }
+
+    private sealed class EmptyQueryScopedRowSource<TRow> : RowSource<TRow>
+    {
+        public override IEnumerable<IReadOnlyList<TRow>> Chunks => [];
     }
 }
 
@@ -775,7 +784,7 @@ public sealed class REC103MetadataTable(ISchemaColumn[] columns) : ISchemaTable
 {
     public ISchemaColumn[] Columns { get; } = columns;
 
-    public SchemaTableMetadata Metadata { get; } = new(typeof(REC103NativeEntity));
+    public SchemaTableMetadata Metadata { get; } = new(typeof(REC103NativeEntity)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
 
     public ISchemaColumn? GetColumnByName(string name)
     {

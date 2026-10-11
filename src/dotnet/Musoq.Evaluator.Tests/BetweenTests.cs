@@ -163,7 +163,7 @@ public class BetweenTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsTrue((bool)table[0][0]);
+        Assert.IsTrue((bool)table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -185,7 +185,7 @@ public class BetweenTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Medium", table[0][0]);
+        Assert.AreEqual("Medium", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -207,6 +207,6 @@ public class BetweenTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("City1", table[0][0]);
+        Assert.AreEqual("City1", table[0].ReadValue(0));
     }
 }

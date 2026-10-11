@@ -167,7 +167,8 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
             FilterExpression = filterExpression,
             FilterExpressionText = funcCall.FilterExpressionText,
             IsPivotGenerated = funcCall.IsPivotGenerated,
-            IsScalarSubqueryValueWrapper = funcCall.IsScalarSubqueryValueWrapper
+            IsScalarSubqueryValueWrapper = funcCall.IsScalarSubqueryValueWrapper,
+            IsCompilerGenerated = funcCall.IsCompilerGenerated
         };
     }
 

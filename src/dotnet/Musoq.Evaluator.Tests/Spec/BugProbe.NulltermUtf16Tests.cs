@@ -54,7 +54,7 @@ public class BugProbeNulltermUtf16Tests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello", table[0][0],
+        Assert.AreEqual("Hello", table[0].ReadValue(0),
             "nullterm with UTF-16LE should find double-byte null terminator, not single 0x00");
     }
 
@@ -89,7 +89,7 @@ public class BugProbeNulltermUtf16Tests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hi", table[0][0],
+        Assert.AreEqual("Hi", table[0].ReadValue(0),
             "nullterm with UTF-16BE should find double-byte null terminator, not single 0x00");
     }
 
@@ -119,6 +119,6 @@ public class BugProbeNulltermUtf16Tests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test", table[0][0]);
+        Assert.AreEqual("Test", table[0].ReadValue(0));
     }
 }

@@ -503,20 +503,20 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
             new BinaryEntity { Name = "03-valid.bin", Content = validData });
 
         Assert.AreEqual(applyKind == "cross" ? 2 : 3, table.Count);
-        Assert.AreEqual("01-valid.bin", table[0][0]);
+        Assert.AreEqual("01-valid.bin", table[0].ReadValue(0));
         object expectedValue = validation ? (object)(byte)0x2A : 42;
         if (applyKind == "cross")
         {
-            Assert.AreEqual("03-valid.bin", table[1][0]);
-            Assert.AreEqual(expectedValue, table[0][1]);
-            Assert.AreEqual(expectedValue, table[1][1]);
+            Assert.AreEqual("03-valid.bin", table[1].ReadValue(0));
+            Assert.AreEqual(expectedValue, table[0].ReadValue(1));
+            Assert.AreEqual(expectedValue, table[1].ReadValue(1));
             return;
         }
 
-        Assert.AreEqual("02-bad.bin", table[1][0]);
-        Assert.IsNull(table[1][1]);
-        Assert.AreEqual("03-valid.bin", table[2][0]);
-        Assert.AreEqual(expectedValue, table[2][1]);
+        Assert.AreEqual("02-bad.bin", table[1].ReadValue(0));
+        Assert.IsNull(table[1].ReadValue(1));
+        Assert.AreEqual("03-valid.bin", table[2].ReadValue(0));
+        Assert.AreEqual(expectedValue, table[2].ReadValue(1));
     }
 
     private void AssertTryText(string applyKind, string failingText)
@@ -536,19 +536,19 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
             new TextEntity { Name = "03-valid.txt", Text = "host=ok" });
 
         Assert.AreEqual(applyKind == "cross" ? 2 : 3, table.Count);
-        Assert.AreEqual("01-valid.txt", table[0][0]);
+        Assert.AreEqual("01-valid.txt", table[0].ReadValue(0));
         if (applyKind == "cross")
         {
-            Assert.AreEqual("03-valid.txt", table[1][0]);
-            Assert.AreEqual("host", table[0][1]);
-            Assert.AreEqual("ok", table[0][2]);
+            Assert.AreEqual("03-valid.txt", table[1].ReadValue(0));
+            Assert.AreEqual("host", table[0].ReadValue(1));
+            Assert.AreEqual("ok", table[0].ReadValue(2));
             return;
         }
 
-        Assert.AreEqual("02-bad.txt", table[1][0]);
-        Assert.IsNull(table[1][1]);
-        Assert.IsNull(table[1][2]);
-        Assert.AreEqual("03-valid.txt", table[2][0]);
+        Assert.AreEqual("02-bad.txt", table[1].ReadValue(0));
+        Assert.IsNull(table[1].ReadValue(1));
+        Assert.IsNull(table[1].ReadValue(2));
+        Assert.AreEqual("03-valid.txt", table[2].ReadValue(0));
     }
 
     private void AssertTryTextPattern(string applyKind)
@@ -567,12 +567,12 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
             new TextEntity { Name = "03-valid.txt", Text = "456" });
 
         Assert.AreEqual(applyKind == "cross" ? 2 : 3, table.Count);
-        Assert.AreEqual("01-valid.txt", table[0][0]);
-        Assert.AreEqual("03-valid.txt", table[applyKind == "cross" ? 1 : 2][0]);
+        Assert.AreEqual("01-valid.txt", table[0].ReadValue(0));
+        Assert.AreEqual("03-valid.txt", table[applyKind == "cross" ? 1 : 2].ReadValue(0));
         if (applyKind == "outer")
         {
-            Assert.AreEqual("02-bad.txt", table[1][0]);
-            Assert.IsNull(table[1][1]);
+            Assert.AreEqual("02-bad.txt", table[1].ReadValue(0));
+            Assert.IsNull(table[1].ReadValue(1));
         }
     }
 
@@ -600,9 +600,9 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
             new BinaryEntity { Name = "03-valid.bin", Content = validData });
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("01-valid.bin", table[0][0]);
-        Assert.AreEqual("02-bad.bin", table[1][0]);
-        Assert.AreEqual("03-valid.bin", table[2][0]);
+        Assert.AreEqual("01-valid.bin", table[0].ReadValue(0));
+        Assert.AreEqual("02-bad.bin", table[1].ReadValue(0));
+        Assert.AreEqual("03-valid.bin", table[2].ReadValue(0));
         AssertPartialRow(table[0], expectedFields, validData.Length, null, null, null);
         AssertPartialRow(table[2], expectedFields, validData.Length, null, null, null);
         AssertPartialRow(table[1], expectedFields, expectedFailureConsumed, expectedErrorField,
@@ -633,9 +633,9 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
             new TextEntity { Name = "03-valid.txt", Text = validText });
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("01-valid.txt", table[0][0]);
-        Assert.AreEqual("02-bad.txt", table[1][0]);
-        Assert.AreEqual("03-valid.txt", table[2][0]);
+        Assert.AreEqual("01-valid.txt", table[0].ReadValue(0));
+        Assert.AreEqual("02-bad.txt", table[1].ReadValue(0));
+        Assert.AreEqual("03-valid.txt", table[2].ReadValue(0));
         AssertPartialRow(table[0], expectedFields, validText.Length, null, null, null);
         AssertPartialRow(table[2], expectedFields, validText.Length, null, null, null);
         AssertPartialRow(table[1], expectedFields, expectedFailureConsumed, expectedErrorField,
@@ -650,24 +650,24 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
         string? expectedErrorCode,
         int? expectedPosition)
     {
-        var fields = (Dictionary<string, object?>)row[1]!;
+        var fields = PartialPayloadAssertions.CompletedValues(row.ReadValue(1)!);
         foreach (var field in expectedFields)
             Assert.IsTrue(fields.ContainsKey(field), field);
 
-        Assert.AreEqual(expectedErrorField, row[2]);
+        Assert.AreEqual(expectedErrorField, row.ReadValue(2));
         if (expectedErrorField == null)
         {
-            Assert.IsNull(row[3]);
+            Assert.IsNull(row.ReadValue(3));
         }
         else
         {
-            var message = (string)row[3]!;
+            var message = (string)row.ReadValue(3)!;
             StringAssert.Contains(message, expectedErrorCode!);
             if (expectedPosition.HasValue)
                 StringAssert.Contains(message, $"at position {expectedPosition.Value}");
         }
 
-        Assert.AreEqual(expectedConsumed, row[4]);
+        Assert.AreEqual(expectedConsumed, row.ReadValue(4));
     }
 
     private void AssertSchemaFailure(string query, DiagnosticCode expectedCode)

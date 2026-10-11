@@ -7,9 +7,7 @@ internal static class AsOfTieBreakComparerFactory
 {
     public static IComparer<TTie> Create<TTie>(bool descending, NullOrdering nullOrdering)
     {
-        var valueComparer = typeof(TTie) == typeof(object)
-            ? (IComparer<TTie>)(object)AsOfObjectKeyComparer.Instance
-            : Comparer<TTie>.Default;
+        var valueComparer = Comparer<TTie>.Default;
 
         return new AsOfTieBreakComparer<TTie>(valueComparer, descending, nullOrdering);
     }

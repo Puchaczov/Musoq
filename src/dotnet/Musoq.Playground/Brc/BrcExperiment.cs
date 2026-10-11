@@ -110,8 +110,8 @@ internal sealed class BrcSchema : SchemaBase
         params object?[] parameters)
         => new BrcEntityTable();
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext,
-        params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext,
+        TArguments parameters)
         => EnsureSourceType<T, BrcEntity>(name, _source);
 
     private static MethodsAggregator CreateLibrary()

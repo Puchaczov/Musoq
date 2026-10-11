@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Musoq.Plugins;
 
@@ -7,15 +8,21 @@ namespace Musoq.Plugins;
 public static class SumAggregateKernel<T>
     where T : struct, INumber<T>
 {
+    /// <summary>Initializes independently owned kernel state.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Reset(ref State state) => state = default;
+
     public struct State
     {
         public bool HasValue;
         public T Value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Set(ref State state, T? value)
         => NullableAggregateCore.SetSum(ref state.HasValue, ref state.Value, value);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T? Get(in State state)
         => NullableAggregateCore.GetNullable(state.HasValue, state.Value);
 

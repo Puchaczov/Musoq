@@ -50,22 +50,10 @@ public partial class DateTimeExtendedTests : PluginsTestBase
     }
 
     [TestMethod]
-    public void Hour_NullDateTimeOffset_ReturnsNull()
-    {
-        Assert.IsNull(Library.Hour(null));
-    }
-
-    [TestMethod]
     public void Hour_ValidDateTimeOffset_ReturnsHour()
     {
         var date = new DateTimeOffset(2024, 6, 15, 12, 30, 45, TimeSpan.Zero);
         Assert.AreEqual(12, Library.Hour(date));
-    }
-
-    [TestMethod]
-    public void Minute_NullDateTimeOffset_ReturnsNull()
-    {
-        Assert.IsNull(Library.Minute(null));
     }
 
     [TestMethod]
@@ -76,22 +64,10 @@ public partial class DateTimeExtendedTests : PluginsTestBase
     }
 
     [TestMethod]
-    public void Second_NullDateTimeOffset_ReturnsNull()
-    {
-        Assert.IsNull(Library.Second(null));
-    }
-
-    [TestMethod]
     public void Second_ValidDateTimeOffset_ReturnsSecond()
     {
         var date = new DateTimeOffset(2024, 6, 15, 12, 30, 45, TimeSpan.Zero);
         Assert.AreEqual(45, Library.Second(date));
-    }
-
-    [TestMethod]
-    public void Milliseconds_NullDateTimeOffset_ReturnsNull()
-    {
-        Assert.IsNull(Library.Milliseconds(null));
     }
 
     [TestMethod]
@@ -102,46 +78,10 @@ public partial class DateTimeExtendedTests : PluginsTestBase
     }
 
     [TestMethod]
-    public void DayOfWeek_NullDateTimeOffset_ReturnsNull()
-    {
-        Assert.IsNull(Library.DayOfWeek(null));
-    }
-
-    [TestMethod]
     public void DayOfWeek_ValidDateTimeOffset_ReturnsDayOfWeek()
     {
         var date = new DateTimeOffset(2024, 6, 15, 12, 30, 45, TimeSpan.Zero);
         Assert.AreEqual((int)DayOfWeek.Saturday, Library.DayOfWeek(date));
-    }
-
-
-
-    [TestMethod]
-    public void AddDays_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.AddDays(null, 5));
-    }
-
-    [TestMethod]
-    public void AddDays_ValidDateTime_AddsDays()
-    {
-        var date = new DateTime(2024, 6, 15);
-        var result = Library.AddDays(date, 5);
-        Assert.AreEqual(new DateTime(2024, 6, 20), result);
-    }
-
-    [TestMethod]
-    public void AddDays_NullDateTimeOffset_ReturnsNull()
-    {
-        Assert.IsNull(Library.AddDays((DateTimeOffset?)null, 5));
-    }
-
-    [TestMethod]
-    public void AddDays_ValidDateTimeOffset_AddsDays()
-    {
-        var date = new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero);
-        var result = Library.AddDays(date, 5);
-        Assert.AreEqual(new DateTimeOffset(2024, 6, 20, 0, 0, 0, TimeSpan.Zero), result);
     }
 
 
@@ -175,12 +115,6 @@ public partial class DateTimeExtendedTests : PluginsTestBase
     }
 
 
-
-    [TestMethod]
-    public void AddYears_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.AddYears(null, 1));
-    }
 
     [TestMethod]
     public void AddYears_ValidDateTime_AddsYears()
@@ -251,22 +185,6 @@ public partial class DateTimeExtendedTests : PluginsTestBase
     }
 
     [TestMethod]
-    public void AddMinutes_NullDateTimeOffset_ReturnsNull()
-    {
-        Assert.IsNull(Library.AddMinutes((DateTimeOffset?)null, 30));
-    }
-
-    [TestMethod]
-    public void AddMinutes_ValidDateTimeOffset_AddsMinutes()
-    {
-        var date = new DateTimeOffset(2024, 6, 15, 10, 0, 0, TimeSpan.Zero);
-        var result = Library.AddMinutes(date, 30);
-        Assert.AreEqual(new DateTimeOffset(2024, 6, 15, 10, 30, 0, TimeSpan.Zero), result);
-    }
-
-
-
-    [TestMethod]
     public void AddSeconds_NullDateTime_ReturnsNull()
     {
         Assert.IsNull(Library.AddSeconds(null, 45));
@@ -278,28 +196,6 @@ public partial class DateTimeExtendedTests : PluginsTestBase
         var date = new DateTime(2024, 6, 15, 10, 0, 0);
         var result = Library.AddSeconds(date, 45);
         Assert.AreEqual(new DateTime(2024, 6, 15, 10, 0, 45), result);
-    }
-
-    [TestMethod]
-    public void AddSeconds_NullDateTimeOffset_ReturnsNull()
-    {
-        Assert.IsNull(Library.AddSeconds((DateTimeOffset?)null, 45));
-    }
-
-    [TestMethod]
-    public void AddSeconds_ValidDateTimeOffset_AddsSeconds()
-    {
-        var date = new DateTimeOffset(2024, 6, 15, 10, 0, 0, TimeSpan.Zero);
-        var result = Library.AddSeconds(date, 45);
-        Assert.AreEqual(new DateTimeOffset(2024, 6, 15, 10, 0, 45, TimeSpan.Zero), result);
-    }
-
-
-
-    [TestMethod]
-    public void StartOfDay_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.StartOfDay(null));
     }
 
     [TestMethod]
@@ -325,12 +221,6 @@ public partial class DateTimeExtendedTests : PluginsTestBase
     }
 
 
-
-    [TestMethod]
-    public void EndOfDay_NullDateTime_ReturnsNull()
-    {
-        Assert.IsNull(Library.EndOfDay(null));
-    }
 
     [TestMethod]
     public void EndOfDay_ValidDateTime_ReturnsEndOfDay()

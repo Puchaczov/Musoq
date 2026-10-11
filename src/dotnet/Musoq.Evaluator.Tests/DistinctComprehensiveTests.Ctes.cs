@@ -46,7 +46,7 @@ public partial class DistinctComprehensiveTests
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)), ("a.Country", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Warsaw", "Poland"]);
     }
 

@@ -32,6 +32,15 @@ public partial class InterpreterCodeGenerator
 
     private BoundTextField BindTextField(TextFieldDefinitionNode field)
     {
+        var bound = BindTextFieldCore(field);
+        return bound with
+        {
+            RepeatElement = field.RepeatElement is { } element ? BindTextField(element) : null
+        };
+    }
+
+    private BoundTextField BindTextFieldCore(TextFieldDefinitionNode field)
+    {
         var localVariableName = GetLocalVarName(field.Name);
 
         if (field.IsDiscard)
@@ -71,13 +80,16 @@ public partial class InterpreterCodeGenerator
 
     private static string GetTextFieldPropertyClrType(TextFieldDefinitionNode field)
     {
+        if (field.RepeatElement is { } element)
+            return $"{GetTextFieldPropertyClrType(element).TrimEnd('?')}[]?";
+
         if (field is { FieldType: TextFieldType.Pattern, CaptureGroups.Length: > 0 })
             return $"CaptureResult_{field.Name}?";
 
         return field.FieldType switch
         {
             TextFieldType.Repeat => $"{field.PrimaryValue ?? "object"}[]?",
-            TextFieldType.Switch => "object?",
+            TextFieldType.Switch => $"TextSwitch_{field.Name}?",
             TextFieldType.SchemaReference => $"{field.PrimaryValue ?? "object"}?",
             _ => "string?"
         };

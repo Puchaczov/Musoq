@@ -39,9 +39,9 @@ public sealed partial class ExecutionCSharpRenderer
         ];
     }
 
-    private LocalDeclarationStatementSyntax RenderEnumerableSource(ExecutionEnumerableSource enumerable)
+    private LocalDeclarationStatementSyntax RenderEnumerableSource(ExecutionEnumerableSource enumerable, ExecutionRenderContext context)
     {
-        var sourceExpression = RenderEnumerableSourceExpression(enumerable);
+        var sourceExpression = RenderEnumerableSourceExpression(enumerable, context);
 
         return CreateTypedEnumerableChunksDeclaration(
             enumerable.Rows.Name,
@@ -51,9 +51,9 @@ public sealed partial class ExecutionCSharpRenderer
             enumerable.EnumerableTypeName);
     }
 
-    private ExpressionSyntax RenderEnumerableSourceExpression(ExecutionEnumerableSource enumerable)
+    private ExpressionSyntax RenderEnumerableSourceExpression(ExecutionEnumerableSource enumerable, ExecutionRenderContext context)
     {
-        var sourceExpression = RenderExpression(enumerable.Source);
+        var sourceExpression = RenderExpression(enumerable.Source, context);
         var enumerableType = CreateEnumerableTypeSyntax(enumerable);
 
         if (IsAlreadyRenderedAsEnumerableType(enumerable, sourceExpression, enumerableType))

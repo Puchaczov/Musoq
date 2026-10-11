@@ -244,7 +244,6 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
                     case ExecutionParallelSingleKeyAggregateLoop:
                     case ExecutionMaterializeList:
                     case ExecutionMaterializeFilteredList:
-                    case ExecutionMaterializeExpandoList:
                     case ExecutionWindowKernelPlan:
                     case ExecutionComputeRankingWindow:
                     case ExecutionComputeOffsetWindow:
@@ -273,7 +272,7 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
             WalkBlock(
                 body,
                 descendantDepth + 1,
-                [..frames, nestedFrame],
+                [.. frames, nestedFrame],
                 currentFrame,
                 observations);
         }
@@ -333,7 +332,7 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
             return expression switch
             {
                 ExecutionBinary { Kind: BinaryOpKind.And or BinaryOpKind.Or } => true,
-                ExecutionCaseWhen or ExecutionCoalesce => true,
+                ExecutionCaseWhen or ExecutionCoalesce or ExecutionInCheck { UsesSqlNullSemantics: true } => true,
                 _ => false
             };
         }
@@ -543,7 +542,6 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
         {
             return node switch
             {
-                ExecutionAdaptExpando => true,
                 ExecutionMethodTargetDeclarationCandidate => true,
                 ExecutionLet let => !let.Variable.Name.StartsWith("__musoqStructural_", StringComparison.Ordinal),
                 _ => false
@@ -641,6 +639,9 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
         protected override ExecutionExpression RewriteCaseWhen(ExecutionCaseWhen expression) => expression;
 
         protected override ExecutionExpression RewriteCoalesce(ExecutionCoalesce expression) => expression;
+
+        protected override ExecutionExpression RewriteInCheck(ExecutionInCheck expression) =>
+            expression.UsesSqlNullSemantics ? expression : base.RewriteInCheck(expression);
 
         public ExecutionContextLayout? RewriteLayout(ExecutionContextLayout? layout)
         {

@@ -15,6 +15,10 @@ public partial class BuildMetadataAndInferTypesVisitor
     private MethodResolutionContext ResolveMethodContext(AccessMethodNode node, ArgsListNode args)
     {
         var identifier = GetCurrentMethodResolutionIdentifier();
+        if (string.IsNullOrWhiteSpace(identifier) && string.IsNullOrWhiteSpace(node.Alias))
+            throw new AliasMissingException(
+                $"Method call '{node}' has no source owner. Move it to an APPLY after a source is bound.",
+                node.SpanOrEmpty());
 
         if (_sourceBinding.UsedSchemasQuantity > 1 && string.IsNullOrWhiteSpace(node.Alias))
         {
@@ -47,6 +51,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         }
 
         var alias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : identifier;
+        if (!string.IsNullOrEmpty(node.Alias) &&
+            !GetVisibleAliases().Contains(alias, StringComparer.OrdinalIgnoreCase))
+        {
+            ColumnInstanceMethodValidation.RejectColumnOwner(FindTableSymbolInScopeHierarchy(identifier), node);
+            throw new UnknownAliasException(alias, node.SpanOrEmpty(), GetVisibleAliases());
+        }
         return CreateMethodResolutionContext(alias);
     }
 
@@ -62,12 +72,10 @@ public partial class BuildMetadataAndInferTypesVisitor
         return true;
     }
 
-    private string GetCurrentMethodResolutionIdentifier()
-    {
-        return _sourceBinding.CurrentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId)
+    private string GetCurrentMethodResolutionIdentifier() =>
+        _sourceBinding.CurrentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId)
             ? _sourceBinding.CurrentScope[MetaAttributes.ProcessedQueryId]
             : _sourceBinding.Identifier;
-    }
 
     private bool TryInferNonAggregateMethodContext(string identifier, AccessMethodNode node, ArgsListNode args,
         out MethodResolutionContext context)
@@ -159,8 +167,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         return new MethodResolutionContext(alias, tableSymbol, schemaTablePair, entityType);
     }
 
-    private void RegisterMethodContextAssemblies(Type entityType)
-    {
+    private void RegisterMethodContextAssemblies(Type entityType) =>
         _methodBindingService.RegisterContextAssemblies(entityType);
-    }
 }

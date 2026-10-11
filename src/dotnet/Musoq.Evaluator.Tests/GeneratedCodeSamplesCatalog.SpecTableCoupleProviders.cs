@@ -136,10 +136,10 @@ internal static partial class GeneratedCodeSamplesCatalog
             return new TypedTypeMatrixSampleTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             if (!name.Equals("rows", StringComparison.OrdinalIgnoreCase))
                 throw new NotSupportedException(name);
@@ -174,7 +174,7 @@ internal static partial class GeneratedCodeSamplesCatalog
             new SchemaColumn(nameof(SpecificationTypeMatrixEntity.DateTimeOffsetCol), 17, typeof(DateTimeOffset?)),
             new SchemaColumn(nameof(SpecificationTypeMatrixEntity.TimeSpanCol), 18, typeof(TimeSpan)),
             new SchemaColumn(nameof(SpecificationTypeMatrixEntity.GuidCol), 19, typeof(Guid)),
-            new SchemaColumn(nameof(SpecificationTypeMatrixEntity.ObjectCol), 20, typeof(object)),
+            new SchemaColumn(nameof(SpecificationTypeMatrixEntity.ConcreteCol), 20, typeof(string)),
             new SchemaColumn(nameof(SpecificationTypeMatrixEntity.FullyQualified), 21, typeof(int)),
             new SchemaColumn(nameof(SpecificationTypeMatrixEntity.NullableInt), 22, typeof(int?))
         ];
@@ -218,10 +218,10 @@ internal static partial class GeneratedCodeSamplesCatalog
             return new TypedReadModifiersSampleTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             if (!name.Equals("records", StringComparison.OrdinalIgnoreCase))
                 throw new NotSupportedException(name);
@@ -312,7 +312,7 @@ public sealed class SpecificationTypeMatrixEntity
     public DateTimeOffset? DateTimeOffsetCol { get; init; }
     public TimeSpan TimeSpanCol { get; init; }
     public Guid GuidCol { get; init; }
-    public object? ObjectCol { get; init; }
+    public string? ConcreteCol { get; init; }
     public int FullyQualified { get; init; }
     public int? NullableInt { get; init; }
 }

@@ -114,7 +114,7 @@ public class LogicalOperationVisitorHelperTests
     }
 
     [TestMethod]
-    public void ProcessInOperation_WhenTwoNodesOnStack_ShouldCreateOrChain()
+    public void ProcessInOperation_WhenTwoNodesOnStack_ShouldRetainSqlMembership()
     {
         var nodes = new Stack<Node>();
         var leftNode = new IdentifierNode("x");
@@ -134,10 +134,9 @@ public class LogicalOperationVisitorHelperTests
         var result = nodes.Pop();
 
 
-        Assert.IsInstanceOfType<OrNode>(result);
-        var outerOr = (OrNode)result;
-        Assert.IsInstanceOfType<OrNode>(outerOr.Left);
-        Assert.IsInstanceOfType<EqualityNode>(outerOr.Right);
+        Assert.IsInstanceOfType<InNode>(result);
+        Assert.AreSame(leftNode, ((InNode)result).Left);
+        Assert.AreSame(argsNode, ((InNode)result).Right);
     }
 
     [TestMethod]
@@ -195,7 +194,7 @@ public class LogicalOperationVisitorHelperTests
     }
 
     [TestMethod]
-    public void ProcessInOperation_WithSingleValue_ShouldCreateSingleEquality()
+    public void ProcessInOperation_WithSingleValue_ShouldRetainSqlMembership()
     {
         var nodes = new Stack<Node>();
         var leftNode = new IdentifierNode("x");
@@ -211,13 +210,12 @@ public class LogicalOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType<EqualityNode>(result);
-        var equalityNode = (EqualityNode)result;
-        Assert.AreEqual(leftNode, equalityNode.Left);
+        Assert.IsInstanceOfType<InNode>(result);
+        Assert.AreSame(leftNode, ((InNode)result).Left);
     }
 
     [TestMethod]
-    public void ProcessInOperation_WithEmptyArgs_ShouldCreateBooleanFalse()
+    public void ProcessInOperation_WithEmptyArgs_ShouldRetainEmptySqlMembership()
     {
         var nodes = new Stack<Node>();
         var leftNode = new IdentifierNode("x");
@@ -231,13 +229,12 @@ public class LogicalOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType<BooleanNode>(result);
-        var booleanNode = (BooleanNode)result;
-        Assert.IsFalse((bool)booleanNode.ObjValue);
+        Assert.IsInstanceOfType<InNode>(result);
+        Assert.AreEqual(0, ((ArgsListNode)((InNode)result).Right).Args.Length);
     }
 
     [TestMethod]
-    public void ProcessInOperation_WhenAtOrAboveThreshold_ShouldCreateContainsNode()
+    public void ProcessInOperation_WhenAtOrAboveThreshold_ShouldRetainSqlMembership()
     {
         var nodes = new Stack<Node>();
         var leftNode = new IdentifierNode("x");
@@ -254,14 +251,14 @@ public class LogicalOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType<ContainsNode>(result);
-        var containsNode = (ContainsNode)result;
+        Assert.IsInstanceOfType<InNode>(result);
+        var containsNode = (InNode)result;
         Assert.AreEqual(leftNode, containsNode.Left);
-        Assert.AreEqual(argsNode, containsNode.ToCompareExpression);
+        Assert.AreEqual(argsNode, containsNode.Right);
     }
 
     [TestMethod]
-    public void ProcessInOperation_WhenBelowThreshold_ShouldCreateOrChain()
+    public void ProcessInOperation_WhenBelowThreshold_ShouldRetainSqlMembership()
     {
         var nodes = new Stack<Node>();
         var leftNode = new IdentifierNode("x");
@@ -279,6 +276,6 @@ public class LogicalOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType<OrNode>(result);
+        Assert.IsInstanceOfType<InNode>(result);
     }
 }

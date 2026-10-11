@@ -125,13 +125,16 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         var parameter = ReadSample("Q337_StructuredParameterDefaults.cs").Content;
         Assert.Contains("ScriptParameterContract(\"patterns\"", parameter);
-        Assert.Contains("CaptureParameterSnapshot", parameter);
-        Assert.Contains("__musoqCaptureStructuralParameter_", parameter);
+        Assert.Contains("ExecutionState.Capture(TypedParameters)", parameter);
+        Assert.DoesNotContain("CaptureParameterSnapshot", parameter);
+        Assert.Contains("__musoqBindTypedJson_", parameter);
+        Assert.Contains("__musoqDecodeTypedJson_", parameter);
+        Assert.DoesNotContain("__musoqCaptureStructuralParameter_", parameter);
         Assert.Contains("ReserveMetrics(new StructuralInputMetrics", parameter);
         Assert.Contains("EnsureCollectionLowerBound", parameter);
-        Assert.Contains("GetCollectionCount<", parameter);
-        Assert.Contains("ReadTypedScalar", parameter);
-        Assert.Contains("IReadOnlyList<object?> referenceList", parameter);
+        Assert.Contains("value.GetArrayLength()", parameter);
+        Assert.Contains("value.GetString()", parameter);
+        Assert.DoesNotContain("IReadOnlyList<object?>", parameter);
         Assert.DoesNotContain("GetCollectionElement(", parameter);
         Assert.DoesNotContain("Array.GetValue", parameter);
         Assert.DoesNotContain("PropertyInfo.GetValue", parameter);
@@ -147,7 +150,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("__musoqPrepareCte_", recordCte);
         Assert.Contains("ownership=ConstructFresh", recordCte);
         Assert.Contains("__musoqStructuralNodes", recordCte);
-        Assert.DoesNotContain("__musoqCheckStructural_", recordCte);
+        Assert.Contains("private static string __musoqCheckStructural_", recordCte);
+        Assert.DoesNotContain("private static Musoq.Examples.DataSources.StructuredInputs.PatternInput[] __musoqCheckStructural_", recordCte);
 
         var sharedCte = ReadSample("Q340_StructuredSharedCteArgument.cs").Content;
         Assert.Contains("__musoqPrepareCte_", sharedCte);
@@ -241,9 +245,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("new Musoq.Examples.DataSources.StructuredInputs.MutableInput", mutable);
 
         var parameterSnapshot = ReadSample("Q360_StructuredTypedParameterSnapshot.cs").Content;
-        Assert.Contains("CaptureParameterSnapshot", parameterSnapshot);
-        Assert.Contains("__musoqCaptureStructuralParameter_", parameterSnapshot);
-        Assert.Contains("GetCollectionCount<", parameterSnapshot);
+        Assert.Contains("ExecutionState.Capture(TypedParameters)", parameterSnapshot);
+        Assert.DoesNotContain("CaptureParameterSnapshot", parameterSnapshot);
+        Assert.Contains("__musoqBindTypedJson_", parameterSnapshot);
+        Assert.Contains("__musoqDecodeTypedJson_", parameterSnapshot);
+        Assert.DoesNotContain("__musoqCaptureStructuralParameter_", parameterSnapshot);
+        Assert.Contains("value.GetArrayLength()", parameterSnapshot);
         Assert.DoesNotContain("GetCollectionElement(", parameterSnapshot);
         Assert.DoesNotContain("Array.GetValue", parameterSnapshot);
 

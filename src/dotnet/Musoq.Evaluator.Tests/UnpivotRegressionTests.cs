@@ -31,9 +31,9 @@ public sealed class UnpivotRegressionTests : BasicEntityTestBase
         AssertColumn(table, 0, "City", typeof(string));
         AssertColumn(table, 1, "Jan", typeof(decimal?));
         AssertColumn(table, 2, "Feb", typeof(decimal?));
-        Assert.AreEqual("GDA", table[0][0]);
-        Assert.AreEqual(10m, table[0][1]);
-        Assert.AreEqual(20m, table[0][2]);
+        Assert.AreEqual("GDA", table[0].ReadValue(0));
+        Assert.AreEqual(10m, table[0].ReadValue(1));
+        Assert.AreEqual(20m, table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -51,12 +51,12 @@ public sealed class UnpivotRegressionTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, CreateSingleSource()).Run();
 
         Assert.AreEqual(2, table.Count);
-        AssertColumn(table, 0, "v.Name", typeof(string));
-        AssertColumn(table, 1, "v.Score", typeof(int));
-        Assert.AreEqual("A", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual("B", table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
+        AssertColumn(table, 0, "Name", typeof(string));
+        AssertColumn(table, 1, "Score", typeof(int));
+        Assert.AreEqual("A", table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.AreEqual("B", table[1].ReadValue(0));
+        Assert.AreEqual(2, table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -82,9 +82,9 @@ public sealed class UnpivotRegressionTests : BasicEntityTestBase
         AssertColumn(table, 0, "City", typeof(string));
         AssertColumn(table, 1, "Jan_Sales", typeof(decimal?));
         AssertColumn(table, 2, "Jan_Items", typeof(long));
-        Assert.AreEqual("GDA", table[0][0]);
-        Assert.AreEqual(30m, table[0][1]);
-        Assert.AreEqual(2L, table[0][2]);
+        Assert.AreEqual("GDA", table[0].ReadValue(0));
+        Assert.AreEqual(30m, table[0].ReadValue(1));
+        Assert.AreEqual(2L, table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -102,11 +102,11 @@ public sealed class UnpivotRegressionTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, CreateSingleSource()).Run();
 
         Assert.AreEqual(2, table.Count);
-        AssertColumn(table, 0, "v.Name", typeof(string));
-        AssertColumn(table, 1, "v.Score", typeof(long?));
-        Assert.AreEqual("A", table[0][0]);
-        Assert.IsNull(table[0][1]);
-        Assert.AreEqual("B", table[1][0]);
-        Assert.AreEqual(2L, table[1][1]);
+        AssertColumn(table, 0, "Name", typeof(string));
+        AssertColumn(table, 1, "Score", typeof(long?));
+        Assert.AreEqual("A", table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
+        Assert.AreEqual("B", table[1].ReadValue(0));
+        Assert.AreEqual(2L, table[1].ReadValue(1));
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -55,22 +55,22 @@ public static class DataSourceLifecycle
         }
     }
 
-    public static RowSource<T> OpenRowSource<T>(
+    public static RowSource<T> OpenRowSource<T, TArguments>(
         ISchema schema,
         string sourceName,
         SourceExecutionContext executionContext,
-        object?[] parameters,
+        TArguments parameters,
         string schemaName,
         string alias,
         string sourceContextId)
+        where TArguments : struct, ISourceArguments
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(executionContext);
-        ArgumentNullException.ThrowIfNull(parameters);
 
         try
         {
-            return schema.GetRowSource<T>(sourceName, executionContext, parameters) ??
+            return schema.GetRowSource<T, TArguments>(sourceName, executionContext, parameters) ??
                    throw new InvalidOperationException($"Source '{sourceName}' returned null.");
         }
         catch (OperationCanceledException)
@@ -149,23 +149,23 @@ public static class DataSourceLifecycle
                 exception);
         }
     }
-    public static RowSource<TRow> OpenQueryScopedRowSource<TRow, TMaterializer>(
+    public static RowSource<TRow> OpenQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         IQueryScopedRowSourceSchema schema,
         string sourceName,
         QueryScopedRowSourceRequest request,
-        object?[] parameters,
+        TArguments parameters,
         string schemaName,
         string alias,
         string sourceContextId)
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, ISourceArguments
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(request);
-        ArgumentNullException.ThrowIfNull(parameters);
 
         try
         {
-            return schema.GetQueryScopedRowSource<TRow, TMaterializer>(sourceName, request, parameters) ??
+            return schema.GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(sourceName, request, parameters) ??
                    throw new InvalidOperationException($"Source '{sourceName}' returned null.");
         }
         catch (OperationCanceledException)
@@ -497,10 +497,10 @@ public static class DataSourceLifecycle
         public SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters) =>
             inner.TryPlanSource(name, request, parameters);
 
-        public RowSource<T> GetRowSource<T>(
+        public RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments parameters) where TArguments : struct, global::Musoq.Schema.ISourceArguments
         {
             var identity = executionContext.Plan.Identity;
             var effectiveSchemaName = string.IsNullOrEmpty(identity.SchemaName) ? schemaName : identity.SchemaName;
@@ -509,7 +509,7 @@ public static class DataSourceLifecycle
             var effectiveContextId = string.IsNullOrEmpty(identity.SourceContextId)
                 ? sourceContextId
                 : identity.SourceContextId;
-            var source = OpenRowSource<T>(
+            var source = OpenRowSource<T, TArguments>(
                 inner,
                 name,
                 executionContext,
@@ -525,11 +525,12 @@ public static class DataSourceLifecycle
                 effectiveContextId);
         }
 
-        public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer>(
+        public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
             string name,
             QueryScopedRowSourceRequest request,
-            params object?[] parameters)
+            TArguments parameters)
             where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments
         {
             if (inner is not IQueryScopedRowSourceSchema queryScoped)
             {
@@ -544,7 +545,7 @@ public static class DataSourceLifecycle
             var effectiveContextId = string.IsNullOrEmpty(identity.SourceContextId)
                 ? sourceContextId
                 : identity.SourceContextId;
-            var source = OpenQueryScopedRowSource<TRow, TMaterializer>(
+            var source = OpenQueryScopedRowSource<TRow, TMaterializer, TArguments>(
                 queryScoped,
                 name,
                 request,
@@ -593,8 +594,14 @@ public static class DataSourceLifecycle
         public bool TryResolveWindowFunction(string method, [NotNullWhen(true)] out MethodInfo? methodInfo) =>
             inner.TryResolveWindowFunction(method, out methodInfo);
 
+        public bool TryResolveWindowFunction(string method, Type[] argumentTypes, [NotNullWhen(true)] out MethodInfo? methodInfo) =>
+            inner.TryResolveWindowFunction(method, argumentTypes, out methodInfo);
+
         public IReadOnlyDictionary<string, IReadOnlyList<MethodInfo>> GetAllLibraryMethods() =>
             inner.GetAllLibraryMethods();
+
+        public System.Collections.Immutable.ImmutableArray<Musoq.Plugins.SqlFunctionDescriptor> GetAllLibraryFunctions() =>
+            inner.GetAllLibraryFunctions();
     }
 
     private sealed class LifecycleRowSource<T>(

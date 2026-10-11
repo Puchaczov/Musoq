@@ -42,8 +42,8 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.Count", typeof(byte)),
-            ("h.Data", typeof(byte[])));
+            ("Count", typeof(byte)),
+            ("Data", typeof(byte[])));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             [(byte)3, new byte[] { 1, 2, 3, 4, 5, 6 }]);
@@ -84,8 +84,8 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.Count", typeof(byte)),
-            ("h.Data", typeof(byte[])));
+            ("Count", typeof(byte)),
+            ("Data", typeof(byte[])));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             [(byte)4, new byte[] { 0x11, 0x22, 0x33, 0x44 }]);
@@ -126,9 +126,9 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.Total", typeof(byte)),
-            ("h.HeaderSize", typeof(byte)),
-            ("h.Data", typeof(byte[])));
+            ("Total", typeof(byte)),
+            ("HeaderSize", typeof(byte)),
+            ("Data", typeof(byte[])));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             [(byte)10, (byte)2, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }]);
@@ -167,8 +167,8 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.Count", typeof(byte)),
-            ("h.Values", typeof(short[])));
+            ("Count", typeof(byte)),
+            ("Values", typeof(short[])));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)3, new short[] { 1, 2, 3 }]);
     }
 

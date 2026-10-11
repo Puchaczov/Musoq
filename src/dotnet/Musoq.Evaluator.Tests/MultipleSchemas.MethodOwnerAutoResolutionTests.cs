@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -16,6 +17,30 @@ namespace Musoq.Evaluator.Tests;
 public class MethodOwnerAutoResolutionTests : BasicEntityTestBase
 {
     [TestMethod]
+    public void ApplyArgumentAfterJoin_WithAmbiguousMethodOwner_ReportsBindDiagnostic()
+    {
+        const string query = """
+            select 1 from #A.entities() a
+            inner join #B.entities() b on a.City = b.City
+            cross apply #A.entities(AmbiguousMethod(a.Population)) c
+            """;
+        var analysis = new QueryAnalyzer(
+            CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>()).Analyze(query);
+
+        Assert.IsTrue(analysis.Errors.Any(error =>
+            error.Code == DiagnosticCode.MQ3035_AmbiguousMethodOwner &&
+            error.Phase == DiagnosticPhase.Bind &&
+            error.Span.Length > 0));
+        Assert.IsFalse(analysis.Errors.Any(error => error.Code == DiagnosticCode.MQ9001_InternalCompilerError));
+
+        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(
+            query,
+            schemaProvider: CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>()));
+        AssertErrorEnvelope(exception, DiagnosticCode.MQ3035_AmbiguousMethodOwner, DiagnosticPhase.Bind);
+        Assert.IsFalse(exception.Envelopes.Any(envelope => envelope.Code == DiagnosticCode.MQ9001_InternalCompilerError));
+    }
+
+    [TestMethod]
     public void WhenUnqualifiedMethodExistsInCommonAncestor_ShouldAutoResolve()
     {
         const string query = @"select a.City, ToDecimal(a.Population)
@@ -29,8 +54,8 @@ inner join #B.entities() b on a.City = b.City";
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Warsaw", table[0].Values[0]);
-        Assert.AreEqual(100m, table[0].Values[1]);
+        Assert.AreEqual("Warsaw", table[0].ReadValues()[0]);
+        Assert.AreEqual(100m, table[0].ReadValues()[1]);
     }
 
     [TestMethod]
@@ -47,8 +72,8 @@ inner join #B.entities() b on a.City = b.City";
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Warsaw", table[0].Values[0]);
-        Assert.AreEqual(200m, table[0].Values[1]);
+        Assert.AreEqual("Warsaw", table[0].ReadValues()[0]);
+        Assert.AreEqual(200m, table[0].ReadValues()[1]);
     }
 
     [TestMethod]
@@ -138,8 +163,8 @@ left outer join #B.entities() b on a.Id = b.Id";
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Poland", table[0].Values[0]);
-        Assert.IsNull(table[0].Values[1]);
+        Assert.AreEqual("Poland", table[0].ReadValues()[0]);
+        Assert.IsNull(table[0].ReadValues()[1]);
     }
 
     [TestMethod]
@@ -156,8 +181,8 @@ inner join #B.entities() b on a.City = b.City";
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Warsaw", table[0].Values[0]);
-        Assert.AreEqual(10m, table[0].Values[1]);
+        Assert.AreEqual("Warsaw", table[0].ReadValues()[0]);
+        Assert.AreEqual(10m, table[0].ReadValues()[1]);
     }
 
     [TestMethod]
@@ -175,8 +200,8 @@ group by a.City";
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Warsaw", table[0].Values[0]);
-        Assert.AreEqual(200m, table[0].Values[1]);
+        Assert.AreEqual("Warsaw", table[0].ReadValues()[0]);
+        Assert.AreEqual(200m, table[0].ReadValues()[1]);
     }
 
     [TestMethod]
@@ -193,8 +218,8 @@ inner join #B.entities() b on a.City = b.City";
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Warsaw", table[0].Values[0]);
-        Assert.AreEqual("100", table[0].Values[1]);
+        Assert.AreEqual("Warsaw", table[0].ReadValues()[0]);
+        Assert.AreEqual("100", table[0].ReadValues()[1]);
     }
 
     private GenericSchemaProvider CreateTwoSchemaProvider<TLibA, TLibB>(

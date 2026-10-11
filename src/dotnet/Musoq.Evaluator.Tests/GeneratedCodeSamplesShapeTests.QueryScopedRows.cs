@@ -9,22 +9,22 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void QueryRowSamples_WhenCompiledForInspection_ShouldPreserveSelectedCarrierAndMaterializerShape()
     {
-        var legacy = CompileSampleForInspection(QueryRowLegacyFallbackSampleFileName);
+        var declared = CompileSampleForInspection(QueryRowDeclaredEntitySampleFileName);
         var narrow = CompileSampleForInspection(QueryRowReadonlyStructSampleFileName);
         var wide = CompileSampleForInspection(QueryRowSealedClassSampleFileName);
         var empty = CompileSampleForInspection(QueryRowZeroFieldSampleFileName);
         var special = CompileSampleForInspection(QueryRowSpecialNamesSampleFileName);
         var boundary = CompileSampleForInspection(QueryRowLifetimeBoundarySampleFileName);
 
-        foreach (var result in new[] { legacy, narrow, wide, empty, special, boundary })
+        foreach (var result in new[] { declared, narrow, wide, empty, special, boundary })
         {
             Assert.IsFalse(
                 result.Diagnostics.Any(static diagnostic => diagnostic.IsError),
                 string.Join(Environment.NewLine, result.Diagnostics));
         }
 
-        StringAssert.Contains(legacy.GeneratedCSharpCode, "GetRowSource<object[]>");
-        Assert.IsFalse(legacy.GeneratedCSharpCode.Contains("GetQueryScopedRowSource<", StringComparison.Ordinal));
+        StringAssert.Contains(declared.GeneratedCSharpCode, "SourceInvocation<Musoq.Evaluator.Tests.Schema.QueryRows.DeclaredQueryRowSample>");
+        Assert.IsFalse(declared.GeneratedCSharpCode.Contains("QuerySourceInvocation<", StringComparison.Ordinal));
 
         StringAssert.Contains(narrow.GeneratedCSharpCode, "private readonly struct QueryRow_");
         StringAssert.Contains(narrow.GeneratedCSharpCode, "IQueryRowMaterializer<QueryRow_");
@@ -39,7 +39,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         StringAssert.Contains(wide.PlanningText, "sealed class carrier");
 
         StringAssert.Contains(empty.GeneratedCSharpCode, "private readonly struct QueryRow_");
-        StringAssert.Contains(empty.GeneratedCSharpCode, "GetQueryScopedRowSource<");
+        StringAssert.Contains(empty.GeneratedCSharpCode, "QuerySourceInvocation<");
         Assert.IsFalse(empty.GeneratedCSharpCode.Contains("reader.Read<", StringComparison.Ordinal));
 
         StringAssert.Contains(special.GeneratedCSharpCode, "\"display name\"");
@@ -49,7 +49,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         StringAssert.Contains(special.GeneratedCSharpCode, "reader.Read<int>(1)");
 
         StringAssert.Contains(boundary.GeneratedCSharpCode, "private sealed class QueryRow_");
-        Assert.AreEqual(2, CountOccurrences(boundary.GeneratedCSharpCode, "GetQueryScopedRowSource<"));
+        Assert.AreEqual(2, CountOccurrences(boundary.GeneratedCSharpCode, "QuerySourceInvocation<"));
         StringAssert.Contains(boundary.PlanningText, "lifetime=EscapesScan");
     }
 
@@ -58,7 +58,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         (string FileName, int Count)[] expectations =
         [
-            (QueryRowLegacyFallbackSampleFileName, 2),
+            (QueryRowDeclaredEntitySampleFileName, 2),
             (QueryRowReadonlyStructSampleFileName, 2),
             (QueryRowSealedClassSampleFileName, 1),
             (QueryRowZeroFieldSampleFileName, 1),
@@ -78,7 +78,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     public void QueryRowSamples_WhenGenerated_ShouldRemainTrackedAsDedicatedSnapshotCorpus()
     {
         var samples = ReadNamedSamples(
-            QueryRowLegacyFallbackSampleFileName,
+            QueryRowDeclaredEntitySampleFileName,
             QueryRowReadonlyStructSampleFileName,
             QueryRowSealedClassSampleFileName,
             QueryRowZeroFieldSampleFileName,

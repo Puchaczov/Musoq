@@ -53,8 +53,8 @@ public class CteHashJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "Should have 1 matching row (Population = 100)");
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B1", table[0][1]);
+        Assert.AreEqual("A1", table[0].ReadValue(0));
+        Assert.AreEqual("B1", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -95,10 +95,10 @@ public class CteHashJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Should have 2 rows (all from left side)");
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B1", table[0][1]);
-        Assert.AreEqual("A2", table[1][0]);
-        Assert.IsNull(table[1][1]);
+        Assert.AreEqual("A1", table[0].ReadValue(0));
+        Assert.AreEqual("B1", table[0].ReadValue(1));
+        Assert.AreEqual("A2", table[1].ReadValue(0));
+        Assert.IsNull(table[1].ReadValue(1));
     }
 
     /// <summary>
@@ -139,10 +139,10 @@ public class CteHashJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Should have 2 rows (all from right side)");
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B1", table[0][1]);
-        Assert.IsNull(table[1][0]);
-        Assert.AreEqual("B2", table[1][1]);
+        Assert.AreEqual("A1", table[0].ReadValue(0));
+        Assert.AreEqual("B1", table[0].ReadValue(1));
+        Assert.IsNull(table[1].ReadValue(0));
+        Assert.AreEqual("B2", table[1].ReadValue(1));
     }
 
     /// <summary>
@@ -182,8 +182,8 @@ public class CteHashJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "Should have 1 matching row (Population = 100)");
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B1", table[0][1]);
+        Assert.AreEqual("A1", table[0].ReadValue(0));
+        Assert.AreEqual("B1", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -217,9 +217,9 @@ public class CteHashJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "Should have 1 matching row");
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B1", table[0][1]);
-        Assert.AreEqual("C1", table[0][2]);
+        Assert.AreEqual("A1", table[0].ReadValue(0));
+        Assert.AreEqual("B1", table[0].ReadValue(1));
+        Assert.AreEqual("C1", table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -260,7 +260,7 @@ public class CteHashJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "Should have 1 matching row (Population = 100)");
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B1", table[0][1]);
+        Assert.AreEqual("A1", table[0].ReadValue(0));
+        Assert.AreEqual("B1", table[0].ReadValue(1));
     }
 }

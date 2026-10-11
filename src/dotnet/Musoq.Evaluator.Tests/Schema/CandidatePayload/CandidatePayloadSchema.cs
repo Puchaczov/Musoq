@@ -105,13 +105,13 @@ public sealed class CandidatePayloadSchema(
         };
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         if (!string.Equals(name, Items, StringComparison.OrdinalIgnoreCase))
-            return base.GetRowSource<T>(name, executionContext, parameters);
+            return base.GetRowSource<T, TArguments>(name, executionContext, nativeArguments);
 
         recorder.RecordExecutionPlan(executionContext.Plan);
         return EnsureSourceType<T, CandidatePayloadEntity>(

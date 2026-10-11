@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Tests.Architecture;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -57,11 +58,6 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
     private static string GetShapeTestSourceDirectory()
     {
-        var generatedSamplesDirectory = Directory.GetParent(GeneratedCodeSampleArtifacts.SamplesDirectory) ??
-            throw new InvalidOperationException("Generated sample directory has no parent.");
-        var repositoryRoot = generatedSamplesDirectory.Parent?.FullName ??
-            throw new InvalidOperationException("Generated sample directory has no repository root.");
-
-        return Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator.Tests");
+        return Path.Combine(RepositorySourceScan.RepositoryRoot(), "src", "dotnet", "Musoq.Evaluator.Tests");
     }
 }

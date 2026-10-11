@@ -82,7 +82,7 @@ public sealed class DiagnosticREC104EnumCompositionTests : GenericEntityTestBase
             using var table = compiled.Run(TestContext.CancellationToken);
             Assert.IsTrue(table.Columns.Any(column => column.EnumType?.DisplayName == typeof(REC104PrimaryStatus).FullName),
                 candidate.CaseId);
-            Assert.IsFalse(table.SelectMany(static row => row.Values).Any(static value => value is Enum),
+            Assert.IsFalse(table.SelectMany(static row => row.ReadValues()).Any(static value => value is Enum),
                 candidate.CaseId);
         }
     }
@@ -125,7 +125,7 @@ public sealed class DiagnosticREC104EnumCompositionTests : GenericEntityTestBase
             Assert.IsFalse(string.IsNullOrWhiteSpace(column.EnumType.Fingerprint), query);
         }
 
-        Assert.IsFalse(table.SelectMany(static row => row.Values).Any(static value => value is Enum), query);
+        Assert.IsFalse(table.SelectMany(static row => row.ReadValues()).Any(static value => value is Enum), query);
     }
 
     private void AssertDiagnostic(REC104Candidate candidate)

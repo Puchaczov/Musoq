@@ -24,7 +24,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains("PhaseBoundary [Begin:cte0]", sample.Content);
         Assert.Contains("ForEach [ko3iko in ko3ikoRows]", sample.Content);
-        Assert.Contains("AppendShape [result <- ResultShape0(Name: ko3iko.Name, Population: population)]", sample.Content);
+        Assert.Contains("AppendShape [result <- ResultRow0(Name: ko3iko.Name, Population: population)]", sample.Content);
         Assert.Contains("OnPhaseChanged(\"compiled:cte0\", QueryPhase.Begin);", sample.Content);
         Assert.IsFalse(sample.Content.Contains("private Table[] _tableResults", StringComparison.Ordinal));
         Assert.IsFalse(sample.Content.Contains("private sealed class Cte0Row0", StringComparison.Ordinal));
@@ -46,7 +46,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("PhaseBoundary [Begin:cte1]", sample.Content);
         Assert.Contains("ForEach [ko3iko in ko3ikoRows]", sample.Content);
         Assert.Contains("If [((ko3iko.Population > 0) AND city IS NOT NULL)]", sample.Content);
-        Assert.Contains("AppendShape [result <- ResultShape0(Name: ko3iko.Name, City: city)]", sample.Content);
+        Assert.Contains("AppendShape [result <- ResultRow0(Name: ko3iko.Name, City: city)]", sample.Content);
         Assert.Contains("OnPhaseChanged(\"compiled:cte0\", QueryPhase.Begin);", sample.Content);
         Assert.Contains("OnPhaseChanged(\"compiled:cte1\", QueryPhase.Begin);", sample.Content);
         Assert.IsFalse(sample.Content.Contains("private Table[] _tableResults", StringComparison.Ordinal));
@@ -122,7 +122,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("PhaseBoundary [Begin:cte0]", result.ExecutionPlanText);
         Assert.Contains("CreateKeySet [_sq_1Keys: string]", result.ExecutionPlanText);
         Assert.Contains("ForEach [b in cte0_bRows]", result.ExecutionPlanText);
-        Assert.Contains("AppendShape [result <- ResultShape0(a.City: a.City)]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultRow0(City: a.City)]", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [cte0 -> _tableResults[0]]", StringComparison.Ordinal));
         Assert.IsFalse(result.ExecutionPlanText.Contains("AggregateGroup", StringComparison.Ordinal));
         Assert.IsFalse(
@@ -148,7 +148,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("private sealed class ResultRow0", sample.Content);
         Assert.Contains("var _sq_1Keys = new HashSet<string>();", sample.Content);
         Assert.Contains("foreach (var bChunk in cte0_bRows)", sample.Content);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(a.City));", sample.Content);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a.City));", sample.Content);
         Assert.IsFalse(sample.Content.Contains("AppendHashJoinRows(aRows, _sq_1Keys, result, token);", StringComparison.Ordinal));
         Assert.IsFalse(sample.Content.Contains("private static void BuildSq1Keys(", StringComparison.Ordinal));
         Assert.Contains("token.ThrowIfCancellationRequested();", sample.Content);
@@ -216,7 +216,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [DataRow(ExceptWithGroupBySidesSampleFileName, 4)]
     [DataRow(Union3WithGroupBySidesSampleFileName, 4)]
     [DataRow(UnionWithGroupBySidesSampleFileName, 3)]
-    public void GroupedSetOperationSamples_WhenCheckedIn_ShouldShareIdenticalAggregateHelpers(
+    public void GroupedSetOperationSamples_WhenCheckedIn_ShouldShareTypedStateWithoutSplittingCheckedSums(
         string fileName,
         int helperReferenceCount)
     {
@@ -224,12 +224,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains("private sealed class AggregateGroup0", sample);
         Assert.AreEqual(1, CountOccurrences(sample, "private sealed class AggregateGroup0"));
-        Assert.AreEqual(1, CountOccurrences(sample, "private static List<AggregateGroup0> ParallelSingleKeyAggregate_0("));
-        Assert.AreEqual(1, CountOccurrences(sample, "private static void ParallelSingleKeyAggregateChunk_0("));
-        Assert.AreEqual(1, CountOccurrences(sample, "private sealed class ParallelSingleKeyAggregateChunkWorker_0"));
-        Assert.AreEqual(helperReferenceCount, CountOccurrences(sample, "ParallelSingleKeyAggregate_0("));
+        Assert.DoesNotContain("ParallelSingleKeyAggregate", sample);
+        Assert.AreEqual(helperReferenceCount - 1, CountOccurrences(sample, "TypedAggregateSet ["));
+        Assert.AreEqual(1, CountOccurrences(sample, "SumAggregateKernel<decimal>.Reset(ref this.__agg0)"));
+        Assert.Contains("checked(", sample);
         Assert.AreEqual(0, CountOccurrences(sample, "SerialSingleKeyAggregate_0("));
-        Assert.AreEqual(1, CountOccurrences(sample, "Parallel.ForEach<IReadOnlyList<"));
+        Assert.AreEqual(0, CountOccurrences(sample, "Parallel.ForEach<IReadOnlyList<"));
         Assert.AreEqual(0, CountOccurrences(sample, "shardIndex =>"));
         Assert.AreEqual(0, CountOccurrences(sample, "ParallelSingleKeyAggregate_1"));
         Assert.AreEqual(0, CountOccurrences(sample, "ParallelSingleKeyAggregateChunk_1"));

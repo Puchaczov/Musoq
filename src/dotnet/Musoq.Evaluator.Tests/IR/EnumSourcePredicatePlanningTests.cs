@@ -27,7 +27,8 @@ public sealed class EnumSourcePredicatePlanningTests
             column,
             [new Literal(1u, typeof(uint)), new Literal(2u, typeof(uint))],
             typeof(bool),
-            IsNegated: true);
+            IsNegated: true)
+        { SqlSemantics = true };
 
         Assert.IsTrue(SourcePredicateExpressionConverter.TryConvertPredicate(equality, "s", out var equalityPredicate));
         Assert.IsTrue(SourcePredicateExpressionConverter.TryConvertPredicate(inCheck, "s", out var inPredicate));

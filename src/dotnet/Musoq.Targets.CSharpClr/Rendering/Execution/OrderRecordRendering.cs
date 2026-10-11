@@ -57,12 +57,12 @@ public sealed partial class ExecutionCSharpRenderer
                 .WithArgumentList(CreateArgumentList(arguments)));
     }
 
-    private ExpressionStatementSyntax RenderAppendRecord(ExecutionAppendRecord appendRecord)
+    private ExpressionStatementSyntax RenderAppendRecord(ExecutionAppendRecord appendRecord, ExecutionRenderContext context)
     {
         var rowValues = appendRecord.Values
             .Select((value, index) => RenderRowConstructorValue(
                 value.Value,
-                appendRecord.RecordShape.Fields[index].Type.RequireClrType()))
+                appendRecord.RecordShape.Fields[index].Type.RequireClrType(), context))
             .ToList();
 
         if (appendRecord.RecordShape.Fields.Count == appendRecord.Values.Count + 1 &&

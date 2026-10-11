@@ -109,5 +109,5 @@ internal sealed record GitPlanCall(
 internal sealed record GitRowSourceCall(
     string Name,
     GitSourceExecutionSnapshot Execution,
-    IReadOnlyList<object?> Parameters,
+    string? Parameters,
     Type RequestedRowType);

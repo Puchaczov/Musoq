@@ -41,8 +41,8 @@ public partial class BinaryOrTextualCoreBinaryTests
         // Assert
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.Magic", typeof(int)),
-            ("h.Version", typeof(short)));
+            ("Magic", typeof(int)),
+            ("Version", typeof(short)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [0x12345678, (short)0x0100]);
     }
 
@@ -83,8 +83,8 @@ public partial class BinaryOrTextualCoreBinaryTests
         // Assert
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.Name", typeof(string)),
-            ("h.Value", typeof(int)));
+            ("Name", typeof(string)),
+            ("Value", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["file1.bin", 100],
@@ -127,7 +127,7 @@ public partial class BinaryOrTextualCoreBinaryTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        TableMaterializationTestHelper.AssertColumns(table, ("f.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["also_enabled.bin"],
@@ -168,8 +168,8 @@ public partial class BinaryOrTextualCoreBinaryTests
         // Assert
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.Header", typeof(byte[])),
-            ("h.Data", typeof(byte[])));
+            ("Header", typeof(byte[])),
+            ("Data", typeof(byte[])));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             [new byte[] { 0xDE, 0xAD, 0xBE, 0xEF }, new byte[] { 0x12, 0x34 }]);

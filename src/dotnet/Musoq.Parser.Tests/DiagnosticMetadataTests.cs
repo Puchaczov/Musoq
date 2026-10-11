@@ -413,7 +413,7 @@ public class DiagnosticMetadataTests
     }
 
     [TestMethod]
-    public void Diagnostic_Info_FactoryMethod_ShouldCreateInfoDiagnostic()
+    public void Diagnostic_Info_SqlDeclaration_ShouldCreateInfoDiagnostic()
     {
         var diag = Diagnostic.Info(DiagnosticCode.MQ5003_ImplicitTypeConversion, "info message", new TextSpan(0, 5));
 

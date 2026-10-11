@@ -76,10 +76,6 @@ internal static partial class ExecutionNodeFacts
                 return [materialize.Source];
             case ExecutionMaterializeFilteredList materialize:
                 return [materialize.Source, materialize.Predicate];
-            case ExecutionMaterializeExpandoList materialize:
-                return materialize.Predicate == null
-                    ? [materialize.Source]
-                    : [materialize.Source, materialize.Predicate];
             case ExecutionHashAdd hashAdd:
                 return [hashAdd.Key];
             case ExecutionHashProbe hashProbe:
@@ -144,7 +140,7 @@ internal static partial class ExecutionNodeFacts
             ExecutionComputeOffsetWindow offset => keyExpressions.Concat([offset.Value, offset.Offset, offset.DefaultValue]),
             ExecutionComputePluginWindow plugin => keyExpressions.Concat([plugin.Value]).Concat(plugin.Arguments),
             ExecutionWindowAggregateKernel kernel => keyExpressions.Concat([kernel.Value])
-                .Concat(OptionalExpression(kernel.FilterPredicate)),
+                .Concat(kernel.LibraryArguments).Concat(OptionalExpression(kernel.FilterPredicate)),
             _ => keyExpressions
         };
     }

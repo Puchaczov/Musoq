@@ -18,7 +18,7 @@ public partial class QueryInspectionTests
         Assert.Contains("new Dictionary<string, HashJoinBucket<", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("eHash.TryGetValue", result.GeneratedCSharpCode);
         Assert.Contains("private sealed class ResultRow0", result.GeneratedCSharpCode);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(d.Dummy, e.Dummy", result.GeneratedCSharpCode);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(d.Dummy, e.Dummy", result.GeneratedCSharpCode);
         Assert.Contains("JoinStrategy [JoinStrategySelection] Inner -> HashJoin", result.PlanningText);
         Assert.Contains("Hash join selected because at least one equi key pair was found.", result.PlanningText);
         Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
@@ -45,7 +45,7 @@ public partial class QueryInspectionTests
         AssertExecutionPlanContains("CreateHash [eHash: string -> DualEntity]", result.ExecutionPlanText);
         AssertExecutionPlanContains("HashProbe [eHash[d.Dummy] -> eHashMatches]", result.ExecutionPlanText);
         Assert.Contains("HashProbeNoMatch", result.ExecutionPlanText);
-        Assert.Contains("AppendShape [result <- ResultShape0(d.Dummy: d.Dummy, e.Dummy: NULL)]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Dummy: d.Dummy, Dummy: NULL)]", result.ExecutionPlanText);
         AssertGeneratedCSharpContains("eHash.TryGetValue", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.GetColumnValue", result.GeneratedCSharpCode);
@@ -60,7 +60,7 @@ public partial class QueryInspectionTests
         AssertExecutionPlanContains("CreateHash [dHash: string -> DualEntity]", result.ExecutionPlanText);
         AssertExecutionPlanContains("HashProbe [dHash[e.Dummy] -> dHashMatches]", result.ExecutionPlanText);
         Assert.Contains("HashProbeNoMatch", result.ExecutionPlanText);
-        Assert.Contains("AppendShape [result <- ResultShape0(d.Dummy: NULL, e.Dummy: e.Dummy)]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Dummy: NULL, Dummy: e.Dummy)]", result.ExecutionPlanText);
         AssertGeneratedCSharpContains("dHash.TryGetValue", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.GetColumnValue", result.GeneratedCSharpCode);
@@ -119,8 +119,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual("single", table[0][1]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual("single", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -131,8 +131,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.IsNull(table[0][1]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -156,7 +156,7 @@ public partial class QueryInspectionTests
         AssertExecutionPlanContains("StoreCteIndex [hashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]", result.ExecutionPlanText);
         AssertExecutionPlanContains("LoadCteIndex [rHash <- _cteIndexResults.Slot0 Hash: string]", result.ExecutionPlanText);
         AssertExecutionPlanContains("HashProbe [rHash[l.Dummy] -> rHashMatches]", result.ExecutionPlanText);
-        Assert.Contains("AppendShape [result <- ResultShape0(l.Dummy: l.Dummy, r.Dummy: r.Dummy)]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Dummy: l.Dummy, Dummy: r.Dummy)]", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[2]]", StringComparison.Ordinal));
         AssertGeneratedCSharpContains("rHash.TryGetValue", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
@@ -170,8 +170,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual("single", table[0][1]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual("single", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -200,8 +200,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.IsNull(table[0][1]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -228,9 +228,9 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.IsNull(table[0][1]);
-        Assert.AreEqual("single", table[0][2]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
+        Assert.AreEqual("single", table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -247,7 +247,7 @@ public partial class QueryInspectionTests
         Assert.Contains("Let [dummy: string = l.Dummy]", result.ExecutionPlanText);
         Assert.Contains("Let [dummy1: string = r.Dummy]", result.ExecutionPlanText);
         Assert.Contains("If [(dummy <> dummy1)]", result.ExecutionPlanText);
-        Assert.Contains("AppendShape [result <- ResultShape0(l.Dummy: dummy, r.Dummy: dummy1)]", result.ExecutionPlanText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Dummy: dummy, Dummy: dummy1)]", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[2]]", StringComparison.Ordinal));
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -260,8 +260,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single!", table[0][0]);
-        Assert.AreEqual("single", table[0][1]);
+        Assert.AreEqual("single!", table[0].ReadValue(0));
+        Assert.AreEqual("single", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -284,9 +284,9 @@ public partial class QueryInspectionTests
 
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Dummy", table[0][0]);
-        Assert.AreEqual(0, table[0][1]);
-        Assert.AreEqual(typeof(string).FullName, table[0][2]);
+        Assert.AreEqual("Dummy", table[0].ReadValue(0));
+        Assert.AreEqual(0, table[0].ReadValue(1));
+        Assert.AreEqual(typeof(string).FullName, table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -329,14 +329,14 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenDynamicHashJoinLoweringUsesNestedLoop_ShouldNotWarn()
+    public void CompileForInspection_WhenNativeDynamicSourceUsesHashJoin_ShouldNotWarn()
     {
         var result = Inspect(
             "select l.Name, r.Name from #dynamic.all() l inner join #dynamic.all() r on l.Team = r.Team",
             CreateDynamicRowsSchemaProvider());
 
-        Assert.Contains("PhysicalNestedLoopJoin [Inner]", result.PhysicalPlanText);
-        Assert.Contains("dynamic or expando", result.PlanningText);
+        Assert.Contains("PhysicalHashJoin [Inner]", result.PhysicalPlanText);
+        Assert.Contains("query-scoped rows selected", result.PlanningText);
         Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
     }
 
@@ -361,8 +361,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("single", table[0][0]);
-        Assert.AreEqual("single", table[0][1]);
+        Assert.AreEqual("single", table[0].ReadValue(0));
+        Assert.AreEqual("single", table[0].ReadValue(1));
     }
 
 }

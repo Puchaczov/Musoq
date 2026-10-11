@@ -86,11 +86,6 @@ public sealed partial class ExecutionShapeResolver
         return resultType;
     }
 
-    private static bool IsDynamicEntity(Type entityType)
-    {
-        return ExecutionSourceCodeGenerationPolicy.IsSupportedDictionary(entityType);
-    }
-
     private static bool IsScalar(Type type)
     {
         type = Nullable.GetUnderlyingType(type) ?? type;

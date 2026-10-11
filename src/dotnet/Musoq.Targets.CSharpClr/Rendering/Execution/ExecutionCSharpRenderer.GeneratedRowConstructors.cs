@@ -14,7 +14,7 @@ public sealed partial class ExecutionCSharpRenderer
         var contextReadTypeNames = CollectGeneratedRowTypesWithContextReads(block, typedStoredTableResults);
         contextReadTypeNames.UnionWith(CollectGeneratedRowTypesUsedAsRowContexts(block));
 
-        foreach (var appendRow in FlattenNodes(block).OfType<ExecutionAppendRow>().Select(NormalizeLazyContextSegments))
+        foreach (var appendRow in FlattenNodes(block).OfType<ExecutionAppendRow>())
             AddGeneratedRowConstructorUsage(
                 usages,
                 appendRow.RowShape.TypeName,
@@ -22,7 +22,7 @@ public sealed partial class ExecutionCSharpRenderer
                     ? GeneratedRowContextConstructor.NoContext
                     : ResolveGeneratedRowContextConstructor(appendRow));
 
-        foreach (var createRow in FlattenNodes(block).OfType<ExecutionCreateGeneratedRow>().Select(NormalizeLazyContextSegments))
+        foreach (var createRow in FlattenNodes(block).OfType<ExecutionCreateGeneratedRow>())
             AddGeneratedRowConstructorUsage(
                 usages,
                 createRow.RowShape.TypeName,
@@ -87,15 +87,15 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var rowTypeNames = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (var appendRow in FlattenNodes(block).OfType<ExecutionAppendRow>().Select(NormalizeLazyContextSegments))
+        foreach (var appendRow in FlattenNodes(block).OfType<ExecutionAppendRow>())
             CollectGeneratedRowTypesUsedAsRowContexts(appendRow.ContextLayout, rowTypeNames);
 
-        foreach (var createRow in FlattenNodes(block).OfType<ExecutionCreateGeneratedRow>().Select(NormalizeLazyContextSegments))
+        foreach (var createRow in FlattenNodes(block).OfType<ExecutionCreateGeneratedRow>())
             CollectGeneratedRowTypesUsedAsRowContexts(createRow.ContextLayout, rowTypeNames);
 
         foreach (var parallelProject in FlattenNodes(block).OfType<ExecutionParallelFilterProjectLoop>())
         {
-            var appendRow = NormalizeLazyContextSegments(parallelProject.AppendRow);
+            var appendRow = parallelProject.AppendRow;
             CollectGeneratedRowTypesUsedAsRowContexts(appendRow.ContextLayout, rowTypeNames);
         }
 

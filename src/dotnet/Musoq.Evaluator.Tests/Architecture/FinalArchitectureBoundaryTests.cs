@@ -222,7 +222,6 @@ public sealed class FinalArchitectureBoundaryTests
     {
         var cacheFields = new[]
         {
-            typeof(EvaluationHelper).GetField("NestedValueAccessors", BindingFlags.Static | BindingFlags.NonPublic),
             typeof(EvaluationHelper).GetField("XmlDocCache", BindingFlags.Static | BindingFlags.NonPublic),
             typeof(EvaluationHelper).GetField("CastableTypeCache", BindingFlags.Static | BindingFlags.NonPublic),
             typeof(EvaluationHelper).GetField("ObjectChunkAdapters", BindingFlags.Static | BindingFlags.NonPublic),

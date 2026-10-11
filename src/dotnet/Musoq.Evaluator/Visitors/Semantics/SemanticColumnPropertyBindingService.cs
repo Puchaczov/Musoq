@@ -1,4 +1,5 @@
 using System.Dynamic;
+using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using Musoq.Evaluator.Utils.Symbols;
@@ -94,7 +95,18 @@ internal sealed class SemanticColumnPropertyBindingService(
         try
         {
             error = null;
-            return parentType.GetProperty(propertyName);
+            var property = parentType.GetProperty(propertyName);
+            if (property is not null) return property;
+            foreach (var contract in parentType.GetInterfaces().Prepend(parentType))
+            {
+                if (!contract.IsGenericType) continue;
+                var definition = contract.GetGenericTypeDefinition();
+                if (definition != typeof(IReadOnlyDictionary<,>) && definition != typeof(IDictionary<,>)) continue;
+                var arguments = contract.GetGenericArguments();
+                if (arguments[0] == typeof(string) && ConcreteValueShape.FindUnresolvedValueType(arguments[1]) is null)
+                    return new ExpandoObjectPropertyInfo(propertyName, arguments[1]);
+            }
+            return null;
         }
         catch (Exception ex) when (ex is AmbiguousMatchException or ArgumentException)
         {
@@ -133,7 +145,7 @@ internal sealed class SemanticColumnPropertyBindingService(
         if (column == null || !IsIndexableType(column.ColumnType))
             return null;
 
-        return CreateColumnArrayAccess(node, column, resultTableAlias);
+        return CreateColumnArrayAccess(node, column, resultTableAlias ?? node.TableAlias ?? alias);
     }
 
     public AccessObjectArrayNode? TryCreateCurrentScopeArrayAccess(TableSymbol? tableSymbol, AccessObjectArrayNode node)
@@ -142,7 +154,26 @@ internal sealed class SemanticColumnPropertyBindingService(
         if (column == null || !IsIndexableType(column.ColumnType))
             return null;
 
-        return CreateColumnArrayAccess(node, column, null);
+        return CreateColumnArrayAccess(node, column, sourceBinding.Identifier);
+    }
+
+    public AccessObjectKeyNode? TryCreateColumnKeyAccess(
+        TableSymbol? tableSymbol,
+        string alias,
+        AccessObjectKeyNode node)
+    {
+        var column = tableSymbol?.GetColumnByAliasAndName(alias, node.ObjectName, node.SpanOrEmpty());
+        if (column == null)
+            return null;
+
+        var access = new AccessObjectKeyNode(node.Token, column.ColumnType, alias)
+        {
+            DestinationKind = node.DestinationKind
+        };
+        if (access.ReturnType == null)
+            return null;
+
+        return access;
     }
 
     public DotNode CreateObjectBackedDotNode(Node root, Node expression, DotNode original)

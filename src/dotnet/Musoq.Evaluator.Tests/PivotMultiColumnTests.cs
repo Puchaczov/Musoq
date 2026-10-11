@@ -24,12 +24,12 @@ public class PivotMultiColumnTests : BasicEntityTestBase
         AssertColumn(table, 0, "City", typeof(string));
         AssertColumn(table, 1, "y2000_nl", typeof(decimal?));
         AssertColumn(table, 2, "y2001_us", typeof(decimal?));
-        Assert.AreEqual("Amsterdam", table[0][0]);
-        Assert.AreEqual(10m, table[0][1]);
-        Assert.AreEqual(20m, table[0][2]);
-        Assert.AreEqual("Rotterdam", table[1][0]);
-        Assert.AreEqual(7m, table[1][1]);
-        Assert.AreEqual(3m, table[1][2]);
+        Assert.AreEqual("Amsterdam", table[0].ReadValue(0));
+        Assert.AreEqual(10m, table[0].ReadValue(1));
+        Assert.AreEqual(20m, table[0].ReadValue(2));
+        Assert.AreEqual("Rotterdam", table[1].ReadValue(0));
+        Assert.AreEqual(7m, table[1].ReadValue(1));
+        Assert.AreEqual(3m, table[1].ReadValue(2));
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateSources()

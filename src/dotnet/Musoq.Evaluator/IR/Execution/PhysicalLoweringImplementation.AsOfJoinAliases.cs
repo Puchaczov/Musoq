@@ -4,7 +4,7 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private static bool CanUseAsOfProbeSource(RowShape sourceShape, ExecutionVariable sourceVariable)
     {
-        if (sourceShape is ExpandoAdapterShape)
+        if (sourceShape is ValuesRowShape)
             return !string.IsNullOrWhiteSpace(sourceVariable.GeneratedRowTypeName);
         var rowType = sourceVariable.Type.ResolveClrType();
         return sourceShape is SourceEntityShape or TableRowShape &&
@@ -94,12 +94,7 @@ internal sealed partial class PhysicalLoweringImplementation
                     .Select(value => ReplaceExecutionAliasCore(value, fromAlias, toAlias))
                     .ToArray()
             },
-            ExecutionCompositeKey compositeKey => compositeKey with
-            {
-                Parts = compositeKey.Parts
-                    .Select(part => ReplaceExecutionAliasCore(part, fromAlias, toAlias))
-                    .ToArray()
-            },
+
             ExecutionValueTupleKey valueTupleKey => valueTupleKey with
             {
                 Parts = valueTupleKey.Parts

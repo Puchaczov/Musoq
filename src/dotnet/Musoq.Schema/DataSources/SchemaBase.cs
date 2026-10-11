@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Immutable;
+using Musoq.Plugins;
 using Musoq.Schema.Attributes;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Helpers;
@@ -124,7 +126,7 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
         return SourcePlanResult.RejectAll(request);
     }
 
-    public virtual RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public virtual RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters) where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
         if (string.IsNullOrWhiteSpace(name))
             throw SchemaArgumentException.ForEmptyString(nameof(name), "getting a row source");
@@ -132,19 +134,8 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
         if (executionContext == null)
             throw SchemaArgumentException.ForNullArgument(nameof(executionContext), "getting a row source");
 
-        var sourceName = $"{NormalizeSchemaMemberName(name)}{SourcePart}";
-
-        ValidateRequestedRowType<T>(name, executionContext, parameters);
-
-        if (AdditionalArguments.TryGetValue(sourceName, out var argument))
-            parameters = parameters.ExpandParameters(argument);
-
-        return ResolveAndCreate<RowSource<T>>(name, sourceName, GetAvailableSourceNames, parameters, (ci, p) =>
-        {
-            if (ci.SupportsInterCommunicator)
-                return p.ExpandParameters(executionContext);
-            return p;
-        });
+        throw new NotSupportedException(
+            $"Source '{Name}.{name}' must provide native typed construction or override GetRowSource<T, TArguments>.");
     }
 
     protected void ValidateRequestedRowType<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
@@ -315,6 +306,9 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
         return _aggregator.TryResolveWindowFunction(method, out methodInfo);
     }
 
+    public bool TryResolveWindowFunction(string method, Type[] argumentTypes, [NotNullWhen(true)] out MethodInfo? methodInfo)
+        => _aggregator.TryResolveWindowFunction(method, argumentTypes, out methodInfo);
+
     public bool TryResolveMethod(string method, Type[] parameters, Type? entityType, [NotNullWhen(true)] out MethodInfo? methodInfo)
     {
         return _aggregator.TryResolveMethod(method, parameters, entityType, out methodInfo);
@@ -329,6 +323,8 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
     {
         return _aggregator.GetAllMethods();
     }
+
+    public ImmutableArray<SqlFunctionDescriptor> GetAllLibraryFunctions() => _aggregator.GetAllFunctions();
 
     public void AddTable<TType>(string name)
     {

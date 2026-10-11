@@ -9,8 +9,21 @@ using Musoq.Parser.Diagnostics;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class Core025WindowTests : BasicEntityTestBase
+public sealed partial class Core025WindowTests : BasicEntityTestBase
 {
+    [TestMethod]
+    [TestProperty("CandidateId", "P1-064")]
+    public void Ntile_InlineValues_ShouldDistributeRemainderToEarlierBuckets()
+    {
+        const string query = "select Name, Ntile(3) over (order by Name) as Bucket from values { (Name: 'A'), (Name: 'B'), (Name: 'C'), (Name: 'D'), (Name: 'E') } v order by Name";
+
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Bucket", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["A", 1L], ["B", 1L], ["C", 2L], ["D", 2L], ["E", 3L]);
+    }
+
     [TestMethod]
     public void WindowFamilies_WithPeers_ShouldReturnDocumentedRankingValues()
     {

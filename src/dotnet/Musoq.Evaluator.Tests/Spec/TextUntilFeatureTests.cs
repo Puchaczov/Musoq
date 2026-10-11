@@ -42,8 +42,8 @@ public class TextUntilFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("", table[0][0]);
-        Assert.AreEqual("value", table[0][1]);
+        Assert.AreEqual("", table[0].ReadValue(0));
+        Assert.AreEqual("value", table[0].ReadValue(1));
     }
 
     #endregion
@@ -114,10 +114,10 @@ public class TextUntilFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("alpha", table[0][0]);
-        Assert.AreEqual("one", table[0][1]);
-        Assert.AreEqual("beta", table[1][0]);
-        Assert.AreEqual("gamma", table[2][0]);
+        Assert.AreEqual("alpha", table[0].ReadValue(0));
+        Assert.AreEqual("one", table[0].ReadValue(1));
+        Assert.AreEqual("beta", table[1].ReadValue(0));
+        Assert.AreEqual("gamma", table[2].ReadValue(0));
     }
 
     #endregion
@@ -147,8 +147,8 @@ public class TextUntilFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("name", table[0][0]);
-        Assert.AreEqual("John", table[0][1]);
+        Assert.AreEqual("name", table[0].ReadValue(0));
+        Assert.AreEqual("John", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -175,9 +175,9 @@ public class TextUntilFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("one", table[0][0]);
-        Assert.AreEqual("two", table[0][1]);
-        Assert.AreEqual("three", table[0][2]);
+        Assert.AreEqual("one", table[0].ReadValue(0));
+        Assert.AreEqual("two", table[0].ReadValue(1));
+        Assert.AreEqual("three", table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -203,8 +203,8 @@ public class TextUntilFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("header", table[0][0]);
-        Assert.AreEqual("body", table[0][1]);
+        Assert.AreEqual("header", table[0].ReadValue(0));
+        Assert.AreEqual("body", table[0].ReadValue(1));
     }
 
     #endregion
@@ -237,10 +237,10 @@ public class TextUntilFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("2024-01-15", table[0][0]);
-        Assert.AreEqual("10:30:00", table[0][1]);
-        Assert.AreEqual("INFO", table[0][2]);
-        Assert.AreEqual("Application started", table[0][3]);
+        Assert.AreEqual("2024-01-15", table[0].ReadValue(0));
+        Assert.AreEqual("10:30:00", table[0].ReadValue(1));
+        Assert.AreEqual("INFO", table[0].ReadValue(2));
+        Assert.AreEqual("Application started", table[0].ReadValue(3));
     }
 
     /// <summary>
@@ -267,9 +267,9 @@ public class TextUntilFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("apple", table[0][0]);
-        Assert.AreEqual("banana", table[0][1]);
-        Assert.AreEqual("cherry", table[0][2]);
+        Assert.AreEqual("apple", table[0].ReadValue(0));
+        Assert.AreEqual("banana", table[0].ReadValue(1));
+        Assert.AreEqual("cherry", table[0].ReadValue(2));
     }
 
     #endregion

@@ -3,7 +3,6 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.Tables;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -13,17 +12,15 @@ public sealed partial class ExecutionCSharpRenderer
         string typeName,
         IReadOnlyList<FieldBinding> fields,
         IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors,
-        int contextCount)
+        IReadOnlyList<FieldBinding> contexts)
     {
         var constructors = GetGeneratedRowConstructors(usedConstructors);
-        var directContextStorage = UsesDirectContextStorage(constructors);
 
         foreach (var constructor in constructors)
         {
             var signature = CreateGeneratedRowConstructorSignature(
                 constructor,
-                directContextStorage,
-                contextCount);
+                contexts);
             yield return CreateGeneratedRowConstructor(typeName, fields, signature.Parameters, signature.ContextAssignments);
         }
     }
@@ -38,27 +35,12 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static GeneratedRowConstructorSignature CreateGeneratedRowConstructorSignature(
         GeneratedRowContextConstructor constructor,
-        bool directContextStorage,
-        int contextCount)
+        IReadOnlyList<FieldBinding> contexts)
     {
-        var objectType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
-        var rowType = CreateTypeSyntax(typeof(Row));
-        var contextParameters = CreateGeneratedRowContextParameters(constructor, objectType, rowType, contextCount);
+        var contextParameters = CreateGeneratedRowContextParameters(constructor, contexts);
         var parameters = contextParameters
             .Select(static contextParameter => CreateParameter(contextParameter.ParameterName, contextParameter.Type))
             .ToArray();
-
-        if (directContextStorage)
-        {
-            var contextsValue = constructor == GeneratedRowContextConstructor.NoContext
-                ? SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
-                : CreateGeneratedRowContextMaterialization(
-                    constructor,
-                    fieldName => CreateGeneratedRowContextParameterReference(contextParameters, fieldName),
-                    contextCount);
-
-            return new(parameters, [CreateGeneratedRowThisAssignment("__contexts", contextsValue)]);
-        }
 
         var contextAssignments = contextParameters
             .Select(static contextParameter => CreateGeneratedRowThisAssignment(

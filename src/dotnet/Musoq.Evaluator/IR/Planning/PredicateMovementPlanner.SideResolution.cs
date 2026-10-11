@@ -19,7 +19,12 @@ internal static partial class PredicateMovementPlanner
         switch (node)
         {
             case SchemaScanNode scan:
-                if (string.Equals(scan.Alias, alias, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(scan.Alias, alias, StringComparison.OrdinalIgnoreCase) &&
+                    ColumnRefExtractor.Extract(predicate).All(column =>
+                        string.Equals(column.Alias, scan.Alias, StringComparison.OrdinalIgnoreCase) &&
+                        scan.OutputSchema.Columns.Any(binding =>
+                            string.Equals(binding.Name, column.ColumnName, StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(binding.Name, $"{scan.Alias}.{column.ColumnName}", StringComparison.OrdinalIgnoreCase))))
                     return SideResolution.Eligible(side, $"The {alias} source is directly available below the join side.");
 
                 return SideResolution.NotEligible($"The {alias} source is not the direct scan for this join side.");

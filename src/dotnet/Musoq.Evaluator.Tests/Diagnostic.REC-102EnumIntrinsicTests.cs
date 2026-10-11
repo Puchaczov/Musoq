@@ -217,7 +217,7 @@ public sealed class DiagnosticREC102EnumIntrinsicTests : GenericEntityTestBase
         using var table = compiledQuery.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.AreEqual(expectedValue, table[0].Values[0]);
+        Assert.AreEqual(expectedValue, table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -234,7 +234,7 @@ public sealed class DiagnosticREC102EnumIntrinsicTests : GenericEntityTestBase
         using var table = compiledQuery.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        CollectionAssert.AreEqual(expectedValues, table[0].Values);
+        CollectionAssert.AreEqual(expectedValues, table[0].ReadValues());
         if (caseId == "REC-102-VALUE06")
             Assert.IsNotNull(table.Columns.ElementAt(0).EnumType);
     }
@@ -252,8 +252,8 @@ public sealed class DiagnosticREC102EnumIntrinsicTests : GenericEntityTestBase
         Assert.HasCount(1, table);
         CollectionAssert.AreEqual(
             new object?[] { (short)20, "Running", true, true, true },
-            table[0].Values);
-        Assert.IsFalse(table.SelectMany(static row => row.Values).Any(static value => value is Enum));
+            table[0].ReadValues());
+        Assert.IsFalse(table.SelectMany(static row => row.ReadValues()).Any(static value => value is Enum));
     }
 
     [TestMethod]
@@ -265,7 +265,7 @@ public sealed class DiagnosticREC102EnumIntrinsicTests : GenericEntityTestBase
         using var table = compiledQuery.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        CollectionAssert.AreEqual(new object?[] { false, true }, table[0].Values);
+        CollectionAssert.AreEqual(new object?[] { false, true }, table[0].ReadValues());
     }
 
     [TestMethod]
@@ -277,8 +277,8 @@ public sealed class DiagnosticREC102EnumIntrinsicTests : GenericEntityTestBase
         using var table = compiledQuery.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        Assert.AreEqual("ReadWrite", table[0].Values[0]);
-        Assert.DoesNotContain(",", (string)table[0].Values[0]!);
+        Assert.AreEqual("ReadWrite", table[0].ReadValues()[0]);
+        Assert.DoesNotContain(",", (string)table[0].ReadValues()[0]!);
     }
 
     [TestMethod]
@@ -290,7 +290,7 @@ public sealed class DiagnosticREC102EnumIntrinsicTests : GenericEntityTestBase
         using var table = compiledQuery.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        CollectionAssert.AreEqual(new object?[] { (short)99, null, false }, table[0].Values);
+        CollectionAssert.AreEqual(new object?[] { (short)99, null, false }, table[0].ReadValues());
         Assert.AreEqual(typeof(short?), table.Columns.ElementAt(0).ColumnType);
         Assert.IsNotNull(table.Columns.ElementAt(0).EnumType);
     }

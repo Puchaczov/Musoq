@@ -152,7 +152,13 @@ internal static class SchemaSourceArgumentBinder
                     return SchemaSourceBindingResult.Error(selectedCandidate.Failure);
             }
 
-            return SchemaSourceBindingResult.NotRequired();
+            var concreteCandidate = TryBindCandidate(arguments, selectedSignature,
+                [selectedSignature], structuralTypeResolver, relationResolver);
+            if (concreteCandidate.Invocation != null)
+                return SchemaSourceBindingResult.Success(concreteCandidate.Invocation);
+            return concreteCandidate.Failure is { } failure
+                ? SchemaSourceBindingResult.Error(failure)
+                : SchemaSourceBindingResult.NotRequired();
         }
 
         var requiresBinding = arguments.HasNamedArguments ||

@@ -18,7 +18,7 @@ public sealed partial class ExecutionCSharpRenderer
         var parts = shape.GeneratedParts ??
                     throw new InvalidOperationException("Generated window key parts are required.");
 
-        return new GeneratedWindowKeyStruct(typeName, shape.IsGeneratedOrderKey, parts);
+        return new GeneratedWindowKeyStruct(typeName, shape.IsGeneratedOrderKey, parts) { RawValueType = shape.RawValueType };
     }
 
     private static MemberDeclarationSyntax CreateGeneratedWindowKeyStruct(GeneratedWindowKeyStruct key)
@@ -35,6 +35,10 @@ public sealed partial class ExecutionCSharpRenderer
             Environment.NewLine,
             key.Parts.Select((_, index) =>
                 $"            _value{index.ToString(CultureInfo.InvariantCulture)} = value{index.ToString(CultureInfo.InvariantCulture)};"));
+        var rawValues = key.RawValueType is null ? string.Empty :
+            $"    public {CreateGeneratedKeyTypeName(key.RawValueType)} RawValues => " +
+            (key.Parts.Count == 1 ? "_value0" :
+                "(" + string.Join(", ", key.Parts.Select((_, index) => $"_value{index}")) + ")") + ";" + Environment.NewLine;
         var compareMethods = key.IsOrderKey
             ? string.Join(Environment.NewLine, key.Parts.Select(CreateGeneratedWindowKeyCompareMethod))
             : string.Empty;
@@ -47,7 +51,7 @@ public sealed partial class ExecutionCSharpRenderer
             $"    public {key.TypeName}({constructorParameters})" + Environment.NewLine +
             "    {" + Environment.NewLine +
             constructorAssignments + Environment.NewLine +
-            "    }" + Environment.NewLine +
+            "    }" + Environment.NewLine + rawValues +
             compareTo +
             peerEquals +
             $"    public bool Equals({key.TypeName} other)" + Environment.NewLine +

@@ -50,7 +50,7 @@ public class BugProbeGenericSchemaTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)10, table[0][0]);
-        Assert.AreEqual((byte)20, table[1][0]);
+        Assert.AreEqual((byte)10, table[0].ReadValue(0));
+        Assert.AreEqual((byte)20, table[1].ReadValue(0));
     }
 }

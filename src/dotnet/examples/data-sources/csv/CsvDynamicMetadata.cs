@@ -16,15 +16,15 @@ internal static class CsvDynamicMetadata
             if (string.IsNullOrWhiteSpace(options.Path) || !File.Exists(options.Path))
                 return [];
 
-            var delimiter = CsvFileSource.ResolveDelimiter(options.Delimiter);
+            var delimiter = CsvTextFormat.ResolveDelimiter(options.Delimiter);
             using var stream = File.OpenRead(options.Path);
             using var reader = new StreamReader(
                 stream,
-                CsvFileSource.ResolveEncoding((string?)null),
+                CsvTextFormat.ResolveEncoding((string?)null),
                 detectEncodingFromByteOrderMarks: true);
-            using var records = CsvFileSource.ReadRecords(reader, delimiter, CancellationToken.None).GetEnumerator();
+            using var records = CsvTextFormat.ReadRecords(reader, delimiter, CancellationToken.None).GetEnumerator();
 
-            CsvFileSource.SkipRecords(records, options.SkipRows, CancellationToken.None);
+            CsvTextFormat.SkipRecords(records, options.SkipRows, CancellationToken.None);
             if (!records.MoveNext())
                 return [];
 

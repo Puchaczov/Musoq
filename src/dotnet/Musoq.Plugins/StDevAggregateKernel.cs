@@ -9,6 +9,9 @@ namespace Musoq.Plugins;
 public static class StDevAggregateKernel<T>
     where T : struct, INumber<T>
 {
+    /// <summary>Initializes independently owned kernel state.</summary>
+    public static void Reset(ref State state) => state = default;
+
     /// <summary>
     ///     Query-specific aggregate state stored directly on generated group classes.
     /// </summary>

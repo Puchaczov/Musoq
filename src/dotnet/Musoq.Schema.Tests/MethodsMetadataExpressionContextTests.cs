@@ -58,10 +58,10 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
 
         sumMethod = RequireResolved(sumMethod);
         countMethod = RequireResolved(countMethod);
-        Assert.IsTrue(Attribute.IsDefined(sumMethod, typeof(AggregationMethodAttribute)),
-            "Sum should have AggregationMethodAttribute");
-        Assert.IsTrue(Attribute.IsDefined(countMethod, typeof(AggregationMethodAttribute)),
-            "Count should have AggregationMethodAttribute");
+        Assert.IsTrue(Attribute.IsDefined(sumMethod, typeof(AggregateFunctionAttribute)),
+            "Sum should have AggregateFunctionAttribute");
+        Assert.IsTrue(Attribute.IsDefined(countMethod, typeof(AggregateFunctionAttribute)),
+            "Count should have AggregateFunctionAttribute");
     }
 
     [TestMethod]
@@ -94,10 +94,10 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
 
         regularMethod = RequireResolved(regularMethod);
         aggMethod = RequireResolved(aggMethod);
-        Assert.IsFalse(Attribute.IsDefined(regularMethod, typeof(AggregationMethodAttribute)),
-            "Regular method should not have AggregationMethodAttribute");
-        Assert.IsTrue(Attribute.IsDefined(aggMethod, typeof(AggregationMethodAttribute)),
-            "Aggregation method should have AggregationMethodAttribute");
+        Assert.IsFalse(Attribute.IsDefined(regularMethod, typeof(AggregateFunctionAttribute)),
+            "Regular method should not have AggregateFunctionAttribute");
+        Assert.IsTrue(Attribute.IsDefined(aggMethod, typeof(AggregateFunctionAttribute)),
+            "Aggregation method should have AggregateFunctionAttribute");
     }
 
     [TestMethod]
@@ -131,14 +131,16 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
             return true;
         }
 
-        [AggregationMethod]
-        public void Sum(string name, decimal value)
+        [AggregateFunction(typeof(MetadataAggregateKernel))]
+        public int Sum(string name, decimal value)
         {
+            return 0;
         }
 
-        [AggregationMethod]
-        public void Count(string name)
+        [AggregateFunction(typeof(MetadataAggregateKernel))]
+        public int Count(string name)
         {
+            return 0;
         }
 
         public decimal StatsMethod([InjectQueryStats] object stats, int value)
@@ -151,9 +153,10 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
             return "";
         }
 
-        [AggregationMethod]
-        public void Overloaded(string name, int value)
+        [AggregateFunction(typeof(MetadataAggregateKernel))]
+        public int Overloaded(string name, int value)
         {
+            return 0;
         }
     }
 }

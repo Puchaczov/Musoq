@@ -26,7 +26,7 @@ public partial class AutomaticNumericTypeInferenceTests
 
         Assert.AreEqual(3, table.Count);
 
-        var results = table.Select(row => new { Name = row.Values[0] as string, Category = row.Values[1] as string })
+        var results = table.Select(row => new { Name = row.ReadValues()[0] as string, Category = row.ReadValues()[1] as string })
             .OrderBy(x => x.Name).ToList();
 
         Assert.AreEqual("Large", results[0].Name);
@@ -40,10 +40,10 @@ public partial class AutomaticNumericTypeInferenceTests
     }
 
     [TestMethod]
-    public void WhenUsingObjectColumnComparisonInCaseWhen_ShouldAutoConvert()
+    public void WhenUsingDeclaredNumericColumnComparisonInCaseWhen_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Value: object," +
+                             "  Value: double," +
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
@@ -53,13 +53,13 @@ public partial class AutomaticNumericTypeInferenceTests
                              "     else 'Low' end as Level " +
                              "from Items()";
 
-        var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithObjectColumn());
+        var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithDoubleValues());
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
 
-        var highCount = table.Count(row => row.Values[1] as string == "High");
-        var lowCount = table.Count(row => row.Values[1] as string == "Low");
+        var highCount = table.Count(row => row.ReadValues()[1] as string == "High");
+        var lowCount = table.Count(row => row.ReadValues()[1] as string == "Low");
 
         Assert.AreEqual(2, highCount);
         Assert.AreEqual(1, lowCount);
@@ -90,14 +90,14 @@ public partial class AutomaticNumericTypeInferenceTests
 
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Valid", table[0].Values[0]);
+        Assert.AreEqual("Valid", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
-    public void WhenObjectColumnIsNull_ShouldHandleGracefully()
+    public void WhenDeclaredNumericColumnIsNull_ShouldHandleGracefully()
     {
         const string query = "table Items {" +
-                             "  Value: object," +
+                             "  Value: double," +
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
@@ -108,7 +108,7 @@ public partial class AutomaticNumericTypeInferenceTests
         item1.Name = "Null";
 
         dynamic item2 = new ExpandoObject();
-        item2.Value = (object)2000;
+        item2.Value = (double)(2000);
         item2.Name = "Valid";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
@@ -116,7 +116,7 @@ public partial class AutomaticNumericTypeInferenceTests
 
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Valid", table[0].Values[0]);
+        Assert.AreEqual("Valid", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -141,7 +141,7 @@ public partial class AutomaticNumericTypeInferenceTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Match", table[0].Values[0]);
+        Assert.AreEqual("Match", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -167,7 +167,7 @@ public partial class AutomaticNumericTypeInferenceTests
 
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Large", table[0].Values[0]);
+        Assert.AreEqual("Large", table[0].ReadValues()[0]);
     }
 
 
@@ -194,57 +194,57 @@ public partial class AutomaticNumericTypeInferenceTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Valid", table[0].Values[0]);
+        Assert.AreEqual("Valid", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
-    public void WhenComparingObjectColumnWithNaN_ShouldNotMatch()
+    public void WhenComparingDeclaredNumericColumnWithNaN_ShouldNotMatch()
     {
         const string query = "table Items {" +
-                             "  Value: object," +
+                             "  Value: double," +
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value = 1000";
 
         dynamic item1 = new ExpandoObject();
-        item1.Value = (object)double.NaN;
+        item1.Value = (double)(double.NaN);
         item1.Name = "NaN";
 
         dynamic item2 = new ExpandoObject();
-        item2.Value = (object)1000.0;
+        item2.Value = (double)(1000.0);
         item2.Name = "Valid";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Valid", table[0].Values[0]);
+        Assert.AreEqual("Valid", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
-    public void WhenComparingObjectColumnWithPositiveInfinity_ShouldNotMatch()
+    public void WhenComparingDeclaredNumericColumnWithPositiveInfinity_ShouldNotMatch()
     {
         const string query = "table Items {" +
-                             "  Value: object," +
+                             "  Value: double," +
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value < 2000";
 
         dynamic item1 = new ExpandoObject();
-        item1.Value = (object)double.PositiveInfinity;
+        item1.Value = (double)(double.PositiveInfinity);
         item1.Name = "PosInf";
 
         dynamic item2 = new ExpandoObject();
-        item2.Value = (object)1000.0;
+        item2.Value = (double)(1000.0);
         item2.Name = "Valid";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Valid", table[0].Values[0]);
+        Assert.AreEqual("Valid", table[0].ReadValues()[0]);
     }
 
 }

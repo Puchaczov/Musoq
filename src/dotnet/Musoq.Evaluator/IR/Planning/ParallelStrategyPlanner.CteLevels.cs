@@ -48,6 +48,15 @@ internal sealed partial class ParallelStrategyPlanner
                 seen.Add(cteNode.Name);
             }
 
+            if (names.Count > 1)
+            {
+                var permission = ParallelCtePermissionPolicy.CheckLevel(node, names, sourcePermissions);
+                if (!permission.IsEligible)
+                {
+                    reason = permission.Reason;
+                    return [];
+                }
+            }
             if (names.Count > 0)
                 levels.Add(new PlannedParallelCteLevel(level.Level, names));
         }
@@ -61,4 +70,5 @@ internal sealed partial class ParallelStrategyPlanner
         reason = $"CTE dependency plan provides {levels.Count} parallel level(s).";
         return levels;
     }
+
 }

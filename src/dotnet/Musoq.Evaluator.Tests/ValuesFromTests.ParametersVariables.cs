@@ -21,13 +21,13 @@ select scores.Name, scores.Score
 order by scores.Score";
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
-        vm.Parameters["baseScore"] = 10;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "baseScore", 10);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("scores.Name", typeof(string)),
-            ("scores.Score", typeof(int)));
+            ("Name", typeof(string)),
+            ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["first", 10], ["second", 15]);
     }
 
@@ -48,8 +48,8 @@ order by scores.Name";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("scores.Name", typeof(string)),
-            ("scores.Score", typeof(int?)));
+            ("Name", typeof(string)),
+            ("Score", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             new object?[] { "first", null },
@@ -74,8 +74,8 @@ order by scores.Score";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("scores.Name", typeof(string)),
-            ("scores.Score", typeof(int)));
+            ("Name", typeof(string)),
+            ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["pkg-a", 41], ["pkg-b", 42]);
     }
 
@@ -92,13 +92,13 @@ select scores.Name, scores.Score
 order by scores.Score";
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
-        vm.Parameters["baseScore"] = 12;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "baseScore", 12);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("scores.Name", typeof(string)),
-            ("scores.Score", typeof(int)));
+            ("Name", typeof(string)),
+            ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["literal", 7], ["parameter", 12]);
     }
 

@@ -23,6 +23,7 @@ public sealed record ExecutionAsOfProbe : ExecutionNode
         this.Candidate = Candidate;
         this.Candidates = Candidates;
         this.EqualityKeys = ExecutionIrCollections.Freeze(EqualityKeys);
+        EqualityShape = AsOfEqualityKeyShape.Select(this.EqualityKeys);
         this.ProbeKey = ProbeKey;
         this.CandidateKey = CandidateKey;
         this.ComparisonKind = ComparisonKind;
@@ -37,6 +38,7 @@ public sealed record ExecutionAsOfProbe : ExecutionNode
     public ExecutionVariable Candidate { get; init; }
     public ExecutionExpression Candidates { get; init; }
     public IReadOnlyList<ExecutionAsOfEqualityKey> EqualityKeys { get; init; }
+    public AsOfEqualityKeyShape EqualityShape { get; init; }
     public ExecutionExpression ProbeKey { get; init; }
     public ExecutionExpression CandidateKey { get; init; }
     public BinaryOpKind ComparisonKind { get; init; }

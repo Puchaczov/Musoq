@@ -1,141 +1,49 @@
-using System.Collections;
-using System.Globalization;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Musoq.Evaluator.Helpers;
 
 public static partial class WindowFunctionHelpers
 {
-    public static int ResolveRangeFrameStart(
-        Array orderKeys,
-        int[] partitionIndices,
-        int partitionStart,
-        int partitionCount,
-        int currentPartitionIndex,
-        int offsetInSortDirection,
-        bool descending)
-    {
-        return ResolveRangeFrameStart<object>(
-            orderKeys,
-            [],
-            partitionIndices,
-            partitionStart,
-            partitionCount,
-            currentPartitionIndex,
-            offsetInSortDirection,
-            descending,
-            !descending);
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int ResolveRangeFrameStart<TNumber, TOrder>(
+        TNumber[] orderKeys, TOrder[] peerOrderKeys, int[] partitionIndices,
+        int partitionStart, int partitionCount, int currentPartitionIndex,
+        int offsetInSortDirection, bool descending, bool nullsFirst)
+        where TNumber : struct, INumber<TNumber>
+        => ResolveNumericRangeFrame(new RangeNumericKeys<TNumber>(orderKeys),
+            new RangeFrameRequest<TOrder>(peerOrderKeys, partitionIndices, partitionStart, partitionCount,
+                currentPartitionIndex, offsetInSortDirection, descending, nullsFirst), RangeBoundary.Start);
 
-    public static int ResolveRangeFrameStart<TOrder>(
-        Array orderKeys,
-        TOrder[] peerOrderKeys,
-        int[] partitionIndices,
-        int partitionStart,
-        int partitionCount,
-        int currentPartitionIndex,
-        int offsetInSortDirection,
-        bool descending,
-        bool nullsFirst)
-    {
-        if (GetCurrentRangeKey(orderKeys, partitionIndices, partitionStart, currentPartitionIndex) == null &&
-            peerOrderKeys.Length != 0)
-        {
-            return ResolveRangePeerFrameStart(
-                peerOrderKeys,
-                partitionIndices,
-                partitionStart,
-                partitionCount,
-                currentPartitionIndex);
-        }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int ResolveRangeFrameStart<TNumber, TOrder>(
+        TNumber?[] orderKeys, TOrder[] peerOrderKeys, int[] partitionIndices,
+        int partitionStart, int partitionCount, int currentPartitionIndex,
+        int offsetInSortDirection, bool descending, bool nullsFirst)
+        where TNumber : struct, INumber<TNumber>
+        => ResolveNumericRangeFrame(new NullableRangeNumericKeys<TNumber>(orderKeys),
+            new RangeFrameRequest<TOrder>(peerOrderKeys, partitionIndices, partitionStart, partitionCount,
+                currentPartitionIndex, offsetInSortDirection, descending, nullsFirst), RangeBoundary.Start);
 
-        var target = ResolveRangeTarget(
-            orderKeys,
-            partitionIndices,
-            partitionStart,
-            currentPartitionIndex,
-            offsetInSortDirection,
-            descending);
-        var low = 0;
-        var high = partitionCount;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int ResolveRangeFrameEnd<TNumber, TOrder>(
+        TNumber[] orderKeys, TOrder[] peerOrderKeys, int[] partitionIndices,
+        int partitionStart, int partitionCount, int currentPartitionIndex,
+        int offsetInSortDirection, bool descending, bool nullsFirst)
+        where TNumber : struct, INumber<TNumber>
+        => ResolveNumericRangeFrame(new RangeNumericKeys<TNumber>(orderKeys),
+            new RangeFrameRequest<TOrder>(peerOrderKeys, partitionIndices, partitionStart, partitionCount,
+                currentPartitionIndex, offsetInSortDirection, descending, nullsFirst), RangeBoundary.End);
 
-        while (low < high)
-        {
-            var middle = low + ((high - low) / 2);
-            var candidate = GetRangeKey(orderKeys, partitionIndices[partitionStart + middle]);
-            if (CompareRangeKeys(candidate, target, descending, nullsFirst) < 0)
-                low = middle + 1;
-            else
-                high = middle;
-        }
-
-        return low;
-    }
-
-    public static int ResolveRangeFrameEnd(
-        Array orderKeys,
-        int[] partitionIndices,
-        int partitionStart,
-        int partitionCount,
-        int currentPartitionIndex,
-        int offsetInSortDirection,
-        bool descending)
-    {
-        return ResolveRangeFrameEnd<object>(
-            orderKeys,
-            [],
-            partitionIndices,
-            partitionStart,
-            partitionCount,
-            currentPartitionIndex,
-            offsetInSortDirection,
-            descending,
-            !descending);
-    }
-
-    public static int ResolveRangeFrameEnd<TOrder>(
-        Array orderKeys,
-        TOrder[] peerOrderKeys,
-        int[] partitionIndices,
-        int partitionStart,
-        int partitionCount,
-        int currentPartitionIndex,
-        int offsetInSortDirection,
-        bool descending,
-        bool nullsFirst)
-    {
-        if (GetCurrentRangeKey(orderKeys, partitionIndices, partitionStart, currentPartitionIndex) == null &&
-            peerOrderKeys.Length != 0)
-        {
-            return ResolveRangePeerFrameEnd(
-                peerOrderKeys,
-                partitionIndices,
-                partitionStart,
-                partitionCount,
-                currentPartitionIndex);
-        }
-
-        var target = ResolveRangeTarget(
-            orderKeys,
-            partitionIndices,
-            partitionStart,
-            currentPartitionIndex,
-            offsetInSortDirection,
-            descending);
-        var low = 0;
-        var high = partitionCount;
-
-        while (low < high)
-        {
-            var middle = low + ((high - low) / 2);
-            var candidate = GetRangeKey(orderKeys, partitionIndices[partitionStart + middle]);
-            if (CompareRangeKeys(candidate, target, descending, nullsFirst) <= 0)
-                low = middle + 1;
-            else
-                high = middle;
-        }
-
-        return low - 1;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int ResolveRangeFrameEnd<TNumber, TOrder>(
+        TNumber?[] orderKeys, TOrder[] peerOrderKeys, int[] partitionIndices,
+        int partitionStart, int partitionCount, int currentPartitionIndex,
+        int offsetInSortDirection, bool descending, bool nullsFirst)
+        where TNumber : struct, INumber<TNumber>
+        => ResolveNumericRangeFrame(new NullableRangeNumericKeys<TNumber>(orderKeys),
+            new RangeFrameRequest<TOrder>(peerOrderKeys, partitionIndices, partitionStart, partitionCount,
+                currentPartitionIndex, offsetInSortDirection, descending, nullsFirst), RangeBoundary.End);
 
     public static int ResolveRangePeerFrameStart<TOrder>(
         TOrder[] orderKeys,
@@ -185,57 +93,85 @@ public static partial class WindowFunctionHelpers
         return low - 1;
     }
 
-    private static object? ResolveRangeTarget(
-        Array orderKeys,
-        int[] partitionIndices,
-        int partitionStart,
-        int currentPartitionIndex,
-        int offsetInSortDirection,
-        bool descending)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int ResolveNumericRangeFrame<TOrder, TKeys>(TKeys keys,
+        in RangeFrameRequest<TOrder> request, RangeBoundary boundary)
+        where TKeys : struct, IRangeNumericKeys
     {
-        var current = GetRangeKey(
-            orderKeys,
-            partitionIndices[partitionStart + currentPartitionIndex]);
-        if (offsetInSortDirection == 0)
+        var current = keys.ReadDecimal(request.Indices[request.Start + request.Current]);
+        if (!current.HasValue && request.PeerKeys.Length != 0)
+            return ResolveNullRangePeers(request, boundary);
+        var target = ShiftRangeTarget(current, request.Offset, request.Descending);
+        var low = 0;
+        var high = request.Count;
+        while (low < high)
+        {
+            var middle = low + ((high - low) / 2);
+            var candidate = keys.ReadDecimal(request.Indices[request.Start + middle]);
+            var comparison = CompareNumericRangeKeys(candidate, target, request.Descending, request.NullsFirst);
+            if (comparison < 0 || comparison == 0 && boundary == RangeBoundary.End)
+                low = middle + 1;
+            else
+                high = middle;
+        }
+        return boundary == RangeBoundary.Start ? low : low - 1;
+    }
+
+    private static int ResolveNullRangePeers<TOrder>(in RangeFrameRequest<TOrder> request, RangeBoundary boundary)
+        => boundary switch
+        {
+            RangeBoundary.Start => ResolveRangePeerFrameStart(request.PeerKeys, request.Indices,
+                request.Start, request.Count, request.Current),
+            _ => ResolveRangePeerFrameEnd(request.PeerKeys, request.Indices,
+                request.Start, request.Count, request.Current)
+        };
+
+    private static decimal? ShiftRangeTarget(decimal? current, int offset, bool descending)
+    {
+        if (!current.HasValue || offset == 0)
             return current;
-
-        if (current == null)
-            return null;
-        var numericCurrent = Convert.ToDecimal(current, CultureInfo.InvariantCulture);
-        return descending
-            ? numericCurrent - offsetInSortDirection
-            : numericCurrent + offsetInSortDirection;
+        if (descending)
+            return checked(current.Value - offset);
+        return checked(current.Value + offset);
     }
 
-    private static object? GetRangeKey(Array orderKeys, int rowIndex)
+    private static int CompareNumericRangeKeys(decimal? left, decimal? right, bool descending, bool nullsFirst)
     {
-        return orderKeys.GetValue(rowIndex);
-    }
-
-    private static object? GetCurrentRangeKey(
-        Array orderKeys,
-        int[] partitionIndices,
-        int partitionStart,
-        int currentPartitionIndex)
-    {
-        return GetRangeKey(orderKeys, partitionIndices[partitionStart + currentPartitionIndex]);
-    }
-
-    private static int CompareRangeKeys(
-        object? left,
-        object? right,
-        bool descending,
-        bool nullsFirst)
-    {
-        if (left == null)
-            return right == null ? 0 : nullsFirst ? -1 : 1;
-
-        if (right == null)
+        if (!left.HasValue)
+            return !right.HasValue ? 0 : nullsFirst ? -1 : 1;
+        if (!right.HasValue)
             return nullsFirst ? 1 : -1;
+        if (descending)
+            return right.Value.CompareTo(left.Value);
+        return left.Value.CompareTo(right.Value);
+    }
 
-        var comparison = right is decimal numericRight
-            ? Convert.ToDecimal(left, CultureInfo.InvariantCulture).CompareTo(numericRight)
-            : Comparer.DefaultInvariant.Compare(left, right);
-        return descending ? -comparison : comparison;
+    private enum RangeBoundary { Start, End }
+    private readonly record struct RangeFrameRequest<TOrder>(TOrder[] PeerKeys, int[] Indices,
+        int Start, int Count, int Current, int Offset, bool Descending, bool NullsFirst);
+
+    private interface IRangeNumericKeys
+    {
+        decimal? ReadDecimal(int index);
+    }
+
+    private readonly struct RangeNumericKeys<TNumber>(TNumber[] values) : IRangeNumericKeys
+        where TNumber : struct, INumber<TNumber>
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public decimal? ReadDecimal(int index) => decimal.CreateChecked(values[index]);
+    }
+
+    private readonly struct NullableRangeNumericKeys<TNumber>(TNumber?[] values) : IRangeNumericKeys
+        where TNumber : struct, INumber<TNumber>
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public decimal? ReadDecimal(int index)
+        {
+            var value = values[index];
+            if (!value.HasValue)
+                return null;
+            return decimal.CreateChecked(value.Value);
+        }
     }
 }

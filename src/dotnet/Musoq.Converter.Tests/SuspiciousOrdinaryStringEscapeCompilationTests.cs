@@ -35,7 +35,7 @@ public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
         Assert.AreEqual(DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape, result.Warnings[0].Code);
         Assert.AreEqual(
             "C:\n" + "ew\t" + "est",
-            result.CompiledQuery.Run()[0][0]);
+            result.CompiledQuery.Run()[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -107,7 +107,7 @@ public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
         Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
         Assert.HasCount(1, result.Warnings);
         Assert.AreEqual(DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape, result.Warnings[0].Code);
-        Assert.AreEqual("some\t" + "ext", result.CompiledQuery!.Run()[0][0]);
+        Assert.AreEqual("some\t" + "ext", result.CompiledQuery!.Run()[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -128,8 +128,8 @@ public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
         Assert.IsTrue(doubled.Succeeded, FormatDiagnostics(doubled.Diagnostics));
         Assert.IsEmpty(raw.Warnings);
         Assert.IsEmpty(doubled.Warnings);
-        Assert.AreEqual(@"C:\new\test", raw.CompiledQuery!.Run()[0][0]);
-        Assert.AreEqual(@"C:\new\test", doubled.CompiledQuery!.Run()[0][0]);
+        Assert.AreEqual(@"C:\new\test", raw.CompiledQuery!.Run()[0].ReadValue(0));
+        Assert.AreEqual(@"C:\new\test", doubled.CompiledQuery!.Run()[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -203,8 +203,8 @@ public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
 
         using var firstTable = first.CompiledQuery!.Run();
         using var secondTable = second.CompiledQuery!.Run();
-        Assert.AreEqual("C:\n" + "ew\t" + "est", firstTable[0][0]);
-        Assert.AreEqual("C:\n" + "ew\t" + "est", secondTable[0][0]);
+        Assert.AreEqual("C:\n" + "ew\t" + "est", firstTable[0].ReadValue(0));
+        Assert.AreEqual("C:\n" + "ew\t" + "est", secondTable[0].ReadValue(0));
     }
 
     private static void AssertEquivalent(Diagnostic expected, Diagnostic actual)

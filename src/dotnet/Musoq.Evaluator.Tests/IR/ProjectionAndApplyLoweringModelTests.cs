@@ -205,7 +205,7 @@ public sealed class ProjectionAndApplyLoweringModelTests
     }
 
     [TestMethod]
-    public void OuterApplyNullSubstitutionService_WhenLikeMatcherReadsRightAlias_ShouldReturnUnknown()
+    public void OuterApplyNullSubstitutionService_WhenLikeMatcherReadsRightAlias_ShouldReturnFalse()
     {
         var cacheSlot = new ExecutionLikeMatcherCacheSlot(
             ExecutionClrBindingFactory.FromClr(typeof(LikeMatcherCacheSlot)));
@@ -224,7 +224,8 @@ public sealed class ProjectionAndApplyLoweringModelTests
         var prepareResult = OuterApplyNullSubstitutionService.SubstituteRightAlias(prepare, "orders");
 
         Assert.IsTrue(dynamicResult.IsBuilt);
-        Assert.IsTrue(dynamicResult.IsUnknown);
+        Assert.IsFalse(dynamicResult.IsUnknown);
+        Assert.AreEqual(false, Assert.IsInstanceOfType<ExecutionLiteral>(dynamicResult.Expression).Value.ToClrValue());
         Assert.IsTrue(prepareResult.IsBuilt);
         Assert.IsTrue(prepareResult.IsUnknown);
     }

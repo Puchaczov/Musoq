@@ -54,7 +54,7 @@ public partial class LibraryBase
     /// <param name="enumerable">The enumerable</param>
     /// <typeparam name="T">Type</typeparam>
     /// <returns>Length of sequence</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Utility)]
     public int? Length<T>(IEnumerable<T>? enumerable)
     {
@@ -70,7 +70,7 @@ public partial class LibraryBase
     /// <param name="array">The array</param>
     /// <typeparam name="T">Type</typeparam>
     /// <returns>Length of sequence</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Utility)]
     public int? Length<T>(T[]? array)
     {

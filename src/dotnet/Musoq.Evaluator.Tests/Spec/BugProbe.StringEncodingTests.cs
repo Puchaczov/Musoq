@@ -45,7 +45,7 @@ public class BugProbeStringEncodingTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello", table[0][0]);
+        Assert.AreEqual("Hello", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ public class BugProbeStringEncodingTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("café", table[0][0]);
+        Assert.AreEqual("café", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -102,7 +102,7 @@ public class BugProbeStringEncodingTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test", table[0][0]);
+        Assert.AreEqual("Test", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -130,6 +130,6 @@ public class BugProbeStringEncodingTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hi!", table[0][0]);
+        Assert.AreEqual("Hi!", table[0].ReadValue(0));
     }
 }

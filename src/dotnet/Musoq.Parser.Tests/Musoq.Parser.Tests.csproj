@@ -41,7 +41,7 @@
     <Compile Update="NoOpExpressionVisitorTests.CollectionPredicates.cs">
       <DependentUpon>NoOpExpressionVisitorTests.cs</DependentUpon>
     </Compile>
-    <Compile Update="NoOpExpressionVisitorTests.Coverage.cs">
+    <Compile Update="NoOpExpressionVisitorTests.AllOverloads.cs">
       <DependentUpon>NoOpExpressionVisitorTests.cs</DependentUpon>
     </Compile>
     <Compile Update="NoOpExpressionVisitorTests.LiteralsAndAccess.cs">

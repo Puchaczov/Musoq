@@ -18,5 +18,8 @@ public sealed record PhysicalDescNode(
     TextSpan? ColumnSpan = null,
     IReadOnlyList<StructuralArgumentDescription>? ArgumentDescriptions = null) : PhysicalNode(OutputSchema)
 {
+    /// <summary>Gets bound output expressions used only to describe generated result shapes.</summary>
+    public IReadOnlyList<ProjectedField>? QueryProjection { get; init; }
+
     public override IReadOnlyList<PhysicalNode> Children { get; } = Array.Empty<PhysicalNode>();
 }

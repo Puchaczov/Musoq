@@ -12,7 +12,7 @@ public class BindableMethodAttribute : Attribute
     /// </summary>
     public BindableMethodAttribute()
     {
-        IsInternal = false;
+        Visibility = FunctionVisibility.Public;
     }
 
     /// <summary>
@@ -22,12 +22,29 @@ public class BindableMethodAttribute : Attribute
     /// <param name="isInternal">Indicates whether this method is internal and should not be shown in DESC FUNCTIONS output.</param>
     internal BindableMethodAttribute(bool isInternal)
     {
-        IsInternal = isInternal;
+        Visibility = isInternal ? FunctionVisibility.CompilerOnly : FunctionVisibility.Public;
     }
 
     /// <summary>
     ///     Gets a value indicating whether this method is internal and should not be shown in DESC FUNCTIONS output.
     ///     Internal methods are used by the query engine for runtime type conversions and operations.
     /// </summary>
-    internal bool IsInternal { get; }
+    internal bool IsInternal => Visibility == FunctionVisibility.CompilerOnly;
+
+    /// <summary>Gets or sets the SQL visibility of this declaration.</summary>
+    public FunctionVisibility Visibility { get; set; }
+
+    /// <summary>Gets or sets explicitly permitted execution strategies.</summary>
+    public FunctionExecutionPermissions ExecutionPermissions
+    {
+        get => _executionPermissions;
+        set
+        {
+            _executionPermissions = value;
+            HasExplicitExecutionPermissions = true;
+        }
+    }
+
+    private FunctionExecutionPermissions _executionPermissions;
+    internal bool HasExplicitExecutionPermissions { get; private set; }
 }

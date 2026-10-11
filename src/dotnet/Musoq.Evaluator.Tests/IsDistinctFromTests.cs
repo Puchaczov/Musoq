@@ -7,7 +7,7 @@ using Musoq.Parser.Diagnostics;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class IsDistinctFromTests : BasicEntityTestBase
+public sealed partial class IsDistinctFromTests : BasicEntityTestBase
 {
 
     [TestMethod]
@@ -28,7 +28,7 @@ order by pairs.Label";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("pairs.Label", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Label", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["different"], ["left-null"], ["right-null"]);
     }
 
@@ -50,7 +50,7 @@ order by pairs.Label";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("pairs.Label", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Label", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["both-null"], ["equal"]);
     }
 
@@ -70,7 +70,7 @@ order by pairs.Label";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("pairs.Label", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Label", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["alpha"], ["both-null"]);
     }
 

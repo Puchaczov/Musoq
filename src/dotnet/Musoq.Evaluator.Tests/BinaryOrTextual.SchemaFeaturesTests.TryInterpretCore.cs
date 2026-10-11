@@ -43,8 +43,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("d.Magic", typeof(int)),
-            ("d.Version", typeof(byte)));
+            ("Magic", typeof(int)),
+            ("Version", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [0x12345678, (byte)1]);
     }
 
@@ -81,8 +81,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.Name", typeof(string)),
-            ("d.Value", typeof(int?)));
+            ("Name", typeof(string)),
+            ("Value", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { "invalid.bin", null });
     }
 
@@ -125,8 +125,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.Name", typeof(string)),
-            ("d.Magic", typeof(int)));
+            ("Name", typeof(string)),
+            ("Magic", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["valid.bin", unchecked((int)0xDEADBEEF)]);
     }
 
@@ -170,8 +170,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.Name", typeof(string)),
-            ("d.Magic", typeof(int?)));
+            ("Name", typeof(string)),
+            ("Magic", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             new object?[] { "invalid.bin", null },
@@ -205,8 +205,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.Name", typeof(string)),
-            ("d.Magic", typeof(int?)));
+            ("Name", typeof(string)),
+            ("Magic", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { "empty.bin", null });
     }
 
@@ -236,7 +236,7 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("d.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 

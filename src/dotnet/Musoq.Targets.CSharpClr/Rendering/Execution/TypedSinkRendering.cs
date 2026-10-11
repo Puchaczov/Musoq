@@ -64,7 +64,7 @@ public sealed partial class ExecutionCSharpRenderer
         statements.AddRange(CreateExecutionStateDeclarations(plan, context));
         if (!_renderOptions.IsMetadataOnly)
         {
-            statements.AddRange(CreateScriptParameterBindingStatements());
+            statements.AddRange(CreateScriptParameterBindingStatements(plan));
             statements.AddRange(CreateScriptVariableBindingStatements());
         }
         statements.AddRange(CreateLikeMatcherStateDeclarations(plan, context));
@@ -140,7 +140,6 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionAppendRow appendRow,
         ExecutionRenderContext context)
     {
-        appendRow = NormalizeLazyContextSegments(appendRow);
         return CreateGeneratedRowCreation(appendRow, context);
     }
 
@@ -153,7 +152,6 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionAppendRow appendRow,
         ExecutionRenderContext context)
     {
-        appendRow = NormalizeLazyContextSegments(appendRow);
         return CreateGeneratedRowCreation(appendRow, context);
     }
 
@@ -239,6 +237,9 @@ public sealed partial class ExecutionCSharpRenderer
             var session = Context.Session;
 
             session.TypedStoredTableResults = CreateTypedStoredTableResults(plan);
+            session.ColumnarStoredTableResultsByTableName = CreateColumnarStoredTableResultsByTableName(
+                plan,
+                session.TypedStoredTableResults);
             session.IncludeCteIndexResults = PlanUsesCteIndexResults(plan);
             session.IncludeCteRowResults = session.TypedStoredTableResults.Count > 0;
             session.IncludeTableResults = PlanUsesTableResults(plan, session.TypedStoredTableResults);
@@ -250,6 +251,7 @@ public sealed partial class ExecutionCSharpRenderer
             session.GeneratedRowVariableTypeNamesByName = CollectGeneratedRowVariableTypeNames(plan.Body, session.TypedStoredTableResults);
             session.StoredGeneratedRowsLoopNameCounts = [];
             session.TypedRowBufferVariables = CreateTypedRowBufferVariables(plan.Body);
+            session.RegexMatchTimeout = plan.RegexMatchTimeout;
             session.OperatorCatalog = ExecutionPlanOperatorCatalog.Create(plan);
             session.ProfileRecorderInScope = renderer.IsInstrumentationEnabled;
         }

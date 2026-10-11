@@ -82,7 +82,7 @@ public sealed partial class LogicalPlanBuilder
     public void Visit(InMemoryTableFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var schema = BuildOutputSchema(node.Alias, node.VariableName, node.VariableName.ToScoreTable());
+        var schema = BuildCteReferenceSchema(node.VariableName, node.Alias);
         _nodeStack.Push(new IrNodes.CteRefNode(node.VariableName, node.Alias, schema));
     }
 
@@ -96,7 +96,10 @@ public sealed partial class LogicalPlanBuilder
                     .ToArray()))
             .ToArray();
 
-        _nodeStack.Push(new IrNodes.ValuesScanNode(node.Alias, rows, BuildOutputSchema(node.Alias)));
+        var columns = ValuesColumnSchemaFactory.Create(node, node.Rows);
+        var schema = new OutputSchema(columns.Select(static column =>
+            new ColumnSchema(column.ColumnName, column.ColumnType, column.ColumnIndex)).ToArray());
+        _nodeStack.Push(new IrNodes.ValuesScanNode(node.Alias, rows, schema));
     }
 
     public void Visit(JoinFromNode node)
@@ -220,7 +223,7 @@ public sealed partial class LogicalPlanBuilder
 
     private IrNodes.CteRefNode CreateInMemoryCteRef(string alias, string? cteName = null)
     {
-        return new IrNodes.CteRefNode(cteName ?? alias, alias, BuildOutputSchema(alias, cteName, cteName?.ToScoreTable()));
+        return new IrNodes.CteRefNode(cteName ?? alias, alias, BuildCteReferenceSchema(cteName ?? alias, alias));
     }
 
     private static IrNodes.JoinKind MapJoinKind(JoinType joinType) =>

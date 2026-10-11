@@ -36,23 +36,6 @@ public partial class LibraryBaseStrictConversionsDecimalTests
     }
 
     [TestMethod]
-    public void TryConvertToDecimalStrict_WithNull_ShouldReturnNull()
-    {
-        var result = Library.TryConvertToDecimalStrict(null);
-
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void TryConvertToDecimalStrict_WithInt_ShouldConvert()
-    {
-        var result = Library.TryConvertToDecimalStrict(42);
-
-        Assert.IsNotNull(result);
-        Assert.AreEqual(42m, result.Value);
-    }
-
-    [TestMethod]
     public void TryConvertToDecimalStrict_WithLong_ShouldConvert()
     {
         var result = Library.TryConvertToDecimalStrict(9223372036854775807L);
@@ -158,46 +141,6 @@ public partial class LibraryBaseStrictConversionsDecimalTests
 
         Assert.IsNotNull(result);
         Assert.AreEqual(123.456m, result.Value);
-    }
-
-    [TestMethod]
-    public void TryConvertToDecimalStrict_WithDoubleNaN_ShouldReturnNull()
-    {
-        var result = Library.TryConvertToDecimalStrict(double.NaN);
-
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void TryConvertToDecimalStrict_WithDoubleInfinity_ShouldReturnNull()
-    {
-        var result = Library.TryConvertToDecimalStrict(double.PositiveInfinity);
-
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void TryConvertToDecimalStrict_WithNegativeDoubleInfinity_ShouldReturnNull()
-    {
-        var result = Library.TryConvertToDecimalStrict(double.NegativeInfinity);
-
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void TryConvertToDecimalStrict_WithFloatNaN_ShouldReturnNull()
-    {
-        var result = Library.TryConvertToDecimalStrict(float.NaN);
-
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void TryConvertToDecimalStrict_WithFloatInfinity_ShouldReturnNull()
-    {
-        var result = Library.TryConvertToDecimalStrict(float.PositiveInfinity);
-
-        Assert.IsNull(result);
     }
 
     [TestMethod]

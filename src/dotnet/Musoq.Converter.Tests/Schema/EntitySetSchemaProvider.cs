@@ -4,6 +4,7 @@ using System.Linq;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Converter.Tests.Schema;
 
@@ -28,6 +29,12 @@ public sealed class EntitySetSchema(
 {
     private const string Entities = "entities";
 
+    public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
+        => base.DescribeSource(name, context, parameters) with
+        {
+            ExecutionPermissions = SourceExecutionPermissions.ConcurrentAccess | SourceExecutionPermissions.ConcurrentRowProcessing
+        };
+
     public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
     {
         if (string.Equals(name, Entities, StringComparison.OrdinalIgnoreCase))
@@ -36,7 +43,7 @@ public sealed class EntitySetSchema(
         throw new NotSupportedException(name);
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
     {
         if (string.Equals(name, Entities, StringComparison.OrdinalIgnoreCase))
             return EnsureSourceType<T, EntitySetEntity>(name, new EntitySetRowSource(rows));

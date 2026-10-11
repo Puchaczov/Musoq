@@ -19,7 +19,7 @@ internal sealed class SingleUseHashBuildFusionPlanner
 
     public static bool CanFuseProducerShape(RowShape? producerShape)
     {
-        return producerShape != null && producerShape is not ExpandoAdapterShape;
+        return producerShape != null;
     }
 
     public bool TryPruneFusedHashPayload(
@@ -264,8 +264,6 @@ internal sealed class SingleUseHashBuildFusionPlanner
                 return TryCollectRequiredPayloadFieldNames(caseWhen, payloadAlias, requiredFields);
             case ExecutionCoalesce coalesce:
                 return TryCollectRequiredPayloadFieldNames(coalesce.Expressions, payloadAlias, requiredFields);
-            case ExecutionCompositeKey compositeKey:
-                return TryCollectRequiredPayloadFieldNames(compositeKey.Parts, payloadAlias, requiredFields);
             case ExecutionValueTupleKey valueTupleKey:
                 return TryCollectRequiredPayloadFieldNames(valueTupleKey.Parts, payloadAlias, requiredFields);
             case ExecutionAggregateCall aggregateCall:

@@ -32,9 +32,9 @@ public partial class ParallelismOutputRowsTests
 
         foreach (var row in table)
         {
-            var city = (string)row[0];
-            var count = Convert.ToInt32(row[1]);
-            var sum = Convert.ToDecimal(row[2]);
+            var city = (string)row.ReadValue(0);
+            var count = Convert.ToInt32(row.ReadValue(1));
+            var sum = Convert.ToDecimal(row.ReadValue(2));
 
             Assert.AreEqual(rowsPerCity, count, $"City {city} should have {rowsPerCity} rows but got {count}");
 
@@ -65,9 +65,9 @@ public partial class ParallelismOutputRowsTests
 
         foreach (var row in table)
         {
-            var city = (string)row[0];
-            var count = Convert.ToInt32(row[1]);
-            var sum = Convert.ToDecimal(row[2]);
+            var city = (string)row.ReadValue(0);
+            var count = Convert.ToInt32(row.ReadValue(1));
+            var sum = Convert.ToDecimal(row.ReadValue(2));
 
             Assert.AreEqual(rowsPerCity, count, $"City {city} should have {rowsPerCity} rows but got {count}");
 
@@ -108,14 +108,14 @@ public partial class ParallelismOutputRowsTests
             $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}");
 
 
-        var parallelResults = tableParallel.ToDictionary(row => (string)row[0], row => (
-            Count: Convert.ToInt32(row[1]),
-            Sum: Convert.ToDecimal(row[2]),
-            Avg: Convert.ToDecimal(row[3])));
-        var nonParallelResults = tableNonParallel.ToDictionary(row => (string)row[0], row => (
-            Count: Convert.ToInt32(row[1]),
-            Sum: Convert.ToDecimal(row[2]),
-            Avg: Convert.ToDecimal(row[3])));
+        var parallelResults = tableParallel.ToDictionary(row => (string)row.ReadValue(0), row => (
+            Count: Convert.ToInt32(row.ReadValue(1)),
+            Sum: Convert.ToDecimal(row.ReadValue(2)),
+            Avg: Convert.ToDecimal(row.ReadValue(3))));
+        var nonParallelResults = tableNonParallel.ToDictionary(row => (string)row.ReadValue(0), row => (
+            Count: Convert.ToInt32(row.ReadValue(1)),
+            Sum: Convert.ToDecimal(row.ReadValue(2)),
+            Avg: Convert.ToDecimal(row.ReadValue(3))));
 
         foreach (var city in cities)
         {

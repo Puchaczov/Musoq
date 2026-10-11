@@ -12,7 +12,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             CteSidecarStagedGraphMixedSampleFileName,
             CreateParallelCteSidecarOptions());
 
-        Assert.Contains("ParallelEligibility [ParallelCte] PhysicalCteNode -> Candidate", result.PlanningText);
+        Assert.Contains("ParallelEligibility [ParallelCte] PhysicalCteNode -> Candidate", result.PlanningText, result.PhysicalPlanText);
         Assert.Contains("private static List<Cte0Row0> BuildCte0(", result.GeneratedCSharpCode);
         Assert.Contains("ParallelBlock [cte-level-1, tasks 3, maxDegree 3]", result.ExecutionPlanText);
         Assert.Contains("ParallelTask [names -> __parallelCteLevel1Task0Result]", result.ExecutionPlanText);

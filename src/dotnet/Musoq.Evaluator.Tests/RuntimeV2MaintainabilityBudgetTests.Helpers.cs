@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Tests.Architecture;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 
@@ -15,15 +16,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
     private static string[] EnumerateProductionSourceFiles(string repositoryRoot)
     {
-        var sourceRoot = Path.Combine(repositoryRoot, "src", "dotnet");
-
-        return Directory
-            .EnumerateFiles(sourceRoot, "*.cs", SearchOption.AllDirectories)
-            .Where(file => !file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
-            .Where(file => !file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
-            .Where(file => !file.Contains(".Tests", StringComparison.Ordinal))
-            .Where(file => !file.Contains(".Benchmarks", StringComparison.Ordinal))
-            .ToArray();
+        return RepositorySourceScan.ProductionSourceFiles(repositoryRoot).ToArray();
     }
 
     private static int CountOccurrences(string filePath, string pattern)

@@ -17,7 +17,7 @@ public sealed class CompiledTypedQueryRunIsolationTests
     {
         var query = new CompiledTypedQuery<string>(new ObservedTypedRunnable());
         var parameters = new Dictionary<string, object?> { ["value"] = "first" };
-        var options = new TypedQueryRunOptions { Parameters = parameters };
+        var options = new TypedQueryRunOptions { TypedParameters= global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(parameters)};
 
         var rows = query.Run(options);
         parameters["value"] = "second";
@@ -48,10 +48,10 @@ public sealed class CompiledTypedQueryRunIsolationTests
         var query = new CompiledTypedQuery<string>(runnable);
         var firstRows = query.Run(new TypedQueryRunOptions(
             CancellationToken.None,
-            new Dictionary<string, object?> { ["value"] = "first" }));
+global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(new Dictionary<string, object?> { ["value"] = "first" })));
         var secondRows = query.Run(new TypedQueryRunOptions(
             CancellationToken.None,
-            new Dictionary<string, object?> { ["value"] = "second" }));
+global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(new Dictionary<string, object?> { ["value"] = "second" })));
 
         using var firstEnumerator = firstRows.GetEnumerator();
         Assert.IsTrue(firstEnumerator.MoveNext());
@@ -117,9 +117,8 @@ public sealed class CompiledTypedQueryRunIsolationTests
                 _secondRunEntered.Set();
 
             options.PhaseChanged?.Invoke(this, new QueryPhaseEventArgs("typed", QueryPhase.Select));
-            var value = options.Parameters != null &&
-                        options.Parameters.TryGetValue("value", out var parameterValue)
-                ? parameterValue?.ToString() ?? string.Empty
+            var value = options.TypedParameters.Contains("value")
+                ? options.TypedParameters.GetRequired<string>("value")
                 : string.Empty;
 
             return [value];
@@ -127,7 +126,7 @@ public sealed class CompiledTypedQueryRunIsolationTests
 
         public IEnumerable<string> Run(CancellationToken token)
         {
-            return Run(new TypedQueryRunOptions(token, Parameters, _phaseChanged, _dataSourceProgress));
+            return Run(new TypedQueryRunOptions(token, global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(Parameters), _phaseChanged, _dataSourceProgress));
         }
 
         public bool WaitForRunCount(int count, TimeSpan timeout)

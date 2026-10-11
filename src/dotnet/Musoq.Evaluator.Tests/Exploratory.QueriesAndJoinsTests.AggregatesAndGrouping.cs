@@ -27,8 +27,8 @@ public partial class ExploratoryQueriesAndJoinsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)),
-            ("s.Value", typeof(int)),
+            ("Name", typeof(string)),
+            ("Value", typeof(int)),
             ("Cnt", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -61,7 +61,7 @@ public partial class ExploratoryQueriesAndJoinsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("HighScoreCount", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -96,14 +96,14 @@ public partial class ExploratoryQueriesAndJoinsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("ScoreCount", typeof(long)),
             ("TotalScore", typeof(int?)),
-            ("AvgScore", typeof(int?)));
+            ("AvgScore", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
-            ["John", 3L, 60, 20],
-            ["Jane", 4L, 80, 20]);
+            ["John", 3L, 60, 20m],
+            ["Jane", 4L, 80, 20m]);
     }
 
     #endregion
@@ -133,7 +133,7 @@ public partial class ExploratoryQueriesAndJoinsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("TagCount", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -163,7 +163,7 @@ public partial class ExploratoryQueriesAndJoinsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("t.Value", typeof(string)));
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["a"],

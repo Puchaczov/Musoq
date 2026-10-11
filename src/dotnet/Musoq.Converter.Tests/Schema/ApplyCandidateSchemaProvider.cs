@@ -72,8 +72,9 @@ public sealed class ApplyCandidateSchema(IReadOnlyList<ApplyCandidateEntity> row
         throw new NotSupportedException(name);
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
     {
+        var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
         if (string.Equals(name, Items, StringComparison.OrdinalIgnoreCase))
             return EnsureSourceType<T, ApplyCandidateEntity>(name, new ApplyCandidateRowSource(rows));
 

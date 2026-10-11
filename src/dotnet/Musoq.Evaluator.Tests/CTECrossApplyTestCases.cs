@@ -36,16 +36,16 @@ public class CteCrossApplyTestCases : GenericEntityTestBase
         Assert.AreEqual(3, table.Count);
 
         Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "to jest test" &&
-            (string)row[1] == "to"));
+            (string)row.ReadValue(0) == "to jest test" &&
+            (string)row.ReadValue(1) == "to"));
 
         Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "to jest test" &&
-            (string)row[1] == "jest"));
+            (string)row.ReadValue(0) == "to jest test" &&
+            (string)row.ReadValue(1) == "jest"));
 
         Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "to jest test" &&
-            (string)row[1] == "test"));
+            (string)row.ReadValue(0) == "to jest test" &&
+            (string)row.ReadValue(1) == "test"));
     }
 
     [TestMethod]
@@ -72,11 +72,11 @@ public class CteCrossApplyTestCases : GenericEntityTestBase
         Assert.AreEqual(2, table.Count);
 
         Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "Hello World" &&
-            (string)row[1] == "Hello"));
+            (string)row.ReadValue(0) == "Hello World" &&
+            (string)row.ReadValue(1) == "Hello"));
 
         Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "Hello World" &&
-            (string)row[1] == "World"));
+            (string)row.ReadValue(0) == "Hello World" &&
+            (string)row.ReadValue(1) == "World"));
     }
 }

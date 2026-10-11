@@ -7,11 +7,15 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
+    private sealed record AggregateInlineRenderingContext(
+        bool UseExplicitAccumulatorInput,
+        ExecutionRenderContext Context);
+
     private StatementSyntax? TryRenderInlineAggregateSet(
         ExecutionAggregateSet aggregateSet,
         IReadOnlyList<ExecutionExpression> setArguments,
         IReadOnlyList<ParameterInfo> setParameters,
-        bool useExplicitAccumulatorInput)
+        AggregateInlineRenderingContext rendering)
     {
         var kind = AggregateInlinePolicy.Resolve(aggregateSet.Accumulator.Kernel);
         if (kind == AggregateInlineKind.None)
@@ -23,29 +27,29 @@ public sealed partial class ExecutionCSharpRenderer
             AggregateInlineKind.CountAll => RenderInlineCountAllSet(state),
             AggregateInlineKind.CountNullable => RenderInlineCountNullableSet(
                 state,
-                CreateInlineAggregateInput(aggregateSet, setArguments, setParameters, useExplicitAccumulatorInput)),
+                CreateInlineAggregateInput(aggregateSet, setArguments, setParameters, rendering)),
             AggregateInlineKind.CountReference => RenderInlineCountReferenceSet(
                 state,
-                CreateInlineAggregateInput(aggregateSet, setArguments, setParameters, useExplicitAccumulatorInput)),
+                CreateInlineAggregateInput(aggregateSet, setArguments, setParameters, rendering)),
             AggregateInlineKind.Sum => RenderInlineNullableValueSet(
                 aggregateSet,
                 state,
-                CreateInlineAggregateInput(aggregateSet, setArguments, setParameters, useExplicitAccumulatorInput),
+                CreateInlineAggregateInput(aggregateSet, setArguments, setParameters, rendering),
                 CreateInlineSumStatements),
             AggregateInlineKind.Avg => RenderInlineNullableValueSet(
                 aggregateSet,
                 state,
-                CreateInlineAggregateInput(aggregateSet, setArguments, setParameters, useExplicitAccumulatorInput),
+                CreateInlineAggregateInput(aggregateSet, setArguments, setParameters, rendering),
                 CreateInlineAvgStatements),
             AggregateInlineKind.Min => RenderInlineNullableValueSet(
                 aggregateSet,
                 state,
-                CreateInlineAggregateInput(aggregateSet, setArguments, setParameters, useExplicitAccumulatorInput),
+                CreateInlineAggregateInput(aggregateSet, setArguments, setParameters, rendering),
                 (current, aggregateState) => CreateInlineExtremumStatements(current, aggregateState, SyntaxKind.LessThanExpression)),
             AggregateInlineKind.Max => RenderInlineNullableValueSet(
                 aggregateSet,
                 state,
-                CreateInlineAggregateInput(aggregateSet, setArguments, setParameters, useExplicitAccumulatorInput),
+                CreateInlineAggregateInput(aggregateSet, setArguments, setParameters, rendering),
                 (current, aggregateState) => CreateInlineExtremumStatements(current, aggregateState, SyntaxKind.GreaterThanExpression)),
             _ => null
         };
@@ -78,15 +82,15 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionAggregateSet aggregateSet,
         IReadOnlyList<ExecutionExpression> setArguments,
         IReadOnlyList<ParameterInfo> setParameters,
-        bool useExplicitAccumulatorInput)
+        AggregateInlineRenderingContext rendering)
     {
-        if (useExplicitAccumulatorInput)
-            return CastIfNeeded(RenderExpression(aggregateSet.AccumulatorInput!), setParameters[0].ParameterType);
+        if (rendering.UseExplicitAccumulatorInput)
+            return CastIfNeeded(RenderExpression(aggregateSet.AccumulatorInput!, rendering.Context), setParameters[0].ParameterType);
 
         if (setArguments.Count != 1 || setParameters.Count != 1)
             throw new InvalidOperationException("Inline aggregate set requires exactly one input expression.");
 
-        return CastIfNeeded(RenderExpression(setArguments[0]), setParameters[0].ParameterType);
+        return CastIfNeeded(RenderExpression(setArguments[0], rendering.Context), setParameters[0].ParameterType);
     }
 
     private static ExpressionStatementSyntax RenderInlineCountAllSet(ExpressionSyntax state)

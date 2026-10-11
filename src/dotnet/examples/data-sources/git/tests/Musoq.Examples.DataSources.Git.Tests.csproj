@@ -26,4 +26,7 @@
         <ProjectReference Include="..\..\..\..\Musoq.Schema\Musoq.Schema.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\..\Musoq.Tests.Common\Musoq.Tests.Common.csproj" />
+    </ItemGroup>
 </Project>

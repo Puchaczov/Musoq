@@ -40,8 +40,8 @@ public sealed class ExecutionCompilationCacheSafetyTests
 
         Assert.AreEqual(1, firstTable.Count);
         Assert.AreEqual(2, secondTable.Count);
-        CollectionAssert.AreEqual(new[] { 0 }, firstTable.Select(row => (int)row[0]).ToArray());
-        CollectionAssert.AreEqual(new[] { 0, 1 }, secondTable.Select(row => (int)row[0]).ToArray());
+        CollectionAssert.AreEqual(new[] { 0 }, firstTable.Select(row => (int)row.ReadValue(0)).ToArray());
+        CollectionAssert.AreEqual(new[] { 0, 1 }, secondTable.Select(row => (int)row.ReadValue(0)).ToArray());
     }
 
     private static BasicSchemaProvider<BasicEntity> CreateProvider(List<BasicEntity> entities)

@@ -37,7 +37,7 @@ public partial class BugProbeInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Abc", table[0][0]);
+        Assert.AreEqual("Abc", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public partial class BugProbeInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello", table[0][0]);
+        Assert.AreEqual("Hello", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -103,7 +103,7 @@ public partial class BugProbeInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test", table[0][0]);
+        Assert.AreEqual("Test", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -136,7 +136,7 @@ public partial class BugProbeInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Data", table[0][0]);
+        Assert.AreEqual("Data", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -169,7 +169,7 @@ public partial class BugProbeInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Café", table[0][0]);
+        Assert.AreEqual("Café", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -202,7 +202,7 @@ public partial class BugProbeInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test", table[0][0]);
+        Assert.AreEqual("Test", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -235,7 +235,7 @@ public partial class BugProbeInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Data", table[0][0]);
+        Assert.AreEqual("Data", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -268,7 +268,7 @@ public partial class BugProbeInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Code", table[0][0]);
+        Assert.AreEqual("Code", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -304,6 +304,6 @@ public partial class BugProbeInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hi", table[0][0]);
+        Assert.AreEqual("Hi", table[0].ReadValue(0));
     }
 }

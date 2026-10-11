@@ -17,6 +17,12 @@ public sealed partial class ExecutionCSharpRenderer
             yield break;
         }
 
+        if (TryGetColumnarStoredTableResult(createTable.Table.Name, context, out var columnarResult))
+        {
+            yield return CreateColumnarBufferDeclaration(createTable, columnarResult, context);
+            yield break;
+        }
+
         if (TryGetTypedRowBufferShape(createTable.Table.Name, context, out var rowShape))
         {
             yield return CreateTypedRowBufferDeclaration(createTable, rowShape, context);
@@ -39,6 +45,22 @@ public sealed partial class ExecutionCSharpRenderer
 
         if (createTable.CapacityHint is not null)
             yield return CreateEnsureCapacityStatement(createTable.Table.Name, RenderCapacityHint(createTable.CapacityHint, context));
+    }
+
+    private LocalDeclarationStatementSyntax CreateColumnarBufferDeclaration(
+        ExecutionCreateTable createTable,
+        TypedStoredTableResult result,
+        ExecutionRenderContext context)
+    {
+        var arguments = createTable.CapacityHint == null
+            ? SyntaxFactory.ArgumentList()
+            : CreateArgumentList(RenderCapacityHint(createTable.CapacityHint, context));
+        return CreateLocalDeclaration(
+            SyntaxFactory.IdentifierName("var"),
+            createTable.Table.Name,
+            SyntaxFactory.ObjectCreationExpression(
+                    SyntaxFactory.IdentifierName(ColumnarStoredTableSyntaxFactory.CreateBufferTypeName(result.TableIndex)))
+                .WithArgumentList(arguments));
     }
 
     private ExpressionStatementSyntax RenderEnsureTableCapacity(

@@ -17,7 +17,24 @@ public sealed partial class ExecutionCSharpRenderer
                 static representation => representation.TableIndex,
                 static representation => new TypedStoredTableResult(
                     representation.TableIndex,
-                    representation.RowShape));
+                    representation.RowShape,
+                    representation.Kind));
+    }
+
+    private static IReadOnlyDictionary<string, TypedStoredTableResult> CreateColumnarStoredTableResultsByTableName(
+        ExecutionPlan plan,
+        IReadOnlyDictionary<int, TypedStoredTableResult> typedResults)
+    {
+        return ExecutionIrAnalysis.FlattenNodes(plan.Body)
+            .OfType<ExecutionStoreTable>()
+            .Where(store => typedResults.TryGetValue(store.TableIndex, out var result) &&
+                            result.Kind == ExecutionStoredTableRepresentationKind.GeneratedColumnarBuffer)
+            .GroupBy(static store => store.Table.Name, StringComparer.Ordinal)
+            .Where(static group => group.Select(static store => store.TableIndex).Distinct().Count() == 1)
+            .ToDictionary(
+                static group => group.Key,
+                group => typedResults[group.First().TableIndex],
+                StringComparer.Ordinal);
     }
     private static IEnumerable<MemberDeclarationSyntax> CreateCteRowResultMembers(
         IReadOnlyDictionary<int, TypedStoredTableResult> typedResults)
@@ -28,9 +45,16 @@ public sealed partial class ExecutionCSharpRenderer
             .OrderBy(static result => result.TableIndex)
             .ToArray();
 
+        var columnHelpers = slots.Any(static slot => slot.Kind == ExecutionStoredTableRepresentationKind.GeneratedColumnarBuffer)
+            ? new MemberDeclarationSyntax[] { ColumnarStoredTableSyntaxFactory.CreateColumnClass() }
+            : [];
         return
         [
-            CreateCteRowResultsClass(slots)
+            CreateCteRowResultsClass(slots),
+            ..columnHelpers,
+            ..slots
+                .Where(static slot => slot.Kind == ExecutionStoredTableRepresentationKind.GeneratedColumnarBuffer)
+                .Select(ColumnarStoredTableSyntaxFactory.CreateBufferClass)
         ];
     }
     private static ClassDeclarationSyntax CreateCteRowResultsClass(
@@ -46,7 +70,7 @@ public sealed partial class ExecutionCSharpRenderer
     private static FieldDeclarationSyntax CreateCteRowResultSlotField(TypedStoredTableResult slot)
     {
         return SyntaxFactory.FieldDeclaration(
-                SyntaxFactory.VariableDeclaration(CreateCteRowResultSlotTypeSyntax(slot.RowShape))
+                SyntaxFactory.VariableDeclaration(CreateCteRowResultSlotTypeSyntax(slot))
                     .WithVariables(SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.VariableDeclarator(CreateCteRowResultSlotFieldName(slot.TableIndex)))))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)));
@@ -57,9 +81,15 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.IdentifierName(CteRowResultsTypeName);
     }
 
-    private static TypeSyntax CreateCteRowResultSlotTypeSyntax(GeneratedRowShape rowShape)
+    private static TypeSyntax CreateCteRowResultSlotTypeSyntax(TypedStoredTableResult result)
     {
-        return CreateListTypeSyntax(rowShape.TypeName);
+        return result.Kind switch
+        {
+            ExecutionStoredTableRepresentationKind.GeneratedRowList => CreateListTypeSyntax(result.RowShape.TypeName),
+            ExecutionStoredTableRepresentationKind.GeneratedColumnarBuffer =>
+                SyntaxFactory.IdentifierName(ColumnarStoredTableSyntaxFactory.CreateBufferTypeName(result.TableIndex)),
+            _ => throw new InvalidOperationException($"Unsupported stored-table representation {result.Kind}.")
+        };
     }
     private static MemberAccessExpressionSyntax CreateCteRowResultSlotAccess(int tableIndex)
     {
@@ -93,6 +123,25 @@ public sealed partial class ExecutionCSharpRenderer
         out GeneratedRowShape rowShape)
     {
         return context.Session.TypedRowBufferVariables.TryGetValue(variableName, out rowShape!);
+    }
+
+    private bool TryGetColumnarStoredTableResult(
+        string tableName,
+        ExecutionRenderContext context,
+        out TypedStoredTableResult result)
+    {
+        return context.Session.ColumnarStoredTableResultsByTableName.TryGetValue(tableName, out result!);
+    }
+
+    private bool TryGetColumnarStoredTableResultForRowShape(
+        string rowTypeName,
+        ExecutionRenderContext context,
+        out TypedStoredTableResult result)
+    {
+        result = context.Session.TypedStoredTableResults.Values.FirstOrDefault(candidate =>
+            candidate.Kind == ExecutionStoredTableRepresentationKind.GeneratedColumnarBuffer &&
+            string.Equals(candidate.RowShape.TypeName, rowTypeName, StringComparison.Ordinal))!;
+        return result != null;
     }
 
     private static string CreateCteRowResultSlotFieldName(int tableIndex)

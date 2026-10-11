@@ -25,7 +25,7 @@ public partial class StarModifierTests
         Assert.IsFalse(columnNames.Contains("Name"));
 
         var idx = System.Array.IndexOf(columnNames, "EntityName");
-        Assert.AreEqual("january", table[0].Values[idx]);
+        Assert.AreEqual("january", table[0].ReadValues()[idx]);
     }
 
     [TestMethod]
@@ -42,7 +42,7 @@ public partial class StarModifierTests
         Assert.IsFalse(columnNames.Contains("Population"));
 
         var idx = System.Array.IndexOf(columnNames, "Pop2");
-        Assert.AreEqual(200m, table[0].Values[idx]);
+        Assert.AreEqual(200m, table[0].ReadValues()[idx]);
     }
 
     [TestMethod]
@@ -66,7 +66,7 @@ public partial class StarModifierTests
         var vm = CreateAndRunVirtualMachine(
             query,
             CreateSingleEntitySource(new BasicEntity { Name = "january" }));
-        var table = vm.Run(TestContext.CancellationToken);
+        using var table = vm.Run(TestContext.CancellationToken);
 
         var columnNames = table.Columns.Select(c => c.ColumnName).ToArray();
         Assert.Contains("EntityName", columnNames);

@@ -42,10 +42,10 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, first, second);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("a.png", table[0][0]);
-        Assert.AreEqual("IHDR", table[0][1]);
-        Assert.AreEqual("b.png", table[1][0]);
-        Assert.AreEqual("IHDR", table[1][1]);
+        Assert.AreEqual("a.png", table[0].ReadValue(0));
+        Assert.AreEqual("IHDR", table[0].ReadValue(1));
+        Assert.AreEqual("b.png", table[1].ReadValue(0));
+        Assert.AreEqual("IHDR", table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -64,7 +64,7 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, new BinaryEntity { Name = "bundle.zip", Content = archive });
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(3, ((object[])table[0][1]).Length);
+        Assert.AreEqual(3, ((object[])table[0].ReadValue(1)).Length);
     }
 
     [TestMethod]
@@ -89,8 +89,8 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, keep, drop);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("keep.rec", table[0][0]);
-        Assert.AreEqual((byte)2, table[0][1]);
+        Assert.AreEqual("keep.rec", table[0].ReadValue(0));
+        Assert.AreEqual((byte)2, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -114,9 +114,9 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, valid, invalid);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsNotNull(table[0][1]);
-        Assert.AreEqual("bad.png", table[1][0]);
-        Assert.IsNull(table[1][1]);
+        Assert.IsNotNull(table[0].ReadValue(1));
+        Assert.AreEqual("bad.png", table[1].ReadValue(0));
+        Assert.IsNull(table[1].ReadValue(1));
     }
 
     #endregion

@@ -200,13 +200,14 @@ internal static partial class SourcePlanningPlanner
                 predicates.Add(sourcePredicate);
         }
 
-        return predicates.Count switch
+        var result = predicates.Count switch
         {
             0 => null,
             1 => predicates[0],
             _ => predicates.Aggregate(static (left, right) =>
                 new SourcePredicateLogical(SourcePredicateLogicalOperator.And, left, right))
         };
+        return SourcePredicateGraphValidator.IsValid(result, cancellationToken) ? result : null;
     }
 
     private static bool TryConvertOrderBy(

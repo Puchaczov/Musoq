@@ -19,6 +19,13 @@ internal static partial class SourcePredicatePlanContractValidator
         if (result.ExecutionPlan.Identity != request.Identity)
             ThrowContract("the execution plan identity differs from the requested source identity", span);
 
+        foreach (var predicate in new[] { request.Predicate, result.AcceptedPredicate,
+                     result.ResidualPredicate, result.ExecutionPlan.AcceptedPredicate })
+        {
+            if (!SourcePredicateGraphValidator.IsValid(predicate, request.CancellationToken))
+                ThrowContract("a predicate graph is malformed or exceeds the depth or node budget", span);
+        }
+
         var comparer = SourcePredicateExpressionComparer.Instance;
         if (!comparer.Equals(result.AcceptedPredicate, result.ExecutionPlan.AcceptedPredicate))
         {
@@ -73,24 +80,15 @@ internal static partial class SourcePredicatePlanContractValidator
         if (expected.Count != actual.Count)
             return false;
 
-        var consumed = new bool[actual.Count];
-        foreach (var candidate in expected)
+        var counts = new Dictionary<SourcePredicateExpression, int>(comparer);
+        foreach (var predicate in expected)
+            counts[predicate] = counts.GetValueOrDefault(predicate) + 1;
+        foreach (var predicate in actual)
         {
-            var matched = false;
-            for (var index = 0; index < actual.Count; index++)
-            {
-                if (consumed[index] || !comparer.Equals(candidate, actual[index]))
-                    continue;
-
-                consumed[index] = true;
-                matched = true;
-                break;
-            }
-
-            if (!matched)
+            if (!counts.TryGetValue(predicate, out var count) || count == 0)
                 return false;
+            counts[predicate] = count - 1;
         }
-
         return true;
     }
 

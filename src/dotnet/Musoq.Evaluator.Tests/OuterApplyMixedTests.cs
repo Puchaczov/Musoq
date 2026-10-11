@@ -65,10 +65,10 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.Country", typeof(string)),
-            ("c.StreetName", typeof(string)),
-            ("c.HouseNumber", typeof(int?)));
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("StreetName", typeof(string)),
+            ("HouseNumber", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["New York", "USA", "Broadway", 123],
@@ -124,11 +124,11 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Department", typeof(string)),
-            ("a.Budget", typeof(int)),
-            ("b.Name", typeof(string)),
-            ("b.Salary", typeof(int?)),
-            ("c.Value", typeof(string)));
+            ("Department", typeof(string)),
+            ("Budget", typeof(int)),
+            ("Name", typeof(string)),
+            ("Salary", typeof(int?)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["IT", 500000, "John Doe", 50000, "C#"],
@@ -189,9 +189,9 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Department", typeof(string)),
-            ("b.Name", typeof(string)),
-            ("c.Value", typeof(string)));
+            ("Department", typeof(string)),
+            ("Name", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["IT", "John Doe", "C#"],
@@ -246,7 +246,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Department", typeof(string)),
+            ("Department", typeof(string)),
             ("Count(a.Department)", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -285,9 +285,9 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Surname", typeof(string)),
-            ("c.Value", typeof(string)));
+            ("Name", typeof(string)),
+            ("Surname", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["John", "Doe", "C#"],
@@ -329,9 +329,9 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Surname", typeof(string)),
-            ("c.Value", typeof(string)));
+            ("Name", typeof(string)),
+            ("Surname", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["John", "Doe", "C#"],

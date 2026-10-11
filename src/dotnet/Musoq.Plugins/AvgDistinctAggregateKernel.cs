@@ -8,6 +8,9 @@ namespace Musoq.Plugins;
 public static class AvgDistinctAggregateKernel<T>
     where T : struct, INumber<T>
 {
+    /// <summary>Initializes independently owned kernel state.</summary>
+    public static void Reset(ref State state) => state = default;
+
     public struct State
     {
         public HashSet<T>? Values;

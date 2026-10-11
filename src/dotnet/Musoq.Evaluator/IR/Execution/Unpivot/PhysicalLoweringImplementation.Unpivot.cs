@@ -123,7 +123,7 @@ internal sealed partial class PhysicalLoweringImplementation
             new GeneratedRowShape(CreateUnpivotRowTypeName(unpivot), fields));
     }
 
-    private static ExecutionBlock CreateUnpivotExpansionBlock(
+    private ExecutionBlock CreateUnpivotExpansionBlock(
         PhysicalUnpivotNode unpivot,
         ValuesRowShape unpivotShape,
         IReadOnlyDictionary<string, RowShape> inputLookup,
@@ -147,7 +147,7 @@ internal sealed partial class PhysicalLoweringImplementation
             .ToArray());
     }
 
-    private static IReadOnlyList<ExecutionRowValue> CreateUnpivotRowValues(
+    private IReadOnlyList<ExecutionRowValue> CreateUnpivotRowValues(
         PhysicalUnpivotNode unpivot,
         UnpivotEntry entry,
         IReadOnlyDictionary<string, RowShape> sourceLookup)

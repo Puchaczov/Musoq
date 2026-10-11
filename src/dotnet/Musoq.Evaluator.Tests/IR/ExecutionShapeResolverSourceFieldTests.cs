@@ -14,7 +14,7 @@ namespace Musoq.Evaluator.Tests.IR;
 public sealed class ExecutionShapeResolverSourceFieldTests
 {
     [TestMethod]
-    public void ResolveSourceShape_WhenDynamicPhysicalIndicesRepeat_ShouldUseDenseSlotsAndPreserveNames()
+    public void ResolveSourceShape_WhenErasedDictionaryIndicesRepeat_ShouldRejectLegacyTransfer()
     {
         const string alias = "p";
         var columns = new ISchemaColumn[]
@@ -24,18 +24,10 @@ public sealed class ExecutionShapeResolverSourceFieldTests
         };
         var resolver = CreateResolver(alias, typeof(IReadOnlyDictionary<string, object>), columns);
 
-        var shape = Assert.IsInstanceOfType<ExpandoAdapterShape>(resolver.ResolveSourceShape(CreateScan(alias)));
-
-        CollectionAssert.AreEqual(new[] { 0, 1 }, shape.Fields.Select(static field => field.OutputIndex).ToArray());
-        CollectionAssert.AreEqual(new[] { "Who", "Age" }, shape.Fields.Select(static field => field.Name).ToArray());
-        CollectionAssert.AreEqual(
-            new[] { "p.Who", "p.Age" },
-            shape.Fields.Select(static field => field.QualifiedName).ToArray());
-        CollectionAssert.AreEqual(
-            new[] { "Who", "Age" },
-            shape.Fields
-                .Select(static field => Assert.IsInstanceOfType<ExpandoDictionaryAccess>(field.AccessStrategy).Key)
-                .ToArray());
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
+            () => resolver.ResolveSourceShape(CreateScan(alias)));
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
+        Assert.Contains("native query-scoped rows", error.Message);
     }
 
     [TestMethod]
@@ -63,7 +55,7 @@ public sealed class ExecutionShapeResolverSourceFieldTests
     }
 
     [TestMethod]
-    public void ResolveSourceShape_WhenProjectedColumnsAreReordered_ShouldKeepDenseShapeOrderAndNames()
+    public void ResolveSourceShape_WhenErasedDictionaryProjectionIsReordered_ShouldRejectLegacyTransfer()
     {
         const string alias = "projected";
         var columns = new ISchemaColumn[]
@@ -73,15 +65,10 @@ public sealed class ExecutionShapeResolverSourceFieldTests
         };
         var resolver = CreateResolver(alias, typeof(IReadOnlyDictionary<string, object>), columns);
 
-        var shape = Assert.IsInstanceOfType<ExpandoAdapterShape>(resolver.ResolveSourceShape(CreateScan(alias, ["Age", "Who"])));
-
-        CollectionAssert.AreEqual(new[] { 0, 1 }, shape.Fields.Select(static field => field.OutputIndex).ToArray());
-        CollectionAssert.AreEqual(new[] { "Age", "Who" }, shape.Fields.Select(static field => field.Name).ToArray());
-        CollectionAssert.AreEqual(
-            new[] { "Age", "Who" },
-            shape.Fields
-                .Select(static field => Assert.IsInstanceOfType<ExpandoDictionaryAccess>(field.AccessStrategy).Key)
-                .ToArray());
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
+            () => resolver.ResolveSourceShape(CreateScan(alias, ["Age", "Who"])));
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
+        Assert.Contains("native query-scoped rows", error.Message);
     }
 
     private static ExecutionShapeResolver CreateResolver(

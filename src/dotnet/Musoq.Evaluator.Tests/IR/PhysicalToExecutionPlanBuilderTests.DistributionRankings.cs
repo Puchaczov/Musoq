@@ -42,10 +42,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    WindowKernelPlan [hash partition/per-partition sort; kernels 2; ranking|resultWindowRows|resultPercentRanks0Partitions|resultPercentRanks0Partitions|resultPercentRanks0PartitionKeys|resultPercentRanks0OrderKeys]",
             "      ComputePercentRankWindow [resultPercentRanks0 <- resultWindowRows partition by p.Name order by p.Age ASC]",
             "      ComputeCumeDistWindow [resultCumeDists1 <- resultWindowRows partition by p.Name order by p.Age ASC]",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
-            "      AppendShape [result <- ResultShape0(PercentRank: resultPercentRanks0[windowIndex], CumeDist: resultCumeDists1[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "      AppendShape [result <- ResultRow0(PercentRank: resultPercentRanks0[windowIndex], CumeDist: resultCumeDists1[windowIndex])]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }

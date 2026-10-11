@@ -38,8 +38,8 @@ select p.City, p.Country, c.City as OtherCity from p inner join c on 1 = 1";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.City", typeof(string)),
-            ("p.Country", typeof(string)),
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
             ("OtherCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,

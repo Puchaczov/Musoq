@@ -39,8 +39,8 @@ public partial class TextInterpretationTests
 
         var result = InvokeParse(interpreter, "[server]");
 
-        var content = (IDictionary<string, object?>)GetPropertyValue<object>(result, "Content");
-        Assert.AreEqual("server", content["Name"]);
+        var content = GetPropertyValue<object>(result, "Content");
+        Assert.AreEqual("server", GetPropertyValue<string>(content, "Name"));
     }
 
     [TestMethod]
@@ -69,8 +69,8 @@ public partial class TextInterpretationTests
 
         var result = InvokeParse(interpreter, "host=localhost");
 
-        var content = (IDictionary<string, object?>)GetPropertyValue<object>(result, "Content");
-        Assert.AreEqual("host", content["Key"]);
+        var content = GetPropertyValue<object>(result, "Content");
+        Assert.AreEqual("host", GetPropertyValue<string>(content, "Key"));
     }
 
     [TestMethod]

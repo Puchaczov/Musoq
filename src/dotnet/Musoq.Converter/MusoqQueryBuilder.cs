@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Musoq.Evaluator;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Converter;
 
@@ -21,18 +22,20 @@ public sealed class MusoqQueryBuilder
         _query = query;
     }
 
-    public MusoqQueryBuilder Source<T>(string schemaName, string sourceName)
+    public MusoqQueryBuilder Source<T>(string schemaName, string sourceName,
+        SourceExecutionPermissions executionPermissions = SourceExecutionPermissions.None)
     {
-        AddOrValidateSource<T>(schemaName, sourceName);
+        AddOrValidateSource<T>(schemaName, sourceName, executionPermissions);
         return this;
     }
 
     public MusoqQueryBuilder Source<T>(
         string schemaName,
         string sourceName,
-        IEnumerable<IReadOnlyList<T>> chunks)
+        IEnumerable<IReadOnlyList<T>> chunks,
+        SourceExecutionPermissions executionPermissions = SourceExecutionPermissions.None)
     {
-        AddOrValidateSource<T>(schemaName, sourceName);
+        AddOrValidateSource<T>(schemaName, sourceName, executionPermissions);
         var binding = MusoqSourceRows.Create(schemaName, sourceName, chunks);
         _defaultRows[binding.SchemaName + "." + binding.SourceName] = binding;
         return this;
@@ -142,9 +145,9 @@ public sealed class MusoqQueryBuilder
         return new InMemorySourceBinding(_sources);
     }
 
-    private void AddOrValidateSource<T>(string schemaName, string sourceName)
+    private void AddOrValidateSource<T>(string schemaName, string sourceName, SourceExecutionPermissions executionPermissions)
     {
-        var slot = new InMemorySourceSlot(schemaName, sourceName, typeof(T));
+        var slot = new InMemorySourceSlot(schemaName, sourceName, typeof(T), executionPermissions);
         var existing = _sources.FirstOrDefault(source => string.Equals(source.Key, slot.Key, StringComparison.OrdinalIgnoreCase));
         if (existing == null)
         {
@@ -157,5 +160,7 @@ public sealed class MusoqQueryBuilder
             throw new InvalidOperationException(
                 $"Source '#{slot.SchemaName}.{slot.SourceName}()' is already declared with row type '{existing.RowType.FullName}'.");
         }
+        if (existing.ExecutionPermissions != executionPermissions)
+            throw new InvalidOperationException($"Source '#{slot.SchemaName}.{slot.SourceName}()' has conflicting execution permissions.");
     }
 }

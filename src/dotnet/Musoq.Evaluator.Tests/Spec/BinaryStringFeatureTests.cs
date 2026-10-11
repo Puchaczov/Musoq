@@ -44,8 +44,8 @@ public class BinaryStringFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)5, table[0][0]);
-        Assert.AreEqual("Hello", table[0][1]);
+        Assert.AreEqual((byte)5, table[0].ReadValue(0));
+        Assert.AreEqual("Hello", table[0].ReadValue(1));
     }
 
     #endregion
@@ -79,8 +79,8 @@ public class BinaryStringFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("John", table[0][0]);
-        Assert.AreEqual("Doe", table[0][1]);
+        Assert.AreEqual("John", table[0].ReadValue(0));
+        Assert.AreEqual("Doe", table[0].ReadValue(1));
     }
 
     #endregion
@@ -112,7 +112,7 @@ public class BinaryStringFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("image.png", table[0][0]);
+        Assert.AreEqual("image.png", table[0].ReadValue(0));
     }
 
     #endregion
@@ -140,7 +140,7 @@ public class BinaryStringFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello", table[0][0]);
+        Assert.AreEqual("Hello", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -165,7 +165,7 @@ public class BinaryStringFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("日本", table[0][0]);
+        Assert.AreEqual("日本", table[0].ReadValue(0));
     }
 
     #endregion
@@ -193,7 +193,7 @@ public class BinaryStringFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("TEST", table[0][0]);
+        Assert.AreEqual("TEST", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -217,7 +217,7 @@ public class BinaryStringFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("ABC-1234", table[0][0]);
+        Assert.AreEqual("ABC-1234", table[0].ReadValue(0));
     }
 
     #endregion
@@ -245,7 +245,7 @@ public class BinaryStringFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello", table[0][0]);
+        Assert.AreEqual("Hello", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -269,7 +269,7 @@ public class BinaryStringFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Testing", table[0][0]);
+        Assert.AreEqual("Testing", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -293,7 +293,7 @@ public class BinaryStringFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("  Testing", table[0][0]);
+        Assert.AreEqual("  Testing", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -317,7 +317,7 @@ public class BinaryStringFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Testing   ", table[0][0]);
+        Assert.AreEqual("Testing   ", table[0].ReadValue(0));
     }
 
     #endregion
@@ -345,7 +345,7 @@ public class BinaryStringFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello", table[0][0]);
+        Assert.AreEqual("Hello", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -369,7 +369,7 @@ public class BinaryStringFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("", table[0][0]);
+        Assert.AreEqual("", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -393,7 +393,7 @@ public class BinaryStringFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("ABCDE", table[0][0]);
+        Assert.AreEqual("ABCDE", table[0].ReadValue(0));
     }
 
     #endregion

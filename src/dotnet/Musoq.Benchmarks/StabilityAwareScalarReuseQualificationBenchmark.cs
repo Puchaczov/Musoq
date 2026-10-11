@@ -117,7 +117,7 @@ public class StabilityAwareScalarReuseQualificationBenchmark
 
         long checksum = 0;
         foreach (var row in table.Rows)
-            checksum += Convert.ToInt64(row[0]);
+            checksum += NativeBenchmarkColumnConsumption.ReadInteger(row, 0);
         if (checksum != expectedChecksum)
             throw new InvalidOperationException($"Expected checksum {expectedChecksum}, received {checksum}.");
 
@@ -200,10 +200,10 @@ public class StabilityAwareScalarReuseQualificationBenchmark
             throw new NotSupportedException(name);
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments parameters)
         {
             if (string.Equals(name, "items", StringComparison.OrdinalIgnoreCase))
                 return EnsureSourceType<T, ReuseRow>(name, new ReuseRowSource(rows));

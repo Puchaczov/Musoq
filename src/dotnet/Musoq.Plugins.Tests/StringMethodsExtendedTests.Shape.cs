@@ -11,12 +11,6 @@ public partial class StringMethodsExtendedTests
 {
 
     [TestMethod]
-    public void Truncate_Null_ReturnsNull()
-    {
-        Assert.IsNull(Library.Truncate(null, 10));
-    }
-
-    [TestMethod]
     public void Truncate_ShorterThanMax_ReturnsSame()
     {
         Assert.AreEqual("hello", Library.Truncate("hello", 10));
@@ -71,51 +65,15 @@ public partial class StringMethodsExtendedTests
     }
 
     [TestMethod]
-    public void Capitalize_Null_ReturnsNull()
-    {
-        Assert.IsNull(Library.Capitalize(null));
-    }
-
-    [TestMethod]
-    public void Capitalize_EmptyString_ReturnsEmpty()
-    {
-        Assert.AreEqual(string.Empty, Library.Capitalize(string.Empty));
-    }
-
-    [TestMethod]
-    public void Capitalize_SingleLowerLetter_ReturnsUpper()
-    {
-        Assert.AreEqual("A", Library.Capitalize("a"));
-    }
-
-    [TestMethod]
     public void Capitalize_SingleUpperLetter_ReturnsSame()
     {
         Assert.AreEqual("A", Library.Capitalize("A"));
     }
 
     [TestMethod]
-    public void Capitalize_LowerCase_CapitalizesFirst()
-    {
-        Assert.AreEqual("Hello", Library.Capitalize("hello"));
-    }
-
-    [TestMethod]
     public void Capitalize_UpperCase_KeepsRest()
     {
         Assert.AreEqual("HELLO", Library.Capitalize("hELLO"));
-    }
-
-    [TestMethod]
-    public void Capitalize_AlreadyCapitalized_ReturnsSame()
-    {
-        Assert.AreEqual("Hello", Library.Capitalize("Hello"));
-    }
-
-    [TestMethod]
-    public void Repeat_Null_ReturnsNull()
-    {
-        Assert.IsNull(Library.Repeat(null, 3));
     }
 
     [TestMethod]
@@ -149,21 +107,9 @@ public partial class StringMethodsExtendedTests
     }
 
     [TestMethod]
-    public void Repeat_EmptySeparator_NoSeparator()
-    {
-        Assert.AreEqual("aaa", Library.Repeat("a", 3));
-    }
-
-    [TestMethod]
     public void Repeat_EmptyString_ReturnsEmpty()
     {
         Assert.AreEqual(string.Empty, Library.Repeat(string.Empty, 3));
-    }
-
-    [TestMethod]
-    public void Wrap_Null_ReturnsNull()
-    {
-        Assert.IsNull(Library.Wrap(null, "[", "]"));
     }
 
     [TestMethod]

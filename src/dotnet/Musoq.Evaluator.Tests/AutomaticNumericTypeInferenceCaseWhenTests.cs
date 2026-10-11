@@ -32,7 +32,7 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => (string)row.Values[0]).ToList();
+        var results = table.Select(row => (string)row.ReadValues()[0]).ToList();
         CollectionAssert.Contains(results, "Large");
         CollectionAssert.Contains(results, "Small");
     }
@@ -68,7 +68,7 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
 
         Assert.AreEqual(3, table.Count);
 
-        var results = table.Select(row => row.Values[0]).Cast<string>().ToList();
+        var results = table.Select(row => row.ReadValues()[0]).Cast<string>().ToList();
         CollectionAssert.Contains(results, "Small");
         CollectionAssert.Contains(results, "Medium");
         CollectionAssert.Contains(results, "Large");
@@ -99,7 +99,7 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => (string)row.Values[0]).ToList();
+        var results = table.Select(row => (string)row.ReadValues()[0]).ToList();
         CollectionAssert.Contains(results, "InRange");
         CollectionAssert.Contains(results, "OutOfRange");
     }
@@ -138,7 +138,7 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        var results = table.Select(row => (string)row.Values[0]).ToList();
+        var results = table.Select(row => (string)row.ReadValues()[0]).ToList();
         CollectionAssert.Contains(results, "LargeAndCheap");
         CollectionAssert.Contains(results, "LargeAndExpensive");
         CollectionAssert.Contains(results, "Small");
@@ -167,7 +167,7 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Large", table[0].Values[0]);
+        Assert.AreEqual("Large", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -202,7 +202,7 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        var results = table.Select(row => (string)row.Values[0]).ToList();
+        var results = table.Select(row => (string)row.ReadValues()[0]).ToList();
         CollectionAssert.Contains(results, "VeryLarge");
         CollectionAssert.Contains(results, "Large");
         CollectionAssert.Contains(results, "Small");

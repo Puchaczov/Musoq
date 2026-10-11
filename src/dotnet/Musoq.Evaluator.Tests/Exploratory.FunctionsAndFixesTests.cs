@@ -97,7 +97,7 @@ public partial class ExploratoryFunctionsAndFixesTests
         Assert.IsNotNull(table);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("john", table[0].Values[0]);
+        Assert.AreEqual("john", table[0].ReadValues()[0]);
     }
 
     #endregion

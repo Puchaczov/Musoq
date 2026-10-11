@@ -65,6 +65,13 @@ public sealed partial class ExecutionCSharpRendererTests
         ExecutionExpression expression,
         Type? publicOutputType = null)
     {
+        return CreateProjectionPlan(queryName, [(outputName, outputType, expression, publicOutputType)]);
+    }
+
+    private static ExecutionPlan CreateProjectionPlan(
+        string queryName,
+        IReadOnlyList<(string Name, Type Type, ExecutionExpression Expression, Type? PublicType)> projections)
+    {
         var sourceShape = new SourceEntityShape(
             "p",
             typeof(Person),
@@ -73,12 +80,11 @@ public sealed partial class ExecutionCSharpRendererTests
             ]);
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
-            [
-                new FieldBinding(outputName, outputName, 0, outputType, FieldNullability.Unknown, new GeneratedFieldAccess(outputName))
+            projections.Select((projection, index) =>
+                new FieldBinding(projection.Name, projection.Name, index, projection.Type, FieldNullability.Unknown, new GeneratedFieldAccess(projection.Name))
                 {
-                    PublicType = ExecutionClrBindingFactory.FromOptionalClr(publicOutputType)
-                }
-            ]);
+                    PublicType = ExecutionClrBindingFactory.FromOptionalClr(projection.PublicType)
+                }).ToArray());
         var source = new ExecutionVariable("p", typeof(Person));
         var sourceRows = new ExecutionVariable("pRows", typeof(object));
         var sourceBinding = new ExecutionSourceBinding(
@@ -89,7 +95,7 @@ public sealed partial class ExecutionCSharpRendererTests
             [],
             sourceShape.Fields);
         var resultTable = new ExecutionVariable("result", typeof(object));
-        var targetDeclarations = ExecutionIrAnalysis.FlattenExpressions(expression)
+        var targetDeclarations = projections.SelectMany(static projection => ExecutionIrAnalysis.FlattenExpressions(projection.Expression))
             .OfType<ExecutionMethodCall>()
             .Select(static call => call.Target)
             .Where(static target => target != null)
@@ -113,7 +119,7 @@ public sealed partial class ExecutionCSharpRendererTests
                         new ExecutionAppendRow(
                             resultTable,
                             resultShape,
-                            [new ExecutionRowValue(outputName, expression)])
+                            projections.Select(static projection => new ExecutionRowValue(projection.Name, projection.Expression)).ToArray())
                     ])),
                 new ExecutionReturnTable(resultTable)
             ]),
@@ -123,13 +129,12 @@ public sealed partial class ExecutionCSharpRendererTests
 
     private static ExecutionPlan CreateDynamicPlan()
     {
-        var sourceShape = new ExpandoAdapterShape(
+        var sourceShape = new SourceEntityShape(
             "p",
-            "pDynamicRow0",
             typeof(ExpandoObject),
             [
-                new FieldBinding("Id", "p.Id", 0, typeof(int), FieldNullability.Unknown, new ExpandoDictionaryAccess("Id")),
-                new FieldBinding("Name", "p.Name", 1, typeof(string), FieldNullability.Unknown, new ExpandoDictionaryAccess("Name"))
+                new FieldBinding("Id", "p.Id", 0, typeof(int), FieldNullability.Unknown, new ReflectedMemberAccess("Id")),
+                new FieldBinding("Name", "p.Name", 1, typeof(string), FieldNullability.Unknown, new ReflectedMemberAccess("Name"))
             ]);
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
@@ -139,7 +144,6 @@ public sealed partial class ExecutionCSharpRendererTests
             ]);
         var source = new ExecutionVariable("pDynamicSource", typeof(IReadOnlyDictionary<string, object>));
         var sourceRows = new ExecutionVariable("pRows", typeof(object));
-        var adapter = new ExecutionVariable("p", typeof(object));
         var sourceBinding = new ExecutionSourceBinding(
             "test",
             "data",
@@ -161,7 +165,6 @@ public sealed partial class ExecutionCSharpRendererTests
                     new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Chunks),
                     new ExecutionBlock(
                     [
-                        new ExecutionAdaptExpando(adapter, source, sourceShape),
                         new ExecutionAppendRow(
                             resultTable,
                             resultShape,

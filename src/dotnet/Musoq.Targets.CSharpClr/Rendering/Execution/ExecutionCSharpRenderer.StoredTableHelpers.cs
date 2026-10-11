@@ -205,7 +205,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         return context.Session.TypedStoredTableResults.TryGetValue(build.TableIndex, out var typedResult)
-            ? CreateCteRowResultSlotTypeSyntax(typedResult.RowShape)
+            ? CreateCteRowResultSlotTypeSyntax(typedResult)
             : CreateTypeSyntax(typeof(Table));
     }
 

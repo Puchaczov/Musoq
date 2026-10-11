@@ -250,11 +250,12 @@ public sealed class QueryRowLifecycleSchema : SchemaBase, IQueryScopedRowSourceS
         };
     }
 
-    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer>(
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        params object?[] parameters)
+        TArguments parameters)
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
         _scenario.Recorder.RecordOpen();
         if (_scenario.OpenFailure != null)

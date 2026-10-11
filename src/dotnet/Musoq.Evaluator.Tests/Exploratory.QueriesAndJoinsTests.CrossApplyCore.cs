@@ -24,7 +24,7 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "a"], ["John", "c"]);
     }
 
@@ -45,7 +45,7 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "a"], ["John", "c"], ["John", "e"]);
     }
 
@@ -66,7 +66,7 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "test1"], ["John", "test2"]);
     }
 
@@ -87,7 +87,7 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("s.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", 20], ["John", 30], ["John", 40]);
     }
 
@@ -113,7 +113,7 @@ public partial class ExploratoryQueriesAndJoinsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)), ("DoubleScore", typeof(int)), ("BonusScore", typeof(int)));
+            ("Name", typeof(string)), ("DoubleScore", typeof(int)), ("BonusScore", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["John", 20, 110], ["John", 40, 120], ["John", 60, 130]);
@@ -136,7 +136,7 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("TotalDoubleScore", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("TotalDoubleScore", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", 120]);
     }
 
@@ -175,7 +175,7 @@ public partial class ExploratoryQueriesAndJoinsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)), ("pt.Value", typeof(string)), ("oi.ProductName", typeof(string)));
+            ("Name", typeof(string)), ("Value", typeof(string)), ("ProductName", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "vip", "Widget"]);
     }
 
@@ -201,7 +201,7 @@ public partial class ExploratoryQueriesAndJoinsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Prefix", typeof(string)), ("t.Value", typeof(string)), ("Suffix", typeof(string)));
+            ("Prefix", typeof(string)), ("Value", typeof(string)), ("Suffix", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Prefix", "tag1", "Suffix"]);
     }
 
@@ -225,7 +225,7 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("part.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["John Doe Smith", "John"], ["John Doe Smith", "Doe"], ["John Doe Smith", "Smith"]);

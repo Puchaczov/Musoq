@@ -45,7 +45,7 @@ internal abstract partial class ExecutionIrRewriter
             ExecutionRowContextsRead rowContextsRead => RewriteRowContextsRead(rowContextsRead),
             ExecutionNullContextArray nullContextArray => RewriteNullContextArray(nullContextArray),
             ExecutionContextArray contextArray => RewriteContextArray(contextArray),
-            ExecutionCompositeKey compositeKey => RewriteCompositeKey(compositeKey),
+
             ExecutionValueTupleKey valueTupleKey => RewriteValueTupleKey(valueTupleKey),
             ExecutionWindowValueRead windowValueRead => RewriteWindowValueRead(windowValueRead),
             ExecutionAggregateCall aggregateCall => RewriteAggregateCall(aggregateCall),
@@ -61,13 +61,13 @@ internal abstract partial class ExecutionIrRewriter
     {
         var fields = expression.Fields.Select(field =>
             new ExecutionStructuralField(field.Name, RewriteExpression(field.Value), field.IsPresent)).ToArray();
-        return fields.SequenceEqual(expression.Fields) ? expression : new ExecutionStructuralRecord(expression.ReturnType, fields, expression.ConstructionPlan) { LimitBinding = expression.LimitBinding };
+        return fields.SequenceEqual(expression.Fields) ? expression : new ExecutionStructuralRecord(expression.ReturnType, fields, expression.ConstructionPlan) { LimitBinding = expression.LimitBinding, GeneratedTypeName = expression.GeneratedTypeName };
     }
 
     protected virtual ExecutionExpression RewriteStructuralArray(ExecutionStructuralArray expression)
     {
         var elements = RewriteExpressionList(expression.Elements);
-        return ReferenceEquals(elements, expression.Elements) ? expression : new ExecutionStructuralArray(expression.ReturnType, expression.ElementType, elements) { LimitBinding = expression.LimitBinding };
+        return ReferenceEquals(elements, expression.Elements) ? expression : new ExecutionStructuralArray(expression.ReturnType, expression.ElementType, elements) { LimitBinding = expression.LimitBinding, GeneratedElementTypeName = expression.GeneratedElementTypeName };
     }
 
     protected virtual ExecutionExpression RewriteStructuralConversion(ExecutionStructuralConversion expression)
@@ -227,11 +227,7 @@ internal abstract partial class ExecutionIrRewriter
         return ReferenceEquals(segments, expression.Segments) ? expression : expression with { Segments = segments };
     }
 
-    protected virtual ExecutionExpression RewriteCompositeKey(ExecutionCompositeKey expression)
-    {
-        var parts = RewriteExpressionList(expression.Parts);
-        return ReferenceEquals(parts, expression.Parts) ? expression : expression with { Parts = parts };
-    }
+
 
     protected virtual ExecutionExpression RewriteValueTupleKey(ExecutionValueTupleKey expression)
     {

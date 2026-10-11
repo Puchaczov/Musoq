@@ -14,7 +14,9 @@ public sealed partial class ExecutionCSharpRenderer
 
         var method = methodCall.Method.RequireClrMethod();
         var declaringType = method.DeclaringType;
-        if (declaringType == null || !method.IsPublic || !CanReferenceType(declaringType) || !CanReferenceType(methodCall.ReturnType))
+        var resultIsRenderable = methodCall.GeneratedResultTypeName is { } resultName
+            ? CanRenderGeneratedTypeName(resultName) : CanReferenceType(methodCall.ReturnType);
+        if (declaringType == null || !method.IsPublic || !CanReferenceType(declaringType) || !resultIsRenderable)
             return false;
 
         if (method.ContainsGenericParameters)
@@ -48,7 +50,7 @@ public sealed partial class ExecutionCSharpRenderer
                 continue;
             }
 
-            if (parameter.GetCustomAttribute<ParamArrayAttribute>() != null)
+            if (global::Musoq.Plugins.VariadicParameter.IsVariadic(parameter))
             {
                 while (argumentIndex < methodCall.Arguments.Count)
                 {

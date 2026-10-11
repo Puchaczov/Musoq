@@ -64,7 +64,7 @@ public class CompileErrorTests : NegativeTestsBase
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
     }
 
     [TestMethod]

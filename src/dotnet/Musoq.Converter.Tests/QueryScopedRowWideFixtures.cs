@@ -34,11 +34,12 @@ public sealed class WideQueryRowsSchema : SchemaBase, IQueryScopedRowSourceSchem
         };
     }
 
-    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer>(
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        params object?[] parameters)
+        TArguments parameters)
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
         return new WideQueryRowsMaterializedSource<TRow, TMaterializer>(request.Shape.Fields);
     }

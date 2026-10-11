@@ -5,6 +5,7 @@ using Musoq.Evaluator.IR.Expressions.CollectionParameters;
 using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.IR.Execution;
+
 public static partial class ExecutionExpressionConverter
 {
     private const int DefaultArrayInValueThreshold = 16;
@@ -37,6 +38,8 @@ public static partial class ExecutionExpressionConverter
             ColumnRef column => ConvertColumnRef(column, sourceShapes),
             ScriptParameterRef parameter => ConvertScriptParameter(parameter),
             ScriptVariableRef variable => new ExecutionScriptVariableRead(variable.Name, variable.ReturnType),
+            Literal { Value: null } literal when literal.ReturnType == typeof(object) =>
+                new ExecutionLiteral(null, typeof(DBNull)),
             Literal literal => new ExecutionLiteral(literal.Value, literal.ReturnType),
             StructuralRecordLiteral record => ConvertStructuralRecord(record, sourceShapes, cteTableIndexes, methodTargets),
             StructuralArrayLiteral array => ConvertStructuralArray(array, sourceShapes, cteTableIndexes, methodTargets),
@@ -46,29 +49,25 @@ public static partial class ExecutionExpressionConverter
                 binary.Kind,
                 Convert(binary.Left, sourceShapes, cteTableIndexes, methodTargets),
                 Convert(binary.Right, sourceShapes, cteTableIndexes, methodTargets),
-                binary.ReturnType) { UsesSqlNullSemantics = binary.UsesSqlNullSemantics },
+                binary.ReturnType)
+            { UsesSqlNullSemantics = binary.UsesSqlNullSemantics },
             UnaryOp unary => new ExecutionUnary(unary.Kind, Convert(unary.Operand, sourceShapes, cteTableIndexes, methodTargets), unary.ReturnType),
             MethodCall method => ConvertMethodCall(method, sourceShapes, cteTableIndexes, methodTargets),
             StrictCast strictCast => new ExecutionStrictCast(
                 Convert(strictCast.Expression, sourceShapes, cteTableIndexes, methodTargets),
                 strictCast.TargetTypeName,
                 strictCast.ReturnType),
-            ArrayAccess arrayAccess => new ExecutionArrayAccess(
+            ArrayAccess arrayAccess => ExecutionIndexedAccessBinding.Bind(new ExecutionArrayAccess(
                 Convert(arrayAccess.Array, sourceShapes, cteTableIndexes, methodTargets),
                 Convert(arrayAccess.Index, sourceShapes, cteTableIndexes, methodTargets),
                 arrayAccess.ElementType,
-                arrayAccess.ReturnType),
+                arrayAccess.ReturnType)),
             RowPresence rowPresence => ConvertRowPresence(rowPresence, sourceShapes),
             IsNullCheck isNull => new ExecutionIsNullCheck(
                 Convert(isNull.Expression, sourceShapes, cteTableIndexes, methodTargets),
                 isNull.IsNegated,
                 isNull.ReturnType),
-            InCheck inCheck => new ExecutionInCheck(
-                Convert(inCheck.Expression, sourceShapes, cteTableIndexes, methodTargets),
-                inCheck.Values.Select(value => Convert(value, sourceShapes, cteTableIndexes, methodTargets)).ToArray(),
-                inCheck.ReturnType,
-                TryCreateConstantInSet(inCheck),
-                inCheck.IsNegated),
+            InCheck inCheck => ConvertInCheck(inCheck, sourceShapes, cteTableIndexes, methodTargets),
             CollectionInCheck collectionInCheck => ConvertCollectionInCheck(collectionInCheck, sourceShapes, cteTableIndexes, methodTargets),
             PatternMatch patternMatch => new ExecutionPatternMatch(
                 Convert(patternMatch.Expression, sourceShapes, cteTableIndexes, methodTargets),
@@ -95,7 +94,8 @@ public static partial class ExecutionExpressionConverter
                 coalesce.ReturnType),
             AggregateRef aggregateRef => new ExecutionAggregateResultRef(aggregateRef.Identifier, aggregateRef.DisplayName, aggregateRef.ReturnType),
             WindowFunctionRef windowRef => new ExecutionWindowResultRef(windowRef.WindowIndex, windowRef.ReturnType),
-            CteCollectionInput cteCollectionInput => ConvertCteCollectionInput(cteCollectionInput, cteTableIndexes), CteTableRef cteTableRef when cteTableIndexes?.TryGetValue(cteTableRef.Name, out var tableIndex) == true => new ExecutionStoredTable(tableIndex),
+            CteCollectionInput cteCollectionInput => ConvertCteCollectionInput(cteCollectionInput, cteTableIndexes),
+            CteTableRef cteTableRef when cteTableIndexes?.TryGetValue(cteTableRef.Name, out var tableIndex) == true => new ExecutionStoredTable(tableIndex),
             CteTableRef cteTableRef => throw Unsupported(expression, $"CTE table '{cteTableRef.Name}' requires a registered table index"),
             _ => throw Unsupported(expression, "no execution expression lowering is registered")
         };

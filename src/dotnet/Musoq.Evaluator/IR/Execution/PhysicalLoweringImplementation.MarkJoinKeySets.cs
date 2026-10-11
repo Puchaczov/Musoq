@@ -8,9 +8,7 @@ internal sealed partial class PhysicalLoweringImplementation
     private static bool CanUsePayloadFreeMarkKeySet(HashJoinBuildContext context)
     {
         return context.Join.Residual == null &&
-               context.KeyType != typeof(object) &&
-               context.Sides.Build.Shape is not ExpandoAdapterShape &&
-               context.Sides.Probe.Shape is not ExpandoAdapterShape;
+               context.KeyType != typeof(object);
     }
 
     private TableBuildResult? TryBuildMarkKeySetJoinTable(HashJoinBuildContext context)

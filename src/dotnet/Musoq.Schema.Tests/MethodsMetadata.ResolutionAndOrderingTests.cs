@@ -243,12 +243,12 @@ public class MethodsMetadataResolutionAndOrderingTests : MethodsMetadataTestBase
         var result = _ordering.TryGetMethod("ContextMethod", [typeof(int)], null, out var method);
         Assert.IsTrue(result);
         method = RequireResolved(method);
-        Assert.IsFalse(Attribute.IsDefined(method, typeof(AggregationMethodAttribute)));
+        Assert.IsFalse(Attribute.IsDefined(method, typeof(AggregateFunctionAttribute)));
 
         result = _ordering.TryGetMethod("ContextMethod", [typeof(string), typeof(int)], null, out method);
         Assert.IsTrue(result);
         method = RequireResolved(method);
-        Assert.IsTrue(Attribute.IsDefined(method, typeof(AggregationMethodAttribute)));
+        Assert.IsTrue(Attribute.IsDefined(method, typeof(AggregateFunctionAttribute)));
     }
 
     [TestMethod]
@@ -415,9 +415,10 @@ public class MethodsMetadataResolutionAndOrderingTests : MethodsMetadataTestBase
             return "more_params";
         }
 
-        [AggregationMethod]
-        public void ContextMethod(string name, int value)
+        [AggregateFunction(typeof(MetadataAggregateKernel))]
+        public int ContextMethod(string name, int value)
         {
+            return 0;
         }
 
         public void ContextMethod(int value)

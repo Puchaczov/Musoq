@@ -38,24 +38,24 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
         Assert.AreEqual(3, table.Count);
 
 
-        var row1 = table.FirstOrDefault(r => r[1]?.ToString() == "Poland");
+        var row1 = table.FirstOrDefault(r => r.ReadValue(1)?.ToString() == "Poland");
         Assert.IsNotNull(row1);
-        Assert.IsNull(row1[0]);
-        Assert.AreEqual("NameNull", row1[2]);
-        Assert.AreEqual("CountryNotNull", row1[3]);
+        Assert.IsNull(row1.ReadValue(0));
+        Assert.AreEqual("NameNull", row1.ReadValue(2));
+        Assert.AreEqual("CountryNotNull", row1.ReadValue(3));
 
 
-        var row2 = table.FirstOrDefault(r => r[0]?.ToString() == "Test");
+        var row2 = table.FirstOrDefault(r => r.ReadValue(0)?.ToString() == "Test");
         Assert.IsNotNull(row2);
-        Assert.IsNull(row2[1]);
-        Assert.AreEqual("NameNotNull", row2[2]);
-        Assert.AreEqual("CountryNull", row2[3]);
+        Assert.IsNull(row2.ReadValue(1));
+        Assert.AreEqual("NameNotNull", row2.ReadValue(2));
+        Assert.AreEqual("CountryNull", row2.ReadValue(3));
 
 
-        var row3 = table.FirstOrDefault(r => r[0]?.ToString() == "Both");
+        var row3 = table.FirstOrDefault(r => r.ReadValue(0)?.ToString() == "Both");
         Assert.IsNotNull(row3);
-        Assert.AreEqual("NameNotNull", row3[2]);
-        Assert.AreEqual("CountryNotNull", row3[3]);
+        Assert.AreEqual("NameNotNull", row3.ReadValue(2));
+        Assert.AreEqual("CountryNotNull", row3.ReadValue(3));
     }
 
     [TestMethod]
@@ -85,16 +85,16 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
         Assert.AreEqual(2, table.Count);
 
 
-        var nullRow = table.FirstOrDefault(r => r[0] == null);
+        var nullRow = table.FirstOrDefault(r => r.ReadValue(0) == null);
         Assert.IsNotNull(nullRow);
-        Assert.AreEqual("IsNull", nullRow[1]);
-        Assert.AreEqual("Null2", nullRow[2]);
+        Assert.AreEqual("IsNull", nullRow.ReadValue(1));
+        Assert.AreEqual("Null2", nullRow.ReadValue(2));
 
 
-        var notNullRow = table.FirstOrDefault(r => r[0]?.ToString() == "Test");
+        var notNullRow = table.FirstOrDefault(r => r.ReadValue(0)?.ToString() == "Test");
         Assert.IsNotNull(notNullRow);
-        Assert.AreEqual("NotNull1", notNullRow[1]);
-        Assert.AreEqual("IsNotNull", notNullRow[2]);
+        Assert.AreEqual("NotNull1", notNullRow.ReadValue(1));
+        Assert.AreEqual("IsNotNull", notNullRow.ReadValue(2));
     }
 
     [TestMethod]
@@ -124,13 +124,13 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
 
         Assert.AreEqual(2, table.Count);
 
-        var nullRow = table.FirstOrDefault(r => r[0] == null);
+        var nullRow = table.FirstOrDefault(r => r.ReadValue(0) == null);
         Assert.IsNotNull(nullRow);
-        Assert.AreEqual("Null", nullRow[1]);
+        Assert.AreEqual("Null", nullRow.ReadValue(1));
 
-        var testRow = table.FirstOrDefault(r => r[0]?.ToString() == "Test");
+        var testRow = table.FirstOrDefault(r => r.ReadValue(0)?.ToString() == "Test");
         Assert.IsNotNull(testRow);
-        Assert.AreEqual("Test", testRow[1]);
+        Assert.AreEqual("Test", testRow.ReadValue(1));
     }
 
     #endregion
@@ -179,17 +179,17 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
 
         Assert.AreEqual(2, table.Count);
 
-        var polandRow = table.FirstOrDefault(r => r[0]?.ToString() == "Poland");
+        var polandRow = table.FirstOrDefault(r => r.ReadValue(0)?.ToString() == "Poland");
         Assert.IsNotNull(polandRow);
-        Assert.AreEqual(100m, polandRow[1]);
-        Assert.AreEqual("Poland", polandRow[2]);
-        Assert.AreEqual(38m, polandRow[3]);
+        Assert.AreEqual(100m, polandRow.ReadValue(1));
+        Assert.AreEqual("Poland", polandRow.ReadValue(2));
+        Assert.AreEqual(38m, polandRow.ReadValue(3));
 
-        var usaRow = table.FirstOrDefault(r => r[0]?.ToString() == "USA");
+        var usaRow = table.FirstOrDefault(r => r.ReadValue(0)?.ToString() == "USA");
         Assert.IsNotNull(usaRow);
-        Assert.AreEqual(200m, usaRow[1]);
-        Assert.AreEqual("USA", usaRow[2]);
-        Assert.AreEqual(331m, usaRow[3]);
+        Assert.AreEqual(200m, usaRow.ReadValue(1));
+        Assert.AreEqual("USA", usaRow.ReadValue(2));
+        Assert.AreEqual(331m, usaRow.ReadValue(3));
     }
 
 

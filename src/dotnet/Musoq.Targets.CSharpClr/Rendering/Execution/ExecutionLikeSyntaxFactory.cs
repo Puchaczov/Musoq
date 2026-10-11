@@ -14,7 +14,8 @@ internal static class ExecutionLikeSyntaxFactory
 
     internal static InvocationExpressionSyntax Render(
         ExecutionPatternMatch patternMatch,
-        Func<ExecutionExpression, ExpressionSyntax> renderExpression)
+        Func<ExecutionExpression, ExpressionSyntax> renderExpression,
+        TimeSpan timeout)
     {
         ArgumentNullException.ThrowIfNull(renderExpression);
 
@@ -29,7 +30,8 @@ internal static class ExecutionLikeSyntaxFactory
             .WithArgumentList(SyntaxFactory.ArgumentList());
         var arguments = ExecutionSyntaxFactory.CreateArgumentList(
             renderExpression(patternMatch.Expression),
-            renderExpression(patternMatch.Pattern));
+            renderExpression(patternMatch.Pattern),
+            RegexTimeoutSyntax.Create(timeout));
 
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(

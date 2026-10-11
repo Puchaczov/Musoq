@@ -40,11 +40,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 "Execution IR hash-join aggregate fusion cannot map build/probe keys to flat join inputs.");
         }
 
-        if (HasDynamicHashJoinInput(joinSources))
-        {
-            return SingleKeyAggregateExecutionSourceBuildResult.Unsupported(
-                "Execution IR hash-join aggregate fusion does not stream dynamic hash-join inputs. Physical planning must select nested-loop before Execution IR lowering.");
-        }
+
 
         var sidecarIndex = TryResolveCteSidecarIndex(join, hashSides, CteSidecarIndexKind.Hash);
         if (sidecarIndex != null &&

@@ -33,7 +33,7 @@ public class AliasCteBugProbeTests : BasicEntityTestBase
         Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
         CollectionAssert.AreEquivalent(
             new[] { "WARSAW", "BERLIN" },
-            table.Select(row => (string)row.Values[0]).ToArray());
+            table.Select(row => (string)row.ReadValues()[0]).ToArray());
     }
 
     [TestMethod]
@@ -68,7 +68,7 @@ public class AliasCteBugProbeTests : BasicEntityTestBase
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
         CollectionAssert.AreEquivalent(
             new[] { "WARSAW", "BERLIN" },
-            table.Select(row => (string)row.Values[0]).ToArray());
+            table.Select(row => (string)row.ReadValues()[0]).ToArray());
     }
 
     [TestMethod]
@@ -90,10 +90,10 @@ public class AliasCteBugProbeTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Columns.Count());
         CollectionAssert.AreEquivalent(
             new[] { "WARSAW", "BERLIN" },
-            table.Select(row => (string)row.Values[0]).ToArray());
+            table.Select(row => (string)row.ReadValues()[0]).ToArray());
         CollectionAssert.AreEquivalent(
             new[] { "WARSAW", "BERLIN" },
-            table.Select(row => (string)row.Values[1]).ToArray());
+            table.Select(row => (string)row.ReadValues()[1]).ToArray());
     }
 
     [TestMethod]
@@ -114,7 +114,7 @@ public class AliasCteBugProbeTests : BasicEntityTestBase
         Assert.AreEqual("cte", table.Columns.ElementAt(0).ColumnName);
         CollectionAssert.AreEquivalent(
             new[] { "WARSAW", "BERLIN" },
-            table.Select(row => (string)row.Values[0]).ToArray());
+            table.Select(row => (string)row.ReadValues()[0]).ToArray());
     }
 
     [TestMethod]
@@ -134,7 +134,7 @@ public class AliasCteBugProbeTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Columns.Count());
         CollectionAssert.AreEquivalent(
             new[] { "WARSAW", "BERLIN" },
-            table.Select(row => (string)row.Values[0]).ToArray());
+            table.Select(row => (string)row.ReadValues()[0]).ToArray());
     }
 
     [TestMethod]
@@ -152,7 +152,7 @@ public class AliasCteBugProbeTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Columns.Count());
         CollectionAssert.AreEquivalent(
             new[] { "WARSAW", "BERLIN" },
-            table.Select(row => (string)row.Values[0]).ToArray());
+            table.Select(row => (string)row.ReadValues()[0]).ToArray());
     }
 
     [TestMethod]

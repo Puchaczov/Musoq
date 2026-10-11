@@ -19,6 +19,9 @@ internal sealed class InMemorySchema : SchemaBase
     private readonly IReadOnlyDictionary<string, InMemorySchemaTable> _tablesBySourceName;
     private readonly IReadOnlyDictionary<string, MusoqSourceRows> _bindingsBySourceKey;
 
+    public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
+        => base.DescribeSource(name, context, parameters) with { ExecutionPermissions = GetSlot(name).ExecutionPermissions };
+
     public InMemorySchema(
         string name,
         IReadOnlyList<InMemorySourceSlot> slots,
@@ -52,12 +55,12 @@ internal sealed class InMemorySchema : SchemaBase
         return _tablesBySourceName[slot.SourceName];
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments parameters)
     {
-        if (parameters.Length != 0)
+        if (parameters.Count != 0)
             throw new InvalidOperationException($"In-memory source '{name}' does not accept constructor arguments.");
 
         var slot = GetSlot(name);

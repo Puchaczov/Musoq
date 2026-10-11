@@ -13,47 +13,13 @@ namespace Musoq.Evaluator.Visitors;
 public static partial class BuildMetadataAndInferTypesVisitorUtilities
 {
     internal static bool TryReduceDimensions(MethodInfo method, ArgsListNode args, [NotNullWhen(true)] out MethodInfo? reducedMethod)
-    {
-        var parameters = method.GetParameters();
-        var paramsParameter = parameters
-            .FirstOrDefault(f => f.GetCustomAttribute<ParamArrayAttribute>() != null);
-
-        if (paramsParameter is null)
-        {
-            reducedMethod = null;
-            return false;
-        }
-
-        var paramsParameterIndex = paramsParameter.Position;
-        var typesToReduce = args.Args.Skip(paramsParameterIndex).Select(f => f.ReturnType).ToArray();
-
-        var nonNullTypes = typesToReduce
-            .OfType<Type>()
-            .Where(t => t is not NullNode.NullType)
-            .ToArray();
-
-        Type? typeToReduce;
-        if (nonNullTypes.Length > 1)
-            typeToReduce = nonNullTypes.First().MakeArrayType();
-        else if (nonNullTypes.Length == 1)
-            typeToReduce = nonNullTypes.First();
-        else
-            typeToReduce = typeof(object);
-
-        var lastNonNullType = typeToReduce;
-        while (typeToReduce is not null)
-        {
-            lastNonNullType = typeToReduce;
-            typeToReduce = typeToReduce.GetElementType();
-        }
-
-        reducedMethod = method.MakeGenericMethod(lastNonNullType);
-        return true;
-    }
+        => ScalarGenericDimensionReduction.TryReduce(method, args, out reducedMethod);
 
     internal static bool TryConstructGenericMethod(MethodInfo methodInfo, ArgsListNode args, Type entity,
         [NotNullWhen(true)] out MethodInfo? constructedMethod)
     {
+        if (args.Args.Any(static argument => argument is RecordLiteralNode) || methodInfo.GetGenericArguments().Length > 1 || methodInfo.GetParameters().Any(static parameter => global::Musoq.Plugins.VariadicParameter.IsNativeSpan(parameter.ParameterType) || parameter.ParameterType.IsGenericType))
+            return ScalarGenericMethodConstruction.TryConstruct(methodInfo, args, entity, out constructedMethod);
         var genericArguments = methodInfo.GetGenericArguments();
         var genericArgumentsDistinct = new List<Type>();
         var parameters = methodInfo.GetParameters();

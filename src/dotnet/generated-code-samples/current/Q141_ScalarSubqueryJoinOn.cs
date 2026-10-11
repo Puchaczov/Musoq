@@ -1,0 +1,753 @@
+﻿// === Parsed Query ===
+/*
+SELECT a.City, b.City
+              FROM #A.entities() a
+              INNER JOIN #B.entities() b ON b.City = (
+                  SELECT c.City
+                  FROM #C.entities() c
+                  WHERE c.Country = a.Country
+              )
+*/
+
+// === Logical Plan ===
+/*
+Cte
+  Definition [_sq_1]
+    MultiStatement
+      Project [c.Country as c.Country, AggRef(c.__CorrelatedScalarSubqueryValue(c.City)) as c.__CorrelatedScalarSubqueryValue(c.City)]
+        Aggregate [keys: c.Country] [aggs: __CorrelatedScalarSubqueryValue(City)]
+          SchemaScan [#C.entities() as c]
+      Project [c.Country as _sq_1_corr_0, c.__CorrelatedScalarSubqueryValue(c.City) as _sq_1_value]
+        CteRef [cScore as cScore]
+  Query
+    MultiStatement
+      Project [a.City as a.City, a.Country as a.Country, _sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, _sq_1._sq_1_value as _sq_1._sq_1_value]
+        Join [LeftSingle] [(_sq_1._sq_1_corr_0 = a.Country)]
+          SchemaScan [#A.entities() as a]
+          CteRef [_sq_1 as _sq_1]
+      Project [a_sq_1.a.City as a.City, a_sq_1.a.Country as a.Country, a_sq_1._sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, a_sq_1._sq_1._sq_1_value as _sq_1._sq_1_value, b.City as City]
+        Join [Inner] [(b.City = __CorrelatedScalarSubqueryResult(a_sq_1._sq_1._sq_1_value))]
+          CteRef [a_sq_1 as a_sq_1]
+          SchemaScan [#B.entities() as b]
+      Project [a.City as City, b.City as City]
+        CteRef [a_sq_1b as a_sq_1b]
+*/
+
+// === Physical Plan ===
+/*
+PhysicalCte
+  Definition [_sq_1]
+    PhysicalMultiStatement
+      PhysicalProject [c.Country as c.Country, AggRef(c.__CorrelatedScalarSubqueryValue(c.City)) as c.__CorrelatedScalarSubqueryValue(c.City)]
+        PhysicalSingleKeyAggregate [key: c.Country (String)] [aggs: __CorrelatedScalarSubqueryValue(City)]
+          PhysicalSchemaScan [#C.entities() as c]
+      PhysicalProject [c.Country as _sq_1_corr_0, c.__CorrelatedScalarSubqueryValue(c.City) as _sq_1_value]
+        PhysicalCteRef [cScore as cScore]
+  Query
+    PhysicalMultiStatement
+      PhysicalProject [a.City as a.City, a.Country as a.Country, _sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, _sq_1._sq_1_value as _sq_1._sq_1_value]
+        PhysicalHashJoin [LeftSingle] [build: _sq_1._sq_1_corr_0] [probe: a.Country]
+          PhysicalSchemaScan [#A.entities() as a]
+          PhysicalCteRef [_sq_1 as _sq_1]
+      PhysicalProject [a_sq_1.a.City as a.City, a_sq_1.a.Country as a.Country, a_sq_1._sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, a_sq_1._sq_1._sq_1_value as _sq_1._sq_1_value, b.City as City]
+        PhysicalHashJoin [Inner] [build: __CorrelatedScalarSubqueryResult(a_sq_1._sq_1._sq_1_value)] [probe: b.City]
+          PhysicalCteRef [a_sq_1 as a_sq_1]
+          PhysicalSchemaScan [#B.entities() as b]
+      PhysicalProject [a.City as City, b.City as City]
+        PhysicalCteRef [a_sq_1b as a_sq_1b]
+*/
+
+// === Execution Plan ===
+/*
+ExecutionPlan [compiled]
+  Shapes
+    SourceEntity [c: BasicEntity]
+      City: string <- property City
+      Country: string <- property Country
+    AggregateGroup [Cte0AggregateGroup; keys: 1; typed aggs: 1]
+    Generated [Cte0Row0]
+      _sq_1_corr_0: string <- field _sq_1_corr_0
+      _sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1_value
+    SourceEntity [a: BasicEntity]
+      City: string <- property City
+      Country: string <- property Country
+    TableRow [_sq_1]
+      _sq_1_corr_0: string <- field _sq_1_corr_0
+      _sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1_value
+    Generated [Statement0Row0]
+      a.City: string <- field a_City
+      a.Country: string <- field a_Country
+      _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
+      _sq_1._sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1__sq_1_value
+    TableRow [a_sq_1]
+      a.City: string <- field a_City
+      a.Country: string <- field a_Country
+      _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
+      _sq_1._sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1__sq_1_value
+    SourceEntity [b: BasicEntity]
+      City: string <- property City
+    Generated [ResultRow0]
+      City: string <- field City
+      City: string <- field City_1
+
+  Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [From:cte0]
+    SourceScan [c: BasicEntity] -> cte0_cRows
+    CreateTable [cte0: Cte0Row0]
+    PhaseBoundary [GroupBy:cte0]
+    CreateSingleKeyAggregateContext [cte0Groups: string -> Cte0AggregateGroup]
+    ChunkedForEach [c in cte0_cRows]
+      GetOrAddSingleKeyAggregateGroup [cte0Group = cte0Groups[c.Country] by c.Country; typed: Cte0AggregateGroup]
+      Let [city: string = c.City]
+      TypedAggregateSet [Set(cte0Group.__agg0, city)]
+    EnsureCapacity [cte0 <- cte0GroupsToFinalize.Count]
+    PhaseBoundary [Select:cte0]
+    ForEach [cte0FinalGroup in cte0GroupsToFinalize]
+      AppendRow [cte0 <- Cte0Row0(_sq_1_corr_0: cte0FinalGroup.c.Country, _sq_1_value: c.__CorrelatedScalarSubqueryValue(c.City))]
+    StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]
+    PhaseBoundary [End:cte0]
+    PhaseBoundary [Begin:cte1]
+    SourceScan [a: BasicEntity] -> statement0_aRows
+    CreateTable [statement0: Statement0Row0]
+    InitializeAggregateState [statement0_sq_1HashEmptyState: State<string> via Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel`1<string>.Reset]
+    Let [statement0_sq_1HashEmptyValue: CorrelatedScalarSubqueryResult<string> = Get(statement0_sq_1HashEmptyState)]
+    CreateHash [statement0_sq_1Hash: string -> Row; capacity: _cteRowResults.Slot0.Count]
+    ForEach [_sq_1 in _cteRowResults.Slot0]
+      HashAdd [statement0_sq_1Hash[_sq_1._sq_1_corr_0] += _sq_1]
+    ChunkedForEach [a in statement0_aRows]
+      HashProbe [statement0_sq_1Hash[a.Country] -> statement0_sq_1HashMatches] [match: statement0_sq_1HashHasMatch]
+        ForEach [_sq_1 in statement0_sq_1HashMatches]
+          Assign [statement0_sq_1HashHasMatch = TRUE]
+          AppendRow [statement0 <- Statement0Row0(a.City: a.City, a.Country: a.Country, _sq_1._sq_1_corr_0: _sq_1._sq_1_corr_0, _sq_1._sq_1_value: _sq_1._sq_1_value)]
+      HashProbeNoMatch
+        AppendRow [statement0 <- Statement0Row0(a.City: a.City, a.Country: a.Country, _sq_1._sq_1_corr_0: NULL, _sq_1._sq_1_value: statement0_sq_1HashEmptyValue)]
+    StoreTable [statement0 -> _cteRowResults.Slot1: List<Statement0Row0>]
+    PhaseBoundary [End:cte1]
+    PhaseBoundary [Select]
+    PhaseBoundary [Begin:cte2]
+    SourceScan [b: BasicEntity] -> bRows
+    CreateShapeRows [result: ResultRow0 from ResultRow0]
+    CreateHash [a_sq_1Hash: string -> Row; capacity: _cteRowResults.Slot1.Count]
+    ForEach [a_sq_1 in _cteRowResults.Slot1]
+      HashAdd [a_sq_1Hash[__CorrelatedScalarSubqueryResult(a_sq_1._sq_1._sq_1_value)] += a_sq_1]
+    ChunkedForEach [b in bRows]
+      HashProbe [a_sq_1Hash[b.City] -> a_sq_1HashMatches]
+        ForEach [a_sq_1 in a_sq_1HashMatches]
+          AppendShape [result <- ResultRow0(City: a_sq_1.a.City, City: b.City)]
+    PhaseBoundary [End:cte2]
+    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
+*/
+
+// === Generated C# ===
+
+// === SyntaxTree:  ===
+namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
+    using Musoq.Schema;
+    using Musoq.Schema.Optimization;
+    using Musoq.Evaluator;
+    using Musoq.Evaluator.Tables;
+    using Musoq.Evaluator.Helpers;
+    using Musoq.Evaluator.Runtime;
+    using Musoq.Schema.DataSources;
+    using System.Linq;
+
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable, ITypedParameterizedRunnable
+    {
+        private static readonly Column[] __columns_compiled_cte0_1 = new Column[]
+        {
+            new Column("_sq_1_corr_0", typeof(string), 0),
+            new Column("_sq_1_value", typeof(Musoq.Plugins.CorrelatedScalarSubqueryResult<string>), 1)
+        };
+        private static readonly Column[] __columns_compiled_result_4 = new Column[]
+        {
+            new Column("City", typeof(string), 0),
+            new Column("City", typeof(string), 1)
+        };
+        private static readonly Column[] __columns_compiled_statement0_2 = new Column[]
+        {
+            new Column("a.City", typeof(string), 0),
+            new Column("a.Country", typeof(string), 1),
+            new Column("_sq_1._sq_1_corr_0", typeof(string), 2),
+            new Column("_sq_1._sq_1_value", typeof(Musoq.Plugins.CorrelatedScalarSubqueryResult<string>), 3)
+        };
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_3 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 0) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_c_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 0), new Column("Country", typeof(string), 1) });
+        public ILogger Logger { get; set; }
+        public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
+        public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();
+        public ISchemaProvider Provider { get; set; }
+        public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; }
+        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; }
+        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; }
+        public TypedParameterSnapshot TypedParameters { get; set; } = TypedParameterSnapshot.Empty;
+
+        public event DataSourceEventHandler DataSourceProgress;
+        public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
+        public Table Run(CancellationToken token)
+        {
+            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_4, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+        }
+
+        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        {
+            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
+            {
+                yield return __musoqShapeRow;
+            }
+        }
+
+        private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        {
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
+            try
+            {
+                var _cteRowResults = new CteRowResults();
+                var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
+                ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
+                var __musoqFinalShapeRows = new List<ResultRow0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                _cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
+                _cteRowResults.Slot1 = BuildCte1(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults);
+                OnPhaseChanged("compiled", QueryPhase.Select);
+                OnPhaseChanged("compiled:cte2", QueryPhase.Begin);
+                try
+                {
+                    var __bSchema = provider.GetSchema("#B");
+                    var bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__bSchema, "entities", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_b_3, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                    var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:1") : bRowsSource.Chunks;
+                    var a_sq_1Hash = new Dictionary<string, HashJoinBucket<Statement0Row0>>(_cteRowResults.Slot1.Count);
+                    var __storedTable1Rows = _cteRowResults.Slot1;
+                    for (int __storedTable1Index = 0; __storedTable1Index < __storedTable1Rows.Count; ++__storedTable1Index)
+                    {
+                        if ((__storedTable1Index & 1023) == 0)
+                        {
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        Statement0Row0 a_sq_1 = __storedTable1Rows[__storedTable1Index];
+                        string key = (string)Musoq.Plugins.CorrelatedScalarSubqueryResultExtractor.GetValue(a_sq_1._sq_1__sq_1_value);
+                        if (key == null)
+                            continue;
+                        {
+                            ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(a_sq_1Hash, key, out var matchesExists);
+                            if (!matchesExists)
+                            {
+                                matches = new HashJoinBucket<Statement0Row0>(a_sq_1);
+                            }
+                            else
+                            {
+                                matches.Add(a_sq_1);
+                            }
+                        }
+                    }
+
+                    foreach (var bChunk in bRows)
+                    {
+                        if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
+                        {
+                            if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] bChunkViewArray)
+                            {
+                                int bChunkViewOffset = bChunkView.Offset;
+                                for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                                {
+                                    if ((bIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var b = bChunkViewArray[bChunkViewOffset + bIndex];
+                                    string key = b.City;
+                                    if (key != null && a_sq_1Hash.TryGetValue(key, out var a_sq_1HashMatches))
+                                    {
+                                        foreach (var a_sq_1 in a_sq_1HashMatches)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                            __musoqFinalShapeRows.Add(new ResultRow0(a_sq_1.a_City, b.City));
+                                        }
+                                    }
+                                }
+
+                                continue;
+                            }
+
+                            if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkViewList)
+                            {
+                                int bChunkViewOffset = bChunkView.Offset;
+                                for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                                {
+                                    if ((bIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var b = bChunkViewList[bChunkViewOffset + bIndex];
+                                    string key = b.City;
+                                    if (key != null && a_sq_1Hash.TryGetValue(key, out var a_sq_1HashMatches))
+                                    {
+                                        foreach (var a_sq_1 in a_sq_1HashMatches)
+                                        {
+                                            token.ThrowIfCancellationRequested();
+                                            __musoqFinalShapeRows.Add(new ResultRow0(a_sq_1.a_City, b.City));
+                                        }
+                                    }
+                                }
+
+                                continue;
+                            }
+                        }
+
+                        for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
+                        {
+                            if ((bIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            var b = bChunk[bIndex];
+                            string key = b.City;
+                            if (key != null && a_sq_1Hash.TryGetValue(key, out var a_sq_1HashMatches))
+                            {
+                                foreach (var a_sq_1 in a_sq_1HashMatches)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    __musoqFinalShapeRows.Add(new ResultRow0(a_sq_1.a_City, b.City));
+                                }
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled:cte2", QueryPhase.End);
+                }
+
+                return __musoqFinalShapeRows;
+            }
+            finally
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            }
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private void OnDataSourceProgress(object sender, DataSourceEventArgs e)
+        {
+            DataSourceProgress?.Invoke(this, e);
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private void OnPhaseChanged(string queryId, QueryPhase phase)
+        {
+            PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static List<Cte0Row0> BuildCte0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
+        {
+            OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+            try
+            {
+                var __cte0_cSchema = provider.GetSchema("#C");
+                var cte0_cRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte0_cSchema, "entities", new SourceExecutionContext("c:2", sourceExecutionPlans["c:2"], token, __schemaColumns_compiled_c_0, sourceRuntimeSettingsBySourceContextId["c:2"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var cte0_cRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_cRowsSource.Chunks, __musoqProgressContext, "c:2") : cte0_cRowsSource.Chunks;
+                var cte0 = new List<Cte0Row0>();
+                var cte0GroupsToFinalize = new List<Cte0AggregateGroup>();
+                var cte0Groups = new Dictionary<string, Cte0AggregateGroup>();
+                Cte0AggregateGroup cte0NullGroup = null;
+                foreach (var cChunk in cte0_cRows)
+                {
+                    if (cChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> cChunkView)
+                    {
+                        if (cChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] cChunkViewArray)
+                        {
+                            int cChunkViewOffset = cChunkView.Offset;
+                            for (int cIndex = 0, cIndexCount = cChunkView.Count; cIndex < cIndexCount; ++cIndex)
+                            {
+                                if ((cIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var c = cChunkViewArray[cChunkViewOffset + cIndex];
+                                string groupKey = c.Country;
+                                Cte0AggregateGroup cte0Group = null;
+                                if (groupKey != null)
+                                {
+                                    ref var cte0GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0Groups, groupKey, out var cte0GroupExists);
+                                    if (!cte0GroupExists)
+                                    {
+                                        cte0GroupRef = new Cte0AggregateGroup(groupKey);
+                                        cte0GroupsToFinalize.Add(cte0GroupRef);
+                                    }
+
+                                    cte0Group = cte0GroupRef;
+                                }
+                                else
+                                {
+                                    if (cte0NullGroup == null)
+                                    {
+                                        cte0NullGroup = new Cte0AggregateGroup(null);
+                                        cte0GroupsToFinalize.Add(cte0NullGroup);
+                                    }
+
+                                    cte0Group = cte0NullGroup;
+                                }
+
+                                string city = c.City;
+                                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte0Group.__agg0, (string)city);
+                            }
+
+                            continue;
+                        }
+
+                        if (cChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> cChunkViewList)
+                        {
+                            int cChunkViewOffset = cChunkView.Offset;
+                            for (int cIndex = 0, cIndexCount = cChunkView.Count; cIndex < cIndexCount; ++cIndex)
+                            {
+                                if ((cIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var c = cChunkViewList[cChunkViewOffset + cIndex];
+                                string groupKey = c.Country;
+                                Cte0AggregateGroup cte0Group = null;
+                                if (groupKey != null)
+                                {
+                                    ref var cte0GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0Groups, groupKey, out var cte0GroupExists);
+                                    if (!cte0GroupExists)
+                                    {
+                                        cte0GroupRef = new Cte0AggregateGroup(groupKey);
+                                        cte0GroupsToFinalize.Add(cte0GroupRef);
+                                    }
+
+                                    cte0Group = cte0GroupRef;
+                                }
+                                else
+                                {
+                                    if (cte0NullGroup == null)
+                                    {
+                                        cte0NullGroup = new Cte0AggregateGroup(null);
+                                        cte0GroupsToFinalize.Add(cte0NullGroup);
+                                    }
+
+                                    cte0Group = cte0NullGroup;
+                                }
+
+                                string city = c.City;
+                                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte0Group.__agg0, (string)city);
+                            }
+
+                            continue;
+                        }
+                    }
+
+                    for (int cIndex = 0, cIndexCount = cChunk.Count; cIndex < cIndexCount; ++cIndex)
+                    {
+                        if ((cIndex & 1023) == 0)
+                        {
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        var c = cChunk[cIndex];
+                        string groupKey = c.Country;
+                        Cte0AggregateGroup cte0Group = null;
+                        if (groupKey != null)
+                        {
+                            ref var cte0GroupRef = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cte0Groups, groupKey, out var cte0GroupExists);
+                            if (!cte0GroupExists)
+                            {
+                                cte0GroupRef = new Cte0AggregateGroup(groupKey);
+                                cte0GroupsToFinalize.Add(cte0GroupRef);
+                            }
+
+                            cte0Group = cte0GroupRef;
+                        }
+                        else
+                        {
+                            if (cte0NullGroup == null)
+                            {
+                                cte0NullGroup = new Cte0AggregateGroup(null);
+                                cte0GroupsToFinalize.Add(cte0NullGroup);
+                            }
+
+                            cte0Group = cte0NullGroup;
+                        }
+
+                        string city = c.City;
+                        Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte0Group.__agg0, (string)city);
+                    }
+                }
+
+                cte0.EnsureCapacity(cte0GroupsToFinalize.Count);
+                foreach (var cte0FinalGroup in cte0GroupsToFinalize)
+                {
+                    token.ThrowIfCancellationRequested();
+                    cte0.Add(new Cte0Row0(cte0FinalGroup.__key0, Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Get(in cte0FinalGroup.__agg0)));
+                }
+
+                return cte0;
+            }
+            finally
+            {
+                OnPhaseChanged("compiled:cte0", QueryPhase.End);
+            }
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static List<Statement0Row0> BuildCte1(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged, CteRowResults _cteRowResults)
+        {
+            OnPhaseChanged("compiled:cte1", QueryPhase.Begin);
+            try
+            {
+                var __statement0_aSchema = provider.GetSchema("#A");
+                var statement0_aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__statement0_aSchema, "entities", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_c_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var statement0_aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(statement0_aRowsSource.Chunks, __musoqProgressContext, "a:1") : statement0_aRowsSource.Chunks;
+                var statement0 = new List<Statement0Row0>();
+                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.State statement0_sq_1HashEmptyState = default(Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.State)!;
+                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Reset(ref statement0_sq_1HashEmptyState);
+                Musoq.Plugins.CorrelatedScalarSubqueryResult<string> statement0_sq_1HashEmptyValue = (Musoq.Plugins.CorrelatedScalarSubqueryResult<string>)Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Get(statement0_sq_1HashEmptyState);
+                var statement0_sq_1Hash = new Dictionary<string, HashJoinBucket<Cte0Row0>>(_cteRowResults.Slot0.Count);
+                var __storedTable0Rows = _cteRowResults.Slot0;
+                for (int __storedTable0Index = 0; __storedTable0Index < __storedTable0Rows.Count; ++__storedTable0Index)
+                {
+                    if ((__storedTable0Index & 1023) == 0)
+                    {
+                        token.ThrowIfCancellationRequested();
+                    }
+
+                    Cte0Row0 _sq_1 = __storedTable0Rows[__storedTable0Index];
+                    string key = _sq_1._sq_1_corr_0;
+                    if (key == null)
+                        continue;
+                    {
+                        ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(statement0_sq_1Hash, key, out var matchesExists);
+                        if (!matchesExists)
+                        {
+                            matches = new HashJoinBucket<Cte0Row0>(_sq_1);
+                        }
+                        else
+                        {
+                            matches.Add(_sq_1);
+                        }
+                    }
+                }
+
+                foreach (var aChunk in statement0_aRows)
+                {
+                    if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkView)
+                    {
+                        if (aChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] aChunkViewArray)
+                        {
+                            int aChunkViewOffset = aChunkView.Offset;
+                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            {
+                                if ((aIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var a = aChunkViewArray[aChunkViewOffset + aIndex];
+                                bool statement0_sq_1HashHasMatch = false;
+                                string key = a.Country;
+                                if (key != null && statement0_sq_1Hash.TryGetValue(key, out var statement0_sq_1HashMatches))
+                                {
+                                    foreach (var _sq_1 in statement0_sq_1HashMatches)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                        statement0_sq_1HashHasMatch = true;
+                                        statement0.Add(new Statement0Row0(a.City, a.Country, _sq_1._sq_1_corr_0, _sq_1._sq_1_value));
+                                    }
+                                }
+
+                                if (!statement0_sq_1HashHasMatch)
+                                {
+                                    statement0.Add(new Statement0Row0(a.City, a.Country, null, statement0_sq_1HashEmptyValue));
+                                }
+                            }
+
+                            continue;
+                        }
+
+                        if (aChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkViewList)
+                        {
+                            int aChunkViewOffset = aChunkView.Offset;
+                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            {
+                                if ((aIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var a = aChunkViewList[aChunkViewOffset + aIndex];
+                                bool statement0_sq_1HashHasMatch = false;
+                                string key = a.Country;
+                                if (key != null && statement0_sq_1Hash.TryGetValue(key, out var statement0_sq_1HashMatches))
+                                {
+                                    foreach (var _sq_1 in statement0_sq_1HashMatches)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                        statement0_sq_1HashHasMatch = true;
+                                        statement0.Add(new Statement0Row0(a.City, a.Country, _sq_1._sq_1_corr_0, _sq_1._sq_1_value));
+                                    }
+                                }
+
+                                if (!statement0_sq_1HashHasMatch)
+                                {
+                                    statement0.Add(new Statement0Row0(a.City, a.Country, null, statement0_sq_1HashEmptyValue));
+                                }
+                            }
+
+                            continue;
+                        }
+                    }
+
+                    for (int aIndex = 0, aIndexCount = aChunk.Count; aIndex < aIndexCount; ++aIndex)
+                    {
+                        if ((aIndex & 1023) == 0)
+                        {
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        var a = aChunk[aIndex];
+                        bool statement0_sq_1HashHasMatch = false;
+                        string key = a.Country;
+                        if (key != null && statement0_sq_1Hash.TryGetValue(key, out var statement0_sq_1HashMatches))
+                        {
+                            foreach (var _sq_1 in statement0_sq_1HashMatches)
+                            {
+                                token.ThrowIfCancellationRequested();
+                                statement0_sq_1HashHasMatch = true;
+                                statement0.Add(new Statement0Row0(a.City, a.Country, _sq_1._sq_1_corr_0, _sq_1._sq_1_value));
+                            }
+                        }
+
+                        if (!statement0_sq_1HashHasMatch)
+                        {
+                            statement0.Add(new Statement0Row0(a.City, a.Country, null, statement0_sq_1HashEmptyValue));
+                        }
+                    }
+                }
+
+                return statement0;
+            }
+            finally
+            {
+                OnPhaseChanged("compiled:cte1", QueryPhase.End);
+            }
+        }
+
+        private sealed class Cte0AggregateGroup
+        {
+            public Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.State __agg0;
+            public readonly string __key0;
+            public Cte0AggregateGroup(string __key0)
+            {
+                this.__key0 = __key0;
+                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Reset(ref this.__agg0);
+            }
+
+            public void MergeFrom(Cte0AggregateGroup source)
+            {
+                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Merge(ref this.__agg0, in source.__agg0);
+            }
+        }
+
+        private sealed class Cte0Row0
+        {
+            public Cte0Row0(string __value0, Musoq.Plugins.CorrelatedScalarSubqueryResult<string> __value1)
+            {
+                _sq_1_corr_0 = __value0;
+                _sq_1_value = __value1;
+            }
+
+            public string _sq_1_corr_0 { get; }
+            public Musoq.Plugins.CorrelatedScalarSubqueryResult<string> _sq_1_value { get; }
+        }
+
+        private sealed class CteRowResults
+        {
+            public List<Cte0Row0> Slot0;
+            public List<Statement0Row0> Slot1;
+        }
+
+        private sealed class ResultRow0 : Row
+        {
+            public ResultRow0(string __value0, string __value1)
+            {
+                City = __value0;
+                City_1 = __value1;
+            }
+
+            public string City { get; private set; }
+            public string City_1 { get; private set; }
+            public override int Count => 2;
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City_1 = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City_1),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "City" => true,
+                "City_1" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.City, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.City_1, ref visitor);
+            }
+        }
+
+        private sealed class Statement0Row0
+        {
+            public Statement0Row0(string __value0, string __value1, string __value2, Musoq.Plugins.CorrelatedScalarSubqueryResult<string> __value3)
+            {
+                a_City = __value0;
+                a_Country = __value1;
+                _sq_1__sq_1_corr_0 = __value2;
+                _sq_1__sq_1_value = __value3;
+            }
+
+            public string _sq_1__sq_1_corr_0 { get; }
+            public Musoq.Plugins.CorrelatedScalarSubqueryResult<string> _sq_1__sq_1_value { get; }
+            public string a_City { get; }
+            public string a_Country { get; }
+        }
+    }
+}

@@ -50,7 +50,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static string CreateOrderRecordComparisonExpression(FieldBinding field, Type keyType)
     {
-        var fieldName = GetGeneratedFieldName(field);
+        var fieldName = EscapeIdentifier(GetGeneratedFieldName(field));
         var left = $"left.{fieldName}";
         var right = $"right.{fieldName}";
         var nullableType = Nullable.GetUnderlyingType(keyType);

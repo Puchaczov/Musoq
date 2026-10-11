@@ -63,31 +63,6 @@ public sealed partial class ExecutionCSharpRenderer
                orderKeys[0].Expression.ReturnType.RequireClrType() == typeof(int);
     }
 
-    private static bool CanUsePartitionCountBuilder(
-        ExecutionWindowAggregateKernel kernel,
-        ExecutionWindowKeyArray? partitionKeys)
-    {
-        return kernel is { Descriptor: { Function: ExecutionWindowAggregateFunction.Count, Mode: ExecutionWindowAggregateMode.WholePartition }, Frame: null, OrderKeys.Count: 0, PartitionKey: not null } &&
-               partitionKeys is { ShouldExtract: true, ShouldMaterialize: false } &&
-               kernel.Partitions is { ShouldCreate: true };
-    }
-
-    private static ExecutionVariable CreatePartitionCountBuilderVariable(
-        ExecutionWindowAggregateKernel kernel,
-        ExecutionWindowKeyArray partitionKeys)
-    {
-        if (HasGeneratedWindowKeyType(partitionKeys))
-        {
-            return new ExecutionVariable(
-                $"{kernel.Results.Name}PartitionCountBuilder",
-                typeof(object),
-                $"{typeof(WindowPartitionCountBuilder<>).Namespace}.{nameof(WindowPartitionCountBuilder<object>)}<{partitionKeys.Shape!.GeneratedElementTypeName}>");
-        }
-
-        var builderType = typeof(WindowPartitionCountBuilder<>).MakeGenericType(GetArrayElementType(partitionKeys.Variable));
-        return new ExecutionVariable($"{kernel.Results.Name}PartitionCountBuilder", builderType);
-    }
-
     private static bool ShouldMaterializeWindowKeyArray([NotNullWhen(true)] ExecutionWindowKeyArray? keyArray)
     {
         return keyArray is { ShouldExtract: true, ShouldMaterialize: true };

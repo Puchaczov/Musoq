@@ -11,6 +11,31 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class CrossApplyMixedTests : GenericEntityTestBase
 {
+    [TestMethod]
+    public void CrossApply_SchemaArgumentWithUnqualifiedConversion_UsesLeftSource()
+    {
+        const string query = """
+            select b.Country as Country
+            from #schema.first() a
+            cross apply #schema.second(Concat(a.Country, '')) b
+            """;
+        var firstSource = new[] { new CrossApplyClass1 { Country = "USA", City = "New York" } };
+        var secondSource = new[] { new CrossApplyClass2 { Country = "USA" } };
+
+        var compiled = CreateAndRunVirtualMachine(
+            query,
+            firstSource,
+            secondSource,
+            null,
+            null,
+            null,
+            (parameters, source) => source.Filter(row =>
+                (string)row.Country == RequireParameter<string>(parameters, 0)).ToArray());
+        var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["USA"]);
+    }
 
     [TestMethod]
     public void CrossApply_SchemaAndProperty_WithNestedProperty()
@@ -67,10 +92,10 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.Country", typeof(string)),
-            ("c.StreetName", typeof(string)),
-            ("c.HouseNumber", typeof(int)));
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("StreetName", typeof(string)),
+            ("HouseNumber", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["New York", "USA", "Broadway", 123],
@@ -126,11 +151,11 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Department", typeof(string)),
-            ("a.Budget", typeof(int)),
-            ("b.Name", typeof(string)),
-            ("b.Salary", typeof(int)),
-            ("c.Value", typeof(string)));
+            ("Department", typeof(string)),
+            ("Budget", typeof(int)),
+            ("Name", typeof(string)),
+            ("Salary", typeof(int)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["IT", 500000, "John Doe", 50000, "C#"],
@@ -191,9 +216,9 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Department", typeof(string)),
-            ("b.Name", typeof(string)),
-            ("c.Value", typeof(string)));
+            ("Department", typeof(string)),
+            ("Name", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["IT", "John Doe", "C#"],
@@ -248,7 +273,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Department", typeof(string)),
+            ("Department", typeof(string)),
             ("Count(a.Department)", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["IT", 2L]);
     }
@@ -285,9 +310,9 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Surname", typeof(string)),
-            ("c.Value", typeof(string)));
+            ("Name", typeof(string)),
+            ("Surname", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["John", "Doe", "C#"],
@@ -329,9 +354,9 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Surname", typeof(string)),
-            ("c.Value", typeof(string)));
+            ("Name", typeof(string)),
+            ("Surname", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["John", "Doe", "C#"],
@@ -354,8 +379,8 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Value", typeof(string)),
-            ("d.Name", typeof(string)));
+            ("Value", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Value", "John"]);
     }
 

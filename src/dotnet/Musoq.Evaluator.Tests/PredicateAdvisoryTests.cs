@@ -7,7 +7,7 @@ using Musoq.Parser.Diagnostics;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class PredicateAdvisoryTests
+public sealed partial class PredicateAdvisoryTests
 {
     [TestMethod]
     public void NullComparisons_InPredicateContexts_ReportSpecificWarning()

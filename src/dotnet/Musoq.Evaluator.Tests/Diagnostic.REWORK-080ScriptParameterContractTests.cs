@@ -29,36 +29,36 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
-        vm.Parameters["label"] = "defaulted";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "defaulted");
         var defaults = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, defaults.Count);
-        Assert.AreEqual("defaulted", defaults[0][0]);
-        Assert.AreEqual(true, defaults[0][1]);
-        Assert.IsNull(defaults[0][2]);
-        Assert.AreEqual(Guid.Parse(guidText), defaults[0][3]);
+        Assert.AreEqual("defaulted", defaults[0].ReadValue(0));
+        Assert.AreEqual(true, defaults[0].ReadValue(1));
+        Assert.IsNull(defaults[0].ReadValue(2));
+        Assert.AreEqual(Guid.Parse(guidText), defaults[0].ReadValue(3));
         Assert.AreEqual(
             DateTime.Parse(dateTimeText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-            defaults[0][4]);
-        Assert.AreEqual(TimeSpan.FromHours(1) + TimeSpan.FromMinutes(2) + TimeSpan.FromSeconds(3), defaults[0][5]);
+            defaults[0].ReadValue(4));
+        Assert.AreEqual(TimeSpan.FromHours(1) + TimeSpan.FromMinutes(2) + TimeSpan.FromSeconds(3), defaults[0].ReadValue(5));
 
         var overriddenId = Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7");
         var overriddenCreated = new DateTime(2025, 6, 7, 8, 9, 10, DateTimeKind.Utc);
-        vm.Parameters["enabled"] = false;
-        vm.Parameters["maybeCount"] = 42;
-        vm.Parameters["id"] = overriddenId;
-        vm.Parameters["created"] = overriddenCreated;
-        vm.Parameters["delay"] = TimeSpan.FromMinutes(5);
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "enabled", false);
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "maybeCount", 42);
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "id", overriddenId);
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "created", overriddenCreated);
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "delay", TimeSpan.FromMinutes(5));
 
         var overrides = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, overrides.Count);
-        Assert.AreEqual("defaulted", overrides[0][0]);
-        Assert.AreEqual(false, overrides[0][1]);
-        Assert.AreEqual(42, overrides[0][2]);
-        Assert.AreEqual(overriddenId, overrides[0][3]);
-        Assert.AreEqual(overriddenCreated, overrides[0][4]);
-        Assert.AreEqual(TimeSpan.FromMinutes(5), overrides[0][5]);
+        Assert.AreEqual("defaulted", overrides[0].ReadValue(0));
+        Assert.AreEqual(false, overrides[0].ReadValue(1));
+        Assert.AreEqual(42, overrides[0].ReadValue(2));
+        Assert.AreEqual(overriddenId, overrides[0].ReadValue(3));
+        Assert.AreEqual(overriddenCreated, overrides[0].ReadValue(4));
+        Assert.AreEqual(TimeSpan.FromMinutes(5), overrides[0].ReadValue(5));
         Assert.AreEqual(2, provider.OpenCount);
     }
 
@@ -71,14 +71,14 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
-        vm.Parameters["label"] = null;
-        vm.Parameters["maybeCount"] = null;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", null);
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "maybeCount", null);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsNull(table[0][0]);
-        Assert.IsNull(table[0][1]);
+        Assert.IsNull(table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
         Assert.AreEqual(1, provider.OpenCount);
     }
 
@@ -88,7 +88,7 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         const string query = "param(limit: int = 10) select Key from #ParameterRows.Items()";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["limit"] = 10L;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", 10L);
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
@@ -121,7 +121,7 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         const string query = "param(limit: int) select Key from #ParameterRows.Items($limit)";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["limit"] = null;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", null);
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
@@ -139,12 +139,12 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
             "param(keys: string[]) select Key from #ParameterRows.Items() where Key in $keys";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["keys"] = new List<string> { "KEY_2" };
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new List<string> { "KEY_2" });
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_2", table[0][0]);
+        Assert.AreEqual("KEY_2", table[0].ReadValue(0));
         Assert.AreEqual(1, provider.OpenCount);
     }
 
@@ -155,18 +155,18 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
             "param(keys: string[]) select Key from #ParameterRows.Items() where Key not in $keys";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["keys"] = new[] { "KEY_1" };
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new[] { "KEY_1" });
 
         var arrayTable = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, arrayTable.Count);
-        Assert.AreEqual("KEY_2", arrayTable[0][0]);
+        Assert.AreEqual("KEY_2", arrayTable[0].ReadValue(0));
 
-        vm.Parameters["keys"] = new ReadOnlyCollection<string>(["KEY_2"]);
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new ReadOnlyCollection<string>(["KEY_2"]));
         var readOnlyTable = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, readOnlyTable.Count);
-        Assert.AreEqual("KEY_1", readOnlyTable[0][0]);
+        Assert.AreEqual("KEY_1", readOnlyTable[0].ReadValue(0));
         Assert.AreEqual(2, provider.OpenCount);
     }
 
@@ -194,14 +194,14 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
             "param(keys: string[]) select Key from #ParameterRows.Items() where Key in $keys";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["keys"] = new List<int> { 1 };
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new List<int> { 1 });
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
         AssertRuntimeEnvelope(
             exception,
             DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
-            "Script parameter 'keys' expected a value of type 'IReadOnlyList<string>' but received 'List<int>'.");
+            "Script parameter 'keys' expected a value of type 'IReadOnlyList<string>' but received 'IReadOnlyList<int>'.");
         Assert.AreEqual(0, provider.OpenCount);
     }
 
@@ -211,12 +211,12 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         const string query = "param(key: string) select Key from #ParameterRows.Items($key)";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        vm.Parameters["key"] = "KEY_2";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("KEY_2", table[0][0]);
+        Assert.AreEqual("KEY_2", table[0].ReadValue(0));
         Assert.AreEqual("KEY_2", provider.LastKey);
         Assert.AreEqual(1, provider.OpenCount);
     }
@@ -329,11 +329,12 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
             return new EnvironmentVariableEntityTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
+            var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             OpenCount++;
             LastKey = parameters.Length == 0 ? null : parameters[0] as string;
             var rows = LastKey == null

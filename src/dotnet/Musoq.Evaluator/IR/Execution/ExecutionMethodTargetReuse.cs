@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Musoq.Plugins;
-using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -9,9 +8,6 @@ internal static class ExecutionMethodTargetReuse
 {
     public static bool CanRenderWithoutTarget(ExecutionMethodCall method)
     {
-        if (CanRenderPerInvocation(method))
-            return true;
-
         if (method.Method.ResolveClrMethod().DeclaringType != typeof(LibraryBase))
             return false;
 
@@ -31,16 +27,6 @@ internal static class ExecutionMethodTargetReuse
         };
     }
 
-    public static bool CanRenderPerInvocation(ExecutionMethodCall method)
-    {
-        var targetType = method.Method.ResolveClrMethod().DeclaringType;
-        return method.Method.ResolveClrMethod().GetCustomAttribute<NonDeterministicAttribute>() != null &&
-               targetType != null &&
-               !targetType.IsAbstract &&
-               typeof(LibraryBase).IsAssignableFrom(targetType) &&
-               targetType.GetConstructor(Type.EmptyTypes) != null;
-    }
-
     public static bool TryGetReusableTargetType(
         MethodInfo method,
         [NotNullWhen(true)] out Type? targetType)
@@ -50,7 +36,6 @@ internal static class ExecutionMethodTargetReuse
             targetType == null ||
             targetType.IsAbstract ||
             !typeof(LibraryBase).IsAssignableFrom(targetType) ||
-            method.GetCustomAttribute<NonDeterministicAttribute>() != null ||
             targetType.GetConstructor(Type.EmptyTypes) == null)
         {
             targetType = null;

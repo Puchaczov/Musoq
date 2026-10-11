@@ -196,7 +196,7 @@ public partial class LibraryBase
             if (value is null)
                 return null;
 
-            sb.Append(value);
+            sb.Append(value.ToString());
         }
 
         return sb.ToString();

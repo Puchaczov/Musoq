@@ -190,10 +190,10 @@ public static class EvaluatorPerformanceBenchmarkSupport
             throw new NotSupportedException(name);
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments parameters)
         {
             if (string.Equals(name, "entities", StringComparison.OrdinalIgnoreCase))
                 return EnsureSourceType<T, PerformanceJoinBenchmarkEntity>(
@@ -303,10 +303,10 @@ internal sealed class EvaluatorPerformanceSchema(
         throw new NotSupportedException(name);
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments parameters)
     {
         if (string.Equals(name, "entities", StringComparison.OrdinalIgnoreCase))
             return EnsureSourceType<T, EvaluatorPerformanceEntity>(

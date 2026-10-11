@@ -11,7 +11,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Uppercased string</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public string? ToUpper(string value)
     {
@@ -24,7 +24,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <param name="culture">The culture</param>
     /// <returns>Uppercased string</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public string? ToUpper(string value, string culture)
     {
@@ -36,7 +36,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Uppercased string</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public string? ToUpperInvariant(string value)
     {
@@ -59,7 +59,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Lowercased string</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public string? ToLower(string value)
     {
@@ -72,7 +72,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <param name="culture">The culture</param>
     /// <returns>Lowercased string</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public string? ToLower(string value, string culture)
     {
@@ -84,7 +84,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Lowercased string</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public string? ToLowerInvariant(string value)
     {
@@ -110,7 +110,7 @@ public partial class LibraryBase
     /// <param name="character">The character</param>
     /// <param name="totalWidth">The total width</param>
     /// <returns>Left aligned value</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public string? PadLeft(string? value, string? character, int? totalWidth)
     {
@@ -131,7 +131,7 @@ public partial class LibraryBase
     /// <param name="character">The character</param>
     /// <param name="totalWidth">The total width</param>
     /// <returns>Right aligned value</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public string? PadRight(string? value, string? character, int? totalWidth)
     {
@@ -149,7 +149,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Capitalized text</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public string? ToTitleCase(string? value)
     {
@@ -164,7 +164,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The string to capitalize</param>
     /// <returns>The string with the first character in uppercase</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public string? Capitalize(string? value)
     {
@@ -184,7 +184,7 @@ public partial class LibraryBase
     /// <param name="totalWidth">The total desired width</param>
     /// <param name="paddingChar">The character to pad with (default: space)</param>
     /// <returns>The padded string</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public string? PadLeft(string? value, int totalWidth, char paddingChar = ' ')
     {
@@ -201,7 +201,7 @@ public partial class LibraryBase
     /// <param name="totalWidth">The total desired width</param>
     /// <param name="paddingChar">The character to pad with (default: space)</param>
     /// <returns>The padded string</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public string? PadRight(string? value, int totalWidth, char paddingChar = ' ')
     {
@@ -216,7 +216,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The string to process</param>
     /// <returns>The string with diacritics removed</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public string? RemoveDiacritics(string? value)
     {

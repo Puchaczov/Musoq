@@ -17,7 +17,7 @@ internal sealed partial class PhysicalLoweringImplementation
         {
             if (definition.Plan is not PhysicalRecursiveCteNode)
             {
-                CollectRequiredCteColumns(definition.Plan, names, outputSchemas, required);
+                CteColumnUsageCollector.CollectRequiredCteColumns(definition.Plan, names, outputSchemas, required);
                 continue;
             }
 
@@ -25,7 +25,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 static name => name,
                 static _ => new HashSet<string>(StringComparer.OrdinalIgnoreCase),
                 StringComparer.OrdinalIgnoreCase);
-            CollectRequiredCteColumns(definition.Plan, names, outputSchemas, local);
+            CteColumnUsageCollector.CollectRequiredCteColumns(definition.Plan, names, outputSchemas, local);
             foreach (var (name, columns) in local)
             {
                 if (!string.Equals(name, definition.Name, StringComparison.OrdinalIgnoreCase))
@@ -33,7 +33,7 @@ internal sealed partial class PhysicalLoweringImplementation
             }
         }
 
-        CollectRequiredCteColumns(cte.Query, names, outputSchemas, required);
+        CteColumnUsageCollector.CollectRequiredCteColumns(cte.Query, names, outputSchemas, required);
         AddSidecarRequiredColumns(cte, required);
         AddRecursiveCteRequiredColumns(cte, required);
 
@@ -45,7 +45,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 StringComparer.OrdinalIgnoreCase);
 
         var contextFreeDefinitions = CreateContextFreeCteDefinitions(cte);
-        contextFreeDefinitions.ExceptWith(CollectContextRequiredCteDefinitions(cte, names));
+        contextFreeDefinitions.ExceptWith(CteColumnUsageCollector.CollectContextRequiredCteDefinitions(cte, names));
 
         return new CteDefinitionPruningPlan(compact, contextFreeDefinitions);
     }
@@ -95,6 +95,9 @@ internal sealed partial class PhysicalLoweringImplementation
         if (plan is not PhysicalProjectNode project || project.IsDistinct)
             return definition;
 
+        if (project.Fields.Select(field => field.OutputName).Distinct(StringComparer.OrdinalIgnoreCase).Count() != project.Fields.Length)
+            return definition;
+
         var fields = project.Fields
             .Where(field => IsRequiredOutputField(field.OutputName, required))
             .Select(static (field, index) => field with { OutputIndex = index })
@@ -114,6 +117,6 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool IsRequiredOutputField(string outputName, IReadOnlySet<string> required)
     {
-        return required.Contains(outputName) || required.Contains(GetColumnRoot(outputName));
+        return required.Contains(outputName) || required.Contains(CteColumnUsageCollector.GetColumnRoot(outputName));
     }
 }

@@ -52,10 +52,10 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("e.Length", typeof(byte)),
+            ("Length", typeof(byte)),
             ("e.Payload.Key", typeof(string)),
             ("e.Payload.Value", typeof(string)),
-            ("e.Trailer", typeof(short)));
+            ("Trailer", typeof(short)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             [(byte)payload.Length, "name", "Łódź", (short)0x1234]);
@@ -110,9 +110,9 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.Name", typeof(string)),
-            ("i.Id", typeof(byte)),
-            ("i.Score", typeof(short)));
+            ("Name", typeof(string)),
+            ("Id", typeof(byte)),
+            ("Score", typeof(short)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["b.bin", (byte)4, (short)40],
@@ -185,7 +185,7 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("bd.BinId", typeof(string)),
+            ("BinId", typeof(string)),
             ("MatchCount", typeof(long)),
             ("ScoreTotal", typeof(short?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
@@ -263,14 +263,14 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        var parsedFields = (Dictionary<string, object?>)table[0][0]!;
+        var parsedFields = PartialPayloadAssertions.CompletedValues(table[0].ReadValue(0)!);
         Assert.AreEqual((byte)7, parsedFields["Header"]);
         Assert.AreEqual((byte)6, parsedFields["Length"]);
         Assert.IsFalse(parsedFields.ContainsKey("Payload"));
-        Assert.AreEqual("Payload.Value", table[0][1]);
-        StringAssert.Contains((string)table[0][2]!, "Payload.Value");
-        StringAssert.Contains((string)table[0][2]!, "ISE0001");
-        Assert.AreEqual(8, table[0][3]);
+        Assert.AreEqual("Payload.Value", table[0].ReadValue(1));
+        StringAssert.Contains((string)table[0].ReadValue(2)!, "Payload.Value");
+        StringAssert.Contains((string)table[0].ReadValue(2)!, "ISE0001");
+        Assert.AreEqual(8, table[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -298,7 +298,7 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             LoggerResolver,
             TestCompilationOptions);
         var firstTable = firstVm.Run(CancellationToken.None);
-        Assert.AreEqual((byte)7, firstTable[0][0]);
+        Assert.AreEqual((byte)7, firstTable[0].ReadValue(0));
 
         var secondVm = CompileGeneratedQuery(
             secondQuery,
@@ -307,7 +307,7 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             LoggerResolver,
             TestCompilationOptions);
         var secondTable = secondVm.Run(CancellationToken.None);
-        Assert.AreEqual((short)0x1234, secondTable[0][0]);
+        Assert.AreEqual((short)0x1234, secondTable[0].ReadValue(0));
     }
 
     private static byte[] CreateBatch(params (byte Id, short Score)[] items)

@@ -50,8 +50,8 @@ public class HashJoinCompositeKeysTests : BasicEntityTestBase
                 new CompilationOptions(useHashJoin: true, useSortMergeJoin: false))
                 .Run(TestContext.CancellationToken);
             Assert.AreEqual(1, table.Count, $"key width {keyWidth}");
-            Assert.AreEqual("match", table[0][0]);
-            Assert.AreEqual("match", table[0][1]);
+            Assert.AreEqual("match", table[0].ReadValue(0));
+            Assert.AreEqual("match", table[0].ReadValue(1));
         }
     }
 
@@ -89,13 +89,13 @@ on a.Country = b.Country AND a.City = b.City";
 
         Assert.AreEqual(2, table.Count, "Should have 2 matches");
 
-        var rows = table.OrderBy(r => r[0]).ToList();
+        var rows = table.OrderBy(r => r.ReadValue(0)).ToList();
 
-        Assert.AreEqual("Alice", rows[0][0]);
-        Assert.AreEqual("Smith", rows[0][1]);
+        Assert.AreEqual("Alice", rows[0].ReadValue(0));
+        Assert.AreEqual("Smith", rows[0].ReadValue(1));
 
-        Assert.AreEqual("John", rows[1][0]);
-        Assert.AreEqual("Doe", rows[1][1]);
+        Assert.AreEqual("John", rows[1].ReadValue(0));
+        Assert.AreEqual("Doe", rows[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -174,13 +174,13 @@ on a.Country = b.Country AND a.City = b.City";
 
         Assert.AreEqual(2, table.Count);
 
-        var rows = table.OrderBy(r => r[0]).ToList();
+        var rows = table.OrderBy(r => r.ReadValue(0)).ToList();
 
-        Assert.AreEqual("Bob", rows[0][0]);
-        Assert.IsNull(rows[0][1]);
+        Assert.AreEqual("Bob", rows[0].ReadValue(0));
+        Assert.IsNull(rows[0].ReadValue(1));
 
-        Assert.AreEqual("John", rows[1][0]);
-        Assert.AreEqual("Doe", rows[1][1]);
+        Assert.AreEqual("John", rows[1].ReadValue(0));
+        Assert.AreEqual("Doe", rows[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -214,13 +214,13 @@ on a.Country = b.Country AND a.City = b.City";
 
         Assert.AreEqual(2, table.Count);
 
-        var rows = table.OrderBy(r => r[1]).ToList();
+        var rows = table.OrderBy(r => r.ReadValue(1)).ToList();
 
-        Assert.AreEqual("John", rows[0][0]);
-        Assert.AreEqual("Doe", rows[0][1]);
+        Assert.AreEqual("John", rows[0].ReadValue(0));
+        Assert.AreEqual("Doe", rows[0].ReadValue(1));
 
-        Assert.IsNull(rows[1][0]);
-        Assert.AreEqual("Pierre", rows[1][1]);
+        Assert.IsNull(rows[1].ReadValue(0));
+        Assert.AreEqual("Pierre", rows[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -285,8 +285,8 @@ on a.Country = b.Country AND a.City = b.City AND a.Month = b.Month";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("John", table[0][0]);
-        Assert.AreEqual("Doe", table[0][1]);
+        Assert.AreEqual("John", table[0].ReadValue(0));
+        Assert.AreEqual("Doe", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -316,8 +316,8 @@ on a.Country = b.Country AND a.City = b.City";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("John", table[0][0]);
-        Assert.IsNull(table[0][1]);
+        Assert.AreEqual("John", table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -351,8 +351,8 @@ where b.Name is null";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Bob", table[0][0]);
-        Assert.IsNull(table[0][1]);
+        Assert.AreEqual("Bob", table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -387,8 +387,8 @@ on a.Country = b.Country AND a.City = b.City AND a.Population > b.Population";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("BigCity", table[0][0]);
-        Assert.AreEqual("SmallCity", table[0][1]);
+        Assert.AreEqual("BigCity", table[0].ReadValue(0));
+        Assert.AreEqual("SmallCity", table[0].ReadValue(1));
     }
 
     private CompiledQuery CreateAndRunVirtualMachine(

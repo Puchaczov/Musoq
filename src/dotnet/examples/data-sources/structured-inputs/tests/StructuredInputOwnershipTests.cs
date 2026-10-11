@@ -1,3 +1,4 @@
+using Musoq.Tests.Common;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -27,18 +28,19 @@ public sealed class StructuredInputOwnershipTests
             ["Pattern"] = "TODO"
         };
         var host = new List<Dictionary<string, object?>> { record };
-        compiled.Parameters["patterns"] = host;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", host);
 
         string firstMatch;
         using (var first = compiled.Run())
         {
-            firstMatch = (string)first.Rows.Single()[1]!;
+            firstMatch = (string)first.Rows.Single().ReadValue(1)!;
         }
         record["Pattern"] = "FIXME";
+        compiled.TypedParameters.SetJson("patterns", System.Text.Json.JsonSerializer.SerializeToElement(host));
         string secondMatch;
         using (var second = compiled.Run())
         {
-            secondMatch = (string)second.Rows.Single()[1]!;
+            secondMatch = (string)second.Rows.Single().ReadValue(1)!;
         }
 
         Assert.AreEqual("TODO", firstMatch);
@@ -53,36 +55,32 @@ public sealed class StructuredInputOwnershipTests
             "param(patterns: (Id: string, Pattern: string)[]) " +
             "select m.PatternId from #inputs.match('TODO', patterns: $patterns) m";
         using var compiled = Compile(query, "structured-input-invalid-runtime");
-        compiled.Parameters["patterns"] = new List<Dictionary<string, object?>>
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", new List<Dictionary<string, object?>>
         {
             new()
             {
                 ["Id"] = "todo",
                 ["Unknown"] = "TODO"
             }
-        };
+        });
 
         StructuredInputSourceCounters.Reset();
         var exception = Assert.ThrowsExactly<QueryExecutionException>(() => RunAndMaterialize(compiled));
-        StringAssert.Contains(exception.ToString(), "unexpected field");
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ7006_UnknownScriptParameter, exception.Envelope!.Code);
+        StringAssert.Contains(exception.Message, "$patterns[0].Unknown");
         Assert.AreEqual(0, StructuredInputSourceCounters.MatchConstructed);
     }
 
     [TestMethod]
-    public void Sql_CancellationDuringHostCaptureDoesNotOpenTheProvider()
+    public void Sql_CancellationDuringNativeCollectionCaptureDoesNotOpenTheProvider()
     {
-        var query =
-            "param(patterns: (Id: string, Pattern: string)[]) " +
-            "select m.PatternId from #inputs.match('TODO', patterns: $patterns) m";
-        using var compiled = Compile(query, "structured-input-cancel-capture");
+        const string sql = "param(values: int[]) select n.Value from #inputs.numbers(values: $values) n";
+        using var compiled = Compile(sql, "structured-input-cancel-native-capture");
         using var cancellation = new CancellationTokenSource();
-        compiled.Parameters["patterns"] = new CancelOnReadList(
-            cancellation,
-            new Dictionary<string, object?> { ["Id"] = "todo", ["Pattern"] = "TODO" });
-
+        compiled.TypedParameters.SetCollection("values", new CancelOnReadList(cancellation, 1));
         StructuredInputSourceCounters.Reset();
         Assert.ThrowsExactly<OperationCanceledException>(() => compiled.Run(cancellation.Token));
-        Assert.AreEqual(0, StructuredInputSourceCounters.MatchConstructed);
+        Assert.AreEqual(0, StructuredInputSourceCounters.NumbersConstructed);
     }
 
     [TestMethod]
@@ -135,9 +133,9 @@ public sealed class StructuredInputOwnershipTests
         StructuredInputSourceCounters.Reset();
 
         using (var first = compiled.Run())
-            Assert.AreEqual(2, first.Rows.Single()[0]);
+            Assert.AreEqual(2, first.Rows.Single().ReadValue(0));
         using (var second = compiled.Run())
-            Assert.AreEqual(2, second.Rows.Single()[0]);
+            Assert.AreEqual(2, second.Rows.Single().ReadValue(0));
 
         Assert.AreEqual(2, StructuredInputSourceCounters.MutableConstructed);
     }
@@ -162,11 +160,11 @@ public sealed class StructuredInputOwnershipTests
 
     private sealed class CancelOnReadList(
         CancellationTokenSource cancellation,
-        Dictionary<string, object?> value) : IReadOnlyList<Dictionary<string, object?>>
+        int value) : IReadOnlyList<int>
     {
         public int Count => 1;
 
-        public Dictionary<string, object?> this[int index]
+        public int this[int index]
         {
             get
             {
@@ -175,8 +173,8 @@ public sealed class StructuredInputOwnershipTests
             }
         }
 
-        public IEnumerator<Dictionary<string, object?>> GetEnumerator() =>
-            new List<Dictionary<string, object?>> { value }.GetEnumerator();
+        public IEnumerator<int> GetEnumerator() =>
+            new List<int> { value }.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }

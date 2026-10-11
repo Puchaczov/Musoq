@@ -116,7 +116,7 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData, fieldName));
             var table = vm.Run();
             var actualEvents = table
-                .Select(static row => row.Values[0])
+                .Select(static row => row.ReadValues()[0])
                 .Cast<string>()
                 .OrderBy(static name => name)
                 .ToArray();
@@ -208,7 +208,7 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                 var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData, fieldName));
                 var table = vm.Run();
                 var actualEvents = table
-                    .Select(static row => row.Values[0])
+                    .Select(static row => row.ReadValues()[0])
                     .Cast<string>()
                     .OrderBy(static name => name)
                     .ToArray();
@@ -242,7 +242,7 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                 var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData, fieldName));
                 var table = vm.Run();
                 var actualEvents = table
-                    .Select(static row => row.Values[0])
+                    .Select(static row => row.ReadValues()[0])
                     .Cast<string>()
                     .OrderBy(static name => name)
                     .ToArray();
@@ -299,7 +299,7 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         var table = vm.Run();
 
         Assert.IsGreaterThan(0, table.Count, "Query should return at least one result");
-            return table[0].Values[0] as string ??
+            return table[0].ReadValues()[0] as string ??
                    throw new AssertFailedException("Expected comparison result to be a string.");
     }
 

@@ -60,7 +60,7 @@ internal static class ExecutionTargetFeatureAnalyzer
                 sink.AddType(enumerable.EnumerableType.Descriptor);
                 break;
             case ExecutionComputePluginWindow plugin:
-                sink.AddCallable(plugin.FactoryMethod.Descriptor);
+                sink.AddCallable(plugin.SqlDeclaration.Descriptor);
                 break;
         }
     }
@@ -214,7 +214,7 @@ internal static class ExecutionTargetFeatureAnalyzer
                 AddType(callable.DeclaringType);
             if (callable.ReturnType != null)
                 AddType(callable.ReturnType);
-            foreach (var parameter in callable.ParameterTypes)
+            foreach (var parameter in callable.ParameterTypes.Concat(callable.GenericArguments))
                 AddType(parameter);
         }
 

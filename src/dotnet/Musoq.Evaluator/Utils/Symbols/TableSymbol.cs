@@ -64,7 +64,7 @@ public class TableSymbol : Symbol
                 continue;
 
             if (col.Length > 1)
-                throw CreateAmbiguousColumnException(column, _orders[0], _orders[1], span);
+                throw CreateAmbiguousColumnException(column, table.Key, table.Key, span);
 
             if (score is not (null, null, null))
                 if (score.Schema != table.Value.Schema || score.Table != table.Value.SchemaTable)
@@ -114,7 +114,7 @@ public class TableSymbol : Symbol
             : _tables[alias].Item2.GetColumnsByName(columnName);
 
         if (columns.Length > 1)
-            throw CreateAmbiguousColumnException(columnName, _orders[0], _orders[1], span);
+            throw CreateAmbiguousColumnException(columnName, alias, alias, span);
 
         return columns.SingleOrDefault();
     }

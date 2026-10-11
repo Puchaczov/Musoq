@@ -204,41 +204,18 @@ internal sealed class FirstClassEnumBenchmarkPair(
     private static FirstClassEnumBenchmarkOutcome Execute(CompiledQuery query)
     {
         using var table = query.Run();
-        var checksum = 0L;
-        foreach (var row in table)
-        foreach (var value in row.Values)
-            checksum = unchecked(checksum * 397 + ValueChecksum(value));
-
-        return new FirstClassEnumBenchmarkOutcome(table.Count, checksum);
+        var visitor = new ChecksumVisitor();
+        foreach (var row in table) row.VisitColumns(ref visitor);
+        return new FirstClassEnumBenchmarkOutcome(table.Count, visitor.Checksum);
     }
 
-    private static long ValueChecksum(object? value)
+    private struct ChecksumVisitor : IColumnValueVisitor
     {
-        return value switch
-        {
-            null => 0,
-            byte number => number,
-            sbyte number => number,
-            short number => number,
-            ushort number => number,
-            int number => number,
-            uint number => number,
-            long number => number,
-            ulong number => unchecked((long)number),
-            bool boolean => boolean ? 1 : 0,
-            string text => StringChecksum(text),
-            _ => throw new InvalidOperationException(
-                $"Unexpected enum benchmark result value '{value.GetType()}'.")
-        };
+        public long Checksum;
+        public void Visit<T>(int index, in T value)
+            => Checksum = unchecked(Checksum * 397 + NativeBenchmarkColumnConsumption.Checksum(in value));
     }
 
-    private static long StringChecksum(string value)
-    {
-        var checksum = 17L;
-        foreach (var character in value)
-            checksum = unchecked(checksum * 31 + character);
-        return checksum;
-    }
 }
 
 internal readonly record struct FirstClassEnumBenchmarkOutcome(int RowCount, long Checksum)
@@ -312,10 +289,10 @@ internal sealed class FirstClassEnumBenchmarkSchema(FirstClassEnumBenchmarkInput
         };
     }
 
-    public override RowSource<TRow> GetRowSource<TRow>(
+    public override RowSource<TRow> GetRowSource<TRow, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments parameters)
     {
         return string.Equals(name, "rows", StringComparison.OrdinalIgnoreCase)
             ? EnsureSourceType<TRow, FirstClassEnumBenchmarkInput>(
@@ -324,11 +301,12 @@ internal sealed class FirstClassEnumBenchmarkSchema(FirstClassEnumBenchmarkInput
             : throw new NotSupportedException(name);
     }
 
-    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer>(
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        params object?[] parameters)
+        TArguments parameters)
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
         return string.Equals(name, "rows", StringComparison.OrdinalIgnoreCase)
             ? new FirstClassEnumBenchmarkQueryRowSource<TRow, TMaterializer>(rows, request.Shape.Fields)
@@ -347,7 +325,7 @@ internal sealed class FirstClassEnumBenchmarkTable(ISchemaColumn[] columns) : IS
 {
     public ISchemaColumn[] Columns { get; } = columns;
 
-    public SchemaTableMetadata Metadata { get; } = new(typeof(FirstClassEnumBenchmarkInput));
+    public SchemaTableMetadata Metadata { get; } = new(typeof(FirstClassEnumBenchmarkInput)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
 
     public ISchemaColumn? GetColumnByName(string name) =>
         Columns.SingleOrDefault(column =>

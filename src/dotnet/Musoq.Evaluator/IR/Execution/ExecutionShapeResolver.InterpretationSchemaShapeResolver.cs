@@ -38,7 +38,7 @@ public sealed partial class ExecutionShapeResolver
     private IReadOnlyList<ColumnSchema> ResolveInterpretColumns(PhysicalInterpretSourceNode interpret)
     {
         if (interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse)
-            return CreatePartialInterpretColumns();
+            return CreatePartialInterpretColumns(interpret.SchemaName);
 
         if (_schemaRegistry != null &&
             _schemaRegistry.TryGetSchema(interpret.SchemaName, out var registration) &&
@@ -52,11 +52,11 @@ public sealed partial class ExecutionShapeResolver
         return interpret.OutputSchema.Columns;
     }
 
-    private static IReadOnlyList<ColumnSchema> CreatePartialInterpretColumns()
+    private static IReadOnlyList<ColumnSchema> CreatePartialInterpretColumns(string schemaName)
     {
         return
         [
-            new ColumnSchema("ParsedFields", typeof(Dictionary<string, object?>), 0),
+            new ColumnSchema("ParsedFields", typeof(object), 0, $"Musoq.Generated.Interpreters.{schemaName}"),
             new ColumnSchema("ErrorField", typeof(string), 1),
             new ColumnSchema("ErrorMessage", typeof(string), 2),
             new ColumnSchema("BytesConsumed", typeof(int), 3)

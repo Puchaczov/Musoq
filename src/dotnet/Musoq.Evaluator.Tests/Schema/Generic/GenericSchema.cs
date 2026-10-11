@@ -7,15 +7,20 @@ using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.Schema.Generic;
 
 public class GenericSchema<TLibrary>(
     IReadOnlyDictionary<string, (ISchemaTable SchemaTable, object RowSource)> tables,
-    IReadOnlyDictionary<string, Func<object?[], RowSourceFilterInput, object?>?>? filterRowsSource = null)
+    IReadOnlyDictionary<string, Func<object?[], RowSourceFilterInput, object?>?>? filterRowsSource = null,
+    SourceExecutionPermissions executionPermissions = SourceExecutionPermissions.None)
     : SchemaBase("test", GetOrCreateLibrary()) where TLibrary : LibraryBase, new()
 {
     private static readonly ConcurrentDictionary<Type, MethodsAggregator> LibraryCache = new();
+
+    public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
+        => base.DescribeSource(name, context, parameters) with { ExecutionPermissions = executionPermissions };
 
     public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
     {
@@ -25,8 +30,9 @@ public class GenericSchema<TLibrary>(
         throw new NotSupportedException($"Table {name} is not supported.");
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
     {
+        var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
         if (!tables.TryGetValue(name, out var table))
             throw new NotSupportedException($"Table {name} is not supported.");
 

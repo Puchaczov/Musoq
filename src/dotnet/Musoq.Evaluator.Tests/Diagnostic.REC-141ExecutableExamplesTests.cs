@@ -46,12 +46,12 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
         using var table = CreateAndRunVirtualMachine(query, sources).Run(TokenSource.Token);
 
         Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("large", table[0][0]);
-        Assert.AreEqual(1000, table[0][1]);
-        Assert.AreEqual(1001m, table[0][2]);
-        Assert.AreEqual("medium", table[1][0]);
-        Assert.AreEqual("small", table[2][0]);
-        Assert.AreEqual("tiny", table[3][0]);
+        Assert.AreEqual("large", table[0].ReadValue(0));
+        Assert.AreEqual(1000, table[0].ReadValue(1));
+        Assert.AreEqual(1001m, table[0].ReadValue(2));
+        Assert.AreEqual("medium", table[1].ReadValue(0));
+        Assert.AreEqual("small", table[2].ReadValue(0));
+        Assert.AreEqual("tiny", table[3].ReadValue(0));
     }
 
     [TestMethod]
@@ -71,19 +71,19 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
             "select City, Count(*) from #A.entities() group by 1 order by City";
         using var ordinalTable = CreateAndRunVirtualMachine(ordinalQuery, sources).Run(TokenSource.Token);
         Assert.AreEqual(2, ordinalTable.Count);
-        Assert.AreEqual("Krakow", ordinalTable[0][0]);
-        Assert.AreEqual(1L, ordinalTable[0][1]);
-        Assert.AreEqual("Warsaw", ordinalTable[1][0]);
-        Assert.AreEqual(2L, ordinalTable[1][1]);
+        Assert.AreEqual("Krakow", ordinalTable[0].ReadValue(0));
+        Assert.AreEqual(1L, ordinalTable[0].ReadValue(1));
+        Assert.AreEqual("Warsaw", ordinalTable[1].ReadValue(0));
+        Assert.AreEqual(2L, ordinalTable[1].ReadValue(1));
 
         const string aliasQuery =
             "select City as c, Count(*) from #A.entities() group by c order by c";
         using var aliasTable = CreateAndRunVirtualMachine(aliasQuery, sources).Run(TokenSource.Token);
         Assert.AreEqual(2, aliasTable.Count);
-        Assert.AreEqual("Krakow", aliasTable[0][0]);
-        Assert.AreEqual(1L, aliasTable[0][1]);
-        Assert.AreEqual("Warsaw", aliasTable[1][0]);
-        Assert.AreEqual(2L, aliasTable[1][1]);
+        Assert.AreEqual("Krakow", aliasTable[0].ReadValue(0));
+        Assert.AreEqual(1L, aliasTable[0].ReadValue(1));
+        Assert.AreEqual("Warsaw", aliasTable[1].ReadValue(0));
+        Assert.AreEqual(2L, aliasTable[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -107,7 +107,7 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
             Assert.IsTrue(build.Succeeded, Format(build.Diagnostics));
             Assert.IsNotNull(build.CompiledQuery);
             using var table = build.CompiledQuery!.Run(TokenSource.Token);
-            Assert.AreEqual(expected, table[0][0], query);
+            Assert.AreEqual(expected, table[0].ReadValue(0), query);
         }
     }
 
@@ -135,7 +135,7 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
             {
                 ["#A"] = [new BasicEntity("fixture") { Population = 1m }]
             }).Run(TokenSource.Token);
-        Assert.AreEqual("positive", table[0][0]);
+        Assert.AreEqual("positive", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -155,8 +155,8 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
         using var table = CreateAndRunVirtualMachine(query, sources).Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
-        Assert.AreEqual("Bob", table[1][0]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
+        Assert.AreEqual("Bob", table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -180,7 +180,7 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
             {
                 ["#A"] = [new BasicEntity("fixture")]
             }).Run(TokenSource.Token);
-        Assert.AreEqual("fixture", corrected[0][0]);
+        Assert.AreEqual("fixture", corrected[0].ReadValue(0));
     }
 
     private static BasicSchemaProvider<BasicEntity> CreateCoreProvider(IEnumerable<BasicEntity> entities)
@@ -299,12 +299,12 @@ public sealed class DiagnosticREC141TableExamplesTests : BasicEntityTestBase
                 DateTimeOffsetCol: datetimeoffset,
                 TimeSpanCol: timespan,
                 GuidCol: guid,
-                ObjectCol: object
+                ConcreteCol: string
             };
             couple #readmods.records with table AllTypes as TypedData;
-            select ByteCol, SByteCol, ShortCol, IntCol, LongCol, UShortCol, UIntCol, ULongCol, FloatCol, DoubleCol, DecimalCol, MoneyCol, BoolCol, CharCol, StringCol, DateTimeCol, DateTimeOffsetCol, TimeSpanCol, GuidCol, ObjectCol from TypedData();
+            select ByteCol, SByteCol, ShortCol, IntCol, LongCol, UShortCol, UIntCol, ULongCol, FloatCol, DoubleCol, DecimalCol, MoneyCol, BoolCol, CharCol, StringCol, DateTimeCol, DateTimeOffsetCol, TimeSpanCol, GuidCol, ConcreteCol from TypedData();
             """;
-        const string explicitProjection = "select ByteCol, SByteCol, ShortCol, IntCol, LongCol, UShortCol, UIntCol, ULongCol, FloatCol, DoubleCol, DecimalCol, MoneyCol, BoolCol, CharCol, StringCol, DateTimeCol, DateTimeOffsetCol, TimeSpanCol, GuidCol, ObjectCol from TypedData();";
+        const string explicitProjection = "select ByteCol, SByteCol, ShortCol, IntCol, LongCol, UShortCol, UIntCol, ULongCol, FloatCol, DoubleCol, DecimalCol, MoneyCol, BoolCol, CharCol, StringCol, DateTimeCol, DateTimeOffsetCol, TimeSpanCol, GuidCol, ConcreteCol from TypedData();";
         var dateTime = new DateTime(2026, 7, 17, 12, 0, 0);
         var dateTimeOffset = new DateTimeOffset(dateTime, TimeSpan.Zero);
         var guid = Guid.Parse("b7f0d48f-e2d0-4a8e-8c12-0e44cf3a3d0a");
@@ -330,42 +330,42 @@ public sealed class DiagnosticREC141TableExamplesTests : BasicEntityTestBase
             ("DateTimeOffsetCol", dateTimeOffset),
             ("TimeSpanCol", timeSpan),
             ("GuidCol", guid),
-            ("ObjectCol", "object")
+            ("ConcreteCol", "object")
         )]);
 
         var publishedQuery = query.Replace(explicitProjection, "select * from TypedData();", StringComparison.Ordinal);
         using var publishedTable = CreateAndRunVirtualMachine(
             publishedQuery,
             schemaProvider: provider).Run(TokenSource.Token);
-        Assert.AreEqual(17, publishedTable.Columns.Count());
+        Assert.AreEqual(18, publishedTable.Columns.Count());
         Assert.IsFalse(publishedTable.Columns.Any(column =>
-            column.ColumnName is "TimeSpanCol" or "GuidCol" or "ObjectCol"));
+            column.ColumnName is "TimeSpanCol" or "GuidCol"));
 
         using var table = CreateAndRunVirtualMachine(query, schemaProvider: provider).Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(20, table.Columns.Count(), string.Join(", ", table.Columns.Select(column => column.ColumnName)));
         var row = table[0];
-        Assert.AreEqual((byte)1, row[0]);
-        Assert.AreEqual((sbyte)-2, row[1]);
-        Assert.AreEqual((short)-3, row[2]);
-        Assert.AreEqual(4, row[3]);
-        Assert.AreEqual(5L, row[4]);
-        Assert.AreEqual((ushort)6, row[5]);
-        Assert.AreEqual(7U, row[6]);
-        Assert.AreEqual(8UL, row[7]);
-        Assert.AreEqual(1.5f, row[8]);
-        Assert.AreEqual(2.5d, row[9]);
-        Assert.AreEqual(3.5m, row[10]);
-        Assert.AreEqual(4.5m, row[11]);
-        Assert.AreEqual(true, row[12]);
-        Assert.AreEqual('Z', row[13]);
-        Assert.AreEqual("text", row[14]);
-        Assert.AreEqual(dateTime, row[15]);
-        Assert.AreEqual(dateTimeOffset, row[16]);
-        Assert.AreEqual(timeSpan, row[17]);
-        Assert.AreEqual(guid, row[18]);
-        Assert.AreEqual("object", row[19]);
+        Assert.AreEqual((byte)1, row.ReadValue(0));
+        Assert.AreEqual((sbyte)-2, row.ReadValue(1));
+        Assert.AreEqual((short)-3, row.ReadValue(2));
+        Assert.AreEqual(4, row.ReadValue(3));
+        Assert.AreEqual(5L, row.ReadValue(4));
+        Assert.AreEqual((ushort)6, row.ReadValue(5));
+        Assert.AreEqual(7U, row.ReadValue(6));
+        Assert.AreEqual(8UL, row.ReadValue(7));
+        Assert.AreEqual(1.5f, row.ReadValue(8));
+        Assert.AreEqual(2.5d, row.ReadValue(9));
+        Assert.AreEqual(3.5m, row.ReadValue(10));
+        Assert.AreEqual(4.5m, row.ReadValue(11));
+        Assert.AreEqual(true, row.ReadValue(12));
+        Assert.AreEqual('Z', row.ReadValue(13));
+        Assert.AreEqual("text", row.ReadValue(14));
+        Assert.AreEqual(dateTime, row.ReadValue(15));
+        Assert.AreEqual(dateTimeOffset, row.ReadValue(16));
+        Assert.AreEqual(timeSpan, row.ReadValue(17));
+        Assert.AreEqual(guid, row.ReadValue(18));
+        Assert.AreEqual("object", row.ReadValue(19));
     }
 
     [TestMethod]
@@ -528,11 +528,11 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
         using var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("image.png", table[0][0]);
-        Assert.AreEqual(768, table[0][1]);
-        Assert.AreEqual(512, table[0][2]);
-        Assert.AreEqual((byte)8, table[0][3]);
-        Assert.AreEqual((byte)6, table[0][4]);
+        Assert.AreEqual("image.png", table[0].ReadValue(0));
+        Assert.AreEqual(768, table[0].ReadValue(1));
+        Assert.AreEqual(512, table[0].ReadValue(2));
+        Assert.AreEqual((byte)8, table[0].ReadValue(3));
+        Assert.AreEqual((byte)6, table[0].ReadValue(4));
     }
 
     [TestMethod]
@@ -575,11 +575,11 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
         using var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("/missing", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
+        Assert.AreEqual("/missing", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
         Assert.AreEqual(
             new DateTimeOffset(2026, 7, 17, 12, 34, 56, TimeSpan.Zero),
-            table[0][2]);
+            table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -603,15 +603,24 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
     }
 
     [TestMethod]
-    public void BinaryApachePublishedExample_ShouldExposeTheStringAggregateCorrection()
+    public void BinaryApacheStringMaximum_ShouldBindAndExecuteWithCorrectedDelimiters()
     {
         var result = new QueryAnalyzer(CreateApacheProvider()).Analyze(ApacheQuery);
-        var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
-            result,
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
-            "REC-141 Apache string timestamp aggregate");
-        Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
-        StringAssert.Contains(diagnostic.Message, "Max");
+        Assert.IsTrue(result.IsSuccess, "The published string maximum must bind successfully.");
+
+        var query = ApacheCorrectedQuery.Replace(
+            "MaxDateTimeOffset(ToDateTimeOffsetWithFormat(log.Timestamp, 'dd/MMM/yyyy:HH:mm:ss zzz'))",
+            "Max(log.Timestamp)");
+        using var compiled = CompileGeneratedQuery(
+            query,
+            Guid.NewGuid().ToString(),
+            CreateApacheProvider(),
+            LoggerResolver,
+            TestCompilationOptions);
+        using var table = compiled.Run(CancellationToken.None);
+
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["/missing", 1L, "17/Jul/2026:12:34:56 +0000"]);
     }
 
     [TestMethod]
@@ -659,10 +668,10 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
         using var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)0x01, table[0][0]);
-        Assert.AreEqual("PING", table[0][1]);
-        Assert.AreEqual((byte)0x02, table[1][0]);
-        Assert.AreEqual("7", table[1][1]);
+        Assert.AreEqual((byte)0x01, table[0].ReadValue(0));
+        Assert.AreEqual("PING", table[0].ReadValue(1));
+        Assert.AreEqual((byte)0x02, table[1].ReadValue(0));
+        Assert.AreEqual("7", table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -686,11 +695,11 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
         using var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("CUST000001", table[0][0]);
-        Assert.AreEqual("Alice", table[0][1]);
-        Assert.AreEqual("1 Main St, Krakow, PL 30-001", table[0][2]);
-        Assert.AreEqual(1234.56m, table[0][3]);
-        Assert.AreEqual(new DateTime(2026, 7, 17), table[0][4]);
+        Assert.AreEqual("CUST000001", table[0].ReadValue(0));
+        Assert.AreEqual("Alice", table[0].ReadValue(1));
+        Assert.AreEqual("1 Main St, Krakow, PL 30-001", table[0].ReadValue(2));
+        Assert.AreEqual(1234.56m, table[0].ReadValue(3));
+        Assert.AreEqual(new DateTime(2026, 7, 17), table[0].ReadValue(4));
     }
 
     [TestMethod]
@@ -743,10 +752,10 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
         using var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)1, table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual((byte)1, table[0][2]);
-        Assert.AreEqual("hello", table[0][3]);
+        Assert.AreEqual((short)1, table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.AreEqual((byte)1, table[0].ReadValue(2));
+        Assert.AreEqual("hello", table[0].ReadValue(3));
     }
 
     private const string MixedPublishedQuery = """

@@ -106,7 +106,6 @@ internal static class RowShapeLookup
             SourceEntityShape source => source.Alias,
             TableRowShape tableRow => tableRow.Alias,
             ValuesRowShape values => values.Alias,
-            ExpandoAdapterShape expando => expando.Alias,
             GeneratedRowShape generated when generated.IsQueryScopedRow => generated.SourceAlias ?? string.Empty,
             _ => string.Empty
         };
@@ -120,7 +119,6 @@ internal static class RowShapeLookup
         {
             SourceEntityShape source when UsesReflectedMemberAccess(source) || !CanReferenceType(source.EntityType.ResolveClrType()) => typeof(object),
             SourceEntityShape source => source.EntityType.ResolveClrType(),
-            ExpandoAdapterShape expando => expando.RuntimeType.ResolveClrType(),
             TableRowShape => typeof(Row),
             ValuesRowShape => typeof(object),
             GeneratedRowShape => typeof(object),
@@ -133,7 +131,6 @@ internal static class RowShapeLookup
         return sourceShape switch
         {
             SourceEntityShape source => source.EntityType.ResolveClrType(),
-            ExpandoAdapterShape expando => expando.RuntimeType.ResolveClrType(),
             TableRowShape => typeof(Row),
             ValuesRowShape => typeof(object),
             GeneratedRowShape => typeof(object),
@@ -156,6 +153,10 @@ internal static class RowShapeLookup
         OrderField key,
         IReadOnlyList<ProjectedField> projectedFields)
     {
+        var outputIndex = SortKeyProjectionResolver.TryResolveOutputIndex(key.Expression, projectedFields);
+        if (outputIndex != null)
+            return rowShape.Fields.FirstOrDefault(field => field.OutputIndex == outputIndex);
+
         if (key.Expression is ColumnRef columnRef)
         {
             var field = ResolveProjectedField(rowShape, columnRef);
@@ -175,14 +176,14 @@ internal static class RowShapeLookup
             ? columnRef.ColumnName
             : $"{columnRef.Alias}.{columnRef.ColumnName}";
 
-        return ResolveProjectedField(rowShape, columnRef.ColumnName)
-               ?? ResolveProjectedField(rowShape, qualifiedName);
+        return ResolveProjectedField(rowShape, qualifiedName);
     }
 
     public static FieldBinding? ResolveProjectedField(GeneratedRowShape rowShape, string fieldName)
     {
-        return rowShape.Fields.FirstOrDefault(field =>
+        var matches = rowShape.Fields.Where(field =>
             string.Equals(field.Name, fieldName, StringComparison.Ordinal) ||
-            string.Equals(field.QualifiedName, fieldName, StringComparison.Ordinal));
+            string.Equals(field.QualifiedName, fieldName, StringComparison.Ordinal)).Take(2).ToArray();
+        return matches.Length == 1 ? matches[0] : null;
     }
 }

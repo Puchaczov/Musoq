@@ -213,7 +213,7 @@ public sealed class RequiredAliasEndToEndTests
             using var table = build.CompiledQuery!.Run();
             CollectionAssert.AreEqual(
                 new[] { "left:1", "left:2", "right:3" },
-                table.Select(row => $"{row[0]}:{row[1]}").ToArray());
+                table.Select(row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray());
         }
     }
 

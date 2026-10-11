@@ -43,46 +43,15 @@ public sealed partial class ExecutionCSharpRenderer
         var partitionIndices = $"{result}PartitionIndices";
         var partitionIndex = $"{result}PartitionIndex";
         var currentIndex = $"{result}CurrentIndex";
-        var previousIndex = $"{result}PreviousIndex";
 
-        var body = ranking.Function switch
-        {
-            ExecutionRankingWindowFunction.RowNumber => CreateRowNumberKernelBody(
-                ranking,
-                result,
-                partitionStart,
-                partitionCount,
-                partitionIndices,
-                partitionIndex,
-                currentIndex),
-            ExecutionRankingWindowFunction.Rank => CreateRankKernelBody(
-                ranking,
-                orderKeys,
-                result,
-                partitionStart,
-                partitionCount,
-                partitionIndices,
-                partitionIndex,
-                currentIndex,
-                previousIndex),
-            ExecutionRankingWindowFunction.DenseRank => CreateDenseRankKernelBody(
-                ranking,
-                orderKeys,
-                result,
-                partitionStart,
-                partitionCount,
-                partitionIndices,
-                partitionIndex,
-                currentIndex,
-                previousIndex),
-            ExecutionRankingWindowFunction.PercentRank or ExecutionRankingWindowFunction.CumeDist =>
-                WindowDistributionRankingSyntax.CreateKernelBody(
-                    [ranking],
-                    orderKeys,
-                    new WindowDistributionRankingSyntax.DistributionRankingKernelNames(
-                        result, partitionStart, partitionCount, partitionIndices)),
-            _ => throw new ArgumentOutOfRangeException(nameof(ranking), ranking.Function, null)
-        };
+        if (ranking.LibraryGet is null)
+            throw UnsupportedShape.Of("Ranking execution requires a registered library operation.");
+        var body = ranking.RequiresPeerMetadata
+            ? WindowDistributionRankingSyntax.CreateKernelBody([ranking], orderKeys,
+                new WindowDistributionRankingSyntax.DistributionRankingKernelNames(
+                    result, partitionStart, partitionCount, partitionIndices))
+            : CreateRowNumberKernelBody(ranking, result, partitionStart, partitionCount,
+                partitionIndices, partitionIndex, currentIndex);
 
         var source =
             $"for (int {partitionSetIndex} = 0; {partitionSetIndex} < {partitionsName}.PartitionCount; ++{partitionSetIndex})" + Environment.NewLine +
@@ -105,6 +74,10 @@ public sealed partial class ExecutionCSharpRenderer
         string partitionIndex,
         string currentIndex)
     {
+        var operation = ranking.LibraryGet ?? throw UnsupportedShape.Of("Ranking requires a library operation.");
+        var kernelType = Musoq.Evaluator.Helpers.EvaluationHelper.GetCastableType(operation.RequireClrMethod().DeclaringType!);
+        var context = $"var {result}Context = new Musoq.Plugins.WindowRankingContext({partitionIndex}, 0, 0, 0L, {partitionCount}, token);";
+        var assignment = $"{kernelType}.{operation.MethodName}(in {result}Context)";
         var limitDeclaration = ranking.QualifyUpperBound.HasValue
             ? $"                var {result}PartitionLimit = (int)System.Math.Min((long){partitionCount}, {ranking.QualifyUpperBound.Value.ToString(CultureInfo.InvariantCulture)}L);"
             : $"                var {result}PartitionLimit = {partitionCount};";
@@ -114,80 +87,10 @@ public sealed partial class ExecutionCSharpRenderer
                 for (int {{partitionIndex}} = 0; {{partitionIndex}} < {{result}}PartitionLimit; ++{{partitionIndex}})
                 {
                     var {{currentIndex}} = {{partitionIndices}}[{{partitionStart}} + {{partitionIndex}}];
-                    {{result}}[{{currentIndex}}] = {{partitionIndex}} + 1L;
+                    {{context}}
+                    {{result}}[{{currentIndex}}] = {{assignment}};
                 }
 """;
     }
 
-    private static string CreateRankKernelBody(
-        ExecutionComputeRankingWindow ranking,
-        ExecutionWindowKeyArray orderKeys,
-        string result,
-        string partitionStart,
-        string partitionCount,
-        string partitionIndices,
-        string partitionIndex,
-        string currentIndex,
-        string previousIndex)
-    {
-        var maxRankGuard = ranking.QualifyUpperBound.HasValue
-            ? $$"""
-
-                    if ({{result}}Rank > {{ranking.QualifyUpperBound.Value.ToString(CultureInfo.InvariantCulture)}}L)
-                        break;
-            """
-            : string.Empty;
-
-        return $$"""
-                long {{result}}Rank = 1L;
-                for (int {{partitionIndex}} = 0; {{partitionIndex}} < {{partitionCount}}; ++{{partitionIndex}})
-                {
-                    var {{currentIndex}} = {{partitionIndices}}[{{partitionStart}} + {{partitionIndex}}];
-                    if ({{partitionIndex}} > 0)
-                    {
-                        var {{previousIndex}} = {{partitionIndices}}[{{partitionStart}} + {{partitionIndex}} - 1];
-                        if (!{{WindowDistributionRankingSyntax.CreatePeerEqualityExpression(orderKeys, currentIndex, previousIndex)}})
-                            {{result}}Rank = {{partitionIndex}} + 1L;
-                    }{{maxRankGuard}}
-
-                    {{result}}[{{currentIndex}}] = {{result}}Rank;
-                }
-""";
-    }
-
-    private static string CreateDenseRankKernelBody(
-        ExecutionComputeRankingWindow ranking,
-        ExecutionWindowKeyArray orderKeys,
-        string result,
-        string partitionStart,
-        string partitionCount,
-        string partitionIndices,
-        string partitionIndex,
-        string currentIndex,
-        string previousIndex)
-    {
-        var maxRankGuard = ranking.QualifyUpperBound.HasValue
-            ? $$"""
-
-                    if ({{result}}DenseRank > {{ranking.QualifyUpperBound.Value.ToString(CultureInfo.InvariantCulture)}}L)
-                        break;
-            """
-            : string.Empty;
-
-        return $$"""
-                long {{result}}DenseRank = 1L;
-                for (int {{partitionIndex}} = 0; {{partitionIndex}} < {{partitionCount}}; ++{{partitionIndex}})
-                {
-                    var {{currentIndex}} = {{partitionIndices}}[{{partitionStart}} + {{partitionIndex}}];
-                    if ({{partitionIndex}} > 0)
-                    {
-                        var {{previousIndex}} = {{partitionIndices}}[{{partitionStart}} + {{partitionIndex}} - 1];
-                        if (!{{WindowDistributionRankingSyntax.CreatePeerEqualityExpression(orderKeys, currentIndex, previousIndex)}})
-                            {{result}}DenseRank++;
-                    }{{maxRankGuard}}
-
-                    {{result}}[{{currentIndex}}] = {{result}}DenseRank;
-                }
-""";
-    }
 }

@@ -6,6 +6,9 @@ namespace Musoq.Plugins;
 /// <typeparam name="T">The scalar value type.</typeparam>
 public static class ScalarSubqueryAggregateKernel<T>
 {
+    /// <summary>Initializes independently owned kernel state.</summary>
+    public static void Reset(ref State state) => state = default;
+
     /// <summary>
     ///     Query-specific scalar subquery state.
     /// </summary>
@@ -42,7 +45,7 @@ public static class ScalarSubqueryAggregateKernel<T>
     public static T Get(in State state)
     {
         if (state.HasMultipleRows)
-            throw new InvalidOperationException("Scalar subquery returned more than one row.");
+            throw new Musoq.Plugins.ScalarSubqueryCardinalityException();
 
         return state.HasValue ? state.Value : default!;
     }

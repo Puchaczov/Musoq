@@ -76,7 +76,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (block.Nodes.Count < 2 ||
             block.Nodes[^1] is not ExecutionForEach loop ||
             block.Nodes[^2] is not ExecutionEnumerableSource source ||
-            block.Nodes.Take(block.Nodes.Count - 2).Any(static node => node is not ExecutionLet and not ExecutionAdaptExpando and not ExecutionMethodTargetDeclarationCandidate) ||
+            block.Nodes.Take(block.Nodes.Count - 2).Any(static node => node is not ExecutionLet and not ExecutionMethodTargetDeclarationCandidate) ||
             !IsLoopOverRows(loop.Source, source.Rows.Name) ||
             !ShouldExtractEnumerableTraversal(loop.Body))
         {

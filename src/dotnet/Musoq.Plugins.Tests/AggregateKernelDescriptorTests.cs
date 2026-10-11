@@ -176,6 +176,9 @@ public class AggregateKernelDescriptorTests
 
     public static class WeightedAverageAggregate
     {
+        /// <summary>Initializes independently owned kernel state.</summary>
+        public static void Reset(ref State state) => state = default;
+
         public struct State
         {
             public decimal WeightedSum;
@@ -212,6 +215,9 @@ public class AggregateKernelDescriptorTests
 
     public static class ExternalCountAggregate
     {
+        /// <summary>Initializes independently owned kernel state.</summary>
+        public static void Reset(ref ExternalCountState state) => state = default;
+
         public static void Set(ref ExternalCountState state)
         {
             state.Count += 1;

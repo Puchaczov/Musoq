@@ -7,7 +7,7 @@ namespace Musoq.Parser.Tests;
 ///     Tests for the SchemaParser class - Text schema parsing.
 /// </summary>
 [TestClass]
-public class SchemaParserTextTests : SchemaParserTestsBase
+public partial class SchemaParserTextTests : SchemaParserTestsBase
 {
     #region Text Schema - Token Field
 

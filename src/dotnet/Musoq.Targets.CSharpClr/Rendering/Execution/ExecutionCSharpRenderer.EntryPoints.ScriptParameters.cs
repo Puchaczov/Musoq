@@ -6,8 +6,10 @@ using Musoq.Evaluator.Helpers;
 namespace Musoq.Targets.CSharpClr;
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> CreateScriptParameterBindingStatements()
+    private IEnumerable<StatementSyntax> CreateScriptParameterBindingStatements(ExecutionPlan plan)
     {
+        if (_scriptParameterDefinitions.Any(static definition => definition.Contract.IsStructured))
+            yield return SyntaxFactory.ParseStatement("var __musoqTypedParameterCaptureState = new StructuralParameterCaptureState(token);");
         for (var parameterIndex = 0; parameterIndex < _scriptParameterDefinitions.Count; parameterIndex++)
         {
             var definition = _scriptParameterDefinitions[parameterIndex];
@@ -17,8 +19,15 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateScriptParameterBindingExpression(definition, parameterIndex));
         }
         yield return CreateScriptParameterUnknownValidationStatement();
+        foreach (var name in plan.NonNullMembershipParameters)
+            yield return SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.ParseExpression($"{nameof(ScriptParameterBinder)}.{nameof(ScriptParameterBinder.ValidateMembershipCollection)}"))
+                .WithArgumentList(CreateArgumentList(
+                    SyntaxFactory.IdentifierName(GetScriptParameterLocalName(name)),
+                    CreateStringLiteral(name))));
     }
-    private InvocationExpressionSyntax CreateScriptParameterBindingExpression(
+    private ExpressionSyntax CreateScriptParameterBindingExpression(
         ScriptParameterDefinition definition,
         int parameterIndex)
     {
@@ -30,10 +39,10 @@ public sealed partial class ExecutionCSharpRenderer
                     parameterIndex,
                     out var storageType))
             {
-                return StructuralParameterBindingSyntaxFactory.Create(
-                    definition,
-                    storageType,
-                    CreateExecutionStateParametersRead);
+                var name = CreateStringLiteral(definition.Name).ToFullString();
+                var state = ExecutionStateVariableName;
+                var index = _scriptVariableDefinitions.Count + parameterIndex;
+                return SyntaxFactory.ParseExpression($"__musoqBindTypedJson_{index}({state}, {name}, __musoqTypedParameterCaptureState)");
             }
             throw new InvalidOperationException(
                 $"Structured parameter '{definition.Name}' does not have generated storage metadata.");
@@ -45,17 +54,21 @@ public sealed partial class ExecutionCSharpRenderer
             ? nameof(ScriptParameterBinder.GetOptional)
             : nameof(ScriptParameterBinder.GetRequired);
 
+        var underlying = Nullable.GetUnderlyingType(definition.ParameterType);
+        if (underlying is not null)
+            methodName = definition.HasDefaultValue ? nameof(ScriptParameterBinder.GetOptionalNullable) : nameof(ScriptParameterBinder.GetRequiredNullable);
+
         var memberAccess = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(nameof(ScriptParameterBinder)),
             SyntaxFactory.GenericName(methodName)
                 .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
                     SyntaxFactory.SingletonSeparatedList(
-                        ScriptParameterSyntaxFactory.CreateTypeSyntax(definition.ParameterType)))));
+                        ScriptParameterSyntaxFactory.CreateTypeSyntax(underlying ?? definition.ParameterType)))));
 
         var arguments = new List<ExpressionSyntax>
         {
-            CreateExecutionStateParametersRead(),
+            SyntaxFactory.IdentifierName(ExecutionStateVariableName),
             CreateStringLiteral(definition.Name)
         };
 
@@ -78,7 +91,7 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.ExpressionStatement(
             SyntaxFactory.InvocationExpression(memberAccess)
                 .WithArgumentList(CreateArgumentList(
-                    CreateExecutionStateParametersRead(),
+                    SyntaxFactory.IdentifierName(ExecutionStateVariableName),
                     CreateScriptParameterDeclaredNamesExpression())));
     }
 

@@ -31,9 +31,25 @@ public sealed partial class ExecutionCSharpRenderer
         ExpressionSyntax[] arguments,
         ExecutionRenderContext context)
     {
-        ExpressionSyntax argsExpression = arguments.Length == 0
-            ? SyntaxHelper.ArrayEmptyOf("object")
-            : CreateArrayCreation("object", arguments);
+        var declaredArgumentTypes = sourceScan.Binding.SourceConstructor?.RequireClrConstructor()
+            .GetParameters().Where(static parameter => parameter.ParameterType != typeof(SourceExecutionContext))
+            .Select(static parameter => parameter.ParameterType).ToArray();
+        ExpressionSyntax argsExpression = SyntaxFactory.ParseExpression("global::Musoq.Schema.SourceArguments.Empty");
+        for (var index = arguments.Length - 1; index >= 0; index--)
+        {
+            var argument = arguments[index];
+            var argumentType = sourceScan.Binding.Arguments[index].ReturnType.RequireClrType();
+            var declaredType = declaredArgumentTypes is { } types && index < types.Length
+                ? types[index] : argumentType;
+            // Generated structural carriers remain compiler-selected concrete types.
+            if (declaredType != typeof(object) && declaredType != typeof(object[]) &&
+                !declaredType.ContainsGenericParameters &&
+                (declaredType != argumentType || sourceScan.Binding.Arguments[index] is ExecutionLiteral))
+                argument = SyntaxFactory.CastExpression(CreateTypeSyntax(declaredType), argument);
+            argsExpression = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.ParseExpression("global::Musoq.Schema.SourceArguments.Create"))
+                .WithArgumentList(CreateArgumentList(argument, argsExpression));
+        }
         var statements = new List<StatementSyntax>();
         var sourceProfileName = CreateSourceProfileRecorderVariableName(sourceScan.Rows.Name);
 
@@ -76,7 +92,7 @@ public sealed partial class ExecutionCSharpRenderer
                 querySchemaVariableName,
                 querySchemaGuard));
 
-            var getQueryRowSourceName = SyntaxFactory.GenericName("GetQueryScopedRowSource")
+            var getQueryRowSourceName = SyntaxFactory.GenericName("QuerySourceInvocation")
                 .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
                     SyntaxFactory.SeparatedList<TypeSyntax>(new TypeSyntax[]
                     {
@@ -86,9 +102,10 @@ public sealed partial class ExecutionCSharpRenderer
             var queryInvocation = SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(querySchemaVariableName),
-                        getQueryRowSourceName))
+                        getQueryRowSourceName,
+                        SyntaxFactory.IdentifierName("Open")))
                 .WithArgumentList(CreateArgumentList(
+                    SyntaxFactory.IdentifierName(querySchemaVariableName),
                     CreateStringLiteral(sourceScan.Binding.MethodName),
                     CreateObjectCreation(
                         nameof(QueryScopedRowSourceRequest),
@@ -161,15 +178,16 @@ public sealed partial class ExecutionCSharpRenderer
             throw new InvalidOperationException(
                 $"Generated execution source '{sourceScan.Binding.MethodName}' has non-referenceable type '{sourceType.FullName ?? sourceType.Name}'.");
 
-        var getRowSourceName = SyntaxFactory.GenericName("GetRowSource")
+        var getRowSourceName = SyntaxFactory.GenericName("SourceInvocation")
             .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
                 SyntaxFactory.SingletonSeparatedList(CreateTypeSyntax(sourceType))));
         var invocation = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(schemaVariableName),
-                    getRowSourceName))
+                    getRowSourceName,
+                    SyntaxFactory.IdentifierName("Open")))
             .WithArgumentList(CreateArgumentList(
+                SyntaxFactory.IdentifierName(schemaVariableName),
                 CreateStringLiteral(sourceScan.Binding.MethodName),
                 runtimeContext,
                 argsExpression));

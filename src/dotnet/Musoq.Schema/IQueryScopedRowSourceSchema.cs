@@ -7,9 +7,10 @@ namespace Musoq.Schema;
 /// </summary>
 public interface IQueryScopedRowSourceSchema
 {
-    RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer>(
+    RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        params object?[] parameters)
-        where TMaterializer : struct, IQueryRowMaterializer<TRow>;
+        TArguments parameters)
+        where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments;
 }

@@ -15,7 +15,7 @@ public abstract partial class TextInterpreterBase<TOut>
     {
         ArgumentNullException.ThrowIfNull(delimiter);
         if (delimiter.Length == 0)
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.GeneralError,
                 SchemaName,
                 fieldName,
@@ -24,7 +24,7 @@ public abstract partial class TextInterpreterBase<TOut>
 
         var remaining = GetTextRemaining(text, fieldName);
         if (greedy && lazy)
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.GeneralError,
                 SchemaName,
                 fieldName,
@@ -36,7 +36,7 @@ public abstract partial class TextInterpreterBase<TOut>
             : remaining.IndexOf(delimiter.AsSpan());
 
         if (index < 0)
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.DelimiterNotFound,
                 SchemaName,
                 fieldName,
@@ -62,7 +62,7 @@ public abstract partial class TextInterpreterBase<TOut>
     /// </param>
     /// <param name="trim">If true, trim whitespace from the result.</param>
     /// <param name="escaped">
-    ///     If true, ignore close delimiters preceded by backslash. Mutually exclusive with
+    ///     If true, decode escaped closing delimiters and doubled escape characters. Mutually exclusive with
     ///     <paramref name="nested" />.
     /// </param>
     /// <returns>The text between the delimiters.</returns>
@@ -73,7 +73,7 @@ public abstract partial class TextInterpreterBase<TOut>
         ArgumentNullException.ThrowIfNull(open);
         ArgumentNullException.ThrowIfNull(close);
         if (open.Length == 0 || close.Length == 0)
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.GeneralError,
                 SchemaName,
                 fieldName,
@@ -84,7 +84,7 @@ public abstract partial class TextInterpreterBase<TOut>
 
 
         if (!remaining.StartsWith(open.AsSpan()))
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.ExpectedDelimiter,
                 SchemaName,
                 fieldName,
@@ -99,7 +99,7 @@ public abstract partial class TextInterpreterBase<TOut>
         if (escaped)
         {
             if (escapeCharacter is { Length: not 1 })
-                throw new ParseException(
+                throw ParseException.ForText(
                     ParseErrorCode.GeneralError,
                     SchemaName,
                     fieldName,
@@ -115,7 +115,7 @@ public abstract partial class TextInterpreterBase<TOut>
             endIndex = remaining.IndexOf(close.AsSpan());
 
         if (endIndex < 0)
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.DelimiterNotFound,
                 SchemaName,
                 fieldName,
@@ -124,32 +124,27 @@ public abstract partial class TextInterpreterBase<TOut>
 
         var result = remaining.Slice(0, endIndex).ToString();
         if (escape.HasValue)
-            result = UnescapeEscapedEscapeCharacters(result, escape.Value);
+            result = DecodeEscapedContent(result, close, escape.Value);
 
         ParsePosition += endIndex + close.Length;
 
         return ApplyModifiers(result, ltrim || trim, rtrim || trim, lower, upper);
     }
 
-    private static string UnescapeEscapedEscapeCharacters(string value, char escapeCharacter)
+    private static string DecodeEscapedContent(string value, string close, char escapeCharacter)
     {
-        var hasDoubledEscape = false;
-        for (var i = 0; i + 1 < value.Length; i++)
-            if (value[i] == escapeCharacter && value[i + 1] == escapeCharacter)
+        var result = new StringBuilder(value.Length);
+        for (var position = 0; position < value.Length; position++)
+        {
+            var escapedLength = EscapedTokenLength(value.AsSpan(position), close, escapeCharacter);
+            if (escapedLength > 0)
             {
-                hasDoubledEscape = true;
-                break;
+                result.Append(value.AsSpan(position + 1, escapedLength - 1));
+                position += escapedLength - 1;
+                continue;
             }
 
-        if (!hasDoubledEscape)
-            return value;
-
-        var result = new StringBuilder(value.Length);
-        for (var i = 0; i < value.Length; i++)
-        {
-            result.Append(value[i]);
-            if (value[i] == escapeCharacter && i + 1 < value.Length && value[i + 1] == escapeCharacter)
-                i++;
+            result.Append(value[position]);
         }
 
         return result.ToString();
@@ -162,7 +157,7 @@ public abstract partial class TextInterpreterBase<TOut>
         bool rtrim = false, bool lower = false, bool upper = false, string? fieldName = null)
     {
         if (count < 0)
-            throw new ParseException(ParseErrorCode.InvalidSize, SchemaName, fieldName, ParsePosition,
+            throw ParseException.ForText(ParseErrorCode.InvalidSize, SchemaName, fieldName, ParsePosition,
                 $"Negative character count: {count}");
 
         EnsureChars(text, count, fieldName);

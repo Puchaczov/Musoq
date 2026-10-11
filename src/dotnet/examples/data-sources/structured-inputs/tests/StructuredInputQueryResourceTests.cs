@@ -1,3 +1,4 @@
+using Musoq.Tests.Common;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.Json;
@@ -48,7 +49,7 @@ public sealed class StructuredInputQueryResourceTests
 
             using var compiled = build.CompiledQuery!;
             if (string.Equals(testCase.Host, "patterns", StringComparison.Ordinal))
-                compiled.Parameters["patterns"] = CreateHostPatterns();
+                global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", CreateHostPatterns());
 
             using var table = compiled.Run();
             if (testCase.Columns is int expectedColumns)
@@ -60,7 +61,7 @@ public sealed class StructuredInputQueryResourceTests
                 Assert.IsTrue(table.Rows.Count > 0, $"Resource '{testCase.Name}' expected a first row.");
                 Assert.IsTrue(testCase.First.Length <= table.Columns.Count(), testCase.Name);
                 for (var index = 0; index < testCase.First.Length; index++)
-                    Assert.IsTrue(Matches(testCase.First[index], table.Rows[0][index]), $"Resource '{testCase.Name}' first value {index} did not match.");
+                    Assert.IsTrue(Matches(testCase.First[index], table.Rows[0].ReadValue(index)), $"Resource '{testCase.Name}' first value {index} did not match.");
             }
 
             if (testCase.Counter is not null)

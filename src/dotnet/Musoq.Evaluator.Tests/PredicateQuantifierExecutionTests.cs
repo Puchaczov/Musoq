@@ -6,7 +6,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class PredicateQuantifierExecutionTests : BasicEntityTestBase
+public partial class PredicateQuantifierExecutionTests : BasicEntityTestBase
 {
     [TestMethod]
     public void AnyLike_WhenFirstOrLaterFieldMatches_ShouldReturnMatchingRows()
@@ -102,7 +102,7 @@ public class PredicateQuantifierExecutionTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Id", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             expectedIds.Select(static id => new object?[] { id }).ToArray());

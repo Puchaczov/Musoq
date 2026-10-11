@@ -16,9 +16,9 @@ public sealed class GeneratedCodeSamplesLoopInvariantExecutionTests
         using var table = query.Run();
 
         Assert.AreEqual(24, table.Count);
-        Assert.AreEqual(10, table[0][0]);
-        Assert.AreEqual(101, table[0][1]);
-        Assert.AreEqual(1011, table[0][2]);
+        Assert.AreEqual(10, table[0].ReadValue(0));
+        Assert.AreEqual(101, table[0].ReadValue(1));
+        Assert.AreEqual(1011, table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -28,8 +28,8 @@ public sealed class GeneratedCodeSamplesLoopInvariantExecutionTests
         using var table = query.Run();
 
         Assert.AreEqual(24, table.Count);
-        Assert.IsTrue(table.Rows.All(row => row[0] is int));
-        Assert.AreEqual(100, table[0][0]);
+        Assert.IsTrue(table.Rows.All(row => row.ReadValue(0) is int));
+        Assert.AreEqual(100, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -39,9 +39,9 @@ public sealed class GeneratedCodeSamplesLoopInvariantExecutionTests
         using var table = query.Run();
 
         Assert.AreEqual(6, table.Count);
-        Assert.AreEqual(11, table[0][0]);
-        Assert.AreEqual(111, table[0][1]);
-        Assert.AreEqual(103, table[0][2]);
+        Assert.AreEqual(11, table[0].ReadValue(0));
+        Assert.AreEqual(111, table[0].ReadValue(1));
+        Assert.AreEqual(103, table[0].ReadValue(2));
     }
 
     [TestMethod]

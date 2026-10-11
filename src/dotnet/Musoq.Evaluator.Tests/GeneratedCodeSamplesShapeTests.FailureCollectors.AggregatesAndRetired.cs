@@ -45,7 +45,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             failures.Add($"{CteBackedAggregateOverHashJoinSampleFileName}: missing CTE-backed hash probe");
 
         if (!content.Contains("GetOrAddSingleKeyAggregateGroup [group = groups[l.City] by l.City; typed: ResultAggregateGroup]", StringComparison.Ordinal) ||
-            !content.Contains("__musoqFinalShapeRows.Add(new ResultShape0(finalGroup.__key0, finalGroup.__agg0.Count));", StringComparison.Ordinal))
+            !content.Contains("__musoqFinalShapeRows.Add(new ResultRow0(finalGroup.__key0, finalGroup.__agg0.Count));", StringComparison.Ordinal))
         {
             failures.Add($"{CteBackedAggregateOverHashJoinSampleFileName}: aggregate-over-hash block is not lowered to typed final shapes");
         }

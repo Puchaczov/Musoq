@@ -35,50 +35,8 @@ internal sealed partial class PhysicalLoweringImplementation
                                              (caseWhen.ElseExpression != null &&
                                               ContainsRowScopedRead(caseWhen.ElseExpression)),
             ExecutionCoalesce coalesce => coalesce.Expressions.Any(ContainsRowScopedRead),
-            ExecutionCompositeKey compositeKey => compositeKey.Parts.Any(ContainsRowScopedRead),
             ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts.Any(ContainsRowScopedRead),
             _ => false
-        };
-    }
-
-    private static ExecutionRankingWindowFunction? ResolveRankingFunction(string functionName)
-    {
-        return RankingWindowMetadata.ResolveFunction(functionName);
-    }
-
-    private static ExecutionOffsetWindowFunction? ResolveOffsetFunction(string functionName)
-    {
-        var normalized = functionName.Replace("_", string.Empty, StringComparison.Ordinal);
-        if (string.Equals(normalized, "Lag", StringComparison.OrdinalIgnoreCase))
-            return ExecutionOffsetWindowFunction.Lag;
-
-        if (string.Equals(normalized, "Lead", StringComparison.OrdinalIgnoreCase))
-            return ExecutionOffsetWindowFunction.Lead;
-
-        return null;
-    }
-
-    private static bool IsNtileWindowFunction(string functionName)
-    {
-        var normalized = NormalizeWindowFunctionName(functionName);
-        return string.Equals(normalized, "Ntile", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool IsBuiltInValueAccessWindowFunction(string functionName)
-    {
-        var normalized = NormalizeWindowFunctionName(functionName).ToUpperInvariant();
-        return normalized is "FIRSTVALUE" or "LASTVALUE" or "NTHVALUE";
-    }
-
-    private static int? TryGetBuiltInPluginWindowArgumentCount(string functionName)
-    {
-        var normalized = NormalizeWindowFunctionName(functionName).ToUpperInvariant();
-        return normalized switch
-        {
-            "SUM" or "COUNT" or "AVG" or "MIN" or "MAX" => 1,
-            "FIRSTVALUE" or "LASTVALUE" => 1,
-            "NTHVALUE" => 2,
-            _ => null
         };
     }
 
@@ -154,7 +112,7 @@ internal sealed partial class PhysicalLoweringImplementation
             return LoweringAttempt<OptionalValue<ExecutionExpression>>.Built(OptionalValue<ExecutionExpression>.Some(parts[0]));
 
         var partTypes = parts.Select(part => part.ReturnType.ResolveClrType()).ToArray();
-        if (partTypes.Length is >= 2 and <= 7 &&
+        if (partTypes.Length >= 2 &&
             partTypes.All(WindowRegistrationLoweringHelpers.CanUseTypedWindowKeyElement) &&
             ValueTupleTypeShape.TryCreate(partTypes, out var partitionKeyType))
         {
@@ -162,8 +120,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 OptionalValue<ExecutionExpression>.Some(new ExecutionValueTupleKey(parts, partitionKeyType)));
         }
 
-        return LoweringAttempt<OptionalValue<ExecutionExpression>>.Built(
-            OptionalValue<ExecutionExpression>.Some(new ExecutionCompositeKey(parts)));
+        return LoweringAttempt<OptionalValue<ExecutionExpression>>.Unsupported(
+            "Window partition keys require concrete typed carriers.");
     }
 
     private static LoweringAttempt<IReadOnlyList<ExecutionWindowOrderKey>> CreateWindowOrderKeys(

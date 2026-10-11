@@ -68,7 +68,7 @@ public class NonEquiJoinBenchmark
             return new NonEquiTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
         {
             return EnsureSourceType<T, NonEquiEntity>(name, new EntitySource<NonEquiEntity>(BenchmarkSourceChunks.Create(entities), new Dictionary<string, int>
             {

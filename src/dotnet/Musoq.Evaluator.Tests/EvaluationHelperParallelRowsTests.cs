@@ -52,7 +52,7 @@ public sealed class EvaluationHelperParallelRowsTests
 
         var projectedValues = shards
             .SelectMany(static shard => shard)
-            .Select(static row => (int)row[0])
+            .Select(static row => (int)row.ReadValue(0))
             .OrderBy(static value => value)
             .ToArray();
 

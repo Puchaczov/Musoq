@@ -10,6 +10,7 @@ public partial class LibraryBase
         Name = nameof(MinDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MinDistinctAggregateKernel<byte>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public byte? MinDistinct(byte? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<byte?>();
 
@@ -18,6 +19,7 @@ public partial class LibraryBase
         Name = nameof(MinDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MinDistinctAggregateKernel<sbyte>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public sbyte? MinDistinct(sbyte? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<sbyte?>();
 
@@ -26,6 +28,7 @@ public partial class LibraryBase
         Name = nameof(MinDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MinDistinctAggregateKernel<short>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public short? MinDistinct(short? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<short?>();
 
@@ -34,6 +37,7 @@ public partial class LibraryBase
         Name = nameof(MinDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MinDistinctAggregateKernel<ushort>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public ushort? MinDistinct(ushort? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<ushort?>();
 
@@ -42,6 +46,7 @@ public partial class LibraryBase
         Name = nameof(MinDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MinDistinctAggregateKernel<int>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public int? MinDistinct(int? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<int?>();
 
@@ -50,6 +55,7 @@ public partial class LibraryBase
         Name = nameof(MinDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MinDistinctAggregateKernel<uint>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public uint? MinDistinct(uint? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<uint?>();
 
@@ -58,6 +64,7 @@ public partial class LibraryBase
         Name = nameof(MinDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MinDistinctAggregateKernel<long>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public long? MinDistinct(long? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<long?>();
 
@@ -66,6 +73,7 @@ public partial class LibraryBase
         Name = nameof(MinDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MinDistinctAggregateKernel<ulong>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public ulong? MinDistinct(ulong? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<ulong?>();
 
@@ -74,6 +82,7 @@ public partial class LibraryBase
         Name = nameof(MinDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MinDistinctAggregateKernel<float>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public float? MinDistinct(float? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<float?>();
 
@@ -82,6 +91,7 @@ public partial class LibraryBase
         Name = nameof(MinDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MinDistinctAggregateKernel<double>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public double? MinDistinct(double? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<double?>();
 
@@ -90,6 +100,7 @@ public partial class LibraryBase
         Name = nameof(MinDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MinDistinctAggregateKernel<decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public decimal? MinDistinct(decimal? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<decimal?>();
 
@@ -98,6 +109,7 @@ public partial class LibraryBase
         Name = nameof(MaxDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MaxDistinctAggregateKernel<byte>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public byte? MaxDistinct(byte? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<byte?>();
 
@@ -106,6 +118,7 @@ public partial class LibraryBase
         Name = nameof(MaxDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MaxDistinctAggregateKernel<sbyte>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public sbyte? MaxDistinct(sbyte? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<sbyte?>();
 
@@ -114,6 +127,7 @@ public partial class LibraryBase
         Name = nameof(MaxDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MaxDistinctAggregateKernel<short>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public short? MaxDistinct(short? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<short?>();
 
@@ -122,6 +136,7 @@ public partial class LibraryBase
         Name = nameof(MaxDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MaxDistinctAggregateKernel<ushort>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public ushort? MaxDistinct(ushort? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<ushort?>();
 
@@ -130,6 +145,7 @@ public partial class LibraryBase
         Name = nameof(MaxDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MaxDistinctAggregateKernel<int>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public int? MaxDistinct(int? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<int?>();
 
@@ -138,6 +154,7 @@ public partial class LibraryBase
         Name = nameof(MaxDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MaxDistinctAggregateKernel<uint>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public uint? MaxDistinct(uint? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<uint?>();
 
@@ -146,6 +163,7 @@ public partial class LibraryBase
         Name = nameof(MaxDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MaxDistinctAggregateKernel<long>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public long? MaxDistinct(long? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<long?>();
 
@@ -154,6 +172,7 @@ public partial class LibraryBase
         Name = nameof(MaxDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MaxDistinctAggregateKernel<ulong>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public ulong? MaxDistinct(ulong? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<ulong?>();
 
@@ -162,6 +181,7 @@ public partial class LibraryBase
         Name = nameof(MaxDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MaxDistinctAggregateKernel<float>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public float? MaxDistinct(float? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<float?>();
 
@@ -170,6 +190,7 @@ public partial class LibraryBase
         Name = nameof(MaxDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MaxDistinctAggregateKernel<double>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public double? MaxDistinct(double? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<double?>();
 
@@ -178,6 +199,7 @@ public partial class LibraryBase
         Name = nameof(MaxDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(MaxDistinctAggregateKernel<decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public decimal? MaxDistinct(decimal? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<decimal?>();
 

@@ -45,6 +45,6 @@ public sealed class LikeLongPatternRegressionTests : BasicEntityTestBase
         var result = query.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, result);
-        Assert.AreEqual(value, result[0][0]);
+        Assert.AreEqual(value, result[0].ReadValue(0));
     }
 }

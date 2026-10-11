@@ -17,9 +17,9 @@ public sealed class GeneratedCodeProfiledSamplesSnapshotTests
         .Select(static sample => new object[] { sample });
 
     [TestMethod]
-    public void Catalog_ShouldContainNineteenProfiledSamples()
+    public void Catalog_ShouldContainOneHundredSixProfiledSamples()
     {
-        Assert.HasCount(19, GeneratedCodeProfiledSamplesCatalog.Samples);
+        Assert.HasCount(106, GeneratedCodeProfiledSamplesCatalog.Samples);
     }
 
     [TestMethod]

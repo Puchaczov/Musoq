@@ -39,7 +39,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
         Assert.AreEqual(typeof(TimeSpan?), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(new TimeSpan(3, 0, 0), table[0].Values[0]);
+        Assert.AreEqual(new TimeSpan(3, 0, 0), table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -65,7 +65,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0].Values[0]);
+        Assert.IsNull(table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -97,7 +97,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
         Assert.AreEqual(typeof(TimeSpan?), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(new TimeSpan(1, 0, 0), table[0].Values[0]);
+        Assert.AreEqual(new TimeSpan(1, 0, 0), table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -129,7 +129,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
         Assert.AreEqual(typeof(TimeSpan?), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(new TimeSpan(2, 0, 0), table[0].Values[0]);
+        Assert.AreEqual(new TimeSpan(2, 0, 0), table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -160,7 +160,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
 
         Assert.AreEqual(1, table.Count);
 
-        Assert.AreEqual(TimeSpan.FromHours(3), table[0].Values[0]);
+        Assert.AreEqual(TimeSpan.FromHours(3), table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -191,6 +191,6 @@ public class TimeSpanTests : UnknownQueryTestsBase
 
         Assert.AreEqual(1, table.Count);
 
-        Assert.AreEqual(TimeSpan.FromHours(1), table[0].Values[0]);
+        Assert.AreEqual(TimeSpan.FromHours(1), table[0].ReadValues()[0]);
     }
 }

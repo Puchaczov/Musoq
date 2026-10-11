@@ -167,7 +167,7 @@ public sealed class AdvisoryWarningPropagationTests
                 warning.Code == DiagnosticCode.MQ5015_SuspiciousRegexEscape));
 
         using var table = defaultBuild.CompiledQuery!.Run();
-        Assert.AreEqual("d.Dummy", table.Columns.First().ColumnName);
+        Assert.AreEqual("Dummy", table.Columns.First().ColumnName);
     }
 
     [TestMethod]
@@ -218,8 +218,8 @@ public sealed class AdvisoryWarningPropagationTests
 
         using var diagnosticTable = diagnosticBuild.CompiledQuery.Run();
         using var convenienceTable = convenienceQuery.Run();
-        Assert.AreEqual(diagnosticTable[0][0], convenienceTable[0][0]);
-        Assert.AreEqual("C:\n" + "ew\t" + "est", diagnosticTable[0][0]);
+        Assert.AreEqual(diagnosticTable[0].ReadValue(0), convenienceTable[0].ReadValue(0));
+        Assert.AreEqual("C:\n" + "ew\t" + "est", diagnosticTable[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -455,10 +455,10 @@ public sealed class AdvisoryWarningPropagationTests
             return new NullableJoinTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             return EnsureSourceType<T, NullableJoinEntity>(
                 name,

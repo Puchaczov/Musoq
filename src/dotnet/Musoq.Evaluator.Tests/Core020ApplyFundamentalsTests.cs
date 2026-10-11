@@ -50,9 +50,9 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Key", typeof(string)),
-            ("b.FilterKey", typeof(string)),
-            ("b.Score", typeof(int)));
+            ("Key", typeof(string)),
+            ("FilterKey", typeof(string)),
+            ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["one", "one", 10],
@@ -100,9 +100,9 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Key", typeof(string)),
-            ("b.FilterKey", typeof(string)),
-            ("b.Score", typeof(int?)));
+            ("Key", typeof(string)),
+            ("FilterKey", typeof(string)),
+            ("Score", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["one", "one", 10],
@@ -134,9 +134,9 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Key", typeof(string)),
-            ("b.Label", typeof(string)),
-            ("b.Score", typeof(int?)));
+            ("Key", typeof(string)),
+            ("Label", typeof(string)),
+            ("Score", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["matched", "item", 7],
@@ -162,9 +162,9 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Key", typeof(string)),
-            ("b.Value", typeof(string)),
-            ("c.Value", typeof(char)));
+            ("Key", typeof(string)),
+            ("Value", typeof(string)),
+            ("Value", typeof(char)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["words", "a", 'a'],
@@ -198,9 +198,9 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("n.Value", typeof(int)),
-            ("i.Label", typeof(string)),
-            ("i.Score", typeof(int)));
+            ("Value", typeof(int)),
+            ("Label", typeof(string)),
+            ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [1, "x", 10],
@@ -232,8 +232,8 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("b.Label", typeof(string)),
-            ("b.Score", typeof(int)));
+            ("Label", typeof(string)),
+            ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["nested", 3]);
     }
 

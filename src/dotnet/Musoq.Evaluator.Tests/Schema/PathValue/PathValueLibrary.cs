@@ -12,7 +12,7 @@ public class PathValueLibrary : LibraryBase
     }
 
     [BindableMethod]
-    public object GetValue(object value)
+    public T GetValue<T>(T value)
     {
         return value;
     }

@@ -50,7 +50,7 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(rowCount, table.Count, $"Expected {rowCount} rows but got {table.Count}");
 
 
-        var resultIds = table.Select(row => (int)row[1]).OrderBy(x => x).ToList();
+        var resultIds = table.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
         var expectedIds = Enumerable.Range(0, rowCount).ToList();
         CollectionAssert.AreEqual(expectedIds, resultIds, "Not all expected IDs were returned");
     }
@@ -73,7 +73,7 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(rowCount, table.Count, $"Expected {rowCount} rows but got {table.Count}");
 
 
-        var resultIds = table.Select(row => (int)row[1]).OrderBy(x => x).ToList();
+        var resultIds = table.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
         var expectedIds = Enumerable.Range(0, rowCount).ToList();
         CollectionAssert.AreEqual(expectedIds, resultIds, "Not all expected IDs were returned");
     }
@@ -105,8 +105,8 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(tableNonParallel.Count, tableParallel.Count,
             $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}");
 
-        var parallelIds = tableParallel.Select(row => (int)row[1]).OrderBy(x => x).ToList();
-        var nonParallelIds = tableNonParallel.Select(row => (int)row[1]).OrderBy(x => x).ToList();
+        var parallelIds = tableParallel.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
+        var nonParallelIds = tableNonParallel.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
         CollectionAssert.AreEqual(nonParallelIds, parallelIds,
             "Result sets differ between parallel and non-parallel execution");
     }
@@ -133,7 +133,7 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(2500, table.Count, $"Expected 2500 rows but got {table.Count}");
 
 
-        var resultIds = table.Select(row => (int)row[1]).OrderBy(x => x).ToList();
+        var resultIds = table.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
         Assert.IsTrue(resultIds.All(id => id >= 2500), "Some rows have Id < 2500");
 
         var expectedIds = Enumerable.Range(2500, 2500).ToList();
@@ -158,7 +158,7 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(2500, table.Count, $"Expected 2500 rows but got {table.Count}");
 
 
-        var resultIds = table.Select(row => (int)row[1]).OrderBy(x => x).ToList();
+        var resultIds = table.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
         Assert.IsTrue(resultIds.All(id => id >= 2500), "Some rows have Id < 2500");
 
         var expectedIds = Enumerable.Range(2500, 2500).ToList();
@@ -192,8 +192,8 @@ public partial class ParallelismOutputRowsTests
         Assert.AreEqual(tableNonParallel.Count, tableParallel.Count,
             $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}");
 
-        var parallelIds = tableParallel.Select(row => (int)row[1]).OrderBy(x => x).ToList();
-        var nonParallelIds = tableNonParallel.Select(row => (int)row[1]).OrderBy(x => x).ToList();
+        var parallelIds = tableParallel.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
+        var nonParallelIds = tableNonParallel.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
         CollectionAssert.AreEqual(nonParallelIds, parallelIds,
             "Result sets differ between parallel and non-parallel execution");
     }
@@ -301,7 +301,7 @@ public partial class ParallelismOutputRowsTests
     private static List<string> NormalizeRows(Table table)
     {
         return table
-            .Select(row => string.Join("|", Enumerable.Range(0, row.Count).Select(column => FormatCell(row[column]))))
+            .Select(row => string.Join("|", Enumerable.Range(0, row.Count).Select(column => FormatCell(row.ReadValue(column)))))
             .OrderBy(row => row, StringComparer.Ordinal)
             .ToList();
     }

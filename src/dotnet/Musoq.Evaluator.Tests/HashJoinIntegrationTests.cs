@@ -28,11 +28,11 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.AreEqual("1", table[0][0]);
-        Assert.AreEqual("1", table[0][1]);
+        Assert.AreEqual("1", table[0].ReadValue(0));
+        Assert.AreEqual("1", table[0].ReadValue(1));
 
-        Assert.AreEqual("2", table[1][0]);
-        Assert.IsNull(table[1][1]);
+        Assert.AreEqual("2", table[1].ReadValue(0));
+        Assert.IsNull(table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -50,11 +50,11 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.AreEqual("1", table[0][0]);
-        Assert.AreEqual("1", table[0][1]);
+        Assert.AreEqual("1", table[0].ReadValue(0));
+        Assert.AreEqual("1", table[0].ReadValue(1));
 
-        Assert.IsNull(table[1][0]);
-        Assert.AreEqual("3", table[1][1]);
+        Assert.IsNull(table[1].ReadValue(0));
+        Assert.AreEqual("3", table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -71,8 +71,8 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("1", table[0][0]);
-        Assert.AreEqual("1", table[0][1]);
+        Assert.AreEqual("1", table[0].ReadValue(0));
+        Assert.AreEqual("1", table[0].ReadValue(1));
     }
 
     protected CompiledQuery CreateAndRunVirtualMachine(

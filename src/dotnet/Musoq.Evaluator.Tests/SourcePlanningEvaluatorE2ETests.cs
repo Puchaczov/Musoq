@@ -757,7 +757,7 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     private static object[] ReadColumn(Table table, int columnIndex)
     {
         return Enumerable.Range(0, table.Count)
-            .Select(index => table[index][columnIndex])
+            .Select(index => table[index].ReadValue(columnIndex))
             .ToArray();
     }
 
@@ -777,8 +777,8 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
         for (var rowIndex = 0; rowIndex < expected.Count; rowIndex++)
         {
             CollectionAssert.AreEqual(
-                expected[rowIndex].Values,
-                actual[rowIndex].Values,
+                expected[rowIndex].ReadValues(),
+                actual[rowIndex].ReadValues(),
                 $"Row {rowIndex} differs.");
         }
     }

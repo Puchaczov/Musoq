@@ -39,6 +39,8 @@ public sealed record ExecutionWindowAggregateKernel : ExecutionNode
     }
 
     public ExecutionVariable Buffer { get; init; }
+    /// <summary>Gets the planner-selected integer ordering strategy.</summary>
+    public bool UseIntegerOrderIndex { get; init; }
 
     public ExecutionVariable Item { get; init; }
 
@@ -49,6 +51,14 @@ public sealed record ExecutionWindowAggregateKernel : ExecutionNode
     public IReadOnlyList<ExecutionWindowOrderKey> OrderKeys { get; init; }
 
     public ExecutionExpression Value { get; init; }
+
+    private IReadOnlyList<ExecutionExpression> _libraryArguments = [];
+
+    public IReadOnlyList<ExecutionExpression> LibraryArguments
+    {
+        get => _libraryArguments;
+        init => _libraryArguments = ExecutionIrCollections.Freeze(value);
+    }
 
     public ExecutionExpression? FilterPredicate { get; init; }
 

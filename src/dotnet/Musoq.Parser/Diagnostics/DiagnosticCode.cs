@@ -1,8 +1,6 @@
 // ReSharper disable InconsistentNaming
 namespace Musoq.Parser.Diagnostics;
-/// <summary>
-///     Enumeration of all diagnostic codes used in Musoq.
-/// </summary>
+/// <summary>Enumeration of all diagnostic codes used in Musoq.</summary>
 public enum DiagnosticCode
 {
     // Lexer Errors (MQ1xxx)
@@ -164,6 +162,7 @@ public enum DiagnosticCode
     MQ3114_EnumSourceCapabilityRequired = 3114,
     MQ3115_EnumDescriptorMismatch = 3115,
     MQ3116_AmbiguousRelationArgument = 3116,
+    MQ3117_UnsupportedColumnInstanceMethod = 3117,
 
     // Schema Definition Errors (MQ4xxx)
     MQ4001_InvalidBinarySchemaField = 4001,
@@ -200,6 +199,13 @@ public enum DiagnosticCode
     MQ7011_DataSourceReadFailed = 7011,
     MQ7012_DataSourceCleanupFailed = 7012,
     MQ7013_StructuralInputLimitExceeded = 7013,
+    MQ7015_InvalidRuntimeRegex = 7015,
+    MQ7016_ScalarSubqueryCardinalityViolation = 7016,
+    MQ7017_RegexMatchTimeout = 7017,
+    MQ7014_MalformedRuntimeInput = 7014, MQ7101_InterpretationInsufficientData = 7101, MQ7102_InterpretationValidationFailed = 7102, MQ7103_InterpretationPatternMismatch = 7103,
+    MQ7104_InterpretationLiteralMismatch = 7104, MQ7105_InterpretationDelimiterNotFound = 7105, MQ7106_InterpretationExpectedDelimiter = 7106, MQ7107_InterpretationInvalidSize = 7107,
+    MQ7108_InterpretationInvalidPosition = 7108, MQ7109_InterpretationMaxIterationsExceeded = 7109, MQ7110_InterpretationEncodingError = 7110, MQ7111_InterpretationExpectedWhitespace = 7111,
+    MQ7112_InterpretationNoAlternativeMatched = 7112, MQ7113_InterpretationInvalidSchemaReference = 7113, MQ7114_InterpretationFieldReferenceError = 7114, MQ7115_InterpretationGeneralError = 7115,
 
     // Code Generation Errors (MQ8xxx)
     MQ8001_CodeGenerationFailed = 8001, MQ8002_CompiledArtifactIncompatible = 8002,
@@ -207,5 +213,4 @@ public enum DiagnosticCode
     // Internal (MQ9xxx)
     MQ9001_InternalCompilerError = 9001,
     MQ9002_InternalExecutionError = 9002,
-
 }

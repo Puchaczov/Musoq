@@ -22,7 +22,7 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
                 "    PhysicalHashJoin [Inner] [build: b.Id] [probe: a.Id]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
-                "  PhysicalProject [a.Name as a.Name, b.City as b.City]",
+                "  PhysicalProject [a.Name as Name, b.City as City]",
                 "    PhysicalCteRef [ab as ab]"),
             planText);
     }
@@ -67,7 +67,7 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
                 "    PhysicalHashJoin [RightOuter] [build: a.Id] [probe: b.Id]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
-                "  PhysicalProject [a.Name as a.Name, b.Name as b.Name]",
+                "  PhysicalProject [a.Name as Name, b.Name as Name]",
                 "    PhysicalCteRef [ab as ab]"),
             planText);
     }
@@ -90,7 +90,7 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
                 "    PhysicalHashJoin [FullOuter] [build: b.Id] [probe: a.Id]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
-                "  PhysicalProject [a.Name as a.Name, b.Name as b.Name]",
+                "  PhysicalProject [a.Name as Name, b.Name as Name]",
                 "    PhysicalCteRef [ab as ab]"),
             planText);
     }
@@ -110,7 +110,7 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
                 "    PhysicalSortMergeJoin [Inner] [left: a.Population] [right: b.Population] [op: >] [residual: (a.Population > b.Population)]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
-                "  PhysicalProject [a.Name as a.Name, b.Name as b.Name]",
+                "  PhysicalProject [a.Name as Name, b.Name as Name]",
                 "    PhysicalCteRef [ab as ab]"),
             planText);
     }
@@ -130,7 +130,7 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
                 "    PhysicalNestedLoopJoin [AsofInner] [((a.Country = b.Country) AND (a.Population >= b.Population))]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
-                "  PhysicalProject [a.Name as a.Name, b.Name as b.Name]",
+                "  PhysicalProject [a.Name as Name, b.Name as Name]",
                 "    PhysicalCteRef [ab as ab]"),
             planText);
     }
@@ -146,7 +146,7 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [a.Name as a.Name]",
+                "  PhysicalProject [a.Name as Name]",
                 "    PhysicalHashJoin [LeftSemi] [build: b.Id] [probe: a.Id]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]"),
@@ -164,7 +164,7 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [a.Name as a.Name]",
+                "  PhysicalProject [a.Name as Name]",
                 "    PhysicalHashJoin [LeftAntiSemi] [build: b.Id] [probe: a.Id]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]"),
@@ -187,7 +187,7 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
                 "    PhysicalNestedLoopJoin [Cross] [TRUE]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
-                "  PhysicalProject [a.Name as a.Name, b.City as b.City]",
+                "  PhysicalProject [a.Name as Name, b.City as City]",
                 "    PhysicalCteRef [ab as ab]"),
             planText);
     }

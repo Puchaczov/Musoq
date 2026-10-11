@@ -156,6 +156,25 @@ public sealed class DiagnosticRework077OperatorContractTests
     }
 
     [TestMethod]
+    public void QuantifiedOperandsWithSameName_ShouldRetainTheirOriginalSources()
+    {
+        const string query = "select N from values { (N: 3) } v where N > ANY (select N from values { (N: 2) } t)";
+        var result = ParseWithDiagnostics(query);
+        Assert.IsTrue(result.Success, result.FormatDiagnostics());
+        var statements = (StatementsArrayNode)result.Root!.Expression;
+        var outerQuery = ((SingleSetNode)statements.Statements.Single().Node).Query;
+        var innerQuery = (QueryNode)((ExistsQueryNode)outerQuery.Where!.Expression).Subquery;
+        var comparison = (BinaryNode)((BinaryNode)innerQuery.Where!.Expression).Right;
+        var outerColumn = Assert.IsInstanceOfType<AccessColumnNode>(comparison.Left);
+        var innerColumn = Assert.IsInstanceOfType<AccessColumnNode>(comparison.Right);
+
+        Assert.AreEqual("v", outerColumn.Alias);
+        Assert.AreEqual("t", innerColumn.Alias);
+        Assert.AreEqual(new TextSpan(query.IndexOf("where N", StringComparison.Ordinal) + 6, 1), outerColumn.Span);
+        Assert.AreEqual(new TextSpan(query.IndexOf("select N", query.IndexOf("where", StringComparison.Ordinal), StringComparison.Ordinal) + 7, 1), innerColumn.Span);
+    }
+
+    [TestMethod]
     public void UnaryAndAdjacentOperatorNearMisses_ShouldRemainValidWhenUnambiguous()
     {
         var subtraction = Assert.IsInstanceOfType<HyphenNode>(ParseSelectExpression("1 - -1"));

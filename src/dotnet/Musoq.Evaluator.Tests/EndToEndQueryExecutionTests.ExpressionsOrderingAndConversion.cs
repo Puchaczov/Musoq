@@ -36,9 +36,9 @@ public partial class EndToEndQueryExecutionTests
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("TEST", table[0][0]);
-        Assert.AreEqual("nyc", table[0][1]);
-        Assert.AreEqual(4, Convert.ToInt32(table[0][2]));
+        Assert.AreEqual("TEST", table[0].ReadValue(0));
+        Assert.AreEqual("nyc", table[0].ReadValue(1));
+        Assert.AreEqual(4, Convert.ToInt32(table[0].ReadValue(2)));
     }
 
     [TestMethod]
@@ -156,7 +156,7 @@ public partial class EndToEndQueryExecutionTests
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("100", table[0][0]);
+        Assert.AreEqual("100", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -172,7 +172,7 @@ public partial class EndToEndQueryExecutionTests
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(123, table[0][0]);
+        Assert.AreEqual(123, table[0].ReadValue(0));
     }
 
 
@@ -221,7 +221,7 @@ public partial class EndToEndQueryExecutionTests
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("25", table[0][0]);
+        Assert.AreEqual("25", table[0].ReadValue(0));
     }
 
 

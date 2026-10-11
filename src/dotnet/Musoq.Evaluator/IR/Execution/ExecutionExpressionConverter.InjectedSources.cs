@@ -33,14 +33,7 @@ public static partial class ExecutionExpressionConverter
         Type parameterType,
         IReadOnlyDictionary<string, RowShape> sourceShapes)
     {
-        if (sourceShapes.TryGetValue(alias, out var expandoShape) &&
-            expandoShape is ExpandoAdapterShape expando &&
-            CanUseSourceType(expando.RuntimeType.ResolveClrType(), parameterType))
-        {
-            return new ExecutionVariableRead(new ExecutionVariable(
-                CreateResolverVariableName(alias),
-                expando.RuntimeType));
-        }
+
 
         if (sourceShapes.TryGetValue(alias, out var shape) && shape is not TableRowShape)
             return new ExecutionVariableRead(new ExecutionVariable(alias, RowShapeLookup.ResolveSourceRuntimeType(shape)));
@@ -71,17 +64,7 @@ public static partial class ExecutionExpressionConverter
         RowShape shape,
         Type parameterType)
     {
-        if (shape is ExpandoAdapterShape expando)
-        {
-            if (CanUseSourceType(expando.RuntimeType.ResolveClrType(), parameterType))
-            {
-                yield return new ExecutionVariableRead(new ExecutionVariable(
-                    CreateResolverVariableName(expando.Alias),
-                    expando.RuntimeType));
-            }
 
-            yield break;
-        }
 
         if (shape is TableRowShape tableRow)
         {
@@ -124,11 +107,8 @@ public static partial class ExecutionExpressionConverter
     private static bool CanUseSourceType(Type sourceType, Type parameterType)
     {
         return parameterType == typeof(object) ||
-               parameterType.IsAssignableFrom(sourceType);
+               parameterType.IsAssignableFrom(Nullable.GetUnderlyingType(sourceType) ?? sourceType);
     }
 
-    private static string CreateResolverVariableName(string alias)
-    {
-        return $"{alias}Resolver";
-    }
+
 }

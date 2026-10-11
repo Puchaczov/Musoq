@@ -56,9 +56,9 @@ public class BinaryMixedFieldTypesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual("test", table[0][1]);
-        Assert.AreEqual((byte)3, table[0][2]);
+        Assert.AreEqual(1, table[0].ReadValue(0));
+        Assert.AreEqual("test", table[0].ReadValue(1));
+        Assert.AreEqual((byte)3, table[0].ReadValue(2));
     }
 
     #endregion
@@ -96,9 +96,9 @@ public class BinaryMixedFieldTypesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((short)3, table[0][1]);
-        Assert.AreEqual(6, table[0][2]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((short)3, table[0].ReadValue(1));
+        Assert.AreEqual(6, table[0].ReadValue(2));
     }
 
     #endregion
@@ -128,7 +128,7 @@ public class BinaryMixedFieldTypesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)0x0539, table[0][0]);
+        Assert.AreEqual((short)0x0539, table[0].ReadValue(0));
     }
 
     #endregion
@@ -169,15 +169,15 @@ public class BinaryMixedFieldTypesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual((byte)2, table[0][0]);
-        Assert.AreEqual((byte)3, table[0][1]);
-        Assert.AreEqual((byte)(2 * 3), table[0][2]);
-        Assert.AreEqual((byte)4, table[1][0]);
-        Assert.AreEqual((byte)5, table[1][1]);
-        Assert.AreEqual((byte)(4 * 5), table[1][2]);
-        Assert.AreEqual((byte)6, table[2][0]);
-        Assert.AreEqual((byte)7, table[2][1]);
-        Assert.AreEqual((byte)(6 * 7), table[2][2]);
+        Assert.AreEqual((byte)2, table[0].ReadValue(0));
+        Assert.AreEqual((byte)3, table[0].ReadValue(1));
+        Assert.AreEqual((byte)(2 * 3), table[0].ReadValue(2));
+        Assert.AreEqual((byte)4, table[1].ReadValue(0));
+        Assert.AreEqual((byte)5, table[1].ReadValue(1));
+        Assert.AreEqual((byte)(4 * 5), table[1].ReadValue(2));
+        Assert.AreEqual((byte)6, table[2].ReadValue(0));
+        Assert.AreEqual((byte)7, table[2].ReadValue(1));
+        Assert.AreEqual((byte)(6 * 7), table[2].ReadValue(2));
     }
 
     #endregion
@@ -217,8 +217,8 @@ public class BinaryMixedFieldTypesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("John", table[0][0]);
-        Assert.AreEqual("Doe", table[0][1]);
+        Assert.AreEqual("John", table[0].ReadValue(0));
+        Assert.AreEqual("Doe", table[0].ReadValue(1));
     }
 
     #endregion
@@ -257,8 +257,8 @@ public class BinaryMixedFieldTypesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((short)0x000B, table[0][0]);
-        Assert.AreEqual((short)0x000D, table[1][0]);
+        Assert.AreEqual((short)0x000B, table[0].ReadValue(0));
+        Assert.AreEqual((short)0x000D, table[1].ReadValue(0));
     }
 
     #endregion
@@ -295,12 +295,12 @@ public class BinaryMixedFieldTypesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual((byte)2, table[0][0]);
-        Assert.AreEqual((short)30, table[0][1]);
-        Assert.AreEqual((byte)3, table[1][0]);
-        Assert.AreEqual((short)20, table[1][1]);
-        Assert.AreEqual((byte)1, table[2][0]);
-        Assert.AreEqual((short)10, table[2][1]);
+        Assert.AreEqual((byte)2, table[0].ReadValue(0));
+        Assert.AreEqual((short)30, table[0].ReadValue(1));
+        Assert.AreEqual((byte)3, table[1].ReadValue(0));
+        Assert.AreEqual((short)20, table[1].ReadValue(1));
+        Assert.AreEqual((byte)1, table[2].ReadValue(0));
+        Assert.AreEqual((short)10, table[2].ReadValue(1));
     }
 
     #endregion
@@ -336,9 +336,9 @@ public class BinaryMixedFieldTypesFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((byte)0xAB, table[0][1]);
-        Assert.IsNull(table[0][2]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0xAB, table[0].ReadValue(1));
+        Assert.IsNull(table[0].ReadValue(2));
     }
 
     #endregion

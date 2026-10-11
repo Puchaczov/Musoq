@@ -30,8 +30,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.Value", typeof(double)));
+            ("City", typeof(string)),
+            ("Value", typeof(double)));
         TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
@@ -56,8 +56,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.Value", typeof(double)));
+            ("City", typeof(string)),
+            ("Value", typeof(double)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", 1d],
@@ -89,8 +89,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.Value", typeof(double)));
+            ("City", typeof(string)),
+            ("Value", typeof(double)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", 1d],
@@ -139,9 +139,9 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.Value1", typeof(string)),
-            ("b.Value2", typeof(int)));
+            ("City", typeof(string)),
+            ("Value1", typeof(string)),
+            ("Value2", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Value1", 1],
@@ -190,9 +190,9 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.Value1", typeof(string)),
-            ("b.Value2", typeof(int)));
+            ("City", typeof(string)),
+            ("Value1", typeof(string)),
+            ("Value2", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Value1", 1],
@@ -225,8 +225,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("b.Value", typeof(double)),
-            ("c.Value", typeof(double)));
+            ("Value", typeof(double)),
+            ("Value", typeof(double)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [1d, 1.1d],
@@ -289,7 +289,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("d.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Value1"], ["Value2"], ["Value3"], ["Value4"],
@@ -316,7 +316,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("d.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
@@ -348,7 +348,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [1], [2]);
     }
 
@@ -380,7 +380,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [1], [2]);
     }
 

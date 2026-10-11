@@ -1,25 +1,17 @@
-using System.Collections.Generic;
-
 namespace Musoq.Evaluator;
 
+/// <summary>Owns the concrete parameter slots captured for one execution.</summary>
 public sealed class ExecutionState
 {
-    public static readonly ExecutionState Empty = new(ParameterSnapshot.EmptyReadOnly);
+    public static readonly ExecutionState Empty = new(TypedParameterSnapshot.Empty);
 
-    private ExecutionState(IReadOnlyDictionary<string, object?> parameters)
+    private ExecutionState(TypedParameterSnapshot typedParameters) => TypedParameters = typedParameters;
+
+    public TypedParameterSnapshot TypedParameters { get; }
+
+    public static ExecutionState Capture(TypedParameterSnapshot typedParameters)
     {
-        Parameters = parameters;
-    }
-
-    public IReadOnlyDictionary<string, object?> Parameters { get; }
-
-    public static ExecutionState Capture(IEnumerable<KeyValuePair<string, object?>> parameters)
-    {
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        var snapshot = ParameterSnapshot.CaptureReadOnlyOrEmpty(parameters);
-        return ParameterSnapshot.IsEmpty(snapshot)
-            ? Empty
-            : new ExecutionState(snapshot);
+        ArgumentNullException.ThrowIfNull(typedParameters);
+        return typedParameters.Count == 0 ? Empty : new ExecutionState(typedParameters);
     }
 }

@@ -11,10 +11,10 @@ namespace Musoq.Evaluator.Tests.Spec;
 /// <summary>
 ///     BUG PROBE: Text 'switch' field (pattern-based dispatch).
 ///     Per spec section 5.10: "Choose parsing strategy based on lookahead"
-///     ZERO test coverage anywhere in the codebase.
+///     Covers branch dispatch and text-switch result metadata.
 /// </summary>
 [TestClass]
-public class BugProbeTextSwitchFieldTests
+public partial class BugProbeTextSwitchFieldTests
 {
     private static readonly ILoggerResolver LoggerResolver = new TestsLoggerResolver();
     private static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
@@ -54,7 +54,7 @@ public class BugProbeTextSwitchFieldTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => (string)row[0]).ToList();
+        var results = table.Select(row => (string)row.ReadValue(0)).ToList();
         CollectionAssert.Contains(results, "host");
         CollectionAssert.Contains(results, "port");
     }

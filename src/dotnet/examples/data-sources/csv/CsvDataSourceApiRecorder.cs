@@ -106,12 +106,12 @@ internal sealed record CsvPlanCall(
 internal sealed record CsvRowSourceCall(
     string Name,
     CsvSourceExecutionSnapshot Execution,
-    IReadOnlyList<object?> Parameters,
+    CsvSourceOptions Parameters,
     Type RequestedRowType);
 
 internal sealed record CsvQueryRowSourceCall(
     string Name,
     CsvSourceExecutionSnapshot Execution,
-    IReadOnlyList<object?> Parameters,
+    CsvSourceOptions Parameters,
     Type RequestedRowType,
     string ShapeFingerprint);

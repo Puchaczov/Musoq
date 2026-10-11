@@ -5,6 +5,7 @@ using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests.Schema.RuntimeV2;
 
@@ -19,6 +20,12 @@ public sealed class BenchmarkParitySchemaProvider(IReadOnlyList<BenchmarkParityE
 public sealed class BenchmarkParitySchema(IReadOnlyList<BenchmarkParityEntity> rows)
     : SchemaBase("test", CreateLibrary())
 {
+    public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
+        => base.DescribeSource(name, context, parameters) with
+        {
+            ExecutionPermissions = SourceExecutionPermissions.ConcurrentAccess | SourceExecutionPermissions.ConcurrentRowProcessing
+        };
+
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
@@ -27,10 +34,10 @@ public sealed class BenchmarkParitySchema(IReadOnlyList<BenchmarkParityEntity> r
         return new BenchmarkParityTable();
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         return EnsureSourceType<T, BenchmarkParityEntity>(name, new BenchmarkParityRowSource(rows));
     }
@@ -96,6 +103,7 @@ public sealed class BenchmarkParityEntity
     public decimal Population { get; init; }
 }
 
+[LibraryExecutionDefaults(ScalarPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
 public sealed class BenchmarkParityLibrary : LibraryBase
 {
     [BindableMethod]

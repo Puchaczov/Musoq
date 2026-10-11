@@ -105,8 +105,8 @@ public sealed class DiagnosticREC092MeaningPreservationTests : BasicEntityTestBa
         var softTable = TableMaterializationTestHelper.Materialize(soft.Run(TestContext.CancellationToken));
         TableMaterializationTestHelper.AssertColumns(
             softTable,
-            ("a.Id", typeof(int)),
-            ("p.Key", typeof(string)));
+            ("Id", typeof(int)),
+            ("Key", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             softTable,
             new object?[] { 1, "1" },
@@ -127,8 +127,8 @@ public sealed class DiagnosticREC092MeaningPreservationTests : BasicEntityTestBa
 
         var strictTable = TableMaterializationTestHelper.Materialize(strict.Run(TestContext.CancellationToken));
         var softTable = TableMaterializationTestHelper.Materialize(soft.Run(TestContext.CancellationToken));
-        TableMaterializationTestHelper.AssertColumns(strictTable, ("a.Id", typeof(int)), ("p.Key", typeof(string)));
-        TableMaterializationTestHelper.AssertColumns(softTable, ("a.Id", typeof(int)), ("p.Key", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(strictTable, ("Id", typeof(int)), ("Key", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(softTable, ("Id", typeof(int)), ("Key", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             strictTable,
             new object?[] { 1, "1" },
@@ -417,12 +417,12 @@ public sealed class DiagnosticREC092MeaningPreservationTests : BasicEntityTestBa
     {
         var vm = CreateAndRunVirtualMachine(query, CreateSources(candidate.Fixture));
         if (candidate.ParameterName != null)
-            vm.Parameters[candidate.ParameterName] = candidate.ParameterValue;
+            global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, candidate.ParameterName, candidate.ParameterValue);
 
         var table = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
         return new QuerySnapshot(
             table.Columns.Select(static column => new ExpectedColumn(column.ColumnName, column.ColumnType)).ToArray(),
-            table.Select(static row => row.Values.ToArray()).ToArray());
+            table.Select(static row => row.ReadValues().ToArray()).ToArray());
     }
 
     private static void AssertSnapshot(

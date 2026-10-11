@@ -430,7 +430,7 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
     public void Analyze_WhenPlanUsesMethodsAndPluginWindows_ShouldReportRuntimeRequirements()
     {
         var toUpper = ResolveLibraryMethod(nameof(LibraryBase.ToUpper), typeof(string));
-        var rowNumber = ResolveLibraryMethod(nameof(LibraryBase.WindowRowNumber));
+        var rowNumber = ResolveLibraryMethod(nameof(LibraryBase.RowNumber));
         var methodCall = new ExecutionMethodCall(
             toUpper,
             [new ExecutionLiteral("alpha", typeof(string))],
@@ -461,8 +461,8 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
         var report = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
 
         AssertContainsRequirement(report, ExecutionTargetRequirementKind.MethodInfoCall, "Musoq.Plugins.LibraryBase.ToUpper");
-        AssertContainsRequirement(report, ExecutionTargetRequirementKind.MethodInfoCall, "Musoq.Plugins.LibraryBase.WindowRowNumber");
-        AssertContainsRequirement(report, ExecutionTargetRequirementKind.PluginInvocation, "row_number -> Musoq.Plugins.LibraryBase.WindowRowNumber");
+        AssertContainsRequirement(report, ExecutionTargetRequirementKind.MethodInfoCall, "Musoq.Plugins.LibraryBase.RowNumber");
+        AssertContainsRequirement(report, ExecutionTargetRequirementKind.PluginInvocation, "row_number -> Musoq.Plugins.LibraryBase.RowNumber");
         var methodRequirement = FindRequirement(report, ExecutionTargetRequirementKind.MethodInfoCall, "Musoq.Plugins.LibraryBase.ToUpper");
         Assert.AreEqual(ExecutionPortableCallableKind.HostPlugin, methodRequirement.CallableSymbol!.Kind);
         Assert.AreEqual(nameof(LibraryBase.ToUpper), methodRequirement.CallableSymbol.MethodName);
@@ -470,7 +470,7 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
         Assert.AreEqual(ExecutionPortableSymbolPortability.HostImport, methodRequirement.CallableSymbol.Portability);
         var readiness = ExecutionTargetReadinessAnalyzer.AnalyzeFutureTargets(report);
         AssertIssue(readiness, ExecutionTargetRuntimeFamily.BrowserSource, ExecutionTargetReadinessCategory.ReflectionMethodInfo, "Musoq.Plugins.LibraryBase.ToUpper");
-        AssertIssue(readiness, ExecutionTargetRuntimeFamily.BytecodeVm, ExecutionTargetReadinessCategory.PluginInvocation, "row_number -> Musoq.Plugins.LibraryBase.WindowRowNumber");
+        AssertIssue(readiness, ExecutionTargetRuntimeFamily.BytecodeVm, ExecutionTargetReadinessCategory.PluginInvocation, "row_number -> Musoq.Plugins.LibraryBase.RowNumber");
     }
 
     [TestMethod]

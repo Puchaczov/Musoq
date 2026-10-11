@@ -207,6 +207,8 @@ public partial class MethodsMetadata
                     : FindCommonBaseType(methodArgs, paramsStartIndex);
                 var arrayType = commonType.MakeArrayType();
                 var paramType = parameters[^1].ParameterType;
+                if (global::Musoq.Plugins.VariadicParameter.IsNativeSpan(paramType))
+                    paramType = global::Musoq.Plugins.VariadicParameter.ElementType(paramType)!.MakeArrayType();
                 hasMatchedArgTypes = paramType.GetUnderlyingNullable() == arrayType.GetUnderlyingNullable() ||
                                      CanBeAssignedFromGeneric(paramType, arrayType);
             }

@@ -26,7 +26,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         return SyntaxFactory.InvocationExpression(memberAccess)
             .WithArgumentList(CreateArgumentList(
-                CreateExecutionStateParametersRead(),
+                SyntaxFactory.IdentifierName(ExecutionStateVariableName),
                 CreateStringLiteral(definition.Name)));
     }
 }

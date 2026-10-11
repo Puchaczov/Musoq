@@ -35,6 +35,7 @@ internal sealed partial class LikeStrategyLoweringPass : IExecutionIrOptimizatio
             ExecutionClrBindingFactory.FromClr(typeof(RLikeMatcherCacheSlot));
 
         private readonly HashSet<string> _usedVariableNames;
+        private readonly TimeSpan _regexMatchTimeout;
         private readonly Dictionary<string, LoopFrame> _variableOwners = new(StringComparer.OrdinalIgnoreCase);
         private readonly List<LoopFrame> _loopPath = [];
         private readonly Region _rootRegion;
@@ -57,6 +58,7 @@ internal sealed partial class LikeStrategyLoweringPass : IExecutionIrOptimizatio
 
         public Rewriter(ExecutionPlan plan)
         {
+            _regexMatchTimeout = plan.RegexMatchTimeout;
             _usedVariableNames = new HashSet<string>(
                 ExecutionIrAnalysis.CollectDeclaredVariableNames(plan.Body),
                 StringComparer.Ordinal);
@@ -196,7 +198,10 @@ internal sealed partial class LikeStrategyLoweringPass : IExecutionIrOptimizatio
                             pattern.Substring(match.LiteralStart, match.LiteralLength),
                             ToExecutionKind(match.Kind),
                             ExecutionStringMatchComparison.LikeIgnoreCase,
-                            rewritten.ReturnType);
+                            rewritten.ReturnType)
+                        {
+                            RegexMatchTimeout = _regexMatchTimeout
+                        };
                     }
                 }
 

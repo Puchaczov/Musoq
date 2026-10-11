@@ -42,8 +42,8 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.All(row => (string)row.Values[0] == "100"));
-        Assert.IsTrue(table.All(row => (string)row.Values[1] == "100_suffix"));
+        Assert.IsTrue(table.All(row => (string)row.ReadValues()[0] == "100"));
+        Assert.IsTrue(table.All(row => (string)row.ReadValues()[1] == "100_suffix"));
     }
 
     [TestMethod]
@@ -94,9 +94,9 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
         Assert.AreEqual(tableDisabled.Count, tableEnabled.Count);
         for (var i = 0; i < tableEnabled.Count; i++)
         {
-            Assert.AreEqual(tableDisabled[i][0], tableEnabled[i][0], $"Row {i}, Column 0 mismatch");
-            Assert.AreEqual(tableDisabled[i][1], tableEnabled[i][1], $"Row {i}, Column 1 mismatch");
-            Assert.AreEqual(tableDisabled[i][2], tableEnabled[i][2], $"Row {i}, Column 2 mismatch");
+            Assert.AreEqual(tableDisabled[i].ReadValue(0), tableEnabled[i].ReadValue(0), $"Row {i}, Column 0 mismatch");
+            Assert.AreEqual(tableDisabled[i].ReadValue(1), tableEnabled[i].ReadValue(1), $"Row {i}, Column 1 mismatch");
+            Assert.AreEqual(tableDisabled[i].ReadValue(2), tableEnabled[i].ReadValue(2), $"Row {i}, Column 2 mismatch");
         }
     }
 
@@ -132,7 +132,7 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => Convert.ToDecimal(row[0])).OrderBy(x => x).ToList();
+        var results = table.Select(row => Convert.ToDecimal(row.ReadValue(0))).OrderBy(x => x).ToList();
         Assert.AreEqual(101m, results[0]);
         Assert.AreEqual(602m, results[1]);
     }
@@ -167,13 +167,13 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
         Assert.AreEqual(2, table.Count);
 
 
-        var rows = table.OrderBy(r => (decimal)r[0]).ToList();
-        Assert.AreEqual(150m, rows[0][0]);
-        Assert.AreEqual(160m, rows[0][1]);
-        Assert.AreEqual(300m, rows[0][2]);
-        Assert.AreEqual(200m, rows[1][0]);
-        Assert.AreEqual(210m, rows[1][1]);
-        Assert.AreEqual(400m, rows[1][2]);
+        var rows = table.OrderBy(r => (decimal)r.ReadValue(0)).ToList();
+        Assert.AreEqual(150m, rows[0].ReadValue(0));
+        Assert.AreEqual(160m, rows[0].ReadValue(1));
+        Assert.AreEqual(300m, rows[0].ReadValue(2));
+        Assert.AreEqual(200m, rows[1].ReadValue(0));
+        Assert.AreEqual(210m, rows[1].ReadValue(1));
+        Assert.AreEqual(400m, rows[1].ReadValue(2));
     }
 
     [TestMethod]
@@ -203,11 +203,11 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
 
         Assert.AreEqual(2, table.Count);
 
-        var rows = table.OrderBy(r => (string)r[0]).ToList();
-        Assert.AreEqual("Poland", rows[0][0]);
-        Assert.AreEqual(100m, rows[0][1]);
-        Assert.AreEqual("Poland_suffix", rows[0][2]);
-        Assert.AreEqual(200m, rows[0][3]);
+        var rows = table.OrderBy(r => (string)r.ReadValue(0)).ToList();
+        Assert.AreEqual("Poland", rows[0].ReadValue(0));
+        Assert.AreEqual(100m, rows[0].ReadValue(1));
+        Assert.AreEqual("Poland_suffix", rows[0].ReadValue(2));
+        Assert.AreEqual(200m, rows[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -240,11 +240,11 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
 
         Assert.AreEqual(2, table.Count);
 
-        var rows = table.OrderBy(r => (decimal)r[0]).ToList();
-        Assert.AreEqual(100m, rows[0][0]);
-        Assert.AreEqual("Low", rows[0][1]);
-        Assert.AreEqual(200m, rows[1][0]);
-        Assert.AreEqual("High", rows[1][1]);
+        var rows = table.OrderBy(r => (decimal)r.ReadValue(0)).ToList();
+        Assert.AreEqual(100m, rows[0].ReadValue(0));
+        Assert.AreEqual("Low", rows[0].ReadValue(1));
+        Assert.AreEqual(200m, rows[1].ReadValue(0));
+        Assert.AreEqual("High", rows[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -272,9 +272,9 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(100m, table[0][0]);
-        Assert.AreEqual(101m, table[0][1]);
-        Assert.AreEqual(201m, table[0][2]);
+        Assert.AreEqual(100m, table[0].ReadValue(0));
+        Assert.AreEqual(101m, table[0].ReadValue(1));
+        Assert.AreEqual(201m, table[0].ReadValue(2));
     }
 
     #endregion

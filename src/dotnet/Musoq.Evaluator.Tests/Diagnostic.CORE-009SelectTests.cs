@@ -6,7 +6,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class DiagnosticCore009SelectTests : BasicEntityTestBase
+public sealed partial class DiagnosticCore009SelectTests : BasicEntityTestBase
 {
     [TestMethod]
     public void SelectPropertyAndIndexedAccess_ShouldEvaluateProjectionForms()
@@ -50,7 +50,7 @@ public sealed class DiagnosticCore009SelectTests : BasicEntityTestBase
         CollectionAssert.AreEqual(
             new[] { "Name", "City", "Country", "Population", "Money", "Month", "Time", "Id", "NullableValue" },
             table.Columns.Select(column => column.ColumnName).ToArray());
-        Assert.AreEqual("Alice", table[0][0]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -72,8 +72,8 @@ public sealed class DiagnosticCore009SelectTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, sources).Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
-        Assert.AreEqual("Warsaw", table[0][1]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
+        Assert.AreEqual("Warsaw", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -97,7 +97,7 @@ public sealed class DiagnosticCore009SelectTests : BasicEntityTestBase
         Assert.HasCount(2, table);
         CollectionAssert.AreEquivalent(
             new object[] { "POLAND", "poland" },
-            table.Select(row => row[0]).ToArray());
+            table.Select(row => row.ReadValue(0)).ToArray());
     }
 
     [TestMethod]

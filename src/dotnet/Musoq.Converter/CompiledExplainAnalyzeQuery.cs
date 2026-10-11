@@ -20,7 +20,7 @@ public sealed class CompiledExplainAnalyzeQuery : IDisposable
         _operatorCatalog = operatorCatalog ?? throw new ArgumentNullException(nameof(operatorCatalog));
     }
 
-    public IDictionary<string, object?> Parameters => _compiledQuery.Parameters;
+    public TypedParameterValues TypedParameters => _compiledQuery.TypedParameters;
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions => _compiledQuery.ParameterDefinitions;
 

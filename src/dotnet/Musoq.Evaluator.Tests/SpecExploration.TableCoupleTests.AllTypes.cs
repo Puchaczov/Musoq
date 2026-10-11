@@ -15,12 +15,12 @@ public partial class SpecExplorationTableCoupleTests
             " UShortCol: ushort, UIntCol: uint, ULongCol: ulong, FloatCol: float, DoubleCol: double," +
             " DecimalCol: decimal, MoneyCol: money, BoolCol: bool, BooleanCol: boolean, BitCol: bit," +
             " CharCol: char, StringCol: string, DateTimeCol: datetime," +
-            " DateTimeOffsetCol: datetimeoffset, TimeSpanCol: timespan, GuidCol: guid, ObjectCol: object" +
+            " DateTimeOffsetCol: datetimeoffset, TimeSpanCol: timespan, GuidCol: guid, ConcreteCol: string" +
             " };" +
             "couple #test.whatever with table AllTypes as Source;" +
             "select ByteCol, SByteCol, ShortCol, IntCol, LongCol, UShortCol, UIntCol, ULongCol," +
             " FloatCol, DoubleCol, DecimalCol, MoneyCol, BoolCol, BooleanCol, BitCol, CharCol," +
-            " StringCol, DateTimeCol, DateTimeOffsetCol, TimeSpanCol, GuidCol, ObjectCol from Source()";
+            " StringCol, DateTimeCol, DateTimeOffsetCol, TimeSpanCol, GuidCol, ConcreteCol from Source()";
 
         var identifier = Guid.Parse("11111111-2222-3333-4444-555555555555");
         var dateTime = new DateTime(2020, 1, 2, 3, 4, 5);
@@ -49,7 +49,7 @@ public partial class SpecExplorationTableCoupleTests
         populated.DateTimeOffsetCol = dateTimeOffset;
         populated.TimeSpanCol = duration;
         populated.GuidCol = identifier;
-        populated.ObjectCol = "object-value";
+        populated.ConcreteCol = "object-value";
 
         dynamic nulls = new ExpandoObject();
         nulls.ByteCol = null;
@@ -73,7 +73,7 @@ public partial class SpecExplorationTableCoupleTests
         nulls.DateTimeOffsetCol = null;
         nulls.TimeSpanCol = null;
         nulls.GuidCol = null;
-        nulls.ObjectCol = null;
+        nulls.ConcreteCol = null;
 
         var vm = CreateAndRunVirtualMachine(query, [populated, populated, nulls]);
         var table = vm.Run(TestContext.CancellationToken);
@@ -101,7 +101,7 @@ public partial class SpecExplorationTableCoupleTests
             ("DateTimeOffsetCol", typeof(DateTimeOffset?)),
             ("TimeSpanCol", typeof(TimeSpan?)),
             ("GuidCol", typeof(Guid?)),
-            ("ObjectCol", typeof(object)));
+            ("ConcreteCol", typeof(string)));
 
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,

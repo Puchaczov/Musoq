@@ -63,6 +63,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (start < 0)
             start = content.IndexOf("        private Table ComputeTable_compiled_0", StringComparison.Ordinal);
         if (start < 0)
+            start = content.IndexOf("        private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0", StringComparison.Ordinal);
+
+        if (start < 0)
             start = content.IndexOf("        private IEnumerable<ResultRow0> ComputeRows_compiled_0", StringComparison.Ordinal);
 
         if (start < 0)
@@ -282,7 +285,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var escapedAlias = Regex.Escape(alias);
         var rowSourcePattern =
-            $@"var [A-Za-z0-9_]*{escapedAlias}RowsSource = __[A-Za-z0-9_]*{escapedAlias}Schema\.GetRowSource<";
+            $@"var [A-Za-z0-9_]*{escapedAlias}RowsSource = SourceInvocation<.*?>\.Open\(__[A-Za-z0-9_]*{escapedAlias}Schema,";
         var rowsPattern =
             $@"var [A-Za-z0-9_]*{escapedAlias}Rows = .*?[A-Za-z0-9_]*{escapedAlias}RowsSource\.Chunks;";
 

@@ -101,6 +101,8 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.IdentifierName(key.FieldName))));
         }
 
+        body.AddRange(shape.Accumulators.Select(CreateAggregateAccumulatorResetStatement));
+
         return SyntaxFactory.ConstructorDeclaration(shape.TypeName)
             .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
             .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters)))

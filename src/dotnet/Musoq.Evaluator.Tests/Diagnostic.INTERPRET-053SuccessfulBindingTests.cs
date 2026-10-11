@@ -48,9 +48,9 @@ public sealed class DiagnosticInterpret053SuccessfulBindingTests : BinaryOrTextu
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Magic", typeof(int)),
-            ("p.Version", typeof(byte)),
-            ("p.Temperature", typeof(short)));
+            ("Magic", typeof(int)),
+            ("Version", typeof(byte)),
+            ("Temperature", typeof(short)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [0x12345678, (byte)7, (short)-4660]);
@@ -90,9 +90,9 @@ public sealed class DiagnosticInterpret053SuccessfulBindingTests : BinaryOrTextu
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("log.Date", typeof(string)),
-            ("log.Level", typeof(string)),
-            ("log.Message", typeof(string)));
+            ("Date", typeof(string)),
+            ("Level", typeof(string)),
+            ("Message", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["2026-08-31", "INFO", "started"],
@@ -139,9 +139,9 @@ public sealed class DiagnosticInterpret053SuccessfulBindingTests : BinaryOrTextu
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.Magic", typeof(int)),
-            ("v.Magic", typeof(int)),
-            ("v.Version", typeof(byte)));
+            ("Magic", typeof(int)),
+            ("Magic", typeof(int)),
+            ("Version", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [0x12345678, 0x12345678, (byte)9]);

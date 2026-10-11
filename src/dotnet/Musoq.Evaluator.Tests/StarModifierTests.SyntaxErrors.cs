@@ -159,7 +159,7 @@ public partial class StarModifierTests
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
+        using var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(7, table.Columns.Count());
 
@@ -196,7 +196,7 @@ public partial class StarModifierTests
         var populationIdx = table.Columns.Select((c, i) => (c, i))
             .First(x => x.c.ColumnName.Contains("Population")).i;
         Assert.AreEqual(3, populationIdx);
-        Assert.AreEqual(50m, table[0].Values[populationIdx]);
+        Assert.AreEqual(50m, table[0].ReadValues()[populationIdx]);
     }
 
     [TestMethod]

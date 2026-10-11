@@ -93,7 +93,7 @@ public partial class SchemaExtendedTests
         var ctx = CreateTestRuntimeContext();
 
         var ex = Assert.Throws<SchemaArgumentException>(() =>
-            schema.GetRowSource<string>("", ctx));
+            schema.GetRowSource<string, EmptySourceArguments>("", ctx, SourceArguments.Empty));
 
         Assert.Contains("empty", ex.Message);
     }
@@ -104,7 +104,7 @@ public partial class SchemaExtendedTests
         var schema = new TestSchemaWithTable();
 
         var ex = Assert.Throws<SchemaArgumentException>(() =>
-            schema.GetRowSource<string>("custom", null!));
+            schema.GetRowSource<string, EmptySourceArguments>("custom", null!, SourceArguments.Empty));
 
         Assert.Contains("null", ex.Message);
     }
@@ -115,8 +115,8 @@ public partial class SchemaExtendedTests
         var schema = new TestSchemaWithTable();
         var ctx = CreateTestRuntimeContext();
 
-        var ex = Assert.Throws<SchemaArgumentException>(() =>
-            schema.GetRowSource<string>("unknownsource", ctx));
+        var ex = Assert.Throws<NotSupportedException>(() =>
+            schema.GetRowSource<string, EmptySourceArguments>("unknownsource", ctx, SourceArguments.Empty));
 
         Assert.IsTrue(ex.Message.Contains("unknownsource") || ex.Message.Contains("Invalid"));
     }

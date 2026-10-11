@@ -282,12 +282,6 @@ internal static partial class ExpressionCseSubstitution
                     .Select(value => Replace(value, variablesBySignature))
                     .ToArray()
             },
-            ExecutionCompositeKey compositeKey => compositeKey with
-            {
-                Parts = compositeKey.Parts
-                    .Select(part => Replace(part, variablesBySignature))
-                    .ToArray()
-            },
             ExecutionValueTupleKey valueTupleKey => valueTupleKey with
             {
                 Parts = valueTupleKey.Parts

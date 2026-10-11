@@ -142,16 +142,13 @@ public class RuntimeDynamicExecutionBenchmark
     {
         var schema = _provider.GetSchema("#runtime");
         var table = new RuntimeDynamicBenchmarkTable();
-        var source = schema.GetRowSource<BenchmarkRuntimeDynamicRow>(
-            "events",
-            new SourceExecutionContext(
+        var source = global::Musoq.Schema.SourceInvocation<BenchmarkRuntimeDynamicRow>.Open(schema, "events", new SourceExecutionContext(
                 "runtime-dynamic-benchmark",
                 SourceExecutionPlan.Empty(SourceIdentity.Empty),
                 token,
                 table.Columns,
                 new Dictionary<string, string>(),
-                _loggerResolver.ResolveLogger()),
-            Array.Empty<object>());
+                _loggerResolver.ResolveLogger()), global::Musoq.Schema.SourceArguments.Empty);
 
         return source.Chunks;
     }
@@ -260,13 +257,14 @@ public sealed class BenchmarkRuntimeDynamicBranch(double measurement) : DynamicO
 
 public sealed class BenchmarkRuntimeDynamicResultRow(double value) : Row
 {
+    public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+        => TypedColumnVisit.Apply(0, Value, ref visitor);
+
     public double Value { get; } = value;
 
     public override int Count => 1;
 
-    public override object this[int columnNumber] => columnNumber == 0
-        ? Value
-        : throw new IndexOutOfRangeException();
+
 }
 
 public sealed class BenchmarkRuntimeDynamicShape(double value)
@@ -305,10 +303,10 @@ public sealed class RuntimeDynamicBenchmarkSchema(IReadOnlyList<BenchmarkRuntime
             ? [new SchemaMethodInfo(methodName, ConstructorInfo.Empty())]
             : [];
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters) =>
+        TArguments parameters) =>
         typeof(T) == typeof(BenchmarkRuntimeDynamicRow)
             ? (RowSource<T>)(object)new BenchmarkRuntimeDynamicRowSource(rows)
             : throw new InvalidOperationException(typeof(T).FullName);

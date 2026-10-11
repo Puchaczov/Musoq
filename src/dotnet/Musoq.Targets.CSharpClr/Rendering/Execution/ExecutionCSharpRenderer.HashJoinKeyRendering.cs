@@ -13,7 +13,7 @@ public sealed partial class ExecutionCSharpRenderer
             hashAdd.PrecomputedKey,
             hashAdd.KeyVariableName ?? "key",
             hashAdd.NullHandling,
-            keyName => CreateHashBucketAddOrCreateStatement(hashAdd, keyName, hashAdd.BucketVariableName ?? "matches"));
+            keyName => CreateHashBucketAddOrCreateStatement(hashAdd, keyName, HashBuildBucketNaming.Resolve(hashAdd)));
     }
 
     private List<StatementSyntax> RenderKeySetAdd(ExecutionKeySetAdd keySetAdd)

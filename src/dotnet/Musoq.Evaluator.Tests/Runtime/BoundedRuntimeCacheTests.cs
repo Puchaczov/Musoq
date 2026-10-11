@@ -75,18 +75,17 @@ public sealed class BoundedRuntimeCacheTests
         cache.GetOrAdd("cached", static _ => 7);
         using var factoryEntered = new ManualResetEventSlim();
         using var releaseFactory = new ManualResetEventSlim();
-        var blockedMiss = Task.Run(() => cache.GetOrAdd("blocked", _ =>
+        var blockedMiss = StartDedicated(() => cache.GetOrAdd("blocked", _ =>
         {
             factoryEntered.Set();
             releaseFactory.Wait();
             return 11;
         }));
 
-        Assert.IsTrue(factoryEntered.Wait(TimeSpan.FromSeconds(5)), "The cache miss factory did not start.");
-        var cachedHit = Task.Run(() => cache.GetOrAdd("cached", static _ => throw new AssertFailedException()));
-
         try
         {
+            Assert.IsTrue(factoryEntered.Wait(TimeSpan.FromSeconds(5)), "The cache miss factory did not start.");
+            var cachedHit = StartDedicated(() => cache.GetOrAdd("cached", static _ => throw new AssertFailedException()));
             Assert.AreEqual(7, await cachedHit.WaitAsync(TimeSpan.FromSeconds(5)));
         }
         finally
@@ -95,6 +94,9 @@ public sealed class BoundedRuntimeCacheTests
             await blockedMiss.WaitAsync(TimeSpan.FromSeconds(5));
         }
     }
+
+    private static Task<T> StartDedicated<T>(Func<T> action) =>
+        Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
     [TestMethod]
     public void GetOrAdd_WhenExistingValueIsStale_ShouldReplaceOnceAndPreserveFifoPosition()

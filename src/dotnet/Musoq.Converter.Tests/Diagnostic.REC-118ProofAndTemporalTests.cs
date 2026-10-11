@@ -101,7 +101,7 @@ public sealed class DiagnosticREC118ProofAndTemporalTests
         Assert.AreEqual(1, diagnosticBuild.Warnings.Count(static warning =>
             warning.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion));
         ConfigureParameters(diagnosticBuild.CompiledQuery!, ParameterKind.DateTime);
-        Assert.AreEqual(expectedMoment, diagnosticBuild.CompiledQuery!.Parameters["moment"]);
+        Assert.AreEqual(expectedMoment, diagnosticBuild.CompiledQuery!.TypedParameters.Capture().GetRequired<DateTime>("moment"));
         using var diagnosticTable = diagnosticBuild.CompiledQuery.Run();
 
         var convenienceQuery = InstanceCreator.CompileForExecution(
@@ -110,7 +110,7 @@ public sealed class DiagnosticREC118ProofAndTemporalTests
             new SystemSchemaProvider(),
             loggerResolver);
         ConfigureParameters(convenienceQuery, ParameterKind.DateTime);
-        Assert.AreEqual(expectedMoment, convenienceQuery.Parameters["moment"]);
+        Assert.AreEqual(expectedMoment, convenienceQuery.TypedParameters.Capture().GetRequired<DateTime>("moment"));
         using var convenienceTable = convenienceQuery.Run();
 
         Assert.AreEqual(convenienceTable.Count, diagnosticTable.Count);
@@ -118,7 +118,7 @@ public sealed class DiagnosticREC118ProofAndTemporalTests
         for (var rowIndex = 0; rowIndex < convenienceTable.Count; rowIndex++)
         {
             for (var columnIndex = 0; columnIndex < convenienceTable.Columns.Count(); columnIndex++)
-                Assert.AreEqual(convenienceTable[rowIndex][columnIndex], diagnosticTable[rowIndex][columnIndex]);
+                Assert.AreEqual(convenienceTable[rowIndex].ReadValue(columnIndex), diagnosticTable[rowIndex].ReadValue(columnIndex));
         }
     }
 
@@ -134,20 +134,20 @@ public sealed class DiagnosticREC118ProofAndTemporalTests
             case ParameterKind.None:
                 return;
             case ParameterKind.DateTime:
-                query.Parameters["moment"] = new DateTime(2026, 1, 2);
+                global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "moment", new DateTime(2026, 1, 2));
                 return;
             case ParameterKind.DateTimeOffset:
-                query.Parameters["moment"] = new DateTimeOffset(2026, 1, 2, 0, 0, 0, TimeSpan.Zero);
+                global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "moment", new DateTimeOffset(2026, 1, 2, 0, 0, 0, TimeSpan.Zero));
                 return;
             case ParameterKind.Double:
-                query.Parameters["value"] = double.NaN;
+                global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "value", double.NaN);
                 return;
             case ParameterKind.DoublePair:
-                query.Parameters["left"] = double.NaN;
-                query.Parameters["right"] = double.NaN;
+                global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "left", double.NaN);
+                global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "right", double.NaN);
                 return;
             case ParameterKind.Int:
-                query.Parameters["value"] = 1;
+                global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "value", 1);
                 return;
             default:
                 throw new ArgumentOutOfRangeException(nameof(parameters), parameters, null);
@@ -196,7 +196,7 @@ public sealed class DiagnosticREC118ProofAndTemporalTests
         SystemCase("T04", "TAUTOLOGY", SystemSeed + " where true and true", [DiagnosticCode.MQ5010_TautologicalCondition]),
         ValuesCase("T05", "TAUTOLOGY", "select row.Value from values { ( Value: 1 ) } row group by row.Value having true", [DiagnosticCode.MQ5010_TautologicalCondition]),
         JoinCase("T06", "TAUTOLOGY", JoinSeed + " inner join #system.dual() b on true", [DiagnosticCode.MQ5010_TautologicalCondition]),
-        ValuesCase("T07", "TAUTOLOGY", ValuesSeed + " where row.Value = row.Value", []),
+        ValuesCase("T07", "TAUTOLOGY", ValuesSeed + " where row.Value = row.Value", [DiagnosticCode.MQ5010_TautologicalCondition]),
         ValuesCase("T08", "TAUTOLOGY", ValuesSeed + " where row.Value = ToInt32(1) and row.Value = ToInt32(2)", []),
         SystemCase("T09", "TAUTOLOGY", "param (value: double); " + SystemSeed + " where $value = $value", [], ParameterKind.Double),
         ValuesCase("T10", "TAUTOLOGY", ValuesSeed + " where row.Value is null or row.Value is not null", []),

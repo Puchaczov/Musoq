@@ -1,3 +1,4 @@
+using Musoq.Tests.Common;
 using Musoq.Schema.Optimization;
 
 namespace Musoq.Examples.DataSources.Csv.Tests;
@@ -25,8 +26,8 @@ public sealed class CsvSourcePlanningExecutionTests : CsvExampleTestBase
         var table = Run(query, new CsvSchemaProvider(recorder));
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Ada", table[0][0]);
-        Assert.AreEqual("Cyd", table[1][0]);
+        Assert.AreEqual("Ada", table[0].ReadValue(0));
+        Assert.AreEqual("Cyd", table[1].ReadValue(0));
         Assert.IsNotNull(recorder.QueryRowSourceCalls.Single().Execution.Plan.AcceptedPredicate);
     }
 
@@ -49,8 +50,8 @@ public sealed class CsvSourcePlanningExecutionTests : CsvExampleTestBase
         var table = Run(query, new CsvSchemaProvider(recorder));
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Cyd", table[0][0]);
-        Assert.AreEqual("Dee", table[1][0]);
+        Assert.AreEqual("Cyd", table[0].ReadValue(0));
+        Assert.AreEqual("Dee", table[1].ReadValue(0));
 
         var executionPlan = recorder.QueryRowSourceCalls.Single().Execution.Plan;
         Assert.AreEqual(1, executionPlan.AcceptedOrderBy.Count);
@@ -77,8 +78,8 @@ public sealed class CsvSourcePlanningExecutionTests : CsvExampleTestBase
         var table = Run(query);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Ada", table[0][0]);
-        Assert.AreEqual("Cyd", table[1][0]);
+        Assert.AreEqual("Ada", table[0].ReadValue(0));
+        Assert.AreEqual("Cyd", table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -96,7 +97,7 @@ public sealed class CsvSourcePlanningExecutionTests : CsvExampleTestBase
         var table = Run(query);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Ada", table[0][0]);
+        Assert.AreEqual("Ada", table[0].ReadValue(0));
     }
 
     [TestMethod]

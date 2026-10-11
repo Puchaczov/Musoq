@@ -35,7 +35,7 @@ internal sealed partial class PhysicalLoweringImplementation
             .SelectMany(ColumnRefExtractor.Extract)
             .Where(column => string.IsNullOrWhiteSpace(column.Alias) ||
                              string.Equals(column.Alias, scan.Alias, StringComparison.OrdinalIgnoreCase))
-            .Select(column => GetColumnRoot(NormalizeColumnName(column.ColumnName, scan.Alias)))
+            .Select(column => CteColumnUsageCollector.GetColumnRoot(CteColumnUsageCollector.NormalizeColumnName(column.ColumnName, scan.Alias)))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         if (required.Count == 0)

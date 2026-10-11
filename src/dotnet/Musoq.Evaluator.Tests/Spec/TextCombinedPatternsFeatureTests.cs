@@ -42,8 +42,8 @@ public class TextCombinedPatternsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("name", table[0][0]);
-        Assert.AreEqual("John Doe", table[0][1]);
+        Assert.AreEqual("name", table[0].ReadValue(0));
+        Assert.AreEqual("John Doe", table[0].ReadValue(1));
     }
 
     #endregion
@@ -73,8 +73,8 @@ public class TextCombinedPatternsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("ERROR", table[0][0]);
-        Assert.AreEqual(" Something went wrong", table[0][1]);
+        Assert.AreEqual("ERROR", table[0].ReadValue(0));
+        Assert.AreEqual(" Something went wrong", table[0].ReadValue(1));
     }
 
     #endregion
@@ -107,9 +107,9 @@ public class TextCombinedPatternsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("INFO", table[0][0]);
-        Assert.AreEqual("2024-01-15", table[0][1]);
-        Assert.AreEqual("Application started successfully", table[0][2]);
+        Assert.AreEqual("INFO", table[0].ReadValue(0));
+        Assert.AreEqual("2024-01-15", table[0].ReadValue(1));
+        Assert.AreEqual("Application started successfully", table[0].ReadValue(2));
     }
 
     #endregion
@@ -140,9 +140,9 @@ public class TextCombinedPatternsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
-        Assert.AreEqual("30", table[0][1]);
-        Assert.AreEqual("Engineer", table[0][2]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
+        Assert.AreEqual("30", table[0].ReadValue(1));
+        Assert.AreEqual("Engineer", table[0].ReadValue(2));
     }
 
     #endregion
@@ -172,8 +172,8 @@ public class TextCombinedPatternsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("hello", table[0][0]);
-        Assert.AreEqual("world", table[0][1]);
+        Assert.AreEqual("hello", table[0].ReadValue(0));
+        Assert.AreEqual("world", table[0].ReadValue(1));
     }
 
     #endregion
@@ -204,9 +204,9 @@ public class TextCombinedPatternsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("ABC", table[0][0]);
-        Assert.AreEqual("data", table[0][1]);
-        Assert.AreEqual("XYZ", table[0][2]);
+        Assert.AreEqual("ABC", table[0].ReadValue(0));
+        Assert.AreEqual("data", table[0].ReadValue(1));
+        Assert.AreEqual("XYZ", table[0].ReadValue(2));
     }
 
     #endregion
@@ -243,12 +243,12 @@ public class TextCombinedPatternsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Host", table[0][0]);
-        Assert.AreEqual("example.com", table[0][1]);
-        Assert.AreEqual("Path", table[1][0]);
-        Assert.AreEqual("/api/v1", table[1][1]);
-        Assert.AreEqual("Port", table[2][0]);
-        Assert.AreEqual("8080", table[2][1]);
+        Assert.AreEqual("Host", table[0].ReadValue(0));
+        Assert.AreEqual("example.com", table[0].ReadValue(1));
+        Assert.AreEqual("Path", table[1].ReadValue(0));
+        Assert.AreEqual("/api/v1", table[1].ReadValue(1));
+        Assert.AreEqual("Port", table[2].ReadValue(0));
+        Assert.AreEqual("8080", table[2].ReadValue(1));
     }
 
     #endregion
@@ -286,8 +286,8 @@ public class TextCombinedPatternsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Connection failed", table[0][0]);
-        Assert.AreEqual("Timeout reached", table[1][0]);
+        Assert.AreEqual("Connection failed", table[0].ReadValue(0));
+        Assert.AreEqual("Timeout reached", table[1].ReadValue(0));
     }
 
     #endregion
@@ -323,12 +323,12 @@ public class TextCombinedPatternsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("A", table[0][0]);
-        Assert.AreEqual("Alpha", table[0][1]);
-        Assert.AreEqual("B", table[1][0]);
-        Assert.AreEqual("Bravo", table[1][1]);
-        Assert.AreEqual("C", table[2][0]);
-        Assert.AreEqual("Charlie", table[2][1]);
+        Assert.AreEqual("A", table[0].ReadValue(0));
+        Assert.AreEqual("Alpha", table[0].ReadValue(1));
+        Assert.AreEqual("B", table[1].ReadValue(0));
+        Assert.AreEqual("Bravo", table[1].ReadValue(1));
+        Assert.AreEqual("C", table[2].ReadValue(0));
+        Assert.AreEqual("Charlie", table[2].ReadValue(1));
     }
 
     #endregion

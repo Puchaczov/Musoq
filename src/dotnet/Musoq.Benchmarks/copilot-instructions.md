@@ -29,7 +29,7 @@ Musoq.Benchmarks/
 │   ├── InterpretationBenchmark.cs           # binary/text interpretation
 │   ├── CteDependencyGraphBenchmark.cs       # CTE dependency resolution
 │   ├── LexerBenchmark.cs                    # Lexer tokenization speed
-│   ├── LexerOptimizationBenchmark.cs        # Optimized lexer comparison
+│   ├── LexerOptimizationBenchmark.cs        # Production span/string keyword lookup
 │   ├── RegexOptimizationBenchmark.cs        # Regex optimization impact
 │   ├── RegexPluginBenchmark.cs              # Regex plugin functions
 │   ├── StringOperationsBenchmark.cs         # String function performance
@@ -52,8 +52,7 @@ Musoq.Benchmarks/
 ├── Schema/                                  # Benchmark schema utilities
 ├── Helpers/                                 # Benchmark helpers
 ├── Exceptions/                              # Benchmark-specific exceptions
-├── Data/                                    # Test data files
-└── Baselines/                               # Baseline result storage
+└── Data/                                    # Test data files
 ```
 
 ## Running Benchmarks
@@ -102,7 +101,7 @@ Before implementing ANY performance optimization, identify the owning layer and 
 dotnet build src/dotnet/Musoq.sln -c Release --no-restore --nologo --verbosity quiet
 dotnet run --project src/dotnet/Musoq.Benchmarks -c Release --no-build -- --filter "*RelevantBenchmark*" --job short --exporters json > TestResults/benchmark-baseline.log 2>&1
 
-# 3. Record baseline results
+# 3. Record baseline results outside the source tree, alongside ignored artifacts.
 
 # 4. Apply the optimization in the physical plan or Execution IR owner layer
 
@@ -131,13 +130,14 @@ For source-planning work, toggle the optimization through datasource behavior (`
 
 Scalar-reuse benchmarks must compare equivalent queries with
 `UseStabilityAwareScalarReuse` enabled and disabled while keeping LICM and CSE
-independent. Cover the ten families documented in
-`docs/evaluator-performance.md`, fan-outs 1/8/64, cheap stable, no-inlining
+independent. Cover the ten families in
+`StabilityAwareScalarReuseFamilyQualificationBenchmark`, fan-outs 1/8/64, cheap stable, no-inlining
 expensive stable, volatile, and no-candidate cases, exact result/counter
 oracles, and allocation diagnostics. Run three isolated JSON cohorts. Generated
 code is the branch-free acceptance gate; hardware branch counters and
 disassembly are supporting evidence, not correctness criteria. Keep raw
-BenchmarkDotNet output ignored and commit only the reproducible report.
+BenchmarkDotNet output ignored and retain reproducible comparison evidence with
+the change review. Historical implementation reports remain in Git history.
 
 ## Dependencies
 

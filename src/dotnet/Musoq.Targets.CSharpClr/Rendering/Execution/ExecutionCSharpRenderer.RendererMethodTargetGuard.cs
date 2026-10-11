@@ -1,5 +1,3 @@
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -25,19 +23,4 @@ public sealed partial class ExecutionCSharpRenderer
                !ExecutionMethodTargetReuse.CanRenderWithoutTarget(methodCall);
     }
 
-    private ExpressionSyntax RenderPerInvocationMethodCall(
-        ExecutionMethodCall methodCall,
-        ExecutionRenderContext context)
-    {
-        var target = SyntaxFactory.ObjectCreationExpression(CreateTypeSyntax(methodCall.Method.RequireClrMethod().DeclaringType!))
-            .WithArgumentList(SyntaxFactory.ArgumentList());
-        var invocation = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    target,
-                    CreateMethodNameSyntax(methodCall.Method.RequireClrMethod())))
-            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(CreateMethodInvocationArguments(methodCall, context))));
-
-        return CastIfNeeded(invocation, methodCall.ReturnType);
-    }
 }

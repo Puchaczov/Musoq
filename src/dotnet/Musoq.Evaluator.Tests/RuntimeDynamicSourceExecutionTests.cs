@@ -26,7 +26,7 @@ namespace Musoq.Evaluator.Tests.Schema.RuntimeDynamic
 
 [DynamicObjectPropertyDefaultTypeHint(typeof(double))]
 [DynamicObjectPropertyTypeHint("Raw", typeof(ulong))]
-public sealed class RuntimeDynamicBranch : DynamicObject
+public sealed class RuntimeDynamicBranch
 {
     private readonly IReadOnlyDictionary<string, object?> _values;
     private readonly ConcurrentDictionary<string, int> _accessCounts = new(StringComparer.Ordinal);
@@ -39,18 +39,20 @@ public sealed class RuntimeDynamicBranch : DynamicObject
     public int GetAccessCount(string name) =>
         _accessCounts.TryGetValue(name, out var count) ? count : 0;
 
-    public override bool TryGetMember(GetMemberBinder binder, out object? result)
-    {
-        _accessCounts.AddOrUpdate(binder.Name, 1, static (_, count) => count + 1);
-        if (_values.TryGetValue(binder.Name, out result))
-            return true;
+    public double Measurement => Read<double>(nameof(Measurement));
+    public ulong Raw => Read<ulong>(nameof(Raw));
 
-        result = null;
-        return false;
+    private T Read<T>(string name)
+    {
+        _accessCounts.AddOrUpdate(name, 1, static (_, count) => count + 1);
+        if (!_values.TryGetValue(name, out var value))
+            throw new InvalidOperationException($"Source field '{name}' has no supplied value.");
+        return value is null ? default! : (T)value;
     }
+
 }
 
-public sealed class RuntimeDynamicRow : DynamicObject
+public sealed class RuntimeDynamicRow
 {
     private readonly IReadOnlyDictionary<string, object?> _values;
     private readonly ConcurrentDictionary<string, int> _accessCounts = new(StringComparer.Ordinal);
@@ -72,15 +74,22 @@ public sealed class RuntimeDynamicRow : DynamicObject
     public int GetAccessCount(string name) =>
         _accessCounts.TryGetValue(name, out var count) ? count : 0;
 
-    public override bool TryGetMember(GetMemberBinder binder, out object? result)
-    {
-        _accessCounts.AddOrUpdate(binder.Name, 1, static (_, count) => count + 1);
-        if (_values.TryGetValue(binder.Name, out result))
-            return true;
+    public int RuntimeKey => Read<int>(nameof(RuntimeKey));
+    public int AlphaKey => Read<int>(nameof(AlphaKey));
+    public int BetaKey => Read<int>(nameof(BetaKey));
+    public bool Enabled => Read<bool>(nameof(Enabled));
+    public double Metric => Read<double>(nameof(Metric));
+    public string Payload => Read<string>(nameof(Payload));
+    public RuntimeDynamicBranch? Branch => Read<RuntimeDynamicBranch?>(nameof(Branch));
 
-        result = null;
-        return false;
+    private T Read<T>(string name)
+    {
+        _accessCounts.AddOrUpdate(name, 1, static (_, count) => count + 1);
+        if (!_values.TryGetValue(name, out var value))
+            throw new InvalidOperationException($"Source field '{name}' has no supplied value.");
+        return value is null ? default! : (T)value;
     }
+
 }
 
 public sealed class RuntimeDynamicLookupRow
@@ -171,10 +180,10 @@ public sealed class RuntimeDynamicSchema(
             ? [new SchemaMethodInfo(methodName, SchemaConstructorInfo.Empty())]
             : [];
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         requestedRowTypes.Add(typeof(T));
 
@@ -272,9 +281,9 @@ public sealed class RuntimeDynamicSourceExecutionTests
             _loggerResolver,
             new CompilationOptions(usePrimitiveTypeValidation: false));
 
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "GetRowSource<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>");
-        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetRowSource<object>", StringComparison.Ordinal));
-        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetRowSource<dynamic>", StringComparison.Ordinal));
+        StringAssert.Contains(inspection.GeneratedCSharpCode, "SourceInvocation<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>");
+        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("SourceInvocation<object>", StringComparison.Ordinal));
+        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("SourceInvocation<dynamic>", StringComparison.Ordinal));
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("((dynamic)", StringComparison.Ordinal));
 
         var table = InstanceCreator.CompileForExecution(
@@ -306,9 +315,9 @@ public sealed class RuntimeDynamicSourceExecutionTests
             .Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("accepted", table[0][0]);
-        Assert.AreEqual(8.5, table[0][1]);
-        Assert.AreEqual("unused", table[0][2]);
+        Assert.AreEqual("accepted", table[0].ReadValue(0));
+        Assert.AreEqual(8.5, table[0].ReadValue(1));
+        Assert.AreEqual("unused", table[0].ReadValue(2));
         Assert.AreEqual(1, accepted.GetAccessCount("RuntimeKey"));
         Assert.AreEqual(1, accepted.GetAccessCount("Enabled"));
         Assert.AreEqual(1, accepted.GetAccessCount("Metric"));
@@ -327,7 +336,7 @@ public sealed class RuntimeDynamicSourceExecutionTests
         var provider = new RuntimeDynamicSchemaProvider([present, absent]);
 
         var table = InstanceCreator.CompileForExecution(
-                "select branch.measurement, branch.raw from #runtime.events() where branch is not null",
+                "select branch.Measurement, branch.Raw from #runtime.events() where branch is not null",
                 Guid.NewGuid().ToString(),
                 provider,
                 _loggerResolver,
@@ -335,8 +344,8 @@ public sealed class RuntimeDynamicSourceExecutionTests
             .Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(4.25, table[0][0]);
-        Assert.AreEqual((ulong)42, table[0][1]);
+        Assert.AreEqual(4.25, table[0].ReadValue(0));
+        Assert.AreEqual((ulong)42, table[0].ReadValue(1));
         Assert.AreEqual(1, present.GetAccessCount("Branch"));
         Assert.AreEqual(1, branch.GetAccessCount("Measurement"));
         Assert.AreEqual(1, branch.GetAccessCount("Raw"));
@@ -352,7 +361,7 @@ public sealed class RuntimeDynamicSourceExecutionTests
         var provider = new RuntimeDynamicSchemaProvider([row]);
 
         var table = InstanceCreator.CompileForExecution(
-                "select staticbranch.measurement from #runtime.events() where staticbranch is not null",
+                "select staticbranch.Measurement from #runtime.events() where staticbranch is not null",
                 Guid.NewGuid().ToString(),
                 provider,
                 _loggerResolver,
@@ -360,7 +369,7 @@ public sealed class RuntimeDynamicSourceExecutionTests
             .Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(6.5, table[0][0]);
+        Assert.AreEqual(6.5, table[0].ReadValue(0));
         Assert.AreEqual(1, branch.GetAccessCount("Measurement"));
         Assert.IsFalse(provider.RequestedRowTypes.Contains(typeof(object)));
     }
@@ -381,7 +390,7 @@ public sealed class RuntimeDynamicSourceExecutionTests
             _loggerResolver,
             new CompilationOptions(usePrimitiveTypeValidation: false));
 
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "GetRowSource<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>");
+        StringAssert.Contains(inspection.GeneratedCSharpCode, "SourceInvocation<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>");
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("dynamic.Scale", StringComparison.Ordinal));
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetMember", StringComparison.Ordinal));
 
@@ -394,7 +403,7 @@ public sealed class RuntimeDynamicSourceExecutionTests
             .Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(7, (double)table[0][0]);
+        Assert.AreEqual(7, (double)table[0].ReadValue(0));
         Assert.AreEqual(0, unmatched.GetAccessCount("Metric"));
     }
 
@@ -428,7 +437,7 @@ public sealed class RuntimeDynamicSourceExecutionTests
                 .Run(CancellationToken.None);
 
             Assert.AreEqual(1, table.Count);
-            Assert.AreEqual(expected, table[0][0]);
+            Assert.AreEqual(expected, table[0].ReadValue(0));
         }
 
         var warmInspection = InstanceCreator.CompileForInspection(
@@ -445,7 +454,7 @@ public sealed class RuntimeDynamicSourceExecutionTests
             alphaProvider,
             _loggerResolver,
             new CompilationOptions(usePrimitiveTypeValidation: false));
-        Assert.AreEqual(11, warmQuery.Run(CancellationToken.None)[0][0]);
+        Assert.AreEqual(11, warmQuery.Run(CancellationToken.None)[0].ReadValue(0));
 
         var warmQueryHit = InstanceCreator.CompileForExecution(
             "select alphakey from #runtime.events()",
@@ -453,7 +462,7 @@ public sealed class RuntimeDynamicSourceExecutionTests
             alphaProvider,
             _loggerResolver,
             new CompilationOptions(usePrimitiveTypeValidation: false));
-        Assert.AreEqual(11, warmQueryHit.Run(CancellationToken.None)[0][0]);
+        Assert.AreEqual(11, warmQueryHit.Run(CancellationToken.None)[0].ReadValue(0));
     }
 
     [TestMethod]

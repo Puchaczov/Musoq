@@ -44,4 +44,18 @@ public sealed record ExecutionStringMatch : ExecutionExpression
     public ExecutionStringMatchKind Kind { get; }
 
     public ExecutionStringMatchComparison Comparison { get; }
+
+    private TimeSpan? _regexMatchTimeout;
+
+    /// <summary>Gets the selected LIKE fallback budget, or null to inherit the enclosing plan budget.</summary>
+    public TimeSpan? RegexMatchTimeout
+    {
+        get => _regexMatchTimeout;
+        init
+        {
+            if (value.HasValue)
+                Runtime.RegexMatchTimeoutPolicy.Validate(value.Value);
+            _regexMatchTimeout = value;
+        }
+    }
 }

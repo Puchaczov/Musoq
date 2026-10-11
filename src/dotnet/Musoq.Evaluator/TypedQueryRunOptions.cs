@@ -6,8 +6,6 @@ namespace Musoq.Evaluator;
 
 public sealed class TypedQueryRunOptions
 {
-    private readonly IReadOnlyDictionary<string, object?>? _parameters;
-
     public TypedQueryRunOptions()
     {
     }
@@ -19,14 +17,14 @@ public sealed class TypedQueryRunOptions
 
     public TypedQueryRunOptions(
         CancellationToken cancellationToken,
-        IEnumerable<KeyValuePair<string, object?>>? parameters,
+        TypedParameterSnapshot? parameters,
         QueryPhaseEventHandler? phaseChanged = null,
         DataSourceEventHandler? dataSourceProgress = null,
         QueryProgressEventHandler? queryProgress = null,
         QueryProgressOptions? queryProgressOptions = null)
     {
         CancellationToken = cancellationToken;
-        Parameters = ParameterSnapshot.CaptureReadOnlyOrNull(parameters);
+        TypedParameters = parameters ?? TypedParameterSnapshot.Empty;
         PhaseChanged = phaseChanged;
         DataSourceProgress = dataSourceProgress;
         QueryProgress = queryProgress;
@@ -35,11 +33,8 @@ public sealed class TypedQueryRunOptions
 
     public CancellationToken CancellationToken { get; init; }
 
-    public IReadOnlyDictionary<string, object?>? Parameters
-    {
-        get => _parameters;
-        init => _parameters = ParameterSnapshot.CaptureReadOnlyOrNull(value);
-    }
+    /// <summary>Gets a snapshot retaining each supplied parameter's concrete type.</summary>
+    public TypedParameterSnapshot TypedParameters { get; init; } = TypedParameterSnapshot.Empty;
 
     public QueryPhaseEventHandler? PhaseChanged { get; init; }
 
@@ -49,24 +44,4 @@ public sealed class TypedQueryRunOptions
 
     public QueryProgressOptions? QueryProgressOptions { get; init; }
 
-    internal bool ParametersAreCaptured { get; init; }
-
-    internal static TypedQueryRunOptions CreateCaptured(
-        TypedQueryRunOptions source,
-        IReadOnlyDictionary<string, object?> parameters)
-    {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        return new TypedQueryRunOptions(
-            source.CancellationToken,
-            parameters,
-            source.PhaseChanged,
-            source.DataSourceProgress,
-            source.QueryProgress,
-            source.QueryProgressOptions)
-        {
-            ParametersAreCaptured = true
-        };
-    }
 }

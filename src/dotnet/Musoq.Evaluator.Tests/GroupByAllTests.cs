@@ -197,8 +197,8 @@ public class GroupByAllTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("a.Country", typeof(string)),
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
             ("Matches", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,

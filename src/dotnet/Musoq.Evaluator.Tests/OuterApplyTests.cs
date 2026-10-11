@@ -7,7 +7,7 @@ using Musoq.Evaluator.Tests.Schema.Generic;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class OuterApplyTests : GenericEntityTestBase
+public partial class OuterApplyTests : GenericEntityTestBase
 {
 
     [TestMethod]
@@ -42,12 +42,12 @@ public class OuterApplyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("a.Country", typeof(string)),
-            ("a.Population", typeof(int)),
-            ("b.Country", typeof(string)),
-            ("b.Money", typeof(decimal?)),
-            ("b.Month", typeof(string)));
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Population", typeof(int)),
+            ("Country", typeof(string)),
+            ("Money", typeof(decimal?)),
+            ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Country1", 100, "Country1", 1000m, "January"],
@@ -87,10 +87,10 @@ public class OuterApplyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("a.Country", typeof(string)),
-            ("b.Money", typeof(decimal?)),
-            ("b.Month", typeof(string)));
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Money", typeof(decimal?)),
+            ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Country1", 1000m, "January"],
@@ -129,10 +129,10 @@ public class OuterApplyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("a.Country", typeof(string)),
-            ("b.Money", typeof(decimal?)),
-            ("b.Month", typeof(string)));
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Money", typeof(decimal?)),
+            ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["City1", "Country1", null, null]);
@@ -183,11 +183,11 @@ public class OuterApplyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("a.Country", typeof(string)),
-            ("b.Money", typeof(decimal?)),
-            ("b.Month", typeof(string)),
-            ("c.Address", typeof(string)));
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Money", typeof(decimal?)),
+            ("Month", typeof(string)),
+            ("Address", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Country1", 1000m, "January", "Address1"],
@@ -232,7 +232,7 @@ public class OuterApplyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Country", typeof(string)),
+            ("Country", typeof(string)),
             ("TotalMoney", typeof(decimal?)),
             ("TransactionCount", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
@@ -279,10 +279,10 @@ public class OuterApplyTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("a.Country", typeof(string)),
-            ("b.Money", typeof(decimal?)),
-            ("b.Month", typeof(string)));
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Money", typeof(decimal?)),
+            ("Month", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Country1", 2000m, "February"],

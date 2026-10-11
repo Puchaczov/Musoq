@@ -15,6 +15,9 @@ public sealed partial class ExecutionCSharpRenderer
         IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors,
         ExecutionRenderContext context)
     {
+        if (TryGetColumnarStoredTableResultForRowShape(shape.TypeName, context, out var columnarResult))
+            return ColumnarStoredTableSyntaxFactory.CreateRowView(shape, columnarResult.TableIndex);
+
         shape = GeneratedRowCarrierClassifier.Apply(
             shape,
             ResolveGeneratedRowCarrierBoundary(shape, context),
@@ -32,33 +35,22 @@ public sealed partial class ExecutionCSharpRenderer
             field,
             GetGeneratedFieldName,
             includePrivateSetter: true)));
-        members.AddRange(CreateGeneratedRowContextFields(usedConstructors, shape.Contexts.Count));
-        members.AddRange(CreateGeneratedRowConstructors(shape.TypeName, shape.Fields, usedConstructors, shape.Contexts.Count));
+        members.AddRange(CreateGeneratedRowContextFields(usedConstructors, shape.Contexts));
+        members.AddRange(CreateGeneratedRowConstructors(shape.TypeName, shape.Fields, usedConstructors, shape.Contexts));
         members.Add(CreateGeneratedRowCountProperty(shape.Fields.Count));
-        members.Add(CreateGeneratedRowIntIndexer(shape.Fields));
+        members.Add(GeneratedRowColumnVisitation.Create(shape.Fields, GetGeneratedFieldName, CreateGeneratedFieldTypeSyntax));
+        members.Add(GeneratedRowColumnVisitation.CreateRead(shape.Fields, GetGeneratedFieldName, CreateGeneratedFieldTypeSyntax));
         if (RequiresWideGeneratedRowColumnMap(shape.Fields))
         {
             members.AddRange(CreateWideGeneratedRowColumnMapMembers(shape.Fields));
-            members.Add(CreateWideGeneratedRowStringIndexer());
             members.Add(CreateWideGeneratedRowHasColumnMethod());
         }
         else
         {
-            members.Add(CreateGeneratedRowStringIndexer(shape.Fields));
             members.Add(CreateGeneratedRowHasColumnMethod(shape.Fields));
         }
 
-        if (RequiresWideGeneratedRowColumnMap(shape.Fields))
-        {
-            members.Add(CreateWideGeneratedRowAssignersField(shape.TypeName, shape.Fields));
-            members.Add(CreateWideGeneratedRowAssignValueMethod());
-        }
-        else
-        {
-            members.Add(CreateGeneratedRowAssignValueMethod(shape.Fields));
-        }
-        if (RequiresGeneratedRowContextOverride(usedConstructors))
-            members.Add(CreateGeneratedRowContextsProperty(usedConstructors, shape.Contexts.Count));
+        members.Add(GeneratedRowColumnVisitation.CreateWrite(shape.Fields, GetGeneratedFieldName, CreateGeneratedFieldTypeSyntax));
 
         return SyntaxFactory.ClassDeclaration(shape.TypeName)
             .AddModifiers(
@@ -117,10 +109,8 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var members = new List<MemberDeclarationSyntax>();
         members.AddRange(shape.Fields.Select(field => CreateRowCarrierProperty(field, GetGeneratedFieldName)));
-        members.AddRange(CreateGeneratedRowContextFields(usedConstructors, shape.Contexts.Count));
-        members.AddRange(CreateGeneratedRowConstructors(shape.TypeName, shape.Fields, usedConstructors, shape.Contexts.Count));
-        if (RequiresGeneratedRowContextOverride(usedConstructors))
-            members.Add(CreateGeneratedRowContextsProperty(usedConstructors, shape.Contexts.Count, includeOverride: false));
+        members.AddRange(CreateGeneratedRowContextFields(usedConstructors, shape.Contexts));
+        members.AddRange(CreateGeneratedRowConstructors(shape.TypeName, shape.Fields, usedConstructors, shape.Contexts));
 
         return SyntaxFactory.ClassDeclaration(shape.TypeName)
             .AddModifiers(

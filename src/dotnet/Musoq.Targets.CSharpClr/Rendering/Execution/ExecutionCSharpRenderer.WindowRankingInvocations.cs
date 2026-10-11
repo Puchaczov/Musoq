@@ -7,32 +7,6 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static InvocationExpressionSyntax CreateFusedIntRankingInvocation(
-        ExecutionComputeRankingWindow ranking,
-        ExecutionVariable builder,
-        ExecutionWindowPartitionSet? sortedPartitions)
-    {
-        var helperName = ranking.QualifyUpperBound.HasValue
-            ? GetTopRankingHelperName(ranking.Function)
-            : GetRankingHelperName(ranking.Function);
-        var arguments = new List<ExpressionSyntax>
-        {
-            sortedPartitions == null
-                ? CreateBooleanLiteral(ranking.OrderKeys[0].Descending)
-                : SyntaxFactory.IdentifierName(sortedPartitions.Variable.Name)
-        };
-
-        if (ranking.QualifyUpperBound.HasValue)
-            arguments.Add(CreateLongLiteral(ranking.QualifyUpperBound.Value));
-
-        return SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(builder.Name),
-                    SyntaxFactory.IdentifierName(helperName)))
-            .WithArgumentList(CreateArgumentList(arguments.ToArray()));
-    }
-
     private static void AddFusedIntOrderPartitionDeclarations(
         List<StatementSyntax> statements,
         ExecutionComputeRankingWindow ranking,
@@ -91,30 +65,4 @@ public sealed partial class ExecutionCSharpRenderer
             .WithArgumentList(CreateArgumentList(CreateBooleanLiteral(descending)));
     }
 
-    private static string GetRankingHelperName(ExecutionRankingWindowFunction function)
-    {
-        return function switch
-        {
-            ExecutionRankingWindowFunction.RowNumber => nameof(WindowFunctionHelpers.ComputeRowNumber),
-            ExecutionRankingWindowFunction.Rank => nameof(WindowFunctionHelpers.ComputeRank),
-            ExecutionRankingWindowFunction.DenseRank => nameof(WindowFunctionHelpers.ComputeDenseRank),
-            _ => throw new ArgumentOutOfRangeException(nameof(function), function, null)
-        };
-    }
-
-    private static string GetTopRankingHelperName(ExecutionRankingWindowFunction function)
-    {
-        return function switch
-        {
-            ExecutionRankingWindowFunction.RowNumber => nameof(WindowFunctionHelpers.ComputeRowNumberTopN),
-            ExecutionRankingWindowFunction.Rank => nameof(WindowFunctionHelpers.ComputeRankTopN),
-            ExecutionRankingWindowFunction.DenseRank => nameof(WindowFunctionHelpers.ComputeDenseRankTopN),
-            _ => throw new ArgumentOutOfRangeException(nameof(function), function, null)
-        };
-    }
-
-    private static LiteralExpressionSyntax CreateLongLiteral(long value)
-    {
-        return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(value));
-    }
 }

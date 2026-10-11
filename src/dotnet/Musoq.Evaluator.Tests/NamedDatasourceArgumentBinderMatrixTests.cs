@@ -374,10 +374,10 @@ public sealed class NamedDatasourceArgumentBinderMatrixTests
             return new MatrixTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters) => throw new NotSupportedException();
+            TArguments parameters) => throw new NotSupportedException();
     }
 
     private sealed class MatrixTable : ISchemaTable

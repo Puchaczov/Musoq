@@ -299,12 +299,12 @@ public class EndToEndRendererTests
         }
 
         var expectedRows = expected
-            .Select(row => Enumerable.Range(0, expectedColumns.Count).Select(i => row[i]).ToArray())
+            .Select(row => Enumerable.Range(0, expectedColumns.Count).Select(i => row.ReadValue(i)).ToArray())
             .OrderBy(row => string.Join("|", row.Select(v => v.ToString() ?? "NULL")))
             .ToList();
 
         var actualRows = actual
-            .Select(row => Enumerable.Range(0, actualColumns.Count).Select(i => row[i]).ToArray())
+            .Select(row => Enumerable.Range(0, actualColumns.Count).Select(i => row.ReadValue(i)).ToArray())
             .OrderBy(row => string.Join("|", row.Select(v => v.ToString() ?? "NULL")))
             .ToList();
 

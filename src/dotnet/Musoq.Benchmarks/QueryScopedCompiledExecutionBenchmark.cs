@@ -34,7 +34,6 @@ public class QueryScopedCompiledExecutionBenchmark
         new CompilationOptions(usePrimitiveTypeValidation: false));
 
     private readonly BenchmarkLoggerResolver _loggerResolver = new();
-    private CompiledQuery _legacy = null!;
     private CompiledQuery _queryScoped = null!;
     private CompiledQuery _queryScopedProgress = null!;
     private QueryScenarioDefinition _definition = null!;
@@ -53,19 +52,15 @@ public class QueryScopedCompiledExecutionBenchmark
             $"musoq-query-row-compiled-{Scenario}-{Guid.NewGuid():N}.csv");
         File.WriteAllText(_path, CreateCsvContent(_definition), new UTF8Encoding(false));
         _query = BuildQuery(_definition, _path, coldToken: null);
-        _legacy = Compile(_query, enableQueryScopedRows: false);
-        _queryScoped = Compile(_query, enableQueryScopedRows: true);
-        _queryScopedProgress = Compile(_query, enableQueryScopedRows: true);
+        _queryScoped = Compile(_query);
+        _queryScopedProgress = Compile(_query);
         _queryScopedProgress.QueryProgress += ConsumeQueryProgress;
 
-        var legacy = Execute(_legacy);
-        var queryScoped = Execute(_queryScoped);
-        if (legacy != queryScoped)
-        {
-            throw new InvalidOperationException(
-                $"Compiled query-row correctness oracle failed for {Scenario}: " +
-                $"legacy={legacy}, queryScoped={queryScoped}.");
-        }
+        var expected = CalculateExpectedOutcome();
+        var actual = Execute(_queryScoped);
+        if (actual != expected)
+            throw new InvalidOperationException($"Native compiled CSV oracle failed for {Scenario}: expected={expected}, actual={actual}.");
+
     }
 
     [GlobalCleanup]
@@ -75,39 +70,68 @@ public class QueryScopedCompiledExecutionBenchmark
             File.Delete(_path);
     }
 
-    [Benchmark(Baseline = true, Description = "Legacy warm execution")]
-    public long LegacyWarmExecution() => Execute(_legacy).Consumer;
-
     [Benchmark(Description = "Query-scoped warm execution")]
     public long QueryScopedWarmExecution() => Execute(_queryScoped).Consumer;
 
     [Benchmark(Description = "Query-scoped warm execution with default query progress")]
     public long QueryScopedWarmExecutionWithDefaultQueryProgress() => Execute(_queryScopedProgress).Consumer;
 
-    [Benchmark(Description = "Legacy cold compile and first run")]
-    [InvocationCount(1)]
-    public long LegacyColdCompileAndFirstRun()
-    {
-        var query = BuildQuery(_definition, _path, Guid.NewGuid().ToString("N"));
-        return Execute(Compile(query, enableQueryScopedRows: false)).Consumer;
-    }
-
     [Benchmark(Description = "Query-scoped cold compile and first run")]
     [InvocationCount(1)]
     public long QueryScopedColdCompileAndFirstRun()
     {
         var query = BuildQuery(_definition, _path, Guid.NewGuid().ToString("N"));
-        return Execute(Compile(query, enableQueryScopedRows: true)).Consumer;
+        return Execute(Compile(query)).Consumer;
     }
 
-    private CompiledQuery Compile(string query, bool enableQueryScopedRows)
+    private CompiledQuery Compile(string query)
     {
         return InstanceCreator.CompileForExecution(
             query,
             Guid.NewGuid().ToString("N"),
-            new CsvSchemaProvider(enableQueryScopedRows: enableQueryScopedRows),
+            new CsvSchemaProvider(),
             _loggerResolver,
             Options);
+    }
+
+    private CompiledOutcome CalculateExpectedOutcome()
+    {
+        if (_definition.Workload == QueryScenarioWorkload.Aggregation)
+        {
+            var total = Enumerable.Range(0, Rows).Sum(row => row * _definition.FieldCount);
+            return new CompiledOutcome(1, total, unchecked((ulong)total * 1099511628211UL));
+        }
+        var count = _definition.Workload == QueryScenarioWorkload.EarlyTake ? 16 : Rows;
+        var width = _definition.Workload is QueryScenarioWorkload.Selective or QueryScenarioWorkload.EarlyTake
+            ? 2 : _definition.FieldCount;
+        if (_definition.Workload == QueryScenarioWorkload.HighRejection) width = 1;
+        long checksum = 0;
+        ulong hash = 0;
+        var included = 0;
+        for (var row = 0; row < count; row++)
+        {
+            if (_definition.Workload == QueryScenarioWorkload.HighRejection && row != 499) continue;
+            long rowChecksum = 0;
+            for (var column = 0; column < width; column++)
+            {
+                long value = 0;
+                if (_definition.Numeric)
+                {
+                    if (column == 0 || (row + column) % 17 != 0) value = row * _definition.FieldCount + column;
+                }
+                else if (row % 13 != 0 || column != _definition.FieldCount - 1)
+                {
+                    value = 17;
+                    foreach (var character in $"value-{row.ToString(CultureInfo.InvariantCulture)}-{column.ToString(CultureInfo.InvariantCulture)}")
+                        value = unchecked(value * 31 + character);
+                }
+                rowChecksum = unchecked(rowChecksum * 397 + value);
+            }
+            included++;
+            checksum = unchecked(checksum + rowChecksum);
+            hash = unchecked((hash ^ (ulong)rowChecksum) * 1099511628211UL);
+        }
+        return new CompiledOutcome(included, checksum, hash);
     }
 
     private static CompiledOutcome Execute(CompiledQuery query)
@@ -237,9 +261,9 @@ public class QueryScopedCompiledExecutionBenchmark
             var orderHash = 0UL;
             foreach (var row in table)
             {
-                var rowChecksum = 0L;
-                for (var index = 0; index < row.Count; index++)
-                    rowChecksum = unchecked(rowChecksum * 397 + ValueChecksum(row[index]));
+                var visitor = new RowChecksumVisitor();
+                row.VisitColumns(ref visitor);
+                var rowChecksum = visitor.Value;
                 checksum = unchecked(checksum + rowChecksum);
                 orderHash = unchecked((orderHash ^ (ulong)rowChecksum) * 1099511628211UL);
             }
@@ -247,18 +271,22 @@ public class QueryScopedCompiledExecutionBenchmark
             return new CompiledOutcome(table.Count, checksum, orderHash);
         }
 
-        private static long ValueChecksum(object? value)
+        private struct RowChecksumVisitor : Musoq.Schema.IColumnValueVisitor
         {
-            return value switch
+            public long Value;
+            public void Visit<T>(int columnIndex, in T value)
             {
-                null => 0,
-                int number => number,
-                long number => number,
-                string text => StringChecksum(text),
-                IFormattable formattable => StringChecksum(
-                    formattable.ToString(null, CultureInfo.InvariantCulture) ?? string.Empty),
-                _ => StringChecksum(value.ToString() ?? string.Empty)
-            };
+                var copy = value;
+                long checksum;
+                if (typeof(T) == typeof(string))
+                {
+                    var text = System.Runtime.CompilerServices.Unsafe.As<T, string>(ref copy);
+                    checksum = text is null ? 0 : StringChecksum(text);
+                }
+                else
+                    checksum = NativeBenchmarkColumnConsumption.Checksum(in value);
+                Value = unchecked(Value * 397 + checksum);
+            }
         }
 
         private static long StringChecksum(string value)

@@ -1,15 +1,18 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Collections.Immutable;
+using Musoq.Plugins;
 
 namespace Musoq.Schema.Managers;
 
 public partial class MethodsMetadata
 {
-    private readonly Dictionary<(string Name, MethodInfo Method), int> _methodIndexCache = new();
+    private Dictionary<(string Name, MethodInfo Method), int> _methodIndexCache = new();
 
-    private readonly Dictionary<string, List<MethodInfo>> _methods;
-    private readonly Dictionary<string, string> _normalizedToOriginalMethodNames;
+    private Dictionary<string, List<MethodInfo>> _methods;
+    private Dictionary<string, string> _normalizedToOriginalMethodNames;
+    private ImmutableArray<SqlFunctionDescriptor> _functions;
 
     private readonly ConcurrentDictionary<MethodInfo, ParameterMetadataInfo> _parameterMetadataCache = new();
 

@@ -7,7 +7,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private static ExecutionAppendRow CreateAppendRow(
+    private ExecutionAppendRow CreateAppendRow(
         ExecutionVariable resultTable,
         GeneratedRowShape resultShape,
         ProjectedField[] fields,
@@ -30,7 +30,7 @@ internal sealed partial class PhysicalLoweringImplementation
             CreateContextLayout(sourceLookup));
     }
 
-    private static ExecutionAppendRow CreateAppendRow(
+    private ExecutionAppendRow CreateAppendRow(
         ExecutionVariable resultTable,
         GeneratedRowShape resultShape,
         ProjectedField[] fields,

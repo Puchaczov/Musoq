@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -8,28 +7,32 @@ namespace Musoq.Evaluator.Tests;
 public sealed partial class GeneratedCodeSamplesShapeTests
 {
     [TestMethod]
-    public void FinalOutputSamples_WhenCheckedIn_ShouldEmitPlainSelectShapes()
+    [DataRow(InnerJoinSampleFileName)]
+    [DataRow(GroupBySingleSampleFileName)]
+    [DataRow(MultipleWindowsSampleFileName)]
+    public void BufferedFinalOutputSamples_WhenCheckedIn_ShouldBufferFreshFinalRowsWithoutCopies(string fileName)
     {
-        var samples = ReadNamedSamples(
-            "Q01_SimpleSelectWhere.cs",
-            InnerJoinSampleFileName,
-            GroupBySingleSampleFileName,
-            MultipleWindowsSampleFileName);
+        var sample = ReadSample(fileName).Content;
 
-        Assert.HasCount(4, samples);
+        Assert.Contains("var __musoqFinalShapeRows = new List<ResultRow0>();", sample);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(", sample);
+        Assert.Contains("return __musoqFinalShapeRows;", sample);
+        Assert.Contains("yield return __musoqShapeRow;", sample);
+        Assert.DoesNotContain("new ResultShape0(", sample);
+        Assert.DoesNotContain("private sealed class ResultShape0", sample);
+        Assert.DoesNotContain("new ResultRow0(__musoqShapeRow.", sample);
+    }
 
-        foreach (var sample in samples)
-        {
-            var shapeClass = ExtractFinalSelectShapeClass(sample.Content);
+    [TestMethod]
+    public void SerialFinalOutput_ShouldConstructFreshRowsWithoutAnIntermediateShape()
+    {
+        var code = ReadSample("Q01_SimpleSelectWhere.cs").Content;
 
-            Assert.Contains("private sealed class ResultShape0", shapeClass, sample.FileName);
-            Assert.Contains("public ResultShape0(", shapeClass, sample.FileName);
-            Assert.DoesNotContain(": Row", shapeClass, sample.FileName);
-            Assert.DoesNotContain("AssignValue", shapeClass, sample.FileName);
-            Assert.DoesNotContain("HasColumn", shapeClass, sample.FileName);
-            Assert.DoesNotContain("public override", shapeClass, sample.FileName);
-            Assert.DoesNotContain("Contexts", shapeClass, sample.FileName);
-        }
+        Assert.DoesNotContain("new ResultShape0(", code);
+        Assert.DoesNotContain("private sealed class ResultShape0", code);
+        Assert.DoesNotContain("new ResultRow0(__musoqShapeRow.", code);
+        Assert.Contains("yield return new ResultRow0(", code);
+        Assert.Contains("yield return __musoqShapeRow;", code);
     }
 
     [TestMethod]
@@ -82,23 +85,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.DoesNotContain("new Cte0Row0(ko3iko.Name, ko3iko.City, population, (object)ko3iko)", sample, CteJoinFrameQualifySampleFileName);
         Assert.DoesNotContain("new Cte0HashPayload0(ko3iko.Name, population, (object)ko3iko)", sample, CteJoinFrameQualifySampleFileName);
         Assert.Contains("new Cte0HashPayload0(ko3iko.Name, ko3iko.Population)", sample, CteJoinFrameQualifySampleFileName);
-        Assert.Contains("new Statement0Row0(b.Name, b.Population, a.Name, a.City)", sample, CteJoinFrameQualifySampleFileName);
-    }
-
-    private static string ExtractFinalSelectShapeClass(string content)
-    {
-        const string classMarker = "private sealed class ResultShape0";
-        var start = content.IndexOf(classMarker, StringComparison.Ordinal);
-        Assert.IsTrue(start >= 0, content);
-
-        var nextMemberCandidates = new[]
-        {
-            content.IndexOf("\n        private sealed class ", start + classMarker.Length, StringComparison.Ordinal),
-            content.IndexOf("\n        private readonly struct ", start + classMarker.Length, StringComparison.Ordinal),
-            content.IndexOf("\n        private static ", start + classMarker.Length, StringComparison.Ordinal)
-        }.Where(static index => index >= 0);
-        var end = nextMemberCandidates.DefaultIfEmpty(content.Length).Min();
-        return content[start..end];
+        Assert.Contains("GeneratedColumnarBuffer<Statement0Row0>", sample, CteJoinFrameQualifySampleFileName);
+        Assert.Contains("public Statement0Row0(StoredTableColumnBuffer1 buffer, int index)", sample, CteJoinFrameQualifySampleFileName);
+        Assert.Contains("statement0.Add(b.Name, b.Population, a.Name, a.City)", sample, CteJoinFrameQualifySampleFileName);
     }
 
 }

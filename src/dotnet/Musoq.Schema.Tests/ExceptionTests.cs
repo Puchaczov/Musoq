@@ -1,5 +1,6 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Parser.Diagnostics;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Interpreters;
 
@@ -391,7 +392,7 @@ public class ExceptionTests
     }
 
     [TestMethod]
-    public void ParseException_Message_ShouldIncludeAllComponents()
+    public void ParseException_Message_ShouldUseTheSafeCatalogSummary()
     {
         var ex = new ParseException(
             ParseErrorCode.PatternMismatch,
@@ -400,11 +401,11 @@ public class ExceptionTests
             16,
             "Expected 0x4D5A but found 0x0000");
 
-        Assert.Contains("ISE0003", ex.Message);
-        Assert.Contains("BinaryHeader", ex.Message);
-        Assert.Contains("MagicNumber", ex.Message);
-        Assert.Contains("16", ex.Message);
-        Assert.Contains("Expected 0x4D5A but found 0x0000", ex.Message);
+        Assert.AreEqual(
+            "ISE0003: Error parsing BinaryHeader.MagicNumber at position 16: Input did not match the expected pattern.",
+            ex.Message);
+        Assert.AreEqual("Expected 0x4D5A but found 0x0000", ex.Details);
+        Assert.DoesNotContain("0x0000", ex.Message);
     }
 
     [TestMethod]
@@ -417,8 +418,10 @@ public class ExceptionTests
             0,
             "Size was negative");
 
-        Assert.Contains("TestSchema", ex.Message);
-        Assert.DoesNotContain("TestSchema.", ex.Message);
+        Assert.AreEqual(
+            "ISE0007: Error at position 0: The interpretation produced an invalid size.",
+            ex.Message);
+        Assert.IsNull(ex.FieldName);
     }
 
     [TestMethod]
@@ -431,7 +434,8 @@ public class ExceptionTests
             0,
             "Size was negative");
 
-        Assert.Contains("TestSchema.Length", ex.Message);
+        Assert.AreEqual("Length", ex.FieldName);
+        Assert.Contains("Error parsing TestSchema.Length at position 0", ex.Message);
     }
 
     [TestMethod]
@@ -527,6 +531,71 @@ public class ExceptionTests
             Assert.IsFalse(string.IsNullOrEmpty(ex.Message));
             Assert.IsFalse(string.IsNullOrEmpty(ex.FormattedErrorCode));
         }
+    }
+
+    [TestMethod]
+    public void ParseException_ToDiagnostic_ShouldMapIseCodeAndCharacterOffsetWithoutSqlLocation()
+    {
+        var exception = ParseException.ForText(
+            ParseErrorCode.ExpectedWhitespace,
+            "TextSchema",
+            "Gap",
+            5,
+            "private input detail");
+        var wrapped = new InvalidOperationException("wrapper text", exception);
+        var envelope = MusoqErrorEnvelope.FromException(wrapped);
+
+        Assert.AreEqual(DiagnosticCode.MQ7111_InterpretationExpectedWhitespace, envelope.Code);
+        Assert.AreEqual(DiagnosticPhase.Runtime, envelope.Phase);
+        Assert.AreEqual(DiagnosticSourceKind.Runtime, envelope.SourceKind);
+        Assert.AreEqual("ISE0011", envelope.Arguments["interpretationCode"]);
+        Assert.AreEqual(5L, envelope.InputLocation?.CharacterOffset);
+        Assert.IsNull(envelope.Offset);
+        Assert.IsNull(envelope.Details);
+        Assert.DoesNotContain("private input detail", exception.Message);
+        Assert.DoesNotContain("private input detail", envelope.Message);
+        Assert.DoesNotContain("private input detail", MusoqErrorEnvelopeFormatter.FormatJson(envelope));
+        var verbose = MusoqErrorEnvelope.FromExceptionVerbose(wrapped);
+        Assert.IsNotNull(verbose.Details);
+        Assert.Contains("private input detail", verbose.Details);
+    }
+
+    [TestMethod]
+    public void ParseException_LegacyMessageConstructor_ShouldUseSafeGeneralCodeWithoutPosition()
+    {
+        var exception = new ParseException("private message-only parser detail");
+
+        var safe = MusoqErrorEnvelope.FromException(exception);
+        var verbose = MusoqErrorEnvelope.FromExceptionVerbose(exception);
+
+        Assert.AreEqual(DiagnosticCode.MQ7115_InterpretationGeneralError, safe.Code);
+        Assert.AreEqual("ISE0015", safe.Arguments["interpretationCode"]);
+        Assert.IsNull(safe.InputLocation);
+        Assert.DoesNotContain("position", exception.GetPartialInterpretationMessage());
+        Assert.DoesNotContain("private message-only parser detail", safe.Message);
+        Assert.DoesNotContain("private message-only parser detail", exception.Message);
+        Assert.IsNotNull(verbose.Details);
+        Assert.Contains("private message-only parser detail", verbose.Details);
+    }
+
+    [TestMethod]
+    public void ParseException_ForBytes_ShouldMarkByteOffset()
+    {
+        var exception = ParseException.ForBytes(
+            ParseErrorCode.InsufficientData,
+            "BinarySchema",
+            "Payload",
+            3,
+            "private binary detail");
+
+        var diagnostic = exception.ToDiagnostic();
+
+        Assert.AreEqual(DiagnosticCode.MQ7101_InterpretationInsufficientData, diagnostic.Code);
+        Assert.AreEqual("ISE0001", diagnostic.Arguments["interpretationCode"]);
+        Assert.AreEqual(3L, diagnostic.InputLocation?.ByteOffset);
+        Assert.IsNull(diagnostic.InputLocation?.CharacterOffset);
+        Assert.IsFalse(diagnostic.Location.IsValid);
+        Assert.DoesNotContain("private binary detail", diagnostic.Message);
     }
 
     #endregion

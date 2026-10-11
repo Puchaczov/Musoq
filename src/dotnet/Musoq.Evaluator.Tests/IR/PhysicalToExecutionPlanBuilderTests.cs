@@ -30,7 +30,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             [
                 new ColumnSchema("Name", typeof(string), 0),
                 new ColumnSchema("Age", typeof(int), 1)
-            ]));
+            ]), SourceContextId: alias);
     }
 
     private static IEnumerable<TNode> CollectNodes<TNode>(ExecutionBlock block)
@@ -81,7 +81,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             [
                 new ColumnSchema("PersonAge", typeof(int), 0),
                 new ColumnSchema("Description", typeof(string), 1)
-            ]));
+            ]), SourceContextId: "o");
     }
 
     private static PhysicalSchemaScanNode CreateApplyItemScan()
@@ -97,7 +97,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             [
                 new ColumnSchema("Name", typeof(string), 0),
                 new ColumnSchema("Numbers", typeof(int[]), 1)
-            ]));
+            ]), SourceContextId: "i");
     }
 
     private static PhysicalPropertySourceNode CreateNumbersPropertySource(string sourceAlias, string alias)

@@ -43,8 +43,8 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.City", typeof(string)),
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
             ("rn", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -87,8 +87,8 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.City", typeof(string)),
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
             ("rn", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -131,8 +131,8 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.City", typeof(string)));
+            ("Name", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Bob", "LA"],
@@ -175,8 +175,8 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
         // Alice(300) >= Y(250) closest match; Bob(200) >= X(150) closest; Charlie(100) < 150 → no match
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Population", typeof(decimal)),
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
             ("MatchedName", typeof(string)),
             ("MatchedPop", typeof(decimal)),
             ("rn", typeof(long)));
@@ -227,8 +227,8 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Population", typeof(decimal)),
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
             ("MatchedName", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -270,8 +270,8 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Population", typeof(decimal)),
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
             ("MatchedPop", typeof(decimal)),
             ("rn", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice", 300m, 150m, 1L]);
@@ -360,9 +360,9 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Population", typeof(decimal)),
-            ("RunSum", typeof(decimal)));
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 100m, 100m],
@@ -403,9 +403,9 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Population", typeof(decimal)),
-            ("RunSum", typeof(decimal)));
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("RunSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 300m, 300m],
@@ -442,7 +442,7 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Country", typeof(string)),
+            ("Country", typeof(string)),
             ("AllNames", typeof(string)),
             ("BigCityCount", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
@@ -574,8 +574,8 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Population", typeof(decimal)),
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
             ("Match1", typeof(string)),
             ("Match2", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
@@ -618,13 +618,13 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("a.Population", typeof(decimal)),
-            ("a.Money", typeof(decimal)),
-            ("a.Month", typeof(string)),
-            ("a.Time", typeof(DateTime)),
-            ("a.Id", typeof(int)),
-            ("a.NullableValue", typeof(int?)),
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)),
+            ("Time", typeof(DateTime)),
+            ("Id", typeof(int)),
+            ("NullableValue", typeof(int?)),
             ("MatchedName", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,

@@ -89,11 +89,11 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var table = RunBinaryQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x01, table[0][0]);
-        Assert.AreEqual("PING", table[0][1]);
-        Assert.AreEqual("42", table[0][2]);
-        Assert.AreEqual((byte)'P', table[0][3]);
-        Assert.AreEqual((byte)'I', table[0][4]);
+        Assert.AreEqual((byte)0x01, table[0].ReadValue(0));
+        Assert.AreEqual("PING", table[0].ReadValue(1));
+        Assert.AreEqual("42", table[0].ReadValue(2));
+        Assert.AreEqual((byte)'P', table[0].ReadValue(3));
+        Assert.AreEqual((byte)'I', table[0].ReadValue(4));
     }
 
     private static void AssertInvalidSize(string query)

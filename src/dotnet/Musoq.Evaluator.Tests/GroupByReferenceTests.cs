@@ -11,6 +11,33 @@ namespace Musoq.Evaluator.Tests;
 public sealed class GroupByReferenceTests : BasicEntityTestBase
 {
     [TestMethod]
+    [TestProperty("CandidateId", "P1-038")]
+    public void HavingAliases_WithNullCheck_ShouldFilterGroupedInlineValues()
+    {
+        const string query = "select City as c, Count(*) as cnt from values { (City: 'A'), (City: 'A'), (City: 'B') } v group by c having cnt > 1 and c is not null";
+
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("c", typeof(string)), ("cnt", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A", 2L]);
+    }
+
+    [TestMethod]
+    [DataRow("is null", null)]
+    [DataRow("is not null", "A")]
+    public void HavingGroupedNullCheck_ShouldSelectMatchingGroup(string predicate, string? expectedCity)
+    {
+        var query = $"select City as c, Count(*) as cnt from values {{ (City: 'A'), (City: null) }} v group by c having c {predicate}";
+
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("c", typeof(string)), ("cnt", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [expectedCity, 1L]);
+    }
+
+    [TestMethod]
     public void GroupByOrdinal_FirstProjection_ShouldGroupByFirstSelectExpression()
     {
         const string query = "select City, Count(Name) as C from #A.Entities() group by 1 order by City";
@@ -107,12 +134,12 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Berlin", table[0][0]);
-        Assert.AreEqual(2L, table[0][1]);
-        Assert.AreEqual("Paris", table[1][0]);
-        Assert.AreEqual(2L, table[1][1]);
-        Assert.AreEqual("Warsaw", table[2][0]);
-        Assert.AreEqual(2L, table[2][1]);
+        Assert.AreEqual("Berlin", table[0].ReadValue(0));
+        Assert.AreEqual(2L, table[0].ReadValue(1));
+        Assert.AreEqual("Paris", table[1].ReadValue(0));
+        Assert.AreEqual(2L, table[1].ReadValue(1));
+        Assert.AreEqual("Warsaw", table[2].ReadValue(0));
+        Assert.AreEqual(2L, table[2].ReadValue(1));
     }
 
     [TestMethod]
@@ -123,12 +150,12 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(151m, table[0][0]);
-        Assert.AreEqual("Bob", table[0][1]);
-        Assert.AreEqual(201m, table[1][0]);
-        Assert.AreEqual("Carla", table[1][1]);
-        Assert.AreEqual(251m, table[2][0]);
-        Assert.AreEqual("Grace", table[2][1]);
+        Assert.AreEqual(151m, table[0].ReadValue(0));
+        Assert.AreEqual("Bob", table[0].ReadValue(1));
+        Assert.AreEqual(201m, table[1].ReadValue(0));
+        Assert.AreEqual("Carla", table[1].ReadValue(1));
+        Assert.AreEqual(251m, table[2].ReadValue(0));
+        Assert.AreEqual("Grace", table[2].ReadValue(1));
     }
 
     [TestMethod]
@@ -139,10 +166,10 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, CreateSourcesWithSingleCity()).Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Berlin", table[0][0]);
-        Assert.AreEqual(2L, table[0][1]);
-        Assert.AreEqual("Warsaw", table[1][0]);
-        Assert.AreEqual(2L, table[1][1]);
+        Assert.AreEqual("Berlin", table[0].ReadValue(0));
+        Assert.AreEqual(2L, table[0].ReadValue(1));
+        Assert.AreEqual("Warsaw", table[1].ReadValue(0));
+        Assert.AreEqual(2L, table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -153,8 +180,8 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Warsaw", table[0][0]);
-        Assert.AreEqual(2L, table[0][1]);
+        Assert.AreEqual("Warsaw", table[0].ReadValue(0));
+        Assert.AreEqual(2L, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -165,10 +192,10 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("PL", table[0][0]);
-        Assert.AreEqual("Alice", table[0][1]);
-        Assert.AreEqual("PL", table[1][0]);
-        Assert.AreEqual("Bob", table[1][1]);
+        Assert.AreEqual("PL", table[0].ReadValue(0));
+        Assert.AreEqual("Alice", table[0].ReadValue(1));
+        Assert.AreEqual("PL", table[1].ReadValue(0));
+        Assert.AreEqual("Bob", table[1].ReadValue(1));
     }
 
     [TestMethod]

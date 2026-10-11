@@ -33,7 +33,7 @@ internal static partial class GeneratedCodeSamplesCatalog
                         DateTimeOffsetCol: datetimeoffset?,
                         TimeSpanCol: timespan,
                         GuidCol: guid,
-                        ObjectCol: object,
+                        ConcreteCol: string,
                         FullyQualified: System.Int32,
                         NullableInt: int?,
                     };
@@ -41,7 +41,7 @@ internal static partial class GeneratedCodeSamplesCatalog
                     select ByteCol, SByteCol, ShortCol, IntCol, LongCol, UShortCol, UIntCol,
                         ULongCol, FloatCol, DoubleCol, DecimalCol, MoneyCol, BoolCol, BitCol,
                         CharCol, StringCol, DateTimeCol, DateTimeOffsetCol, TimeSpanCol, GuidCol,
-                        ObjectCol,
+                        ConcreteCol,
                         FullyQualified, NullableInt
                     from Typed()",
                 CreateTypedTypeMatrixSampleProvider) with

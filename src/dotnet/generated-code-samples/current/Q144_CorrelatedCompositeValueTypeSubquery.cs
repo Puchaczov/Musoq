@@ -1,0 +1,364 @@
+﻿// === Parsed Query ===
+/*
+SELECT a.City
+              FROM #A.entities() a
+              WHERE EXISTS (
+                  SELECT b.City
+                  FROM #B.entities() b
+                  WHERE b.Country = a.Country
+                    AND b.Population = a.Population
+              )
+*/
+
+// === Logical Plan ===
+/*
+Cte
+  Definition [_sq_1]
+    MultiStatement
+      Project [1 as _sq_1_key, b.Country as _sq_1_corr_0, b.Population as _sq_1_corr_1]
+        SchemaScan [#B.entities() as b]
+  Query
+    MultiStatement
+      Project [a.City as City]
+        Join [LeftSemi] [((1 = _sq_1._sq_1_key) AND ((_sq_1._sq_1_corr_0 = a.Country) AND (_sq_1._sq_1_corr_1 = a.Population)))]
+          SchemaScan [#A.entities() as a]
+          CteRef [_sq_1 as _sq_1]
+*/
+
+// === Physical Plan ===
+/*
+PhysicalCte
+  Definition [_sq_1]
+    PhysicalMultiStatement
+      PhysicalProject [1 as _sq_1_key, b.Country as _sq_1_corr_0, b.Population as _sq_1_corr_1]
+        PhysicalSchemaScan [#B.entities() as b]
+  Query
+    PhysicalMultiStatement
+      PhysicalProject [a.City as City]
+        PhysicalHashJoin [LeftSemi] [build: _sq_1._sq_1_key, _sq_1._sq_1_corr_0, _sq_1._sq_1_corr_1] [probe: 1, a.Country, a.Population]
+          PhysicalSchemaScan [#A.entities() as a]
+          PhysicalCteRef [_sq_1 as _sq_1]
+*/
+
+// === Execution Plan ===
+/*
+ExecutionPlan [compiled]
+  Shapes
+    SourceEntity [a: BasicEntity]
+      City: string <- property City
+      Country: string <- property Country
+      Population: decimal <- property Population
+    SourceEntity [b: BasicEntity]
+      Country: string <- property Country
+      Population: decimal <- property Population
+    TableRow [_sq_1]
+      _sq_1_key: int <- field _sq_1_key
+      _sq_1_corr_0: string <- field _sq_1_corr_0
+      _sq_1_corr_1: decimal <- field _sq_1_corr_1
+    Generated [ResultRow0]
+      City: string <- field City
+
+  Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [End:cte0]
+    PhaseBoundary [From]
+    SourceScan [a: BasicEntity] -> aRows
+    SourceScan [b: BasicEntity] -> cte0_bRows
+    CreateShapeRows [result: ResultRow0 from ResultRow0]
+    CreateKeySet [_sq_1Keys: ValueTuple<int, string, decimal>]
+    ChunkedForEach [b in cte0_bRows]
+      KeySetAdd [_sq_1Keys += (1, b.Country, b.Population)]
+    PhaseBoundary [Select]
+    ChunkedForEach [a in aRows]
+      KeySetProbe [_sq_1Keys[(1, a.Country, a.Population)]]
+        AppendShape [result <- ResultRow0(City: a.City)]
+    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
+*/
+
+// === Generated C# ===
+
+// === SyntaxTree:  ===
+namespace GeneratedSample_Q144_CorrelatedCompositeValueTypeSubquery
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
+    using Musoq.Schema;
+    using Musoq.Schema.Optimization;
+    using Musoq.Evaluator;
+    using Musoq.Evaluator.Tables;
+    using Musoq.Evaluator.Helpers;
+    using Musoq.Evaluator.Runtime;
+    using Musoq.Schema.DataSources;
+    using System.Linq;
+
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable, ITypedParameterizedRunnable
+    {
+        private static readonly Column[] __columns_compiled_result_2 = new Column[]
+        {
+            new Column("City", typeof(string), 0)
+        };
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 0), new Column("Country", typeof(string), 1), new Column("Population", typeof(decimal), 2) });
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_1 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Country", typeof(string), 0), new Column("Population", typeof(decimal), 1) });
+        public ILogger Logger { get; set; }
+        public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
+        public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();
+        public ISchemaProvider Provider { get; set; }
+        public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; }
+        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; }
+        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; }
+        public TypedParameterSnapshot TypedParameters { get; set; } = TypedParameterSnapshot.Empty;
+
+        public event DataSourceEventHandler DataSourceProgress;
+        public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
+        public Table Run(CancellationToken token)
+        {
+            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+        }
+
+        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        {
+            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
+            {
+                yield return __musoqShapeRow;
+            }
+        }
+
+        private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        {
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
+            try
+            {
+                var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
+                ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
+                var __musoqFinalShapeRows = new List<ResultRow0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+                try
+                {
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled:cte0", QueryPhase.End);
+                }
+
+                OnPhaseChanged("compiled", QueryPhase.From);
+                var __aSchema = provider.GetSchema("#A");
+                var aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__aSchema, "entities", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(aRowsSource.Chunks, __musoqProgressContext, "a:1") : aRowsSource.Chunks;
+                var __cte0_bSchema = provider.GetSchema("#B");
+                var cte0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte0_bSchema, "entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                var cte0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_bRowsSource.Chunks, __musoqProgressContext, "b:2") : cte0_bRowsSource.Chunks;
+                var _sq_1Keys = new HashSet<ValueTuple<int, string, decimal>>();
+                foreach (var bChunk in cte0_bRows)
+                {
+                    if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
+                    {
+                        if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] bChunkViewArray)
+                        {
+                            int bChunkViewOffset = bChunkView.Offset;
+                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                            {
+                                if ((bIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var b = bChunkViewArray[bChunkViewOffset + bIndex];
+                                var key0 = 1;
+                                var key1 = b.Country;
+                                var key2 = b.Population;
+                                if (key1 == null)
+                                    continue;
+                                var key = (key0, key1, key2);
+                                _sq_1Keys.Add(key);
+                            }
+
+                            continue;
+                        }
+
+                        if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkViewList)
+                        {
+                            int bChunkViewOffset = bChunkView.Offset;
+                            for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
+                            {
+                                if ((bIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var b = bChunkViewList[bChunkViewOffset + bIndex];
+                                var key0 = 1;
+                                var key1 = b.Country;
+                                var key2 = b.Population;
+                                if (key1 == null)
+                                    continue;
+                                var key = (key0, key1, key2);
+                                _sq_1Keys.Add(key);
+                            }
+
+                            continue;
+                        }
+                    }
+
+                    for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
+                    {
+                        if ((bIndex & 1023) == 0)
+                        {
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        var b = bChunk[bIndex];
+                        var key0 = 1;
+                        var key1 = b.Country;
+                        var key2 = b.Population;
+                        if (key1 == null)
+                            continue;
+                        var key = (key0, key1, key2);
+                        _sq_1Keys.Add(key);
+                    }
+                }
+
+                OnPhaseChanged("compiled", QueryPhase.Select);
+                foreach (var aChunk in aRows)
+                {
+                    if (aChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkView)
+                    {
+                        if (aChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] aChunkViewArray)
+                        {
+                            int aChunkViewOffset = aChunkView.Offset;
+                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            {
+                                if ((aIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var a = aChunkViewArray[aChunkViewOffset + aIndex];
+                                var key0 = 1;
+                                var key1 = a.Country;
+                                var key2 = a.Population;
+                                var key = (key0, key1, key2);
+                                if (key1 != null && _sq_1Keys.Contains(key))
+                                {
+                                    __musoqFinalShapeRows.Add(new ResultRow0(a.City));
+                                }
+                            }
+
+                            continue;
+                        }
+
+                        if (aChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> aChunkViewList)
+                        {
+                            int aChunkViewOffset = aChunkView.Offset;
+                            for (int aIndex = 0, aIndexCount = aChunkView.Count; aIndex < aIndexCount; ++aIndex)
+                            {
+                                if ((aIndex & 1023) == 0)
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                }
+
+                                var a = aChunkViewList[aChunkViewOffset + aIndex];
+                                var key0 = 1;
+                                var key1 = a.Country;
+                                var key2 = a.Population;
+                                var key = (key0, key1, key2);
+                                if (key1 != null && _sq_1Keys.Contains(key))
+                                {
+                                    __musoqFinalShapeRows.Add(new ResultRow0(a.City));
+                                }
+                            }
+
+                            continue;
+                        }
+                    }
+
+                    for (int aIndex = 0, aIndexCount = aChunk.Count; aIndex < aIndexCount; ++aIndex)
+                    {
+                        if ((aIndex & 1023) == 0)
+                        {
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        var a = aChunk[aIndex];
+                        var key0 = 1;
+                        var key1 = a.Country;
+                        var key2 = a.Population;
+                        var key = (key0, key1, key2);
+                        if (key1 != null && _sq_1Keys.Contains(key))
+                        {
+                            __musoqFinalShapeRows.Add(new ResultRow0(a.City));
+                        }
+                    }
+                }
+
+                return __musoqFinalShapeRows;
+            }
+            finally
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            }
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private void OnDataSourceProgress(object sender, DataSourceEventArgs e)
+        {
+            DataSourceProgress?.Invoke(this, e);
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private void OnPhaseChanged(string queryId, QueryPhase phase)
+        {
+            PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
+        }
+
+        private sealed class ResultRow0 : Row
+        {
+            public ResultRow0(string __value0)
+            {
+                City = __value0;
+            }
+
+            public string City { get; private set; }
+            public override int Count => 1;
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<string, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, string>(this.City),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "City" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.City, ref visitor);
+            }
+        }
+    }
+}

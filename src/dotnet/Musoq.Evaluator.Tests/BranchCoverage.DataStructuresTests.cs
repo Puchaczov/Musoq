@@ -16,78 +16,18 @@ public partial class BranchCoverageImprovementTests : GenericEntityTestBase
         return contexts;
     }
 
-    #region IndexedList / Table Contains(key, value) Bug Fix Verification
-
-    [TestMethod]
-    public void IndexedList_ContainsWithKey_WhenKeyExistsAndValueMatches_ShouldReturnTrue()
-    {
-        var list = new TestIndexedList();
-        var row = new TestRow([42]);
-        var key = new Key([42], [0]);
-        list.AddRowWithIndex(key, row);
-
-        var result = list.Contains(key, row);
-
-        Assert.IsTrue(result);
-    }
-
-    [TestMethod]
-    public void IndexedList_ContainsWithKey_WhenKeyExistsButValueDiffers_ShouldReturnFalse()
-    {
-        var list = new TestIndexedList();
-        var row = new TestRow([42]);
-        var key = new Key([42], [0]);
-        list.AddRowWithIndex(key, row);
-
-        var differentRow = new TestRow([99]);
-        var result = list.Contains(key, differentRow);
-
-        Assert.IsFalse(result);
-    }
-
-    [TestMethod]
-    public void IndexedList_ContainsWithKey_WhenKeyDoesNotExist_ShouldReturnFalse()
-    {
-        var list = new TestIndexedList();
-        var row = new TestRow([42]);
-        var key = new Key([42], [0]);
-        list.AddRowWithIndex(key, row);
-
-        var missingKey = new Key([999], [0]);
-        var result = list.Contains(missingKey, row);
-
-        Assert.IsFalse(result);
-    }
-
-    [TestMethod]
-    public void IndexedList_ContainsWithKey_MultipleRows_ShouldFindMatchingRow()
-    {
-        var list = new TestIndexedList();
-        var key = new Key([20], [0]);
-        list.AddRowWithIndex(key, new TestRow([10]));
-        list.AddRowWithIndex(key, new TestRow([20]));
-        list.AddRowWithIndex(key, new TestRow([30]));
-
-        var targetRow = new TestRow([20]);
-        var result = list.Contains(key, targetRow);
-
-        Assert.IsTrue(result);
-    }
-
-    #endregion
-
     #region IndexedList TryGetIndexedValues
 
     [TestMethod]
-    public void Table_TryGetIndexedValues_WhenKeyDoesNotExist_ShouldReturnFalseWithEmptyList()
+    public void TypedQuery_Lookup_WhenKeyDoesNotExist_ShouldReturnFalseWithEmptyList()
     {
-        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]) { new TestRow([42]) };
-
-        var key = new Key([999], [0]);
-        var found = table.TryGetIndexedValues(key, out var values);
-
-        Assert.IsFalse(found);
-        Assert.IsEmpty(values);
+        const string query = "select s.Value as Value from #schema.first() s where s.Value = 999";
+        using var compiled = CreateAndRunVirtualMachine<NativeLookupInput>(query, new[] { new NativeLookupInput(1) });
+        using var table = compiled.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));
+        Assert.AreEqual(0, table.Count);
+        foreach (var row in table)
+            Assert.Fail($"Unexpected row: {row.GetValue<int>(0)}");
     }
 
     #endregion
@@ -100,7 +40,7 @@ public partial class BranchCoverageImprovementTests : GenericEntityTestBase
         var table = new Table("Test", [new Column("Col1", typeof(int), 0)]) { new TestRow([42]) };
 
         var searchRow = new TestRow([42]);
-        var result = table.Contains(searchRow, (a, b) => (int)a[0] == (int)b[0]);
+        var result = table.Contains(searchRow, (a, b) => (int)a.ReadValue(0) == (int)b.ReadValue(0));
 
         Assert.IsTrue(result);
     }
@@ -111,7 +51,7 @@ public partial class BranchCoverageImprovementTests : GenericEntityTestBase
         var table = new Table("Test", [new Column("Col1", typeof(int), 0)]) { new TestRow([42]) };
 
         var searchRow = new TestRow([99]);
-        var result = table.Contains(searchRow, (a, b) => (int)a[0] == (int)b[0]);
+        var result = table.Contains(searchRow, (a, b) => (int)a.ReadValue(0) == (int)b.ReadValue(0));
 
         Assert.IsFalse(result);
     }
@@ -138,42 +78,6 @@ public partial class BranchCoverageImprovementTests : GenericEntityTestBase
     }
 
     [TestMethod]
-    public void Row_Equals_BothNullValues_ShouldBeEqual()
-    {
-        var row1 = new TestRow([null!, "test"]);
-        var row2 = new TestRow([null!, "test"]);
-
-        Assert.IsTrue(row1.Equals(row2));
-    }
-
-    [TestMethod]
-    public void Row_Equals_OneNullOneNotNull_ShouldNotBeEqual()
-    {
-        var row1 = new TestRow([null!, "test"]);
-        var row2 = new TestRow([1, "test"]);
-
-        Assert.IsFalse(row1.Equals(row2));
-    }
-
-    [TestMethod]
-    public void Row_Equals_FirstNullSecondNotNull_ShouldNotBeEqual()
-    {
-        var row1 = new TestRow([1, "test"]);
-        var row2 = new TestRow([null!, "test"]);
-
-        Assert.IsFalse(row1.Equals(row2));
-    }
-
-    [TestMethod]
-    public void Row_Equals_DifferentValues_ShouldNotBeEqual()
-    {
-        var row1 = new TestRow([1, "test"]);
-        var row2 = new TestRow([2, "test"]);
-
-        Assert.IsFalse(row1.Equals(row2));
-    }
-
-    [TestMethod]
     public void Row_Equals_ObjectOverload_WithNonRow_ShouldReturnFalse()
     {
         var row = new TestRow([1, 2]);
@@ -182,47 +86,11 @@ public partial class BranchCoverageImprovementTests : GenericEntityTestBase
     }
 
     [TestMethod]
-    public void Row_GetHashCode_ShouldBeConsistentForEqualRows()
-    {
-        var row1 = new TestRow([1, "test"]);
-        var row2 = new TestRow([1, "test"]);
-
-        Assert.AreEqual(row1.GetHashCode(), row2.GetHashCode());
-    }
-
-    [TestMethod]
     public void Row_GetHashCode_WithNullValues_ShouldNotThrow()
     {
         var row = new TestRow([null!, 1, null!]);
 
         row.GetHashCode();
-    }
-
-    [TestMethod]
-    public void Row_CheckWithKey_WhenBothNullValues_ShouldMatch()
-    {
-        var row = new TestRow([null!, "test"]);
-        var key = new Key([null], [0]);
-
-        Assert.IsTrue(row.CheckWithKey(key));
-    }
-
-    [TestMethod]
-    public void Row_CheckWithKey_WhenRowNullKeyNotNull_ShouldNotMatch()
-    {
-        var row = new TestRow([null!, "test"]);
-        var key = new Key([42], [0]);
-
-        Assert.IsFalse(row.CheckWithKey(key));
-    }
-
-    [TestMethod]
-    public void Row_CheckWithKey_WhenRowNotNullKeyNull_ShouldNotMatch()
-    {
-        var row = new TestRow([42, "test"]);
-        var key = new Key([null], [0]);
-
-        Assert.IsFalse(row.CheckWithKey(key));
     }
 
     #endregion
@@ -352,107 +220,6 @@ public partial class BranchCoverageImprovementTests : GenericEntityTestBase
 
     #endregion
 
-    #region Key Equality Branch Coverage
-
-    [TestMethod]
-    public void Key_Equals_SameReference_ShouldReturnTrue()
-    {
-        var key = new Key([1], [0]);
-
-        Assert.IsTrue(key.Equals(key));
-    }
-
-    [TestMethod]
-    public void Key_Equals_Null_ShouldReturnFalse()
-    {
-        var key = new Key([1], [0]);
-
-        Assert.IsFalse(key.Equals(null));
-    }
-
-    [TestMethod]
-    public void Key_Equals_DifferentColumnsLength_ShouldReturnFalse()
-    {
-        var key1 = new Key([1], [0]);
-        var key2 = new Key([1, 2], [0, 1]);
-
-        Assert.IsFalse(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void Key_Equals_BothNullValues_ShouldBeEqual()
-    {
-        var key1 = new Key([null], [0]);
-        var key2 = new Key([null], [0]);
-
-        Assert.IsTrue(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void Key_Equals_OneNullValue_ShouldNotBeEqual()
-    {
-        var key1 = new Key([null], [0]);
-        var key2 = new Key([1], [0]);
-
-        Assert.IsFalse(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void Key_Equals_OtherValueNull_ShouldNotBeEqual()
-    {
-        var key1 = new Key([1], [0]);
-        var key2 = new Key([null], [0]);
-
-        Assert.IsFalse(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void Key_Equals_ObjectOverload_SameKey_ShouldReturnTrue()
-    {
-        var key1 = new Key([1], [0]);
-        object key2 = new Key([1], [0]);
-
-        Assert.IsTrue(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void Key_Equals_ObjectOverload_Null_ShouldReturnFalse()
-    {
-        var key = new Key([1], [0]);
-
-        Assert.IsFalse(key.Equals((object?)null));
-    }
-
-    [TestMethod]
-    public void Key_Equals_ObjectOverload_DifferentType_ShouldReturnFalse()
-    {
-        var key = new Key([1], [0]);
-
-        Assert.IsFalse(key.Equals("not a key"));
-    }
-
-    [TestMethod]
-    public void Key_GetHashCode_ShouldBeConsistent()
-    {
-        var key1 = new Key([1, "test"], [0, 1]);
-        var key2 = new Key([1, "test"], [0, 1]);
-
-        Assert.AreEqual(key1.GetHashCode(), key2.GetHashCode());
-    }
-
-    [TestMethod]
-    public void Key_ToString_ShouldFormatCorrectly()
-    {
-        var key = new Key([42, "abc"], [0, 1]);
-
-        var str = key.ToString();
-
-        Assert.Contains("42", str);
-        Assert.Contains("abc", str);
-    }
-
-    #endregion
-
     #region Table Operations Branch Coverage
 
     [TestMethod]
@@ -496,6 +263,22 @@ public partial class BranchCoverageImprovementTests : GenericEntityTestBase
         var columns = table.Columns.ToList();
 
         Assert.HasCount(2, columns);
+    }
+
+    [TestMethod]
+    public void Table_DuplicateLabelsWithDifferentTypes_ShouldPreserveOrdinals()
+    {
+        using var table = new Table("Test", [
+            new Column("Id", typeof(int), 0),
+            new Column("Id", typeof(string), 1)
+        ]);
+        table.AddDirect(new TestRow([7, "seven"]));
+
+        var columns = table.Columns.ToArray();
+        Assert.AreEqual(typeof(int), columns[0].ColumnType);
+        Assert.AreEqual(typeof(string), columns[1].ColumnType);
+        Assert.AreEqual(7, table[0].ReadValue(0));
+        Assert.AreEqual("seven", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -560,121 +343,7 @@ public partial class BranchCoverageImprovementTests : GenericEntityTestBase
         Assert.IsTrue(row1.Equals((object)row2));
     }
 
-    [TestMethod]
-    public void Row_FitsTheIndex_ShouldDelegateToDoesRowMatchKey()
-    {
-        var row = new TestRow([10]);
-        var key = new Key([10], [0]);
-
-        Assert.IsTrue(row.FitsTheIndex(key));
-    }
-
-    [TestMethod]
-    public void Row_FitsTheIndex_WhenNoMatch_ShouldReturnFalse()
-    {
-        var row = new TestRow([10]);
-        var key = new Key([99], [0]);
-
-        Assert.IsFalse(row.FitsTheIndex(key));
-    }
-
     #endregion
 
-    #region IndexedList Additional Branch Coverage
-
-    [TestMethod]
-    public void IndexedList_ContainsValue_EmptyList_ShouldReturnFalse()
-    {
-        var list = new TestIndexedList();
-
-        Assert.IsFalse(list.Contains(new TestRow([1])));
-    }
-
-    [TestMethod]
-    public void IndexedList_ContainsWithComparer_EmptyList_ShouldReturnFalse()
-    {
-        var list = new TestIndexedList();
-
-        Assert.IsFalse(list.Contains(new TestRow([1]), (_, _) => true));
-    }
-
-    [TestMethod]
-    public void IndexedList_Indexer_Int_ShouldReturnRow()
-    {
-        var list = new TestIndexedList();
-        var row = new TestRow([42]);
-        var key = new Key([42], [0]);
-        list.AddRowWithIndex(key, row);
-
-        Assert.AreEqual(row, list[0]);
-    }
-
-    [TestMethod]
-    public void IndexedList_Indexer_Key_ShouldReturnMatchingRows()
-    {
-        var list = new TestIndexedList();
-        var key = new Key([42], [0]);
-        var row1 = new TestRow([42]);
-        var row2 = new TestRow([42]);
-        list.AddRowWithIndex(key, row1);
-        list.AddRowWithIndex(key, row2);
-
-        var results = list[key].ToArray();
-
-        Assert.HasCount(2, results);
-    }
-
-    [TestMethod]
-    public void IndexedList_ContainsKey_WhenKeyExists_ShouldReturnTrue()
-    {
-        var list = new TestIndexedList();
-        var key = new Key([1], [0]);
-        list.AddRowWithIndex(key, new TestRow([1]));
-
-        Assert.IsTrue(list.ContainsKey(key));
-    }
-
-    [TestMethod]
-    public void IndexedList_ContainsKey_WhenKeyMissing_ShouldReturnFalse()
-    {
-        var list = new TestIndexedList();
-
-        Assert.IsFalse(list.ContainsKey(new Key([999], [0])));
-    }
-
-    [TestMethod]
-    public void IndexedList_TryGetIndexedValues_WhenKeyExists_ShouldReturnRows()
-    {
-        var list = new TestIndexedList();
-        var key = new Key([42], [0]);
-        list.AddRowWithIndex(key, new TestRow([42]));
-
-        var found = list.TryGetIndexedValues(key, out var values);
-
-        Assert.IsTrue(found);
-        Assert.HasCount(1, values);
-    }
-
-    [TestMethod]
-    public void IndexedList_TryGetIndexedValues_WhenKeyMissing_ShouldReturnFalse()
-    {
-        var list = new TestIndexedList();
-
-        var found = list.TryGetIndexedValues(new Key([999], [0]), out _);
-
-        Assert.IsFalse(found);
-    }
-
-    [TestMethod]
-    public void IndexedList_Count_ShouldReturnRowCount()
-    {
-        var list = new TestIndexedList();
-        var key = new Key([1], [0]);
-        list.AddRowWithIndex(key, new TestRow([1]));
-        list.AddRowWithIndex(key, new TestRow([2]));
-
-        Assert.AreEqual(2, list.Count);
-    }
-
-    #endregion
+    public sealed record NativeLookupInput(int Value);
 }

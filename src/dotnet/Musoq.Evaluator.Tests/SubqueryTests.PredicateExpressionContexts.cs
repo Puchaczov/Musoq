@@ -29,7 +29,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("HasMatch", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -59,8 +59,8 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.City", typeof(string)));
+            ("City", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["PARIS", "LYON"],
@@ -90,7 +90,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("RankInCountry", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -115,7 +115,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Country", typeof(string)),
+            ("Country", typeof(string)),
             ("CityCount", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -161,7 +161,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("BiggerThanAny", typeof(bool)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -186,7 +186,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("MissingSpain", typeof(bool)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -215,7 +215,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("HasNoCountryMatch", typeof(bool)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -243,7 +243,7 @@ public partial class SubqueryTests
         var table = CreateAndRunVirtualMachine(query, CreatePredicateContextSources()).Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("BiggerThanAny", typeof(bool)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,

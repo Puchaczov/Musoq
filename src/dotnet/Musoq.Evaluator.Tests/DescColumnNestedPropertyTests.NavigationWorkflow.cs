@@ -30,7 +30,7 @@ public partial class DescColumnNestedPropertyTests
         var table1 = vm1.Run(TestContext.CancellationToken);
 
 
-        var topLevelColumns = table1.Select(row => (string)row[0]).ToList();
+        var topLevelColumns = table1.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.IsTrue(topLevelColumns.Any(c => c.Equals("Self", StringComparison.OrdinalIgnoreCase)),
             "Top-level desc should show Self column");
 
@@ -39,7 +39,7 @@ public partial class DescColumnNestedPropertyTests
         var vm2 = CreateAndRunVirtualMachine(query2, sources);
         var table2 = vm2.Run(TestContext.CancellationToken);
 
-        var selfProperties = table2.Select(row => (string)row[0]).ToList();
+        var selfProperties = table2.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.IsTrue(selfProperties.Any(c => c.Equals("Children", StringComparison.OrdinalIgnoreCase)),
             "Describing Self should show Children property");
         Assert.IsTrue(selfProperties.Any(c => c.Equals("Array", StringComparison.OrdinalIgnoreCase)),
@@ -50,7 +50,7 @@ public partial class DescColumnNestedPropertyTests
         var vm3 = CreateAndRunVirtualMachine(query3, sources);
         var table3 = vm3.Run(TestContext.CancellationToken);
 
-        var childrenProperties = table3.Select(row => (string)row[0]).ToList();
+        var childrenProperties = table3.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.IsTrue(childrenProperties.Any(c => c.Equals("Name", StringComparison.OrdinalIgnoreCase)),
             "Describing Self.Children should show Name property of BasicEntity");
         Assert.IsTrue(childrenProperties.Any(c => c.Equals("Id", StringComparison.OrdinalIgnoreCase)),
@@ -73,7 +73,7 @@ public partial class DescColumnNestedPropertyTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var properties = table.Select(row => (string)row[0]).ToList();
+        var properties = table.Select(row => (string)row.ReadValue(0)).ToList();
 
 
         Assert.IsTrue(properties.Any(c => c.Equals("Children", StringComparison.OrdinalIgnoreCase)),
@@ -97,7 +97,7 @@ public partial class DescColumnNestedPropertyTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var properties = table.Select(row => (string)row[0]).ToList();
+        var properties = table.Select(row => (string)row.ReadValue(0)).ToList();
 
 
         Assert.IsTrue(properties.Any(c => c.Equals("Name", StringComparison.OrdinalIgnoreCase)),
@@ -146,7 +146,7 @@ public partial class DescColumnNestedPropertyTests
         var table2 = vm2.Run(TestContext.CancellationToken);
         Assert.IsGreaterThan(0, table2.Count, "Should describe complex object for exploration");
 
-        var properties = table2.Select(row => (string)row[0]).ToList();
+        var properties = table2.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.IsTrue(properties.Any(c => c.Equals("Children", StringComparison.OrdinalIgnoreCase)),
             "Describing complex object should reveal array properties for further navigation");
 

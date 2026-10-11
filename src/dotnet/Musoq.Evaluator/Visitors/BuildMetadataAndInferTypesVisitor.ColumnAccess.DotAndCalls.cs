@@ -14,6 +14,11 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var exp = PopSemanticNode(VisitorOperationNames.VisitDotNodeExpression);
         var root = PopSemanticNode(VisitorOperationNames.VisitDotNodeRoot);
+        if (StructuralProjectionBinding.Dot(root, exp, node) is { } structural)
+        {
+            PushSemanticNode(structural);
+            return;
+        }
 
         // A reported child-binding error is represented by a node with no
         // return type. Preserve the parent shape so traversal cannot turn the
@@ -81,18 +86,12 @@ public partial class BuildMetadataAndInferTypesVisitor
                                         !string.IsNullOrEmpty(dotRootCheck.IntendedTypeName)));
 
 
-        var rootIntendedTypeName = root switch
-        {
-            AccessColumnNode accessColRoot => accessColRoot.IntendedTypeName,
-            AccessObjectArrayNode arrayRoot => arrayRoot.IntendedTypeName,
-            DotNode dotRoot => dotRoot.IntendedTypeName,
-            _ => null
-        };
+        var rootIntendedTypeName = InterpretationPropertyBinding.GetIntendedTypeName(root);
 
 
         if (root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
-            newNode = new DotNode(root, exp, node.IsTheMostInner, string.Empty, exp.ReturnType);
+            newNode = InterpretationPropertyBinding.BindDynamicDotNode(root, exp, node, ResolveSchemaFieldFromIntendedTypeName);
         }
 
         else if (isNestedSchemaReference)
@@ -148,7 +147,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             }
             else if (exp is IdentifierNode identifierNode)
             {
-                var hasProperty = root.ReturnType.GetProperty(identifierNode.Name) != null;
+                var hasProperty = _columnPropertyBindingService.TryResolveTypedProperty(
+                    root.ReturnType, identifierNode.Name, out _) != null;
 
                 if (!hasProperty)
                 {

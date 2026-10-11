@@ -50,8 +50,8 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("c.Key", typeof(string)),
-            ("c.Value", typeof(string)));
+            ("Key", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["host", "localhost"],
@@ -111,11 +111,11 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Username", typeof(string)),
-            ("p.Uid", typeof(string)),
-            ("p.Gid", typeof(string)),
-            ("p.HomeDir", typeof(string)),
-            ("p.Shell", typeof(string)));
+            ("Username", typeof(string)),
+            ("Uid", typeof(string)),
+            ("Gid", typeof(string)),
+            ("HomeDir", typeof(string)),
+            ("Shell", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["root", "0", "0", "/root", "/bin/bash"],
@@ -169,10 +169,10 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("l.Timestamp", typeof(string)),
-            ("l.Level", typeof(string)),
-            ("l.Component", typeof(string)),
-            ("l.Message", typeof(string)));
+            ("Timestamp", typeof(string)),
+            ("Level", typeof(string)),
+            ("Component", typeof(string)),
+            ("Message", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["2024-01-05 10:30:01", "ERROR", "Database", "Connection timeout after 30s"],
@@ -223,8 +223,8 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("h.Name", typeof(string)),
-            ("h.Value", typeof(string)));
+            ("Name", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Content-Type", "application/json"],
@@ -276,10 +276,10 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("d.Id", typeof(string)),
-            ("d.Name", typeof(string)),
-            ("d.Value", typeof(string)),
-            ("d.Status", typeof(string)));
+            ("Id", typeof(string)),
+            ("Name", typeof(string)),
+            ("Value", typeof(string)),
+            ("Status", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["001", "Alpha", "100", "Active"],
@@ -329,9 +329,9 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("t.Name", typeof(string)),
-            ("t.Age", typeof(string)),
-            ("t.City", typeof(string)));
+            ("Name", typeof(string)),
+            ("Age", typeof(string)),
+            ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "30", "New York"],
@@ -385,10 +385,10 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("c.ProductId", typeof(string)),
-            ("c.ProductName", typeof(string)),
-            ("c.Price", typeof(string)),
-            ("c.Quantity", typeof(string)));
+            ("ProductId", typeof(string)),
+            ("ProductName", typeof(string)),
+            ("Price", typeof(string)),
+            ("Quantity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["P001", "Laptop", "999.99", "10"],
@@ -439,8 +439,8 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("g.Hash", typeof(string)),
-            ("g.Message", typeof(string)));
+            ("Hash", typeof(string)),
+            ("Message", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["e5f6a7b8", "Fix null pointer exception in parser"],
@@ -490,10 +490,10 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("c.Name", typeof(string)),
-            ("c.Address", typeof(string)),
-            ("c.Age", typeof(string)),
-            ("c.Salary", typeof(string)));
+            ("Name", typeof(string)),
+            ("Address", typeof(string)),
+            ("Age", typeof(string)),
+            ("Salary", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["John Smith", "123 Main St", "35", "75000"],
@@ -546,8 +546,8 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("e.Field", typeof(string)),
-            ("e.Value", typeof(string)));
+            ("Field", typeof(string)),
+            ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["From", "sender@example.com"],
@@ -601,9 +601,9 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("u.Protocol", typeof(string)),
-            ("u.Host", typeof(string)),
-            ("u.Path", typeof(string)));
+            ("Protocol", typeof(string)),
+            ("Host", typeof(string)),
+            ("Path", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["https", "api.example.com", "v1/users"],

@@ -39,12 +39,17 @@ public static partial class ExecutionExpressionConverter
         ExecutionExpression? injectedSource,
         IReadOnlyDictionary<string, RowShape> sourceShapes)
     {
+        var generatedBindings = GeneratedScalarGenericBinding.Resolve(method, arguments);
         var call = new ExecutionMethodCall(
             method,
             arguments,
             alias,
             returnType,
-            injectedSource);
+            injectedSource)
+        {
+            GeneratedGenericArguments = generatedBindings,
+            GeneratedResultTypeName = GeneratedScalarGenericBinding.ResolveResult(method, generatedBindings)
+        };
 
         return injectedSource != null &&
                IsNullableInjectedSource(injectedSource, sourceShapes)

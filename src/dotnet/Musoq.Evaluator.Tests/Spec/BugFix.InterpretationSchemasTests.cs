@@ -52,8 +52,8 @@ public class BugFixInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((short)42, table[0][1]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((short)42, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -81,8 +81,8 @@ public class BugFixInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0, table[0][0]);
-        Assert.IsNull(table[0][1]);
+        Assert.AreEqual((byte)0, table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public class BugFixInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][1]); // Val is null because TryInterpret yields null for failed check
+        Assert.IsNull(table[0].ReadValue(1)); // Val is null because TryInterpret yields null for failed check
     }
 
     #endregion
@@ -147,9 +147,9 @@ public class BugFixInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0, table[0][0]);
-        Assert.IsNull(table[0][1]);
-        Assert.IsNull(table[0][2]);
+        Assert.AreEqual((byte)0, table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
+        Assert.IsNull(table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -181,9 +181,9 @@ public class BugFixInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(10, table[0][1]);
-        Assert.AreEqual(20, Convert.ToInt32(table[0][2]));
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual(10, table[0].ReadValue(1));
+        Assert.AreEqual(20, Convert.ToInt32(table[0].ReadValue(2)));
     }
 
     /// <summary>
@@ -213,8 +213,8 @@ public class BugFixInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0, table[0][0]);
-        Assert.IsNull(table[0][1]);
+        Assert.AreEqual((byte)0, table[0].ReadValue(0));
+        Assert.IsNull(table[0].ReadValue(1));
     }
 
     #endregion
@@ -251,9 +251,9 @@ public class BugFixInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(10, table[0][0]);
-        Assert.AreEqual(30, table[0][1]);
-        Assert.AreEqual(20, Convert.ToInt32(table[0][2]));
+        Assert.AreEqual(10, table[0].ReadValue(0));
+        Assert.AreEqual(30, table[0].ReadValue(1));
+        Assert.AreEqual(20, Convert.ToInt32(table[0].ReadValue(2)));
     }
 
     /// <summary>
@@ -284,8 +284,8 @@ public class BugFixInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(42, table[0][1]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual(42, table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -313,8 +313,8 @@ public class BugFixInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)25, table[0][0]);
-        Assert.AreEqual(50, Convert.ToInt32(table[0][1]));
+        Assert.AreEqual((short)25, table[0].ReadValue(0));
+        Assert.AreEqual(50, Convert.ToInt32(table[0].ReadValue(1)));
     }
 
     #endregion

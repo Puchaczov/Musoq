@@ -36,7 +36,7 @@ public sealed class RuntimeReferenceDiscoveryEndToEndTests
 
         StringAssert.Contains(
             inspection.GeneratedCSharpCode,
-            "GetRowSource<System.Diagnostics.Process>");
+            "SourceInvocation<System.Diagnostics.Process>");
 
         using var compiled = InstanceCreator.CompileForExecution(
             query,

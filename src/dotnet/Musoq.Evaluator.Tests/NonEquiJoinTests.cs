@@ -81,9 +81,9 @@ inner join #C.entities() c on b.Population > c.Population";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B1", table[0][1]);
-        Assert.AreEqual("C1", table[0][2]);
+        Assert.AreEqual("A1", table[0].ReadValue(0));
+        Assert.AreEqual("B1", table[0].ReadValue(1));
+        Assert.AreEqual("C1", table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -116,8 +116,8 @@ inner join #B.entities() b on a.Population < b.Population";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B2", table[0][1]);
+        Assert.AreEqual("A1", table[0].ReadValue(0));
+        Assert.AreEqual("B2", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -216,8 +216,8 @@ inner join #B.entities() b on a.Population <> b.Population";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B2", table[0][1]);
+        Assert.AreEqual("A1", table[0].ReadValue(0));
+        Assert.AreEqual("B2", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -251,8 +251,8 @@ inner join #B.entities() b on a.Time > b.Time";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B1", table[0][1]);
+        Assert.AreEqual("A1", table[0].ReadValue(0));
+        Assert.AreEqual("B1", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -352,15 +352,15 @@ left join #B.entities() b on a.Population > b.Population";
 
         Assert.AreEqual(2, table.Count);
 
-        var rows = table.Select(r => (string)r[0]).ToList();
+        var rows = table.Select(r => (string)r.ReadValue(0)).ToList();
         CollectionAssert.Contains(rows, "A1");
         CollectionAssert.Contains(rows, "A2");
 
-        var a1Row = table.Single(r => (string)r[0] == "A1");
-        Assert.AreEqual("B1", a1Row[1]);
+        var a1Row = table.Single(r => (string)r.ReadValue(0) == "A1");
+        Assert.AreEqual("B1", a1Row.ReadValue(1));
 
-        var a2Row = table.Single(r => (string)r[0] == "A2");
-        Assert.IsNull(a2Row[1]);
+        var a2Row = table.Single(r => (string)r.ReadValue(0) == "A2");
+        Assert.IsNull(a2Row.ReadValue(1));
     }
 
     [TestMethod]
@@ -388,7 +388,7 @@ inner join #A.entities() b on a.Population > b.Population";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("High", table[0][0]);
-        Assert.AreEqual("Low", table[0][1]);
+        Assert.AreEqual("High", table[0].ReadValue(0));
+        Assert.AreEqual("Low", table[0].ReadValue(1));
     }
 }

@@ -12,6 +12,9 @@ internal static class TypedOutputBinder
         ArgumentNullException.ThrowIfNull(columns);
 
         var orderedColumns = columns.ToArray();
+        var tupleBinding = TypedTupleOutputBinding.Create(outputType, orderedColumns);
+        if (tupleBinding is not null)
+            return tupleBinding;
         var aliases = CreateAliasMap(orderedColumns);
         var constructorBinding = TryBindConstructor(outputType, orderedColumns, aliases);
         if (constructorBinding != null)
@@ -79,7 +82,7 @@ internal static class TypedOutputBinder
         IReadOnlyList<TypedOutputColumn> columns,
         IReadOnlyDictionary<string, TypedOutputColumn> aliases)
     {
-        if (outputType.GetConstructor(Type.EmptyTypes) == null)
+        if (!outputType.IsValueType && outputType.GetConstructor(Type.EmptyTypes) == null)
             throw new InvalidOperationException(
                 $"Typed output type '{outputType.FullName}' must expose either a matching public constructor or a public parameterless constructor.");
 
@@ -138,7 +141,7 @@ internal static class TypedOutputBinder
             : name;
     }
 
-    private static bool CanAssign(Type sourceType, Type targetType)
+    internal static bool CanAssign(Type sourceType, Type targetType)
     {
         if (targetType == typeof(object))
             return true;

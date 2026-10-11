@@ -55,8 +55,8 @@ public partial class ParallelismOutputRowsTests
         string nullKey)
     {
         var actual = table.ToDictionary(
-            row => (string?)row[0] ?? nullKey,
-            row => Convert.ToInt64(row[1]));
+            row => (string?)row.ReadValue(0) ?? nullKey,
+            row => Convert.ToInt64(row.ReadValue(1)));
 
         Assert.AreEqual(expected.Count, actual.Count);
         foreach (var pair in expected)

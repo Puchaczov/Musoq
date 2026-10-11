@@ -217,6 +217,13 @@ internal static partial class ExecutionExpressionCseFacts
 
         switch (expression)
         {
+            case ExecutionInCheck { UsesSqlNullSemantics: true } membership:
+                foreach (var occurrence in CollectHoistableOccurrences(membership.Expression, inPassThroughUnsafeContext))
+                    yield return occurrence;
+                foreach (var value in membership.Values)
+                    foreach (var occurrence in CollectHoistableOccurrences(value, true))
+                        yield return occurrence;
+                break;
             case ExecutionBinary binary:
                 var rightIsShortCircuitConditional = binary.Kind is BinaryOpKind.And or BinaryOpKind.Or;
                 foreach (var occurrence in CollectHoistableOccurrences(binary.Left, inPassThroughUnsafeContext))
@@ -392,9 +399,6 @@ internal static partial class ExecutionExpressionCseFacts
             ExecutionCoalesce coalesce => 1 + (coalesce.Expressions.Count == 0
                 ? 0
                 : coalesce.Expressions.Max(GetExpressionDepth)),
-            ExecutionCompositeKey compositeKey => 1 + (compositeKey.Parts.Count == 0
-                ? 0
-                : compositeKey.Parts.Max(GetExpressionDepth)),
             ExecutionValueTupleKey valueTupleKey => 1 + (valueTupleKey.Parts.Count == 0
                 ? 0
                 : valueTupleKey.Parts.Max(GetExpressionDepth)),

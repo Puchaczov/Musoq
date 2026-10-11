@@ -90,7 +90,7 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("c.Label", typeof(string)),
+            ("Label", typeof(string)),
             ("TotalScore", typeof(int?)),
             ("Records", typeof(long)),
             ("Rank", typeof(long)));
@@ -142,8 +142,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             binaryTable,
-            ("r.Name", typeof(string)),
-            ("r.Key", typeof(string)),
+            ("Name", typeof(string)),
+            ("Key", typeof(string)),
             ("ParsedValues", typeof(long)),
             ("Sequence", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
@@ -186,8 +186,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             textTable,
-            ("r.Name", typeof(string)),
-            ("r.Key", typeof(string)),
+            ("Name", typeof(string)),
+            ("Key", typeof(string)),
             ("ParsedValues", typeof(long)),
             ("Sequence", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
@@ -237,32 +237,32 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             binaryTable,
-            ("d.Name", typeof(string)),
-            ("d.ParsedFields", typeof(Dictionary<string, object?>)),
-            ("d.ErrorField", typeof(string)),
-            ("d.ErrorMessage", typeof(string)),
-            ("d.BytesConsumed", typeof(int)),
+            ("Name", typeof(string)),
+            ("ParsedFields", PartialPayloadAssertions.ColumnType(binaryTable)),
+            ("ErrorField", typeof(string)),
+            ("ErrorMessage", typeof(string)),
+            ("BytesConsumed", typeof(int)),
             ("Sequence", typeof(long)));
 
         var binaryRows = TableMaterializationTestHelper.Materialize(binaryTable);
         Assert.AreEqual(2, binaryRows.Count);
-        Assert.AreEqual("01-valid.bin", binaryRows[0][0]);
-        var binarySuccessFields = (Dictionary<string, object?>)binaryRows[0][1]!;
+        Assert.AreEqual("01-valid.bin", binaryRows[0].ReadValue(0));
+        var binarySuccessFields = PartialPayloadAssertions.CompletedValues(binaryRows[0].ReadValue(1)!);
         Assert.AreEqual((byte)1, binarySuccessFields["Id"]);
         Assert.AreEqual((short)10, binarySuccessFields["Value"]);
-        Assert.IsNull(binaryRows[0][2]);
-        Assert.IsNull(binaryRows[0][3]);
-        Assert.AreEqual(3, binaryRows[0][4]);
-        Assert.AreEqual(1L, binaryRows[0][5]);
+        Assert.IsNull(binaryRows[0].ReadValue(2));
+        Assert.IsNull(binaryRows[0].ReadValue(3));
+        Assert.AreEqual(3, binaryRows[0].ReadValue(4));
+        Assert.AreEqual(1L, binaryRows[0].ReadValue(5));
 
-        Assert.AreEqual("02-truncated.bin", binaryRows[1][0]);
-        var binaryFailureFields = (Dictionary<string, object?>)binaryRows[1][1]!;
+        Assert.AreEqual("02-truncated.bin", binaryRows[1].ReadValue(0));
+        var binaryFailureFields = PartialPayloadAssertions.CompletedValues(binaryRows[1].ReadValue(1)!);
         Assert.AreEqual((byte)2, binaryFailureFields["Id"]);
         Assert.IsFalse(binaryFailureFields.ContainsKey("Value"));
-        Assert.AreEqual("Value", binaryRows[1][2]);
-        StringAssert.Contains((string)binaryRows[1][3]!, "ISE0001");
-        Assert.AreEqual(1, binaryRows[1][4]);
-        Assert.AreEqual(2L, binaryRows[1][5]);
+        Assert.AreEqual("Value", binaryRows[1].ReadValue(2));
+        StringAssert.Contains((string)binaryRows[1].ReadValue(3)!, "ISE0001");
+        Assert.AreEqual(1, binaryRows[1].ReadValue(4));
+        Assert.AreEqual(2L, binaryRows[1].ReadValue(5));
 
         const string textQuery = """
             text Record {
@@ -302,32 +302,32 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             textTable,
-            ("d.Name", typeof(string)),
-            ("d.ParsedFields", typeof(Dictionary<string, object?>)),
-            ("d.ErrorField", typeof(string)),
-            ("d.ErrorMessage", typeof(string)),
-            ("d.BytesConsumed", typeof(int)),
+            ("Name", typeof(string)),
+            ("ParsedFields", PartialPayloadAssertions.ColumnType(textTable)),
+            ("ErrorField", typeof(string)),
+            ("ErrorMessage", typeof(string)),
+            ("BytesConsumed", typeof(int)),
             ("Sequence", typeof(long)));
 
         var textRows = TableMaterializationTestHelper.Materialize(textTable);
         Assert.AreEqual(2, textRows.Count);
-        Assert.AreEqual("01-valid.txt", textRows[0][0]);
-        var textSuccessFields = (Dictionary<string, object?>)textRows[0][1]!;
+        Assert.AreEqual("01-valid.txt", textRows[0].ReadValue(0));
+        var textSuccessFields = PartialPayloadAssertions.CompletedValues(textRows[0].ReadValue(1)!);
         Assert.AreEqual("1", textSuccessFields["Id"]);
         Assert.AreEqual("abc", textSuccessFields["Value"]);
-        Assert.IsNull(textRows[0][2]);
-        Assert.IsNull(textRows[0][3]);
-        Assert.AreEqual(5, textRows[0][4]);
-        Assert.AreEqual(1L, textRows[0][5]);
+        Assert.IsNull(textRows[0].ReadValue(2));
+        Assert.IsNull(textRows[0].ReadValue(3));
+        Assert.AreEqual(5, textRows[0].ReadValue(4));
+        Assert.AreEqual(1L, textRows[0].ReadValue(5));
 
-        Assert.AreEqual("02-truncated.txt", textRows[1][0]);
-        var textFailureFields = (Dictionary<string, object?>)textRows[1][1]!;
+        Assert.AreEqual("02-truncated.txt", textRows[1].ReadValue(0));
+        var textFailureFields = PartialPayloadAssertions.CompletedValues(textRows[1].ReadValue(1)!);
         Assert.AreEqual("2", textFailureFields["Id"]);
         Assert.IsFalse(textFailureFields.ContainsKey("Value"));
-        Assert.AreEqual("Value", textRows[1][2]);
-        StringAssert.Contains((string)textRows[1][3]!, "ISE0001");
-        Assert.AreEqual(2, textRows[1][4]);
-        Assert.AreEqual(2L, textRows[1][5]);
+        Assert.AreEqual("Value", textRows[1].ReadValue(2));
+        StringAssert.Contains((string)textRows[1].ReadValue(3)!, "ISE0001");
+        Assert.AreEqual(2, textRows[1].ReadValue(4));
+        Assert.AreEqual(2L, textRows[1].ReadValue(5));
     }
 
     [TestMethod]

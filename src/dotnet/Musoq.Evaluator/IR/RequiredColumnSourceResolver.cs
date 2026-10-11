@@ -22,13 +22,13 @@ internal static class RequiredColumnSourceResolver
             return columnName;
 
         var exactColumn = source.OutputColumns.FirstOrDefault(output =>
-            string.Equals(output, columnName, StringComparison.OrdinalIgnoreCase));
+            string.Equals(output, columnName, StringComparison.Ordinal));
         if (exactColumn != null)
             return exactColumn;
 
         var rootColumnName = GetRootColumnName(columnName);
         return source.OutputColumns.FirstOrDefault(output =>
-            string.Equals(output, rootColumnName, StringComparison.OrdinalIgnoreCase));
+            string.Equals(output, rootColumnName, StringComparison.Ordinal));
     }
 
     private static string GetRootColumnName(string columnName)

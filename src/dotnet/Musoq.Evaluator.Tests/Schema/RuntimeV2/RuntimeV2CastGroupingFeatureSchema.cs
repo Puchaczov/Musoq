@@ -17,10 +17,10 @@ public sealed class RuntimeV2CastGroupingFeatureSchema(IReadOnlyList<RuntimeV2Ca
         return new RuntimeV2CastGroupingFeatureTable();
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         return EnsureSourceType<T, RuntimeV2CastGroupingFeatureEntity>(
             name,

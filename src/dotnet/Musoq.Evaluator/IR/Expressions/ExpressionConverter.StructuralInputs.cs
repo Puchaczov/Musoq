@@ -47,9 +47,13 @@ public sealed partial class ExpressionConverter
         if (descriptor?.Fields == null)
             return null;
 
-        return descriptor.Fields
+        var fieldType = descriptor.Fields
             .FirstOrDefault(field => string.Equals(field.Name, name, StringComparison.OrdinalIgnoreCase))
-            ?.Type.ClrType;
+            ?.Type;
+        if (fieldType?.Kind == StructuralTypeKind.Scalar)
+            return fieldType.CoreValueType;
+
+        return fieldType?.ClrType;
     }
 
     private static Type InferElementType(ArrayLiteralNode node)

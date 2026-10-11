@@ -21,8 +21,6 @@ internal sealed class SemanticAdvisoryPhaseCoordinator
         ArgumentNullException.ThrowIfNull(diagnosticContext);
 
         var context = new SemanticAdvisoryContext(query, metadata, diagnosticContext, sourceQuery, authoredQuery, cancellationToken);
-        ScalarSubqueryCardinalityAnalyzer.Analyze(context);
-        context.ThrowIfCancellationRequested();
         RegexPatternAdvisoryAnalyzer.Analyze(context);
         context.ThrowIfCancellationRequested();
         LikePatternAdvisoryAnalyzer.Analyze(context);

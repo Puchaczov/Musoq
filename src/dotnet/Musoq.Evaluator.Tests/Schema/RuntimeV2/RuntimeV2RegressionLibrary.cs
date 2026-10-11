@@ -3,6 +3,7 @@ using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.Tests.Schema.RuntimeV2;
 
+[LibraryExecutionDefaults(ScalarPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
 public sealed class RuntimeV2RegressionLibrary : LibraryBase
 {
     [BindableMethod]

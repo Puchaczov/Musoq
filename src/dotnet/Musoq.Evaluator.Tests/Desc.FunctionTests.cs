@@ -37,7 +37,7 @@ public partial class DescStatementTests
 
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
 
-        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
 
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(")), "Should contain library methods like 'Trim'");
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Substring(")),
@@ -53,9 +53,9 @@ public partial class DescStatementTests
 
         foreach (var row in table)
         {
-            var description = (string)row[1];
-            var category = (string)row[2];
-            var source = (string)row[3];
+            var description = (string)row.ReadValue(1);
+            var category = (string)row.ReadValue(2);
+            var source = (string)row.ReadValue(3);
             Assert.IsNotNull(description, "Description should not be null");
             Assert.IsNotNull(category, "Category should not be null");
             Assert.IsNotNull(source, "Source should not be null");
@@ -79,10 +79,10 @@ public partial class DescStatementTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var trimRow = table.FirstOrDefault(row => ((string)row[0]).Contains("Trim("));
+        var trimRow = table.FirstOrDefault(row => ((string)row.ReadValue(0)).Contains("Trim("));
         Assert.IsNotNull(trimRow, "Should have Trim method from library");
 
-        var methodSignature = (string)trimRow[0];
+        var methodSignature = (string)trimRow.ReadValue(0);
         Assert.Contains("Trim(", methodSignature, "Method should contain method signature");
         Assert.Contains(" ", methodSignature, "Method signature should include return type and method name");
     }
@@ -213,7 +213,7 @@ public partial class DescStatementTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
 
         Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalApplyAddOperator))),
             $"Should not show {nameof(LibraryBase.InternalApplyAddOperator)}");
@@ -302,16 +302,16 @@ public partial class DescStatementTests
             "Should have exactly 4 columns: Method, Description, Category, and Source");
         Assert.IsGreaterThan(0, table.Count, "Should return library methods");
 
-        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
 
 
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(")), "Should contain library methods");
 
         foreach (var row in table)
         {
-            var description = (string)row[1];
-            var category = (string)row[2];
-            var source = (string)row[3];
+            var description = (string)row.ReadValue(1);
+            var category = (string)row.ReadValue(2);
+            var source = (string)row.ReadValue(3);
             Assert.IsNotNull(description, "Description should not be null");
             Assert.IsNotNull(category, "Category should not be null");
             Assert.IsNotNull(source, "Source should not be null");
@@ -343,7 +343,7 @@ public partial class DescStatementTests
 
         Assert.IsGreaterThan(0, table.Count, "Should return at least one library method");
 
-        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")),
             "Should contain library methods");
     }
@@ -373,7 +373,7 @@ public partial class DescStatementTests
 
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
 
-        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")),
             "Should contain library methods");
     }
@@ -398,7 +398,7 @@ public partial class DescStatementTests
         Assert.AreEqual(4, table.Columns.Count(), "Should have 4 columns: Method, Description, Category, and Source");
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
 
-        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")),
             "Should contain library methods");
     }
@@ -428,7 +428,7 @@ public partial class DescStatementTests
 
         for (var i = 0; i < tableFunctionsOnly.Count; i++)
         for (var j = 0; j < tableFunctionsOnly.Columns.Count(); j++)
-            Assert.AreEqual(tableFunctionsOnly[i][j], tableFunctionsWithMethod[i][j],
+            Assert.AreEqual(tableFunctionsOnly[i].ReadValue(j), tableFunctionsWithMethod[i].ReadValue(j),
                 $"Row {i}, Col {j}: desc functions #A.entities() should produce identical output to desc functions #A");
     }
 
@@ -473,7 +473,7 @@ public partial class DescStatementTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
 
         foreach (var signature in methodSignatures)
         {
@@ -508,7 +508,7 @@ public partial class DescStatementTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
 
         foreach (var signature in methodSignatures)
             Assert.IsFalse(signature.Contains("`1") || signature.Contains("`2") || signature.Contains("`3"),
@@ -542,7 +542,7 @@ public partial class DescStatementTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
 
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("string ")),
             "Should use 'string' instead of 'String'");

@@ -58,7 +58,7 @@ internal sealed class PublicCompiledTypedProfileQuery<TOut> : ICompiledTypedProf
         remove => _runState.RemoveQueryProgress(value);
     }
 
-    public IDictionary<string, object?> Parameters => _runState.Parameters;
+    public TypedParameterValues TypedParameters => _runState.TypedParameters;
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions => _runState.ParameterDefinitions;
 

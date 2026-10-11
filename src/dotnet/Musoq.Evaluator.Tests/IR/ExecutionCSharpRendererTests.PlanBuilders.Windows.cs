@@ -1,6 +1,7 @@
 using System;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Plugins;
+using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.Tests.IR;
 
@@ -48,11 +49,14 @@ public sealed partial class ExecutionCSharpRendererTests
         {
             new ExecutionWindowOrderKey(new ExecutionFieldRead("p", "Age", typeof(int)), false)
         };
+        var loweredOrderKeys = WindowKeyShapePolicy.CreateOrderKeyArray(sharedOrderKeys.Name, orderKeys);
+        var partitionExpression = new ExecutionFieldRead("p", "Name", typeof(string));
+        var loweredPartitionKeys = WindowKeyShapePolicy.CreatePartitionKeyArray("resultWindowSumsPartitionKeys", partitionExpression);
         var frame = new ExecutionWindowFrame(
             ExecutionWindowFrameKind.Rows,
             new ExecutionWindowFrameBound(ExecutionWindowFrameBoundKind.UnboundedPreceding, 0),
             new ExecutionWindowFrameBound(ExecutionWindowFrameBoundKind.CurrentRow, 0));
-        var sumFactory = typeof(TypedWindowLibrary).GetMethod(nameof(TypedWindowLibrary.WindowRunningAge), Type.EmptyTypes) ??
+        var sumFactory = typeof(TypedWindowLibrary).GetMethod(nameof(TypedWindowLibrary.WindowRunningAge), [typeof(int)]) ??
                          throw new InvalidOperationException("WindowRunningAge method was not found.");
 
         return new ExecutionPlan(
@@ -71,7 +75,11 @@ public sealed partial class ExecutionCSharpRendererTests
                     ExecutionRankingWindowFunction.RowNumber,
                     rowNumbers,
                     null,
-                    new ExecutionWindowKeyArray(sharedOrderKeys, true)),
+                    loweredOrderKeys)
+                {
+                    LibraryGet = ExecutionClrBindingFactory.FromClr(typeof(RowNumberKernel).GetMethod(nameof(RowNumberKernel.Get))!),
+                    RequiresPeerMetadata = false
+                },
                 new ExecutionComputeOffsetWindow(
                     buffer,
                     source,
@@ -84,24 +92,22 @@ public sealed partial class ExecutionCSharpRendererTests
                     ExecutionOffsetWindowFunction.Lag,
                     lags,
                     null,
-                    new ExecutionWindowKeyArray(sharedOrderKeys, false)),
-                new ExecutionComputePluginWindow(
+                    loweredOrderKeys with { ShouldExtract = false }),
+                new ExecutionWindowAggregateKernel(
                     buffer,
                     source,
                     ExecutionRowAccessMode.Direct,
-                    new ExecutionFieldRead("p", "Name", typeof(string)),
+                    partitionExpression,
                     orderKeys,
                     new ExecutionFieldRead("p", "Age", typeof(int)),
-                    [],
-                    [],
-                    frame,
-                    sumFactory,
-                    nameof(TypedWindowLibrary.WindowRunningAge),
-                    runningAges,
                     null,
-                    new ExecutionWindowKeyArray(sharedOrderKeys, false),
+                    frame,
+                    CreateAgeKernelDescriptor(sumFactory, ExecutionWindowAggregateMode.Running),
+                    runningAges,
+                    loweredPartitionKeys,
+                    loweredOrderKeys with { ShouldExtract = false },
                     runningAgePartitions,
-                    runningAgeSortedPartitions),
+                    runningAgeSortedPartitions) { UseIntegerOrderIndex = true },
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionForEachIndexed(
                     source,
@@ -153,7 +159,7 @@ public sealed partial class ExecutionCSharpRendererTests
             0,
             [],
             sourceShape.Fields);
-        var sumFactory = typeof(TypedWindowLibrary).GetMethod(nameof(TypedWindowLibrary.WindowRunningAge), Type.EmptyTypes) ??
+        var sumFactory = typeof(TypedWindowLibrary).GetMethod(nameof(TypedWindowLibrary.WindowRunningAge), [typeof(int)]) ??
                          throw new InvalidOperationException("WindowRunningAge method was not found.");
 
         return new ExecutionPlan(
@@ -163,18 +169,16 @@ public sealed partial class ExecutionCSharpRendererTests
             [
                 new ExecutionSourceScan(source, sourceRows, sourceBinding),
                 new ExecutionMaterializeList(new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Chunks), buffer),
-                new ExecutionComputePluginWindow(
+                new ExecutionWindowAggregateKernel(
                     buffer,
                     source,
                     ExecutionRowAccessMode.Direct,
                     null,
                     [],
                     new ExecutionFieldRead("p", "Age", typeof(int)),
-                    [],
-                    [],
                     null,
-                    sumFactory,
-                    nameof(TypedWindowLibrary.WindowRunningAge),
+                    null,
+                    CreateAgeKernelDescriptor(sumFactory, ExecutionWindowAggregateMode.WholePartition),
                     runningAges,
                     null,
                     null,
@@ -199,31 +203,29 @@ public sealed partial class ExecutionCSharpRendererTests
             ]));
     }
 
-    public sealed class TypedWindowLibrary
+    private static ExecutionWindowAggregateKernelDescriptor CreateAgeKernelDescriptor(System.Reflection.MethodInfo declaration,
+        ExecutionWindowAggregateMode mode)
     {
-        public IWindowFunction<int, decimal> WindowRunningAge()
+        var kernel = AggregateKernelDescriptor.CreateForWindow(declaration);
+        return new ExecutionWindowAggregateKernelDescriptor(ExecutionWindowAggregateFunction.Library, mode,
+            typeof(int), typeof(decimal), kernel.StateType)
         {
-            return new RunningAgeWindowFunction();
-        }
+            LibraryKernel = new ExecutionAggregateKernelOperations(kernel)
+        };
+    }
 
-        private sealed class RunningAgeWindowFunction : IWindowFunction<int, decimal>
-        {
-            private decimal _sum;
+    public sealed class TypedWindowLibrary : LibraryBase
+    {
+        [WindowFunction(typeof(RunningAgeKernel), WindowEvaluationModes.Running | WindowEvaluationModes.WholePartition,
+            AggregateEmptyResultBehavior.Zero)]
+        public decimal WindowRunningAge(int value) => AggregateFunction.NotInvoked<decimal>();
+    }
 
-            public void PartitionStart()
-            {
-                _sum = 0;
-            }
-
-            public void Accumulate(int value)
-            {
-                _sum += value;
-            }
-
-            public decimal GetValue()
-            {
-                return _sum;
-            }
-        }
+    public static class RunningAgeKernel
+    {
+        public struct State { public decimal Sum; }
+        public static void Reset(ref State state) => state = default;
+        public static void Set(ref State state, int value) => state.Sum += value;
+        public static decimal Get(in State state) => state.Sum;
     }
 }

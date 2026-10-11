@@ -7,7 +7,9 @@ param(
     [switch] $AllPackages,
 
     [Parameter()]
-    [string] $OutputPath = 'artifacts/nupkgs'
+    [string] $OutputPath = 'artifacts/nupkgs',
+
+    [switch] $Offline
 )
 
 . (Join-Path $PSScriptRoot 'Release.Common.ps1')
@@ -63,6 +65,10 @@ foreach ($package in $release.Packages) {
         Write-Host "Skipping datasource ABI compatibility validation for intentional alpha release $version."
     }
     elseif ($package.IsDatasourceAbi) {
+        if ($Offline) {
+            throw "Offline release packing cannot resolve a published datasource ABI baseline for '$($package.PackageId)'."
+        }
+
         $baselineVersion = Get-DatasourceAbiBaselineVersion `
             -PackageId $package.PackageId `
             -Version $version
@@ -92,6 +98,10 @@ foreach ($package in $release.Packages) {
 
     if ($restoreArguments.Count -gt 0) {
         Invoke-ReleaseCommand -FilePath 'dotnet' -Arguments $restoreArguments
+    }
+
+    if ($Offline) {
+        $packArguments += '--no-restore'
     }
 
     Invoke-ReleaseCommand -FilePath 'dotnet' -Arguments $packArguments

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
@@ -59,9 +60,14 @@ public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpr
         if (HasCollectedFieldAtPosition(node.FieldOrder))
             return;
 
-        var returnType = node.ReturnType ??
-                         throw new InvalidOperationException($"Select field '{node.FieldName}' has no inferred return type.");
+        var returnType = ResolveOutputType(node);
         var enumType = _enumTypeResolver?.Invoke(node.Expression);
+        if (StructuralProjectionColumns.Describe(node.Expression) is { Kind: not Musoq.Schema.StructuralInputs.StructuralTypeKind.Scalar } structuralShape)
+        {
+            _collectedFieldNames.Add(new StructuralProjectionColumn(GetCteOutputColumnName(node), node.FieldOrder, structuralShape));
+            _fieldNamesCacheValid = false;
+            return;
+        }
         _collectedFieldNames.Add(enumType == null
             ? new SchemaColumn(GetCteOutputColumnName(node), node.FieldOrder, returnType)
             : new SchemaColumn(
@@ -81,6 +87,17 @@ public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpr
         return node.Expression is AccessColumnNode accessColumn
             ? accessColumn.Name
             : node.FieldName;
+    }
+
+    private static Type ResolveOutputType(FieldNode node)
+    {
+        if (node.ReturnType is { } returnType)
+            return returnType;
+
+        if (node.Expression is RecordLiteralNode or ArrayLiteralNode)
+            return new ExpressionConverter().Convert(node.Expression).ReturnType;
+
+        throw new InvalidOperationException($"Select field '{node.FieldName}' has no inferred return type.");
     }
 
     private bool HasCollectedFieldAtPosition(int position)

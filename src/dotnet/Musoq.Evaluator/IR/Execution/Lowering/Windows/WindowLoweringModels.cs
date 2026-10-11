@@ -60,7 +60,7 @@ internal sealed record WindowRegistrationBuildResult(
     WindowRegistration? Registration,
     ExecutionRankingWindowFunction? RankingFunction,
     ExecutionOffsetWindowFunction? OffsetFunction,
-    MethodInfo? PluginFactory,
+    MethodInfo? SqlDeclaration,
     string UnsupportedReason)
 {
     public static WindowRegistrationBuildResult SuccessRanking(

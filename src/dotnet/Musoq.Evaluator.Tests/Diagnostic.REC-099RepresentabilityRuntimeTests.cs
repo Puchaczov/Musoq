@@ -18,8 +18,8 @@ public sealed class DiagnosticREC099RepresentabilityRuntimeTests : GenericEntity
         Assert.HasCount(1, table);
         CollectionAssert.AreEqual(
             new object?[] { (short)99, (short)99, null, false },
-            table[0].Values);
-        Assert.IsFalse(table.SelectMany(static row => row.Values).Any(static value => value is Enum));
+            table[0].ReadValues());
+        Assert.IsFalse(table.SelectMany(static row => row.ReadValues()).Any(static value => value is Enum));
         var statusColumn = table.Columns.Single(static column => column.ColumnName == "Status");
         Assert.AreEqual(typeof(short), statusColumn.ColumnType);
         Assert.AreEqual(typeof(short), statusColumn.SourceReadType);

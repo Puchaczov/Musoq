@@ -27,6 +27,6 @@ public sealed partial class ScriptVariableExecutionTests
 
         Assert.AreEqual(
             expectedText,
-            Convert.ToString(table[0][0], CultureInfo.InvariantCulture));
+            Convert.ToString(table[0].ReadValue(0), CultureInfo.InvariantCulture));
     }
 }

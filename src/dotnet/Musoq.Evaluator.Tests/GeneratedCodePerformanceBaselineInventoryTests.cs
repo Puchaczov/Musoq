@@ -20,17 +20,22 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
     ];
 
     [TestMethod]
-    public void CurrentCorpus_Contains373SnapshotsAndNoGeneratedReflection()
+    public void CurrentCorpus_ContainsExpectedSnapshotsAndNoGeneratedReflection()
     {
         var files = Directory
             .EnumerateFiles(GeneratedCodeSampleArtifacts.SamplesDirectory, "*.cs")
             .ToArray();
 
-        Assert.AreEqual(373, files.Length);
-        Assert.AreEqual(373, GeneratedCodeSamplesCatalog.Samples.Count);
+        Assert.AreEqual(GeneratedCodeSamplesCatalog.ExpectedSampleCount, files.Length);
+        Assert.AreEqual(GeneratedCodeSamplesCatalog.ExpectedSampleCount, GeneratedCodeSamplesCatalog.Samples.Count);
 
         var expectedFiles = new[]
         {
+            "K01_LibraryMixedNumericGroups.cs",
+            "K02_LibraryCustomMultiArgumentGroups.cs",
+            "K03_LibraryRunningWindow.cs",
+            "K04_LibraryCompositeNullableGroups.cs",
+            "K05_LibraryGroupedWindowPipeline.cs",
             "Q122_ScriptParameterSourceArgument.cs",
             "Q132_ScriptVariableSourceArgument.cs",
             "Q227_PerformanceJoinAggregate.cs",
@@ -41,7 +46,7 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
             "Q232_PublicDynamicRootFilterProjection.cs",
             "Q233_PublicDynamicNestedNullable.cs",
             "Q234_PublicDynamicJoinMethod.cs",
-            "Q236_QueryRowLegacyFallback.cs",
+            "Q236_QueryRowDeclaredEntity.cs",
             "Q237_QueryRowReadonlyStruct.cs",
             "Q238_QueryRowSealedClass.cs",
             "Q239_QueryRowZeroField.cs",

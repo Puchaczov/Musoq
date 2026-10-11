@@ -54,7 +54,7 @@ public class TypeConversionNodeFactory
             args,
             ArgsListNode.Empty,
             false,
-            method);
+            method) { IsCompilerGenerated = true };
     }
 
     /// <summary>
@@ -77,7 +77,7 @@ public class TypeConversionNodeFactory
             args,
             ArgsListNode.Empty,
             false,
-            method);
+            method) { IsCompilerGenerated = true };
     }
 
     /// <summary>
@@ -124,7 +124,7 @@ public class TypeConversionNodeFactory
             args,
             ArgsListNode.Empty,
             false,
-            method);
+            method) { IsCompilerGenerated = true };
     }
 
     /// <summary>

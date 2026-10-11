@@ -9,3 +9,10 @@ global using Musoq.Evaluator.IR.Execution;
 global using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 global using Musoq.Targets.CSharpClr.Optimization.Codegen;
 global using static Musoq.Targets.CSharpClr.ExecutionSyntaxFactory;
+
+global using static Musoq.Targets.CSharpClr.LibraryWindowBatchSyntax;
+global using static Musoq.Targets.CSharpClr.LibraryKernelInvocationSyntax;
+
+global using static Musoq.Targets.CSharpClr.LibraryWindowInputCaptureSyntax;
+
+global using static Musoq.Targets.CSharpClr.TypedBufferSyntax;

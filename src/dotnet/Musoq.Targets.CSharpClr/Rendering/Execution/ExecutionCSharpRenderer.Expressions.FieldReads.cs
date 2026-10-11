@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -20,8 +21,8 @@ public sealed partial class ExecutionCSharpRenderer
         if (fieldRead.AccessStrategy is GeneratedRowNestedAccess generatedNested)
             return RenderGeneratedRowNestedFieldRead(fieldRead, generatedNested, context);
 
-        if (fieldRead.AccessStrategy is GeneratedDictionaryNestedAccess generatedDictionary)
-            return RenderGeneratedDictionaryNestedFieldRead(fieldRead, generatedDictionary);
+        if (fieldRead.AccessStrategy is GeneratedDictionaryNestedAccess)
+            throw new InvalidOperationException("Erased dictionary member access must be rejected before rendering.");
 
         if (fieldRead.AccessStrategy is NestedPositionalAccess nestedPositional)
             return NestedPositionalFieldReadRenderer.Render(fieldRead, nestedPositional);
@@ -36,8 +37,8 @@ public sealed partial class ExecutionCSharpRenderer
         if (fieldRead.AccessStrategy is GeneratedRowContextAccess generatedContext)
             return RenderGeneratedRowContextRead(fieldRead, generatedContext, context);
 
-        if (fieldRead.AccessStrategy is RuntimeDynamicMemberAccess runtimeDynamic)
-            return RenderRuntimeDynamicMemberRead(fieldRead, runtimeDynamic);
+        if (fieldRead.AccessStrategy is RuntimeDynamicMemberAccess)
+            throw new InvalidOperationException("Dynamic execution must be rejected before rendering.");
 
         if (fieldRead.AccessStrategy is GeneratedFieldAccess generatedField)
             return RenderGeneratedFieldRead(fieldRead, generatedField);
@@ -64,58 +65,17 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateIdentifierName(fieldRead.FieldName)));
     }
 
-    private static ExpressionSyntax RenderRuntimeDynamicMemberRead(
-        ExecutionFieldRead fieldRead,
-        RuntimeDynamicMemberAccess runtimeDynamic)
-    {
-        if (string.IsNullOrWhiteSpace(fieldRead.Alias))
-            throw new InvalidOperationException("Runtime dynamic member reads require a source alias.");
-
-        var receiver = SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.CastExpression(
-                SyntaxFactory.IdentifierName("dynamic"),
-                CreateIdentifierName(fieldRead.Alias)));
-        var member = SyntaxFactory.MemberAccessExpression(
-            SyntaxKind.SimpleMemberAccessExpression,
-            receiver,
-            CreateIdentifierName(runtimeDynamic.MemberName));
-
-        return fieldRead.EnumType == null
-            ? CastDynamicValue(fieldRead.ReturnType, member)
-            : NativeEnumReadNormalizer.Normalize(fieldRead, member, sourceValueIsBoxed: true);
-    }
-
     private ExpressionSyntax RenderMemberRead(
         ExecutionMemberRead memberRead,
         ExecutionRenderContext context)
     {
+        if (memberRead.IsDynamic)
+            throw new InvalidOperationException("Dynamic member execution must be rejected before rendering.");
         var receiver = RenderExpression(memberRead.Receiver, context);
-        var member = SyntaxFactory.MemberAccessExpression(
-            SyntaxKind.SimpleMemberAccessExpression,
-            memberRead.IsDynamic
-                ? SyntaxFactory.ParenthesizedExpression(
-                    SyntaxFactory.CastExpression(
-                        SyntaxFactory.IdentifierName("dynamic"),
-                        receiver))
-                : receiver,
-            CreateIdentifierName(memberRead.MemberName));
-
-        if (!memberRead.IsDynamic)
-            return member;
-
-        return CastDynamicValue(memberRead.ReturnType, member);
-    }
-
-    private static ExpressionSyntax CastDynamicValue(
-        ExecutionTypeRef returnType,
-        ExpressionSyntax value)
-    {
-        var boxed = SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.CastExpression(
-                CreateTypeSyntax(typeof(object)),
-                value));
-
-        return SyntaxFactory.CastExpression(CreateTypeSyntax(returnType), boxed);
+        if (memberRead.IsNullSafe)
+            return NullSafeMemberSyntax.Render(memberRead, receiver);
+        return SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+            receiver, CreateIdentifierName(memberRead.MemberName));
     }
 
     private static IdentifierNameSyntax RenderDirectScalarValueRead(ExecutionFieldRead fieldRead)
@@ -143,7 +103,7 @@ public sealed partial class ExecutionCSharpRenderer
                 context,
                 out var generatedContextValue)
                 ? generatedContextValue
-                : CreateContextArrayElementRead(fieldRead.Alias, contextIndex);
+                : throw UnsupportedShape.Of($"Context read {fieldRead.Alias}[{contextIndex}] has no concrete source carrier.");
             typedRow = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
                 SyntaxFactory.ParseTypeName(generatedNested.TypeName),
                 contextValue));
@@ -164,21 +124,16 @@ public sealed partial class ExecutionCSharpRenderer
                     CreateIdentifierName(fieldRead.Alias)));
         }
 
-        ExpressionSyntax sourceValue = generatedNested.FieldIndex is { } fieldIndex
-            ? CreateElementAccess(
-                typedRow,
-                SyntaxFactory.LiteralExpression(
-                    SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(fieldIndex)))
-            : string.IsNullOrWhiteSpace(generatedNested.TypeName)
-                ? SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    typedRow,
-                    CreateIdentifierName(generatedNested.FieldName))
-                : SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                typedRow,
-                CreateIdentifierName(generatedNested.FieldName));
+        ExpressionSyntax sourceValue;
+        if (generatedNested.FieldIndex is { } fieldIndex)
+        {
+            var rootTypeName = generatedNested.ValueTypeName ??
+                throw new InvalidOperationException("Indexed nested rows require a concrete root type.");
+            sourceValue = CreateNativeRowValueRead(typedRow, fieldIndex, SyntaxFactory.ParseTypeName(rootTypeName));
+        }
+        else
+            sourceValue = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                typedRow, CreateIdentifierName(generatedNested.FieldName));
 
         if (!string.IsNullOrWhiteSpace(generatedNested.ValueTypeName))
         {
@@ -204,48 +159,6 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.CastExpression(CreateTypeSyntax(fieldRead.ReturnType), value);
     }
 
-    private static ExpressionSyntax RenderGeneratedDictionaryNestedFieldRead(
-        ExecutionFieldRead fieldRead,
-        GeneratedDictionaryNestedAccess generatedDictionary)
-    {
-        if (string.IsNullOrWhiteSpace(fieldRead.Alias))
-            throw new InvalidOperationException("Generated dictionary nested field reads require a source alias.");
-
-        ExpressionSyntax value = generatedDictionary.FieldIndex is { } fieldIndex
-            ? CreateElementAccess(
-                CreateIdentifierName(fieldRead.Alias),
-                SyntaxFactory.LiteralExpression(
-                    SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(fieldIndex)))
-            : string.IsNullOrWhiteSpace(generatedDictionary.FieldName)
-                ? CreateIdentifierName(fieldRead.Alias)
-                : SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    CreateIdentifierName(fieldRead.Alias),
-                    CreateIdentifierName(generatedDictionary.FieldName));
-
-        foreach (var segment in generatedDictionary.PropertyPath
-                     .Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-        {
-            value = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName("GeneratedDictionaryAccess"),
-                        SyntaxFactory.IdentifierName("GetValue")))
-                .WithArgumentList(SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(
-                    [
-                        SyntaxFactory.Argument(value),
-                        SyntaxFactory.Argument(CreateStringLiteral(segment))
-                    ])));
-        }
-
-        if (fieldRead.ReturnType.RequireClrType() == typeof(object))
-            return value;
-
-        return SyntaxFactory.CastExpression(CreateTypeSyntax(fieldRead.ReturnType), value);
-    }
-
     private static ExpressionSyntax RenderPositionalFieldRead(
         ExecutionFieldRead fieldRead,
         PositionalAccess positional)
@@ -253,17 +166,19 @@ public sealed partial class ExecutionCSharpRenderer
         if (string.IsNullOrWhiteSpace(fieldRead.Alias))
             throw new InvalidOperationException("Positional field reads require a source alias.");
 
-        var value = CreateElementAccess(
-            CreateIdentifierName(fieldRead.Alias),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(positional.Index)));
+        var readType = positional.ValueType ?? fieldRead.ReturnType;
+        var valueTypeSyntax = fieldRead.GeneratedTypeName is { Length: > 0 } generatedTypeName
+            ? SyntaxFactory.ParseTypeName(generatedTypeName)
+            : CreateTypeSyntax(readType);
+        if (readType.RequireClrType() == typeof(object) && string.IsNullOrWhiteSpace(fieldRead.GeneratedTypeName))
+            throw new InvalidOperationException("Native positional reads require a concrete column type.");
 
-        if (fieldRead.EnumType != null)
-            return NativeEnumReadNormalizer.Normalize(fieldRead, value, sourceValueIsBoxed: true);
-
-        if (fieldRead.ReturnType.RequireClrType() == typeof(object))
-            return value;
-
-        return SyntaxFactory.CastExpression(CreateTypeSyntax(fieldRead.ReturnType), value);
+        ExpressionSyntax value = CreateNativeRowValueRead(CreateIdentifierName(fieldRead.Alias), positional.Index, valueTypeSyntax);
+        if (fieldRead.EnumType != null && readType.RequireClrType().IsEnum)
+            return NativeEnumReadNormalizer.Normalize(fieldRead with { SourceReadType = readType }, value);
+        if (readType != fieldRead.ReturnType && string.IsNullOrWhiteSpace(fieldRead.GeneratedTypeName))
+            value = SyntaxFactory.CastExpression(CreateTypeSyntax(fieldRead.ReturnType), value);
+        return value;
     }
 
     private static MemberAccessExpressionSyntax RenderGeneratedRowTypeFieldRead(
@@ -322,18 +237,14 @@ public sealed partial class ExecutionCSharpRenderer
         }
 
         var constructors = GetGeneratedRowConstructors(usedConstructors);
-        if (constructors.Length > 1)
-        {
-            value = CreateGeneratedRowContextArrayElementRead(row, "__contexts", generatedContext.Index);
-            return true;
-        }
-
-        if (constructors.Length != 1)
+        var valueConstructors = constructors.Where(static constructor =>
+            constructor != GeneratedRowContextConstructor.NoContext).ToArray();
+        if (valueConstructors.Length != 1)
             return false;
 
         return TryCreateGeneratedRowContextStorageRead(
             row,
-            constructors[0],
+            valueConstructors[0],
             generatedContext.Index,
             out value);
     }
@@ -347,9 +258,6 @@ public sealed partial class ExecutionCSharpRenderer
         value = null!;
         switch (constructor)
         {
-            case GeneratedRowContextConstructor.ContextArray when index >= 0:
-                value = CreateGeneratedRowContextArrayElementRead(row, "__contexts", index);
-                return true;
             case GeneratedRowContextConstructor.SingleContext when index == 0:
                 value = CreateGeneratedRowContextFieldRead(row, "__leftContext");
                 return true;
@@ -374,16 +282,6 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxKind.SimpleMemberAccessExpression,
             row,
             CreateIdentifierName(fieldName));
-    }
-
-    private static ElementAccessExpressionSyntax CreateGeneratedRowContextArrayElementRead(
-        ExpressionSyntax row,
-        string fieldName,
-        int index)
-    {
-        return CreateElementAccess(
-            CreateGeneratedRowContextFieldRead(row, fieldName),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(index)));
     }
 
     private static MemberAccessExpressionSyntax RenderGeneratedFieldRead(

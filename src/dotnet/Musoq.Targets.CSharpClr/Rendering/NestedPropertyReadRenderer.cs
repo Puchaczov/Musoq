@@ -11,7 +11,7 @@ internal static class NestedPropertyReadRenderer
         NestedClrPropertyAccess nestedProperty)
     {
         if (nestedProperty.PropertyPath.Contains('[', StringComparison.Ordinal))
-            return RenderSafe(fieldRead, nestedProperty);
+            throw new InvalidOperationException("Indexed member reads must be bound to concrete operations before rendering.");
 
         if (string.IsNullOrWhiteSpace(fieldRead.Alias))
             throw new InvalidOperationException("Nested CLR property field reads require a source alias.");
@@ -23,30 +23,4 @@ internal static class NestedPropertyReadRenderer
                 $"{EscapeIdentifier(fieldRead.Alias)}{separator}{nestedProperty.PropertyPath}"));
     }
 
-    private static ExpressionSyntax RenderSafe(
-        ExecutionFieldRead fieldRead,
-        NestedClrPropertyAccess nestedProperty)
-    {
-        if (string.IsNullOrWhiteSpace(fieldRead.Alias))
-            throw new InvalidOperationException("Nested CLR property field reads require a source alias.");
-
-        var invocation = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
-                    SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetNestedValue))))
-            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
-            [
-                SyntaxFactory.Argument(CreateIdentifierName(fieldRead.Alias)),
-                SyntaxFactory.Argument(CreateStringLiteral(nestedProperty.PropertyPath)),
-                SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(CreateTypeSyntax(fieldRead.ReturnType)))
-            ])));
-
-        if (fieldRead.EnumType != null)
-            return NativeEnumReadNormalizer.Normalize(fieldRead, invocation, sourceValueIsBoxed: true);
-
-        return fieldRead.ReturnType.RequireClrType() == typeof(void)
-            ? invocation
-            : SyntaxFactory.CastExpression(CreateTypeSyntax(fieldRead.ReturnType), invocation);
-    }
 }

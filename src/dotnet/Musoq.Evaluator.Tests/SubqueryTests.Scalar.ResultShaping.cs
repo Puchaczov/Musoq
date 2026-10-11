@@ -23,7 +23,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("MatchCountry", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -50,7 +50,7 @@ public partial class SubqueryTests
                 .Run(TestContext.CancellationToken)
                 .Count);
 
-        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
+        AssertRuntimeError(exception, DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation);
     }
 
     [TestMethod]
@@ -69,7 +69,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("LargestPopulation", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -94,7 +94,7 @@ public partial class SubqueryTests
                 .Run(TestContext.CancellationToken)
                 .Count);
 
-        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
+        AssertRuntimeError(exception, DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation);
     }
 
     [TestMethod]
@@ -112,7 +112,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("MatchCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -137,7 +137,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("MatchCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -162,7 +162,7 @@ public partial class SubqueryTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
+            ("City", typeof(string)),
             ("MatchCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,

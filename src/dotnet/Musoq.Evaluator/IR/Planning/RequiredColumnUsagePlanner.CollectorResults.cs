@@ -40,7 +40,7 @@ internal static partial class RequiredColumnUsagePlanner
         {
             if (!_requiredColumnsByAlias.TryGetValue(alias, out var columns))
             {
-                columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                columns = new HashSet<string>(StringComparer.Ordinal);
                 _requiredColumnsByAlias[alias] = columns;
             }
 
@@ -60,7 +60,7 @@ internal static partial class RequiredColumnUsagePlanner
 
                 if (!_requiredColumnsByCteName.TryGetValue(reference.CteName, out var columns))
                 {
-                    columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    columns = new HashSet<string>(StringComparer.Ordinal);
                     _requiredColumnsByCteName[reference.CteName] = columns;
                 }
 
@@ -100,7 +100,7 @@ internal static partial class RequiredColumnUsagePlanner
             {
                 _cancellationToken.ThrowIfCancellationRequested();
                 result[item.Key] = item.Value.Values
-                    .OrderBy(static usage => usage.ColumnName, StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(static usage => usage.ColumnName, StringComparer.Ordinal)
                     .ThenBy(static usage => usage.UsageReason.ToString(), StringComparer.Ordinal)
                     .ThenBy(static usage => usage.Alias, StringComparer.OrdinalIgnoreCase)
                     .ToArray();
@@ -118,7 +118,7 @@ internal static partial class RequiredColumnUsagePlanner
             foreach (var item in _requiredColumnsByAlias.OrderBy(static item => item.Key, StringComparer.OrdinalIgnoreCase))
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                result[item.Key] = new HashSet<string>(item.Value, StringComparer.OrdinalIgnoreCase);
+                result[item.Key] = new HashSet<string>(item.Value, StringComparer.Ordinal);
             }
 
             _cancellationToken.ThrowIfCancellationRequested();

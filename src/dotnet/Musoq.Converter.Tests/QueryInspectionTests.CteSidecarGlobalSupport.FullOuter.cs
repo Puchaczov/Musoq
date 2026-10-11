@@ -36,15 +36,15 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("left-only", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.IsNull(table[0][2]);
-        Assert.AreEqual("matched", table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
-        Assert.AreEqual(2, table[1][2]);
-        Assert.AreEqual("right-only", table[2][0]);
-        Assert.IsNull(table[2][1]);
-        Assert.AreEqual(3, table[2][2]);
+        Assert.AreEqual("left-only", table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.IsNull(table[0].ReadValue(2));
+        Assert.AreEqual("matched", table[1].ReadValue(0));
+        Assert.AreEqual(2, table[1].ReadValue(1));
+        Assert.AreEqual(2, table[1].ReadValue(2));
+        Assert.AreEqual("right-only", table[2].ReadValue(0));
+        Assert.IsNull(table[2].ReadValue(1));
+        Assert.AreEqual(3, table[2].ReadValue(2));
     }
 
     [TestMethod]
@@ -77,7 +77,7 @@ public partial class QueryInspectionTests
 
         var table = compiled.Run();
         var rows = Enumerable.Range(0, table.Count)
-            .Select(index => $"{table[index][0]}:{table[index][1] ?? "null"}:{table[index][2] ?? "null"}")
+            .Select(index => $"{table[index].ReadValue(0)}:{table[index].ReadValue(1) ?? "null"}:{table[index].ReadValue(2) ?? "null"}")
             .OrderBy(static row => row)
             .ToArray();
 

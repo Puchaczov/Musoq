@@ -31,7 +31,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var result = CompileSampleForInspection(InnerJoinSampleFileName);
 
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Country));", result.GeneratedCSharpCode);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a.Name, b.Country));", result.GeneratedCSharpCode);
         Assert.DoesNotContain("(object)a, (object)b", result.GeneratedCSharpCode);
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, "new object[] { a, b }"));
     }
@@ -49,7 +49,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             result.ExecutionPlanText);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("new Statement0Row0", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("_tableResults[0] = statement0", StringComparison.Ordinal));
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Country));", result.GeneratedCSharpCode);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a.Name, b.Country));", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("result.AddDirect(new ResultRow0", StringComparison.Ordinal));
     }
 
@@ -61,7 +61,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("PhaseBoundary [Begin:cte0]", sample);
         Assert.Contains("OnPhaseChanged(\"compiled:cte0\", QueryPhase.Begin);", sample);
         Assert.Contains("OnPhaseChanged(\"compiled:cte0\", QueryPhase.End);", sample);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Country));", sample);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a.Name, b.Country));", sample);
         Assert.IsFalse(sample.Contains("AppendHashJoinRows(aRows, bHash, result, token);", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("result.AddDirect(new ResultRow0(a.Name, b.Country));", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("StoreTable [statement0 -> _tableResults[0]]", StringComparison.Ordinal));
@@ -83,7 +83,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             sample);
         Assert.Contains("foreach (var bChunk in bRows)", computeMethod);
         Assert.Contains("foreach (var aChunk in aRows)", computeMethod);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(a.Name, b.Country));", computeMethod);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a.Name, b.Country));", computeMethod);
         Assert.IsFalse(sample.Contains("private static void AppendHashJoinRows(", StringComparison.Ordinal));
         Assert.Contains("token.ThrowIfCancellationRequested();", sample);
         Assert.IsFalse(sample.Contains("Dictionary<int, List<", StringComparison.Ordinal));
@@ -123,7 +123,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains("foreach (var bChunk in bRows)", computeMethod);
         Assert.Contains("foreach (var aChunk in aRows)", computeMethod);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(a.Id, b.Id));", computeMethod);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a.Id, b.Id));", computeMethod);
         Assert.IsFalse(sample.Contains("private static void AppendLeftJoinRows(", StringComparison.Ordinal));
         Assert.Contains("token.ThrowIfCancellationRequested();", sample);
         Assert.AreEqual(
@@ -142,7 +142,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
             result.ExecutionPlanText);
         Assert.Contains("AsOfProbe [b <-", result.ExecutionPlanText);
-        Assert.Contains("EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal>", result.GeneratedCSharpCode);
+        Assert.Contains("EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool>", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, SmartForEachPattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, GetColumnValuePattern));
@@ -177,7 +177,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             result.ExecutionPlanText);
         Assert.Contains("AsOfProbe [b <-", result.ExecutionPlanText);
         Assert.Contains(
-            "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, decimal>",
+            "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool, decimal>",
             result.GeneratedCSharpCode);
         Assert.Contains("Musoq.Evaluator.IR.Bindings.NullOrdering.Last", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal));
@@ -214,7 +214,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             result.ExecutionPlanText);
         Assert.Contains("StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]", result.ExecutionPlanText);
         Assert.Contains("AsOfProbe [r <- _cteRowResults.Slot0", result.ExecutionPlanText);
-        Assert.Contains("EvaluationHelper.CreateAsOfIndex<Cte0Row0, decimal>", result.GeneratedCSharpCode);
+        Assert.Contains("EvaluationHelper.CreateAsOfIndex<Cte0Row0, decimal, bool>", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, SmartForEachPattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, GetColumnValuePattern));
@@ -249,11 +249,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
             result.ExecutionPlanText);
-        Assert.Contains("ExpandoAdapter [d: dDynamicRow0]", result.ExecutionPlanText);
-        Assert.Contains("ExpandoAdapter [l: lDynamicRow0]", result.ExecutionPlanText);
+        Assert.Contains("SourceScan [d: QueryRow_", result.ExecutionPlanText);
+        Assert.DoesNotContain("ExpandoAdapter", result.ExecutionPlanText);
+        Assert.Contains("SourceScan [l: QueryRow_", result.ExecutionPlanText);
         Assert.Contains("StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]", result.ExecutionPlanText);
         Assert.Contains("AsOfProbe [r <- _cteRowResults.Slot0", result.ExecutionPlanText);
-        Assert.Contains("EvaluationHelper.CreateAsOfIndex<Cte0Row0, int>", result.GeneratedCSharpCode);
+        Assert.Contains("EvaluationHelper.CreateAsOfIndex<Cte0Row0, int, string>", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("_tableResults[0]", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("new Table(\"cte0\"", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal));
@@ -269,12 +270,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var table = CompileSampleForExecution(DynamicCteBackedAsOfJoinSampleFileName).Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("ada", table[0][0]);
-        Assert.AreEqual("ada", table[0][1]);
-        Assert.AreEqual("bea", table[1][0]);
-        Assert.AreEqual("bea", table[1][1]);
-        Assert.AreEqual("cid", table[2][0]);
-        Assert.AreEqual("cid", table[2][1]);
+        Assert.AreEqual("ada", table[0].ReadValue(0));
+        Assert.AreEqual("ada", table[0].ReadValue(1));
+        Assert.AreEqual("bea", table[1].ReadValue(0));
+        Assert.AreEqual("bea", table[1].ReadValue(1));
+        Assert.AreEqual("cid", table[2].ReadValue(0));
+        Assert.AreEqual("cid", table[2].ReadValue(1));
     }
 
     [TestMethod]

@@ -67,7 +67,7 @@ public sealed class LikeQueryConformanceTests : BasicEntityTestBase
             if (testCase.Parameters is not null)
             {
                 foreach (var parameter in testCase.Parameters)
-                    query.Parameters[parameter.Key] = parameter.Value;
+                    global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, parameter.Key, parameter.Value);
             }
 
             AssertSnapshot(testCase, culture, query.Run(TestContext.CancellationToken));
@@ -85,7 +85,7 @@ public sealed class LikeQueryConformanceTests : BasicEntityTestBase
     {
         var expected = FormatSnapshot(testCase.ExpectedColumns, testCase.GetExpectedRows(culture));
         var actualColumns = table.Columns.Select(column => (column.ColumnName, column.ColumnType)).ToArray();
-        var actualRows = table.Select(row => row.Values).ToArray();
+        var actualRows = table.Select(row => row.ReadValues()).ToArray();
         var actual = FormatSnapshot(actualColumns, actualRows);
 
         Assert.AreEqual(expected, actual, $"LIKE conformance case '{testCase.Id}' failed under '{culture.Name}'.");

@@ -72,31 +72,31 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : BinaryOrTextua
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.AreEqual((byte)2, table[0][0]);
-        Assert.AreEqual((short)1, table[0][1]);
-        Assert.AreEqual((short)4, table[0][2]);
-        Assert.AreEqual("CD", table[0][3]);
-        Assert.IsNull(table[0][4]);
-        Assert.IsNull(table[0][5]);
-        Assert.IsNull(table[0][6]);
-        Assert.AreEqual(3, table[0][7]);
-        Assert.AreEqual(5, table[0][8]);
-        Assert.AreEqual(false, table[0][9]);
-        Assert.AreEqual((byte)0xEE, table[0][10]);
+        Assert.AreEqual((byte)2, table[0].ReadValue(0));
+        Assert.AreEqual((short)1, table[0].ReadValue(1));
+        Assert.AreEqual((short)4, table[0].ReadValue(2));
+        Assert.AreEqual("CD", table[0].ReadValue(3));
+        Assert.IsNull(table[0].ReadValue(4));
+        Assert.IsNull(table[0].ReadValue(5));
+        Assert.IsNull(table[0].ReadValue(6));
+        Assert.AreEqual(3, table[0].ReadValue(7));
+        Assert.AreEqual(5, table[0].ReadValue(8));
+        Assert.AreEqual(false, table[0].ReadValue(9));
+        Assert.AreEqual((byte)0xEE, table[0].ReadValue(10));
 
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual((short)1, table[1][1]);
-        Assert.AreEqual((short)4, table[1][2]);
-        Assert.AreEqual("CD", table[1][3]);
-        var optionalItems = (object[])table[1][4];
+        Assert.AreEqual((byte)2, table[1].ReadValue(0));
+        Assert.AreEqual((short)1, table[1].ReadValue(1));
+        Assert.AreEqual((short)4, table[1].ReadValue(2));
+        Assert.AreEqual("CD", table[1].ReadValue(3));
+        var optionalItems = (object[])table[1].ReadValue(4);
         Assert.HasCount(2, optionalItems);
         Assert.AreEqual((short)5, optionalItems[0].GetType().GetProperty("Value")!.GetValue(optionalItems[0]));
-        Assert.AreEqual("XY", ((string[])table[1][5])[0]);
-        Assert.AreEqual((short)0x1234, table[1][6]);
-        Assert.AreEqual(3, table[1][7]);
-        Assert.AreEqual(5, table[1][8]);
-        Assert.AreEqual(true, table[1][9]);
-        Assert.AreEqual((byte)0xEF, table[1][10]);
+        Assert.AreEqual("XY", ((string[])table[1].ReadValue(5))[0]);
+        Assert.AreEqual((short)0x1234, table[1].ReadValue(6));
+        Assert.AreEqual(3, table[1].ReadValue(7));
+        Assert.AreEqual(5, table[1].ReadValue(8));
+        Assert.AreEqual(true, table[1].ReadValue(9));
+        Assert.AreEqual((byte)0xEF, table[1].ReadValue(10));
     }
 
     [TestMethod]
@@ -126,10 +126,10 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : BinaryOrTextua
             .Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][0]);
-        Assert.IsEmpty((byte[])table[0][1]);
-        Assert.IsNull(table[0][2]);
-        Assert.AreEqual((byte)0x7A, table[0][3]);
+        Assert.IsNull(table[0].ReadValue(0));
+        Assert.IsEmpty((byte[])table[0].ReadValue(1));
+        Assert.IsNull(table[0].ReadValue(2));
+        Assert.AreEqual((byte)0x7A, table[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -162,10 +162,10 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : BinaryOrTextua
             .Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsEmpty((object[])table[0][0]);
-        Assert.IsEmpty((short[])table[0][1]);
-        Assert.IsEmpty((string[])table[0][2]);
-        Assert.AreEqual((byte)0x7B, table[0][3]);
+        Assert.IsEmpty((object[])table[0].ReadValue(0));
+        Assert.IsEmpty((short[])table[0].ReadValue(1));
+        Assert.IsEmpty((string[])table[0].ReadValue(2));
+        Assert.AreEqual((byte)0x7B, table[0].ReadValue(3));
     }
 
     [TestMethod]

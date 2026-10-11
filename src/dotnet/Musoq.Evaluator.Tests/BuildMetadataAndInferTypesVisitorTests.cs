@@ -389,7 +389,7 @@ public partial class BuildMetadataAndInferTypesVisitorTests
             return new CaptureArgumentsTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
         {
             throw new NotSupportedException();
         }
@@ -429,7 +429,7 @@ public partial class BuildMetadataAndInferTypesVisitorTests
             return new CaptureMetadataContextTable(metadataContext.AllColumns.ToArray());
         }
 
-        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
         {
             throw new NotSupportedException();
         }
@@ -449,7 +449,7 @@ public partial class BuildMetadataAndInferTypesVisitorTests
             return Columns.Where(column => column.ColumnName == name).ToArray();
         }
 
-        public SchemaTableMetadata Metadata { get; } = new(typeof(object));
+        public SchemaTableMetadata Metadata { get; } = new(typeof(object)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
     }
 
     private sealed class MetadataDependentSchemaProvider(Action<object?[]>? capture = null) : ISchemaProvider
@@ -479,10 +479,10 @@ public partial class BuildMetadataAndInferTypesVisitorTests
             return new MetadataDependentTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters) => throw new NotSupportedException();
+            TArguments parameters) => throw new NotSupportedException();
     }
 
     private sealed class PlanningMetadataDependentSchemaProvider : ISchemaProvider
@@ -511,10 +511,10 @@ public partial class BuildMetadataAndInferTypesVisitorTests
             return base.DescribeSource(name, context, parameters);
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters) => throw new NotSupportedException();
+            TArguments parameters) => throw new NotSupportedException();
     }
 
     private sealed class MetadataDependentTable : ISchemaTable

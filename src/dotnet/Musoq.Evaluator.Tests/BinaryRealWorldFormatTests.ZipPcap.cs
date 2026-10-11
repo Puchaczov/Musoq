@@ -57,7 +57,7 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, ((object[])table[0][0]).Length);
+        Assert.AreEqual(2, ((object[])table[0].ReadValue(0)).Length);
     }
 
     [TestMethod]
@@ -74,9 +74,9 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("hello.txt", table[0][0]);
-        Assert.AreEqual((ushort)8, table[0][1]);
-        CollectionAssert.AreEqual(new byte[] { 0x10, 0x20, 0x30 }, (byte[])table[0][2]);
+        Assert.AreEqual("hello.txt", table[0].ReadValue(0));
+        Assert.AreEqual((ushort)8, table[0].ReadValue(1));
+        CollectionAssert.AreEqual(new byte[] { 0x10, 0x20, 0x30 }, (byte[])table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -93,9 +93,9 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("empty", table[0][0]);
-        CollectionAssert.AreEqual(System.Array.Empty<byte>(), (byte[])table[0][1]);
-        CollectionAssert.AreEqual(System.Array.Empty<byte>(), (byte[])table[0][2]);
+        Assert.AreEqual("empty", table[0].ReadValue(0));
+        CollectionAssert.AreEqual(System.Array.Empty<byte>(), (byte[])table[0].ReadValue(1));
+        CollectionAssert.AreEqual(System.Array.Empty<byte>(), (byte[])table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -190,9 +190,9 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(3u, table[0][0]);
-        CollectionAssert.AreEqual(new byte[] { 0x45, 0x00, 0x10 }, (byte[])table[0][1]);
-        Assert.AreEqual(1, ((object[])table[0][2]).Length);
+        Assert.AreEqual(3u, table[0].ReadValue(0));
+        CollectionAssert.AreEqual(new byte[] { 0x45, 0x00, 0x10 }, (byte[])table[0].ReadValue(1));
+        Assert.AreEqual(1, ((object[])table[0].ReadValue(2)).Length);
     }
 
     [TestMethod]
@@ -206,7 +206,7 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0, ((object[])table[0][0]).Length);
+        Assert.AreEqual(0, ((object[])table[0].ReadValue(0)).Length);
     }
 
     [TestMethod]
@@ -233,7 +233,7 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][1]);
+        Assert.IsNull(table[0].ReadValue(1));
     }
 
     [TestMethod]

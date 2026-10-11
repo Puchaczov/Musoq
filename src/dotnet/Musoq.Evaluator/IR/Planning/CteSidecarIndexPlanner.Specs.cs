@@ -89,7 +89,7 @@ internal static partial class CteSidecarIndexPlanner
             ValueTupleTypeShape.TryCreate(keyTypes, out var tupleType))
             return tupleType;
 
-        return typeof(object);
+        throw new InvalidOperationException("Composite join keys require a concrete typed carrier.");
     }
 
     private static bool TryResolveValueTupleHashJoinKeyTypes(
@@ -106,10 +106,16 @@ internal static partial class CteSidecarIndexPlanner
         {
             var buildType = join.BuildKeys[index].ReturnType;
             var probeType = join.ProbeKeys[index].ReturnType;
-            if (buildType != probeType || !CanUseTypedValueTupleHashJoinKeyPart(buildType))
+            var buildUnderlying = Nullable.GetUnderlyingType(buildType) ?? buildType;
+            var probeUnderlying = Nullable.GetUnderlyingType(probeType) ?? probeType;
+            if (buildUnderlying != probeUnderlying)
                 return false;
 
-            types[index] = buildType;
+            var keyType = ResolveCommonKeyType(buildType, probeType);
+            if (!CanUseTypedValueTupleHashJoinKeyPart(keyType))
+                return false;
+
+            types[index] = keyType;
         }
 
         keyTypes = types;

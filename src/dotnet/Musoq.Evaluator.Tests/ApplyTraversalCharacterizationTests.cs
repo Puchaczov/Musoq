@@ -27,9 +27,9 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
             "select b.X from #counting.parents() a cross apply a.Children b where a.Name = 'keep'",
             fixture);
 
-        var table = query.Run(TestContext.CancellationToken);
+        using var table = query.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("b.X", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("X", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1], [2]);
         Assert.AreEqual(0, fixture.Rejected.Children.EnumerationCount);
         Assert.AreEqual(1, fixture.Kept.Children.EnumerationCount);
@@ -44,9 +44,9 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
             "select c.Value from #counting.parents() a cross apply a.Children b cross apply b.Other c where a.Name = 'keep' and b.X = 1",
             fixture);
 
-        var table = query.Run(TestContext.CancellationToken);
+        using var table = query.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("c.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [10], [11]);
         Assert.AreEqual(0, fixture.Rejected.Children.EnumerationCount);
         Assert.AreEqual(1, fixture.Kept.Children.EnumerationCount);
@@ -63,12 +63,12 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
             "select a.Name, b.X from #counting.parents() a cross apply a.Children b where a.Name = 'empty'",
             fixture);
 
-        var table = query.Run(TestContext.CancellationToken);
+        using var table = query.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.X", typeof(int)));
+            ("Name", typeof(string)),
+            ("X", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
@@ -80,12 +80,12 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
             "select a.Name, b.X from #counting.parents() a outer apply a.Children b where a.Name = 'empty'",
             fixture);
 
-        var table = query.Run(TestContext.CancellationToken);
+        using var table = query.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.X", typeof(int?)));
+            ("Name", typeof(string)),
+            ("X", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["empty", null]);
         Assert.AreEqual(0, fixture.Rejected.Children.EnumerationCount);
         Assert.AreEqual(0, fixture.Kept.Children.EnumerationCount);
@@ -101,7 +101,7 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
             "select a.Name, b.X from #counting.parents() a outer apply a.Children b where a.Name = 'keep'",
             fixture);
 
-        var table = query.Run(TestContext.CancellationToken);
+        using var table = query.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["keep", 1], ["keep", 2]);
         Assert.AreEqual(0, fixture.Rejected.Children.EnumerationCount);
@@ -115,12 +115,12 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
             "select a.Name, b.X from #counting.parents() a outer apply a.Children b where b.X = 1",
             fixture);
 
-        var table = query.Run(TestContext.CancellationToken);
+        using var table = query.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.X", typeof(int?)));
+            ("Name", typeof(string)),
+            ("X", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["keep", 1]);
         Assert.AreEqual(1, fixture.Rejected.Children.EnumerationCount);
         Assert.AreEqual(1, fixture.Kept.Children.EnumerationCount);
@@ -136,7 +136,7 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
             "select a.Name, b.X from #counting.parents() a outer apply a.Children b where a.Name = 'keep' and b.X = 2",
             fixture);
 
-        var table = query.Run(TestContext.CancellationToken);
+        using var table = query.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["keep", 2]);
         Assert.AreEqual(0, fixture.Rejected.Children.EnumerationCount);
@@ -153,7 +153,7 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
             "select a.Name, b.X from #counting.parents() a outer apply a.Children b where b.X is null",
             fixture);
 
-        var table = query.Run(TestContext.CancellationToken);
+        using var table = query.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["empty", null]);
         Assert.AreEqual(1, fixture.Rejected.Children.EnumerationCount);
@@ -170,7 +170,7 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
             "select b.X, c.Value from #counting.parents() a cross apply a.Children b outer apply b.Other c where a.Name = 'keep' and b.X = 1",
             fixture);
 
-        var table = query.Run(TestContext.CancellationToken);
+        using var table = query.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, 10], [1, 11]);
         Assert.AreEqual(0, fixture.Rejected.Children.EnumerationCount);
@@ -208,9 +208,9 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
             "select b.X from #counting.parents() a cross apply a.Children b where a.Enabled = true",
             fixture);
 
-        var table = query.Run(TestContext.CancellationToken);
+        using var table = query.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("b.X", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("X", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1], [2]);
     }
 
@@ -222,9 +222,9 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
             "select b.Value from #counting.parents() a cross apply a.JustReturnArrayOfString() b where a.Name = 'keep'",
             fixture);
 
-        var table = query.Run(TestContext.CancellationToken);
+        using var table = query.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["1"], ["2"], ["3"]);
     }
 

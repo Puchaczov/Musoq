@@ -10,7 +10,7 @@ internal static partial class GeneratedCodeSamplesCatalog
         return
         [
             QueryScopedRowSample(
-                "Q236_QueryRowLegacyFallback",
+                "Q236_QueryRowDeclaredEntity",
                 "select r.Id, r.Name from #queryrowsample.rows() r",
                 GeneratedQueryRowSampleShape.Narrow,
                 queryScopedRowsEnabled: false),

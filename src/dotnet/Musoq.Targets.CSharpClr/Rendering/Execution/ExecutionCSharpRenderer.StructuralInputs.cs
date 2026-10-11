@@ -37,9 +37,13 @@ internal static class StructuralInputSyntaxFactory
         ExecutionRenderContext context,
         ExecutionCSharpRenderer renderer)
     {
-        var rendered = ExecutionSyntaxFactory.CreateArrayCreation(
-            array.ElementType,
-            array.Elements.Select(element => renderer.RenderExpression(element, context)));
+        var elements = array.Elements.Select(element => renderer.RenderExpression(element, context));
+        ExpressionSyntax rendered = array.GeneratedElementTypeName is { } nativeElement
+            ? SyntaxFactory.ArrayCreationExpression(SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName(nativeElement))
+                .WithRankSpecifiers(SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(
+                    SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression())))))
+                .WithInitializer(SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, SyntaxFactory.SeparatedList(elements)))
+            : ExecutionSyntaxFactory.CreateArrayCreation(array.ElementType, elements);
         return array.LimitBinding is { } binding
             ? StructuralInputLimitSyntaxFactory.RenderGuard(
                 rendered,

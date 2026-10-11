@@ -43,7 +43,7 @@ public sealed class GitInspectionTests : GitExampleTestBase
         StringAssert.Contains(inspection.GeneratedCSharpCode, "GitCommitRow");
         StringAssert.Contains(
             inspection.GeneratedCSharpCode,
-            "GetRowSource<Musoq.Examples.DataSources.Git.GitCommitRow>");
+            "SourceInvocation<Musoq.Examples.DataSources.Git.GitCommitRow>");
         StringAssert.Contains(inspection.GeneratedCSharpCode, ".ShortSha");
         StringAssert.Contains(inspection.GeneratedCSharpCode, ".Subject");
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetColumnValue", StringComparison.Ordinal));

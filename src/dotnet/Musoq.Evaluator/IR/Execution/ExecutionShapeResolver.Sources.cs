@@ -1,3 +1,4 @@
+using Musoq.Evaluator.IR.Logical.Nodes;
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Physical.Nodes;
@@ -29,14 +30,10 @@ public sealed partial class ExecutionShapeResolver
         if (scalarShape != null)
             return scalarShape;
 
-        if (IsDynamicEntity(entityType))
-        {
-            var dynamicFields = CreateFieldBindings(
-                scan.Alias,
-                columns,
-                column => new ExpandoDictionaryAccess(column.ColumnName));
-            return new ExpandoAdapterShape(scan.Alias, CreateDynamicTypeName(scan.Alias), entityType, dynamicFields);
-        }
+        if (DynamicEntityBoundary.IsNameIndexedSource(entityType))
+            throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(
+                $"Source '{scan.Alias}' requires native query-scoped rows; erased dictionary transfer is unsupported.",
+                Musoq.Parser.TextSpan.Empty);
 
         if (!CanUseSourceEntityShape(entityType))
             return CreateReflectedSourceShape(scan.Alias, entityType, columns);
@@ -59,8 +56,13 @@ public sealed partial class ExecutionShapeResolver
             return CreateClrMemberSourceShape(
                 interpret.Alias,
                 columns,
-                registration?.GeneratedTypeName,
-                column => InterpretationPropertyTypeNameResolver.ResolvePropertyTypeName(
+                interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse
+                    ? $"Musoq.Schema.Interpreters.PartialInterpretResult<{registration?.GeneratedTypeName}>"
+                    : registration?.GeneratedTypeName,
+                column => column == "ParsedFields" &&
+                    interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse
+                    ? registration?.GeneratedTypeName
+                    : InterpretationPropertyTypeNameResolver.ResolvePropertyTypeName(
                     interpret.SchemaName,
                     column,
                     _schemaRegistry));

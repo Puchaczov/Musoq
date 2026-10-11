@@ -73,22 +73,9 @@ public sealed partial class ExecutionCSharpRenderer
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName(nameof(ExecutionState)),
                         SyntaxFactory.IdentifierName(nameof(ExecutionState.Capture))))
-                .WithArgumentList(CreateArgumentList(CreateExecutionStateParametersSource(context))));
-    }
-
-    private static ExpressionSyntax CreateExecutionStateParametersSource(ExecutionRenderContext context)
-    {
-        return SyntaxFactory.IdentifierName(context.Session.UseQueryRunContext
-            ? "__musoqRuntimeParameters"
-            : nameof(IParameterizedRunnable.Parameters));
-    }
-
-    private static MemberAccessExpressionSyntax CreateExecutionStateParametersRead()
-    {
-        return SyntaxFactory.MemberAccessExpression(
-            SyntaxKind.SimpleMemberAccessExpression,
-            SyntaxFactory.IdentifierName(ExecutionStateVariableName),
-            SyntaxFactory.IdentifierName(nameof(ExecutionState.Parameters)));
+                .WithArgumentList(CreateArgumentList(context.Session.UseQueryRunContext
+                        ? SyntaxFactory.ParseExpression("queryContext.TypedParameters")
+                        : SyntaxFactory.IdentifierName(nameof(ITypedParameterizedRunnable.TypedParameters)))));
     }
 
     private static int CountExecutionTableSlots(ExecutionBlock block)

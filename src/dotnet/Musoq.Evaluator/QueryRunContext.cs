@@ -12,7 +12,7 @@ public sealed class QueryRunContext
 
     public QueryRunContext(
         CancellationToken cancellationToken,
-        IEnumerable<KeyValuePair<string, object?>>? parameters = null,
+        TypedParameterSnapshot? parameters = null,
         QueryPhaseEventHandler? phaseChanged = null,
         DataSourceEventHandler? dataSourceProgress = null,
         object? sender = null,
@@ -26,7 +26,7 @@ public sealed class QueryRunContext
         QueryProgressOptions? queryProgressOptions = null)
     {
         CancellationToken = cancellationToken;
-        RuntimeParameters = ParameterSnapshot.CaptureReadOnlyOrEmpty(parameters);
+        _typedParameters = parameters ?? TypedParameterSnapshot.Empty;
         PhaseChanged = phaseChanged;
         DataSourceProgress = dataSourceProgress;
         QueryProgress = queryProgress;
@@ -44,7 +44,11 @@ public sealed class QueryRunContext
 
     public CancellationToken CancellationToken { get; }
 
-    public IReadOnlyDictionary<string, object?> RuntimeParameters { get; }
+    /// <summary>Gets the execution's concrete parameter slots.</summary>
+    private TypedParameterSnapshot _typedParameters = TypedParameterSnapshot.Empty;
+    public TypedParameterSnapshot TypedParameters { get => _typedParameters; init => _typedParameters = value; }
+
+    internal void SetTypedParameters(TypedParameterSnapshot snapshot) => _typedParameters = snapshot;
 
     public QueryPhaseEventHandler? PhaseChanged { get; }
 
@@ -78,18 +82,9 @@ public sealed class QueryRunContext
         if (sender is IQueryRunnable runnable)
         {
             var binding = EvaluatorQueryRuntimeBinding.Capture(runnable);
-            var parameters = ParameterSnapshot.CaptureReadOnlyOrEmpty(options.Parameters);
-            if (runnable is IParameterizedRunnable parameterized && !options.ParametersAreCaptured)
-            {
-                parameters = StructuralParameterSnapshotter.CaptureForExecution(
-                    parameterized.ParameterDefinitions,
-                    parameters,
-                    options.CancellationToken,
-                    runnable as IStructuralParameterSnapshotProvider);
-            }
-            return Create(
+            var captured = Create(
                 binding,
-                parameters,
+                options.TypedParameters,
                 options.CancellationToken,
                 options.PhaseChanged,
                 options.DataSourceProgress,
@@ -97,22 +92,27 @@ public sealed class QueryRunContext
                 options.QueryProgressOptions,
                 sender,
                 queryId ?? runnable.GetType().FullName ?? string.Empty);
+            captured._typedParameters = options.TypedParameters;
+            return captured;
         }
 
         return new QueryRunContext(
             options.CancellationToken,
-            options.Parameters,
+            options.TypedParameters,
             options.PhaseChanged,
             options.DataSourceProgress,
             sender,
             queryId,
             queryProgress: options.QueryProgress,
-            queryProgressOptions: options.QueryProgressOptions);
+            queryProgressOptions: options.QueryProgressOptions)
+        {
+            TypedParameters = options.TypedParameters
+        };
     }
 
     internal static QueryRunContext Create(
         EvaluatorQueryRuntimeBinding binding,
-        IReadOnlyDictionary<string, object?> parameters,
+        TypedParameterSnapshot parameters,
         CancellationToken cancellationToken,
         QueryPhaseEventHandler? phaseChanged,
         DataSourceEventHandler? dataSourceProgress,

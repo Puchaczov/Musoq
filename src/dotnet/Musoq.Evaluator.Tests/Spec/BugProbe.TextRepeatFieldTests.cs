@@ -10,10 +10,10 @@ namespace Musoq.Evaluator.Tests.Spec;
 /// <summary>
 ///     BUG PROBE: Text 'repeat' fields.
 ///     Per spec section 5.9: "Parses the inner type repeatedly until delimiter or end."
-///     No E2E coverage exists.
+///     Covers schema and inline text element repetition through query execution.
 /// </summary>
 [TestClass]
-public class BugProbeTextRepeatFieldTests
+public partial class BugProbeTextRepeatFieldTests
 {
     private static readonly ILoggerResolver LoggerResolver = new TestsLoggerResolver();
     private static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
@@ -46,7 +46,7 @@ public class BugProbeTextRepeatFieldTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("host", table[0][0]);
-        Assert.AreEqual("localhost", table[0][1]);
+        Assert.AreEqual("host", table[0].ReadValue(0));
+        Assert.AreEqual("localhost", table[0].ReadValue(1));
     }
 }

@@ -13,7 +13,7 @@ namespace Musoq.Evaluator.Tests.Schema.Wildcard;
 
 public sealed class ProjectionSensitiveWildcardSchemaProvider(
     ProjectionSensitiveWildcardRecorder recorder,
-    bool queryScopedRowsEnabled = false) : ISchemaProvider
+    bool queryScopedRowsEnabled = true) : ISchemaProvider
 {
     public ISchema GetSchema(string schema)
     {
@@ -27,7 +27,7 @@ public sealed class ProjectionSensitiveWildcardSchemaProvider(
 
 public sealed class ProjectionSensitiveWildcardSchema(
     ProjectionSensitiveWildcardRecorder recorder,
-    bool queryScopedRowsEnabled = false) : SchemaBase(SchemaName, CreateMethods()), IQueryScopedRowSourceSchema
+    bool queryScopedRowsEnabled = true) : SchemaBase(SchemaName, CreateMethods()), IQueryScopedRowSourceSchema
 {
     public const string SchemaName = "wildcard";
     public const string SourceName = "rows";
@@ -86,10 +86,10 @@ public sealed class ProjectionSensitiveWildcardSchema(
         };
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         EnsureSourceName(name);
         var requestedColumns = executionContext.AllColumns.ToArray();
@@ -101,11 +101,12 @@ public sealed class ProjectionSensitiveWildcardSchema(
         return EnsureSourceType<T, object[]>(name, new ProjectionSensitiveWildcardRowSource([row]));
     }
 
-    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer>(
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        params object?[] parameters)
+        TArguments parameters)
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
         if (!queryScopedRowsEnabled)
             throw new InvalidOperationException("Query-scoped rows were not enabled for this fixture.");

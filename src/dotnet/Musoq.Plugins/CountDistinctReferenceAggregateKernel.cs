@@ -7,6 +7,9 @@ namespace Musoq.Plugins;
 public static class CountDistinctReferenceAggregateKernel<T>
     where T : class
 {
+    /// <summary>Initializes independently owned kernel state.</summary>
+    public static void Reset(ref State state) => state = default;
+
     public struct State
     {
         public HashSet<T>? Values;

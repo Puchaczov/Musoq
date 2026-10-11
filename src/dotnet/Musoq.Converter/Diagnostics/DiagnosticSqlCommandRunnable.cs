@@ -14,7 +14,7 @@ namespace Musoq.Converter.Diagnostics;
 internal sealed class DiagnosticSqlCommandRunnable(
     DiagnosticSqlCommandKind kind,
     CompiledQuery innerQuery,
-    ExecutionPlanOperatorCatalog? operatorCatalog = null) : ITableRunnable, IParameterizedRunnable
+    ExecutionPlanOperatorCatalog? operatorCatalog = null) : ITableRunnable, IParameterizedRunnable, ITypedParameterizedRunnable
 {
     public ISchemaProvider Provider { get; set; } = null!;
 
@@ -29,7 +29,11 @@ internal sealed class DiagnosticSqlCommandRunnable(
 
     public ILogger Logger { get; set; } = null!;
 
-    public IDictionary<string, object?> Parameters => innerQuery.Parameters;
+    public TypedParameterSnapshot TypedParameters
+    {
+        get => innerQuery.TypedParameters.Capture();
+        set => innerQuery.TypedParameters.ReplaceWith(value);
+    }
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions => innerQuery.ParameterDefinitions;
 
@@ -100,11 +104,18 @@ internal sealed class DiagnosticSqlCommandRunnable(
     {
         public override int Count => 2;
 
-        public override object this[int columnNumber] => columnNumber switch
+        public override void VisitColumns<TVisitor>(ref TVisitor visitor) => TypedColumnVisit.All(this, ref visitor);
+
+        public override void VisitColumn<TVisitor>(int columnIndex, ref TVisitor visitor)
         {
-            0 => lineNumber,
-            1 => text,
-            _ => throw new IndexOutOfRangeException()
-        };
+            switch (columnIndex)
+            {
+                case 0: TypedColumnVisit.Apply(columnIndex, lineNumber, ref visitor); return;
+                case 1: TypedColumnVisit.Apply(columnIndex, text, ref visitor); return;
+                default: throw new ArgumentOutOfRangeException(nameof(columnIndex));
+            }
+        }
+
+
     }
 }

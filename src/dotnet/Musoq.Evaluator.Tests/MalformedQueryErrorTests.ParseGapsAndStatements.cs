@@ -79,7 +79,7 @@ public partial class MalformedQueryErrorTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("Alice", table[0].Values[0]);
+        Assert.AreEqual("Alice", table[0].ReadValues()[0]);
     }
 
     [TestMethod]

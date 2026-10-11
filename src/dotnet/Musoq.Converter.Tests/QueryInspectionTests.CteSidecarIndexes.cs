@@ -331,8 +331,8 @@ inner join rightCte r on d.Dummy = r.Dummy";
         var optimized = CompileForExecution(CreateCteBackedInnerHashJoinQuery(), CreateCteSidecarOptions()).Run();
 
         Assert.AreEqual(baseline.Count, optimized.Count);
-        Assert.AreEqual(baseline[0][0], optimized[0][0]);
-        Assert.AreEqual(baseline[0][1], optimized[0][1]);
+        Assert.AreEqual(baseline[0].ReadValue(0), optimized[0].ReadValue(0));
+        Assert.AreEqual(baseline[0].ReadValue(1), optimized[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -342,8 +342,8 @@ inner join rightCte r on d.Dummy = r.Dummy";
         var optimized = CompileForExecution(CreateCteBackedResidualOuterHashJoinQuery(), CreateCteSidecarOptions()).Run();
 
         Assert.AreEqual(baseline.Count, optimized.Count);
-        Assert.AreEqual(baseline[0][0], optimized[0][0]);
-        Assert.AreEqual(baseline[0][1], optimized[0][1]);
+        Assert.AreEqual(baseline[0].ReadValue(0), optimized[0].ReadValue(0));
+        Assert.AreEqual(baseline[0].ReadValue(1), optimized[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -355,7 +355,7 @@ inner join rightCte r on d.Dummy = r.Dummy";
         var antiOptimized = CompileForExecution(CreateCteBackedAntiSemiJoinQuery(), CreateCteSidecarOptions()).Run();
 
         Assert.AreEqual(semiBaseline.Count, semiOptimized.Count);
-        Assert.AreEqual(semiBaseline[0][0], semiOptimized[0][0]);
+        Assert.AreEqual(semiBaseline[0].ReadValue(0), semiOptimized[0].ReadValue(0));
         Assert.AreEqual(antiBaseline.Count, antiOptimized.Count);
     }
 

@@ -34,7 +34,7 @@ internal static partial class ExecutionExpressionFingerprint
         return expression switch
         {
             ExecutionFieldRead fieldRead => $"field:{NormalizeAlias(fieldRead.Alias, parallelAggregate)}:{NormalizeFieldName(fieldRead.FieldName, fieldRead.Alias, parallelAggregate)}:{ForAggregateType(fieldRead.ReturnType)}:{AggregateFieldAccessStrategy(fieldRead.AccessStrategy, fieldRead.Alias, parallelAggregate)}{(fieldRead.EnumType == null ? string.Empty : $":source={fieldRead.SourceReadType?.StableId ?? "-"}:enum={fieldRead.EnumType.Fingerprint}")}",
-            ExecutionMemberRead memberRead => $"member:{memberRead.IsDynamic}:{memberRead.MemberName}:{ForParallelAggregate(memberRead.Receiver, parallelAggregate)}:{ForAggregateType(memberRead.ReturnType)}",
+            ExecutionMemberRead memberRead => $"member:{memberRead.IsDynamic}:null-safe={memberRead.IsNullSafe}:{memberRead.MemberName}:{ForParallelAggregate(memberRead.Receiver, parallelAggregate)}:{ForAggregateType(memberRead.ReturnType)}",
             ExecutionLiteral literal => $"literal:{NormalizeLiteralValue(literal.Value, parallelAggregate)}:{ForAggregateType(literal.ReturnType)}",
             ExecutionBinary binary => $"binary:{binary.Kind}:{ForParallelAggregate(binary.Left, parallelAggregate)}:{ForParallelAggregate(binary.Right, parallelAggregate)}:{ForAggregateType(binary.ReturnType)}",
             ExecutionUnary unary => $"unary:{unary.Kind}:{ForParallelAggregate(unary.Operand, parallelAggregate)}:{ForAggregateType(unary.ReturnType)}",
@@ -44,9 +44,9 @@ internal static partial class ExecutionExpressionFingerprint
             ExecutionArrayAccess arrayAccess => $"array:{ForParallelAggregate(arrayAccess.Array, parallelAggregate)}:{ForParallelAggregate(arrayAccess.Index, parallelAggregate)}:{ForAggregateType(arrayAccess.ReturnType)}",
             ExecutionIsNullCheck isNull => $"is-null:{isNull.IsNegated}:{ForParallelAggregate(isNull.Expression, parallelAggregate)}",
             ExecutionRowPresence rowPresence => $"presence:{rowPresence.Alias}:{rowPresence.IsPresent}:{ForParallelAggregate(rowPresence.PresenceSource, parallelAggregate)}",
-            ExecutionInCheck inCheck => AggregateSequence(inCheck.IsNegated ? "not-in" : "in", inCheck.Values.Prepend(inCheck.Expression), inCheck.ReturnType, parallelAggregate),
+            ExecutionInCheck inCheck => AggregateSequence(inCheck.UsesSqlNullSemantics ? (inCheck.IsNegated ? "sql-not-in" : "sql-in") : (inCheck.IsNegated ? "not-in" : "in"), inCheck.Values.Prepend(inCheck.Expression), inCheck.ReturnType, parallelAggregate),
             ExecutionPatternMatch patternMatch => $"pattern:{patternMatch.Kind}:{ForParallelAggregate(patternMatch.Expression, parallelAggregate)}:{ForParallelAggregate(patternMatch.Pattern, parallelAggregate)}:{ForAggregateType(patternMatch.ReturnType)}",
-            ExecutionStringMatch stringMatch => $"string-match:{stringMatch.Kind}:{stringMatch.Comparison}:{stringMatch.OriginalPattern}:{stringMatch.Needle}:{ForParallelAggregate(stringMatch.Input, parallelAggregate)}:{ForAggregateType(stringMatch.ReturnType)}",
+            ExecutionStringMatch stringMatch => $"string-match:{stringMatch.Kind}:{stringMatch.Comparison}:{stringMatch.RegexMatchTimeout?.Ticks.ToString(CultureInfo.InvariantCulture) ?? "<inherit>"}:{stringMatch.OriginalPattern}:{stringMatch.Needle}:{ForParallelAggregate(stringMatch.Input, parallelAggregate)}:{ForAggregateType(stringMatch.ReturnType)}",
             ExecutionPrepareLikeMatcher prepareLike => $"like-prepare:{prepareLike.Comparison}:{ForParallelAggregate(prepareLike.Pattern, parallelAggregate)}:{ForAggregateType(prepareLike.ReturnType)}",
             ExecutionPreparedLikeMatch preparedLike => $"like-prepared:{ForParallelAggregate(preparedLike.Input, parallelAggregate)}:{ForParallelAggregate(preparedLike.Matcher, parallelAggregate)}:{ForAggregateType(preparedLike.ReturnType)}",
             ExecutionDynamicLikeMatch dynamicLike => $"like-dynamic:{dynamicLike.Comparison}:{ForParallelAggregate(dynamicLike.Input, parallelAggregate)}:{ForParallelAggregate(dynamicLike.Pattern, parallelAggregate)}:{ForParallelAggregate(dynamicLike.CacheSlot, parallelAggregate)}:{ForAggregateType(dynamicLike.ReturnType)}",
@@ -73,7 +73,7 @@ internal static partial class ExecutionExpressionFingerprint
             ExecutionVariableRead variableRead => $"variable:{ForAggregateVariable(variableRead.Variable, parallelAggregate)}",
             ExecutionRowContextsRead rowContexts => $"contexts:{ForAggregateVariable(rowContexts.Row, parallelAggregate)}",
             ExecutionNullContextArray nullContextArray => $"null-contexts:{nullContextArray.Count.ToString(CultureInfo.InvariantCulture)}",
-            ExecutionCompositeKey compositeKey => AggregateSequence("composite-key", compositeKey.Parts, compositeKey.ReturnType, parallelAggregate),
+
             ExecutionValueTupleKey valueTupleKey => AggregateSequence("value-tuple-key", valueTupleKey.Parts, valueTupleKey.ReturnType, parallelAggregate),
             ExecutionWindowValueRead windowValueRead => $"window:{ForAggregateVariable(windowValueRead.Results, parallelAggregate)}:{ForAggregateVariable(windowValueRead.Index, parallelAggregate)}:{ForAggregateType(windowValueRead.ReturnType)}",
             ExecutionAggregateCall aggregateCall => AggregateCall(aggregateCall, parallelAggregate),
@@ -118,7 +118,7 @@ internal static partial class ExecutionExpressionFingerprint
             .Append("call:")
             .Append(ForAggregateMethod(methodCall.Method))
             .Append(':');
-        AppendEnumIntrinsicFingerprint(builder, methodCall);
+        AppendScalarBindingFingerprint(builder, methodCall);
         builder
             .Append(":target:")
             .Append(methodCall.Target is null ? "<null>" : ForAggregateType(methodCall.Target.Type))
@@ -258,8 +258,7 @@ internal static partial class ExecutionExpressionFingerprint
             GeneratedRowContextAccess generatedContext => $"generated-row-context:{generatedContext.TypeName}.{generatedContext.Index.ToString(CultureInfo.InvariantCulture)}",
             GeneratedRowTypeAccess generatedRow => $"generated-row:{generatedRow.TypeName}.{generatedRow.FieldName}",
             GeneratedRowNestedAccess generatedNested => $"generated-row-nested:{generatedNested.TypeName}.{generatedNested.FieldName}.{NormalizeFieldName(generatedNested.PropertyPath, alias, parallelAggregate)}",
-            ExpandoDictionaryAccess expando => $"expando:{expando.Key}",
-            PositionalAccess positional => $"positional:{positional.Index.ToString(CultureInfo.InvariantCulture)}",
+            PositionalAccess positional => $"positional:{positional.Index.ToString(CultureInfo.InvariantCulture)}:{positional.ValueType?.DisplayName}",
             ContextAccess context => $"context:{context.Index.ToString(CultureInfo.InvariantCulture)}",
             ReflectedMemberAccess reflected => $"reflected:{NormalizeFieldName(reflected.PropertyPath, alias, parallelAggregate)}",
             NestedClrPropertyAccess nested => $"nested-clr:{NormalizeFieldName(nested.PropertyPath, alias, parallelAggregate)}",

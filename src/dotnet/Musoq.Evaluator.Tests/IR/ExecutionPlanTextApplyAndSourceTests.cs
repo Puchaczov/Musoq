@@ -37,6 +37,6 @@ public sealed class ExecutionPlanTextApplyAndSourceTests
         Assert.Contains("EnumerableSource [JustReturnArrayOfString() ->", buildItems.RequireExecutionPlanText());
         Assert.Contains("Assign [bHasMatch = TRUE]", buildItems.RequireExecutionPlanText());
         Assert.Contains("If [NOT bHasMatch]", buildItems.RequireExecutionPlanText());
-        Assert.Contains("b.Value: NULL", buildItems.RequireExecutionPlanText());
+        Assert.Contains("Value: NULL", buildItems.RequireExecutionPlanText());
     }
 }

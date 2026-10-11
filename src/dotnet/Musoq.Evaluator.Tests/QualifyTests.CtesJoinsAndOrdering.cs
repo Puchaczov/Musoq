@@ -74,8 +74,8 @@ public partial class QualifyTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("b.City", typeof(string)),
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
             ("rn", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -166,11 +166,11 @@ public partial class QualifyTests
             ("Name", typeof(string)),
             ("City", typeof(string)),
             ("rn", typeof(long)),
-            ("cnt", typeof(int)));
+            ("cnt", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Alice", "NYC", 1L, 2],
-            ["Charlie", "LA", 1L, 3]);
+            ["Alice", "NYC", 1L, 2L],
+            ["Charlie", "LA", 1L, 3L]);
     }
 
 }

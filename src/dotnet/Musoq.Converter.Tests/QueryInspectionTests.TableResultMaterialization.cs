@@ -107,7 +107,7 @@ public partial class QueryInspectionTests
     private static string[] ReadRows(Table table)
     {
         return table
-            .Select(row => string.Join("|", row[0], row[1]))
+            .Select(row => string.Join("|", row.ReadValue(0), row.ReadValue(1)))
             .ToArray();
     }
 }
@@ -155,10 +155,10 @@ public sealed class MaterializationCountingSchema(
         throw new NotSupportedException(name);
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         if (string.Equals(name, "entities", StringComparison.OrdinalIgnoreCase))
         {

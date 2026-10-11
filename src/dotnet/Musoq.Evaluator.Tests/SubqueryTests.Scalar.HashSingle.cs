@@ -81,6 +81,6 @@ public partial class SubqueryTests
         var exception = Assert.Throws<QueryExecutionException>(() =>
             _ = vm.Run(TestContext.CancellationToken).Count);
 
-        AssertRuntimeError(exception, DiagnosticCode.MQ9002_InternalExecutionError);
+        AssertRuntimeError(exception, DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation);
     }
 }

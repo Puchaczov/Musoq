@@ -90,6 +90,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     private void RegisterUnpivotSource(UnpivotFromNode node, ISchemaColumn[] columns)
     {
         _sourceBinding.QueryAlias = UnpivotFromNode.DefaultAlias;
+        _sourceBinding.CurrentScope[MetaAttributes.ProcessedQueryId] = _sourceBinding.QueryAlias;
 
         if (HasAlreadyUsedAlias(_sourceBinding.QueryAlias))
         {

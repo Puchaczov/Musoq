@@ -20,7 +20,7 @@ public class OptBenchSchema(List<OptBenchEntity> data) : SchemaBase("test", Crea
         return new OptBenchTable();
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
     {
         return EnsureSourceType<T, OptBenchEntity>(name, new OptBenchRowSource(data));
     }

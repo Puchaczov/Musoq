@@ -64,10 +64,10 @@ public partial class DescStatementTests
 
         Assert.AreEqual(1, table.Count, "Should return one row for primitive array element type");
 
-        var columnName = (string)table[0][0];
+        var columnName = (string)table[0].ReadValue(0);
         Assert.AreEqual("Array", columnName, "First row should be the Array column");
 
-        var typeName = (string)table[0][2];
+        var typeName = (string)table[0].ReadValue(2);
         Assert.Contains("Int32", typeName, $"Array element should be Int32 type, got: {typeName}");
     }
 
@@ -90,7 +90,7 @@ public partial class DescStatementTests
 
         Assert.AreEqual(1, table.Count, "Should find column with case-insensitive match");
 
-        var columnName = (string)table[0][0];
+        var columnName = (string)table[0].ReadValue(0);
         Assert.AreEqual("Array", columnName, "Should return the actual column name (Array)");
     }
 
@@ -114,7 +114,7 @@ public partial class DescStatementTests
         Assert.IsGreaterThan(1, table.Count,
             "Should return multiple rows for complex array element type with nested properties");
 
-        var columnNames = table.Select(row => (string)row[0]).ToList();
+        var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
 
         Assert.Contains("Children", columnNames, "Should contain the Children column itself");
         Assert.IsTrue(columnNames.Any(n => n.Contains('.')),
@@ -180,7 +180,7 @@ public partial class DescStatementTests
 
 
         Assert.IsGreaterThan(0, table.Count, "Complex type should show its properties");
-        var columnNames = table.Select(row => (string)row[0]).ToList();
+        var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.IsTrue(columnNames.Any(c => c.Equals("Children", StringComparison.OrdinalIgnoreCase)),
             "Should show Children property for exploratory navigation");
     }
@@ -244,7 +244,7 @@ public partial class DescStatementTests
 
         Assert.AreEqual(1, table.Count, "Should return column info");
 
-        var columnIndex = (int)table[0][1];
+        var columnIndex = (int)table[0].ReadValue(1);
         Assert.IsGreaterThanOrEqualTo(0, columnIndex, "Column index should be non-negative");
     }
 
@@ -267,7 +267,7 @@ public partial class DescStatementTests
 
         Assert.IsGreaterThan(0, table.Count, "Dictionary implements IEnumerable and should work");
 
-        var columnName = (string)table[0][0];
+        var columnName = (string)table[0].ReadValue(0);
         Assert.AreEqual("Dictionary", columnName, "Should return Dictionary column");
     }
 
@@ -302,7 +302,7 @@ public partial class DescStatementTests
 
 
         Assert.IsGreaterThan(0, table.Count, "Should return nested property info");
-        var columnNames = table.Select(row => (string)row[0]).ToList();
+        var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.Contains("Children", columnNames, "Should contain base column name");
 
 
@@ -310,9 +310,9 @@ public partial class DescStatementTests
             "Property names should be relative to Self.Children, not include Self prefix");
 
 
-        var childrenRow = table.FirstOrDefault(row => (string)row[0] == "Children");
+        var childrenRow = table.FirstOrDefault(row => (string)row.ReadValue(0) == "Children");
         Assert.IsNotNull(childrenRow, "Should have Children row");
-        var childrenType = (string)childrenRow[2];
+        var childrenType = (string)childrenRow.ReadValue(2);
         Assert.Contains("BasicEntity",
             childrenType, $"Children should be BasicEntity type, got: {childrenType}");
     }
@@ -345,7 +345,7 @@ public partial class DescStatementTests
 
 
         Assert.IsGreaterThan(0, table.Count, "Should support three-level nested paths");
-        var columnNames = table.Select(row => (string)row[0]).ToList();
+        var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.Contains("Children", columnNames, "Should contain Children base name");
 
 
@@ -357,9 +357,9 @@ public partial class DescStatementTests
 
         foreach (var row in table)
         {
-            Assert.IsNotNull(row[0], "Name should not be null");
-            Assert.IsInstanceOfType<int>(row[1],"Index should be int");
-            Assert.IsNotNull(row[2], "Type should not be null");
+            Assert.IsNotNull(row.ReadValue(0), "Name should not be null");
+            Assert.IsInstanceOfType<int>(row.ReadValue(1),"Index should be int");
+            Assert.IsNotNull(row.ReadValue(2), "Type should not be null");
         }
     }
 

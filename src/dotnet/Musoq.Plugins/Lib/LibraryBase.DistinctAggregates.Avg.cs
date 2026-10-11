@@ -6,74 +6,83 @@ public partial class LibraryBase
     #pragma warning disable CS1591 // Repetitive aggregate declaration overloads are documented by their regions and attributes.
 
     [AggregateFunction(
-        typeof(AvgDistinctAggregateKernel<byte>),
+        typeof(AverageDistinctKernel<byte, decimal>),
         Name = nameof(AvgDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public byte? AvgDistinct(byte? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<byte?>();
+    [WindowFunction(typeof(AverageDistinctKernel<byte, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? AvgDistinct(byte? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
 
     [AggregateFunction(
-        typeof(AvgDistinctAggregateKernel<sbyte>),
+        typeof(AverageDistinctKernel<sbyte, decimal>),
         Name = nameof(AvgDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public sbyte? AvgDistinct(sbyte? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<sbyte?>();
+    [WindowFunction(typeof(AverageDistinctKernel<sbyte, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? AvgDistinct(sbyte? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
 
     [AggregateFunction(
-        typeof(AvgDistinctAggregateKernel<short>),
+        typeof(AverageDistinctKernel<short, decimal>),
         Name = nameof(AvgDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public short? AvgDistinct(short? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<short?>();
+    [WindowFunction(typeof(AverageDistinctKernel<short, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? AvgDistinct(short? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
 
     [AggregateFunction(
-        typeof(AvgDistinctAggregateKernel<ushort>),
+        typeof(AverageDistinctKernel<ushort, decimal>),
         Name = nameof(AvgDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public ushort? AvgDistinct(ushort? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<ushort?>();
+    [WindowFunction(typeof(AverageDistinctKernel<ushort, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? AvgDistinct(ushort? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
 
     [AggregateFunction(
-        typeof(AvgDistinctAggregateKernel<int>),
+        typeof(AverageDistinctKernel<int, decimal>),
         Name = nameof(AvgDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public int? AvgDistinct(int? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<int?>();
+    [WindowFunction(typeof(AverageDistinctKernel<int, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? AvgDistinct(int? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
 
     [AggregateFunction(
-        typeof(AvgDistinctAggregateKernel<uint>),
+        typeof(AverageDistinctKernel<uint, decimal>),
         Name = nameof(AvgDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public uint? AvgDistinct(uint? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<uint?>();
+    [WindowFunction(typeof(AverageDistinctKernel<uint, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? AvgDistinct(uint? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
 
     [AggregateFunction(
-        typeof(AvgDistinctAggregateKernel<long>),
+        typeof(AverageDistinctKernel<long, decimal>),
         Name = nameof(AvgDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public long? AvgDistinct(long? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<long?>();
+    [WindowFunction(typeof(AverageDistinctKernel<long, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? AvgDistinct(long? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
 
     [AggregateFunction(
-        typeof(AvgDistinctAggregateKernel<ulong>),
+        typeof(AverageDistinctKernel<ulong, decimal>),
         Name = nameof(AvgDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
-    public ulong? AvgDistinct(ulong? value, [AggregateParent] int parent = 0)
-        => AggregateDeclaration<ulong?>();
+    [WindowFunction(typeof(AverageDistinctKernel<ulong, decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
+    public decimal? AvgDistinct(ulong? value, [AggregateParent] int parent = 0)
+        => AggregateDeclaration<decimal?>();
 
     [AggregateFunction(
         typeof(AvgDistinctAggregateKernel<float>),
         Name = nameof(AvgDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(AvgDistinctAggregateKernel<float>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public float? AvgDistinct(float? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<float?>();
 
@@ -82,6 +91,7 @@ public partial class LibraryBase
         Name = nameof(AvgDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(AvgDistinctAggregateKernel<double>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public double? AvgDistinct(double? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<double?>();
 
@@ -90,6 +100,7 @@ public partial class LibraryBase
         Name = nameof(AvgDistinct),
         Inline = true,
         EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+    [WindowFunction(typeof(AvgDistinctAggregateKernel<decimal>), NumericWindowModes, AggregateEmptyResultBehavior.Null)]
     public decimal? AvgDistinct(decimal? value, [AggregateParent] int parent = 0)
         => AggregateDeclaration<decimal?>();
 

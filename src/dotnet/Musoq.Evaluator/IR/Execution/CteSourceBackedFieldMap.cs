@@ -7,7 +7,7 @@ internal static class CteSourceBackedFieldMap
 {
     public static IReadOnlyDictionary<string, ExecutionExpression> Create(ExecutionAppendRow appendRow)
     {
-        var map = new Dictionary<string, ExecutionExpression>(StringComparer.OrdinalIgnoreCase);
+        var map = new Dictionary<string, ExecutionExpression>(StringComparer.Ordinal);
 
         for (var index = 0; index < appendRow.RowShape.Fields.Count && index < appendRow.Values.Count; index++)
         {

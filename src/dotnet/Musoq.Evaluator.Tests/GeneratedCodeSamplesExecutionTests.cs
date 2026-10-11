@@ -11,6 +11,7 @@ using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -80,8 +81,8 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
         var vm = CompileSample(
             "Q123_ScriptParameterGroupByHelperCapture.cs",
             CreateBasicProvider(CreateLargeCountryRows(), []));
-        vm.Parameters["suffix"] = "-large";
-        vm.Parameters["minCount"] = 2500;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-large");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "minCount", 2500);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -101,14 +102,14 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
         var vm = CompileSample(
             "Q124_ScriptParameterJoinHelperCapture.cs",
             CreateBasicProvider(CreateBasicRows(), CreateTargetRows()));
-        vm.Parameters["suffix"] = "-match";
-        vm.Parameters["fallback"] = "missing";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-match");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "fallback", "missing");
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("MatchedName", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -151,8 +152,8 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Name", typeof(string)),
-            ("q.Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Bob", "Bob"],
@@ -165,14 +166,14 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
         var vm = CompileSample(
             "Q125_ScriptParameterCteHelperCapture.cs",
             CreateBasicProvider(CreateBasicRows(), CreateTargetRows()));
-        vm.Parameters["country"] = "PL";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("l.Name", typeof(string)),
-            ("r.RequestedCountry", typeof(string)));
+            ("Name", typeof(string)),
+            ("RequestedCountry", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "PL"],
@@ -185,8 +186,8 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
         var vm = CompileSample(
             "Q126_ScriptParameterWindowHelperCapture.cs",
             CreateBasicProvider(CreateBasicRows(), CreateTargetRows()));
-        vm.Parameters["country"] = "PL";
-        vm.Parameters["label"] = "-window";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "-window");
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -219,8 +220,8 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
         Assert.Contains("QueryRows.FromRowShards", inspection.GeneratedCSharpCode);
 
         var vm = CompileSample(sample.FileName, provider);
-        vm.Parameters["threshold"] = 4990;
-        vm.Parameters["label"] = "hot";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "threshold", 4990);
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "hot");
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -377,6 +378,12 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
     private sealed class DirectRuntimeV2RegressionSchema(IReadOnlyList<RuntimeV2RegressionEntity> rows)
         : SchemaBase("test", CreateLibrary())
     {
+        public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
+            => base.DescribeSource(name, context, parameters) with
+            {
+                ExecutionPermissions = SourceExecutionPermissions.ConcurrentRowProcessing
+            };
+
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
@@ -385,10 +392,10 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
             return new RuntimeV2RegressionTable();
         }
 
-        public override RowSource<T> GetRowSource<T>(
+        public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            params object?[] parameters)
+            TArguments nativeArguments)
         {
             return EnsureSourceType<T, RuntimeV2RegressionEntity>(
                 name,

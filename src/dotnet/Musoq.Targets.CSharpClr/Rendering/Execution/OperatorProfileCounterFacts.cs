@@ -82,7 +82,6 @@ internal static class OperatorProfileCounterFacts
                     SyntaxFactory.IdentifierName("Length")),
                 ExecutionMaterializeList materialize => CreateCountExpression(materialize.Buffer.Name),
                 ExecutionMaterializeFilteredList materialize => CreateCountExpression(materialize.Buffer.Name),
-                ExecutionMaterializeExpandoList materialize => CreateCountExpression(materialize.Buffer.Name),
                 ExecutionOrderRecordList orderRecords => CreateCountExpression(orderRecords.Source.Name),
                 ExecutionParallelFilterProjectLoop parallelProject => CreateCountExpression(parallelProject.AppendRow.Table.Name),
                 ExecutionParallelSingleKeyAggregateLoop parallelAggregate => CreateCountExpression(parallelAggregate.GroupsToFinalize.Name),

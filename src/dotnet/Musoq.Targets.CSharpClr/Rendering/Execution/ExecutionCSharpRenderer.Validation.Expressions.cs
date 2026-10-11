@@ -50,11 +50,14 @@ public sealed partial class ExecutionCSharpRenderer
                                                          CanReferenceType(cteCollection.ElementType) &&
                                                          (cteCollection.ConstructionPlan == null ||
                                                           CanReferenceType(cteCollection.ConstructionPlan.TargetType)),
-            ExecutionStructuralRecord structuralRecord => structuralRecord.ConstructionPlan is { } plan &&
+            ExecutionStructuralRecord structuralRecord when structuralRecord.ConstructionPlan is { } plan =>
                                                        structuralRecord.Fields.All(field => CanRenderExpression(field.Value)) &&
                                                        plan.SourceFieldIndexes.Count == plan.Defaults.Count &&
                                                        plan.Defaults.Where(static value => value != null).All(value => CanRenderExpression(value!)) &&
                                                        CanReferenceType(plan.TargetType),
+            ExecutionStructuralRecord structuralRecord =>
+                structuralRecord.ReturnType.RequireClrType() == typeof(Musoq.Schema.StructuralInputs.StructuralValue) &&
+                structuralRecord.Fields.All(field => CanRenderExpression(field.Value)),
             ExecutionMemberRead memberRead => CanRenderMemberRead(memberRead),
             ExecutionScriptParameterRead parameterRead => !string.IsNullOrWhiteSpace(parameterRead.Name) &&
                                                           CanReferenceType(parameterRead.ReturnType),
@@ -77,6 +80,7 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionRowPresence rowPresence => CanRenderExpression(rowPresence.PresenceSource),
             ExecutionInCheck inCheck => CanRenderExpression(inCheck.Expression) &&
                                         inCheck.Values.All(CanRenderExpression) &&
+                                        (inCheck.Values.Count == 0 || inCheck.ConstantSet != null || inCheck.TypedBinding != null) &&
                                         (inCheck.ConstantSet == null || CanRenderConstantInSet(inCheck.ConstantSet)),
             ExecutionCollectionInCheck collectionInCheck => CanRenderCollectionInCheck(collectionInCheck),
             ExecutionPatternMatch patternMatch => CanRenderPatternMatch(patternMatch),
@@ -100,7 +104,6 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionNullContextArray nullContextArray => nullContextArray.Count >= 0,
             ExecutionContextArray contextArray => contextArray.Segments.All(static segment => segment.Count >= 0) &&
                                                   contextArray.Segments.Select(static segment => segment.Value).All(CanRenderExpression),
-            ExecutionCompositeKey compositeKey => compositeKey.Parts.All(CanRenderExpression),
             ExecutionValueTupleKey valueTupleKey =>
                                                     ValueTupleTypeShape.TryGetElementTypes(valueTupleKey.ReturnType.RequireClrType(), out var tupleElementTypes) &&
                                                     tupleElementTypes.Length == valueTupleKey.Parts.Count &&

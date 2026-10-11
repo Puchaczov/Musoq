@@ -12,18 +12,11 @@ namespace Musoq.Evaluator.Tests.Runtime;
 public sealed class EvaluationHelperRuntimeCacheTests
 {
     [TestMethod]
-    public void DynamicNestedValueAccessorCache_ShouldStayBounded()
+    public void DynamicNestedValueAccessors_ShouldNotExist()
     {
-        var cache = PrivateStaticCache("NestedValueAccessors");
-        Clear(cache);
-
-        for (var i = 0; i < RuntimeCacheOptions.DynamicAccessorCacheSize + 10; i++)
-            EvaluationHelper.GetNestedValueAccessor(typeof(DynamicAccessorEntity), $"Missing{i}");
-
-        Assert.AreEqual(1, Count(cache));
-        Assert.AreEqual(
-            RuntimeCacheOptions.DynamicAccessorCacheSize,
-            EvaluationHelper.GetNestedValueAccessorCacheCount(typeof(DynamicAccessorEntity)));
+        Assert.IsNull(typeof(EvaluationHelper).GetMethod("GetNestedValueAccessor"));
+        Assert.IsNull(typeof(EvaluationHelper).GetMethod("GetNestedValue"));
+        Assert.IsNull(typeof(EvaluationHelper).GetField("NestedValueAccessors", BindingFlags.NonPublic | BindingFlags.Static));
     }
 
     [TestMethod]

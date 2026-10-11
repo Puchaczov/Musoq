@@ -20,7 +20,7 @@ public class ReportingSchema<T> : SchemaBase where T : BasicEntity
         AddTable<BasicEntityTable>("entities");
     }
 
-    public override RowSource<TRow> GetRowSource<TRow>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<TRow> GetRowSource<TRow, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
     {
         return EnsureSourceType<TRow, BasicEntity>(name, new ReportingEntitySource<BasicEntity>(
             _sources,

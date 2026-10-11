@@ -105,7 +105,7 @@ public partial class DescColumnNestedPropertyTests
 
         Assert.IsGreaterThan(0, table.Count, "Should describe the complex type");
 
-        var columnNames = table.Select(row => (string)row[0]).ToList();
+        var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
 
 
         Assert.IsTrue(columnNames.Any(c => c.Equals("Name", StringComparison.OrdinalIgnoreCase)),
@@ -177,7 +177,7 @@ public partial class DescColumnNestedPropertyTests
         var result = EvaluationHelper.GetSpecificColumnDescription(table, "Self.Children");
 
         Assert.IsGreaterThan(0, result.Count, "Should return rows for nested property");
-        Assert.AreEqual("Children", result[0][0], "First row should show the relative property name");
+        Assert.AreEqual("Children", result[0].ReadValue(0), "First row should show the relative property name");
     }
 
     /// <summary>
@@ -191,7 +191,7 @@ public partial class DescColumnNestedPropertyTests
         var result = EvaluationHelper.GetSpecificColumnDescription(table, "Self.Other.Children");
 
         Assert.IsGreaterThan(0, result.Count, "Should return rows for deeply nested property");
-        Assert.AreEqual("Children", result[0][0], "First row should show the relative property name");
+        Assert.AreEqual("Children", result[0].ReadValue(0), "First row should show the relative property name");
     }
 
     /// <summary>

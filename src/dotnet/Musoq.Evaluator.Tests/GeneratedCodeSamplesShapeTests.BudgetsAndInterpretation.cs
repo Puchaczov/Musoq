@@ -108,12 +108,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         AssertAggregateCancellationShape(q61, "PopulateWindowSourceTableSingleKeyGroups", "FinalizeWindowSourceTableSingleKeyGroups");
         AssertAggregateCancellationShape(q72, "PopulateWindowSourceTableSingleKeyGroups", "FinalizeWindowSourceTableSingleKeyGroups");
 
-        Assert.Contains("ParallelSingleKeyAggregate_0(cte0_bRows, 24, token);", q140);
-        Assert.Contains("private static List<Cte0AggregateGroup> ParallelSingleKeyAggregate_0(", q140);
-        Assert.Contains("private static void ParallelSingleKeyAggregateChunk_0(", q140);
-        Assert.Contains("private sealed class ParallelSingleKeyAggregateChunkWorker_0", q140);
-        Assert.DoesNotContain("private static void ParallelSingleKeyAggregateShard_0(", q140);
-        Assert.DoesNotContain("SerialSingleKeyAggregate", q140);
+        Assert.DoesNotContain("ParallelSingleKeyAggregate", q140);
+        Assert.Contains("foreach (var bChunk in cte0_bRows)", q140);
+        Assert.Contains("SumAggregateKernel<decimal>.Reset(ref this.__agg0)", q140);
+        Assert.Contains("checked(cte0Group.__agg0.Value + __agg0Current)", q140);
+        Assert.Contains("foreach (var cte0FinalGroup in cte0GroupsToFinalize)", q140);
         Assert.Contains("token.ThrowIfCancellationRequested();", q140);
     }
 
@@ -124,7 +123,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains("CreateKeySet [distinctKeys: ValueTuple<string, string>]", sample.Content);
         Assert.Contains("If [Add((city, country))]", sample.Content);
-        Assert.Contains("AppendShape [result <- ResultShape0(City: city, Country: country)]", sample.Content);
+        Assert.Contains("AppendShape [result <- ResultRow0(City: city, Country: country)]", sample.Content);
         Assert.Contains("var distinctKeys = new HashSet<ValueTuple<string, string>>();", sample.Content);
         Assert.Contains("if ((bool)distinctKeys.Add((city, country)))", sample.Content);
         Assert.IsFalse(sample.Content.Contains("AggregateGroup [ResultAggregateGroup", StringComparison.Ordinal));
@@ -242,11 +241,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(intersect.Contains(".AddUnchecked(", StringComparison.Ordinal));
         Assert.IsFalse(intersect.Contains("Intersect(left, right", StringComparison.Ordinal));
 
-        Assert.Contains("CreateShapeRows [result: ResultShape0 from ResultRow0]", unionAll);
-        Assert.Contains("AppendShape [result <- ResultShape0(Name: ko3iko.Name)]", unionAll);
-        Assert.Contains("AppendShape [result <- ResultShape0(Name: vo04qt.Name)]", unionAll);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(ko3iko.Name));", unionAll);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(vo04qt.Name));", unionAll);
+        Assert.Contains("CreateShapeRows [result: ResultRow0 from ResultRow0]", unionAll);
+        Assert.Contains("AppendShape [result <- ResultRow0(Name: ko3iko.Name)]", unionAll);
+        Assert.Contains("AppendShape [result <- ResultRow0(Name: vo04qt.Name)]", unionAll);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(ko3iko.Name));", unionAll);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(vo04qt.Name));", unionAll);
         Assert.IsFalse(unionAll.Contains(".AddUnchecked(", StringComparison.Ordinal));
         Assert.IsFalse(unionAll.Contains("SetOperation [result = left UnionAll right]", StringComparison.Ordinal));
         Assert.IsFalse(unionAll.Contains("UnionAll(", StringComparison.Ordinal));

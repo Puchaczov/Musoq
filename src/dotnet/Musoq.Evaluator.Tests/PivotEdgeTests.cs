@@ -25,9 +25,9 @@ public class PivotEdgeTests : BasicEntityTestBase
         AssertColumn(table, 0, "City", typeof(string));
         AssertColumn(table, 1, "Missing", typeof(long));
         AssertColumn(table, 2, "Jan", typeof(long));
-        Assert.AreEqual("NY", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
-        Assert.AreEqual(1L, table[0][2]);
+        Assert.AreEqual("NY", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
+        Assert.AreEqual(1L, table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -44,9 +44,9 @@ public class PivotEdgeTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, CreateDistinctSources()).Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("NY", table[0][0]);
-        Assert.AreEqual(2L, table[0][1]);
-        Assert.AreEqual(1L, table[0][2]);
+        Assert.AreEqual("NY", table[0].ReadValue(0));
+        Assert.AreEqual(2L, table[0].ReadValue(1));
+        Assert.AreEqual(1L, table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -66,8 +66,8 @@ public class PivotEdgeTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         AssertColumn(table, 0, "JanFirst", typeof(decimal?));
         AssertColumn(table, 1, "FebSecond", typeof(decimal?));
-        Assert.AreEqual(10m, table[0][0]);
-        Assert.AreEqual(20m, table[0][1]);
+        Assert.AreEqual(10m, table[0].ReadValue(0));
+        Assert.AreEqual(20m, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -89,11 +89,11 @@ public class PivotEdgeTests : BasicEntityTestBase
         AssertColumn(table, 2, "Feb_Orders", typeof(long));
         AssertColumn(table, 3, "Jan_Sales", typeof(decimal?));
         AssertColumn(table, 4, "Jan_Orders", typeof(long));
-        Assert.AreEqual("NY", table[0][0]);
-        Assert.AreEqual(20m, table[0][1]);
-        Assert.AreEqual(1L, table[0][2]);
-        Assert.AreEqual(10m, table[0][3]);
-        Assert.AreEqual(1L, table[0][4]);
+        Assert.AreEqual("NY", table[0].ReadValue(0));
+        Assert.AreEqual(20m, table[0].ReadValue(1));
+        Assert.AreEqual(1L, table[0].ReadValue(2));
+        Assert.AreEqual(10m, table[0].ReadValue(3));
+        Assert.AreEqual(1L, table[0].ReadValue(4));
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateNullKeySources()

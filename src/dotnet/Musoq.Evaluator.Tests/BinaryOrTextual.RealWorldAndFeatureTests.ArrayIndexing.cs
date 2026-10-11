@@ -60,7 +60,7 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
 
         Assert.AreEqual(2, table.Count);
-        var names = table.Select(r => (string)r[0]).OrderBy(n => n).ToList();
+        var names = table.Select(r => (string)r.ReadValue(0)).OrderBy(n => n).ToList();
         Assert.AreEqual("custom.bin", names[0]);
         Assert.AreEqual("elf.bin", names[1]);
     }
@@ -99,11 +99,11 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x7F, table[0][0]);
-        Assert.AreEqual((byte)0x45, table[0][1]);
-        Assert.AreEqual((byte)0x4C, table[0][2]);
-        Assert.AreEqual((byte)0x46, table[0][3]);
-        Assert.AreEqual(42, table[0][4]);
+        Assert.AreEqual((byte)0x7F, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x45, table[0].ReadValue(1));
+        Assert.AreEqual((byte)0x4C, table[0].ReadValue(2));
+        Assert.AreEqual((byte)0x46, table[0].ReadValue(3));
+        Assert.AreEqual(42, table[0].ReadValue(4));
     }
 
     #endregion

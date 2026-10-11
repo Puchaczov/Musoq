@@ -31,10 +31,10 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Id", table[0][0]);
-        Assert.AreEqual("System.Int32", table[0][2]);
-        Assert.AreEqual("Name", table[1][0]);
-        Assert.AreEqual("System.String", table[1][2]);
+        Assert.AreEqual("Id", table[0].ReadValue(0));
+        Assert.AreEqual("System.Int32", table[0].ReadValue(2));
+        Assert.AreEqual("Name", table[1].ReadValue(0));
+        Assert.AreEqual("System.String", table[1].ReadValue(2));
     }
 
     [TestMethod]
@@ -63,13 +63,13 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry =>
-                (int)entry[0] == 1 &&
-                (string)entry[1] == "Test1"),
+                (int)entry.ReadValue(0) == 1 &&
+                (string)entry.ReadValue(1) == "Test1"),
             "First entry should have values 1 and 'Test1'");
 
         Assert.IsTrue(table.Any(entry =>
-                (int)entry[0] == 2 &&
-                (string)entry[1] == "Test2"),
+                (int)entry.ReadValue(0) == 2 &&
+                (string)entry.ReadValue(1) == "Test2"),
             "Second entry should have values 2 and 'Test2'");
     }
 
@@ -89,10 +89,12 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Complex", table[0][0]);
-        Assert.AreEqual(0, (int)table[0][1]);
-        Assert.AreEqual(typeof(ComplexExpandoType).FullName, table[0][2]);
+        Assert.AreEqual(4, table.Count);
+        CollectionAssert.AreEquivalent(new[] { "Complex", "Complex.Complex", "Complex.Complex.Id", "Complex.Complex.Name" },
+            table.Select(row => row.GetValue<string>(0)).ToArray());
+        Assert.AreEqual("Complex", table[0].ReadValue(0));
+        Assert.AreEqual(0, (int)table[0].ReadValue(1));
+        Assert.AreEqual(typeof(ComplexExpandoType).FullName, table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -117,8 +119,8 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual("Test1", table[0][1]);
+        Assert.AreEqual(1, table[0].ReadValue(0));
+        Assert.AreEqual("Test1", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -143,8 +145,8 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         Assert.AreEqual(typeof(short), table.Columns.ElementAt(1).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)1, table[0][0]);
-        Assert.AreEqual((short)2, table[0][1]);
+        Assert.AreEqual((short)1, table[0].ReadValue(0));
+        Assert.AreEqual((short)2, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -171,8 +173,8 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual("Test1", table[0][1]);
+        Assert.AreEqual(1, table[0].ReadValue(0));
+        Assert.AreEqual("Test1", table[0].ReadValue(1));
     }
 
 
@@ -199,7 +201,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, table[0][0]);
+        Assert.AreEqual(2, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -221,63 +223,27 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(1, table.Count);
-        Assert.IsTrue((bool?)table[0][0]);
+        Assert.IsTrue((bool?)table[0].ReadValue(0));
     }
 
-    private ExpandoObject CreateExpandoObject(ComplexType complexType)
+    private static ExpandoObject CreateExpandoObject<T>(T value)
     {
-        var expandoObject = new ExpandoObject();
-
-        ((IDictionary<string, object?>)expandoObject).Add("Complex", complexType);
-
-        return expandoObject;
-    }
-
-    private ExpandoObject CreateExpandoObject(DynamicObject dynamicObject)
-    {
-        var expandoObject = new ExpandoObject();
-
-        ((IDictionary<string, object?>)expandoObject).Add("Complex", dynamicObject);
-
-        return expandoObject;
+        var result = new ExpandoObject();
+        ((IDictionary<string, object?>)result).Add("Complex", value);
+        return result;
     }
 
     [DynamicObjectPropertyTypeHint("Id", typeof(int))]
     [DynamicObjectPropertyTypeHint("Name", typeof(string))]
-    public class ComplexType(int intValue, string stringValue) : DynamicObject
+    public sealed class ComplexType(int intValue, string stringValue)
     {
-        public override bool TryGetMember(GetMemberBinder binder, out object? result)
-        {
-            switch (binder.Name)
-            {
-                case "Id":
-                    result = intValue;
-                    return true;
-                case "Name":
-                    result = stringValue;
-                    return true;
-                default:
-                    return base.TryGetMember(binder, out result);
-            }
-        }
+        public int Id { get; } = intValue;
+        public string Name { get; } = stringValue;
     }
 
-    public class ComplexArrayType<TType> : DynamicObject
+    public class ComplexArrayType<TType>(TType[] arrayValue)
     {
-        private readonly TType[] _arrayValue;
-
-        protected ComplexArrayType(TType[] arrayValue)
-        {
-            _arrayValue = arrayValue;
-        }
-
-        public override bool TryGetMember(GetMemberBinder binder, out object? result)
-        {
-            if (binder.Name != "Array") return base.TryGetMember(binder, out result);
-
-            result = _arrayValue;
-            return true;
-        }
+        public TType[] Array { get; } = arrayValue;
     }
 
     [DynamicObjectPropertyTypeHint("Array", typeof(short[]))]
@@ -287,18 +253,9 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     public class ComplexArrayOfComplexTypeType(ComplexType[] arrayValue) : ComplexArrayType<ComplexType>(arrayValue);
 
     [DynamicObjectPropertyTypeHint("Complex", typeof(ComplexType))]
-    public class ComplexExpandoType(ComplexType complexType) : DynamicObject
+    public sealed class ComplexExpandoType(ComplexType complexType)
     {
-        public override bool TryGetMember(GetMemberBinder binder, out object? result)
-        {
-            if (binder.Name == "Complex")
-            {
-                result = complexType;
-                return true;
-            }
-
-            return base.TryGetMember(binder, out result);
-        }
+        public ComplexType Complex { get; } = complexType;
     }
 
     [DynamicObjectPropertyTypeHint("NestedExpando", typeof(DynamicObject))]

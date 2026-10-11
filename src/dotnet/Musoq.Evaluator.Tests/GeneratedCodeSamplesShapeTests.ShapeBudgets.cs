@@ -10,7 +10,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         new(": GeneratedRow", RetiredGeneratedCodePatternBudget),
         new("GroupLayout", RetiredGeneratedCodePatternBudget),
         new("GroupSlot", RetiredGeneratedCodePatternBudget),
-        new(".GetValue<", RetiredGeneratedCodePatternBudget),
+        new(".GetValue<object>", RetiredGeneratedCodePatternBudget),
         new(".SetValue(", RetiredGeneratedCodePatternBudget),
         new("GroupKey", RetiredGeneratedCodePatternBudget),
         new("new Group(", RetiredGeneratedCodePatternBudget),
@@ -57,6 +57,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         ["CTE"] = new() { ContextsAccess = 0 },
         ["Description"] = new() { ContextsAccess = 0 },
         ["Grouping"] = new() { ContextsAccess = 0 },
+        ["LibraryExecution"] = new() { ContextsAccess = 0 },
         ["InClause"] = new() { ContextsAccess = 0 },
         ["Interpretation"] = new()
         {
@@ -119,7 +120,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         new(
             AsOfJoinSampleFileName,
             "b",
-            "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal>(bRows"),
+            "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool>(bRows"),
         new(CteBackedAsOfJoinSampleFileName, "a"),
         new(AggregateOverHashJoinSampleFileName, "a"),
         new(AggregateOverHashJoinSampleFileName, "b"),

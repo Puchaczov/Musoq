@@ -13,6 +13,25 @@ namespace Musoq.Evaluator.Tests;
 public class SingleSchemaOperationsTests : BasicEntityTestBase
 {
     [TestMethod]
+    [TestProperty("CandidateId", "P1-071")]
+    public void ObjectColumnMethod_ShouldRejectUnsupportedInstanceInvocation()
+    {
+        const string query = "select Self.ToString() as Text from #A.Entities()";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            ["#A"] = [new BasicEntity { Name = "Alice" }]
+        };
+        var failure = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(query, sources));
+        MusoqExceptionAssertions.AssertSingleError(failure,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3117_UnsupportedColumnInstanceMethod,
+            Musoq.Parser.Diagnostics.DiagnosticPhase.Bind, "Column 'Self'");
+        MusoqExceptionAssertions.AssertHasGuidance(failure);
+        Assert.Contains("not a method owner", failure.Message);
+        Assert.Contains("ToString", query.Substring(failure.PrimaryEnvelope.Offset!.Value, failure.PrimaryEnvelope.Length!.Value));
+    }
+
+    [TestMethod]
     public void NullColumnTest()
     {
         var query =
@@ -32,9 +51,9 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("null", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual(typeof(DBNull), table.Columns.ElementAt(0).ColumnType);
 
-        Assert.IsNull(table[0][0]);
+        Assert.IsNull(table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -59,7 +78,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         Assert.AreEqual("case when 1 = 2 then test else  end", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
-        Assert.AreEqual(string.Empty, table[0][0]);
+        Assert.AreEqual(string.Empty, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -84,7 +103,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         Assert.AreEqual("case when 1 = 2 then test else null end", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
-        Assert.IsNull(table[0][0]);
+        Assert.IsNull(table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -114,8 +133,8 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => (decimal)entry.Values[0] == 99m), "First entry should be 99m");
-        Assert.IsTrue(table.Any(entry => (decimal)entry.Values[0] == 101m), "Second entry should be 101m");
+        Assert.IsTrue(table.Any(entry => (decimal)entry.ReadValues()[0] == 99m), "First entry should be 99m");
+        Assert.IsTrue(table.Any(entry => (decimal)entry.ReadValues()[0] == 101m), "Second entry should be 101m");
     }
 
     [TestMethod]
@@ -140,8 +159,8 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "ABC"), "First entry should be 'ABC'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "ABCD"), "Second entry should be 'ABCD'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "ABC"), "First entry should be 'ABC'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "ABCD"), "Second entry should be 'ABCD'");
     }
 
     [TestMethod]
@@ -165,9 +184,9 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "A"), "First entry should be 'A'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "ABC"), "Second entry should be 'ABC'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "ABCD"), "Third entry should be 'ABCD'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "A"), "First entry should be 'A'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "ABC"), "Second entry should be 'ABC'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "ABCD"), "Third entry should be 'ABCD'");
     }
 
     [TestMethod]
@@ -187,7 +206,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("abccda", table[0].Values[0]);
+        Assert.AreEqual("abccda", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -216,9 +235,9 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "ABC"), "First entry should be 'ABC'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "CDA"), "Second entry should be 'CDA'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "DDABC"), "Third entry should be 'DDABC'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "ABC"), "First entry should be 'ABC'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "CDA"), "Second entry should be 'CDA'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "DDABC"), "Third entry should be 'DDABC'");
     }
 
     [TestMethod]
@@ -251,7 +270,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         Assert.AreEqual(typeof(BasicEntity), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(typeof(BasicEntity), table[0].Values[0].GetType());
+        Assert.AreEqual(typeof(BasicEntity), table[0].ReadValues()[0].GetType());
     }
 
     [TestMethod]
@@ -284,7 +303,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         Assert.AreEqual(typeof(BasicEntity), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(typeof(BasicEntity), table[0].Values[0].GetType());
+        Assert.AreEqual(typeof(BasicEntity), table[0].ReadValues()[0].GetType());
     }
 
     [TestMethod]
@@ -350,18 +369,18 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count, "Table should have 1 entry");
 
         Assert.IsTrue(table.Any(entry =>
-            (int)entry.Values[0] == Convert.ToInt32(1) &&
-            (string)entry.Values[1] == "ABBA" &&
-            (string)entry.Values[2] == "CRACOV" &&
-            (string)entry.Values[3] == "POLAND" &&
-            (decimal)entry.Values[4] == 250m &&
-            (decimal)entry.Values[5] == 1.23m &&
-            (string)entry.Values[6] == "JANUARY" &&
-            (DateTime)entry.Values[7] == DateTime.MaxValue &&
-            (int)entry.Values[8] == 5 &&
-            entry.Values[9] == null &&
-            (string)entry.Values[10] == "ABBA" &&
-            (string)entry.Values[11] == "TEST STRING"
+            (int)entry.ReadValues()[0] == Convert.ToInt32(1) &&
+            (string)entry.ReadValues()[1] == "ABBA" &&
+            (string)entry.ReadValues()[2] == "CRACOV" &&
+            (string)entry.ReadValues()[3] == "POLAND" &&
+            (decimal)entry.ReadValues()[4] == 250m &&
+            (decimal)entry.ReadValues()[5] == 1.23m &&
+            (string)entry.ReadValues()[6] == "JANUARY" &&
+            (DateTime)entry.ReadValues()[7] == DateTime.MaxValue &&
+            (int)entry.ReadValues()[8] == 5 &&
+            entry.ReadValues()[9] == null &&
+            (string)entry.ReadValues()[10] == "ABBA" &&
+            (string)entry.ReadValues()[11] == "TEST STRING"
         ), "Entry should match all specified values");
     }
 
@@ -382,7 +401,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.All(entry => (int)entry.Values[0] == 2), "Both entries should have value 2");
+        Assert.IsTrue(table.All(entry => (int)entry.ReadValues()[0] == 2), "Both entries should have value 2");
     }
 
     [TestMethod]
@@ -438,7 +457,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.All(entry => (int)entry.Values[0] == 3), "Both entries should have value 3 (as int)");
+        Assert.IsTrue(table.All(entry => (int)entry.ReadValues()[0] == 3), "Both entries should have value 3 (as int)");
     }
 
     [TestMethod]
@@ -455,8 +474,8 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Second entry should be '005'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "001"), "First entry should be '001'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "005"), "Second entry should be '005'");
     }
 
     [TestMethod]
@@ -474,11 +493,11 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "001"),
+                (string)entry.ReadValues()[0] == "001"),
             "First entry should be '001'");
 
         Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "002"),
+                (string)entry.ReadValues()[0] == "002"),
             "Second entry should be '002'");
     }
 
@@ -502,10 +521,10 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
 
         Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "003"), "First entry should be '003'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "004"), "Second entry should be '004'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Third entry should be '005'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "006"), "Fourth entry should be '006'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "003"), "First entry should be '003'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "004"), "Second entry should be '004'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "005"), "Third entry should be '005'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "006"), "Fourth entry should be '006'");
     }
 
 }

@@ -54,7 +54,7 @@ public partial class SpecExplorationCoreLanguageTests
         using var table = build.CompiledQuery!.Run(TokenSource.Token);
         CollectionAssert.AreEqual(
             new[] { "word:child1", "word:child2" },
-            table.Select(row => $"{row[0]}:{row[1]}").ToArray());
+            table.Select(row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray());
     }
 
     [TestMethod]
@@ -76,7 +76,7 @@ public partial class SpecExplorationCoreLanguageTests
         {
             CollectionAssert.AreEqual(
                 new[] { "word:child1", "word:child2" },
-                bracketedTable.Select(row => $"{row[0]}:{row[1]}").ToArray());
+                bracketedTable.Select(row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray());
         }
     }
 

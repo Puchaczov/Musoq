@@ -34,7 +34,7 @@ public sealed class DynamicSourceSelfJoinArtifactRegressionTests
         var provider = CreateProvider(
         [
             new SchemaColumn("Who", 7, typeof(string)),
-            new SchemaColumn("Age", 7, typeof(int))
+            new SchemaColumn("Age", 8, typeof(int))
         ]);
 
         var direct = InstanceCreator.CompileWithDiagnostics(
@@ -74,7 +74,7 @@ public sealed class DynamicSourceSelfJoinArtifactRegressionTests
         var provider = CreateProvider(
         [
             new SchemaColumn("Who", 7, typeof(string)),
-            new SchemaColumn("Age", 7, typeof(int))
+            new SchemaColumn("Age", 8, typeof(int))
         ]);
 
         var package = InstanceCreator.CompileTargetPackageWithDiagnostics(
@@ -141,8 +141,19 @@ public sealed class DynamicSourceSelfJoinArtifactRegressionTests
             .Single(static candidate => candidate.Kind == "schema-source");
 
         CollectionAssert.AreEqual(new[] { 0, 1 }, source.Fields.Select(static field => field.Index).ToArray());
-        CollectionAssert.AreEqual(new[] { "Who", "Age" }, source.Fields.Select(static field => field.Name).ToArray());
-        CollectionAssert.AreEqual(new[] { "p.Who", "p.Age" }, source.Fields.Select(static field => field.QualifiedName).ToArray());
+        CollectionAssert.AreEqual(new[] { "Age", "Who" }, source.Fields.Select(static field => field.Name).ToArray());
+        CollectionAssert.AreEqual(new[] { "p.Age", "p.Who" }, source.Fields.Select(static field => field.QualifiedName).ToArray());
+    }
+
+    [TestMethod]
+    public void DynamicSource_WhenNativeColumnsHaveDuplicateOrdinals_ShouldDiagnoseInvalidShape()
+    {
+        var provider = CreateProvider([new SchemaColumn("Who", 7, typeof(string)), new SchemaColumn("Age", 7, typeof(int))]);
+        var result = InstanceCreator.CompileWithDiagnostics(Query, $"DuplicateNativeShape_{Guid.NewGuid():N}", provider, _loggerResolver);
+        Assert.IsFalse(result.Succeeded);
+        Assert.HasCount(1, result.Errors);
+        Assert.AreEqual(DiagnosticCode.MQ3071_SourceContractError, result.Errors[0].Code);
+        Assert.Contains("duplicate ordinal 7", result.Errors[0].Message);
     }
 
     private static DynamicRowsSchemaProvider CreateProvider(IReadOnlyList<ISchemaColumn> schemaColumns)
@@ -175,7 +186,7 @@ public sealed class DynamicSourceSelfJoinArtifactRegressionTests
         var rows = new (string Who, int Age)[table.Count];
         for (var index = 0; index < table.Count; index++)
         {
-            rows[index] = ((string)table[index][0]!, (int)table[index][1]!);
+            rows[index] = ((string)table[index].ReadValue(0)!, (int)table[index].ReadValue(1)!);
         }
 
         return rows;

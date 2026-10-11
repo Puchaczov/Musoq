@@ -19,7 +19,7 @@ public class DynamicLibrary : LibraryBase
     }
 
     [BindableMethod]
-    public bool TrueWhenCalled([InjectSpecificSource(typeof(IReadOnlyDictionary<string, object>))] IReadOnlyDictionary<string, object> item)
+    public bool TrueWhenCalled()
     {
         return true;
     }

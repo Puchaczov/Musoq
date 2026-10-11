@@ -11,6 +11,10 @@ internal static partial class SourcePredicatePlanner
         IReadOnlyDictionary<string, ISchemaColumn[]> inferredColumns)
     {
         return new ExpressionConverter(
+            columnStabilityResolver: (alias, columnName) =>
+                inferredColumns.TryGetValue(alias, out var columns)
+                    ? columns.FirstOrDefault(column => string.Equals(column.ColumnName, columnName, StringComparison.OrdinalIgnoreCase))?.Stability ?? ColumnStability.Volatile
+                    : ColumnStability.Volatile,
             columnEnumTypeResolver: (alias, columnName) =>
                 ResolveEnumType(inferredColumns, alias, columnName));
     }

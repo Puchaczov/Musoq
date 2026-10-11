@@ -12,7 +12,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class Core029NonRecursiveCteTests : BasicEntityTestBase
+public sealed partial class Core029NonRecursiveCteTests : BasicEntityTestBase
 {
     [TestMethod]
     public void CteDefinitions_ShouldResolveEarlierDeclarationsAndExportRenamedColumns()
@@ -172,7 +172,7 @@ public sealed class Core029NonRecursiveCteTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("c.City", typeof(string)),
+            ("City", typeof(string)),
             ("MatchedCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,

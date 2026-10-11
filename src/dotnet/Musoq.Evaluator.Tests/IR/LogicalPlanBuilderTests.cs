@@ -52,7 +52,7 @@ public partial class LogicalPlanBuilderTests
     private static WindowFunctionNode RowNumberWindow(WindowSpecificationNode specification)
     {
         var windowFunction = new WindowFunctionNode(
-            WindowFunctionCall("RowNumber", typeof(LibraryBase).GetMethod(nameof(LibraryBase.WindowRowNumber))!),
+            WindowFunctionCall("RowNumber", typeof(LibraryBase).GetMethod(nameof(LibraryBase.RowNumber), Type.EmptyTypes)!),
             specification);
         windowFunction.SetReturnType(typeof(long));
         return windowFunction;
@@ -61,7 +61,7 @@ public partial class LogicalPlanBuilderTests
     private static WindowFunctionNode RowNumberWindow(string windowName)
     {
         var windowFunction = new WindowFunctionNode(
-            WindowFunctionCall("RowNumber", typeof(LibraryBase).GetMethod(nameof(LibraryBase.WindowRowNumber))!),
+            WindowFunctionCall("RowNumber", typeof(LibraryBase).GetMethod(nameof(LibraryBase.RowNumber), Type.EmptyTypes)!),
             windowName);
         windowFunction.SetReturnType(typeof(long));
         return windowFunction;
@@ -122,7 +122,7 @@ public partial class LogicalPlanBuilderTests
         Assert.IsInstanceOfType<LogicalWindowNode>(project.Input);
         var window = (LogicalWindowNode)project.Input;
         Assert.HasCount(1, window.Registrations);
-        Assert.AreEqual(typeof(LibraryBase).GetMethod(nameof(LibraryBase.WindowRowNumber)), window.Registrations[0].Function);
+        Assert.AreEqual(typeof(LibraryBase).GetMethod(nameof(LibraryBase.RowNumber), Type.EmptyTypes), window.Registrations[0].Function);
         Assert.HasCount(1, window.Registrations[0].PartitionKeys);
         Assert.HasCount(1, window.Registrations[0].OrderKeys);
         Assert.AreEqual("t", ((ColumnRef)window.Registrations[0].PartitionKeys[0]).Alias);

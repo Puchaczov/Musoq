@@ -8,65 +8,6 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class RowAndKeyEqualityTests
 {
-    #region FlattenContexts Tests
-
-    [TestMethod]
-    public void FlattenContexts_WhenSingleContext_ReturnsContextDirectly()
-    {
-        var context = new object[] { 1, "hello", 3.14 };
-
-        var result = EvaluationHelper.FlattenContexts(context);
-
-        Assert.AreSame(context, result);
-    }
-
-    [TestMethod]
-    public void FlattenContexts_WhenSingleNullContext_ReturnsArrayWithNull()
-    {
-        var result = EvaluationHelper.FlattenContexts([null]);
-
-        Assert.IsNotNull(result);
-        Assert.HasCount(1, result);
-        Assert.IsNull(result[0]);
-    }
-
-    [TestMethod]
-    public void FlattenContexts_WhenSingleContextIsNull_ReturnsArrayWithNull()
-    {
-        var result = EvaluationHelper.FlattenContexts((object?[]?)null);
-
-        Assert.IsNotNull(result);
-        Assert.HasCount(1, result);
-        Assert.IsNull(result[0]);
-    }
-
-    [TestMethod]
-    public void FlattenContexts_WhenMultipleContexts_ReturnsFlattenedArray()
-    {
-        var ctx1 = new object[] { 1, 2 };
-        var ctx2 = new object[] { 3, 4, 5 };
-
-        var result = EvaluationHelper.FlattenContexts(ctx1, ctx2);
-
-        CollectionAssert.AreEqual(new object[] { 1, 2, 3, 4, 5 }, result);
-    }
-
-    [TestMethod]
-    public void FlattenContexts_WhenMultipleContextsWithNull_InsertsNullForMissing()
-    {
-        var ctx1 = new object[] { 1, 2 };
-        object?[]? ctx2 = null;
-
-        var result = EvaluationHelper.FlattenContexts(ctx1, ctx2);
-
-        Assert.HasCount(3, result);
-        Assert.AreEqual(1, result[0]);
-        Assert.AreEqual(2, result[1]);
-        Assert.IsNull(result[2]);
-    }
-
-    #endregion
-
     #region SchemaRegistry Tests
 
     [TestMethod]
@@ -205,7 +146,6 @@ public partial class RowAndKeyEqualityTests
         var node = new IntegerNode("1");
         registry.Register("referenced", node);
         registry.Register("referencing", node);
-
 
         registry.ValidateReference("referenced", "referencing");
     }

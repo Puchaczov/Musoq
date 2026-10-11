@@ -75,8 +75,8 @@ public sealed class DiagnosticREC105EnumMistakeRecoveryTests : GenericEntityTest
         Assert.HasCount(16, candidates.Where(static candidate => candidate.CaseId.Contains("-N", StringComparison.Ordinal)));
         Assert.HasCount(12, candidates.Where(static candidate => candidate.CaseId.Contains("-M", StringComparison.Ordinal)));
         Assert.HasCount(20, candidates.Where(static candidate => candidate.CaseId.Contains("-R", StringComparison.Ordinal)));
-        Assert.HasCount(9, candidates.Where(static candidate => candidate.Kind == REC105CandidateKind.MetadataFailure));
-        Assert.HasCount(7, candidates.Where(static candidate => candidate.Kind == REC105CandidateKind.MetadataValid));
+        Assert.HasCount(12, candidates.Where(static candidate => candidate.Kind == REC105CandidateKind.MetadataFailure));
+        Assert.HasCount(4, candidates.Where(static candidate => candidate.Kind == REC105CandidateKind.MetadataValid));
         Assert.HasCount(2, candidates.Where(static candidate => candidate.Kind == REC105CandidateKind.LocalSemanticFailure));
         Assert.HasCount(30, candidates.Where(static candidate => candidate.Kind == REC105CandidateKind.SemanticFailure));
     }
@@ -93,14 +93,14 @@ public sealed class DiagnosticREC105EnumMistakeRecoveryTests : GenericEntityTest
     }
 
     [TestMethod]
-    public void NativeEnumNameControl_ShouldRequireExactQualifiedNames()
+    public void NativeEnumNameControl_ShouldRejectQualifiedTableDeclarations()
     {
-        AssertMetadataSuccess(
+        AssertMetadataFailure(
             NativeTableContract(NativeStatusTypeName, "NATIVE"),
-            NativeStatusTypeName);
-        AssertMetadataSuccess(
+            DiagnosticCode.MQ2012_InvalidSchemaDefinition);
+        AssertMetadataFailure(
             NativeTableContract(NativeAccessTypeName, "NATIVE"),
-            NativeAccessTypeName);
+            DiagnosticCode.MQ2012_InvalidSchemaDefinition);
     }
 
     [TestMethod]
@@ -118,7 +118,7 @@ public sealed class DiagnosticREC105EnumMistakeRecoveryTests : GenericEntityTest
 
         Assert.HasCount(1, equality.Run(TestContext.CancellationToken));
         Assert.HasCount(1, membership.Run(TestContext.CancellationToken));
-        Assert.AreEqual(true, flags.Run(TestContext.CancellationToken)[0].Values[0]);
+        Assert.AreEqual(true, flags.Run(TestContext.CancellationToken)[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -136,8 +136,8 @@ public sealed class DiagnosticREC105EnumMistakeRecoveryTests : GenericEntityTest
 
         Assert.HasCount(1, table);
         Assert.HasCount(1, partitionTable);
-        Assert.AreEqual((short)20, table[0].Values[0]);
-        Assert.AreEqual("Running", table[0].Values[1]);
+        Assert.AreEqual((short)20, table[0].ReadValues()[0]);
+        Assert.AreEqual("Running", table[0].ReadValues()[1]);
     }
 
     private void AssertSemanticFailure(REC105Candidate candidate)
@@ -286,15 +286,15 @@ public sealed class DiagnosticREC105EnumMistakeRecoveryTests : GenericEntityTest
             NativeTableContract("Musoq.Evaluator.Tests.REC103NativeStatu", "native"), DiagnosticCode.MQ3005_TypeMismatch);
         yield return Candidate("REC-105-N11", REC105CandidateKind.MetadataFailure,
             NativeTableContract("musoq.Evaluator.Tests.REC103NativeStatus", "native"), DiagnosticCode.MQ3005_TypeMismatch);
-        yield return Candidate("REC-105-N12", REC105CandidateKind.MetadataValid,
-            NativeTableContract(NativeStatusTypeName, "NATIVE"), expectedDisplayName: NativeStatusTypeName);
-        yield return Candidate("REC-105-N13", REC105CandidateKind.MetadataValid,
+        yield return Candidate("REC-105-N12", REC105CandidateKind.MetadataFailure,
+            NativeTableContract(NativeStatusTypeName, "NATIVE"), DiagnosticCode.MQ2012_InvalidSchemaDefinition);
+        yield return Candidate("REC-105-N13", REC105CandidateKind.MetadataFailure,
             $"table Jobs {{ Status: {NativeStatusTypeName}? }};couple #rec103.native with table Jobs as Jobs;select Status from Jobs()",
-            expectedDisplayName: NativeStatusTypeName);
+            DiagnosticCode.MQ2012_InvalidSchemaDefinition);
         yield return Candidate("REC-105-N14", REC105CandidateKind.MetadataFailure,
             NativeTableContract("Musoq.Evaluator.Tests.REC103NativeAcces", "native"), DiagnosticCode.MQ3005_TypeMismatch);
-        yield return Candidate("REC-105-N15", REC105CandidateKind.MetadataValid,
-            NativeTableContract(NativeAccessTypeName, "NATIVE"), expectedDisplayName: NativeAccessTypeName);
+        yield return Candidate("REC-105-N15", REC105CandidateKind.MetadataFailure,
+            NativeTableContract(NativeAccessTypeName, "NATIVE"), DiagnosticCode.MQ2012_InvalidSchemaDefinition);
         yield return Candidate("REC-105-N16", REC105CandidateKind.MetadataValid,
             LocalTableContract("jobstatus?", "FileAccess"), expectedDisplayName: "JobStatus");
 

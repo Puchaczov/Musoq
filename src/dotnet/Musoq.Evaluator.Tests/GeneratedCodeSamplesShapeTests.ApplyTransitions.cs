@@ -24,7 +24,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("ChildName", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
@@ -36,7 +36,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("OtherName", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
@@ -94,7 +94,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("i.Name", typeof(string)),
+            ("Name", typeof(string)),
             ("FirstValue", typeof(int)),
             ("SecondValue", typeof(int)),
             ("RowNo", typeof(long)));
@@ -239,12 +239,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("RepeatedAvg", typeof(int?)),
-            ("DistinctAvg", typeof(int?)));
+            ("RepeatedAvg", typeof(decimal?)),
+            ("DistinctAvg", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
-            ["right", 3, 3],
-            ["left", 2, 2]);
+            ["right", 3m, 3m],
+            ["left", 2m, 2.5m]);
     }
 
     [TestMethod]
@@ -312,7 +312,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("CreateSingleKeyAggregateContext [", result.ExecutionPlanText);
         AssertUsesTypedAggregateState(result, "SetAvg", "SetDistinctAggregate");
         Assert.Contains("inm.Avg(distinct n.Value)", result.ExecutionPlanText);
-        Assert.Contains("AvgDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
+        Assert.Contains("AverageDistinctKernel<int, decimal>.Set", result.GeneratedCSharpCode);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
     }
 
@@ -324,13 +324,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("RepeatedAvg", typeof(int?)),
-            ("DistinctAvg", typeof(int?)),
+            ("RepeatedAvg", typeof(decimal?)),
+            ("DistinctAvg", typeof(decimal?)),
             ("MixedAvgRowNo", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
-            ["right", 3, 3, 1L],
-            ["left", 2, 2, 2L]);
+            ["right", 3m, 3m, 1L],
+            ["left", 2m, 2.5m, 2L]);
     }
 
     [TestMethod]

@@ -24,6 +24,7 @@
         <ProjectReference Include="..\..\..\..\Musoq.Converter\Musoq.Converter.csproj" />
         <ProjectReference Include="..\..\..\..\Musoq.Evaluator\Musoq.Evaluator.csproj" />
         <ProjectReference Include="..\..\..\..\Musoq.Schema\Musoq.Schema.csproj" />
+        <ProjectReference Include="..\..\..\..\Musoq.Tests.Common\Musoq.Tests.Common.csproj" />
     </ItemGroup>
 
 </Project>

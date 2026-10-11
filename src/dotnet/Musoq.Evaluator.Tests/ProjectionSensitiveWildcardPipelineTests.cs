@@ -19,26 +19,17 @@ public sealed partial class ProjectionSensitiveWildcardTests
         "where a.Other = 'source-column' order by a.Score desc";
 
     [TestMethod]
-    public void LegacyExecution_ShouldRetainPredicateAndReplacementInputs()
+    public void LegacyObjectRows_ShouldBeRejectedBeforeOpeningTheSource()
     {
         var recorder = new ProjectionSensitiveWildcardRecorder();
-        using var table = Compile(PipelineQuery, recorder).Run();
-
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("a.Id", typeof(int)),
-            ("a.Name", typeof(string)),
-            ("a.Score", typeof(int)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table, [1, "Ada", 11]);
-        Assert.IsTrue(recorder.MetadataRequests.Any(static request => request.Length == 0));
-        Assert.IsNotEmpty(recorder.ExecutionContexts);
+        var exception = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(() =>
+            InstanceCreator.CompileForExecution(PipelineQuery, Guid.NewGuid().ToString(),
+                new ProjectionSensitiveWildcardSchemaProvider(recorder, queryScopedRowsEnabled: false),
+                new TestsLoggerResolver()));
+        Assert.AreEqual(DiagnosticCode.MQ3071_SourceContractError, exception.PrimaryEnvelope.Code);
+        Assert.Contains("native query-scoped transfer", exception.Message);
+        Assert.IsEmpty(recorder.ExecutionContexts);
         Assert.IsEmpty(recorder.QueryScopedExecutionContexts);
-        Assert.IsTrue(
-            recorder.ExecutionContexts.Any(static context =>
-                context.Columns.Contains("Id", StringComparer.OrdinalIgnoreCase) &&
-                context.Columns.Contains("Other", StringComparer.OrdinalIgnoreCase) &&
-                context.Columns.Contains("Score", StringComparer.OrdinalIgnoreCase)),
-            "Legacy execution must retain predicate and replacement source columns.");
     }
 
     [TestMethod]
@@ -55,9 +46,9 @@ public sealed partial class ProjectionSensitiveWildcardTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Id", typeof(int)),
-            ("a.Name", typeof(string)),
-            ("a.Score", typeof(int)));
+            ("Id", typeof(int)),
+            ("Name", typeof(string)),
+            ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, "Ada", 11]);
         Assert.IsTrue(recorder.MetadataRequests.Any(static request => request.Length == 0));
         Assert.IsEmpty(recorder.ExecutionContexts);

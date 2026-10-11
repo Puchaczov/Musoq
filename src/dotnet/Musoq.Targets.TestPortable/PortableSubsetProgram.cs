@@ -242,7 +242,9 @@ internal sealed record PortableCaseExpression(
 
 internal sealed record PortableInExpression(
     PortableExpression Expression,
-    IReadOnlyList<PortableExpression> Values) : PortableExpression;
+    IReadOnlyList<PortableExpression> Values,
+    bool UsesSqlNullSemantics,
+    bool IsNegated) : PortableExpression;
 
 internal sealed record PortableStrictCastExpression(
     PortableExpression Expression,
@@ -388,7 +390,7 @@ internal sealed record PortableSubsetProgram
         PortableNullCheckExpression nullCheck => $"null-check:{nullCheck.IsNegated}({FormatExpression(nullCheck.Expression)})",
         PortableCoalesceExpression coalesce => $"coalesce({string.Join(",", coalesce.Expressions.Select(FormatExpression))})",
         PortableCaseExpression @case => $"case:{@case.Branches.Count}",
-        PortableInExpression @in => $"in({FormatExpression(@in.Expression)};{@in.Values.Count})",
+        PortableInExpression @in => $"in({FormatExpression(@in.Expression)};{@in.Values.Count};sql={@in.UsesSqlNullSemantics};not={@in.IsNegated})",
         PortableStrictCastExpression cast => $"cast:{cast.TargetTypeName}({FormatExpression(cast.Expression)})",
         _ => throw new InvalidOperationException($"Unknown portable expression '{expression.GetType().Name}'.")
     };

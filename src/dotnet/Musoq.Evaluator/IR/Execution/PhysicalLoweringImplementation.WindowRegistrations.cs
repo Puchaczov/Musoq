@@ -78,6 +78,7 @@ internal sealed partial class PhysicalLoweringImplementation
             computations.Add(computation);
         }
 
+        MarkSharedWindowOrderKeys(computations);
         return LoweringAttempt<IReadOnlyList<WindowComputationBuildResult>>.Built(computations);
     }
 
@@ -85,31 +86,7 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         var registration = context.RegistrationResult.Registration!;
         if (context.RegistrationResult.RankingFunction != null)
-        {
-            var results = new ExecutionVariable(
-                CreateRankingResultVariableName(
-                    context.ResultTableName,
-                    context.RegistrationResult.RankingFunction.Value,
-                    registration.WindowIndex,
-                    context.ResultNameMode),
-                registration.ReturnType.MakeArrayType());
-            var resources = CreateWindowComputationResources(context, results);
-            var node = new ExecutionComputeRankingWindow(
-                context.Buffer,
-                context.Item,
-                context.RowAccessMode,
-                context.PartitionKey,
-                context.OrderKeys,
-                context.RegistrationResult.RankingFunction.Value,
-                results,
-                resources.PartitionKeyArray,
-                resources.OrderKeyArray,
-                resources.Partitions,
-                resources.SortedPartitions,
-                context.QualifyUpperBound);
-
-            return WindowComputationBuildResult.Success(registration, node, results);
-        }
+            return CreateRankingComputation(context);
 
         if (context.RegistrationResult.OffsetFunction != null)
         {
@@ -144,7 +121,7 @@ internal sealed partial class PhysicalLoweringImplementation
             return WindowComputationBuildResult.Success(registration, node, results);
         }
 
-        if (context.RegistrationResult.PluginFactory != null)
+        if (context.RegistrationResult.SqlDeclaration != null)
         {
             var resultsName = CreatePluginResultVariableName(
                 context.ResultTableName,
@@ -163,7 +140,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 return WindowComputationBuildResult.Unsupported(
                     $"Execution IR filtered window aggregate lowering requires a typed aggregate kernel for {registration.FunctionName}.");
 
-            var pluginContractUnsupportedReason = GetTypedPluginWindowDispatchUnsupportedReason(registration, arguments);
+            var pluginContractUnsupportedReason = GetTypedPluginWindowDispatchUnsupportedReason(registration);
             if (pluginContractUnsupportedReason != null)
                 return WindowComputationBuildResult.Unsupported(pluginContractUnsupportedReason);
 
@@ -171,6 +148,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 resultsName,
                 WindowRegistrationLoweringHelpers.CreatePluginWindowResultArrayType(registration));
             var resources = CreateWindowComputationResources(context, results);
+            var contextOperation = CreateWindowContextLibraryOperation(registration);
             var node = new ExecutionComputePluginWindow(
                 context.Buffer,
                 context.Item,
@@ -181,14 +159,19 @@ internal sealed partial class PhysicalLoweringImplementation
                 arguments.Arguments,
                 arguments.RowScopedArguments,
                 CreatePluginWindowFrame(registration),
-                context.RegistrationResult.PluginFactory,
+                context.RegistrationResult.SqlDeclaration,
                 registration.FunctionName,
                 results,
                 resources.PartitionKeyArray,
                 resources.OrderKeyArray,
                 resources.Partitions,
                 resources.SortedPartitions,
-                arguments.MethodTargets);
+                arguments.MethodTargets)
+            {
+                LibraryGet = contextOperation,
+                ContextBuffers = WindowContextOperationBinding.CreateBuffers(registration, CreatePluginWindowFrame(registration), contextOperation, resultsName),
+                UseIntegerOrderIndex = registration.UseIntegerOrderIndex
+            };
 
             return WindowComputationBuildResult.Success(registration, node, results);
         }

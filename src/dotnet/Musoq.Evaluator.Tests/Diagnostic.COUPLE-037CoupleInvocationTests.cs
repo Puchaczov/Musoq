@@ -36,11 +36,11 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("d.DisplayName", typeof(string)),
-            ("d.RankValue", typeof(int?)));
+            ("DisplayName", typeof(string)),
+            ("RankValue", typeof(int?)));
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("<no-arguments>", table[0][0]);
-        Assert.AreEqual(0, table[0][1]);
+        Assert.AreEqual("<no-arguments>", table[0].ReadValue(0));
+        Assert.AreEqual(0, table[0].ReadValue(1));
         CollectionAssert.AreEqual(Array.Empty<object?>(), provider.RuntimeArguments.Single());
     }
 
@@ -56,10 +56,10 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("d.DisplayName", typeof(string)),
-            ("d.RankValue", typeof(int?)));
-        Assert.AreEqual("positional", table[0][0]);
-        Assert.AreEqual(12, table[0][1]);
+            ("DisplayName", typeof(string)),
+            ("RankValue", typeof(int?)));
+        Assert.AreEqual("positional", table[0].ReadValue(0));
+        Assert.AreEqual(12, table[0].ReadValue(1));
         CollectionAssert.AreEqual(
             new object?[] { "positional", 12 },
             provider.RuntimeArguments.Single());
@@ -303,7 +303,7 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
         public List<ISchemaColumn[]> MetadataColumns => Schema.MetadataColumns;
     }
 
-    private sealed class Couple037Schema : SchemaBase
+    private sealed class Couple037Schema : SchemaBase, IQueryScopedRowSourceSchema
     {
         private static readonly SchemaMethodInfo[] Constructors =
         [
@@ -349,18 +349,22 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
             return new Couple037Table(columns);
         }
 
-        public override RowSource<T> GetRowSource<T>(
-            string name,
-            SourceExecutionContext executionContext,
-            params object?[] parameters)
+        public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
+            => base.DescribeSource(name, context, parameters) with { TransferCapabilities = SourceTransferCapabilities.QueryScopedRows };
+
+        public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
+            string name, QueryScopedRowSourceRequest request, TArguments nativeArguments)
+            where TMaterializer : struct, IQueryRowMaterializer<TRow>
+            where TArguments : struct, ISourceArguments
         {
+            var parameters = Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             RuntimeArguments.Add(parameters.ToArray());
             var sourcePath = parameters.Length == 0 ? "<no-arguments>" : (string)parameters[0]!;
             var pageSize = parameters.Length < 2 ? 0 : (int)parameters[1]!;
-            return EnsureSourceType<T, IReadOnlyDictionary<string, object?>>(
-                name,
-                new Couple037RowsSource(sourcePath, pageSize));
+            return new Musoq.Tests.Common.NativeDictionaryTestSource<TRow, TMaterializer>(
+                [new Dictionary<string, object?> { ["DisplayName"] = sourcePath, ["RankValue"] = pageSize }], request.Shape.Fields);
         }
+
     }
 
     private sealed class Couple037NoArgumentConstructor
@@ -391,7 +395,7 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
                 column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase)).ToArray();
 
         public SchemaTableMetadata Metadata { get; } =
-            new(typeof(IReadOnlyDictionary<string, object?>));
+            new(typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
     }
 
     private sealed class Couple037RowsSource(string sourcePath, int pageSize)

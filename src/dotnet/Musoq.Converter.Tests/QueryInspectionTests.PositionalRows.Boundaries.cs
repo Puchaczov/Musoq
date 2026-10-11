@@ -15,10 +15,10 @@ public partial class QueryInspectionTests
         var table = CompileForExecution(query, CreateKeyValuePositionalRowsSchemaProvider()).Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("first", table[0][0]);
-        Assert.AreEqual("current-first", table[0][1]);
-        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("[1]", inspection.GeneratedCSharpCode);
+        Assert.AreEqual("first", table[0].ReadValue(0));
+        Assert.AreEqual("current-first", table[0].ReadValue(1));
+        AssertNativeSourceOrdinal(0, inspection.GeneratedCSharpCode);
+        AssertNativeSourceOrdinal(1, inspection.GeneratedCSharpCode);
     }
 
     [TestMethod]
@@ -29,10 +29,10 @@ public partial class QueryInspectionTests
         var table = CompileForExecution(query, CreateKeyValuePositionalRowsSchemaProvider()).Run();
 
         Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("first", table[2][0]);
-        Assert.AreEqual("current-first", table[2][1]);
-        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("[1]", inspection.GeneratedCSharpCode);
+        Assert.AreEqual("first", table[2].ReadValue(0));
+        Assert.AreEqual("current-first", table[2].ReadValue(1));
+        AssertNativeSourceOrdinal(0, inspection.GeneratedCSharpCode);
+        AssertNativeSourceOrdinal(1, inspection.GeneratedCSharpCode);
     }
 
     [TestMethod]
@@ -43,10 +43,10 @@ public partial class QueryInspectionTests
         var table = CompileForExecution(query, CreateKeyValuePositionalRowsSchemaProvider()).Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("second", table[1][0]);
-        Assert.AreEqual("current-second", table[1][1]);
-        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("[1]", inspection.GeneratedCSharpCode);
+        Assert.AreEqual("second", table[1].ReadValue(0));
+        Assert.AreEqual("current-second", table[1].ReadValue(1));
+        AssertNativeSourceOrdinal(0, inspection.GeneratedCSharpCode);
+        AssertNativeSourceOrdinal(1, inspection.GeneratedCSharpCode);
     }
 
     [TestMethod]
@@ -57,8 +57,8 @@ public partial class QueryInspectionTests
         var table = CompileForExecution(query, CreateKeyValuePositionalRowsSchemaProvider()).Run();
 
         Assert.AreEqual(0, table.Count);
-        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("[1]", inspection.GeneratedCSharpCode);
+        AssertNativeSourceOrdinal(0, inspection.GeneratedCSharpCode);
+        AssertNativeSourceOrdinal(1, inspection.GeneratedCSharpCode);
     }
 
     [TestMethod]
@@ -81,10 +81,10 @@ public partial class QueryInspectionTests
         var table = CompileForExecution(query, provider, new CompilationOptions(useCteSidecarIndexes: useSidecarIndexes)).Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("first", table[0][0]);
-        Assert.AreEqual("second", table[1][0]);
-        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("[1]", inspection.GeneratedCSharpCode);
+        Assert.AreEqual("first", table[0].ReadValue(0));
+        Assert.AreEqual("second", table[1].ReadValue(0));
+        AssertNativeSourceOrdinal(0, inspection.GeneratedCSharpCode);
+        AssertNativeSourceOrdinal(1, inspection.GeneratedCSharpCode);
     }
 
     [TestMethod]
@@ -96,10 +96,10 @@ public partial class QueryInspectionTests
         var table = CompileForExecution(query, provider).Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("first", table[0][0]);
-        Assert.AreEqual("second", table[1][0]);
-        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("[1]", inspection.GeneratedCSharpCode);
+        Assert.AreEqual("first", table[0].ReadValue(0));
+        Assert.AreEqual("second", table[1].ReadValue(0));
+        AssertNativeSourceOrdinal(0, inspection.GeneratedCSharpCode);
+        AssertNativeSourceOrdinal(1, inspection.GeneratedCSharpCode);
     }
 
     [TestMethod]
@@ -119,9 +119,9 @@ public partial class QueryInspectionTests
         var table = CompileForExecution(query, provider).Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsNull(table[0][0]);
-        Assert.AreEqual("first", table[0][1]);
-        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("[1]", inspection.GeneratedCSharpCode);
+        Assert.IsNull(table[0].ReadValue(0));
+        Assert.AreEqual("first", table[0].ReadValue(1));
+        AssertNativeSourceOrdinal(0, inspection.GeneratedCSharpCode);
+        AssertNativeSourceOrdinal(1, inspection.GeneratedCSharpCode);
     }
 }

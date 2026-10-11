@@ -21,6 +21,11 @@ internal static class StaticColumnMetadataIdentity
             AppendPart(builder, field.Name);
             builder.Append(':');
             AppendType(builder, field.Type.RequireClrType());
+            if (field.GeneratedTypeName is { } generatedType)
+            {
+                builder.Append(":generated:");
+                AppendPart(builder, generatedType);
+            }
             if (field.EnumType != null || field.SourceReadType != field.Type)
             {
                 builder.Append(":source:");

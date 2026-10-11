@@ -55,7 +55,7 @@ public partial class SetsOperatorsTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("a1", typeof(string)),
-            ("b.Value", typeof(char)));
+            ("Value", typeof(char)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["001", '0'],

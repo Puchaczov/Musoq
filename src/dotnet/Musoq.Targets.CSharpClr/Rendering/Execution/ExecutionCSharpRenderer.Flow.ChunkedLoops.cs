@@ -49,17 +49,6 @@ public sealed partial class ExecutionCSharpRenderer
             : RenderMaterializeFilteredList(materialize, context);
     }
 
-    private IEnumerable<StatementSyntax> RenderMaterializeExpandoListStream(
-        ExecutionMaterializeExpandoList materialize,
-        ExecutionRenderContext context)
-    {
-        return ExecutionRowStreams.IsChunked(materialize.Source)
-            ? RenderMaterializeChunkedExpandoList(materialize, context)
-            : RenderMaterializeExpandoList(materialize, context);
-    }
-
-
-
     private IEnumerable<StatementSyntax> RenderChunkedForEach(
         ExecutionForEach forEach,
         ExecutionRenderContext context)

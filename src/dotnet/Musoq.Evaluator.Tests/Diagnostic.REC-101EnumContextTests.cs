@@ -286,7 +286,7 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
         using var table = compiledQuery.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        CollectionAssert.AreEqual(new object?[] { (short)20, "Running" }, table[0].Values);
+        CollectionAssert.AreEqual(new object?[] { (short)20, "Running" }, table[0].ReadValues());
     }
 
     [TestMethod]

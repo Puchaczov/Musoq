@@ -253,24 +253,25 @@ internal static class PortableSubsetInterpreter
     private static PortableValue EvaluateIn(PortableInExpression expression, InterpreterState state)
     {
         var candidate = Evaluate(expression.Expression, state);
-        if (candidate.IsNull)
-            return PortableValue.Null;
-
+        var values = expression.Values.Select(value => Evaluate(value, state));
+        if (!expression.UsesSqlNullSemantics)
+            values = values.ToArray(); // Literal lists evaluate every member before membership.
         var sawNull = false;
-        foreach (var valueExpression in expression.Values)
+        foreach (var value in values)
         {
-            var value = Evaluate(valueExpression, state);
-            if (value.IsNull)
+            if (candidate.IsNull || value.IsNull)
             {
+                if (!expression.UsesSqlNullSemantics && candidate.IsNull && value.IsNull)
+                    return PortableValue.FromBoolean(!expression.IsNegated);
                 sawNull = true;
                 continue;
             }
-
             if (ValuesEqual(candidate, value))
-                return PortableValue.FromBoolean(true);
+                return PortableValue.FromBoolean(!expression.IsNegated);
         }
-
-        return sawNull ? PortableValue.Null : PortableValue.FromBoolean(false);
+        if (expression.UsesSqlNullSemantics && sawNull)
+            return PortableValue.Null;
+        return PortableValue.FromBoolean(expression.IsNegated);
     }
 
     private static PortableValue EvaluateUnary(PortableUnaryOperation operation, PortableValue operand)

@@ -132,12 +132,10 @@ public sealed partial class ExecutionCSharpRenderer
         }
         else
         {
-            var rowValue = CreateElementAccess(
-                SyntaxFactory.IdentifierName(rowVariableName),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(key.OutputIndex)));
-            keyExpression = rowValue;
-            if (key.Type.RequireClrType() != typeof(object))
-                keyExpression = SyntaxFactory.CastExpression(CreateTypeSyntax(key.Type), rowValue);
+            if (key.Type.RequireClrType() == typeof(object))
+                throw new InvalidOperationException("Native ordering requires a concrete key type.");
+            keyExpression = CreateNativeRowValueRead(SyntaxFactory.IdentifierName(rowVariableName),
+                key.OutputIndex, CreateTypeSyntax(key.Type));
         }
 
         return SyntaxFactory.ParenthesizedLambdaExpression(keyExpression)

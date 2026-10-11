@@ -51,21 +51,16 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
         var reason = join.WithOrdinality
             ? "Physical planning selected nested-loop because APPLY WITH ORDINALITY requires right-source enumeration order."
             : strategy.Reason;
-        if (!join.WithOrdinality &&
-            strategyKind == JoinStrategyKind.HashJoin &&
-            RequiresNestedLoopForDynamicHashJoin(left, right, state))
+        if (strategyKind == JoinStrategyKind.HashJoin)
         {
-            strategyKind = JoinStrategyKind.NestedLoop;
-            reason =
-                "Physical planning selected nested-loop because generated hash join lowering cannot stream dynamic or expando join inputs.";
+            ValidateFlatJoinSource(left, state);
+            ValidateFlatJoinSource(right, state);
         }
-        else if (!join.WithOrdinality &&
-                 strategyKind == JoinStrategyKind.SortMergeJoin &&
-                 RequiresNestedLoopForSortMergeProbe(right, state))
+        if (!join.WithOrdinality && strategyKind == JoinStrategyKind.SortMergeJoin &&
+            RequiresNestedLoopForSortMergeProbe(right, state))
         {
             strategyKind = JoinStrategyKind.NestedLoop;
-            reason =
-                "Physical planning selected nested-loop because generated sort-merge/range join lowering requires a non-dynamic source-entity or table-row right input.";
+            reason = "Physical planning selected nested-loop because the range probe source does not support indexed access.";
         }
 
         state.AddDecision(new PlanningDecision(
@@ -112,14 +107,7 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
         };
     }
 
-    private static bool RequiresNestedLoopForDynamicHashJoin(
-        PhysicalNode left,
-        PhysicalNode right,
-        PhysicalOptimizationState state)
-    {
-        return IsDynamicFlatJoinInput(left, state) ||
-               IsDynamicFlatJoinInput(right, state);
-    }
+
 
     private static bool RequiresNestedLoopForSortMergeProbe(
         PhysicalNode right,
@@ -135,10 +123,10 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
         return source is PhysicalValuesScanNode or PhysicalPropertySourceNode or PhysicalAccessMethodSourceNode;
     }
 
-    private static bool IsDynamicFlatJoinInput(PhysicalNode node, PhysicalOptimizationState state)
+    private static void ValidateFlatJoinSource(PhysicalNode node, PhysicalOptimizationState state)
     {
-        return UnwrapFilterInput(node) is PhysicalSchemaScanNode scan &&
-               state.ShapeResolver.ResolveSourceShape(scan).Kind == PlanningRowShapeKind.ExpandoAdapter;
+        if (UnwrapFilterInput(node) is PhysicalSchemaScanNode scan)
+            _ = state.ShapeResolver.ResolveSourceShape(scan);
     }
 
     private static PhysicalNode UnwrapFilterInput(PhysicalNode node)

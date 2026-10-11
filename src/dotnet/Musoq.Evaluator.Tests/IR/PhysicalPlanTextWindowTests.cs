@@ -18,7 +18,7 @@ public sealed class PhysicalPlanTextWindowTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [e.Name as e.Name, WindowRef(0) as RowNum]",
+                "  PhysicalProject [e.Name as Name, WindowRef(0) as RowNum]",
                 "    PhysicalWindow [RowNumber(idx:0; order: e.Name)]",
                 "      PhysicalMaterialize",
                 "        PhysicalSchemaScan [#A.Entities() as e]"),
@@ -36,7 +36,7 @@ public sealed class PhysicalPlanTextWindowTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [e.Name as e.Name, WindowRef(0) as RunPop]",
+                "  PhysicalProject [e.Name as Name, WindowRef(0) as RunPop]",
                 "    PhysicalWindow [Sum(idx:0; partition: e.City; order: e.Name; args: e.Population; frame: rows between 1 preceding and current row)]",
                 "      PhysicalMaterialize",
                 "        PhysicalSchemaScan [#A.Entities() as e]"),
@@ -54,7 +54,7 @@ public sealed class PhysicalPlanTextWindowTests : BasicEntityTestBase
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
-                "  PhysicalProject [e.Name as e.Name, WindowRef(0) as RowNum]",
+                "  PhysicalProject [e.Name as Name, WindowRef(0) as RowNum]",
                 "    PhysicalQualify [(WindowRef(0) <= 2)]",
                 "      PhysicalWindow [RowNumber(idx:0; order: e.Name)]",
                 "        PhysicalMaterialize",

@@ -27,61 +27,15 @@ public static partial class EvaluationHelper
                ?? throw new InvalidOperationException($"Type '{assemblyQualifiedName}' could not be resolved.");
     }
 
-    public static IEnumerable<IReadOnlyList<object>> GetRowSourceChunks(
-        ISchema schema,
-        Type entityType,
-        string name,
-        SourceExecutionContext executionContext,
-        object?[] parameters)
+    public static IEnumerable<IReadOnlyList<TRow>> GetRowSourceChunks<TRow, TArguments>(
+        ISchema schema, string name, SourceExecutionContext executionContext, TArguments arguments)
+        where TArguments : struct, ISourceArguments
     {
         ArgumentNullException.ThrowIfNull(schema);
-        ArgumentNullException.ThrowIfNull(entityType);
-        ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(executionContext);
-        ArgumentNullException.ThrowIfNull(parameters);
-        var method = typeof(ISchema)
-            .GetMethods()
-            .Single(candidate => candidate is { Name: nameof(ISchema.GetRowSource), IsGenericMethodDefinition: true });
-        object? source;
-        try
-        {
-            source = method
-                .MakeGenericMethod(entityType)
-                .Invoke(schema, [name, executionContext, parameters]);
-        }
-        catch (TargetInvocationException exception) when (exception.InnerException != null)
-        {
-            ExceptionDispatchInfo.Capture(exception.InnerException).Throw();
-            throw;
-        }
-
-        if (source is null)
-            throw new InvalidOperationException($"Schema '{schema.Name}' returned null row source for '{name}'.");
-
-        var chunks = source.GetType().GetProperty(nameof(RowSource<object>.Chunks))?.GetValue(source);
-        if (chunks is not IEnumerable enumerable)
-        {
-            throw new InvalidOperationException(
-                $"Schema '{schema.Name}' returned row source '{source.GetType().FullName}' without enumerable chunks.");
-        }
-
-        var objectChunkAdapter = ObjectChunkAdapters.GetOrAdd(entityType, CreateObjectChunkAdapter);
-        foreach (var chunk in enumerable)
-        {
-            if (chunk is null)
-                continue;
-
-            if (chunk is IReadOnlyList<object> objectChunk)
-            {
-                if (objectChunk.Count > 0)
-                    yield return objectChunk;
-                continue;
-            }
-
-            var objectChunkView = objectChunkAdapter(chunk);
-            if (objectChunkView.Count > 0)
-                yield return objectChunkView;
-        }
+        var source = schema.GetRowSource<TRow, TArguments>(name, executionContext, arguments)
+            ?? throw new InvalidOperationException($"Schema '{schema.Name}' returned null row source for '{name}'.");
+        return source.Chunks;
     }
 
     public static IEnumerable<IReadOnlyList<T>> ConvertEnumerableOutputToChunks<T>(IEnumerable<T>? enumerable)

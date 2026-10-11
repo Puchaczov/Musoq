@@ -53,7 +53,7 @@ public static partial class MethodDeclarationHelper
                         .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
                         [
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IParameterizedRunnable.Parameters))),
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(ITypedParameterizedRunnable.TypedParameters))),
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.PhaseChanged))),
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.DataSourceProgress))),
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("QueryProgress")),

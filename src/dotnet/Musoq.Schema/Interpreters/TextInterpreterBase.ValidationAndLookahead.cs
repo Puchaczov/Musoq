@@ -16,7 +16,7 @@ public abstract partial class TextInterpreterBase<TOut>
             return;
 
         var reason = ParsePosition < 0 ? "negative" : "past the end of the input";
-        throw new ParseException(
+        throw ParseException.ForText(
             ParseErrorCode.InvalidPosition,
             SchemaName,
             fieldName,
@@ -33,7 +33,7 @@ public abstract partial class TextInterpreterBase<TOut>
     protected void EnsureChars(ReadOnlySpan<char> text, int count, string? fieldName = null)
     {
         if (count < 0)
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.InvalidSize,
                 SchemaName,
                 fieldName,
@@ -47,7 +47,7 @@ public abstract partial class TextInterpreterBase<TOut>
 
     private void ThrowInsufficientData(int count, int dataLength, string? fieldName)
     {
-        throw new ParseException(
+        throw ParseException.ForText(
             ParseErrorCode.InsufficientData,
             SchemaName,
             fieldName,
@@ -90,38 +90,58 @@ public abstract partial class TextInterpreterBase<TOut>
 
     private static int FindUnescapedClose(ReadOnlySpan<char> text, string close, char escapeCharacter)
     {
-        var pos = 0;
-
-        while (pos < text.Length)
+        var position = 0;
+        while (position < text.Length)
         {
-            var remaining = text.Slice(pos);
-            var idx = remaining.IndexOf(close.AsSpan());
-            if (idx < 0) return -1;
+            var offset = text[position..].IndexOf(close.AsSpan());
+            if (offset < 0)
+                return -1;
 
-
-            var absPos = pos + idx;
-            if (absPos > 0 && text[absPos - 1] == escapeCharacter)
+            var candidate = position + offset;
+            if (close.Length == 1 && close[0] == escapeCharacter)
             {
-                var backslashCount = 0;
-                var check = absPos - 1;
-                while (check >= 0 && text[check] == escapeCharacter)
+                if (candidate + 1 < text.Length && text[candidate + 1] == escapeCharacter)
                 {
-                    backslashCount++;
-                    check--;
-                }
-
-
-                if (backslashCount % 2 != 0)
-                {
-                    pos = absPos + 1;
+                    position = candidate + 2;
                     continue;
                 }
+
+                return candidate;
             }
 
-            return absPos;
+            if (HasOddPrecedingEscapes(text, candidate, escapeCharacter))
+            {
+                position = candidate + 1;
+                continue;
+            }
+
+            return candidate;
         }
 
         return -1;
+    }
+
+    private static bool HasOddPrecedingEscapes(ReadOnlySpan<char> text, int position, char escapeCharacter)
+    {
+        var count = 0;
+        for (var index = position - 1; index >= 0 && text[index] == escapeCharacter; index--)
+            count++;
+
+        return count % 2 != 0;
+    }
+
+    private static int EscapedTokenLength(ReadOnlySpan<char> text, string close, char escapeCharacter)
+    {
+        if (text.Length < 2 || text[0] != escapeCharacter)
+            return 0;
+
+        if (text[1] == escapeCharacter)
+            return 2;
+
+        if (text[1..].StartsWith(close.AsSpan()))
+            return close.Length + 1;
+
+        return 0;
     }
 
     /// <summary>
@@ -130,7 +150,7 @@ public abstract partial class TextInterpreterBase<TOut>
     protected void Validate(bool condition, string fieldName, string message)
     {
         if (!condition)
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.ValidationFailed,
                 SchemaName,
                 fieldName,
@@ -188,7 +208,7 @@ public abstract partial class TextInterpreterBase<TOut>
         }
         catch (ArgumentException exception)
         {
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.GeneralError,
                 SchemaName,
                 fieldName,
@@ -198,7 +218,7 @@ public abstract partial class TextInterpreterBase<TOut>
         }
         catch (NotSupportedException exception)
         {
-            throw new ParseException(
+            throw ParseException.ForText(
                 ParseErrorCode.GeneralError,
                 SchemaName,
                 fieldName,

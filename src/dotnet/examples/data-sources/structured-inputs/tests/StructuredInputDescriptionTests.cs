@@ -1,3 +1,4 @@
+using Musoq.Tests.Common;
 using System.Linq;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -27,20 +28,20 @@ public sealed class StructuredInputDescriptionTests
         Assert.IsTrue(table.Rows.Count > 0);
         Assert.AreEqual(0, StructuredInputSourceCounters.MatchConstructed);
 
-        var patternsRoot = table.Rows.First(row => Equals(row[1], "patterns"));
-        Assert.AreEqual("Collection", patternsRoot[2]);
-        Assert.AreEqual("(Id: string, Pattern: string, Mode: string = 'literal')[]?", patternsRoot[3]);
-        Assert.AreEqual(true, patternsRoot[4]);
-        Assert.AreEqual(true, patternsRoot[5]);
-        Assert.AreEqual(32, patternsRoot[8]);
-        Assert.AreEqual(100_000, patternsRoot[9]);
-        Assert.AreEqual(67_108_864L, patternsRoot[10]);
+        var patternsRoot = table.Rows.First(row => Equals(row.ReadValue(1), "patterns"));
+        Assert.AreEqual("Collection", patternsRoot.ReadValue(2));
+        Assert.AreEqual("(Id: string, Pattern: string, Mode: string = 'literal')[]?", patternsRoot.ReadValue(3));
+        Assert.AreEqual(true, patternsRoot.ReadValue(4));
+        Assert.AreEqual(true, patternsRoot.ReadValue(5));
+        Assert.AreEqual(32, patternsRoot.ReadValue(8));
+        Assert.AreEqual(100_000, patternsRoot.ReadValue(9));
+        Assert.AreEqual(67_108_864L, patternsRoot.ReadValue(10));
 
-        var mode = table.Rows.First(row => Equals(row[1], "patterns[].Mode"));
-        Assert.AreEqual(false, mode[4]);
-        Assert.AreEqual(true, mode[6]);
-        Assert.AreEqual("'literal'", mode[7]);
-        Assert.IsNull(mode[8]);
+        var mode = table.Rows.First(row => Equals(row.ReadValue(1), "patterns[].Mode"));
+        Assert.AreEqual(false, mode.ReadValue(4));
+        Assert.AreEqual(true, mode.ReadValue(6));
+        Assert.AreEqual("'literal'", mode.ReadValue(7));
+        Assert.IsNull(mode.ReadValue(8));
     }
 
     [TestMethod]
@@ -55,11 +56,11 @@ public sealed class StructuredInputDescriptionTests
 
         Assert.AreEqual(6, table.Rows.Count);
         Assert.AreEqual(0, StructuredInputSourceCounters.MatchConstructed);
-        Assert.AreEqual(0, table.Rows[0][0]);
-        Assert.AreEqual("text", table.Rows[0][1]);
-        Assert.AreEqual("Scalar", table.Rows[0][2]);
-        Assert.AreEqual("string", table.Rows[0][3]);
-        Assert.AreEqual("patterns[].Mode", table.Rows[5][1]);
+        Assert.AreEqual(0, table.Rows[0].ReadValue(0));
+        Assert.AreEqual("text", table.Rows[0].ReadValue(1));
+        Assert.AreEqual("Scalar", table.Rows[0].ReadValue(2));
+        Assert.AreEqual("string", table.Rows[0].ReadValue(3));
+        Assert.AreEqual("patterns[].Mode", table.Rows[5].ReadValue(1));
     }
 
     [TestMethod]
@@ -74,7 +75,7 @@ public sealed class StructuredInputDescriptionTests
 
         var table = compiled.Run();
 
-        Assert.IsTrue(table.Rows.Any(row => Equals(row[1], "patterns[].Mode")));
+        Assert.IsTrue(table.Rows.Any(row => Equals(row.ReadValue(1), "patterns[].Mode")));
         Assert.AreEqual(0, StructuredInputSourceCounters.MatchConstructed);
     }
     [TestMethod]
@@ -89,7 +90,7 @@ public sealed class StructuredInputDescriptionTests
 
         var table = compiled.Run();
 
-        Assert.IsTrue(table.Rows.Any(row => Equals(row[1], "patterns[].Id")));
+        Assert.IsTrue(table.Rows.Any(row => Equals(row.ReadValue(1), "patterns[].Id")));
         Assert.AreEqual(0, StructuredInputSourceCounters.MatchConstructed);
     }
     private static CompiledQuery Compile(string query, string name)

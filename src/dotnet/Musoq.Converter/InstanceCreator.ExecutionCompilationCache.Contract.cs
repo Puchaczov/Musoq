@@ -33,6 +33,14 @@ public static partial class InstanceCreator
         builder.AppendLine();
         builder.Append(CreateProviderContractSignature(schemaProvider, cancellationToken));
         builder.AppendLine();
+        if (items.PlanningResult is { } planning)
+            foreach (var source in planning.Facts.SourcePlanning.SourceDescriptorsBySourceId
+                .OrderBy(static source => source.Key, StringComparer.Ordinal))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                builder.Append("SourceRowType=").Append(source.Key).Append(':')
+                    .Append(source.Value.RowType?.AssemblyQualifiedName ?? "<query-scoped>").AppendLine();
+            }
         foreach (var type in items.AdditionalReferenceTypes
                      .Select(static type => type.AssemblyQualifiedName ?? type.FullName ?? type.Name)
                      .OrderBy(static name => name, StringComparer.Ordinal))
@@ -99,6 +107,9 @@ public static partial class InstanceCreator
             builder.Append("<null>");
             return;
         }
+
+        if (value is ISchema schema)
+            builder.Append("library=").Append(CreateLibraryContractSignature(schema)).Append(';');
 
         var type = value.GetType();
         builder.Append(type.AssemblyQualifiedName ?? type.FullName ?? type.Name).Append(':');
@@ -172,6 +183,8 @@ public static partial class InstanceCreator
                     builder.Append("value-type=")
                         .Append(entry.Value?.GetType().AssemblyQualifiedName ?? "<null>")
                         .Append(';');
+                    if (entry.Value is ISchema declaredSchema)
+                        builder.Append("library=").Append(CreateLibraryContractSignature(declaredSchema)).Append(';');
                 }
 
                 return;

@@ -185,7 +185,7 @@ public class WindowFunctionBenchmark
         return _query.Run();
     }
 
-    private sealed class WinEntity
+    public sealed class WinEntity
     {
         public string Name { get; init; } = string.Empty;
         public string Department { get; init; } = string.Empty;
@@ -202,7 +202,7 @@ public class WindowFunctionBenchmark
         public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
             => new WinTable();
 
-        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
             => EnsureSourceType<T, WinEntity>(name, new EntitySource<WinEntity>(BenchmarkSourceChunks.Create(entities), new Dictionary<string, int>
             {
                 { nameof(WinEntity.Name), 0 },
@@ -255,70 +255,48 @@ public class WindowFunctionBenchmark
 
     public sealed class Library : LibraryBase
     {
-        [WindowFunction(Name = "RunningProduct")]
-        public IWindowFunction<int, decimal> WindowRunningProduct()
-        {
-            return new RunningProductWindowFunction();
-        }
+        [WindowFunction(typeof(RunningProductKernel), WindowEvaluationModes.WholePartition | WindowEvaluationModes.Running |
+            WindowEvaluationModes.RecomputeFrames, AggregateEmptyResultBehavior.Zero, Name = "RunningProduct")]
+        public decimal RunningProduct(int value) => AggregateFunction.NotInvoked<decimal>();
 
-        [WindowFunction(Name = "ScaledRunningProduct")]
-        public ScaledRunningProductWindowFunction WindowScaledRunningProduct()
-        {
-            return new ScaledRunningProductWindowFunction();
-        }
+        [WindowFunction(typeof(ScaledRunningProductKernel), WindowEvaluationModes.WholePartition | WindowEvaluationModes.Running |
+            WindowEvaluationModes.RecomputeFrames, AggregateEmptyResultBehavior.Zero, Name = "ScaledRunningProduct")]
+        public decimal ScaledRunningProduct(int value, int scale) => AggregateFunction.NotInvoked<decimal>();
     }
 
-    private sealed class RunningProductWindowFunction : IWindowFunction<int, decimal>
+    public static class RunningProductKernel
     {
-        private decimal _product = 1m;
-        private bool _hasValue;
-
-        public void PartitionStart()
+        public struct State
         {
-            _product = 1m;
-            _hasValue = false;
+            public decimal Product;
+            public bool HasValue;
         }
-
-        public void Accumulate(int value)
+        public static void Reset(ref State state) => state = new State { Product = 1m };
+        public static void Set(ref State state, int value)
         {
-            _product = (_product * ((value % 11) + 1)) % 1_000_000_007m;
-            _hasValue = true;
+            state.Product = state.Product * (value % 11 + 1) % 1_000_000_007m;
+            state.HasValue = true;
         }
-
-        public decimal GetValue()
-        {
-            return _hasValue ? _product : 0m;
-        }
+        public static decimal Get(in State state) => state.HasValue ? state.Product : 0m;
     }
 
-    public sealed class ScaledRunningProductWindowFunction :
-        IWindowFunction<int, decimal>,
-        IWindowFunctionArguments<int>
+    public static class ScaledRunningProductKernel
     {
-        private decimal _product = 1m;
-        private int _scale = 1;
-        private bool _hasValue;
-
-        public void PartitionStart()
+        public struct State
         {
-            _product = 1m;
-            _hasValue = false;
+            public RunningProductKernel.State Product;
+            public int Scale;
         }
-
-        public void Accumulate(int value)
+        public static void Reset(ref State state)
         {
-            _product = (_product * ((value % 11) + 1)) % 1_000_000_007m;
-            _hasValue = true;
+            state = default;
+            RunningProductKernel.Reset(ref state.Product);
         }
-
-        public decimal GetValue()
+        public static void Set(ref State state, int value, int scale)
         {
-            return _hasValue ? _product * _scale : 0m;
+            RunningProductKernel.Set(ref state.Product, value);
+            state.Scale = scale;
         }
-
-        public void SetArguments(int scale)
-        {
-            _scale = scale;
-        }
+        public static decimal Get(in State state) => RunningProductKernel.Get(in state.Product) * state.Scale;
     }
 }

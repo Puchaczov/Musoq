@@ -11,7 +11,8 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var session = new ExecutionRenderSession
         {
-            UseQueryRunContext = useQueryRunContext
+            UseQueryRunContext = useQueryRunContext,
+            RegexMatchTimeout = plan.RegexMatchTimeout
         };
         var context = new ExecutionRenderContext(_renderOptions, session);
         EnsureConstantInSetFields(plan, context);

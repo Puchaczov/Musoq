@@ -30,7 +30,7 @@ public sealed class Core019FunctionOwnerResolutionTests : BasicEntityTestBase
             .Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(400m, table[0].Values[0]);
+        Assert.AreEqual(400m, table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -49,8 +49,8 @@ public sealed class Core019FunctionOwnerResolutionTests : BasicEntityTestBase
             .Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Warsaw", table[0].Values[0]);
-        Assert.AreEqual(200m, table[0].Values[1]);
+        Assert.AreEqual("Warsaw", table[0].ReadValues()[0]);
+        Assert.AreEqual(200m, table[0].ReadValues()[1]);
     }
 
     [TestMethod]
@@ -68,7 +68,7 @@ public sealed class Core019FunctionOwnerResolutionTests : BasicEntityTestBase
             .Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(20m, table[0].Values[0]);
+        Assert.AreEqual(20m, table[0].ReadValues()[0]);
     }
 
     [TestMethod]

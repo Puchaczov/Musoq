@@ -48,7 +48,7 @@ public class TextCharsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        var values = new HashSet<string> { (string)table[0][0], (string)table[1][0] };
+        var values = new HashSet<string> { (string)table[0].ReadValue(0), (string)table[1].ReadValue(0) };
         Assert.Contains("Data1", values);
         Assert.Contains("Data3", values);
     }
@@ -82,10 +82,10 @@ public class TextCharsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("ABCD", table[0][0]);
-        Assert.AreEqual(":", table[0][1]);
-        Assert.AreEqual("variable", table[0][2]);
-        Assert.AreEqual("rest", table[0][3]);
+        Assert.AreEqual("ABCD", table[0].ReadValue(0));
+        Assert.AreEqual(":", table[0].ReadValue(1));
+        Assert.AreEqual("variable", table[0].ReadValue(2));
+        Assert.AreEqual("rest", table[0].ReadValue(3));
     }
 
     #endregion
@@ -121,8 +121,8 @@ public class TextCharsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("ABC", table[0][0]);
-        Assert.AreEqual("123", table[0][1]);
+        Assert.AreEqual("ABC", table[0].ReadValue(0));
+        Assert.AreEqual("123", table[0].ReadValue(1));
     }
 
     #endregion
@@ -151,7 +151,7 @@ public class TextCharsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("ABCD", table[0][0]);
+        Assert.AreEqual("ABCD", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -177,8 +177,8 @@ public class TextCharsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello", table[0][0]);
-        Assert.AreEqual("World", table[0][1]);
+        Assert.AreEqual("Hello", table[0].ReadValue(0));
+        Assert.AreEqual("World", table[0].ReadValue(1));
     }
 
     /// <summary>
@@ -204,8 +204,8 @@ public class TextCharsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("X", table[0][0]);
-        Assert.AreEqual("YZ", table[0][1]);
+        Assert.AreEqual("X", table[0].ReadValue(0));
+        Assert.AreEqual("YZ", table[0].ReadValue(1));
     }
 
     #endregion
@@ -236,9 +236,9 @@ public class TextCharsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("1234", table[0][0]);
-        Assert.AreEqual("ABC", table[0][1]);
-        Assert.AreEqual("OK", table[0][2]);
+        Assert.AreEqual("1234", table[0].ReadValue(0));
+        Assert.AreEqual("ABC", table[0].ReadValue(1));
+        Assert.AreEqual("OK", table[0].ReadValue(2));
     }
 
     /// <summary>
@@ -266,7 +266,7 @@ public class TextCharsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("CUST000001", table[0][0]);
+        Assert.AreEqual("CUST000001", table[0].ReadValue(0));
     }
 
     #endregion
@@ -295,7 +295,7 @@ public class TextCharsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("John", table[0][0]);
+        Assert.AreEqual("John", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -320,7 +320,7 @@ public class TextCharsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("  John", table[0][0]);
+        Assert.AreEqual("  John", table[0].ReadValue(0));
     }
 
     /// <summary>
@@ -345,7 +345,7 @@ public class TextCharsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("John    ", table[0][0]);
+        Assert.AreEqual("John    ", table[0].ReadValue(0));
     }
 
     #endregion

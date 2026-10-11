@@ -32,7 +32,13 @@ public sealed class LikeMatcherCacheSlot
     ///     otherwise, to use one serial state.
     /// </param>
     public LikeMatcherCacheSlot(bool workerLocal)
-        : this(workerLocal, PrepareMatcher)
+        : this(workerLocal, Runtime.RuntimeCacheOptions.DefaultRegexTimeout)
+    {
+    }
+
+    /// <summary>Initializes an execution-local matcher cache with a finite per-match budget.</summary>
+    public LikeMatcherCacheSlot(bool workerLocal, TimeSpan timeout)
+        : this(workerLocal, CreateMatcherFactory(timeout))
     {
     }
 
@@ -71,9 +77,12 @@ public sealed class LikeMatcherCacheSlot
             static (_, factory) => new SlotState(factory),
             _matcherFactory);
 
-    private static PreparedLikeMatcher PrepareMatcher(string pattern) =>
-        Operators.PrepareLike(pattern)
-        ?? throw new InvalidOperationException("A non-null LIKE pattern did not produce a matcher.");
+    private static Func<string, PreparedLikeMatcher> CreateMatcherFactory(TimeSpan timeout)
+    {
+        Runtime.RegexMatchTimeoutPolicy.Validate(timeout);
+        return pattern => Operators.PrepareLike(pattern, timeout)
+            ?? throw new InvalidOperationException("A non-null LIKE pattern did not produce a matcher.");
+    }
 
     private sealed class SlotState(Func<string, PreparedLikeMatcher> matcherFactory)
     {

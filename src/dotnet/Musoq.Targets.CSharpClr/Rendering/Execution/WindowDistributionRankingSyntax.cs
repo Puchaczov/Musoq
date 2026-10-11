@@ -55,7 +55,7 @@ internal static class WindowDistributionRankingSyntax
         DistributionRankingKernelNames names)
     {
         var needsDenseRank = rankings.Any(static ranking =>
-            ranking.Function == ExecutionRankingWindowFunction.DenseRank);
+            ranking.Function == ExecutionRankingWindowFunction.DenseRank || ranking.LibraryGet is not null);
         var state = needsDenseRank
             ? $"                long {names.DenseRank} = 1L;" + Environment.NewLine
             : string.Empty;
@@ -92,18 +92,13 @@ internal static class WindowDistributionRankingSyntax
         ExecutionComputeRankingWindow ranking,
         DistributionRankingKernelNames names)
     {
-        var value = ranking.Function switch
-        {
-            ExecutionRankingWindowFunction.RowNumber => $"{names.PeerIndex} + 1L",
-            ExecutionRankingWindowFunction.Rank => $"{names.PeerStart} + 1L",
-            ExecutionRankingWindowFunction.DenseRank => names.DenseRank,
-            ExecutionRankingWindowFunction.PercentRank =>
-                $"{names.PartitionCount} == 1 ? 0d : (double){names.PeerStart} / ({names.PartitionCount} - 1)",
-            ExecutionRankingWindowFunction.CumeDist =>
-                $"(double)({names.PeerEnd} + 1) / {names.PartitionCount}",
-            _ => throw new ArgumentOutOfRangeException(nameof(ranking), ranking.Function, null)
-        };
-        var assignment = $"                        {ranking.Results.Name}[{names.CurrentIndex}] = {value};" + Environment.NewLine;
+        var operation = ranking.LibraryGet ?? throw UnsupportedShape.Of("Ranking requires a library operation.");
+        var method = operation.RequireClrMethod();
+        var kernelName = EvaluationHelper.GetCastableType(method.DeclaringType!);
+        var contextName = $"{ranking.Results.Name}Context";
+        var context = $"                        var {contextName} = new Musoq.Plugins.WindowRankingContext({names.PeerIndex}, {names.PeerStart}, {names.PeerEnd}, {names.DenseRank}, {names.PartitionCount}, token);" + Environment.NewLine;
+        var value = $"{kernelName}.{operation.MethodName}(in {contextName})";
+        var assignment = context + $"                        {ranking.Results.Name}[{names.CurrentIndex}] = {value};" + Environment.NewLine;
         if (!ranking.QualifyUpperBound.HasValue)
             return assignment;
 

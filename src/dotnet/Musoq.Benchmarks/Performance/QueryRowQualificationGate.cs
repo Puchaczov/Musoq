@@ -22,23 +22,24 @@ internal static class QueryRowQualificationGate
     private const string CompiledBenchmark = nameof(QueryScopedCompiledExecutionBenchmark);
 
     private static readonly int[] FieldCounts = [2, 8, 32, 64];
+    // Legacy names identify immutable historical reports; no legacy execution is retained.
     private static readonly string[][] SourceMethodGroups =
     [
-        [nameof(QueryScopedSourceMaterializationBenchmark.LegacyRows), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedStructRows), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedClassRows)],
-        [nameof(QueryScopedSourceMaterializationBenchmark.LegacySelectiveProjection), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedSelectiveProjection), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedClassSelectiveProjection)],
-        [nameof(QueryScopedSourceMaterializationBenchmark.LegacyHighRejection), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedHighRejection), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedClassHighRejection)],
-        [nameof(QueryScopedSourceMaterializationBenchmark.LegacyAggregation), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedStructAggregation), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedClassAggregation)],
-        [nameof(QueryScopedSourceMaterializationBenchmark.LegacyEarlyTake), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedEarlyTake), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedClassEarlyTake)],
-        [nameof(QueryScopedSourceMaterializationBenchmark.LegacyNumericRows), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedNumericStructRows), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedNumericClassRows)],
-        [nameof(QueryScopedSourceMaterializationBenchmark.LegacyObjectArrayMaterialization), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedStructMaterialization), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedClassMaterialization)],
-        [nameof(QueryScopedSourceMaterializationBenchmark.LegacyNumericObjectArrayMaterialization), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedNumericStructMaterialization), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedNumericClassMaterialization)]
+        ["LegacyRows", nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedStructRows), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedClassRows)],
+        ["LegacySelectiveProjection", nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedSelectiveProjection), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedClassSelectiveProjection)],
+        ["LegacyHighRejection", nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedHighRejection), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedClassHighRejection)],
+        ["LegacyAggregation", nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedStructAggregation), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedClassAggregation)],
+        ["LegacyEarlyTake", nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedEarlyTake), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedClassEarlyTake)],
+        ["LegacyNumericRows", nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedNumericStructRows), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedNumericClassRows)],
+        ["LegacyObjectArrayMaterialization", nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedStructMaterialization), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedClassMaterialization)],
+        ["LegacyNumericObjectArrayMaterialization", nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedNumericStructMaterialization), nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedNumericClassMaterialization)]
     ];
 
     private static readonly string[] CompiledMethods =
     [
-        nameof(QueryScopedCompiledExecutionBenchmark.LegacyWarmExecution),
+        "LegacyWarmExecution",
         nameof(QueryScopedCompiledExecutionBenchmark.QueryScopedWarmExecution),
-        nameof(QueryScopedCompiledExecutionBenchmark.LegacyColdCompileAndFirstRun),
+        "LegacyColdCompileAndFirstRun",
         nameof(QueryScopedCompiledExecutionBenchmark.QueryScopedColdCompileAndFirstRun)
     ];
 
@@ -57,7 +58,7 @@ internal static class QueryRowQualificationGate
         {
             var legacyCarrier = Median(
                 sourceReports,
-                SourceName(nameof(QueryScopedSourceMaterializationBenchmark.LegacyNumericObjectArrayMaterialization), fieldCount));
+                SourceName("LegacyNumericObjectArrayMaterialization", fieldCount));
             var structCarrier = Median(
                 sourceReports,
                 SourceName(nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedNumericStructMaterialization), fieldCount));
@@ -87,7 +88,7 @@ internal static class QueryRowQualificationGate
 
             var legacyCsv = Median(
                 sourceReports,
-                SourceName(nameof(QueryScopedSourceMaterializationBenchmark.LegacyNumericRows), fieldCount));
+                SourceName("LegacyNumericRows", fieldCount));
             var structCsv = Median(
                 sourceReports,
                 SourceName(nameof(QueryScopedSourceMaterializationBenchmark.QueryScopedNumericStructRows), fieldCount));
@@ -102,7 +103,7 @@ internal static class QueryRowQualificationGate
         {
             var legacy = Median(
                 compiledReports,
-                CompiledName(nameof(QueryScopedCompiledExecutionBenchmark.LegacyWarmExecution), scenario));
+                CompiledName("LegacyWarmExecution", scenario));
             var queryScoped = Median(
                 compiledReports,
                 CompiledName(nameof(QueryScopedCompiledExecutionBenchmark.QueryScopedWarmExecution), scenario));

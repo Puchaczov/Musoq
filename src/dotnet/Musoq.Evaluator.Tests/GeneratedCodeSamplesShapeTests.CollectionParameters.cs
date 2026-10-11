@@ -12,7 +12,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains("param(ids: int[])", sample.Content);
         Assert.Contains(
-            "var paramIds = ScriptParameterBinder.GetRequiredCollection<int>(__musoqExecutionState.Parameters, \"ids\");",
+            "var paramIds = ScriptParameterBinder.GetRequiredCollection<int>(__musoqExecutionState, \"ids\");",
             sample.Content);
         Assert.Contains(
             "EvaluationHelper.CollectionParameterContains<int>(id, paramIds)",

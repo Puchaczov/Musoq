@@ -31,6 +31,43 @@ public sealed class Diagnostic
         IEnumerable<KeyValuePair<string, string>>? arguments = null,
         IEnumerable<DiagnosticRelatedLocation>? relatedLocations = null,
         string? correlationId = null)
+        : this(
+            code,
+            severity,
+            message,
+            location,
+            endLocation,
+            contextSnippet,
+            relatedInfo,
+            suggestedFixes,
+            explanation,
+            docsReference,
+            phase,
+            sourceKind,
+            arguments,
+            relatedLocations,
+            correlationId,
+            null)
+    {
+    }
+
+    private Diagnostic(
+        DiagnosticCode code,
+        DiagnosticSeverity severity,
+        string message,
+        SourceLocation location,
+        SourceLocation? endLocation,
+        string? contextSnippet,
+        IEnumerable<string>? relatedInfo,
+        IEnumerable<DiagnosticAction>? suggestedFixes,
+        string? explanation,
+        string? docsReference,
+        DiagnosticPhase? phase,
+        DiagnosticSourceKind? sourceKind,
+        IEnumerable<KeyValuePair<string, string>>? arguments,
+        IEnumerable<DiagnosticRelatedLocation>? relatedLocations,
+        string? correlationId,
+        DiagnosticInputLocation? inputLocation)
     {
         Code = code;
         Severity = severity;
@@ -53,6 +90,7 @@ public sealed class Diagnostic
         _phase = phase ?? DiagnosticPhaseMapping.FromCode(code);
         SourceKind = sourceKind ?? DiagnosticSourceKindMapping.FromCode(code);
         CorrelationId = correlationId;
+        InputLocation = inputLocation;
     }
 
     /// <summary>
@@ -148,6 +186,11 @@ public sealed class Diagnostic
     public string? CorrelationId { get; }
 
     /// <summary>
+    ///     Gets a location within runtime input, separate from the SQL source location.
+    /// </summary>
+    public DiagnosticInputLocation? InputLocation { get; }
+
+    /// <summary>
     ///     Gets the text span from location information.
     /// </summary>
     public TextSpan Span => new(Location.Offset, EndLocation.Offset - Location.Offset);
@@ -241,6 +284,28 @@ public sealed class Diagnostic
         return Copy(relatedLocations: locations);
     }
 
+    /// <summary>Creates a copy with a location within runtime input.</summary>
+    public Diagnostic WithInputLocation(DiagnosticInputLocation? inputLocation)
+    {
+        return new Diagnostic(
+            Code,
+            Severity,
+            Message,
+            Location,
+            EndLocation,
+            ContextSnippet,
+            _relatedInfo,
+            _suggestedFixes,
+            Explanation,
+            DocsReference,
+            _phase,
+            SourceKind,
+            _arguments,
+            _relatedLocations,
+            CorrelationId,
+            inputLocation);
+    }
+
     /// <summary>
     ///     Returns a formatted string representation.
     /// </summary>
@@ -311,7 +376,8 @@ public sealed class Diagnostic
             SourceKind,
             arguments ?? _arguments,
             relatedLocations ?? _relatedLocations,
-            CorrelationId);
+            CorrelationId,
+            InputLocation);
     }
 
     private static string FormatSeverity(DiagnosticSeverity severity)

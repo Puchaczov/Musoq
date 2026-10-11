@@ -16,7 +16,7 @@ public partial class ConstantFoldingTests
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(15L, Convert.ToInt64(table[0][0]));
+        Assert.AreEqual(15L, Convert.ToInt64(table[0].ReadValue(0)));
     }
 
     [TestMethod]
@@ -28,7 +28,7 @@ public partial class ConstantFoldingTests
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("hello world", table[0][0]);
+        Assert.AreEqual("hello world", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -40,7 +40,7 @@ public partial class ConstantFoldingTests
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(15L, Convert.ToInt64(table[0][0]));
+        Assert.AreEqual(15L, Convert.ToInt64(table[0].ReadValue(0)));
     }
 
     [TestMethod]
@@ -57,7 +57,7 @@ public partial class ConstantFoldingTests
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("a", table[0][0]);
+        Assert.AreEqual("a", table[0].ReadValue(0));
     }
 
     #endregion
@@ -72,7 +72,7 @@ public partial class ConstantFoldingTests
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(300L, Convert.ToInt64(table[0][0]));
+        Assert.AreEqual(300L, Convert.ToInt64(table[0].ReadValue(0)));
     }
 
     [TestMethod]
@@ -83,7 +83,7 @@ public partial class ConstantFoldingTests
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("a", table[0][0]);
+        Assert.AreEqual("a", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -93,7 +93,7 @@ public partial class ConstantFoldingTests
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(256L, Convert.ToInt64(table[0][0]));
+        Assert.AreEqual(256L, Convert.ToInt64(table[0].ReadValue(0)));
     }
 
     [TestMethod]
@@ -103,7 +103,7 @@ public partial class ConstantFoldingTests
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(15L, Convert.ToInt64(table[0][0]));
+        Assert.AreEqual(15L, Convert.ToInt64(table[0].ReadValue(0)));
     }
 
     [TestMethod]
@@ -113,7 +113,7 @@ public partial class ConstantFoldingTests
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(15L, Convert.ToInt64(table[0][0]));
+        Assert.AreEqual(15L, Convert.ToInt64(table[0].ReadValue(0)));
     }
 
     [TestMethod]
@@ -130,9 +130,9 @@ public partial class ConstantFoldingTests
         var table = vm.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(300L, Convert.ToInt64(table[0][0]));
-        Assert.AreEqual(300L, Convert.ToInt64(table[1][0]));
-        Assert.AreEqual(300L, Convert.ToInt64(table[2][0]));
+        Assert.AreEqual(300L, Convert.ToInt64(table[0].ReadValue(0)));
+        Assert.AreEqual(300L, Convert.ToInt64(table[1].ReadValue(0)));
+        Assert.AreEqual(300L, Convert.ToInt64(table[2].ReadValue(0)));
     }
 
     #endregion

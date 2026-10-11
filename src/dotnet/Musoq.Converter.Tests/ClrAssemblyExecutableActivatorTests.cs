@@ -80,8 +80,8 @@ public sealed class ClrAssemblyExecutableActivatorTests
 
             using var firstTable = first.Run();
             using var secondTable = second.Run();
-            Assert.AreEqual("alpha", firstTable[0][0]);
-            Assert.AreEqual("beta", secondTable[0][0]);
+            Assert.AreEqual("alpha", firstTable[0].ReadValue(0));
+            Assert.AreEqual("beta", secondTable[0].ReadValue(0));
         }
         finally
         {

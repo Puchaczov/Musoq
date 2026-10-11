@@ -47,14 +47,14 @@ public class ComplexSchemaScenarioFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((byte)10, table[0][1]);
-        Assert.AreEqual((byte)20, table[0][2]);
-        Assert.AreEqual((short)100, table[0][3]);
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual((byte)30, table[1][1]);
-        Assert.AreEqual((byte)40, table[1][2]);
-        Assert.AreEqual((short)200, table[1][3]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((byte)10, table[0].ReadValue(1));
+        Assert.AreEqual((byte)20, table[0].ReadValue(2));
+        Assert.AreEqual((short)100, table[0].ReadValue(3));
+        Assert.AreEqual((byte)2, table[1].ReadValue(0));
+        Assert.AreEqual((byte)30, table[1].ReadValue(1));
+        Assert.AreEqual((byte)40, table[1].ReadValue(2));
+        Assert.AreEqual((short)200, table[1].ReadValue(3));
     }
 
     #endregion
@@ -92,8 +92,8 @@ public class ComplexSchemaScenarioFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual("Hi", table[0][1]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual("Hi", table[0].ReadValue(1));
     }
 
     #endregion
@@ -130,12 +130,12 @@ public class ComplexSchemaScenarioFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((byte)10, table[0][1]);
-        Assert.AreEqual((byte)20, table[0][2]);
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual((byte)30, table[1][1]);
-        Assert.AreEqual((byte)40, table[1][2]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((byte)10, table[0].ReadValue(1));
+        Assert.AreEqual((byte)20, table[0].ReadValue(2));
+        Assert.AreEqual((byte)2, table[1].ReadValue(0));
+        Assert.AreEqual((byte)30, table[1].ReadValue(1));
+        Assert.AreEqual((byte)40, table[1].ReadValue(2));
     }
 
     #endregion
@@ -174,15 +174,15 @@ public class ComplexSchemaScenarioFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual((byte)0xAA, table[0][0]);
-        Assert.AreEqual((byte)1, table[0][1]);
-        Assert.AreEqual((byte)0x11, table[0][2]);
-        Assert.AreEqual((byte)0xAA, table[1][0]);
-        Assert.AreEqual((byte)2, table[1][1]);
-        Assert.AreEqual((byte)0x22, table[1][2]);
-        Assert.AreEqual((byte)0xAA, table[2][0]);
-        Assert.AreEqual((byte)3, table[2][1]);
-        Assert.AreEqual((byte)0x33, table[2][2]);
+        Assert.AreEqual((byte)0xAA, table[0].ReadValue(0));
+        Assert.AreEqual((byte)1, table[0].ReadValue(1));
+        Assert.AreEqual((byte)0x11, table[0].ReadValue(2));
+        Assert.AreEqual((byte)0xAA, table[1].ReadValue(0));
+        Assert.AreEqual((byte)2, table[1].ReadValue(1));
+        Assert.AreEqual((byte)0x22, table[1].ReadValue(2));
+        Assert.AreEqual((byte)0xAA, table[2].ReadValue(0));
+        Assert.AreEqual((byte)3, table[2].ReadValue(1));
+        Assert.AreEqual((byte)0x33, table[2].ReadValue(2));
     }
 
     #endregion
@@ -257,10 +257,10 @@ public class ComplexSchemaScenarioFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(42, table[0][0]);
-        Assert.AreEqual("test", table[0][1]);
-        Assert.AreEqual((byte)3, table[0][2]);
-        Assert.AreEqual((short)100, table[0][3]);
+        Assert.AreEqual(42, table[0].ReadValue(0));
+        Assert.AreEqual("test", table[0].ReadValue(1));
+        Assert.AreEqual((byte)3, table[0].ReadValue(2));
+        Assert.AreEqual((short)100, table[0].ReadValue(3));
     }
 
     #endregion
@@ -298,12 +298,12 @@ public class ComplexSchemaScenarioFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(2L, table[0][1]);
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual(2L, table[1][1]);
-        Assert.AreEqual((byte)3, table[2][0]);
-        Assert.AreEqual(1L, table[2][1]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual(2L, table[0].ReadValue(1));
+        Assert.AreEqual((byte)2, table[1].ReadValue(0));
+        Assert.AreEqual(2L, table[1].ReadValue(1));
+        Assert.AreEqual((byte)3, table[2].ReadValue(0));
+        Assert.AreEqual(1L, table[2].ReadValue(1));
     }
 
     #endregion
@@ -337,12 +337,12 @@ public class ComplexSchemaScenarioFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("debug", table[0][0]);
-        Assert.AreEqual("true", table[0][1]);
-        Assert.AreEqual("host", table[1][0]);
-        Assert.AreEqual("localhost", table[1][1]);
-        Assert.AreEqual("port", table[2][0]);
-        Assert.AreEqual("8080", table[2][1]);
+        Assert.AreEqual("debug", table[0].ReadValue(0));
+        Assert.AreEqual("true", table[0].ReadValue(1));
+        Assert.AreEqual("host", table[1].ReadValue(0));
+        Assert.AreEqual("localhost", table[1].ReadValue(1));
+        Assert.AreEqual("port", table[2].ReadValue(0));
+        Assert.AreEqual("8080", table[2].ReadValue(1));
     }
 
     #endregion
@@ -374,8 +374,8 @@ public class ComplexSchemaScenarioFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((byte)3, table[0][1]);
+        Assert.AreEqual((byte)1, table[0].ReadValue(0));
+        Assert.AreEqual((byte)3, table[0].ReadValue(1));
     }
 
     #endregion

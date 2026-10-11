@@ -250,7 +250,7 @@ public sealed class DiagnosticREC120WarningAwareApiTests
         for (var rowIndex = 0; rowIndex < expected.Count; rowIndex++)
         {
             for (var columnIndex = 0; columnIndex < expected.Columns.Count(); columnIndex++)
-                Assert.AreEqual(expected[rowIndex][columnIndex], actual[rowIndex][columnIndex], id);
+                Assert.AreEqual(expected[rowIndex].ReadValue(columnIndex), actual[rowIndex].ReadValue(columnIndex), id);
         }
     }
 

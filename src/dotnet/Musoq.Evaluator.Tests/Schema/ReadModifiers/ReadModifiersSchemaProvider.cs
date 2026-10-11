@@ -6,6 +6,7 @@ using System.Text;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
+using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Schema.ReadModifiers;
 
@@ -48,7 +49,7 @@ internal sealed class ReadModifiersSchema(
     ReadModifiersValidationMode validationMode,
     IReadOnlyDictionary<string, Type> sourceColumnKinds,
     ReadModifiersRecorder recorder)
-    : SchemaBase("readmods", new MethodsAggregator(new MethodsManager()))
+    : SchemaBase("readmods", new MethodsAggregator(new MethodsManager())), IQueryScopedRowSourceSchema
 {
     public override ISchemaTable GetTableByName(
         string name,
@@ -72,7 +73,8 @@ internal sealed class ReadModifiersSchema(
         return new SourceDescriptor
         {
             Identity = context.Identity,
-            RowType = typeof(IReadOnlyDictionary<string, object?>),
+            RowType = typeof(QueryScopedRowContract),
+            TransferCapabilities = SourceTransferCapabilities.QueryScopedRows,
             Columns = columns,
             ContractDiagnostics = CreateDescriptorDiagnostics(columns)
         };
@@ -89,10 +91,10 @@ internal sealed class ReadModifiersSchema(
         return SourcePlanResult.RejectAll(request) with { ContractDiagnostics = diagnostics };
     }
 
-    public override RowSource<T> GetRowSource<T>(
+    public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        params object?[] parameters)
+        TArguments nativeArguments)
     {
         EnsureRecords(name);
         recorder.ExecutionColumns.Add(executionContext.AllColumns.ToArray());
@@ -102,6 +104,17 @@ internal sealed class ReadModifiersSchema(
         return EnsureSourceType<T, IReadOnlyDictionary<string, object?>>(
             name,
             new ReadModifiersRowSource(materializedRows));
+    }
+
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
+        string name, QueryScopedRowSourceRequest request, TArguments parameters)
+        where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, ISourceArguments
+    {
+        EnsureRecords(name);
+        recorder.ExecutionColumns.Add(request.ExecutionContext.AllColumns.ToArray());
+        var converted = rows.Select(row => MaterializeRow(row, request.ExecutionContext.AllColumns, validationMode)).ToArray();
+        return new NativeDictionaryTestSource<TRow, TMaterializer>(converted, request.Shape.Fields);
     }
 
     private static IReadOnlyDictionary<string, object?> MaterializeRow(
@@ -257,7 +270,7 @@ internal sealed class ReadModifiersTable(ISchemaColumn[] columns) : ISchemaTable
             .ToArray();
     }
 
-    public SchemaTableMetadata Metadata { get; } = new(typeof(IReadOnlyDictionary<string, object?>));
+    public SchemaTableMetadata Metadata { get; } = new(typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
 }
 
 internal sealed class ReadModifiersRowSource(

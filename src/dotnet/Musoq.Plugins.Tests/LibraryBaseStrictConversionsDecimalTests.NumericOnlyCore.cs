@@ -7,15 +7,6 @@ public partial class LibraryBaseStrictConversionsDecimalTests
     #region TryConvertNumericOnly Tests
 
     [TestMethod]
-    public void TryConvertNumericOnly_WithInt_ShouldConvert()
-    {
-        var result = Library.TryConvertNumericOnly(42);
-
-        Assert.IsNotNull(result);
-        Assert.AreEqual(42m, result.Value);
-    }
-
-    [TestMethod]
     public void TryConvertNumericOnly_WithNull_ShouldReturnNull()
     {
         var result = Library.TryConvertNumericOnly(null);

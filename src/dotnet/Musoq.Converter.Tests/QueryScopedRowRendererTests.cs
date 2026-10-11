@@ -28,12 +28,12 @@ public sealed class QueryScopedRowRendererTests
 
         Assert.IsFalse(result.Diagnostics.Any(static diagnostic => diagnostic.IsError), result.PlanningText);
         var code = result.GeneratedCSharpCode;
-        Assert.Contains("GetQueryScopedRowSource<QueryRow_", code);
+        Assert.Contains("QuerySourceInvocation<QueryRow_", code);
         Assert.Contains("IQueryRowMaterializer<QueryRow_", code);
         Assert.Contains("readonly struct QueryRow_", code);
         Assert.Contains("reader.Read<string>(0)", code);
         Assert.Contains("reader.Read<int>(1)", code);
-        Assert.IsFalse(code.Contains("GetRowSource<QueryRow_", StringComparison.Ordinal));
+        Assert.IsFalse(code.Contains(" = SourceInvocation<QueryRow_", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("DynamicInvoke", StringComparison.Ordinal));
     }
 
@@ -51,10 +51,10 @@ public sealed class QueryScopedRowRendererTests
             $"{result.CaughtException}{Environment.NewLine}{string.Join(Environment.NewLine, result.Diagnostics)}");
         using var table = result.CompiledQuery!.Run();
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual("right", table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
+        Assert.AreEqual("left", table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
+        Assert.AreEqual("right", table[1].ReadValue(0));
+        Assert.AreEqual(2, table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -70,9 +70,9 @@ public sealed class QueryScopedRowRendererTests
 
         StringAssert.Contains(
             inspection.GeneratedCSharpCode,
-            "GetRowSource<Musoq.Converter.Tests.QueryScopedRowsEntity>");
+            "SourceInvocation<Musoq.Converter.Tests.QueryScopedRowsEntity>");
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains(
-            "GetQueryScopedRowSource<",
+            "QuerySourceInvocation<",
             StringComparison.Ordinal));
         StringAssert.Contains(inspection.PlanningText, "requires the declared source entity");
 
@@ -85,7 +85,7 @@ public sealed class QueryScopedRowRendererTests
         Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
         using var table = result.CompiledQuery!.Run();
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("legacy", table[0][0]);
+        Assert.AreEqual("legacy", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -97,7 +97,7 @@ public sealed class QueryScopedRowRendererTests
             new QueryScopedRowsSchemaProvider(),
             _loggerResolver);
 
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "GetQueryScopedRowSource<");
+        StringAssert.Contains(inspection.GeneratedCSharpCode, "QuerySourceInvocation<");
         StringAssert.Contains(inspection.PlanningText, "used through column values only");
     }
 
@@ -113,8 +113,8 @@ public sealed class QueryScopedRowRendererTests
 
         Assert.AreEqual(1, CountOccurrences(
             inspection.GeneratedCSharpCode,
-            "GetRowSource<Musoq.Converter.Tests.QueryScopedRowsEntity>"));
-        Assert.AreEqual(1, CountOccurrences(inspection.GeneratedCSharpCode, "GetQueryScopedRowSource<"));
+            "SourceInvocation<Musoq.Converter.Tests.QueryScopedRowsEntity>"));
+        Assert.AreEqual(1, CountOccurrences(inspection.GeneratedCSharpCode, "QuerySourceInvocation<"));
         StringAssert.Contains(inspection.GeneratedCSharpCode, "sealed class QueryRow_");
         StringAssert.Contains(inspection.PlanningText, "lifetime=EscapesScan");
     }
@@ -151,7 +151,7 @@ public sealed class QueryScopedRowRendererTests
             provider,
             _loggerResolver);
 
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "GetQueryScopedRowSource<");
+        StringAssert.Contains(inspection.GeneratedCSharpCode, "QuerySourceInvocation<");
         StringAssert.Contains(inspection.GeneratedCSharpCode, "new QueryRowShape(new QueryRowField[]");
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("reader.Read<", StringComparison.Ordinal));
 
@@ -162,7 +162,7 @@ public sealed class QueryScopedRowRendererTests
             _loggerResolver);
         Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
         using var table = result.CompiledQuery!.Run();
-        Assert.AreEqual(2L, table[0][0]);
+        Assert.AreEqual(2L, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -186,7 +186,7 @@ public sealed class QueryScopedRowRendererTests
             _loggerResolver);
         Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
         using var table = result.CompiledQuery!.Run();
-        Assert.AreEqual(1L, table[0][0]);
+        Assert.AreEqual(1L, table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -257,11 +257,16 @@ public sealed class QueryScopedRowsSchema : SchemaBase, IQueryScopedRowSourceSch
         };
     }
 
-    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer>(
+    public override RowSource<T> GetRowSource<T, TArguments>(string name,
+        SourceExecutionContext context, TArguments arguments)
+        => EnsureSourceType<T, QueryScopedRowsEntity>(name, new QueryScopedRowsLegacySource());
+
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        params object?[] parameters)
+        TArguments parameters)
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
         Assert.AreEqual("items", name, ignoreCase: true);
         Assert.IsNotNull(request);

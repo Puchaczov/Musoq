@@ -48,8 +48,8 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x12345678, table[0][0]);
-        Assert.AreEqual(unchecked((int)0xDEADBEEF), table[0][1]);
+        Assert.AreEqual(0x12345678, table[0].ReadValue(0));
+        Assert.AreEqual(unchecked((int)0xDEADBEEF), table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -86,8 +86,8 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x01, table[0][0]);
-        Assert.AreEqual((byte)0x06, table[0][1]);
+        Assert.AreEqual((byte)0x01, table[0].ReadValue(0));
+        Assert.AreEqual((byte)0x06, table[0].ReadValue(1));
     }
 
     #endregion
@@ -123,7 +123,7 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello", table[0][0]);
+        Assert.AreEqual("Hello", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -156,7 +156,7 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello", table[0][0]);
+        Assert.AreEqual("Hello", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -189,7 +189,7 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hi", table[0][0]);
+        Assert.AreEqual("Hi", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -221,7 +221,7 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("World", table[0][0]);
+        Assert.AreEqual("World", table[0].ReadValue(0));
     }
 
     #endregion

@@ -2,5 +2,9 @@
 
 public interface IReadOnlyRow
 {
-    object this[int columnNumber] { get; }
+    int Count { get; }
+    T GetValue<T>(int columnIndex);
+    void VisitColumns<TVisitor>(ref TVisitor visitor)
+        where TVisitor : IColumnValueVisitor, allows ref struct;
+
 }

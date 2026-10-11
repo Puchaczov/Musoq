@@ -17,5 +17,8 @@ public sealed record SourceColumnRef
 
     public string Name { get; init; }
 
+    /// <summary>Authoritative CLR type identity for compilation-time provider binding.</summary>
+    public string? ValueTypeName { get; init; }
+
     public IReadOnlyDictionary<string, string> ReadModifiers { get; init; }
 }

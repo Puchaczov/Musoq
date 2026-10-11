@@ -14,7 +14,7 @@ public partial class TypoAndUxDiagnosticProbeTests
         var vm = CompileQuery("SELECT a.Name FROM #test.people() AS a");
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice"],
@@ -30,7 +30,7 @@ public partial class TypoAndUxDiagnosticProbeTests
         var vm = CompileQuery("SELECT p.Name FROM #test.people() p");
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice"],

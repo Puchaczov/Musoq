@@ -77,22 +77,12 @@ internal sealed partial class PhysicalLoweringImplementation
         var cteShapesByName = existingCteShapesByName == null
             ? new Dictionary<string, GeneratedRowShape>(StringComparer.OrdinalIgnoreCase)
             : new Dictionary<string, GeneratedRowShape>(existingCteShapesByName, StringComparer.OrdinalIgnoreCase);
-        var nextProducerIndex = 0;
         var nextTableIndex = cteIndexes.Count == 0 ? 0 : cteIndexes.Values.Max() + 1;
 
-        foreach (var statement in multiStatement.Statements)
+        foreach (var producer in IntermediateSourceProducers.Resolve(multiStatement, cteIndexes.Keys))
         {
-            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            CollectCteRefNames(statement, names);
-
-            foreach (var name in names)
-            {
-                if (cteIndexes.ContainsKey(name))
-                    continue;
-
-                producerIndexByName[name] = nextProducerIndex++;
-                cteIndexes[name] = nextTableIndex++;
-            }
+            producerIndexByName[producer.Key] = producer.Value;
+            cteIndexes[producer.Key] = nextTableIndex++;
         }
 
         return new MultiStatementIndexes(cteIndexes, producerIndexByName, cteShapesByName, statementNamePrefix);
@@ -253,15 +243,4 @@ internal sealed partial class PhysicalLoweringImplementation
         return -1;
     }
 
-    private static void CollectCteRefNames(PhysicalNode node, HashSet<string> names)
-    {
-        if (node is PhysicalCteRefNode cteRef)
-        {
-            names.Add(cteRef.CteName);
-            return;
-        }
-
-        foreach (var child in node.Children)
-            CollectCteRefNames(child, names);
-    }
 }

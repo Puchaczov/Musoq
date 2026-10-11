@@ -20,7 +20,7 @@ public class CseTestSchema(IReadOnlyList<CseTestEntity> data) : SchemaBase("test
         return new CseTestTable();
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
     {
         return EnsureSourceType<T, CseTestEntity>(name, new CseTestRowSource(data));
     }

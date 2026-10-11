@@ -40,7 +40,7 @@ public sealed class LogicalPlanTextAggregationTests : BasicEntityTestBase
                 "  Project [e.City as e.City, AggRef(e.Count(e.City)) as e.Count(e.City)]",
                 "    Aggregate [keys: e.City] [aggs: Count(City)]",
                 "      SchemaScan [#A.Entities() as e]",
-                "  Project [e.City as e.City, e.Count(e.City) as Count(e.City)]",
+                "  Project [e.City as City, e.Count(e.City) as Count(e.City)]",
                 "    CteRef [eScore as eScore]"),
             planText);
     }
@@ -59,7 +59,7 @@ public sealed class LogicalPlanTextAggregationTests : BasicEntityTestBase
                 "  Project [e.City as e.City, e.Country as e.Country, AggRef(e.Count(e.Name)) as e.Count(e.Name)]",
                 "    Aggregate [keys: e.Country, e.City] [aggs: Count(Name)]",
                 "      SchemaScan [#A.Entities() as e]",
-                "  Project [e.Country as e.Country, e.City as e.City, e.Count(e.Name) as Count(e.Name)]",
+                "  Project [e.Country as Country, e.City as City, e.Count(e.Name) as Count(e.Name)]",
                 "    CteRef [eScore as eScore]"),
             planText);
     }
@@ -80,7 +80,7 @@ public sealed class LogicalPlanTextAggregationTests : BasicEntityTestBase
                 "      Aggregate [keys: e.City] [aggs: Count(City)]",
                 "        SchemaScan [#A.Entities() as e]",
                 "  Sort [e.Count(e.City) DESC]",
-                "    Project [e.City as e.City, e.Count(e.City) as CityCount]",
+                "    Project [e.City as City, e.Count(e.City) as CityCount]",
                 "      CteRef [eScore as eScore]"),
             planText);
     }

@@ -17,7 +17,7 @@ public sealed class RuntimeV2RegressionTable : ISchemaTable
         new SchemaColumn(nameof(RuntimeV2RegressionEntity.Category), 6, typeof(string)),
         new SchemaColumn(nameof(RuntimeV2RegressionEntity.Department), 7, typeof(string)),
         new SchemaColumn(nameof(RuntimeV2RegressionEntity.Salary), 8, typeof(int)),
-        new SchemaColumn(nameof(RuntimeV2RegressionEntity.Amount), 9, typeof(object))
+        new SchemaColumn(nameof(RuntimeV2RegressionEntity.Amount), 9, typeof(double?))
     ];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(RuntimeV2RegressionEntity));

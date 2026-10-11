@@ -35,6 +35,15 @@
     <Compile Update="AutomaticDateTimeComparisonTests.CaseWhen.cs">
       <DependentUpon>AutomaticDateTimeComparisonTests.cs</DependentUpon>
     </Compile>
+    <Compile Update="NegatedPredicateTests.Expressions.cs;NegatedPredicateTests.NamedCases.cs;NegatedPredicateTests.NullsAndBoundaries.cs">
+      <DependentUpon>NegatedPredicateTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="RewriteWhereExpressionToPassItToDataSourceTests.Negation.cs">
+      <DependentUpon>RewriteWhereExpressionToPassItToDataSourceTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\PhysicalPlanTextPredicatePushdownTests.Negation.cs">
+      <DependentUpon>PhysicalPlanTextPredicatePushdownTests.cs</DependentUpon>
+    </Compile>
     <Compile Update="AutomaticDateTimeComparisonTests.OperatorBasics.cs">
       <DependentUpon>AutomaticDateTimeComparisonTests.cs</DependentUpon>
     </Compile>
@@ -1145,5 +1154,9 @@
     <Compile Update="IR\ExecutionCSharpRendererTests.FinalProjectionSinkPlannerTests.cs">
       <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\docs\examples\typed-library\InvoiceLibrary.cs" Link="Documentation\InvoiceLibrary.cs" />
+    <None Include="..\..\..\docs\examples\typed-library\*.sql" Link="Documentation\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

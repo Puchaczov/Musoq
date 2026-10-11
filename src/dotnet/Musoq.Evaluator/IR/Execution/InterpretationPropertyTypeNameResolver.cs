@@ -202,6 +202,9 @@ internal static class InterpretationPropertyTypeNameResolver
         TextFieldDefinitionNode field,
         SchemaRegistry schemaRegistry)
     {
+        if (field.RepeatElement != null)
+            return InterpretationTextFieldTypeResolver.Resolve(text.Name, field).IntendedTypeName;
+
         return field.FieldType switch
         {
             TextFieldType.SchemaReference => CreateGeneratedTypeName(

@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Collections.Generic;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
@@ -6,11 +7,12 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private static ExecutionPlanBuildResult BuildDesc(PhysicalDescNode desc, string identifier)
+    private ExecutionPlanBuildResult BuildDesc(PhysicalDescNode desc, string identifier)
     {
         var runtimeContextId = string.IsNullOrWhiteSpace(desc.SourceContextId)
             ? identifier
             : desc.SourceContextId;
+        var descriptions = CreateNativeQueryDescriptions(desc);
         var node = new ExecutionReturnDesc(
             desc.SchemaName,
             desc.MethodName,
@@ -19,14 +21,33 @@ internal sealed partial class PhysicalLoweringImplementation
             desc.Arguments.Select(argument => ExecutionExpressionConverter.Convert(argument)).ToArray(),
             runtimeContextId,
             DefaultSchemaFromIndex,
-            CreateQueryColumnMetadata(desc),
+            descriptions is null ? CreateQueryColumnMetadata(desc) : null,
             desc.ColumnSpan,
-            desc.ArgumentDescriptions);
+            desc.ArgumentDescriptions) { QueryDescriptions = descriptions };
 
         return ExecutionPlanBuildResult.CreateSupported(new ExecutionPlan(
             identifier,
             [],
             new ExecutionBlock([node])));
+    }
+
+    private IReadOnlyList<Musoq.Schema.QueryColumnDescription>? CreateNativeQueryDescriptions(PhysicalDescNode desc)
+    {
+        if (desc.Type != DescType.Query || desc.QueryOutputSchema is not { } schema ||
+            !schema.Columns.Any(static column => GeneratedScalarGenericBinding.RequiresGeneratedSpecialization(column.Type)))
+            return null;
+        var descriptions = schema.Columns.Select(column =>
+        {
+            var expression = desc.QueryProjection?.FirstOrDefault(field => field.OutputIndex == column.Index)?.Expression;
+            var generated = expression is null ? null : _shapeResolver.ScriptValues.ResolveGeneratedTypeName(expression);
+            if (generated is null && GeneratedScalarGenericBinding.RequiresGeneratedSpecialization(column.Type))
+                throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(
+                    $"DESC QUERY column '{column.Name}' has no authoritative native result description.", Musoq.Parser.TextSpan.Empty);
+            var label = generated is null ? column.Type.FullName ?? column.Type.Name
+                : _shapeResolver.ScriptValues.DescribeGeneratedTypeName(generated);
+            return new Musoq.Schema.QueryColumnDescription(column.Name, column.Index, label);
+        }).ToArray();
+        return ExecutionIrCollections.Freeze(descriptions);
     }
 
     private static ExecutionColumnMetadata? CreateQueryColumnMetadata(PhysicalDescNode desc)

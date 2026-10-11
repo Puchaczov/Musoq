@@ -34,14 +34,8 @@ internal static class DynamicLikeBenchmarkData
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         foreach (var row in table)
         {
-            foreach (var value in row.Values)
-            {
-                var formatted = Convert.ToString(value, CultureInfo.InvariantCulture) ?? "<null>";
-                Append(hash, formatted.Length.ToString(CultureInfo.InvariantCulture));
-                Append(hash, ":");
-                Append(hash, formatted);
-                Append(hash, "|");
-            }
+            var visitor = new HashVisitor(hash);
+            row.VisitColumns(ref visitor);
 
             Append(hash, "\n");
         }
@@ -124,4 +118,16 @@ internal static class DynamicLikeBenchmarkData
     {
         hash.AppendData(Encoding.UTF8.GetBytes(value));
     }
+    private readonly struct HashVisitor(IncrementalHash hash) : Musoq.Schema.IColumnValueVisitor
+    {
+        public void Visit<T>(int index, in T value)
+        {
+            var formatted = NativeBenchmarkColumnConsumption.Format(in value);
+            Append(hash, formatted.Length.ToString(CultureInfo.InvariantCulture));
+            Append(hash, ":");
+            Append(hash, formatted);
+            Append(hash, "|");
+        }
+    }
+
 }

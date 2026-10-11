@@ -30,7 +30,7 @@ public sealed record SourceTransferStrategyPlan(
 {
     public SourceQueryRowLifetime? Lifetime { get; init; }
 
-    public static SourceTransferStrategyPlan Legacy(string sourceContextId, string reason)
+    public static SourceTransferStrategyPlan DeclaredRows(string sourceContextId, string reason)
     {
         return new SourceTransferStrategyPlan(
             sourceContextId,

@@ -256,7 +256,7 @@ public sealed class QueryScopedRowLifecycleTests
 
         var exception = Assert.Throws<QueryExecutionException>(() => Execute(compiled));
 
-        AssertDataSourceFailure(exception, DiagnosticCode.MQ7011_DataSourceReadFailed, "read", original);
+        AssertDataSourceFailure(exception, DiagnosticCode.MQ7014_MalformedRuntimeInput, "read", original);
         Assert.AreEqual(1, scenario.Recorder.MaterializerCalls);
         Assert.AreEqual(1, scenario.Recorder.FieldReads);
         Assert.AreEqual(1, scenario.Recorder.SourcesDisposed);
@@ -341,7 +341,7 @@ public sealed class QueryScopedRowLifecycleTests
         {
             rows[rowIndex] = new object?[table.Columns.Count()];
             for (var columnIndex = 0; columnIndex < rows[rowIndex].Length; columnIndex++)
-                rows[rowIndex][columnIndex] = table[rowIndex][columnIndex];
+                rows[rowIndex][columnIndex] = table[rowIndex].ReadValue(columnIndex);
         }
 
         return rows;

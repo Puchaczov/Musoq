@@ -85,7 +85,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("private sealed class Cte1Row0", StringComparison.Ordinal), result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("private sealed class Cte2Row0", StringComparison.Ordinal), result.GeneratedCSharpCode);
         Assert.Contains(
-            "__musoqFinalShapeRows.Add(new ResultShape0(b.Name, n.Name, c.City, co.Country))",
+            "__musoqFinalShapeRows.Add(new ResultRow0(b.Name, n.Name, c.City, co.Country))",
             result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("ContextMaterializer.Merge", StringComparison.Ordinal), result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("TryGetNonEnumeratedCount(out var cte0HashSidecar0IdCapacity)", StringComparison.Ordinal), result.GeneratedCSharpCode);
@@ -181,7 +181,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("_cteRowResults.Slot2", StringComparison.Ordinal), result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("_cteRowResults.Slot3", StringComparison.Ordinal), result.GeneratedCSharpCode);
         Assert.Contains(
-            "__musoqFinalShapeRows.Add(new ResultShape0(b.Id, n.Name, c.City))",
+            "__musoqFinalShapeRows.Add(new ResultRow0(b.Id, n.Name, c.City))",
             result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("ContextMaterializer.Merge", StringComparison.Ordinal), result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("ko3iko.Country", StringComparison.Ordinal), result.GeneratedCSharpCode);
@@ -278,7 +278,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(fanout.Contains("_cteRowResults.Slot3", StringComparison.Ordinal), fanout);
         Assert.IsFalse(fanout.Contains("_cteRowResults.Slot4", StringComparison.Ordinal), fanout);
         Assert.Contains(
-            "__musoqFinalShapeRows.Add(new ResultShape0(b.Name, n.Name, c.City, co.Country));",
+            "__musoqFinalShapeRows.Add(new ResultRow0(b.Name, n.Name, c.City, co.Country));",
             fanout);
         Assert.IsFalse(fanout.Contains("ContextMaterializer.Merge", StringComparison.Ordinal), fanout);
         Assert.IsFalse(fanout.Contains("BuildStatement0NHash(", StringComparison.Ordinal));
@@ -328,7 +328,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(staged.Contains("private sealed class Cte1Row0", StringComparison.Ordinal), staged);
         Assert.IsFalse(staged.Contains("private sealed class Cte2Row0", StringComparison.Ordinal), staged);
         Assert.Contains(
-            "__musoqFinalShapeRows.Add(new ResultShape0(b.Id, n.Name, c.City));",
+            "__musoqFinalShapeRows.Add(new ResultRow0(b.Id, n.Name, c.City));",
             staged);
         Assert.IsFalse(staged.Contains("ContextMaterializer.Merge", StringComparison.Ordinal), staged);
         var stagedCode = ExtractGeneratedCodeSection(staged);

@@ -59,16 +59,16 @@ inner join #B.entities() b on a.Id = b.Id + 1";
         Assert.AreEqual(3, table.Count);
 
 
-        var rows = table.OrderBy(r => (int)r[0]).ToList();
+        var rows = table.OrderBy(r => (int)r.ReadValue(0)).ToList();
 
-        Assert.AreEqual(1, rows[0][0]);
-        Assert.AreEqual(0, rows[0][1]);
+        Assert.AreEqual(1, rows[0].ReadValue(0));
+        Assert.AreEqual(0, rows[0].ReadValue(1));
 
-        Assert.AreEqual(2, rows[1][0]);
-        Assert.AreEqual(1, rows[1][1]);
+        Assert.AreEqual(2, rows[1].ReadValue(0));
+        Assert.AreEqual(1, rows[1].ReadValue(1));
 
-        Assert.AreEqual(3, rows[2][0]);
-        Assert.AreEqual(2, rows[2][1]);
+        Assert.AreEqual(3, rows[2].ReadValue(0));
+        Assert.AreEqual(2, rows[2].ReadValue(1));
     }
 
     [TestMethod]
@@ -105,13 +105,13 @@ inner join #B.entities() b on a.Name = b.Name + '_Suffix'";
 
         Assert.AreEqual(2, table.Count);
 
-        var rows = table.OrderBy(r => (string)r[0]).ToList();
+        var rows = table.OrderBy(r => (string)r.ReadValue(0)).ToList();
 
-        Assert.AreEqual("Item1_Suffix", rows[0][0]);
-        Assert.AreEqual("Item1", rows[0][1]);
+        Assert.AreEqual("Item1_Suffix", rows[0].ReadValue(0));
+        Assert.AreEqual("Item1", rows[0].ReadValue(1));
 
-        Assert.AreEqual("Item2_Suffix", rows[1][0]);
-        Assert.AreEqual("Item2", rows[1][1]);
+        Assert.AreEqual("Item2_Suffix", rows[1].ReadValue(0));
+        Assert.AreEqual("Item2", rows[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -146,19 +146,19 @@ inner join #B.entities() b on a.Population > b.Population + 100";
 
         Assert.AreEqual(3, table.Count);
 
-        var rows = table.OrderBy(r => (decimal)r[0]).ThenBy(r => (decimal)r[1]).ToList();
+        var rows = table.OrderBy(r => (decimal)r.ReadValue(0)).ThenBy(r => (decimal)r.ReadValue(1)).ToList();
 
 
-        Assert.AreEqual(200m, rows[0][0]);
-        Assert.AreEqual(50m, rows[0][1]);
+        Assert.AreEqual(200m, rows[0].ReadValue(0));
+        Assert.AreEqual(50m, rows[0].ReadValue(1));
 
 
-        Assert.AreEqual(300m, rows[1][0]);
-        Assert.AreEqual(50m, rows[1][1]);
+        Assert.AreEqual(300m, rows[1].ReadValue(0));
+        Assert.AreEqual(50m, rows[1].ReadValue(1));
 
 
-        Assert.AreEqual(300m, rows[2][0]);
-        Assert.AreEqual(150m, rows[2][1]);
+        Assert.AreEqual(300m, rows[2].ReadValue(0));
+        Assert.AreEqual(150m, rows[2].ReadValue(1));
     }
 
     [TestMethod]
@@ -192,13 +192,13 @@ inner join #B.entities() b on a.Time > b.AddDays(b.Time, 1)";
 
         Assert.AreEqual(2, table.Count);
 
-        var rows = table.OrderBy(r => (DateTime)r[1]).ToList();
+        var rows = table.OrderBy(r => (DateTime)r.ReadValue(1)).ToList();
 
-        Assert.AreEqual(new DateTime(2023, 1, 5), rows[0][0]);
-        Assert.AreEqual(new DateTime(2023, 1, 1), rows[0][1]);
+        Assert.AreEqual(new DateTime(2023, 1, 5), rows[0].ReadValue(0));
+        Assert.AreEqual(new DateTime(2023, 1, 1), rows[0].ReadValue(1));
 
-        Assert.AreEqual(new DateTime(2023, 1, 5), rows[1][0]);
-        Assert.AreEqual(new DateTime(2023, 1, 3), rows[1][1]);
+        Assert.AreEqual(new DateTime(2023, 1, 5), rows[1].ReadValue(0));
+        Assert.AreEqual(new DateTime(2023, 1, 3), rows[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -232,8 +232,8 @@ inner join #B.entities() b on a.Id = b.Id + 1 AND a.Name = b.Name";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
+        Assert.AreEqual(2, table[0].ReadValue(0));
+        Assert.AreEqual(1, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -268,13 +268,13 @@ inner join #B.entities() b on a.Id + 1 = b.Id";
 
         Assert.AreEqual(2, table.Count);
 
-        var rows = table.OrderBy(r => (int)r[0]).ToList();
+        var rows = table.OrderBy(r => (int)r.ReadValue(0)).ToList();
 
-        Assert.AreEqual(1, rows[0][0]);
-        Assert.AreEqual(2, rows[0][1]);
+        Assert.AreEqual(1, rows[0].ReadValue(0));
+        Assert.AreEqual(2, rows[0].ReadValue(1));
 
-        Assert.AreEqual(2, rows[1][0]);
-        Assert.AreEqual(3, rows[1][1]);
+        Assert.AreEqual(2, rows[1].ReadValue(0));
+        Assert.AreEqual(3, rows[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -309,13 +309,13 @@ inner join #B.entities() b on a.Id + 1 = b.Id - 1";
 
         Assert.AreEqual(2, table.Count);
 
-        var rows = table.OrderBy(r => (int)r[0]).ToList();
+        var rows = table.OrderBy(r => (int)r.ReadValue(0)).ToList();
 
-        Assert.AreEqual(1, rows[0][0]);
-        Assert.AreEqual(3, rows[0][1]);
+        Assert.AreEqual(1, rows[0].ReadValue(0));
+        Assert.AreEqual(3, rows[0].ReadValue(1));
 
-        Assert.AreEqual(2, rows[1][0]);
-        Assert.AreEqual(4, rows[1][1]);
+        Assert.AreEqual(2, rows[1].ReadValue(0));
+        Assert.AreEqual(4, rows[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -348,8 +348,8 @@ inner join #B.entities() b on a.Population - 50 > b.Population";
 
         Assert.AreEqual(1, table.Count);
 
-        Assert.AreEqual(200m, table[0][0]);
-        Assert.AreEqual(100m, table[0][1]);
+        Assert.AreEqual(200m, table[0].ReadValue(0));
+        Assert.AreEqual(100m, table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -382,7 +382,7 @@ inner join #B.entities() b on a.Population / 2 > b.Population * 2";
 
         Assert.AreEqual(1, table.Count);
 
-        Assert.AreEqual(500m, table[0][0]);
-        Assert.AreEqual(100m, table[0][1]);
+        Assert.AreEqual(500m, table[0].ReadValue(0));
+        Assert.AreEqual(100m, table[0].ReadValue(1));
     }
 }

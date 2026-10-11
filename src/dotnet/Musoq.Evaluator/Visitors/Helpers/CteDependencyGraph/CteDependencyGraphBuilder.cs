@@ -75,10 +75,13 @@ public class CteDependencyGraphBuilder
         MarkReachableFromOuter(outerNode, nodes, cancellationToken);
 
 
-        ComputeExecutionLevels(nodes, cancellationToken);
+        var hasReachableCycle = ComputeExecutionLevels(nodes, cancellationToken);
 
         cancellationToken.ThrowIfCancellationRequested();
-        return new CteDependencyGraph(nodes, outerNode);
+        return new CteDependencyGraph(nodes, outerNode)
+        {
+            HasReachableDependencyCycle = hasReachableCycle
+        };
     }
 
     private static IReadOnlySet<string> ExtractCteReferences(
@@ -119,7 +122,7 @@ public class CteDependencyGraphBuilder
         }
     }
 
-    private static void ComputeExecutionLevels(
+    private static bool ComputeExecutionLevels(
         Dictionary<string, CteGraphNode> nodes,
         CancellationToken cancellationToken)
     {
@@ -133,7 +136,7 @@ public class CteDependencyGraphBuilder
         }
 
         if (reachableNodes.Count == 0)
-            return;
+            return false;
 
 
         var inDegree = new Dictionary<string, int>();
@@ -164,10 +167,12 @@ public class CteDependencyGraphBuilder
         }
 
 
+        var processedCount = 0;
         while (queue.Count > 0)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var current = queue.Dequeue();
+            processedCount++;
             var currentNode = nodes[current];
             var currentLevel = currentNode.ExecutionLevel;
 
@@ -193,5 +198,6 @@ public class CteDependencyGraphBuilder
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+        return processedCount != reachableNodes.Count;
     }
 }

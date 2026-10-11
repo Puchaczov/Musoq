@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Collections.Generic;
+using Musoq.Evaluator.Diagnostics;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.TemporarySchemas;
@@ -96,6 +97,15 @@ public partial class BuildMetadataAndInferTypesVisitor
                     node.Method,
                     node.MethodSpan ?? sourceSpan,
                     exception.InnerException);
+            }
+            catch (SchemaProviderFailureException exception)
+                when (DataSourceInputDiagnosticAdapter.ContainsInputFailure(exception))
+            {
+                throw DataSourceLifecycleDiagnosticAdapter.ForProviderOperation(
+                    exception,
+                    node,
+                    queryId,
+                    "construct");
             }
             sourceMethods = TypedSourceBindingMetadata.PreferTypedSource(schema, node.Method, sourceMethods);
             var bindingResult = SchemaSourceArgumentBinder.Bind(
@@ -256,6 +266,17 @@ public partial class BuildMetadataAndInferTypesVisitor
                 throw;
 
             throw new UnknownSourceException(schemaName, methodName, span, exception.InnerException);
+        }
+        catch (SchemaProviderFailureException exception)
+            when (DataSourceInputDiagnosticAdapter.ContainsInputFailure(exception))
+        {
+            throw DataSourceLifecycleDiagnosticAdapter.ForProviderOperation(
+                exception,
+                schemaName,
+                methodName,
+                _sourceBinding.QueryAlias,
+                queryId,
+                "metadata");
         }
         catch (SchemaProviderFailureException exception) when (hasRequiredRuntimeArguments)
         {

@@ -114,8 +114,8 @@ public sealed class DiagnosticCouple039CoupleCompositionTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("c.Id", typeof(int?)),
-            ("i.Value", typeof(int?)));
+            ("Id", typeof(int?)),
+            ("Value", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             [1, 10],
@@ -129,8 +129,10 @@ public sealed class DiagnosticCouple039CoupleCompositionTests
     {
         const string query =
             "table OutputSchema { Text: string };" +
+            "table InputSchema { Value: string };" +
             "couple #processor.transform with table OutputSchema as Transformer;" +
-            "with InputData as (select Value from #input.source()) " +
+            "couple #input.source with table InputSchema as TypedInput;" +
+            "with InputData as (select Value from TypedInput()) " +
             "select Text from Transformer(InputData);";
         var provider = CreateProvider(
             ("#processor", [Row(("Text", "transformed"))]),

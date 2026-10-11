@@ -49,8 +49,8 @@ group by a.City";
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Warsaw", table[0].Values[0]);
-        Assert.AreEqual(10, table[0].Values[1]);
+        Assert.AreEqual("Warsaw", table[0].ReadValues()[0]);
+        Assert.AreEqual(10, table[0].ReadValues()[1]);
     }
 
     private GenericSchemaProvider CreateAmbiguousAggregateSchemaProvider()
@@ -89,6 +89,9 @@ group by a.City";
 
         public static class AmbiguousAggregateKernelA
         {
+            /// <summary>Initializes independently owned kernel state.</summary>
+            public static void Reset(ref State state) => state = default;
+
             public struct State
             {
                 public int Value;
@@ -122,6 +125,9 @@ group by a.City";
 
         public static class AmbiguousAggregateKernelB
         {
+            /// <summary>Initializes independently owned kernel state.</summary>
+            public static void Reset(ref State state) => state = default;
+
             public struct State
             {
                 public int Value;

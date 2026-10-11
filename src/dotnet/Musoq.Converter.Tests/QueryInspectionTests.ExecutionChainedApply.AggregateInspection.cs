@@ -257,8 +257,8 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".SetDistinctAggregate(", StringComparison.Ordinal));
-        Assert.Contains("DistinctAvg: int?", result.ExecutionPlanText);
-        Assert.Contains("AvgDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
+        Assert.Contains("DistinctAvg: decimal?", result.ExecutionPlanText);
+        Assert.Contains("AverageDistinctKernel<int, decimal>.Set", result.GeneratedCSharpCode);
         Assert.Contains("SortShapeRows [", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("ComputeRowNumberWindow [", StringComparison.Ordinal));
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
@@ -288,8 +288,8 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".SetDistinctAggregate(", StringComparison.Ordinal));
-        Assert.Contains("DistinctAvg: int?", result.ExecutionPlanText);
-        Assert.Contains("AvgDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
+        Assert.Contains("DistinctAvg: decimal?", result.ExecutionPlanText);
+        Assert.Contains("AverageDistinctKernel<int, decimal>.Set", result.GeneratedCSharpCode);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -301,7 +301,7 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
-        Assert.Contains("inm.Avg(n.Value, 0): int?", result.ExecutionPlanText);
+        Assert.Contains("inm.Avg(n.Value, 0): decimal?", result.ExecutionPlanText);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }

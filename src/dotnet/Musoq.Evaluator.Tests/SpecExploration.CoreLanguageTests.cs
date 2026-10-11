@@ -30,7 +30,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
     }
 
     #endregion
@@ -57,7 +57,7 @@ public partial class SpecExplorationCoreLanguageTests
 
         Assert.AreEqual(2, table.Count);
 
-        var countries = new HashSet<object> { table[0][0], table[1][0] };
+        var countries = new HashSet<object> { table[0].ReadValue(0), table[1].ReadValue(0) };
         Assert.Contains("POLAND", countries);
         Assert.Contains("GERMANY", countries);
     }
@@ -87,7 +87,7 @@ public partial class SpecExplorationCoreLanguageTests
         Assert.AreEqual(3, table.Count);
 
 
-        var rowNumbers = table.Select(r => (int)r.Values[0]).OrderBy(x => x).ToList();
+        var rowNumbers = table.Select(r => (int)r.ReadValues()[0]).OrderBy(x => x).ToList();
         Assert.AreEqual(1, rowNumbers[0]);
         Assert.AreEqual(2, rowNumbers[1]);
         Assert.AreEqual(3, rowNumbers[2]);
@@ -115,7 +115,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count, "= should be case-sensitive per spec");
-        Assert.AreEqual("alice", table[0][0]);
+        Assert.AreEqual("alice", table[0].ReadValue(0));
     }
 
     #endregion
@@ -140,7 +140,7 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("test123", table[0][0]);
+        Assert.AreEqual("test123", table[0].ReadValue(0));
     }
 
     #endregion

@@ -14,11 +14,27 @@ internal static class SortKeyProjectionResolver
     {
         ArgumentNullException.ThrowIfNull(sortExpression);
         ArgumentNullException.ThrowIfNull(projectedFields);
-        return TryResolveAggregateSortOutputName(sortExpression, projectedFields)
-               ?? TryResolveProjectedFieldByExpression(sortExpression, projectedFields);
+        var outputName = (TryResolveAggregateSortField(sortExpression, projectedFields)
+                          ?? TryResolveProjectedFieldByExpression(sortExpression, projectedFields))?.OutputName;
+        if (outputName == null)
+            return null;
+
+        return projectedFields.Count(field => string.Equals(field.OutputName, outputName, StringComparison.OrdinalIgnoreCase)) == 1
+            ? outputName
+            : null;
     }
 
-    private static string? TryResolveProjectedFieldByExpression(
+    public static int? TryResolveOutputIndex(
+        IrExpression sortExpression,
+        IReadOnlyList<ProjectedField> projectedFields)
+    {
+        ArgumentNullException.ThrowIfNull(sortExpression);
+        ArgumentNullException.ThrowIfNull(projectedFields);
+        return (TryResolveAggregateSortField(sortExpression, projectedFields)
+                ?? TryResolveProjectedFieldByExpression(sortExpression, projectedFields))?.OutputIndex;
+    }
+
+    private static ProjectedField? TryResolveProjectedFieldByExpression(
         IrExpression sortExpression,
         IReadOnlyList<ProjectedField> projectedFields)
     {
@@ -29,13 +45,13 @@ internal static class SortKeyProjectionResolver
         foreach (var field in projectedFields)
         {
             if (string.Equals(IrExpressionPrinter.Print(field.Expression), sortPrinted, StringComparison.Ordinal))
-                return field.OutputName;
+                return field;
         }
 
         return null;
     }
 
-    private static string? TryResolveAggregateSortOutputName(
+    private static ProjectedField? TryResolveAggregateSortField(
         IrExpression sortExpression,
         IReadOnlyList<ProjectedField> projectedFields)
     {
@@ -47,7 +63,7 @@ internal static class SortKeyProjectionResolver
                 .ToArray();
 
             return aggregateCandidates.Length == 1
-                ? aggregateCandidates[0].OutputName
+                ? aggregateCandidates[0]
                 : null;
         }
 
@@ -65,7 +81,7 @@ internal static class SortKeyProjectionResolver
                 .ToArray();
 
             if (identifierCandidates.Length == 1)
-                return identifierCandidates[0].OutputName;
+                return identifierCandidates[0];
         }
 
         var methodCandidates = projectedFields
@@ -75,14 +91,14 @@ internal static class SortKeyProjectionResolver
             .ToArray();
 
         if (methodCandidates.Length == 1)
-            return methodCandidates[0].OutputName;
+            return methodCandidates[0];
 
         var aggregateRefCandidates = projectedFields
             .Where(field => field.Expression is AggregateRef)
             .ToArray();
 
         return aggregateRefCandidates.Length == 1
-            ? aggregateRefCandidates[0].OutputName
+            ? aggregateRefCandidates[0]
             : null;
     }
 

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
@@ -32,11 +33,15 @@ internal static class GeneratedCodeSampleArtifacts
 
     public static string SamplesDirectory { get; } = Path.Combine(
         FindRepoRoot(),
+        "src",
+        "dotnet",
         "generated-code-samples",
         "current");
 
     public static string ProfiledSamplesDirectory { get; } = Path.Combine(
         FindRepoRoot(),
+        "src",
+        "dotnet",
         "generated-code-samples",
         "profiled");
 
@@ -123,6 +128,16 @@ internal static class GeneratedCodeSampleArtifacts
         ILoggerResolver loggerResolver,
         CompilationOptions compilationOptions)
     {
+        if (sample.OutputType is not null)
+        {
+            var compile = typeof(InstanceCreator).GetMethods(BindingFlags.Public | BindingFlags.Static)
+                .Single(static method => method.Name == nameof(InstanceCreator.CompileForTypedInspection) &&
+                    method.IsGenericMethodDefinition && method.GetParameters().Length == 5 &&
+                    method.GetParameters()[4].ParameterType == typeof(CompilationOptions));
+            var typed = (TypedQueryInspectionResult)compile.MakeGenericMethod(sample.OutputType)
+                .Invoke(null, [sample.Query, CreateAssemblyName(sample), sample.CreateSchemaProvider(), loggerResolver, compilationOptions])!;
+            return FormatSample(sample, typed.Query ?? throw new InvalidOperationException("Typed sample inspection failed."));
+        }
         var inspection = InstanceCreator.CompileForInspection(
             sample.Query,
             CreateAssemblyName(sample),
@@ -168,7 +183,7 @@ internal static class GeneratedCodeSampleArtifacts
             sample.Query,
             sample.Category,
             sample.Format,
-            CompilationOptionsFingerprint.Compute(snapshotOptions));
+            CompilationOptionsFingerprint.Compute(snapshotOptions), sample.OutputType?.AssemblyQualifiedName);
     }
 
     public static void Write(GeneratedCodeSample sample, ILoggerResolver loggerResolver)
@@ -437,5 +452,5 @@ internal static class GeneratedCodeSampleArtifacts
         string Query,
         string Category,
         GeneratedCodeSampleFormat Format,
-        string CompilationOptionsFingerprint);
+        string CompilationOptionsFingerprint, string? OutputTypeName);
 }

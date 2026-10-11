@@ -28,6 +28,6 @@ public sealed class InClauseFrozenSetGeneratedCodeTests : BasicEntityTestBase
         Assert.Contains("FrozenSet", inspection.GeneratedCSharpCode);
         Assert.Contains("ToFrozenSet", inspection.GeneratedCSharpCode);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("25", table[0][0]);
+        Assert.AreEqual("25", table[0].ReadValue(0));
     }
 }

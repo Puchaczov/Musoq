@@ -87,8 +87,8 @@ public partial class StarModifierTests
         var popIdx = columnNames.FindIndex(c => c.Contains("Population"));
         var rnIdx = columnNames.FindIndex(c => c.Contains("rn"));
 
-        var alice = table.Single(r => Convert.ToInt32(r.Values[rnIdx]) == 1);
-        Assert.AreEqual(200m, alice.Values[popIdx]);
+        var alice = table.Single(r => Convert.ToInt32(r.ReadValues()[rnIdx]) == 1);
+        Assert.AreEqual(200m, alice.ReadValues()[popIdx]);
     }
 
     [TestMethod]
@@ -148,9 +148,9 @@ public partial class StarModifierTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        var uk = table.Single(r => (string)r.Values[0] == "UK");
-        Assert.AreEqual(1, Convert.ToInt32(uk.Values[1]));
-        Assert.AreEqual(250m, Convert.ToDecimal(uk.Values[2]));
+        var uk = table.Single(r => (string)r.ReadValues()[0] == "UK");
+        Assert.AreEqual(1, Convert.ToInt32(uk.ReadValues()[1]));
+        Assert.AreEqual(250m, Convert.ToDecimal(uk.ReadValues()[2]));
     }
 
 }

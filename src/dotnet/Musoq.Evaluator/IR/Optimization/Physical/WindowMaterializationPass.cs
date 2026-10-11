@@ -32,6 +32,7 @@ internal sealed class WindowMaterializationPass : IPhysicalOptimizationPass
     private static PhysicalNode RewriteWindow(PhysicalWindowNode window, PhysicalOptimizationState state)
     {
         var input = Rewrite(window.Input, state);
+        var registrations = WindowExecutionStrategy.Select(window.Registrations);
         state.AddDecision(new PlanningDecision(
             PlanningDecisionCategory.WindowStrategy,
             "WindowMaterialization",
@@ -40,9 +41,10 @@ internal sealed class WindowMaterializationPass : IPhysicalOptimizationPass
             PlanningConfidence.High,
             "Window computation requires a materialized input boundary."));
 
-        return input is PhysicalMaterializeNode
-            ? ReferenceEquals(input, window.Input) ? window : new PhysicalWindowNode(window.Registrations, input)
-            : new PhysicalWindowNode(window.Registrations, new PhysicalMaterializeNode(input));
+        if (ReferenceEquals(registrations, window.Registrations) && ReferenceEquals(input, window.Input) &&
+            input is PhysicalMaterializeNode)
+            return window;
+        return new PhysicalWindowNode(registrations,
+            input is PhysicalMaterializeNode ? input : new PhysicalMaterializeNode(input));
     }
 }
-

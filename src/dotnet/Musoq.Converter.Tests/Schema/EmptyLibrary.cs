@@ -6,7 +6,7 @@ namespace Musoq.Converter.Tests.Schema;
 
 public class EmptyLibrary : LibraryBase
 {
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     public int ExpensiveMethod(int value)
     {
         return value * 2;
@@ -22,23 +22,17 @@ public class EmptyLibrary : LibraryBase
         return AggregateFunction.NotInvoked<int>();
     }
 
-    [WindowFunction(Name = "RunningProduct")]
-    public IWindowFunction<int, decimal> WindowRunningProduct()
-    {
-        return new RunningProductWindowFunction();
-    }
+    [WindowFunction(typeof(RunningProductKernel), WindowEvaluationModes.Running | WindowEvaluationModes.WholePartition | WindowEvaluationModes.RecomputeFrames,
+        AggregateEmptyResultBehavior.Zero, Name = "RunningProduct")]
+    public decimal RunningProduct(int value) => AggregateFunction.NotInvoked<decimal>();
 
-    [WindowFunction(Name = "ScaledRunningProduct")]
-    public ScaledRunningProductWindowFunction WindowScaledRunningProduct()
-    {
-        return new ScaledRunningProductWindowFunction();
-    }
+    [WindowFunction(typeof(ScaledRunningProductKernel), WindowEvaluationModes.Running | WindowEvaluationModes.WholePartition | WindowEvaluationModes.RecomputeFrames,
+        AggregateEmptyResultBehavior.Zero, Name = "ScaledRunningProduct")]
+    public decimal ScaledRunningProduct(int value, int scale) => AggregateFunction.NotInvoked<decimal>();
 
-    [WindowFunction(Name = "ObjectRunningProduct")]
-    public IWindowFunction<object, decimal> WindowObjectRunningProduct()
-    {
-        return new ObjectRunningProductWindowFunction();
-    }
+    [WindowFunction(KernelType = typeof(ObjectRunningProductKernel), ContextType = typeof(WindowFrameContext<>),
+        Modes = WindowEvaluationModes.Running | WindowEvaluationModes.WholePartition)]
+    public decimal ObjectRunningProduct(object value) => AggregateFunction.NotInvoked<decimal>();
 
     public static class CustomLengthTotalAggregate
     {
@@ -46,6 +40,8 @@ public class EmptyLibrary : LibraryBase
         {
             public int Sum;
         }
+
+        public static void Reset(ref State state) => state = default;
 
         public static void Set(ref State state, int? value)
         {
@@ -64,72 +60,24 @@ public class EmptyLibrary : LibraryBase
         }
     }
 
-    private sealed class RunningProductWindowFunction : IWindowFunction<int, decimal>
+    public static class RunningProductKernel
     {
-        private decimal _product;
-
-        public void PartitionStart()
-        {
-            _product = 1;
-        }
-
-        public void Accumulate(int value)
-        {
-            _product *= value;
-        }
-
-        public decimal GetValue()
-        {
-            return _product;
-        }
+        public struct State { public decimal Product; }
+        public static void Reset(ref State state) => state.Product = 1m;
+        public static void Set(ref State state, int value) => state.Product *= value;
+        public static decimal Get(in State state) => state.Product;
     }
 
-    public sealed class ScaledRunningProductWindowFunction :
-        IWindowFunction<int, decimal>,
-        IWindowFunctionArguments<int>
+    public static class ScaledRunningProductKernel
     {
-        private decimal _product;
-        private int _scale = 1;
-
-        public void SetArguments(int scale)
-        {
-            _scale = scale;
-        }
-
-        public void PartitionStart()
-        {
-            _product = 1;
-        }
-
-        public void Accumulate(int value)
-        {
-            _product *= value * _scale;
-        }
-
-        public decimal GetValue()
-        {
-            return _product;
-        }
+        public struct State { public decimal Product; }
+        public static void Reset(ref State state) => state.Product = 1m;
+        public static void Set(ref State state, int value, int scale) => state.Product *= value * scale;
+        public static decimal Get(in State state) => state.Product;
     }
 
-    private sealed class ObjectRunningProductWindowFunction : IWindowFunction<object, decimal>
+    public static class ObjectRunningProductKernel
     {
-        private decimal _product;
-
-        public void PartitionStart()
-        {
-            _product = 1;
-        }
-
-        public void Accumulate(object value)
-        {
-            if (value is not null)
-                _product *= Convert.ToDecimal(value);
-        }
-
-        public decimal GetValue()
-        {
-            return _product;
-        }
+        public static decimal Get(in WindowFrameContext<object> context) => 0m;
     }
 }

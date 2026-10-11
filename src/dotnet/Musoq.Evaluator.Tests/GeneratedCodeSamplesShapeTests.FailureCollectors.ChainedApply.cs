@@ -133,7 +133,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             failures);
 
         foreach (var methodName in distinctAggregateFinalizers)
-            if (!content.Contains($"{methodName}AggregateKernel<int>.Get", StringComparison.Ordinal))
+            if (!content.Contains(DistinctKernelGetSignature(methodName), StringComparison.Ordinal))
                 failures.Add($"{fileName}: missing {methodName} finalization");
 
         if (content.Contains("AggregateGroup : Group", StringComparison.Ordinal))
@@ -164,7 +164,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             failures);
 
         foreach (var methodName in distinctAggregateFinalizers)
-            if (!content.Contains($"{methodName}AggregateKernel<int>.Get", StringComparison.Ordinal))
+            if (!content.Contains(DistinctKernelGetSignature(methodName), StringComparison.Ordinal))
                 failures.Add($"{fileName}: missing {methodName} finalization");
 
         if (content.Contains("AggregateGroup : Group", StringComparison.Ordinal))
@@ -216,7 +216,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
     private static bool ContainsGeneratedRowNumberKernel(string content)
     {
-        return content.Contains("resultRowNumbers[resultRowNumbersCurrentIndex] = resultRowNumbersPartitionIndex + 1L", StringComparison.Ordinal);
+        return content.Contains("resultRowNumbers[resultRowNumbersCurrentIndex] = Musoq.Plugins.RowNumberKernel.Get(in resultRowNumbersContext)", StringComparison.Ordinal);
     }
 
     private static void AddChainedApplyAggregateStreamingFailures(
@@ -287,5 +287,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             }
         }
     }
+
+    private static string DistinctKernelGetSignature(string methodName)
+        => methodName == "AvgDistinct" ? "AverageDistinctKernel<int, decimal>.Get" : $"{methodName}AggregateKernel<int>.Get";
 
 }

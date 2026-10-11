@@ -37,7 +37,7 @@ public partial class BinaryOrTextualCoreBinaryTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello", table[0][0]);
+        Assert.AreEqual("Hello", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -71,7 +71,7 @@ public partial class BinaryOrTextualCoreBinaryTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello", table[0][0]);
+        Assert.AreEqual("Hello", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -107,8 +107,8 @@ public partial class BinaryOrTextualCoreBinaryTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)4, table[0][0]);
-        var data = (byte[])table[0][1];
+        Assert.AreEqual((short)4, table[0].ReadValue(0));
+        var data = (byte[])table[0].ReadValue(1);
         Assert.HasCount(4, data);
         Assert.AreEqual((byte)0xAA, data[0]);
         Assert.AreEqual((byte)0xBB, data[1]);
@@ -149,8 +149,8 @@ public partial class BinaryOrTextualCoreBinaryTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)5, table[0][0]);
-        Assert.AreEqual("Hello", table[0][1]);
+        Assert.AreEqual((byte)5, table[0].ReadValue(0));
+        Assert.AreEqual("Hello", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -184,7 +184,7 @@ public partial class BinaryOrTextualCoreBinaryTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello", table[0][0]);
+        Assert.AreEqual("Hello", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -217,6 +217,6 @@ public partial class BinaryOrTextualCoreBinaryTests
 
         // Assert
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("TEST", table[0][0]);
+        Assert.AreEqual("TEST", table[0].ReadValue(0));
     }
 }

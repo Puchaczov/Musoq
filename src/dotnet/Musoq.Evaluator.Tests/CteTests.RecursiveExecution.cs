@@ -128,8 +128,8 @@ public partial class CteTests
                 CreateSingleSource())
             .Run(TestContext.CancellationToken);
 
-        var ascendingRepresentative = ascending.Single(row => (int)row.Values[0] == 3).Values[1];
-        var descendingRepresentative = descending.Single(row => (int)row.Values[0] == 3).Values[1];
+        var ascendingRepresentative = ascending.Single(row => (int)row.ReadValues()[0] == 3).ReadValues()[1];
+        var descendingRepresentative = descending.Single(row => (int)row.ReadValues()[0] == 3).ReadValues()[1];
 
         Assert.Contains(ascendingRepresentative, new object[] { "left->3", "right->3" });
         Assert.AreEqual(ascendingRepresentative, descendingRepresentative);

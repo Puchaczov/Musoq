@@ -1,0 +1,265 @@
+﻿// === Parsed Query ===
+/*
+select a.Id, b.Id from #A.entities() a full outer join #B.entities() b on a.Id < b.Id and a.NextValue() = 1
+*/
+
+// === Logical Plan ===
+/*
+MultiStatement
+  Project [a.Id as a.Id, b.Id as b.Id]
+    Join [FullOuter] [((a.Id < b.Id) AND (NextValue() = 1))]
+      SchemaScan [#A.entities() as a]
+      SchemaScan [#B.entities() as b]
+  Project [a.Id as Id, b.Id as Id]
+    CteRef [ab as ab]
+*/
+
+// === Physical Plan ===
+/*
+PhysicalMultiStatement
+  PhysicalProject [a.Id as a.Id, b.Id as b.Id]
+    PhysicalNestedLoopJoin [FullOuter] [((a.Id < b.Id) AND (NextValue() = 1))]
+      PhysicalSchemaScan [#A.entities() as a]
+      PhysicalSchemaScan [#B.entities() as b]
+  PhysicalProject [a.Id as Id, b.Id as Id]
+    PhysicalCteRef [ab as ab]
+*/
+
+// === Execution Plan ===
+/*
+ExecutionPlan [compiled]
+  Shapes
+    SourceEntity [a: BasicEntity]
+      Id: int <- property Id
+    SourceEntity [b: BasicEntity]
+      Id: int <- property Id
+    Generated [ResultRow0]
+      Id: int? <- field Id
+      Id: int? <- field Id_1
+
+  Body
+    PhaseBoundary [Begin]
+    PhaseBoundary [From]
+    PhaseBoundary [Begin:cte0]
+    PhaseBoundary [Select]
+    SourceScan [a: BasicEntity] -> aRows
+    SourceScan [b: BasicEntity] -> bRows
+    CreateShapeRows [result: ResultRow0 from ResultRow0]
+    MaterializeChunked [aRows -> aRowsBuffer]
+    MaterializeChunked [bRows -> bRowsBuffer]
+    CreateBooleanArray [resultRightMatched <- bRowsBuffer.Count]
+    CreateObject [__resultLibrary0: Library]
+    ForEach [a in aRowsBuffer]
+      Let [resultLeftHasMatch: bool = FALSE]
+      ForEachIndexed [bIndex, b in bRowsBuffer]
+        Let [id: int? = a.Id]
+        Let [id1: int? = b.Id]
+        If [((id < id1) AND (NextValue() = 1))]
+          Assign [resultLeftHasMatch = TRUE]
+          ArrayAssign [resultRightMatched[bIndex] = TRUE]
+          AppendShape [result <- ResultRow0(Id: id, Id: id1)]
+      If [NOT resultLeftHasMatch]
+        AppendShape [result <- ResultRow0(Id: a.Id, Id: NULL)]
+    ForEachIndexed [bIndex, b in bRowsBuffer]
+      If [NOT resultRightMatched[bIndex]]
+        AppendShape [result <- ResultRow0(Id: NULL, Id: b.Id)]
+    PhaseBoundary [End:cte0]
+    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
+*/
+
+// === Generated C# ===
+
+// === SyntaxTree:  ===
+namespace GeneratedSample_Q376_FullOuterJoinVolatilePredicate
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
+    using Musoq.Schema;
+    using Musoq.Schema.Optimization;
+    using Musoq.Evaluator;
+    using Musoq.Evaluator.Tables;
+    using Musoq.Evaluator.Helpers;
+    using Musoq.Evaluator.Runtime;
+    using Musoq.Schema.DataSources;
+    using System.Linq;
+
+    public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable, ITypedParameterizedRunnable
+    {
+        private static readonly Column[] __columns_compiled_result_1 = new Column[]
+        {
+            new Column("Id", typeof(int?), 0),
+            new Column("Id", typeof(int?), 1)
+        };
+        private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_a_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("Id", typeof(int), 0) });
+        public ILogger Logger { get; set; }
+        public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = Array.Empty<ScriptParameterContract>();
+        public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();
+        public ISchemaProvider Provider { get; set; }
+        public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; }
+        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; }
+        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; }
+        public TypedParameterSnapshot TypedParameters { get; set; } = TypedParameterSnapshot.Empty;
+
+        public event DataSourceEventHandler DataSourceProgress;
+        public event QueryPhaseEventHandler PhaseChanged;
+        public event QueryProgressEventHandler QueryProgress;
+        public Table Run(CancellationToken token)
+        {
+            return QueryRows.DeferredTable<ResultRow0>("result", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+        }
+
+        private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        {
+            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
+            {
+                yield return __musoqShapeRow;
+            }
+        }
+
+        private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
+        {
+            QueryProgressEventHandler OnQueryProgress = QueryProgress;
+            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
+            try
+            {
+                var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
+                ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
+                var __musoqFinalShapeRows = new List<ResultRow0>();
+                OnPhaseChanged("compiled", QueryPhase.Begin);
+                OnPhaseChanged("compiled", QueryPhase.From);
+                OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
+                Musoq.Evaluator.Tests.Schema.Basic.Library __resultLibrary0 = default!;
+                try
+                {
+                    OnPhaseChanged("compiled", QueryPhase.Select);
+                    var __aSchema = provider.GetSchema("#A");
+                    var aRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__aSchema, "entities", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                    var aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(aRowsSource.Chunks, __musoqProgressContext, "a:1") : aRowsSource.Chunks;
+                    var __bSchema = provider.GetSchema("#B");
+                    var bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__bSchema, "entities", new SourceExecutionContext("b:1", sourceExecutionPlans["b:1"], token, __schemaColumns_compiled_a_0, sourceRuntimeSettingsBySourceContextId["b:1"], logger, OnDataSourceProgress), global::Musoq.Schema.SourceArguments.Empty);
+                    var bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(bRowsSource.Chunks, __musoqProgressContext, "b:1") : bRowsSource.Chunks;
+                    var aRowsBuffer = EvaluationHelper.MaterializeChunkedRows(aRows);
+                    var bRowsBuffer = EvaluationHelper.MaterializeChunkedRows(bRows);
+                    bool[] resultRightMatched = new bool[bRowsBuffer.Count];
+                    __resultLibrary0 = new Musoq.Evaluator.Tests.Schema.Basic.Library();
+                    foreach (var a in aRowsBuffer)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        bool resultLeftHasMatch = false;
+                        for (int bIndex = 0; bIndex < bRowsBuffer.Count; ++bIndex)
+                        {
+                            if ((bIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            Musoq.Evaluator.Tests.Schema.Basic.BasicEntity b = bRowsBuffer[bIndex];
+                            int? id = a.Id;
+                            int? id1 = b.Id;
+                            if (((Operators.SqlCompare<int?, int?>(id, id1, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft < __sqlRight)) & ((int)__resultLibrary0.NextValue() == 1))) == true)
+                            {
+                                resultLeftHasMatch = true;
+                                resultRightMatched[bIndex] = (bool)true;
+                                __musoqFinalShapeRows.Add(new ResultRow0(id, id1));
+                            }
+                        }
+
+                        if ((!resultLeftHasMatch))
+                        {
+                            __musoqFinalShapeRows.Add(new ResultRow0(a.Id, null));
+                        }
+                    }
+
+                    for (int bIndex = 0; bIndex < bRowsBuffer.Count; ++bIndex)
+                    {
+                        if ((bIndex & 1023) == 0)
+                        {
+                            token.ThrowIfCancellationRequested();
+                        }
+
+                        Musoq.Evaluator.Tests.Schema.Basic.BasicEntity b = bRowsBuffer[bIndex];
+                        if ((!(bool)SafeArrayAccess.GetArrayElement<bool>(resultRightMatched, bIndex)))
+                        {
+                            __musoqFinalShapeRows.Add(new ResultRow0(null, b.Id));
+                        }
+                    }
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled:cte0", QueryPhase.End);
+                }
+
+                return __musoqFinalShapeRows;
+            }
+            finally
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            }
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private void OnDataSourceProgress(object sender, DataSourceEventArgs e)
+        {
+            DataSourceProgress?.Invoke(this, e);
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private void OnPhaseChanged(string queryId, QueryPhase phase)
+        {
+            PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
+        }
+
+        private sealed class ResultRow0 : Row
+        {
+            public ResultRow0(int? __value0, int? __value1)
+            {
+                Id = __value0;
+                Id_1 = __value1;
+            }
+
+            public override int Count => 2;
+            public int? Id { get; private set; }
+            public int? Id_1 { get; private set; }
+
+            public override void AssignValue<T>(int columnNumber, T value)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnRead.Discard<T>(columnNumber switch
+                {
+                    0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.Id = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int?, T>(value)),
+                    1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.Id_1 = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int?, T>(value)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(columnNumber))
+                });
+            }
+
+            public override T GetValue<T>(int columnIndex) => columnIndex switch
+            {
+                0 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.Id),
+                1 => global::Musoq.Evaluator.Tables.TypedColumnRead.Read<T, int?>(this.Id_1),
+                _ => throw new ArgumentOutOfRangeException(nameof(columnIndex))
+            };
+            public override bool HasColumn(string name) => name switch
+            {
+                "Id" => true,
+                "Id_1" => true,
+                _ => false
+
+            };
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
+            {
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.Id, ref visitor);
+                global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(1, this.Id_1, ref visitor);
+            }
+        }
+    }
+}

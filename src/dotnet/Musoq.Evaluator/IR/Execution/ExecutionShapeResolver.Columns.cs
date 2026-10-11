@@ -113,7 +113,7 @@ public sealed partial class ExecutionShapeResolver
     {
         if (SchemaIndexedRowContract.IsSupported(entityType))
         {
-            return new PositionalAccess(column.ColumnIndex);
+            return new PositionalAccess(column.ColumnIndex, ExecutionClrBindingFactory.FromClr(column.SourceReadType));
         }
 
         if (DynamicEntityBoundary.IsDynamicObject(entityType) &&
@@ -127,6 +127,10 @@ public sealed partial class ExecutionShapeResolver
             return new RuntimeDynamicMemberAccess(column.ColumnName);
         }
 
+        if (ExecutionSourceCodeGenerationPolicy.IsSupportedDictionary(entityType) &&
+            !HasPublicClrMember(entityType, column.ColumnName))
+            return new NestedClrPropertyAccess(column.ColumnName);
+
         if (column.ColumnName.Contains('.', StringComparison.Ordinal))
         {
             return new NestedClrPropertyAccess(column.ColumnName);
@@ -135,7 +139,7 @@ public sealed partial class ExecutionShapeResolver
         if (HasPublicClrMember(entityType, column.ColumnName))
             return new ClrPropertyAccess(column.ColumnName);
 
-        return new PositionalAccess(column.ColumnIndex);
+        return new PositionalAccess(column.ColumnIndex, ExecutionClrBindingFactory.FromClr(column.SourceReadType));
     }
 
     private static bool HasPublicClrMember(Type entityType, string memberName) =>

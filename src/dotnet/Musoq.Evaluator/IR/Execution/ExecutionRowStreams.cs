@@ -30,20 +30,19 @@ internal static class ExecutionRowStreams
         ExecutionVariable source,
         ExecutionBlock loopBody)
     {
-        if (sourceShape is not ExpandoAdapterShape expando)
-        {
-            return new ExecutionForEach(source, sourceRows, loopBody);
-        }
+        RequireNativeShape(sourceShape);
+        return new ExecutionForEach(source, sourceRows, loopBody);
+    }
 
-        var resolver = new ExecutionVariable(CreateResolverVariableName(source.Name), expando.RuntimeType);
-        var adapter = new ExecutionVariable(source.Name, typeof(object));
-        var body = new ExecutionBlock(
-            [
-                new ExecutionAdaptExpando(adapter, resolver, expando),
-                ..loopBody.Nodes
-            ]);
-
-        return new ExecutionForEach(resolver, sourceRows, body);
+    public static ExecutionForEachIndexed CreateForEachIndexed(
+        RowShape sourceShape,
+        ExecutionVariable sourceRows,
+        ExecutionVariable source,
+        ExecutionVariable index,
+        ExecutionBlock loopBody)
+    {
+        RequireNativeShape(sourceShape);
+        return new ExecutionForEachIndexed(source, index, sourceRows, ExecutionRowAccessMode.Direct, loopBody);
     }
 
     public static ExecutionNode CreateForEachWithOrdinality(
@@ -53,20 +52,8 @@ internal static class ExecutionRowStreams
         ExecutionVariable ordinal,
         ExecutionBlock loopBody)
     {
-        if (sourceShape is not ExpandoAdapterShape expando)
-        {
-            return new ExecutionForEachWithOrdinality(source, sourceRows, ordinal, loopBody);
-        }
-
-        var resolver = new ExecutionVariable(CreateResolverVariableName(source.Name), expando.RuntimeType);
-        var adapter = new ExecutionVariable(source.Name, typeof(object));
-        var body = new ExecutionBlock(
-            [
-                new ExecutionAdaptExpando(adapter, resolver, expando),
-                ..loopBody.Nodes
-            ]);
-
-        return new ExecutionForEachWithOrdinality(resolver, sourceRows, ordinal, body);
+        RequireNativeShape(sourceShape);
+        return new ExecutionForEachWithOrdinality(source, sourceRows, ordinal, loopBody);
     }
 
     public static ExecutionNode CreateMaterializeList(
@@ -88,17 +75,14 @@ internal static class ExecutionRowStreams
         return new ExecutionMaterializeFilteredList(source, buffer, item, rowAccessMode, predicate, generatedRowShape);
     }
 
-    public static ExecutionNode CreateMaterializeExpandoList(
-        ExecutionExpression source,
-        ExecutionVariable buffer,
-        ExpandoAdapterShape shape,
-        ExecutionExpression? predicate)
-    {
-        return new ExecutionMaterializeExpandoList(source, buffer, shape, predicate);
-    }
 
-    private static string CreateResolverVariableName(string alias)
+
+    private static void RequireNativeShape(RowShape shape)
     {
-        return $"{alias}Resolver";
+        if (shape is SourceEntityShape source &&
+            DynamicEntityBoundary.IsNameIndexedSource(source.EntityType.ResolveClrType()))
+            throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(
+                "Erased dictionary iteration is unsupported; use native query-scoped rows.",
+                Musoq.Parser.TextSpan.Empty);
     }
 }

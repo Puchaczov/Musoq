@@ -37,8 +37,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("p.Magic", typeof(int)),
-            ("p.Version", typeof(byte)));
+            ("Magic", typeof(int)),
+            ("Version", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [0x12345678, (byte)9]);
     }
 
@@ -109,19 +109,19 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        var successfulFields = (Dictionary<string, object?>)table[0][1]!;
+        var successfulFields = PartialPayloadAssertions.CompletedValues(table[0].ReadValue(1)!);
         Assert.AreEqual(0x12345678, successfulFields["Magic"]);
         Assert.AreEqual((byte)7, successfulFields["Version"]);
-        Assert.IsNull(table[0][2]);
-        Assert.IsNull(table[0][3]);
-        Assert.AreEqual(5, table[0][4]);
+        Assert.IsNull(table[0].ReadValue(2));
+        Assert.IsNull(table[0].ReadValue(3));
+        Assert.AreEqual(5, table[0].ReadValue(4));
 
-        var failedFields = (Dictionary<string, object?>)table[1][1]!;
+        var failedFields = PartialPayloadAssertions.CompletedValues(table[1].ReadValue(1)!);
         Assert.AreEqual(0x12345678, failedFields["Magic"]);
         Assert.IsFalse(failedFields.ContainsKey("Version"));
-        Assert.AreEqual("Version", table[1][2]);
-        StringAssert.Contains((string)table[1][3]!, "ISE0001");
-        Assert.AreEqual(4, table[1][4]);
+        Assert.AreEqual("Version", table[1].ReadValue(2));
+        StringAssert.Contains((string)table[1].ReadValue(3)!, "ISE0001");
+        Assert.AreEqual(4, table[1].ReadValue(4));
     }
 
     [TestMethod]
@@ -163,19 +163,19 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
-        var successfulFields = (Dictionary<string, object?>)table[0][1]!;
+        var successfulFields = PartialPayloadAssertions.CompletedValues(table[0].ReadValue(1)!);
         Assert.AreEqual("host", successfulFields["Key"]);
         Assert.AreEqual("abcde", successfulFields["Value"]);
-        Assert.IsNull(table[0][2]);
-        Assert.IsNull(table[0][3]);
-        Assert.AreEqual("host=abcde".Length, table[0][4]);
+        Assert.IsNull(table[0].ReadValue(2));
+        Assert.IsNull(table[0].ReadValue(3));
+        Assert.AreEqual("host=abcde".Length, table[0].ReadValue(4));
 
-        var failedFields = (Dictionary<string, object?>)table[1][1]!;
+        var failedFields = PartialPayloadAssertions.CompletedValues(table[1].ReadValue(1)!);
         Assert.AreEqual("host", failedFields["Key"]);
         Assert.IsFalse(failedFields.ContainsKey("Value"));
-        Assert.AreEqual("Value", table[1][2]);
-        StringAssert.Contains((string)table[1][3]!, "ISE0001");
-        Assert.AreEqual("host=".Length, table[1][4]);
+        Assert.AreEqual("Value", table[1].ReadValue(2));
+        StringAssert.Contains((string)table[1].ReadValue(3)!, "ISE0001");
+        Assert.AreEqual("host=".Length, table[1].ReadValue(4));
     }
 
     [TestMethod]
@@ -209,13 +209,13 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        var parsedFields = (Dictionary<string, object?>)table[0][0]!;
+        var parsedFields = PartialPayloadAssertions.CompletedValues(table[0].ReadValue(0)!);
         Assert.AreEqual((byte)7, parsedFields["Header"]);
         Assert.IsFalse(parsedFields.ContainsKey("Payload"));
-        Assert.AreEqual("Payload.Value", table[0][1]);
-        StringAssert.Contains((string)table[0][2]!, "ISE0001");
-        StringAssert.Contains((string)table[0][2]!, "Payload.Value");
-        Assert.AreEqual(1, table[0][3]);
+        Assert.AreEqual("Payload.Value", table[0].ReadValue(1));
+        StringAssert.Contains((string)table[0].ReadValue(2)!, "ISE0001");
+        StringAssert.Contains((string)table[0].ReadValue(2)!, "Payload.Value");
+        Assert.AreEqual(1, table[0].ReadValue(3));
     }
 
     [TestMethod]
@@ -250,13 +250,13 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        var parsedFields = (Dictionary<string, object?>)table[0][0]!;
+        var parsedFields = PartialPayloadAssertions.CompletedValues(table[0].ReadValue(0)!);
         Assert.AreEqual("root", parsedFields["Prefix"]);
         Assert.IsFalse(parsedFields.ContainsKey("Payload"));
-        Assert.AreEqual("Payload.Value", table[0][1]);
-        StringAssert.Contains((string)table[0][2]!, "ISE0001");
-        StringAssert.Contains((string)table[0][2]!, "Payload.Value");
-        Assert.AreEqual(7, table[0][3]);
+        Assert.AreEqual("Payload.Value", table[0].ReadValue(1));
+        StringAssert.Contains((string)table[0].ReadValue(2)!, "ISE0001");
+        StringAssert.Contains((string)table[0].ReadValue(2)!, "Payload.Value");
+        Assert.AreEqual(7, table[0].ReadValue(3));
     }
 
     private ParseException ExecuteInterpretAtWithOffset(int offset, byte[] data)

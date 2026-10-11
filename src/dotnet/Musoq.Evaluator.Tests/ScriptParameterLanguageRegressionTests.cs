@@ -9,7 +9,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
+public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
 {
 
     [TestMethod]
@@ -23,13 +23,13 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
             select Name from filtered where City = $city";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        vm.Parameters["country"] = "PL";
-        vm.Parameters["city"] = "Warsaw";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "city", "Warsaw");
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -43,14 +43,14 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
             where a.Country = $country";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        vm.Parameters["country"] = "PL";
-        vm.Parameters["suffix"] = "?";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "?");
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice?", table[0][0]);
-        Assert.AreEqual("TargetWarsaw", table[0][1]);
+        Assert.AreEqual("Alice?", table[0].ReadValue(0));
+        Assert.AreEqual("TargetWarsaw", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -64,14 +64,14 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
             having Count(Name) >= $minCount";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        vm.Parameters["suffix"] = "-group";
-        vm.Parameters["minCount"] = 2;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-group");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "minCount", 2);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("PL-group", table[0][0]);
-        Assert.AreEqual(2, Convert.ToInt32(table[0][1]));
+        Assert.AreEqual("PL-group", table[0].ReadValue(0));
+        Assert.AreEqual(2, Convert.ToInt32(table[0].ReadValue(1)));
     }
 
     [TestMethod]
@@ -85,16 +85,16 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
             having Count(Name) >= $minCount";
 
         var vm = CreateAndRunVirtualMachine(query, CreateValueTupleAggregateSources());
-        vm.Parameters["countrySuffix"] = "-country";
-        vm.Parameters["citySuffix"] = "-city";
-        vm.Parameters["minCount"] = 2;
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "countrySuffix", "-country");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "citySuffix", "-city");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "minCount", 2);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("PL-country", table[0][0]);
-        Assert.AreEqual("Warsaw-city", table[0][1]);
-        Assert.AreEqual(2, Convert.ToInt32(table[0][2]));
+        Assert.AreEqual("PL-country", table[0].ReadValue(0));
+        Assert.AreEqual("Warsaw-city", table[0].ReadValue(1));
+        Assert.AreEqual(2, Convert.ToInt32(table[0].ReadValue(2)));
     }
 
     [TestMethod]
@@ -125,21 +125,21 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
             LoggerResolver,
             options);
 
-        Assert.Contains("ParallelBlock", inspection.ExecutionPlanText);
+        Assert.Contains("ParallelBlock", inspection.ExecutionPlanText, inspection.PlanningText);
 
         var vm = CreateAndRunVirtualMachine(query, sources, options);
-        vm.Parameters["country"] = "PL";
-        vm.Parameters["city"] = "Warsaw";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "city", "Warsaw");
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
-        Assert.AreEqual("TargetWarsaw", table[0][1]);
-        Assert.AreEqual("Warsaw", table[0][2]);
-        Assert.AreEqual("Cara", table[1][0]);
-        Assert.AreEqual("TargetWarsaw", table[1][1]);
-        Assert.AreEqual("Warsaw", table[1][2]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
+        Assert.AreEqual("TargetWarsaw", table[0].ReadValue(1));
+        Assert.AreEqual("Warsaw", table[0].ReadValue(2));
+        Assert.AreEqual("Cara", table[1].ReadValue(0));
+        Assert.AreEqual("TargetWarsaw", table[1].ReadValue(1));
+        Assert.AreEqual("Warsaw", table[1].ReadValue(2));
     }
 
     [TestMethod]
@@ -155,12 +155,12 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
             take 1";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        vm.Parameters["country"] = "PL";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Cara", table[0][0]);
+        Assert.AreEqual("Cara", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -173,15 +173,15 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        vm.Parameters["minPopulation"] = 100m;
-        vm.Parameters["label"] = "large";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "minPopulation", 100m);
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "large");
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("large", table.Single(row => (string)row.Values[0] == "Alice").Values[1]);
-        Assert.AreEqual("small", table.Single(row => (string)row.Values[0] == "Bob").Values[1]);
-        Assert.AreEqual("large", table.Single(row => (string)row.Values[0] == "Cara").Values[1]);
+        Assert.AreEqual("large", table.Single(row => (string)row.ReadValues()[0] == "Alice").ReadValues()[1]);
+        Assert.AreEqual("small", table.Single(row => (string)row.ReadValues()[0] == "Bob").ReadValues()[1]);
+        Assert.AreEqual("large", table.Single(row => (string)row.ReadValues()[0] == "Cara").ReadValues()[1]);
     }
 
     [TestMethod]
@@ -194,14 +194,14 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        vm.Parameters["firstCity"] = "Warsaw";
-        vm.Parameters["secondCity"] = "Berlin";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "firstCity", "Warsaw");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "secondCity", "Berlin");
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
-        Assert.AreEqual("Bob", table[1][0]);
+        Assert.AreEqual("Alice", table[0].ReadValue(0));
+        Assert.AreEqual("Bob", table[1].ReadValue(0));
     }
 
     [TestMethod]
@@ -214,7 +214,7 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSourcesWithIds());
-        vm.Parameters["ids"] = new[] { 1, 3 };
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", new[] { 1, 3 });
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -232,7 +232,7 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSourcesWithIds());
-        vm.Parameters["ids"] = new List<int> { 2, 4 };
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", new List<int> { 2, 4 });
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -249,7 +249,7 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
             where Id in $ids";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSourcesWithIds());
-        vm.Parameters["ids"] = Array.AsReadOnly(new[] { 3 });
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", Array.AsReadOnly(new[] { 3 }));
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -267,7 +267,7 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSourcesWithIds());
-        vm.Parameters["cities"] = new[] { "Warsaw", "Paris" };
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "cities", new[] { "Warsaw", "Paris" });
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -285,7 +285,7 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSourcesWithIds());
-        vm.Parameters["ids"] = new[] { 1, 3 };
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", new[] { 1, 3 });
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -308,8 +308,8 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
             where Country in ($country, 'DE')";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        vm.Parameters["country"] = "PL";
-        vm.Parameters["suffix"] = "-window";
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-window");
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -317,12 +317,12 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
         Assert.AreEqual(1, RowNumberFor(table, "Alice"));
         Assert.AreEqual(2, RowNumberFor(table, "Cara"));
         Assert.AreEqual(1, RowNumberFor(table, "Bob"));
-        Assert.IsTrue(table.All(row => (string)row.Values[2] == "-window"));
+        Assert.IsTrue(table.All(row => (string)row.ReadValues()[2] == "-window"));
     }
 
     private static int RowNumberFor(Table table, string name)
     {
-        return Convert.ToInt32(table.Single(row => (string)row.Values[0] == name).Values[1]);
+        return Convert.ToInt32(table.Single(row => (string)row.ReadValues()[0] == name).ReadValues()[1]);
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreateSources()

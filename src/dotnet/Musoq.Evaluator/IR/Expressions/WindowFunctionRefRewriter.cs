@@ -87,7 +87,7 @@ public sealed partial class WindowFunctionRefRewriter(IReadOnlyDictionary<int, i
         if (ReferenceEquals(expression, node.Expression) && !valuesChanged)
             return node;
 
-        return new InCheck(expression, values, node.ReturnType, node.IsNegated);
+        return node with { Expression = expression, Values = values };
     }
 
     protected override IrExpression VisitPatternMatch(PatternMatch node)

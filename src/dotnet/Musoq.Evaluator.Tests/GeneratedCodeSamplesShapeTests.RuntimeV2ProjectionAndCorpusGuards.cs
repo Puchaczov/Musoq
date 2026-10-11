@@ -47,9 +47,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("CASE WHEN Salary > 1000 THEN 'Large' ELSE 'Small' END as C50", sample);
         Assert.Contains("SourceScan [ko3iko: RuntimeV2RegressionEntity] -> ko3ikoRows", sample);
         Assert.Contains("ForEach [ko3iko in ko3ikoRows]", sample);
-        Assert.Contains("private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(", sample);
-        Assert.Contains("yield return new ResultShape0(", sample);
-        Assert.Contains("yield return new ResultRow0(__musoqShapeRow.C01", sample);
+        Assert.Contains("private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0(", sample);
+        Assert.Contains("yield return new ResultRow0(", sample);
+        Assert.Contains("yield return __musoqShapeRow;", sample);
         Assert.DoesNotContain("private Table ComputeTable_compiled_0(", sample);
         Assert.IsFalse(sample.Contains(ParallelFilterProjectLoopPattern, StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("ConcurrentQueue", StringComparison.Ordinal));
@@ -60,9 +60,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("private static readonly Dictionary<string, int> __columnIndexes = CreateColumnIndexes();", sample);
         Assert.Contains("private static Dictionary<string, int> CreateColumnIndexes()", sample);
         Assert.Contains("public override bool HasColumn(string name) => __columnIndexes.ContainsKey(name);", sample);
-        Assert.Contains("__columnIndexes.TryGetValue(name, out var columnIndex)", sample);
-        Assert.Contains("public override object this[string name]", sample);
-        Assert.Contains("private static readonly Action<ResultRow0, object>[] __assigners", sample);
+        Assert.DoesNotContain("__columnIndexes.TryGetValue(name, out var columnIndex)", sample);
+        Assert.DoesNotContain("public override object this[string name]", sample);
+        Assert.Contains("public override void AssignValue<T>(int columnNumber, T value)", sample);
+        Assert.Contains("this.C01 = global::Musoq.Evaluator.Tables.TypedColumnRead.Read<int, T>(value)", sample);
+        Assert.DoesNotContain("Action<ResultRow0, object>[]", sample);
         Assert.IsFalse(sample.Contains("private static int GetColumnIndex(string name) => name switch", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("GetColumnIndex(name) >= 0", StringComparison.Ordinal));
         Assert.IsLessThanOrEqualTo(740, CountLines(sample), RuntimeV2LexerManyColumnsSampleFileName);
@@ -74,21 +76,21 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var sample = ReadSample(RuntimeV2DecimalConversionSampleFileName)
             .Content;
 
-        Assert.Contains("WHERE TryConvertToDecimalComparison(Amount) > 100.50d", sample);
+        Assert.Contains("WHERE ToDecimal(Amount) > 100.50d", sample);
         Assert.Contains("SourceScan [ko3iko: RuntimeV2RegressionEntity] -> ko3ikoRows", sample);
-        Assert.Contains("ParallelFilterProjectLoop [ko3iko in ko3ikoRows where (TryConvertToDecimalComparison(ko3iko.Amount) > 100,50); threshold 4096", sample);
-        Assert.Contains("Let [tryConvertToDecimalComparison: decimal? = TryConvertToDecimalComparison(amount)]", sample);
-        Assert.Contains("decimal? tryConvertToDecimalComparison = (decimal?)__resultLibraryBase0.TryConvertToDecimalComparison(amount);", sample);
-        Assert.Contains("if ((Operators.SqlCompare<decimal?, decimal>(tryConvertToDecimalComparison, 100.50m", sample);
-        Assert.Contains("new ResultRow0(ko3iko.Id, tryConvertToDecimalComparison)", sample);
+        Assert.Contains("ParallelFilterProjectLoop [ko3iko in ko3ikoRows where (ToDecimal(ko3iko.Amount) > 100,50); threshold 4096", sample);
+        Assert.Contains("Let [toDecimal: decimal? = ToDecimal(amount)]", sample);
+        Assert.Contains("decimal? toDecimal = (decimal?)__resultLibraryBase0.ToDecimal(amount);", sample);
+        Assert.Contains("if ((Operators.SqlCompare<decimal?, decimal>(toDecimal, 100.50m", sample);
+        Assert.Contains("new ResultRow0(ko3iko.Id, toDecimal)", sample);
         Assert.Contains("QueryRows.FromRowShards(", sample);
         Assert.Contains("EvaluationHelper.ProjectChunkedRowsParallel<", sample);
         Assert.Contains("EvaluationHelper.ProjectRowsParallel<", sample);
         Assert.DoesNotContain("TableProjectionRows.ProjectOptionalRowsSerial<", sample);
         Assert.AreEqual(2, CountOccurrences(
             sample,
-            "decimal? tryConvertToDecimalComparison = (decimal?)__resultLibraryBase0.TryConvertToDecimalComparison(amount);"));
-        Assert.IsFalse(sample.Contains("TryConvertToDecimalComparison((object)", StringComparison.Ordinal));
+            "decimal? toDecimal = (decimal?)__resultLibraryBase0.ToDecimal(amount);"));
+        Assert.IsFalse(sample.Contains("ToDecimal((object)", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("Convert.ChangeType", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("ConcurrentQueue", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("TableRowSource", StringComparison.Ordinal));
@@ -114,16 +116,19 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var libraryTarget = libraryTargetMatch.Groups["name"].Value;
         Assert.Contains("ko3iko.Email.Contains(\"gmail\", StringComparison.OrdinalIgnoreCase)", sample);
         Assert.Contains("ko3iko.FirstName.StartsWith(\"A\", StringComparison.OrdinalIgnoreCase)", sample);
-        Assert.Contains("var resultSums0Value = ((decimal?)ko3iko.Salary);", sample);
+        Assert.Contains("SumAggregateKernel<decimal>.Set(ref resultSums0State, (decimal?)((decimal?)ko3iko.Salary));", sample);
+        Assert.Contains("SumAggregateKernel<decimal>.Get(in resultSums0State)", sample);
+        Assert.Contains("ResolveRangePeerFrameEnd(resultSums0OrderKeys", sample);
+        Assert.DoesNotContain("resultSums0BatchValues", sample);
         Assert.Contains($"{libraryTarget}.ExpensiveCompute(ko3iko.Value)", sample);
         Assert.Contains("ComputeSumWindowKernel[BoundedRows]", sample);
         Assert.Contains("ComputeRankWindow", sample);
         Assert.Contains("var resultSums0OrderKeys = new WindowResultSums0OrderKeysKey[resultWindowRows.Count];", sample);
         Assert.Contains("WindowFunctionHelpers.ResolveRangePeerFrameEnd(resultSums0OrderKeys", sample);
-        Assert.Contains("var resultSums0PrefixSum = System.Buffers.ArrayPool<decimal>.Shared.Rent", sample);
+        Assert.DoesNotContain("resultSums0BatchContext", sample);
         Assert.Contains("var resultRanks1OrderKeys = new WindowResultRanks1OrderKeysKey[resultWindowRows.Count];", sample);
         Assert.Contains("var resultRanks1SortedPartitions = WindowFunctionHelpers.SortStructPartitionSet(resultSums0Partitions, resultRanks1OrderKeys, false);", sample);
-        Assert.Contains("long resultRanks1Rank = 1L;", sample);
+        Assert.Contains("Musoq.Plugins.RankKernel.Get(in resultRanks1Context)", sample);
         Assert.Contains("TopOffsetShapeRows [result -> resultTopOffset by Department ASC, Salary DESC, Computed DESC, skip 10, take 20, BoundedHeap]", sample);
         Assert.Contains("var result = new List<ResultShape0>(resultWindowRows.Count);", sample);
         Assert.Contains("EvaluationHelper.SelectTopOffsetRecords(result, 10, 20, Comparer<ResultShape0>.Create", sample);

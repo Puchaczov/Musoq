@@ -7,7 +7,7 @@ using Musoq.Evaluator.Tables;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextualEvaluatorTestBase
+public partial class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextualEvaluatorTestBase
 {
     [TestMethod]
     public void Query_EofRepeatInsideSubstream_ShouldConsumeAllBoundedBytesAndAdvanceToTrailer()
@@ -29,8 +29,8 @@ public class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextualEvalua
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.Payload.Bytes", typeof(object)),
-            ("f.Trailer", typeof(byte)));
+            ("f.Payload.Bytes", typeof(byte[])),
+            ("Trailer", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [new byte[] { 0xAA, 0xBB, 0xCC }, (byte)0x99]);
@@ -56,8 +56,8 @@ public class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextualEvalua
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.Payload.Bytes", typeof(object)),
-            ("f.Trailer", typeof(byte)));
+            ("f.Payload.Bytes", typeof(byte[])),
+            ("Trailer", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [Array.Empty<byte>(), (byte)0x42]);
     }
 
@@ -81,8 +81,8 @@ public class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextualEvalua
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.Payload.Chunks", typeof(object)),
-            ("f.Trailer", typeof(byte)));
+            ("f.Payload.Chunks", typeof(string[])),
+            ("Trailer", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [new[] { "AB", "CD" }, (byte)0x7F]);
     }
 
@@ -107,13 +107,17 @@ public class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextualEvalua
         var data = new byte[] { 0x03, 0x0A, 0x0B, 0x0C, 0x55 };
         var table = RunQuery(query, data);
 
+        var itemsType = System.Linq.Enumerable.First(table.Columns).ColumnType;
+        Assert.IsTrue(itemsType.IsArray);
+        Assert.AreEqual("Entry", itemsType.GetElementType()!.Name);
+        Assert.AreEqual("Musoq.Generated.Interpreters", itemsType.GetElementType()!.Namespace);
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("f.Payload.Items", typeof(object)),
-            ("f.Trailer", typeof(byte)));
+            ("f.Payload.Items", itemsType),
+            ("Trailer", typeof(byte)));
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(3, ((object[])table[0][0]).Length);
-        Assert.AreEqual((byte)0x55, table[0][1]);
+        Assert.AreEqual(3, ((object[])table[0].ReadValue(0)).Length);
+        Assert.AreEqual((byte)0x55, table[0].ReadValue(1));
     }
 
     private Table RunQuery(string query, byte[] content)

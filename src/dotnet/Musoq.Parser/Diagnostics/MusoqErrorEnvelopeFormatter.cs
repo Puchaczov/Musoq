@@ -209,6 +209,18 @@ public static class MusoqErrorEnvelopeFormatter
             sb.Append('}');
         }
 
+        if (envelope.InputLocation != null)
+        {
+            sb.Append(",\"inputLocation\":{");
+            var first = true;
+            AppendInputPosition(sb, "line", envelope.InputLocation.Line, ref first);
+            AppendInputPosition(sb, "column", envelope.InputLocation.Column, ref first);
+            AppendInputPosition(sb, "byteOffset", envelope.InputLocation.ByteOffset, ref first);
+            AppendInputPosition(sb, "characterOffset", envelope.InputLocation.CharacterOffset, ref first);
+            AppendInputPosition(sb, "bytePositionInLine", envelope.InputLocation.BytePositionInLine, ref first);
+            sb.Append('}');
+        }
+
         if (!string.IsNullOrEmpty(envelope.Explanation))
             sb.Append(System.Globalization.CultureInfo.InvariantCulture,
                 $",\"why\":\"{EscapeJson(DiagnosticSafety.SanitizeForJson(envelope.Explanation, envelope.SourceKind))}\"");
@@ -346,6 +358,18 @@ public static class MusoqErrorEnvelopeFormatter
         }
 
         return builder.ToString();
+    }
+
+    private static void AppendInputPosition(StringBuilder builder, string name, long? value, ref bool first)
+    {
+        if (!value.HasValue)
+            return;
+
+        if (!first)
+            builder.Append(',');
+
+        builder.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"{name}\":{value.Value}");
+        first = false;
     }
 
     private static string FormatSourceKind(DiagnosticSourceKind sourceKind)

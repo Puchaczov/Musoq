@@ -24,7 +24,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 field.Nullability,
                 new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)),
                 sourceReadType: field.ResultType,
-                enumType: field.EnumType)).ToArray(),
+                enumType: field.EnumType)
+            { GeneratedTypeName = TryResolveGeneratedTypeName(field.MatchedValue, sourceLookup) }).ToArray(),
             CreateContextBindings(sourceLookup, [nullAlias]));
     }
 
@@ -47,7 +48,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 field.Nullability,
                 new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)),
                 sourceReadType: field.ResultType,
-                enumType: field.EnumType)).ToArray(),
+                enumType: field.EnumType)
+            { GeneratedTypeName = TryResolveGeneratedTypeName(field.MatchedValue, sourceLookup) }).ToArray(),
             CreateContextBindings(sourceLookup, [leftAlias, rightAlias]));
     }
 }

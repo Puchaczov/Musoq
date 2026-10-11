@@ -388,6 +388,10 @@ public sealed partial class ExecutionCSharpRendererTests
         var item = new ExecutionVariable("row", typeof(Row));
         var results = new ExecutionVariable("rankings", typeof(long[]));
 
+        ExecutionWindowOrderKey[] orderKeys =
+            [new(new ExecutionScriptParameterRead("sortLabel", typeof(string)), false)];
+        var loweredOrderKeys = WindowKeyShapePolicy.CreateOrderKeyArray("rankingsOrderKeys", orderKeys);
+
         return new ExecutionPlan(
             "Q_RankingWindowParameterCapture",
             [],
@@ -398,9 +402,14 @@ public sealed partial class ExecutionCSharpRendererTests
                     item,
                     ExecutionRowAccessMode.Direct,
                     new ExecutionScriptParameterRead("country", typeof(string)),
-                    [new ExecutionWindowOrderKey(new ExecutionScriptParameterRead("sortLabel", typeof(string)), false)],
+                    orderKeys,
                     ExecutionRankingWindowFunction.Rank,
-                    results)
+                    results,
+                    WindowKeyShapePolicy.CreatePartitionKeyArray("rankingsPartitionKeys", new ExecutionScriptParameterRead("country", typeof(string))),
+                    loweredOrderKeys)
+                {
+                    LibraryGet = ExecutionClrBindingFactory.FromClr(typeof(Musoq.Plugins.RankKernel).GetMethod(nameof(Musoq.Plugins.RankKernel.Get))!)
+                }
             ]));
     }
 

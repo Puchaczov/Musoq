@@ -149,7 +149,7 @@ public class WindowFrameAndQualifyBenchmark
         public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
             => new FrameTable();
 
-        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
             => EnsureSourceType<T, FrameEntity>(name, new EntitySource<FrameEntity>(BenchmarkSourceChunks.Create(entities), new Dictionary<string, int>
             {
                 { nameof(FrameEntity.Name), 0 },

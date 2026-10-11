@@ -49,7 +49,7 @@ internal sealed partial class PhysicalLoweringImplementation
             ValueTupleTypeShape.TryCreate(keyTypes, out var tupleType))
             return tupleType;
 
-        return typeof(object);
+        throw new InvalidOperationException("Composite join keys require a concrete typed carrier.");
     }
 
     private static Type ResolveRangeJoinKeyType(PhysicalSortMergeJoinNode join)
@@ -68,21 +68,18 @@ internal sealed partial class PhysicalLoweringImplementation
                 join.LeftPartitionKeys[0].ReturnType);
 
         var keyTypes = new Type[join.LeftPartitionKeys.Length];
-        if (keyTypes.Length > 7)
-            return typeof(object);
-
         for (var index = 0; index < keyTypes.Length; index++)
         {
             var keyType = ResolveCommonKeyType(
                 join.RightPartitionKeys[index].ReturnType,
                 join.LeftPartitionKeys[index].ReturnType);
             if (!CanUseTypedValueTupleHashJoinKeyPart(keyType))
-                return typeof(object);
+                throw new InvalidOperationException("Composite join keys require a concrete typed carrier.");
             keyTypes[index] = keyType;
         }
 
         if (!ValueTupleTypeShape.TryCreate(keyTypes, out var tupleType))
-            return typeof(object);
+            throw new InvalidOperationException("Composite join keys require a concrete typed carrier.");
 
         return join.LeftPartitionKeys.Concat(join.RightPartitionKeys).Any(static key =>
             !key.ReturnType.IsValueType || Nullable.GetUnderlyingType(key.ReturnType) != null)
@@ -146,11 +143,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 keyType);
         }
 
-        return new ExecutionMethodCall(
-            CreateNullableHashJoinKeyMethod,
-            keys.Select(key => ExecutionExpressionConverter.Convert(key, sourceLookup)).ToArray(),
-            null,
-            typeof(object));
+        throw new InvalidOperationException("Composite hash keys must be lowered to a typed tuple.");
     }
 
     private static bool ReferencesExecutionAlias(ExecutionExpression expression, string alias)
@@ -180,7 +173,6 @@ internal sealed partial class PhysicalLoweringImplementation
                                              (caseWhen.ElseExpression != null &&
                                               ReferencesExecutionAlias(caseWhen.ElseExpression, alias)),
             ExecutionCoalesce coalesce => coalesce.Expressions.Any(expression => ReferencesExecutionAlias(expression, alias)),
-            ExecutionCompositeKey compositeKey => compositeKey.Parts.Any(part => ReferencesExecutionAlias(part, alias)),
             ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts.Any(part => ReferencesExecutionAlias(part, alias)),
             ExecutionAggregateCall aggregateCall => aggregateCall.Arguments.Any(argument => ReferencesExecutionAlias(argument, alias)),
             _ => false

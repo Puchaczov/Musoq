@@ -19,17 +19,8 @@ public partial class Table
             throw new NotSupportedException(
                 $"({nameof(Add)}) Current row has {value.Count} values but {_columnsByIndex.Count} required.");
 
-        for (var i = 0; i < value.Count; i++)
-        {
-            if (value[i] == null)
-                continue;
-
-            var t1 = value[i].GetType();
-            var t2 = _columnsByIndex[i].ColumnType;
-            if (!t2.IsAssignableFrom(t1))
-                throw new NotSupportedException(
-                    $"({nameof(Add)}) Mismatched types. {t2.Name} is not assignable from {t1.Name}");
-        }
+        var validation = new ColumnTypeValidation(_columnsByIndex);
+        value.VisitColumns(ref validation);
 
         _pendingRows.Enqueue(value);
         _hasPendingRows = true;
@@ -45,7 +36,7 @@ public partial class Table
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddDirect(Row value)
     {
-        base.Rows.Add(value);
+        _rows.Add(value);
     }
 
     /// <summary>
@@ -54,7 +45,7 @@ public partial class Table
     /// </summary>
     public void EnsureCapacity(int capacity)
     {
-        base.Rows.Capacity = Math.Max(base.Rows.Capacity, capacity);
+        _rows.Capacity = Math.Max(_rows.Capacity, capacity);
     }
 
     public void AddRange(IEnumerable<Row> values)
@@ -137,11 +128,11 @@ public partial class Table
         if (_pendingDirectRowCount == 0)
             return;
 
-        base.Rows.Capacity = Math.Max(base.Rows.Capacity, base.Rows.Count + _pendingDirectRowCount);
+        _rows.Capacity = Math.Max(_rows.Capacity, _rows.Count + _pendingDirectRowCount);
         var pendingDirectRowShards = _pendingDirectRowShards ??
             throw new InvalidOperationException("Pending direct row count was set without row shards.");
         foreach (var shard in pendingDirectRowShards)
-            shard.AppendTo(base.Rows);
+            shard.AppendTo(_rows);
 
         pendingDirectRowShards.Clear();
         _pendingDirectRowCount = 0;

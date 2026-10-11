@@ -55,7 +55,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "  Body",
             "    SourceScan [p: Person] -> pRows",
             "    SourceScan [o: Order] -> oRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    CreateHash [oHash: ValueTuple<int, string> -> Order]",
             "    ChunkedForEach [o in oRows]",
             "      HashAdd [oHash[(o.PersonAge, o.Description)] += o]",
@@ -63,10 +63,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      HashProbe [oHash[(p.Age, p.Name)] -> oHashMatches] [match: oHashHasMatch]",
             "        ForEach [o in oHashMatches]",
             "          Assign [oHashHasMatch = TRUE]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: o.Description)]",
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
             "      HashProbeNoMatch",
-            "        AppendShape [result <- ResultShape0(Name: p.Name, Description: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "        AppendShape [result <- ResultRow0(Name: p.Name, Description: NULL)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -149,7 +149,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "  Body",
             "    SourceScan [p: Person] -> pRows",
             "    SourceScan [o: Order] -> oRows",
-            "    CreateShapeRows [result: ResultShape0 from ResultRow0]",
+            "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    CreateHash [oHash: int -> Order]",
             "    ChunkedForEach [o in oRows]",
             "      HashAdd [oHash[o.PersonAge] += o]",
@@ -158,11 +158,11 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "        ForEach [o in oHashMatches]",
             "          Assign [oHashHasMatch = TRUE]",
             "          If [o.Description IS NULL]",
-            "            AppendShape [result <- ResultShape0(Name: p.Name, Description: o.Description)]",
+            "            AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
             "      HashProbeNoMatch",
             "        If [TRUE]",
-            "          AppendShape [result <- ResultShape0(Name: p.Name, Description: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
+            "          AppendShape [result <- ResultRow0(Name: p.Name, Description: NULL)]",
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -199,7 +199,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         Assert.Contains("If [(o.Description = 'Shipped')]", planText);
         Assert.Contains("Assign [oHashHasMatch = TRUE]", planText);
         Assert.Contains("HashProbeNoMatch", planText);
-        Assert.Contains("AppendShape [result <- ResultShape0(Name: p.Name, Description: NULL)]", planText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Name: p.Name, Description: NULL)]", planText);
     }
 
     [TestMethod]
@@ -245,6 +245,6 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         Assert.Contains("CreateHash [qHash: int -> Person]", planText);
         Assert.Contains("HashAdd [qHash[q.Age] += q]", planText);
         Assert.Contains("HashProbe [qHash[join_0_p_o.p.Age] -> qHashMatches]", planText);
-        Assert.Contains("AppendShape [result <- ResultShape0(Name: join_0_p_o.p.Name, Description: join_0_p_o.o.Description, OtherName: q.Name)]", planText);
+        Assert.Contains("AppendShape [result <- ResultRow0(Name: join_0_p_o.p.Name, Description: join_0_p_o.o.Description, OtherName: q.Name)]", planText);
     }
 }

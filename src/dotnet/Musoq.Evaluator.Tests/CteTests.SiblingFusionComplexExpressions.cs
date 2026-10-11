@@ -69,10 +69,10 @@ semi join eligible e on b.Id = e.Id";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("b.Name", typeof(string)),
-            ("n.Label", typeof(string)),
-            ("n.SecondValue", typeof(int)),
-            ("n.PopulationValue", typeof(int?)));
+            ("Name", typeof(string)),
+            ("Label", typeof(string)),
+            ("SecondValue", typeof(int)),
+            ("PopulationValue", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["42", "42", 1, 100]);

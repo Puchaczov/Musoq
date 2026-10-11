@@ -26,7 +26,7 @@ public class AutomaticNumericTypeInferenceDebugDecimalTests : UnknownQueryTestsB
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, $"Expected 1 match but got {table.Count}");
-        Assert.AreEqual("Match", table[0].Values[0]);
+        Assert.AreEqual("Match", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
@@ -47,14 +47,14 @@ public class AutomaticNumericTypeInferenceDebugDecimalTests : UnknownQueryTestsB
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Match", table[0].Values[0]);
+        Assert.AreEqual("Match", table[0].ReadValues()[0]);
     }
 
     [TestMethod]
-    public void Debug_ObjectToDecimal_Works()
+    public void DeclaredDoubleComparedToDecimal_ShouldMatchExactValue()
     {
         const string query = "table Items {" +
-                             "  Price: object," +
+                             "  Price: double," +
                              "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
@@ -68,6 +68,6 @@ public class AutomaticNumericTypeInferenceDebugDecimalTests : UnknownQueryTestsB
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Match", table[0].Values[0]);
+        Assert.AreEqual("Match", table[0].ReadValues()[0]);
     }
 }

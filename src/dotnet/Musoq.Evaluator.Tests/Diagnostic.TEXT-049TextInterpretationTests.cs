@@ -98,8 +98,8 @@ public partial class TextInterpretationTests
         var interpreter = CompileFromRegistry(registry, "Container");
 
         var present = InvokeParse(interpreter, "Xpayload");
-        var content = (IDictionary<string, object?>)GetPropertyValue<object>(present, "Content");
-        Assert.AreEqual("payload", content["Value"]);
+        var content = GetPropertyValue<object>(present, "Content");
+        Assert.AreEqual("payload", GetPropertyValue<string>(content, "Value"));
         Assert.AreEqual(string.Empty, GetPropertyValue<string>(present, "Tail"));
 
         var absent = InvokeParse(interpreter, "payload");
@@ -213,10 +213,10 @@ public partial class TextInterpretationTests
 
         var interpreter = CompileFromRegistry(registry, "Container");
         var result = InvokeParse(interpreter, "adata");
-        var content = (IDictionary<string, object?>)GetPropertyValue<object>(result, "Content");
+        var content = GetPropertyValue<object>(result, "Content");
 
-        Assert.AreEqual("data", content["Value"]);
-        Assert.IsNull(content["Other"]);
+        Assert.AreEqual("data", GetPropertyValue<string>(content, "Value"));
+        Assert.IsNull(GetPropertyValue<string>(content, "Other"));
     }
 
     [TestMethod]

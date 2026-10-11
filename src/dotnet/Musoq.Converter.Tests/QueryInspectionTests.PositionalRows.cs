@@ -9,19 +9,19 @@ namespace Musoq.Converter.Tests;
 public partial class QueryInspectionTests
 {
     [TestMethod]
-    public void CompileForInspection_WhenSourceRowsAreSchemaIndexedObjectArrays_ShouldUseDirectAccess()
+    public void CompileForInspection_WhenSourceRowsHaveDeclaredIndexes_ShouldUseNativeMaterialization()
     {
         var result = Inspect(
             "select p.Name, p.Age, p.[Address.City] from #positional.all() p",
             CreatePositionalRowsSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("position 0", result.ExecutionPlanText);
-        AssertExecutionPlanContains("position 2", result.ExecutionPlanText);
-        AssertExecutionPlanContains("position 3", result.ExecutionPlanText);
-        AssertGeneratedCSharpContains("[0]", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("[2]", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("[3]", result.GeneratedCSharpCode);
+        AssertExecutionPlanContains("Age: int? <- field Field0", result.ExecutionPlanText);
+        AssertExecutionPlanContains("Name: string <- field Field1", result.ExecutionPlanText);
+        AssertExecutionPlanContains("Address.City: string <- field Field2", result.ExecutionPlanText);
+        AssertNativeSourceOrdinal(0, result.GeneratedCSharpCode);
+        AssertNativeSourceOrdinal(2, result.GeneratedCSharpCode);
+        AssertNativeSourceOrdinal(3, result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("ExpandoAdapter", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("GeneratedDictionaryAccess", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("GetColumnValue", result.GeneratedCSharpCode);
@@ -32,7 +32,7 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
-    public void CompileForExecution_WhenSourceRowsAreSchemaIndexedObjectArrays_ShouldReadSchemaIndexes()
+    public void CompileForExecution_WhenSourceRowsHaveDeclaredIndexes_ShouldReadSchemaIndexes()
     {
         var compiled = CompileForExecution(
             "select p.Name, p.Age, p.Department, p.[Address.City] from #positional.all() p",
@@ -41,20 +41,21 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Ada", table[0][0]);
-        Assert.AreEqual(37, table[0][1]);
-        Assert.AreEqual("Engineering", table[0][2]);
-        Assert.AreEqual("London", table[0][3]);
-        Assert.IsNull(table[2][1]);
-        Assert.AreEqual("Berlin", table[2][3]);
+        Assert.AreEqual("Ada", table[0].ReadValue(0));
+        Assert.AreEqual(37, table[0].ReadValue(1));
+        Assert.AreEqual("Engineering", table[0].ReadValue(2));
+        Assert.AreEqual("London", table[0].ReadValue(3));
+        Assert.IsNull(table[2].ReadValue(1));
+        Assert.AreEqual("Berlin", table[2].ReadValue(3));
     }
 
     [TestMethod]
-    public void CompileForExecution_WhenIndexedCellIsTraversed_ShouldUseNestedPositionalAccess()
+    public void CompileForExecution_WhenIndexedPayloadIsTraversed_ShouldUseItsConcreteNativeField()
     {
         var provider = new PositionalRowsSchemaProvider(
             [new SchemaColumn("Address", 0, typeof(AddressCell))],
             [[new AddressCell("London")]]);
+        using var nestedCompiled = CompileForExecution("select p.Address.City from #positional.all() p", provider);
         var diagnostics = InstanceCreator.CompileWithDiagnostics(
             "select p.Address.City from #positional.all() p",
             Guid.NewGuid().ToString(),
@@ -63,16 +64,14 @@ public partial class QueryInspectionTests
         Assert.IsFalse(diagnostics.HasErrors, string.Join(Environment.NewLine, diagnostics.Errors.Select(error => error.Message)));
         var inspection = Inspect("select p.Address.City from #positional.all() p", provider);
 
-        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
+        AssertNativeSourceOrdinal(0, inspection.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("City", inspection.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("[1]", inspection.GeneratedCSharpCode);
 
-        var table = CompileForExecution(
-            "select p.Address.City from #positional.all() p",
-            provider).Run();
+        using var table = nestedCompiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("London", table[0][0]);
+        Assert.AreEqual("London", table[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -82,15 +81,15 @@ public partial class QueryInspectionTests
             "select p.[%$@%T@sas$@#$] from #positional.all() p",
             CreatePositionalRowsSchemaProvider());
 
-        AssertGeneratedCSharpContains("[4]", result.GeneratedCSharpCode);
+        AssertNativeSourceOrdinal(4, result.GeneratedCSharpCode);
 
         var table = CompileForExecution(
             "select p.[%$@%T@sas$@#$] from #positional.all() p",
             CreatePositionalRowsSchemaProvider()).Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("symbolic-1", table[0][0]);
-        Assert.AreEqual("symbolic-3", table[2][0]);
+        Assert.AreEqual("symbolic-1", table[0].ReadValue(0));
+        Assert.AreEqual("symbolic-3", table[2].ReadValue(0));
     }
 
     [TestMethod]
@@ -112,8 +111,8 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Ada", table[0][0]);
-        Assert.AreEqual("London", table[0][1]);
+        Assert.AreEqual("Ada", table[0].ReadValue(0));
+        Assert.AreEqual("London", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -126,10 +125,10 @@ public partial class QueryInspectionTests
         var table = CompileForExecution(query, provider).Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("first", table[0][0]);
-        Assert.AreEqual("current-first", table[0][1]);
-        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("[1]", inspection.GeneratedCSharpCode);
+        Assert.AreEqual("first", table[0].ReadValue(0));
+        Assert.AreEqual("current-first", table[0].ReadValue(1));
+        AssertNativeSourceOrdinal(0, inspection.GeneratedCSharpCode);
+        AssertNativeSourceOrdinal(1, inspection.GeneratedCSharpCode);
     }
 
     [TestMethod]
@@ -142,10 +141,10 @@ public partial class QueryInspectionTests
         var table = CompileForExecution(query, provider).Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("first", table[0][0]);
-        Assert.AreEqual("current-first", table[0][1]);
-        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("[1]", inspection.GeneratedCSharpCode);
+        Assert.AreEqual("first", table[0].ReadValue(0));
+        Assert.AreEqual("current-first", table[0].ReadValue(1));
+        AssertNativeSourceOrdinal(0, inspection.GeneratedCSharpCode);
+        AssertNativeSourceOrdinal(1, inspection.GeneratedCSharpCode);
     }
 
     [TestMethod]
@@ -158,7 +157,7 @@ public partial class QueryInspectionTests
         var table = CompileForExecution(query, provider).Run();
 
         Assert.AreEqual(0, table.Count);
-        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
+        AssertNativeSourceOrdinal(0, inspection.GeneratedCSharpCode);
     }
 
     [TestMethod]
@@ -189,9 +188,9 @@ public partial class QueryInspectionTests
         var inspection = Inspect(query, provider);
 
         Assert.AreEqual(0, table.Count);
-        AssertGeneratedCSharpContains("[0]", inspection.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("[1]", inspection.GeneratedCSharpCode);
-        AssertGeneratedCSharpDoesNotUseMemberAccessOnAliases(
+        AssertNativeSourceOrdinal(0, inspection.GeneratedCSharpCode);
+        AssertGeneratedCSharpDoesNotContain("entity[1]", inspection.GeneratedCSharpCode);
+        AssertNativeSourceAliasesDoNotUseErasedIndexes(
             inspection.GeneratedCSharpCode,
             "entity",
             "previous");
@@ -207,10 +206,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Engineering", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
-        Assert.AreEqual("Research", table[1][0]);
-        Assert.AreEqual(2L, table[1][1]);
+        Assert.AreEqual("Engineering", table[0].ReadValue(0));
+        Assert.AreEqual(1L, table[0].ReadValue(1));
+        Assert.AreEqual("Research", table[1].ReadValue(0));
+        Assert.AreEqual(2L, table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -223,10 +222,10 @@ public partial class QueryInspectionTests
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Ada", table[0][0]);
-        Assert.AreEqual("London", table[0][1]);
-        Assert.AreEqual("Bea", table[1][0]);
-        Assert.AreEqual("Paris", table[1][1]);
+        Assert.AreEqual("Ada", table[0].ReadValue(0));
+        Assert.AreEqual("London", table[0].ReadValue(1));
+        Assert.AreEqual("Bea", table[1].ReadValue(0));
+        Assert.AreEqual("Paris", table[1].ReadValue(1));
     }
 
     [TestMethod]
@@ -241,9 +240,24 @@ public partial class QueryInspectionTests
             var table = compiled.Run();
 
             Assert.AreEqual(1, table.Count);
-            Assert.AreEqual("Ada", table[0][0]);
-            Assert.AreEqual(37, table[0][1]);
+            Assert.AreEqual("Ada", table[0].ReadValue(0));
+            Assert.AreEqual(37, table[0].ReadValue(1));
         }
+    }
+
+    private static void AssertNativeSourceOrdinal(int sourceIndex, string code)
+    {
+        var pattern = $@"new QueryRowField\(\d+, {sourceIndex},";
+        Assert.IsTrue(System.Text.RegularExpressions.Regex.IsMatch(code, pattern),
+            $"Expected native field metadata for source ordinal {sourceIndex}.");
+        Assert.Contains("IQueryRowMaterializer<", code);
+    }
+
+    private static void AssertNativeSourceAliasesDoNotUseErasedIndexes(string code, params string[] aliases)
+    {
+        foreach (var alias in aliases)
+            Assert.IsFalse(System.Text.RegularExpressions.Regex.IsMatch(code,
+                $@"\b{System.Text.RegularExpressions.Regex.Escape(alias)}\s*\["));
     }
 
     private static PositionalRowsSchemaProvider CreatePositionalRowsSchemaProvider()

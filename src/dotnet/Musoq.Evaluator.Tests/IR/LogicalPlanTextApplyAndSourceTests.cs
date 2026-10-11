@@ -27,7 +27,7 @@ public sealed class LogicalPlanTextApplyAndSourceTests
                 "    Apply [Cross]",
                 "      SchemaScan [#schema.first() as a]",
                 "      SchemaScan [#schema.second(a.Country) as b]",
-                "  Project [a.City as a.City, b.Money as b.Money]",
+                "  Project [a.City as City, b.Money as Money]",
                 "    CteRef [ab as ab]"),
             planText);
     }
@@ -50,7 +50,7 @@ public sealed class LogicalPlanTextApplyAndSourceTests
                 "    Apply [Cross]",
                 "      SchemaScan [#schema.first() as a]",
                 "      AccessMethodSource [JustReturnArrayOfString() as b] [apply: Cross] [type: String[]]",
-                "  Project [b.Value as b.Value]",
+                "  Project [b.Value as Value]",
                 "    CteRef [ab as ab]"),
             planText);
     }
@@ -73,7 +73,7 @@ public sealed class LogicalPlanTextApplyAndSourceTests
                 "    Apply [Cross]",
                 "      SchemaScan [#schema.first() as p]",
                 "      PropertySource [p.Tags as t] [apply: Cross] [type: String[]]",
-                "  Project [p.Name as p.Name, t.Value as t.Value]",
+                "  Project [p.Name as Name, t.Value as Value]",
                 "    CteRef [pt as pt]"),
             planText);
     }

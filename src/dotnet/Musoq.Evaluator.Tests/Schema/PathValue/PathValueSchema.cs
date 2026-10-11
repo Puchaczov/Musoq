@@ -16,7 +16,7 @@ public class PathValueSchema(IEnumerable<PathValueEntity> entities) : SchemaBase
         return new PathValueSchemaTable();
     }
 
-    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
     {
         return EnsureSourceType<T, PathValueEntity>(name, new PathValueRowSource(entities));
     }

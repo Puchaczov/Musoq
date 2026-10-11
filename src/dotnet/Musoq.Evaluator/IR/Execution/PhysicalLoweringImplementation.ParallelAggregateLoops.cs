@@ -53,7 +53,8 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool CanUseParallelAggregateSource(IReadOnlyDictionary<string, RowShape> sourceLookup)
     {
-        return sourceLookup.Values.All(static shape => shape is not ExpandoAdapterShape);
+        return sourceLookup.Values.All(static shape => RowShapeLookup.ResolveSourceRuntimeType(shape) != typeof(object) ||
+            SourceGeneratedRowShapeResolver.Resolve(shape) is not null);
     }
 
     private static bool CanUseParallelAggregateRows(ExecutionExpression rows)
@@ -73,7 +74,6 @@ internal sealed partial class PhysicalLoweringImplementation
             pipeline.PostOperations.Count != 0 ||
             pipeline.Project.IsDistinct ||
             pipeline.Source is not (PhysicalSchemaScanNode or PhysicalCteRefNode) ||
-            sourceShape is ExpandoAdapterShape ||
             !CanUseParallelFilterProjectRows(sourceRows) ||
             appendRow.AppendMode != ExecutionAppendMode.Direct)
         {

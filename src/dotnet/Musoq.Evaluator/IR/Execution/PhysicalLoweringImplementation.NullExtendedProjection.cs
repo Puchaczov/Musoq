@@ -5,7 +5,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private static NullExtendedProjectionBuildResult CreateNullExtendedProjection(NullExtendedProjectionContext context)
+    private NullExtendedProjectionBuildResult CreateNullExtendedProjection(NullExtendedProjectionContext context)
     {
         var projectedValues = new List<NullExtendedProjectedValue>(context.Fields.Length);
         var matchedPresence = CreateAllPresentMap(context.SourceLookup);
@@ -90,7 +90,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 : null).RewriteExpression(expression);
     }
 
-    private static FullOuterNullExtendedProjectionBuildResult CreateFullOuterNullExtendedProjection(
+    private FullOuterNullExtendedProjectionBuildResult CreateFullOuterNullExtendedProjection(
         NullExtendedProjectionContext context,
         string leftAlias,
         string rightAlias)

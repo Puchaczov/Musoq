@@ -10,6 +10,9 @@ internal sealed class ExecutionIrOptimizer
 
         var trace = new OptimizationTrace();
         var effectiveOptions = compilationOptions ?? new CompilationOptions();
+        var effectivePlan = compilationOptions is null || initialPlan.RegexMatchTimeout == effectiveOptions.RegexMatchTimeout
+            ? initialPlan
+            : initialPlan with { RegexMatchTimeout = effectiveOptions.RegexMatchTimeout };
         var options = new OptimizationOptions
         {
             FieldReadDiscoveryEnabled = false,
@@ -20,7 +23,7 @@ internal sealed class ExecutionIrOptimizer
         };
         var result = new PlanOptimizationRunner<ExecutionPlan>(
             ExecutionIrOptimizationGroup.Pipeline).Run(
-            initialPlan,
+            effectivePlan,
             new OptimizationContext(OptimizationStage.ExecutionIrOptimization, trace, options, OptimizationContextState.Empty));
 
         return new ExecutionIrOptimizationResult(initialPlan, result.Plan, trace);

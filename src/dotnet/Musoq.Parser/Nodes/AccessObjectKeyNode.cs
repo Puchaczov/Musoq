@@ -18,6 +18,30 @@ public class AccessObjectKeyNode(KeyAccessToken token) : IdentifierNode(token.Na
         PropertyInfo = propertyInfo;
     }
 
+    public AccessObjectKeyNode(KeyAccessToken token, Type columnType, string? tableAlias)
+        : this(token)
+    {
+        ColumnType = columnType;
+        TableAlias = tableAlias;
+    }
+
+    public AccessObjectKeyNode(AccessObjectKeyNode source)
+        : this(source.Token)
+    {
+        PropertyInfo = source.PropertyInfo;
+        ColumnType = source.ColumnType;
+        TableAlias = source.TableAlias;
+        DestinationKind = source.DestinationKind;
+        Span = source.Span;
+        FullSpan = source.FullSpan;
+    }
+
+    public Type? ColumnType { get; }
+
+    public string? TableAlias { get; }
+
+    public bool IsColumnAccess => ColumnType != null;
+
     public KeyAccessToken Token { get; } = new(token.Name, token.Key.Trim('\''), token.Span);
 
     public string ObjectName => Token.Name;
@@ -26,11 +50,13 @@ public class AccessObjectKeyNode(KeyAccessToken token) : IdentifierNode(token.Na
     {
         get
         {
-            if (PropertyInfo == null)
+            var indexableType = ColumnType ?? PropertyInfo?.PropertyType;
+            if (indexableType == null)
                 return null;
 
-            return (from propertyInfo in PropertyInfo.PropertyType.GetProperties()
-                where propertyInfo.GetIndexParameters().Length == 1
+            return (from propertyInfo in indexableType.GetProperties()
+                where propertyInfo.GetIndexParameters() is [{ ParameterType: var parameterType }] &&
+                      parameterType == typeof(string)
                 select propertyInfo.PropertyType).FirstOrDefault();
         }
     }
@@ -53,6 +79,7 @@ public class AccessObjectKeyNode(KeyAccessToken token) : IdentifierNode(token.Na
     {
         var key = DestinationKind == Destination.Constant ? $"'{Token.Key}'" : Token.Key;
 
-        return $"{ObjectName}[{key}]";
+        var prefix = string.IsNullOrEmpty(TableAlias) ? string.Empty : $"{TableAlias}.";
+        return $"{prefix}{ObjectName}[{key}]";
     }
 }

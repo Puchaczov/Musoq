@@ -47,8 +47,8 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("avatar", table[0][0]);
-        Assert.AreEqual("image", table[0][1]);
+        Assert.AreEqual("avatar", table[0].ReadValue(0));
+        Assert.AreEqual("image", table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -62,8 +62,8 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)4, table[0][0]);
-        CollectionAssert.AreEqual(new byte[] { 0xAA, 0xBB, 0xCC, 0xDD }, (byte[])table[0][1]);
+        Assert.AreEqual((byte)4, table[0].ReadValue(0));
+        CollectionAssert.AreEqual(new byte[] { 0xAA, 0xBB, 0xCC, 0xDD }, (byte[])table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -90,7 +90,7 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][1]);
+        Assert.IsNull(table[0].ReadValue(1));
     }
 
     [TestMethod]
@@ -105,7 +105,7 @@ public partial class BinaryRealWorldFormatTests
         var table = RunQuery(query, data);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)3, table[0][0]);
+        Assert.AreEqual((byte)3, table[0].ReadValue(0));
     }
 
     [TestMethod]

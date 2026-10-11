@@ -12,7 +12,7 @@ using Musoq.Schema.Managers;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class CouplingSyntaxTests : BasicEntityTestBase
+public partial class CouplingSyntaxTests : BasicEntityTestBase
 {
 
     [TestMethod]
@@ -47,7 +47,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         Assert.AreEqual(4, table.Count, "Result should contain exactly 4 strings");
 
         var actualStrings = table
-            .Select(row => (string)row.Values[0])
+            .Select(row => (string)row.ReadValues()[0])
             .ToList();
 
         Assert.IsTrue(actualStrings.Any(s => s == "ABCAACBA"),
@@ -99,20 +99,20 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         Assert.AreEqual(4, table.Count);
 
         Assert.IsTrue(table.Any(row =>
-            (string)row.Values[0] == "ABCAACBA" &&
-            (decimal)row.Values[1] == 10m));
+            (string)row.ReadValues()[0] == "ABCAACBA" &&
+            (decimal)row.ReadValues()[1] == 10m));
 
         Assert.IsTrue(table.Any(row =>
-            (string)row.Values[0] == "AAeqwgQEW" &&
-            (decimal)row.Values[1] == 20m));
+            (string)row.ReadValues()[0] == "AAeqwgQEW" &&
+            (decimal)row.ReadValues()[1] == 20m));
 
         Assert.IsTrue(table.Any(row =>
-            (string)row.Values[0] == "XXX" &&
-            (decimal)row.Values[1] == 30m));
+            (string)row.ReadValues()[0] == "XXX" &&
+            (decimal)row.ReadValues()[1] == 30m));
 
         Assert.IsTrue(table.Any(row =>
-            (string)row.Values[0] == "dadsqqAA" &&
-            (decimal)row.Values[1] == 40m));
+            (string)row.ReadValues()[0] == "dadsqqAA" &&
+            (decimal)row.ReadValues()[1] == 40m));
     }
 
     [TestMethod]
@@ -155,24 +155,24 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("s2.Name", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
         Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "ABCAACBA"),
+                (string)entry.ReadValues()[0] == "ABCAACBA"),
             "First entry should be 'ABCAACBA'");
 
         Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "AAeqwgQEW"),
+                (string)entry.ReadValues()[0] == "AAeqwgQEW"),
             "Second entry should be 'AAeqwgQEW'");
 
         Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "XXX"),
+                (string)entry.ReadValues()[0] == "XXX"),
             "Third entry should be 'XXX'");
 
         Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "dadsqqAA"),
+                (string)entry.ReadValues()[0] == "dadsqqAA"),
             "Fourth entry should be 'dadsqqAA'");
     }
 
@@ -198,8 +198,8 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsTrue((bool?)table[0].Values[0]);
-        Assert.AreEqual("test", table[0].Values[1]);
+        Assert.IsTrue((bool?)table[0].ReadValues()[0]);
+        Assert.AreEqual("test", table[0].ReadValues()[1]);
     }
 
     [TestMethod]
@@ -210,8 +210,9 @@ public class CouplingSyntaxTests : BasicEntityTestBase
                     "   Text: string" +
                     "};" +
                     "couple #unknown.others with table Values as SourceOfValues;" +
+                    "couple #unknown.anything with table Values as InputValues;" +
                     "with Anything as (" +
-                    "   select Text from #unknown.anything()" +
+                    "   select Text from InputValues()" +
                     ")" +
                     "select Text from SourceOfValues(Anything)";
 
@@ -233,11 +234,11 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count, "Result should contain exactly 2 test values");
 
         Assert.IsTrue(table.Any(row =>
-            (string)row.Values[0] == "test1"
+            (string)row.ReadValues()[0] == "test1"
         ), "Expected value 'test1' not found in results");
 
         Assert.IsTrue(table.Any(row =>
-            (string)row.Values[0] == "test2"
+            (string)row.ReadValues()[0] == "test2"
         ), "Expected value 'test2' not found in results");
     }
 
@@ -249,7 +250,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         }
     }
 
-    private sealed class ParametersSchema() : SchemaBase(SchemaName, CreateLibrary())
+    private sealed class ParametersSchema() : SchemaBase(SchemaName, CreateLibrary()), IQueryScopedRowSourceSchema
     {
         private const string SchemaName = "Parameters";
 
@@ -259,9 +260,19 @@ public class CouplingSyntaxTests : BasicEntityTestBase
             return new ParametersTable(parameters);
         }
 
-        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+        public override global::Musoq.Schema.Optimization.SourceDescriptor DescribeSource(string name,
+            global::Musoq.Schema.Optimization.SourceDescribeContext context, params object?[] parameters)
+            => base.DescribeSource(name, context, parameters) with { TransferCapabilities = SourceTransferCapabilities.QueryScopedRows };
+
+        public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
+            string name, QueryScopedRowSourceRequest request, TArguments nativeArguments)
+            where TMaterializer : struct, IQueryRowMaterializer<TRow>
+            where TArguments : struct, ISourceArguments
         {
-            return EnsureSourceType<T, IReadOnlyDictionary<string, object?>>(name, new ParametersRowsSource(parameters));
+            var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
+            var row = parameters.Select((value, index) => (value, index))
+                .ToDictionary(pair => $"Parameter{pair.index}", pair => pair.value);
+            return new global::Musoq.Tests.Common.NativeDictionaryTestSource<TRow, TMaterializer>([row], request.Shape.Fields);
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -288,7 +299,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
 
         public ISchemaColumn[] Columns { get; }
 
-        public SchemaTableMetadata Metadata { get; } = new(typeof(IReadOnlyDictionary<string, object?>));
+        public SchemaTableMetadata Metadata { get; } = new(typeof(QueryScopedRowContract));
 
         public ISchemaColumn? GetColumnByName(string name)
         {

@@ -139,7 +139,7 @@ public partial class QualifyTests
             table,
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
-            ("SlideSum", typeof(decimal)));
+            ("SlideSum", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["C", 30m, 90m],

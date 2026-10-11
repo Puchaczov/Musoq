@@ -141,6 +141,9 @@ internal static class ExecutionClrBindingResolver
         if (!method.IsGenericMethodDefinition)
             return method;
 
+        if (descriptor.GenericArguments.Count > 0)
+            return TryCloseRegisteredSpecialization(method, descriptor.GenericArguments, semanticAssemblies);
+
         var genericParameters = method.GetGenericArguments();
         var inferredArguments = new Type?[genericParameters.Length];
         var parameters = method.GetParameters();
@@ -166,6 +169,25 @@ internal static class ExecutionClrBindingResolver
         try
         {
             return method.MakeGenericMethod(inferredArguments.Select(static argument => argument!).ToArray());
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
+    }
+
+    private static MethodInfo? TryCloseRegisteredSpecialization(
+        MethodInfo method,
+        IReadOnlyList<ExecutionPortableTypeDescriptor> arguments,
+        IReadOnlyDictionary<string, Assembly>? semanticAssemblies)
+    {
+        if (arguments.Count != method.GetGenericArguments().Length)
+            return null;
+
+        try
+        {
+            return method.MakeGenericMethod(arguments
+                .Select(argument => ResolveTypeCore(argument, semanticAssemblies)).ToArray());
         }
         catch (ArgumentException)
         {

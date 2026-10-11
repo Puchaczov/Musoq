@@ -240,14 +240,6 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
                 () => base.RewriteMaterializeFilteredList(node));
         }
 
-        protected override ExecutionNode RewriteMaterializeExpandoList(ExecutionMaterializeExpandoList node)
-        {
-            return node.Predicate == null
-                ? base.RewriteMaterializeExpandoList(node)
-                : RewriteWithPreferredTargetNamePrefix(
-                    MethodTargetScopeFacts.CreateMaterializationTargetPrefix(node.Buffer.Name),
-                    () => base.RewriteMaterializeExpandoList(node));
-        }
 
         private ExecutionForEach RewriteForEachCore(ExecutionForEach node)
         {

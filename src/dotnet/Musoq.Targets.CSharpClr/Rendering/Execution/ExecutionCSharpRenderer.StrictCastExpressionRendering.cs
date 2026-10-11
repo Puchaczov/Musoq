@@ -20,6 +20,12 @@ public sealed partial class ExecutionCSharpRenderer
             return CreateTypedNull(targetType);
 
         var methodName = GetLibraryConversionMethodName(StrictCastLibraryConversionFacts.GetCastTargetType(targetType));
+        var sourceValueType = Nullable.GetUnderlyingType(sourceType) ?? sourceType;
+        if (StrictCastLibraryConversionFacts.GetCastTargetType(targetType) == typeof(string) &&
+            sourceValueType != typeof(string) && !typeof(IConvertible).IsAssignableFrom(sourceValueType) &&
+            sourceValueType != typeof(Guid) && sourceValueType != typeof(TimeSpan) && sourceValueType != typeof(DateTimeOffset))
+            methodName = sourceValueType.IsValueType
+                ? nameof(StrictCastRuntime.ToValueString) : nameof(StrictCastRuntime.ToReferenceString);
         var invocation = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,

@@ -39,8 +39,8 @@ public partial class MultiJoinHashJoinTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)), ("b.Name", typeof(string)),
-            ("c.Name", typeof(string)), ("d.Name", typeof(string)));
+            ("Name", typeof(string)), ("Name", typeof(string)),
+            ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["A1", "B1", "C1", "D1"]);
     }
 
@@ -140,7 +140,7 @@ public partial class MultiJoinHashJoinTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)), ("b.Name", typeof(string)), ("c.Name", typeof(string)));
+            ("Name", typeof(string)), ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["A1", "B1", "C1"]);
     }
 
@@ -188,7 +188,7 @@ public partial class MultiJoinHashJoinTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)), ("b.Name", typeof(string)), ("c.Name", typeof(string)));
+            ("Name", typeof(string)), ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["A1", "B1", "C1"]);
     }
 
@@ -233,7 +233,7 @@ public partial class MultiJoinHashJoinTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)), ("b.Name", typeof(string)), ("c.Name", typeof(string)));
+            ("Name", typeof(string)), ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["A1", "B1", "C1"]);
     }
 

@@ -184,7 +184,7 @@ public sealed class LoopInvariantCodeMotionEndToEndTests
         using var table = compiled.Run();
         var rowCount = table.Count;
         var values = Enumerable.Range(0, rowCount)
-            .Select(row => Enumerable.Range(0, table.Columns.Count()).Select(column => table[row][column]).ToArray())
+            .Select(row => Enumerable.Range(0, table.Columns.Count()).Select(column => table[row].ReadValue(column)).ToArray())
             .ToArray();
 
         return new RunResult(

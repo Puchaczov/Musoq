@@ -129,7 +129,7 @@ public class BasicEntityTestBase : MSTestContextTestBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(typeof(TResult), table.Columns.ElementAt(0).ColumnType);
 
-        Assert.AreEqual(score, table[0][0]);
+        Assert.AreEqual(score, table[0].ReadValue(0));
     }
 
     protected void TestMethodBatchTemplate(params (string Operation, object Expected)[] cases)
@@ -155,7 +155,7 @@ public class BasicEntityTestBase : MSTestContextTestBase
         for (var index = 0; index < cases.Length; index++)
         {
             Assert.AreEqual(cases[index].Expected.GetType(), table.Columns.ElementAt(index).ColumnType);
-            Assert.AreEqual(cases[index].Expected, table[0][index]);
+            Assert.AreEqual(cases[index].Expected, table[0].ReadValue(index));
         }
     }
 

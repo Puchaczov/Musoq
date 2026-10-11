@@ -28,11 +28,11 @@ public sealed class ThirdRoundApplyResultTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("first.Value", typeof(int?)),
-            ("first.Ordinal", typeof(int?)),
-            ("second.Value", typeof(int?)),
-            ("second.Ordinal", typeof(int?)));
+            ("Name", typeof(string)),
+            ("Value", typeof(int?)),
+            ("Ordinal", typeof(int?)),
+            ("Value", typeof(int?)),
+            ("Ordinal", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Empty", null, null, 7, 0],
@@ -74,9 +74,9 @@ public sealed class ThirdRoundApplyResultTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("child.Value", typeof(string)),
-            ("child.Ordinal", typeof(int?)),
+            ("Name", typeof(string)),
+            ("Value", typeof(string)),
+            ("Ordinal", typeof(int?)),
             ("rn", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -103,8 +103,8 @@ public sealed class ThirdRoundApplyResultTests : GenericEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.Name", typeof(string)),
-            ("value.Value", typeof(int?)));
+            ("Name", typeof(string)),
+            ("Value", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["A", 1],

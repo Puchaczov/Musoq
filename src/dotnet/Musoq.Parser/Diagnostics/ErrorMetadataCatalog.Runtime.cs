@@ -11,7 +11,7 @@ internal static class RuntimeErrorMetadataCatalog
             DiagnosticCode.MQ7003_RequiredScriptParameterMissing,
             "A required script parameter was declared without a default value, but the host did not provide a runtime value.",
             [
-                "Set the parameter in CompiledQuery.Parameters before calling Run().",
+                "Set the parameter with CompiledQuery.TypedParameters.Set, SetCollection or SetJson before calling Run().",
                 "Add a default value in the param(...) block if the parameter should be optional."
             ],
             "Core Spec - Script Parameters");
@@ -38,7 +38,7 @@ internal static class RuntimeErrorMetadataCatalog
             DiagnosticCode.MQ7006_UnknownScriptParameter,
             "The host supplied a runtime script parameter that is not declared by the query.",
             [
-                "Remove the unknown parameter from the runtime parameter dictionary.",
+                "Remove the unknown value from the typed parameter slots or structured input.",
                 "Add the parameter to the param(...) block if the query should accept it."
             ],
             "Core Spec - Script Parameters");
@@ -78,6 +78,45 @@ internal static class RuntimeErrorMetadataCatalog
                 "Check the reported origin and path to locate the large or deeply nested value."
             ],
             "Core Spec - Structured Inputs");
+
+        yield return Entry(
+            DiagnosticCode.MQ7014_MalformedRuntimeInput,
+            "Runtime input was rejected because its structure or encoding was malformed. The diagnostic does not include input content or provider exception text.",
+            [
+                "Check that the supplied input matches the format expected by the source or interpreter.",
+                "Use the input location, when present, to inspect the corresponding value in a trusted environment."
+            ],
+            "Core Spec - Runtime Input");
+
+        foreach (var diagnosticCode in InterpretationDiagnosticCodes.All)
+        {
+            yield return Entry(
+                diagnosticCode,
+                "An input interpretation failed. The original ISE code is available in the interpretationCode argument; raw parser details are reserved for trusted verbose diagnostics.",
+                [
+                    "Check the input format and the interpretation schema at the reported input location.",
+                    "Use trusted verbose diagnostics when the safe summary is not enough to identify the malformed field."
+                ],
+                "Core Spec - Interpretation");
+        }
+
+        yield return Entry(
+            DiagnosticCode.MQ7015_InvalidRuntimeRegex,
+            "A runtime RLIKE pattern is not valid for the regex engine.",
+            ["Correct the supplied regular expression syntax or escape intended metacharacters."],
+            "Core Spec - Pattern Predicates");
+
+        yield return Entry(
+            DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation,
+            "A scalar subquery produced more than one result row during execution, even if the values are identical.",
+            ["Add an aggregate, TAKE 1, or a predicate that returns at most one row.", "Use IN or EXISTS when multiple rows are intended."],
+            "Core Spec - Subqueries");
+
+        yield return Entry(
+            DiagnosticCode.MQ7017_RegexMatchTimeout,
+            "A LIKE or RLIKE regex match exhausted its finite elapsed-time budget. Machine load can also consume that budget.",
+            ["Simplify the pattern or reduce the input size.", "Review the configured regex match timeout and machine load."],
+            "Core Spec - Pattern Predicates");
 
         foreach (var entry in RecursiveCteRuntimeErrorMetadata.Build())
             yield return entry;

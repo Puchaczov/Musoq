@@ -44,8 +44,11 @@ public static partial class ExecutionPlanPrinter
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}PrepareStructuralInput [{structuralInput.Target.Name}: {structuralInput.Plan.TargetType.DisplayName} <- {FormatExpression(structuralInput.Input)}; lifetime {structuralInput.Plan.Lifetime}; shape {structuralInput.Plan.InputShape.CanonicalType}]");
                 break;
             case ExecutionSourceScan sourceScan:
+                var sourceTypeName = FormatType(sourceScan.Source.Type);
+                if (sourceScan.Binding.QueryRowSourceTransfer is { } nativeTransfer)
+                    sourceTypeName = QueryRowSourceNaming.CreateCarrierTypeName(nativeTransfer.ShapeFingerprint, nativeTransfer.Carrier);
                 var sourceDescription =
-                    $"{prefix}SourceScan [{sourceScan.Source.Name}: {FormatType(sourceScan.Source.Type)}] -> {sourceScan.Rows.Name}" +
+                    $"{prefix}SourceScan [{sourceScan.Source.Name}: {sourceTypeName}] -> {sourceScan.Rows.Name}" +
                     (sourceScan.Binding.QueryRowSourceTransfer is { } transfer
                         ? $" [query-row:{transfer.Carrier};lifetime={transfer.Lifetime};shape={transfer.ShapeFingerprint}]"
                         : string.Empty);
@@ -143,10 +146,8 @@ public static partial class ExecutionPlanPrinter
             case ExecutionBreak:
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}Break");
                 break;
-            case ExecutionAdaptExpando adapt:
-                builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}AdaptExpando [{adapt.Target.Name}: {adapt.Shape.TypeName} <- {adapt.Source.Name}]");
-                break;
             case ExecutionCreateObject createObject: builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}CreateObject [{createObject.Target.Name}: {FormatType(createObject.Target.Type)}]"); break;
+            case ExecutionInitializeAggregateState initialize: builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}InitializeAggregateState [{initialize.Target.Name}: {FormatType(initialize.Target.Type)} via {initialize.ResetMethod.DisplayName}]"); break;
             case ExecutionMethodTargetDeclarationCandidate candidate: builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}CreateObjectCandidate [{candidate.Target.Name}: {FormatType(candidate.Target.Type)}]"); break;
             case ExecutionIf branch:
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}If [{FormatExpression(branch.Condition)}]");
@@ -214,9 +215,6 @@ public static partial class ExecutionPlanPrinter
                 break;
             case ExecutionMaterializeFilteredList materialize:
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}{FormatMaterializeFilteredName(materialize.Source)} [{FormatExpression(materialize.Source)} where {FormatExpression(materialize.Predicate)} -> {materialize.Buffer.Name}]");
-                break;
-            case ExecutionMaterializeExpandoList materialize:
-                builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}{FormatMaterializeExpandoName(materialize.Source)} [{FormatExpression(materialize.Source)}{FormatOptionalPredicate(materialize.Predicate)} as {materialize.Shape.TypeName} -> {materialize.Buffer.Name}]");
                 break;
             case ExecutionWindowKernelPlan plan:
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}WindowKernelPlan [{FormatWindowKernelPlanStrategy(plan.Strategy)}; kernels {plan.Kernels.Count.ToString(CultureInfo.InvariantCulture)}; {plan.Signature}]");

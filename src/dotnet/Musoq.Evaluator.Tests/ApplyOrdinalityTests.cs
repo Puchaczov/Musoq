@@ -30,9 +30,9 @@ order by a.City, b.Ordinal";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.Value", typeof(double)),
-            ("b.Ordinal", typeof(int)));
+            ("City", typeof(string)),
+            ("Value", typeof(double)),
+            ("Ordinal", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Alpha", 10d, 0],
@@ -64,9 +64,9 @@ order by child.Ordinal";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("child.Name", typeof(string)),
-            ("child.Score", typeof(int)),
-            ("child.Ordinal", typeof(int)));
+            ("Name", typeof(string)),
+            ("Score", typeof(int)),
+            ("Ordinal", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["first", 7, 0],
@@ -91,8 +91,8 @@ order by a.City, b.Ordinal";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.Ordinal", typeof(int?)));
+            ("City", typeof(string)),
+            ("Ordinal", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Empty", null],
@@ -121,9 +121,9 @@ order by a.City, b.Ordinal";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.Value", typeof(double?)),
-            ("b.Ordinal", typeof(int?)),
+            ("City", typeof(string)),
+            ("Value", typeof(double?)),
+            ("Ordinal", typeof(int?)),
             ("rn", typeof(long)),
             ("PreviousValue", typeof(double?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
@@ -156,11 +156,11 @@ order by leftValue.Ordinal, rightValue.Ordinal";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("leftValue.Value", typeof(double)),
-            ("leftValue.Ordinal", typeof(int)),
-            ("rightValue.Value", typeof(double)),
-            ("rightValue.Ordinal", typeof(int)));
+            ("City", typeof(string)),
+            ("Value", typeof(double)),
+            ("Ordinal", typeof(int)),
+            ("Value", typeof(double)),
+            ("Ordinal", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Alpha", 1d, 0, 10d, 0],
@@ -186,9 +186,9 @@ order by b.Ordinal";
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("a.City", typeof(string)),
-            ("b.Value", typeof(double)),
-            ("b.Ordinal", typeof(int)));
+            ("City", typeof(string)),
+            ("Value", typeof(double)),
+            ("Ordinal", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Alpha", 3d, 0],

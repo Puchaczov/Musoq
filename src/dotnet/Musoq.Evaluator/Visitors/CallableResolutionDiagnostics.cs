@@ -282,7 +282,7 @@ internal static class CallableResolutionDiagnostics
             .Select(static parameter => new Parameter(
                 parameter.ParameterType,
                 parameter.IsOptional && parameter.HasDefaultValue,
-                parameter.GetCustomAttribute<ParamArrayAttribute>() != null))
+                global::Musoq.Plugins.VariadicParameter.IsVariadic(parameter)))
             .ToArray();
     }
 
@@ -313,7 +313,7 @@ internal static class CallableResolutionDiagnostics
 
     private static int GetResolutionPriority(MethodInfo method)
     {
-        return method.GetCustomAttribute<AggregationMethodAttribute>() == null ? 10 : 0;
+        return method.GetCustomAttribute<AggregateFunctionAttribute>() == null ? 10 : 0;
     }
 
     private sealed record Parameter(Type ParameterType, bool IsOptional, bool IsParams)

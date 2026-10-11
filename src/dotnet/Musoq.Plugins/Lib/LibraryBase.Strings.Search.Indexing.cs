@@ -10,7 +10,7 @@ public partial class LibraryBase
     /// <param name="content">The content</param>
     /// <param name="what">The what</param>
     /// <returns>True if contains; otherwise false</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public bool? Contains(string? content, string? what)
     {
@@ -26,7 +26,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <param name="text">The text</param>
     /// <returns>Index of specific text</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public int? IndexOf(string? value, string? text)
     {
@@ -43,7 +43,7 @@ public partial class LibraryBase
     /// <param name="text">The text</param>
     /// <param name="index">The index</param>
     /// <returns>Index of specific text</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public int? NthIndexOf(string? value, string? text, int index)
     {
@@ -77,7 +77,7 @@ public partial class LibraryBase
     /// <param name="value">The content to search in</param>
     /// <param name="text">The pattern to find</param>
     /// <returns>Index of the last occurrence of the pattern</returns>
-    [BindableMethod]
+    [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.String)]
     public int? LastIndexOf(string? value, string? text)
     {

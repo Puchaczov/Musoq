@@ -1,4 +1,5 @@
 using System.Threading;
+using System.Linq;
 
 namespace Musoq.Converter.Build;
 
@@ -24,7 +25,9 @@ internal static class TargetArtifactSemanticFactsFactory
             items.UsedColumns,
             items.PipelineInferredColumns,
             items.SourcePlanRequestsPerSchema,
-            cancellationToken);
+            cancellationToken,
+            items.PlanningResult?.Facts.SourcePlanning.SourceDescriptorsBySourceId
+                .ToDictionary(static source => source.Key, static source => source.Value.ExecutionPermissions));
 
         cancellationToken.ThrowIfCancellationRequested();
         return facts;

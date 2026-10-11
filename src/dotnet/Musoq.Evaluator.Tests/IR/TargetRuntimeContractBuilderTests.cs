@@ -686,7 +686,7 @@ public sealed class TargetRuntimeContractBuilderTests
     [TestMethod]
     public void Build_WhenPlanComputesPluginWindow_ShouldDescribeWindowPluginInvocation()
     {
-        var rowNumber = ResolveLibraryMethod(nameof(LibraryBase.WindowRowNumber));
+        var rowNumber = ResolveLibraryMethod(nameof(LibraryBase.RowNumber));
         var plan = new ExecutionPlan(
             "Q_Window",
             [],
@@ -710,7 +710,7 @@ public sealed class TargetRuntimeContractBuilderTests
         var contract = Build(plan);
 
         Assert.AreEqual(1, contract.PluginInvocations.Count);
-        Assert.AreEqual("row_number -> Musoq.Plugins.LibraryBase.WindowRowNumber", contract.PluginInvocations[0].Detail);
+        Assert.AreEqual("row_number -> Musoq.Plugins.LibraryBase.RowNumber", contract.PluginInvocations[0].Detail);
         Assert.IsTrue(contract.Cancellation.RequiresCancellationToken);
         Assert.IsTrue(contract.Profiling.SupportsOperatorProfiling);
     }

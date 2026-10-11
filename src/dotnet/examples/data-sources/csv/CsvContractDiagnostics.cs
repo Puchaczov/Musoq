@@ -15,6 +15,17 @@ internal static class CsvContractDiagnostics
         ArgumentNullException.ThrowIfNull(parameters);
 
         var diagnostics = new List<SourceContractDiagnostic>();
+        foreach (var column in columns)
+        {
+            if (CsvValueReader.Supports(column.ColumnType))
+            {
+                CsvDecoderBinding.Prepare(column.ColumnType);
+                continue;
+            }
+            diagnostics.Add(SourceContractDiagnostic.Error(
+                    $"CSV column '{column.ColumnName}' has no native decoder for '{column.ColumnType}'.",
+                    "CsvUnsupportedColumnType") with { ColumnName = column.ColumnName });
+        }
         AddModifierDiagnostics(columns, diagnostics);
         var encoding = AddEncodingDiagnostics(columns, diagnostics);
         var options = CsvStaticFileOptions.From(parameters);
@@ -114,8 +125,8 @@ internal static class CsvContractDiagnostics
         try
         {
             using var stream = File.OpenRead(options.Path);
-            using var reader = new StreamReader(stream, CsvFileSource.ResolveEncoding(encodingName), detectEncodingFromByteOrderMarks: true);
-            using var records = CsvFileSource
+            using var reader = new StreamReader(stream, CsvTextFormat.ResolveEncoding(encodingName), detectEncodingFromByteOrderMarks: true);
+            using var records = CsvTextFormat
                 .ReadRecords(reader, options.Delimiter, CancellationToken.None)
                 .GetEnumerator();
 
@@ -131,6 +142,10 @@ internal static class CsvContractDiagnostics
                 rowNumber++;
                 AddShapeDiagnostics(records.Current, mappings, rowNumber, diagnostics);
             }
+        }
+        catch (Musoq.Schema.Diagnostics.DataSourceInputException exception)
+        {
+            diagnostics.Add(SourceContractDiagnostic.Error(exception.Message, "CsvMalformedQuotes"));
         }
         catch (FormatException exception)
         {
@@ -293,7 +308,7 @@ internal static class CsvContractDiagnostics
                     path,
                     hasHeader,
                     skipRows,
-                    CsvFileSource.ResolveDelimiter(delimiter),
+                    CsvTextFormat.ResolveDelimiter(delimiter),
                     null);
             }
             catch (ArgumentException exception)

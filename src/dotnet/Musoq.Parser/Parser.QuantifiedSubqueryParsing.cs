@@ -1,3 +1,4 @@
+using System.Linq;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
@@ -9,6 +10,7 @@ public partial class Parser
 {
     private Node ComposeQuantifiedSubquery(Node left, TokenType operatorType)
     {
+        var outerAlias = GetSingleQuantifiedOuterAlias();
         var quantifierToken = Current;
         var quantifier = quantifierToken.TokenType;
         Consume(quantifier);
@@ -46,7 +48,9 @@ public partial class Parser
                 DiagnosticCode.MQ2024_InvalidSubquery,
                 query.Select.Span);
 
-        var value = query.Select.Fields[0].Expression;
+        left = QualifyQuantifiedColumn(left, outerAlias);
+        var value = QualifyQuantifiedColumn(query.Select.Fields[0].Expression,
+            GetSingleQuantifiedSourceAlias(query.From));
         Node predicate = quantifier is TokenType.Any or TokenType.Some
             ? CreateAnyQuantifiedPredicate(left, operatorType, value)
             : CreateAllQuantifiedPredicate(left, operatorType, value);
@@ -69,6 +73,33 @@ public partial class Parser
 
         var exists = (ExistsQueryNode)new ExistsQueryNode(existsQuery).WithSpan(quantifiedSpan);
         return quantifier is TokenType.All ? new NotNode(exists) : exists;
+    }
+
+    private static Node QualifyQuantifiedColumn(Node node, string? alias)
+    {
+        if (node is not IdentifierNode identifier || string.IsNullOrEmpty(alias))
+            return node;
+
+        return new AccessColumnNode(identifier.Name, alias, identifier.ReturnType ?? typeof(void), identifier.Span)
+            .WithFullSpan(identifier.FullSpan);
+    }
+
+    private string? GetSingleQuantifiedOuterAlias()
+    {
+        if (_fromAliasesStack.Count == 0 || _fromAliasesStack.Peek().Count != 1)
+            return null;
+
+        return _fromAliasesStack.Peek().Single();
+    }
+
+    private static string? GetSingleQuantifiedSourceAlias(FromNode source)
+    {
+        return source switch
+        {
+            Nodes.From.ExpressionFromNode expression => GetSingleQuantifiedSourceAlias(expression.Expression),
+            Nodes.From.JoinNode or Nodes.From.JoinFromNode or Nodes.From.ApplyNode or Nodes.From.ApplyFromNode => null,
+            _ => source.Alias
+        };
     }
 
     private static AndNode CreateAnyQuantifiedPredicate(Node left, TokenType operatorType, Node right)

@@ -44,7 +44,7 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "NOT LIKE should exclude all case variations");
-        Assert.AreEqual("goodbye", table[0].Values[0]);
+        Assert.AreEqual("goodbye", table[0].ReadValues()[0]);
     }
 
 
@@ -71,9 +71,9 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "LIKE should match case-insensitively");
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "HELLO WORLD"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Hello There"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "hello everyone"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "HELLO WORLD"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Hello There"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "hello everyone"));
     }
 
     [TestMethod]
@@ -98,9 +98,9 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "LIKE should match case-insensitively");
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "hello world"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "HELLO WORLD"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Hello World"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "hello world"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "HELLO WORLD"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Hello World"));
     }
 
     [TestMethod]
@@ -125,9 +125,9 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "LIKE prefix should match case-insensitively");
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Testing"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "TEST123"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "test_value"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Testing"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "TEST123"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "test_value"));
     }
 
     [TestMethod]
@@ -171,9 +171,9 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "LIKE suffix should match case-insensitively");
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Testing"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "RUNNING"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "coding"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Testing"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "RUNNING"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "coding"));
     }
 
     [TestMethod]
@@ -198,9 +198,9 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "LIKE exact should match case-insensitively");
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Hello"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "HELLO"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "hello"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Hello"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "HELLO"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "hello"));
     }
 
     [TestMethod]
@@ -225,9 +225,9 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "LIKE with _ wildcard should match case-insensitively");
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "test"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "TEST"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "TesT"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "test"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "TEST"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "TesT"));
     }
 
     [TestMethod]
@@ -251,8 +251,8 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "LIKE should match Polish text case-insensitively");
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Zażółć gęślą jaźń"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "ZAŻÓŁĆ GĘŚLĄ JAŹŃ"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Zażółć gęślą jaźń"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "ZAŻÓŁĆ GĘŚLĄ JAŹŃ"));
     }
 
     [TestMethod]
@@ -276,8 +276,8 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "LIKE should match German text case-insensitively");
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "München"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "MÜNCHEN"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "München"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "MÜNCHEN"));
     }
 
     [TestMethod]
@@ -302,9 +302,9 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "LIKE should match Cyrillic text case-insensitively");
 
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Привет мир"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "ПРИВЕТ МИР"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "привет всем"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Привет мир"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "ПРИВЕТ МИР"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "привет всем"));
     }
 
 

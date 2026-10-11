@@ -9,7 +9,7 @@ using PhysicalPlanPrinter = Musoq.Evaluator.IR.Physical.PhysicalPlanPrinter;
 namespace Musoq.Evaluator.Tests.IR;
 
 [TestClass]
-public sealed class PhysicalPlanTextPredicatePushdownTests : BasicEntityTestBase
+public sealed partial class PhysicalPlanTextPredicatePushdownTests : BasicEntityTestBase
 {
     [TestMethod]
     public void Print_WhenJoinWhereCanBeSplitAcrossSources_ShouldShowPushdownOnEachScan()
@@ -28,7 +28,7 @@ public sealed class PhysicalPlanTextPredicatePushdownTests : BasicEntityTestBase
                 "        PhysicalSchemaScan [#A.Entities() as a] [pushdown: (a.Population > 100)]",
                 "      PhysicalFilter [(b.City = 'NYC')]",
                 "        PhysicalSchemaScan [#B.Entities() as b] [pushdown: (b.City = 'NYC')]",
-                "  PhysicalProject [a.Name as a.Name, b.City as b.City]",
+                "  PhysicalProject [a.Name as Name, b.City as City]",
                 "    PhysicalFilter [((a.Population > 100) AND (b.City = 'NYC'))]",
                 "      PhysicalCteRef [ab as ab]"),
             planText);
@@ -110,7 +110,7 @@ public sealed class PhysicalPlanTextPredicatePushdownTests : BasicEntityTestBase
                 "    PhysicalHashJoin [Inner] [build: b.City] [probe: a.City]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
-                "  PhysicalProject [a.Name as a.Name, b.City as b.City]",
+                "  PhysicalProject [a.Name as Name, b.City as City]",
                 "    PhysicalFilter [((a.Population > 100) OR (b.City = 'NYC'))]",
                 "      PhysicalCteRef [ab as ab]"),
             planText);
@@ -143,7 +143,7 @@ public sealed class PhysicalPlanTextPredicatePushdownTests : BasicEntityTestBase
                 "    PhysicalHashJoin [Inner] [build: b.City] [probe: a.City]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
-                "  PhysicalProject [a.Name as a.Name, b.City as b.City]",
+                "  PhysicalProject [a.Name as Name, b.City as City]",
                 "    PhysicalFilter [(a.Population > b.Population)]",
                 "      PhysicalCteRef [ab as ab]"),
             planText);
@@ -168,7 +168,7 @@ public sealed class PhysicalPlanTextPredicatePushdownTests : BasicEntityTestBase
 
         Assert.Contains("predicate where: 1 = 1", buildItems.RequirePlanningText());
         Assert.Contains("RetainedRuntimeOnly", buildItems.RequirePlanningText());
-        Assert.Contains("Predicate was retained for runtime because source-local rewrite produced a neutral predicate.", buildItems.RequirePlanningText());
+        Assert.Contains("The complete WHERE predicate is unstable or potentially throwing; its evaluation boundary is retained.", buildItems.RequirePlanningText());
     }
 
     [TestMethod]
@@ -198,7 +198,7 @@ public sealed class PhysicalPlanTextPredicatePushdownTests : BasicEntityTestBase
                 "      PhysicalSingleKeyAggregate [key: e.City (String)] [aggs: Count(City)]",
                 "        PhysicalFilter [(e.Population > 100)]",
                 "          PhysicalSchemaScan [#A.Entities() as e] [pushdown: (e.Population > 100)]",
-                "  PhysicalProject [e.City as e.City, e.Count(e.City) as CityCount]",
+                "  PhysicalProject [e.City as City, e.Count(e.City) as CityCount]",
                 "    PhysicalCteRef [eScore as eScore]"),
             planText);
     }
