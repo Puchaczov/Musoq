@@ -163,7 +163,7 @@ public sealed class ReleasePackagingGuardrailTests
     }
 
     [TestMethod]
-    public void ReleaseWorkflows_ShouldSupportBranchSpecificQualification()
+    public void ReleaseWorkflows_ShouldQualifyBranchPushesWithoutTagTriggeredCi()
     {
         var ciWorkflow = File.ReadAllText(Path.Combine(
             RepositoryRoot,
@@ -177,12 +177,17 @@ public sealed class ReleasePackagingGuardrailTests
             "publish.yml"));
 
         StringAssert.Contains(ciWorkflow, "- 'release/**'");
-        StringAssert.Contains(ciWorkflow, "- 'v*.*.*-alpha.*'");
-        StringAssert.Contains(ciWorkflow, "- '*/v*.*.*-alpha.*'");
+        StringAssert.Contains(ciWorkflow, "- master");
+        StringAssert.Contains(ciWorkflow, "pull_request:");
+        Assert.IsFalse(
+            ciWorkflow.Contains("\n    tags:", StringComparison.Ordinal),
+            "Release tags must reuse branch CI qualification instead of starting another validation matrix.");
         Assert.IsFalse(
             ciWorkflow.Contains("- '**'", StringComparison.Ordinal),
             "CI must not run the full validation matrix on every arbitrary branch push.");
 
+        StringAssert.Contains(publishWorkflow, "- 'v*.*.*'");
+        StringAssert.Contains(publishWorkflow, "- '*/v*.*.*'");
         StringAssert.Contains(publishWorkflow, "requires_release_branch");
         StringAssert.Contains(publishWorkflow, "Get-CiQualificationDecision");
         StringAssert.Contains(publishWorkflow, "head_branch");
@@ -190,7 +195,7 @@ public sealed class ReleasePackagingGuardrailTests
         StringAssert.Contains(publishWorkflow, "AddMinutes(90)");
         Assert.IsFalse(
             publishWorkflow.Contains("$attempt -le 3", StringComparison.Ordinal),
-            "Publish must wait for tag-triggered alpha CI instead of using the old short retry window.");
+            "Publish must retain its qualification wait window instead of using the old short retry window.");
     }
 
     private static string[] InternalTargetProjects { get; } =
