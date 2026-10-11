@@ -4,6 +4,30 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.12-alpha.1
+
+See the curated full-train release notes for [Musoq 17.0.12-alpha.1](release-notes/v17.0.12-alpha.1.md).
+
+### Native typed execution and public APIs
+
+- Carry concrete source rows, parameters, records, collections, keys, aggregate/window state, and results through planning, storage, generated code, and typed result consumption.
+- Add library-owned immutable SQL catalogs and explicitly registered concrete aggregate/window kernels. Custom sources and functions execute serially unless their declared permissions permit concurrency.
+- Remove legacy object-valued execution and aggregate/window factory contracts; reject incompatible execution artifacts.
+
+### SQL correctness and diagnostics
+
+- Correct correlated APPLY/subqueries, CTE schema binding, nullable joins and ASOF probes, set operations, scalar-subquery cardinality, window frames, and structured input ownership/defaults.
+- Preserve safe negated-predicate transfer and SQL membership semantics, including nulls and promoted numeric comparisons.
+- Bound LIKE/RLIKE execution with a configurable regex timeout, defaulting to two seconds, and report MQ7017 safely.
+- Improve TABLE/provider type and nullability validation, binary/text interpretation, and structured diagnostic locations.
+
+### Compatibility and documentation
+
+- Implicit simple-column and wildcard outputs now use unqualified names. Use explicit aliases to preserve qualified labels or ensure unique names.
+- Integral Avg returns nullable decimal; Sum/Min/Max preserve nullable numeric input types, Count returns long, and empty non-count aggregates return null.
+- This intentionally breaking alpha requires providers and libraries to rebuild against the complete five-package train and adopt native typed execution. Converter continues to bundle the execution targets.
+- Refresh portable language specifications and executable SQL examples. The earlier 17.0.11-alpha.2 entry records local preparation; that version was not published to NuGet.
+
 ## 17.0.11-alpha.2
 
 See the curated package release notes for [Musoq.Parser](release-notes/parser/v17.0.11-alpha.2.md), [Musoq.Plugins](release-notes/plugins/v17.0.11-alpha.2.md), [Musoq.Schema](release-notes/schema/v17.0.11-alpha.2.md), [Musoq.Evaluator](release-notes/evaluator/v17.0.11-alpha.2.md), and [Musoq.Converter](release-notes/converter/v17.0.11-alpha.2.md).

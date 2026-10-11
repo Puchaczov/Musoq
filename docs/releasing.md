@@ -54,6 +54,19 @@ change itself must first reach `master` so that future release branches inherit
 the trigger and qualification rules. Older branches must incorporate that
 workflow change before using the any-branch alpha path.
 
+## Repository boundary
+
+A Core package release changes and publishes only this repository. Do not modify
+any other repositories, synchronize their documentation, rebuild their
+consumers, or install packages into their checkouts as part of Core publication.
+Those repositories have separate upgrade, documentation, validation, and release
+waves. Record downstream migration or documentation requirements in the Core
+release notes; read-only inspection does not authorize downstream changes.
+
+Cross-repository work requires an explicit request for the named repository and
+action. The release scripts and publication workflow operate within the Core
+checkout and publish only the packages selected from its registry.
+
 ## Local qualification
 
 Run the release scripts, build, tests, package pack, and package smoke checks
